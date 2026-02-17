@@ -1,0 +1,8 @@
+node_modules/
+.kb/branches/
+dist/
+*.log
+.turbo/
+# Do NOT ignore these project files (kept intentionally tracked):
+#! .kb/config.json
+#! .kb/schema/

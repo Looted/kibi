@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Kibi config schema",
+  "type": "object",
+  "properties": {
+    "documents": {
+      "type": "string",
+      "description": "glob pattern for documents"
+    },
+    "requirements": {
+      "type": "string",
+      "description": "glob pattern for requirements"
+    },
+    "scenarios": {
+      "type": "string",
+      "description": "glob pattern for scenarios"
+    },
+    "tests": { "type": "string", "description": "glob pattern for tests" },
+    "adr": {
+      "type": "string",
+      "description": "glob pattern for architectural decision records"
+    },
+    "flags": {
+      "type": "string",
+      "description": "glob pattern for feature flags"
+    },
+    "events": { "type": "string", "description": "glob pattern for events" },
+    "symbols": {
+      "type": "string",
+      "description": "glob pattern for exported symbols"
+    }
+  },
+  "additionalProperties": false
+}

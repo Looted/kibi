@@ -1,0 +1,15 @@
+{
+  "name": "@kibi/cli",
+  "version": "0.1.0",
+  "private": true,
+  "bin": {
+    "kibi": "./bin/kibi"
+  },
+  "dependencies": {
+    "commander": "^11.0.0",
+    "ajv": "^8.12.0",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "fast-glob": "^3.2.12"
+  }
+}

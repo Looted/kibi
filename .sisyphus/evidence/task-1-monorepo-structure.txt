@@ -1,0 +1,10 @@
+Packages:
+cli
+core
+mcp
+vscode
+
+Workspaces:
+[
+  "packages/*"
+]

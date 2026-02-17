@@ -1,0 +1,6 @@
+{
+  "name": "@kibi/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MCP server (stdio transport) placeholder"
+}
