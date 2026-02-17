@@ -341,6 +341,25 @@ execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "inherit" });
 - process.exit() calls needed for proper exit codes
 - execSync throws on non-zero exit, need try/catch for error handling tests
 
+## [2026-02-17T22:20Z] Task 16: Git hooks (post-checkout, post-merge)
+
+- Implemented git hook shell scripts under packages/cli/src/hooks/
+  - post-checkout.sh: runs `kibi branch ensure && kibi sync` when branch_flag=1
+  - post-merge.sh: runs `kibi sync`
+
+- Added CLI branch ensure command: packages/cli/src/commands/branch.ts
+  - Copies `.kb/branches/main` to `.kb/branches/<current-branch>` when missing
+
+- Tests added: packages/cli/tests/hooks.test.ts
+  - Creates a temp git repo, runs `bun packages/cli/bin/kibi init --hooks`, and asserts hooks exist and are executable
+
+- Test invocation note: Tests should run the CLI via Bun (bun <bin>), not Node, because the bin imports .ts ESM sources which Node cannot load directly.
+
+Learnings:
+- Use `bun <path-to-bin>` in tests for ES module TypeScript entrypoints in this repo; Node will fail on direct .ts imports.
+- When installing hooks in `init`, prefer copying prepared shell scripts from packages/cli/src/hooks and setting mode 0o755 to ensure correct permissions.
+
+
 ## [2026-02-17] Task 10: CLI sync command
 
 ### Implementation
@@ -909,4 +928,3 @@ These are acceptable for v1 - optimize in later iterations if needed.
 - **Files**: server.test.ts, branch.test.ts, check.test.ts, crud.test.ts
 - **Status**: 44 pass, 0 fail
 - **Time**: ~12-13 seconds for full suite
-

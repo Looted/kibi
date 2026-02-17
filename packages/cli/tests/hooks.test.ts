@@ -1,3 +1,5 @@
+// @ts-nocheck
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
@@ -9,9 +11,9 @@ describe("Git hooks", () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     execSync("git init", { cwd: tmpDir });
-    const kibiBin = path.resolve(__dirname, "../../bin/kibi");
-    // run init with hooks via node entry
-    execSync(`node ${kibiBin} init --hooks`, { cwd: tmpDir });
+    const kibiBin = path.resolve(process.cwd(), "packages/cli/bin/kibi");
+    // run init with hooks via bun (match other CLI tests)
+    execSync(`bun ${kibiBin} init --hooks`, { cwd: tmpDir, stdio: "inherit" });
   });
 
   afterEach(() => {
