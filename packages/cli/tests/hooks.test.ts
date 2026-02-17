@@ -11,7 +11,7 @@ describe("Git hooks", () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     execSync("git init", { cwd: tmpDir });
-    const kibiBin = path.resolve(process.cwd(), "packages/cli/bin/kibi");
+    const kibiBin = path.resolve(__dirname, "../bin/kibi");
     // run init with hooks via bun (match other CLI tests)
     execSync(`bun ${kibiBin} init --hooks`, { cwd: tmpDir, stdio: "inherit" });
   });
