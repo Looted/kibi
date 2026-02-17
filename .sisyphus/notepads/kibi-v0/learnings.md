@@ -359,6 +359,20 @@ Learnings:
 - Use `bun <path-to-bin>` in tests for ES module TypeScript entrypoints in this repo; Node will fail on direct .ts imports.
 - When installing hooks in `init`, prefer copying prepared shell scripts from packages/cli/src/hooks and setting mode 0o755 to ensure correct permissions.
 
+## [2026-02-17T22:35Z] Task 16 follow-up: verification & notes
+
+- Tests ran: `bun test packages/cli/tests/hooks.test.ts` → 2 passed, 0 failed
+- Verification steps performed:
+  - Created a temporary git repo in tests and ran `bun packages/cli/bin/kibi init --hooks` to install hooks
+  - Confirmed that `.git/hooks/post-checkout` and `.git/hooks/post-merge` exist and have executable bits set
+  - Confirmed `post-checkout` script only runs on branch switches (it relies on branch_flag == "1") and executes `kibi branch ensure && kibi sync`
+  - Confirmed `post-merge` script invokes `kibi sync`
+
+- Recommendations:
+  - Switch `init` implementation to copy the scripts from `packages/cli/src/hooks/` (use path.resolve and fs.cpSync) so the on-disk hooks match the source files and are easier to maintain.
+  - Save test output evidence to `.sisyphus/evidence/task-16-hooks-test-output.txt` if archival is required by CI policy.
+
+
 
 ## [2026-02-17] Task 10: CLI sync command
 
@@ -928,3 +942,16 @@ These are acceptable for v1 - optimize in later iterations if needed.
 - **Files**: server.test.ts, branch.test.ts, check.test.ts, crud.test.ts
 - **Status**: 44 pass, 0 fail
 - **Time**: ~12-13 seconds for full suite
+
+## [2026-02-17T23:05:00Z] Task: T17
+- Implemented `kibi gc` CLI command and tests.
+- Git branch parsing: ensured we strip single quotes from `git branch` output.
+- Important: pass `env: process.env` to execSync for GIT_CEILING_DIRECTORIES.
+- Tests use `path.resolve(__dirname, "../../bin/kibi")` to locate the CLI binary and run via `bun`.
+- Commander flags: default to dry-run; `--force` triggers deletion.
+- Use bun to execute TypeScript entrypoint (bin/kibi imports .ts).
+- Evidence saved to `.sisyphus/evidence/task-17-gc-tests.txt`.
+
+Notes:
+- Preserved `.kb/branches/main` always.
+- Kept minimal runtime-only TypeScript checks disabled in gc.ts to avoid LSP noise for node lib typings in this environment.

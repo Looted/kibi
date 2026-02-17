@@ -1652,7 +1652,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 16. Git hooks (post-checkout, post-merge)
+ - [x] 16. Git hooks (post-checkout, post-merge)
 
   **What to do**:
   - Create `packages/cli/src/hooks/post-checkout.sh`:
@@ -1743,7 +1743,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 17. CLI: kibi gc (cleanup stale branch KBs)
+ - [x] 17. CLI: kibi gc (cleanup stale branch KBs)
 
   **What to do**:
   - Implement `kibi gc` command:

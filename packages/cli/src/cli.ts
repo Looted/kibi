@@ -3,6 +3,7 @@ import packageJson from "../package.json";
 import { branchEnsureCommand } from "./commands/branch";
 import { checkCommand } from "./commands/check";
 import { doctorCommand } from "./commands/doctor";
+import { gcCommand } from "./commands/gc.js";
 import { initCommand } from "./commands/init";
 import { queryCommand } from "./commands/query";
 import { syncCommand } from "./commands/sync";
@@ -52,9 +53,12 @@ program
 
 program
   .command("gc")
-  .description("Garbage collect orphaned entities")
-  .action(() => {
-    console.log("TODO: gc command not yet implemented");
+  .description("Garbage collect stale branch KBs")
+  .option("--dry-run", "Preview without deleting (default)", true)
+  .option("--force", "Actually delete stale branches")
+  .action(async (options) => {
+    const dryRun = !options.force;
+    await gcCommand({ dryRun, force: options.force });
   });
 
 program
