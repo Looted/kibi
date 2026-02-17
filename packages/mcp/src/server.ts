@@ -2,6 +2,9 @@ import path from "node:path";
 import process from "node:process";
 import { createInterface } from "node:readline";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
+import { type QueryArgs, handleKbQuery } from "./tools/query.js";
+import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 
 // JSON-RPC 2.0 Types
 interface JsonRpcRequest {
@@ -279,25 +282,101 @@ async function handleToolsList(): Promise<Record<string, unknown>> {
 }
 
 /**
- * Handle tool invocation (stub for T14/T15)
+ * Handle tool invocation
  */
 async function handleToolCall(
   toolName: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   params: unknown,
 ): Promise<unknown> {
-  // Stub implementation - actual tool logic in T14/T15
-  console.error(`[MCP] Tool call stub: ${toolName}`);
+  console.error(`[MCP] Tool call: ${toolName}`);
 
   if (!isInitialized || !prologProcess?.isRunning()) {
-    throw new Error("Prolog process not initialized");
+    const error = new Error("KB not attached");
+    error.name = "KB_NOT_ATTACHED";
+    throw error;
   }
 
-  return {
-    success: true,
-    message: `Tool '${toolName}' executed (stub implementation)`,
-    params,
-  };
+  try {
+    switch (toolName) {
+      case "kb_query":
+        return await handleKbQuery(
+          prologProcess,
+          params as Record<string, unknown>,
+        );
+
+      case "kb_upsert":
+        return await handleKbUpsert(prologProcess, params as UpsertArgs);
+
+      case "kb_delete":
+        return await handleKbDelete(prologProcess, params as DeleteArgs);
+
+      case "kb_list_entity_types":
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Available entity types: req, scenario, test, adr, flag, event, symbol",
+            },
+          ],
+          structuredContent: {
+            types: [
+              "req",
+              "scenario",
+              "test",
+              "adr",
+              "flag",
+              "event",
+              "symbol",
+            ],
+          },
+        };
+
+      case "kb_list_relationship_types":
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Available relationship types: depends_on, specified_by, verified_by, implements, covered_by, constrained_by, guards, publishes, consumes, relates_to",
+            },
+          ],
+          structuredContent: {
+            types: [
+              "depends_on",
+              "specified_by",
+              "verified_by",
+              "implements",
+              "covered_by",
+              "constrained_by",
+              "guards",
+              "publishes",
+              "consumes",
+              "relates_to",
+            ],
+          },
+        };
+
+      case "kb_check":
+        // Stub for T15
+        return {
+          content: [{ type: "text", text: "Check tool not yet implemented" }],
+        };
+
+      default:
+        throw new Error(`Unknown tool: ${toolName}`);
+    }
+  } catch (error) {
+    // Re-throw with proper error type
+    if (error instanceof Error) {
+      if (error.name === "KB_NOT_ATTACHED") {
+        error.name = "KB_NOT_ATTACHED";
+      } else if (error.message.includes("validation failed")) {
+        const validationError = new Error(error.message);
+        validationError.name = "VALIDATION_ERROR";
+        throw validationError;
+      }
+    }
+    throw error;
+  }
 }
 
 /**
