@@ -979,7 +979,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 9. CLI: kibi init + kibi doctor
+- [x] 9. CLI: kibi init + kibi doctor ✅ COMPLETE
 
   **What to do**:
   - Implement `kibi init` command:

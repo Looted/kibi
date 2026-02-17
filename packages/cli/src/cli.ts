@@ -1,5 +1,7 @@
 import { Command } from "commander";
 import packageJson from "../package.json";
+import { doctorCommand } from "./commands/doctor";
+import { initCommand } from "./commands/init";
 
 const program = new Command();
 
@@ -11,8 +13,9 @@ program
 program
   .command("init")
   .description("Initialize .kb/ directory")
-  .action(() => {
-    console.log("TODO: init command not yet implemented");
+  .option("--hooks", "Install git hooks (post-checkout, post-merge)")
+  .action(async (options) => {
+    await initCommand(options);
   });
 
 program
@@ -46,8 +49,8 @@ program
 program
   .command("doctor")
   .description("Diagnose KB setup and configuration")
-  .action(() => {
-    console.log("TODO: doctor command not yet implemented");
+  .action(async () => {
+    await doctorCommand();
   });
 
 program.parse(process.argv);

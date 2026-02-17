@@ -1,0 +1,10 @@
+Kibi Environment Diagnostics
+
+✓ SWI-Prolog: Version version 9.2 installed
+✗ .kb/ directory: Not found
+  → Run: kibi init
+✗ config.json: Not found
+  → Run: kibi init
+✓ Git repository: Found
+✓ Git hooks: Not installed (optional)
+Some checks failed. Please address the issues above.

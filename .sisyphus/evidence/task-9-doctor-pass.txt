@@ -1,0 +1,8 @@
+Kibi Environment Diagnostics
+
+✓ SWI-Prolog: Version version 9.2 installed
+✓ .kb/ directory: Found
+✓ config.json: Valid JSON
+✓ Git repository: Found
+✓ Git hooks: Not installed (optional)
+All checks passed! Your environment is ready.

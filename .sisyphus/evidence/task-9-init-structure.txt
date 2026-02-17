@@ -1,0 +1,14 @@
+.kb/:
+branches
+config.json
+schema
+
+.kb/branches:
+main
+
+.kb/branches/main:
+
+.kb/schema:
+entities.pl
+relationships.pl
+validation.pl

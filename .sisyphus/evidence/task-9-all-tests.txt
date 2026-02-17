@@ -1,0 +1,291 @@
+bun test v1.3.6 (d530ed99)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+
+tests/commands/doctor.test.ts:
+71 |         stderr?: { toString(): string };
+72 |         stdout?: { toString(): string };
+73 |       };
+74 |       expect(error.status).toBe(1);
+75 |       const output = error.stdout?.toString() || error.stderr?.toString() || "";
+76 |       expect(output).toContain("✗");
+                          ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "✗"
+Received: "error: Script not found \"packages/cli/bin/kibi\"\n"
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:76:22)
+(fail) kibi doctor > checks .kb/ directory exists [19.83ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+ 96 |         stderr?: { toString(): string };
+ 97 |         stdout?: { toString(): string };
+ 98 |       };
+ 99 |       expect(error.status).toBe(1);
+100 |       const output = error.stdout?.toString() || error.stderr?.toString() || "";
+101 |       expect(output).toContain("✗");
+                           ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "✗"
+Received: "error: Script not found \"packages/cli/bin/kibi\"\n"
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:101:22)
+(fail) kibi doctor > validates config.json is valid JSON [15.95ms]
+122 |         stderr?: { toString(): string };
+123 |         stdout?: { toString(): string };
+124 |       };
+125 |       expect(error.status).toBe(1);
+126 |       const output = error.stdout?.toString() || error.stderr?.toString() || "";
+127 |       expect(output).toContain("✗");
+                           ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "✗"
+Received: "error: Script not found \"packages/cli/bin/kibi\"\n"
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:127:22)
+(fail) kibi doctor > checks git repository exists [7.32ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+144 |         status: number;
+145 |         stderr?: { toString(): string };
+146 |         stdout?: { toString(): string };
+147 |       };
+148 |       const output = error.stdout?.toString() || error.stderr?.toString() || "";
+149 |       expect(output.toLowerCase()).toContain("kibi init");
+                                         ^
+error: expect(received).toContain(expected)
+
+Expected to contain: "kibi init"
+Received: "error: script not found \"packages/cli/bin/kibi\"\n"
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:149:36)
+(fail) kibi doctor > provides remediation suggestions for missing .kb/ [17.25ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+150 |     }
+151 |   });
+152 | 
+153 |   test("checks git hooks if --hooks was used", () => {
+154 |     execSync("git init", { cwd: tmpDir });
+155 |     execSync("bun run packages/cli/bin/kibi init --hooks", {
+          ^
+error: Command failed: bun run packages/cli/bin/kibi init --hooks
+error: Script not found "packages/cli/bin/kibi"
+
+      at execSync (node:child_process:280:14)
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:155:5)
+(fail) kibi doctor > checks git hooks if --hooks was used [17.94ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+error: Script not found "packages/cli/bin/kibi"
+170 |     execSync(`bun ${kibiBin} init`, {
+171 |       cwd: tmpDir,
+172 |       stdio: "pipe",
+173 |     });
+174 | 
+175 |     const result = execSync("bun run packages/cli/bin/kibi doctor", {
+                         ^
+error: Command failed: bun run packages/cli/bin/kibi doctor
+error: Script not found "packages/cli/bin/kibi"
+
+      at execSync (node:child_process:280:14)
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:175:20)
+(fail) kibi doctor > exits with code 0 if all checks pass [161.47ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+210 |     const checkOrder = ["SWI-Prolog", ".kb", "config.json", "git"];
+211 | 
+212 |     let lastIndex = -1;
+213 |     for (const check of checkOrder) {
+214 |       const index = lines.findIndex((line: string) => line.includes(check));
+215 |       expect(index).toBeGreaterThan(lastIndex);
+                          ^
+error: expect(received).toBeGreaterThan(expected)
+
+Expected: > 4
+Received: -1
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/doctor.test.ts:215:21)
+(fail) kibi doctor > reports checks in order [283.10ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 3 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 3 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 3 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 3 schema files
+✓ Created branches/main/ directory
+✓ Installed git hooks (post-checkout, post-merge)
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 3 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+
+ 11 pass
+ 7 fail
+ 41 expect() calls
+Ran 18 tests across 2 files. [2.05s]

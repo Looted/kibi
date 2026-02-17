@@ -1,0 +1,100 @@
+bun test v1.3.6 (d530ed99)
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 0 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 0 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+
+tests/commands/init.test.ts:
+44 |     execSync(`bun ${kibiBin} init`, {
+45 |       cwd: tmpDir,
+46 |       stdio: "inherit",
+47 |     });
+48 | 
+49 |     expect(existsSync(path.join(tmpDir, ".kb/schema/entities.pl"))).toBe(true);
+                                                                         ^
+error: expect(received).toBe(expected)
+
+Expected: true
+Received: false
+
+      at <anonymous> (/home/looted/projects/kibi/packages/cli/tests/commands/init.test.ts:49:69)
+(fail) kibi init > copies schema files to .kb/schema/ [122.99ms]
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 0 schema files
+✓ Created branches/main/ directory
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+✓ Created .kb/ directory structure
+✓ Created config.json with default paths
+✓ Copied 0 schema files
+✓ Created branches/main/ directory
+✓ Installed git hooks (post-checkout, post-merge)
+
+Kibi initialized successfully!
+Next steps:
+  1. Run 'kibi doctor' to verify setup
+  2. Run 'kibi sync' to extract entities from documents
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 

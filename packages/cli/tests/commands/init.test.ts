@@ -1,0 +1,154 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { execSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+
+describe("kibi init", () => {
+  let tmpDir: string;
+  const kibiBin = path.resolve(__dirname, "../../bin/kibi");
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-init-"));
+  });
+
+  afterEach(() => {
+    if (tmpDir && existsSync(tmpDir)) {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("creates .kb directory structure", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+  });
+
+  test("copies schema files to .kb/schema/", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    expect(existsSync(path.join(tmpDir, ".kb/schema/entities.pl"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/schema/relationships.pl"))).toBe(
+      true,
+    );
+    expect(existsSync(path.join(tmpDir, ".kb/schema/validation.pl"))).toBe(
+      true,
+    );
+  });
+
+  test("creates valid config.json with default paths", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const configPath = path.join(tmpDir, ".kb/config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+
+    expect(config.paths).toBeDefined();
+    expect(config.paths.requirements).toBe("requirements/**/*.md");
+    expect(config.paths.scenarios).toBe("scenarios/**/*.md");
+    expect(config.paths.tests).toBe("tests/**/*.md");
+    expect(config.paths.adr).toBe("adr/**/*.md");
+    expect(config.paths.flags).toBe("flags/**/*.md");
+    expect(config.paths.events).toBe("events/**/*.md");
+    expect(config.paths.symbols).toBe("symbols.yaml");
+  });
+
+  test("fails if .kb already exists", () => {
+    mkdirSync(path.join(tmpDir, ".kb"));
+
+    expect(() => {
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+    }).toThrow();
+  });
+
+  test("installs git hooks with --hooks flag", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --hooks`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const postCheckout = path.join(tmpDir, ".git/hooks/post-checkout");
+    const postMerge = path.join(tmpDir, ".git/hooks/post-merge");
+
+    expect(existsSync(postCheckout)).toBe(true);
+    expect(existsSync(postMerge)).toBe(true);
+
+    // Check executable bit
+    const checkoutStats = statSync(postCheckout);
+    const mergeStats = statSync(postMerge);
+    expect(checkoutStats.mode & 0o111).not.toBe(0);
+    expect(mergeStats.mode & 0o111).not.toBe(0);
+  });
+
+  test("does not install hooks without --hooks flag", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const postCheckout = path.join(tmpDir, ".git/hooks/post-checkout");
+    const postMerge = path.join(tmpDir, ".git/hooks/post-merge");
+
+    expect(existsSync(postCheckout)).toBe(false);
+    expect(existsSync(postMerge)).toBe(false);
+  });
+
+  test("exits with code 0 on success", () => {
+    execSync("git init", { cwd: tmpDir });
+
+    const result = execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+
+    expect(result).toBeDefined();
+  });
+
+  test("provides helpful error if .kb/ already exists", () => {
+    mkdirSync(path.join(tmpDir, ".kb"));
+
+    try {
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      throw new Error("Should have failed");
+    } catch (err) {
+      const error = err as {
+        status: number;
+        stderr?: { toString(): string };
+        stdout?: { toString(): string };
+      };
+      expect(error.status).not.toBe(0);
+      const output = error.stderr?.toString() || error.stdout?.toString() || "";
+      expect(output.toLowerCase()).toContain("already exists");
+    }
+  });
+});
