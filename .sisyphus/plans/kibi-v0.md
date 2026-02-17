@@ -1831,7 +1831,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 18. VS Code extension scaffolding (TreeView)
+ - [x] 18. VS Code extension scaffolding (TreeView)
 
   **What to do**:
   - Create `packages/vscode/` TypeScript extension project

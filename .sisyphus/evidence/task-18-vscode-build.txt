@@ -1,0 +1,27 @@
+=== Build Output ===
+$ esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify
+
+  dist/extension.js  2.2kb
+
+⚡ Done in 3ms
+
+=== Test Output ===
+bun test v1.3.6 (d530ed99)
+
+ 3 pass
+ 0 fail
+ 12 expect() calls
+Ran 3 tests across 1 file. [9.00ms]
+
+=== Package Contents ===
+Archive:  kibi-vscode-0.1.0.vsix
+  Length      Date    Time    Name
+---------  ---------- -----   ----
+     2503  2026-02-17 21:58   extension.vsixmanifest
+      410  2026-02-17 21:58   [Content_Types].xml
+     1970  2026-02-17 21:58   extension/package.json
+     4789  2026-02-17 21:58   extension/icon.png
+     2318  2026-02-17 21:58   extension/readme.md
+     2265  2026-02-17 21:58   extension/dist/extension.js
+---------                     -------
+    14255                     6 files

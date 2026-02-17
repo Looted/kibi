@@ -8,6 +8,46 @@
 - Ajv requires meta-schemas or formats to be available. I avoided depending on ajv internal refs by removing format usages from the JSON Schema and adding ajv-formats in tests.
 - changeset schema references to other schemas resolved by registering dependent schemas via ajv.addSchema(..., '<id>'). Set $id in schemas to match registration.
 
+## [2026-02-17] Task: T18 (VS Code Extension - TreeView)
+- Created complete VS Code extension in packages/vscode/ with TreeView scaffolding
+- Implemented TreeDataProvider with 7 entity types (Requirements, Scenarios, Tests, ADRs, Flags, Events, Symbols)
+- All TreeView nodes show placeholder "Click to load..." children (v0 scope)
+- Added MCP server integration in package.json contributions
+- Build succeeds: esbuild creates 2.2kb dist/extension.js
+- VSIX packaging works: kibi-vscode-0.1.0.vsix (9.4kb)
+- Tests pass: Mock TreeDataProvider tests without vscode dependency
+
+### Key Files Created
+- src/extension.ts: activate/deactivate with TreeView registration
+- src/treeProvider.ts: KibiTreeDataProvider implementing vscode.TreeDataProvider
+- package.json: Extension manifest with views, commands, MCP server config
+- icon.png/svg: Extension icon (blue gradient with knowledge base pattern)
+- README.md: Installation and usage documentation
+- tests/extension.test.ts: Unit tests with mocked TreeDataProvider
+
+### Technical Learnings
+- VS Code extensions require CommonJS format (not ESM) for main bundle
+- TreeDataProvider needs EventEmitter for refresh capability
+- VSIX packaging excludes parent directories by default but includes too much - need strict .vscodeignore
+- MCP contribution format: contributes.mcp.servers.{name} with command/args
+- SVG icons not supported in VSIX, must convert to PNG
+- Tests can't import vscode module - use mocks for logic testing
+- Activation events: onStartupFinished + workspaceContains:.kb for workspace detection
+
+### Architecture Decisions
+- Single TreeDataProvider class handling all entity types
+- Placeholder-only implementation (no actual .kb file reading in v0)
+- esbuild for fast bundling (3ms build time vs tsc)
+- Bun for package management and testing
+- Isolated temp directory for VSIX packaging to avoid path issues
+
+### VS Code API Patterns
+- TreeItemCollapsibleState: None (0), Collapsed (1), Expanded (2)
+- TreeItem creation from custom interface + vscode.TreeItem wrapper
+- ThemeIcon for consistent icon display
+- Event pattern: EventEmitter + readonly Event property
+- Context values for tree item identification in commands/menus
+
 ## [2026-02-17T18:13:00Z] Task: T5 (test fixtures)
 - Verified existing fixtures in test/fixtures/
 - Created test/fixtures/.kb/config.json with path mappings
@@ -955,3 +995,75 @@ These are acceptable for v1 - optimize in later iterations if needed.
 Notes:
 - Preserved `.kb/branches/main` always.
 - Kept minimal runtime-only TypeScript checks disabled in gc.ts to avoid LSP noise for node lib typings in this environment.
+
+## [2026-02-17T22:00:00Z] Task: T18 (VS Code Extension Scaffolding)
+
+### Implementation Summary
+- Created `packages/vscode/` TypeScript extension project
+- Implemented TreeView with placeholder data for 7 entity types
+- Added MCP contribution pointing to kibi-mcp server
+- Built vsix package successfully
+
+### Files Created
+- `src/extension.ts` (28 lines) - Extension entry point with activate/deactivate
+- `src/treeProvider.ts` (87 lines) - KibiTreeDataProvider implementing TreeDataProvider interface
+- `tests/extension.test.ts` (87 lines) - Mock-based unit tests (3 tests, all passing)
+- `package.json` - VS Code extension manifest with MCP contribution
+- `tsconfig.json` - TypeScript configuration (CommonJS, strict mode)
+- `README.md` - Extension documentation
+- `icon.png`, `icon.svg` - Extension icons
+- `.vscodeignore` - Package exclusions
+
+### Key Implementation Details
+1. **Activation Events**: 
+   - `onStartupFinished` - Loads on VS Code startup
+   - `workspaceContains:.kb` - Conditional activation when .kb folder exists
+
+2. **TreeView Structure**:
+   - Root nodes: 7 entity types (Requirements, Scenarios, Tests, ADRs, Flags, Events, Symbols)
+   - Icons: VS Code ThemeIcons (codicons) - list-ordered, file-text, check, book, flag, calendar, symbol-class
+   - Children: Placeholder items with "Click to load..." label
+   - All nodes have count (0) suffix showing no data yet
+
+3. **MCP Integration** (package.json):
+   ```json
+   "contributes": {
+     "mcp": {
+       "servers": {
+         "kibi": {
+           "command": "bun",
+           "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+           "env": {}
+         }
+       }
+     }
+   }
+   ```
+
+4. **Build System**:
+   - esbuild for bundling (CommonJS format, minified)
+   - External: vscode (provided by runtime)
+   - Output: dist/extension.js (2.2kb)
+   - Package: @vscode/vsce for .vsix creation
+
+### Test Results
+- **Unit tests**: 3/3 pass (root items, placeholder children, empty workspace)
+- **Build**: Success (2.2kb bundle in 2-3ms)
+- **Package**: kibi-vscode-0.1.0.vsix created (14KB total)
+- **LSP diagnostics**: Clean (0 errors)
+
+### VSIX Contents
+- extension.vsixmanifest
+- extension/package.json
+- extension/icon.png
+- extension/readme.md
+- extension/dist/extension.js
+
+### Placeholder Scope (v0)
+- NO actual data loading from .kb/ files
+- NO graph visualization
+- NO webview panels
+- Purely structural scaffolding for future implementation
+
+### Evidence
+- `.sisyphus/evidence/task-18-vscode-build.txt` - Build, test, and package output

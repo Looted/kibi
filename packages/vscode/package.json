@@ -1,19 +1,76 @@
 {
   "name": "kibi-vscode",
-  "displayName": "Kibi",
+  "displayName": "Kibi Knowledge Base",
+  "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
   "version": "0.1.0",
+  "publisher": "kibi",
   "engines": {
-    "vscode": "^1.70.0"
+    "vscode": "^1.74.0"
   },
   "categories": ["Other"],
-  "activationEvents": ["onCommand:kibi.start"],
-  "main": "./out/extension.js",
+  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
+  "activationEvents": ["onStartupFinished", "workspaceContains:.kb"],
+  "main": "./dist/extension.js",
+  "icon": "icon.png",
   "contributes": {
+    "views": {
+      "explorer": [
+        {
+          "id": "kibi-knowledge-base",
+          "name": "Kibi Knowledge Base",
+          "when": "workspaceContains:.kb",
+          "contextualTitle": "Kibi Explorer"
+        }
+      ]
+    },
     "commands": [
       {
-        "command": "kibi.start",
-        "title": "Kibi: Start"
+        "command": "kibi.refreshTree",
+        "title": "Refresh",
+        "icon": {
+          "light": "$(refresh)",
+          "dark": "$(refresh)"
+        }
       }
-    ]
-  }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "kibi.refreshTree",
+          "when": "view == kibi-knowledge-base",
+          "group": "navigation"
+        }
+      ]
+    },
+    "mcp": {
+      "servers": {
+        "kibi": {
+          "command": "bun",
+          "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+          "env": {}
+        }
+      }
+    }
+  },
+  "scripts": {
+    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "watch": "npm run build -- --watch",
+    "package": "vsce package",
+    "test": "bun test tests/*.test.ts",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "^20.0.0",
+    "@types/bun": "latest",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.23.0",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kibi-org/kibi.git",
+    "directory": "packages/vscode"
+  },
+  "license": "MIT"
 }
