@@ -1,0 +1,22 @@
+{
+  "scenario": "Extract implements relationship",
+  "test": "extracts relationships from links array",
+  "status": "PASSED",
+  "evidence": {
+    "relationship_types_supported": [
+      "implements",
+      "covered_by",
+      "relates_to",
+      "constrained_by",
+      "publishes",
+      "consumes"
+    ],
+    "link_formats": [
+      "object with type and target",
+      "string (defaults to relates_to)"
+    ],
+    "from_id_generation": "SHA256 hash of filePath:title, first 16 chars",
+    "to_id": "target field from link object or string value"
+  },
+  "timestamp": "2026-02-17T00:00:00Z"
+}

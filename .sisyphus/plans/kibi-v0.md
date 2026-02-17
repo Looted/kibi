@@ -802,7 +802,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 7. YAML manifest extractor (symbols + links)
+- [x] 7. YAML manifest extractor (symbols + links) ✅ COMPLETE
 
   **What to do**:
   - Create `packages/cli/src/extractors/manifest.ts`
