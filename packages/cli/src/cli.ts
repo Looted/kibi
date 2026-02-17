@@ -2,6 +2,7 @@ import { Command } from "commander";
 import packageJson from "../package.json";
 import { doctorCommand } from "./commands/doctor";
 import { initCommand } from "./commands/init";
+import { syncCommand } from "./commands/sync";
 
 const program = new Command();
 
@@ -21,8 +22,8 @@ program
 program
   .command("sync")
   .description("Sync entities from documents")
-  .action(() => {
-    console.log("TODO: sync command not yet implemented");
+  .action(async () => {
+    await syncCommand();
   });
 
 program

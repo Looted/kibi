@@ -1075,7 +1075,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 10. CLI: kibi sync (run extractors, load KB)
+- [x] 10. CLI: kibi sync (run extractors, load KB)
 
   **What to do**:
   - Implement `kibi sync` command:
