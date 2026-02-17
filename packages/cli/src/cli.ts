@@ -1,5 +1,6 @@
 import { Command } from "commander";
 import packageJson from "../package.json";
+import { branchEnsureCommand } from "./commands/branch";
 import { checkCommand } from "./commands/check";
 import { doctorCommand } from "./commands/doctor";
 import { initCommand } from "./commands/init";
@@ -61,6 +62,16 @@ program
   .description("Diagnose KB setup and configuration")
   .action(async () => {
     await doctorCommand();
+  });
+
+program
+  .command("branch")
+  .description("Manage branch KBs")
+  .argument("<action>", "Action: ensure")
+  .action(async (action) => {
+    if (action === "ensure") {
+      await branchEnsureCommand();
+    }
   });
 
 program.parse(process.argv);

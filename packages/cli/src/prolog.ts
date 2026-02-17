@@ -36,7 +36,7 @@ export class PrologProcess {
 
     this.process = spawn(this.swiplPath, [
       "-g",
-      `use_module('${kbPath}')`,
+      `use_module('${kbPath}'), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
       "--quiet",
     ]);
 

@@ -1,0 +1,5 @@
+Found 1 violation(s):
+
+[must-priority-coverage] critical-feature
+  Must-priority requirement lacks scenario and test coverage
+  Suggestion: Create scenario that covers this requirement; Create test that covers this requirement

@@ -12,7 +12,8 @@
     "dev": "bun run bin/kibi-mcp"
   },
   "dependencies": {
-    "@kibi/cli": "workspace:*"
+    "@kibi/cli": "workspace:*",
+    "ajv": "^8.18.0"
   },
   "devDependencies": {
     "@types/bun": "latest",

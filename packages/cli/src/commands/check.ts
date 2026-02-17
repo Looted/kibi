@@ -33,6 +33,10 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     violations.push(...(await checkMustPriorityCoverage(prolog)));
 
+    violations.push(...(await checkNoDanglingRefs(prolog)));
+
+    violations.push(...(await checkNoCycles(prolog)));
+
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
 
     await prolog.query("kb_detach");
@@ -162,6 +166,171 @@ async function getAllEntityIds(
   }
 
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+}
+
+async function checkNoDanglingRefs(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  // Get all entity IDs once
+  const allEntityIds = new Set(await getAllEntityIds(prolog));
+
+  // Get all relationships by querying all known relationship types
+  const relTypes = [
+    "depends_on",
+    "verified_by",
+    "validates",
+    "specified_by",
+    "relates_to",
+  ];
+
+  const allRels: Array<{ from: string; to: string }> = [];
+
+  for (const relType of relTypes) {
+    const relsResult = await prolog.query(
+      `findall([From,To], kb_relationship(${relType}, From, To), Rels)`,
+    );
+
+    if (relsResult.success && relsResult.bindings.Rels) {
+      const relsStr = relsResult.bindings.Rels;
+      const match = relsStr.match(/\[(.*)\]/);
+      if (match) {
+        const content = match[1].trim();
+        if (content) {
+          const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
+          for (const relMatch of relMatches) {
+            const fromId = relMatch[1].trim().replace(/^'|'$/g, "");
+            const toId = relMatch[2].trim().replace(/^'|'$/g, "");
+            allRels.push({ from: fromId, to: toId });
+          }
+        }
+      }
+    }
+  }
+
+  // Check all collected relationships for dangling refs
+  for (const rel of allRels) {
+    if (!allEntityIds.has(rel.from)) {
+      violations.push({
+        rule: "no-dangling-refs",
+        entityId: rel.from,
+        description: `Relationship references non-existent entity: ${rel.from}`,
+        suggestion: "Remove relationship or create missing entity",
+      });
+    }
+
+    if (!allEntityIds.has(rel.to)) {
+      violations.push({
+        rule: "no-dangling-refs",
+        entityId: rel.to,
+        description: `Relationship references non-existent entity: ${rel.to}`,
+        suggestion: "Remove relationship or create missing entity",
+      });
+    }
+  }
+
+  return violations;
+}
+
+async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  // Get all depends_on relationships
+  const depsResult = await prolog.query(
+    "findall([From,To], kb_relationship(depends_on, From, To), Deps)",
+  );
+
+  if (!depsResult.success || !depsResult.bindings.Deps) {
+    return violations;
+  }
+
+  const depsStr = depsResult.bindings.Deps;
+  const match = depsStr.match(/\[(.*)\]/);
+  if (!match) {
+    return violations;
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return violations;
+  }
+
+  // Build adjacency map
+  const graph = new Map<string, string[]>();
+  const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
+
+  for (const depMatch of depMatches) {
+    const from = depMatch[1].trim().replace(/^'|'$/g, "");
+    const to = depMatch[2].trim().replace(/^'|'$/g, "");
+
+    if (!graph.has(from)) {
+      graph.set(from, []);
+    }
+    const fromList = graph.get(from);
+    if (fromList) {
+      fromList.push(to);
+    }
+  }
+
+  // DFS to detect cycles
+  const visited = new Set<string>();
+  const recStack = new Set<string>();
+
+  function hasCycleDFS(node: string, path: string[]): string[] | null {
+    visited.add(node);
+    recStack.add(node);
+    path.push(node);
+
+    const neighbors = graph.get(node) || [];
+    for (const neighbor of neighbors) {
+      if (!visited.has(neighbor)) {
+        const cyclePath = hasCycleDFS(neighbor, [...path]);
+        if (cyclePath) return cyclePath;
+      } else if (recStack.has(neighbor)) {
+        // Cycle detected
+        return [...path, neighbor];
+      }
+    }
+
+    recStack.delete(node);
+    return null;
+  }
+
+  // Check each node for cycles
+  for (const node of graph.keys()) {
+    if (!visited.has(node)) {
+      const cyclePath = hasCycleDFS(node, []);
+      if (cyclePath) {
+        const cycleWithSources: string[] = [];
+        for (const entityId of cyclePath) {
+          const entityResult = await prolog.query(
+            `kb_entity('${entityId}', _, Props)`,
+          );
+          let sourceName = entityId;
+          if (entityResult.success && entityResult.bindings.Props) {
+            const propsStr = entityResult.bindings.Props;
+            const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
+            if (sourceMatch) {
+              sourceName = path.basename(sourceMatch[1], ".md");
+            }
+          }
+          cycleWithSources.push(sourceName);
+        }
+
+        violations.push({
+          rule: "no-cycles",
+          entityId: cyclePath[0],
+          description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
+          suggestion:
+            "Break the cycle by removing one of the depends_on relationships",
+        });
+        break; // Report only first cycle found
+      }
+    }
+  }
+
+  return violations;
 }
 
 async function checkRequiredFields(

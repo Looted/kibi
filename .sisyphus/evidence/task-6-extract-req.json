@@ -1,0 +1,19 @@
+{
+  "entity": {
+    "id": "e8ce0a3e13f1d982",
+    "type": "req",
+    "title": "User Authentication",
+    "status": "approved",
+    "created_at": "2024-01-15T10:30:00.000Z",
+    "updated_at": "2024-01-20T14:45:00.000Z",
+    "source": "packages/cli/tests/fixtures/requirements/REQ-001.md",
+    "tags": [
+      "authentication",
+      "security",
+      "phase-1"
+    ],
+    "owner": "security-team",
+    "priority": "high"
+  },
+  "relationships": []
+}

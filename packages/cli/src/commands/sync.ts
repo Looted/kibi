@@ -83,7 +83,7 @@ export async function syncCommand(): Promise<void> {
     for (const { entity } of results) {
       try {
         const props = [
-          `id=${entity.id}`,
+          `id='${entity.id}'`,
           `title="${entity.title.replace(/"/g, '\\"')}"`,
           `status=${entity.status}`,
           `created_at="${entity.created_at}"`,
@@ -114,12 +114,23 @@ export async function syncCommand(): Promise<void> {
       }
     }
 
+    // Build ID lookup map: filename -> entity ID
+    const idLookup = new Map<string, string>();
+    for (const { entity } of results) {
+      const filename = path.basename(entity.source, ".md");
+      idLookup.set(filename, entity.id);
+      idLookup.set(entity.id, entity.id);
+    }
+
     // Assert relationships
     let relCount = 0;
     for (const { relationships } of results) {
       for (const rel of relationships) {
         try {
-          const goal = `kb_assert_relationship(${rel.type}, ${rel.from}, ${rel.to}, [])`;
+          const fromId = idLookup.get(rel.from) || rel.from;
+          const toId = idLookup.get(rel.to) || rel.to;
+
+          const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
           const result = await prolog.query(goal);
           if (result.success) relCount++;
         } catch (error) {

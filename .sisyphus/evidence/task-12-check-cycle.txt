@@ -1,0 +1,4 @@
+Found 1 violation(s):
+
+[no-cycles] fb2a688213406052
+  Circular dependency detected: req2 → req3 → req1 → req2

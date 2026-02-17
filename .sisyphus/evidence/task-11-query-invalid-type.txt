@@ -1,0 +1,1 @@
+Error: Invalid type 'invalid_type'. Valid types: req, scenario, test, adr, flag, event, symbol

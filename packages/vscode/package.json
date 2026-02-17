@@ -5,12 +5,8 @@
   "engines": {
     "vscode": "^1.70.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [
-    "onCommand:kibi.start"
-  ],
+  "categories": ["Other"],
+  "activationEvents": ["onCommand:kibi.start"],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
