@@ -878,7 +878,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 8. CLI wrapper foundation (spawn Prolog, error handling)
+- [x] 8. CLI wrapper foundation (spawn Prolog, error handling) ✅ COMPLETE
 
   **What to do**:
   - Create `packages/cli/src/prolog.ts` - Prolog subprocess manager

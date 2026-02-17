@@ -1,0 +1,1 @@
+ERROR: Unknown procedure: nonexistent_predicate/1 (DWIM could not correct goal)

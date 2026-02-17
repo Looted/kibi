@@ -1,0 +1,16 @@
+Usage: kibi [options] [command]
+
+Prolog-based project knowledge base
+
+Options:
+  -V, --version   output the version number
+  -h, --help      display help for command
+
+Commands:
+  init            Initialize .kb/ directory
+  sync            Sync entities from documents
+  query           Query the knowledge base
+  check           Check KB consistency and integrity
+  gc              Garbage collect orphaned entities
+  doctor          Diagnose KB setup and configuration
+  help [command]  display help for command
