@@ -1,0 +1,30 @@
+{
+  "$id": "relationship.schema.json",
+  "title": "Relationship",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "depends_on",
+        "specified_by",
+        "verified_by",
+        "implements",
+        "covered_by",
+        "constrained_by",
+        "guards",
+        "publishes",
+        "consumes",
+        "relates_to"
+      ]
+    },
+    "from": { "type": "string" },
+    "to": { "type": "string" },
+    "created_at": { "type": "string" },
+    "created_by": { "type": "string" },
+    "source": { "type": "string" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  },
+  "required": ["type", "from", "to"],
+  "additionalProperties": false
+}

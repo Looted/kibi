@@ -1,0 +1,48 @@
+{
+  "$id": "changeset.schema.json",
+  "title": "Changeset",
+  "type": "object",
+  "properties": {
+    "operations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "operation": { "const": "upsert" },
+              "entity": { "$ref": "./entity.schema.json" },
+              "relationships": {
+                "type": "array",
+                "items": { "$ref": "./relationship.schema.json" }
+              }
+            },
+            "required": ["operation", "entity"],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "operation": { "const": "delete" },
+              "id": { "type": "string" }
+            },
+            "required": ["operation", "id"],
+            "additionalProperties": false
+          }
+        ]
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "timestamp": { "type": "string" },
+        "author": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "required": ["timestamp"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["operations"],
+  "additionalProperties": false
+}
