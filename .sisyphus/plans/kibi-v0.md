@@ -552,7 +552,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 4. TypeScript types + JSON schemas for entities/edges
+- [x] 4. TypeScript types + JSON schemas for entities/edges ✅ COMPLETE
 
   **What to do**:
   - Create `packages/cli/src/types/entities.ts` with TypeScript interfaces for all entity types
@@ -631,7 +631,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 5. Test fixtures directory (sample markdown/manifests)
+- [x] 5. Test fixtures directory (sample markdown/manifests) ✅ COMPLETE
 
   **What to do**:
   - Create `test/fixtures/` directory with sample files for all entity types
@@ -714,7 +714,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 6. Markdown extractor (parse frontmatter → entities)
+- [x] 6. Markdown extractor (parse frontmatter → entities) ✅ COMPLETE
 
   **What to do**:
   - Create `packages/cli/src/extractors/markdown.ts`
