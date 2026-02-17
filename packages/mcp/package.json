@@ -1,6 +1,21 @@
 {
   "name": "@kibi/mcp",
   "version": "0.1.0",
-  "private": true,
-  "description": "MCP server (stdio transport) placeholder"
+  "type": "module",
+  "description": "Model Context Protocol server for Kibi knowledge base",
+  "main": "./src/server.js",
+  "bin": {
+    "kibi-mcp": "./bin/kibi-mcp"
+  },
+  "scripts": {
+    "test": "bun test",
+    "dev": "bun run bin/kibi-mcp"
+  },
+  "dependencies": {
+    "@kibi/cli": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "latest"
+  }
 }
