@@ -1,7 +1,9 @@
 import { Command } from "commander";
 import packageJson from "../package.json";
+import { checkCommand } from "./commands/check";
 import { doctorCommand } from "./commands/doctor";
 import { initCommand } from "./commands/init";
+import { queryCommand } from "./commands/query";
 import { syncCommand } from "./commands/sync";
 
 const program = new Command();
@@ -27,17 +29,24 @@ program
   });
 
 program
-  .command("query")
+  .command("query [type]")
   .description("Query the knowledge base")
-  .action(() => {
-    console.log("TODO: query command not yet implemented");
+  .option("--id <id>", "Query specific entity by ID")
+  .option("--tag <tag>", "Filter by tag")
+  .option("--relationships <id>", "Get relationships from entity")
+  .option("--format <format>", "Output format: json|table", "json")
+  .option("--limit <n>", "Limit results", "100")
+  .option("--offset <n>", "Skip results", "0")
+  .action(async (type, options) => {
+    await queryCommand(type, options);
   });
 
 program
   .command("check")
   .description("Check KB consistency and integrity")
-  .action(() => {
-    console.log("TODO: check command not yet implemented");
+  .option("--fix", "Suggest fixes for violations")
+  .action(async (options) => {
+    await checkCommand(options);
   });
 
 program
