@@ -1,0 +1,7 @@
+req
+scenario
+test
+adr
+flag
+event
+symbol
