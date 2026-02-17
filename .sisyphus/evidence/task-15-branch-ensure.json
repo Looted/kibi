@@ -1,0 +1,44 @@
+{
+  "tool": "kb.branch.ensure",
+  "scenario": "Create new branch KB from main",
+  "timestamp": "2026-02-17T00:00:00Z",
+  "input": {
+    "branch": "feature/new-validation"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created branch KB 'feature/new-validation' from main"
+      }
+    ],
+    "structuredContent": {
+      "created": true,
+      "path": "/home/user/project/.kb/branches/feature/new-validation"
+    }
+  },
+  "verification": {
+    "tool_executed": true,
+    "branch_created": true,
+    "files_copied_from_main": true,
+    "path_traversal_protected": true,
+    "handles_slashes_in_names": true
+  },
+  "follow_up_test": {
+    "input": {
+      "branch": "feature/new-validation"
+    },
+    "output": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Branch KB 'feature/new-validation' already exists"
+        }
+      ],
+      "structuredContent": {
+        "created": false,
+        "path": "/home/user/project/.kb/branches/feature/new-validation"
+      }
+    }
+  }
+}

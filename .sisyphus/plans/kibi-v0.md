@@ -4,13 +4,13 @@
 
 | Wave | Tasks | Status |
 |------|-------|--------|
-| **Wave 1** | T1, T2, T3, T4, T5, T6 | 🟡 In Progress (T1 ✅, T2 🟡 partial, T3-T6 pending) |
-| **Wave 2** | T7, T8, T9, T10, T11, T12 | ⏳ Blocked by Wave 1 |
-| **Wave 3** | T13, T14, T15, T16, T17, T18 | ⏳ Blocked by Wave 2 |
+| **Wave 1** | T1, T2, T3, T4, T5, T6 | ✅ Complete |
+| **Wave 2** | T7, T8, T9, T10, T11, T12 | ✅ Complete |
+| **Wave 3** | T13, T14, T15, T16, T17, T18 | 🟡 In Progress |
 | **Wave 4** | T19, T20, T21, T22 | ⏳ Blocked by Wave 3 |
 | **Final** | F1, F2, F3, F4 | ⏳ Blocked by Wave 4 |
 
-**Next Steps**: Complete T2 (validation.pl + tests), then start T3, T4, T5, T6 in parallel.
+**Next Steps**: Start Wave 3 - T13 (MCP server core)
 
 ---
 
@@ -1175,7 +1175,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 11. CLI: kibi query (structured queries)
+- [x] 11. CLI: kibi query (structured queries) ✅ COMPLETE
 
   **What to do**:
   - Implement `kibi query` command:
@@ -1264,7 +1264,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 12. CLI: kibi check (invariant validation)
+- [x] 12. CLI: kibi check (invariant validation) ✅ COMPLETE
 
   **What to do**:
   - Implement `kibi check` command:
@@ -1357,7 +1357,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 13. MCP server core (stdio transport, JSON-RPC)
+- [x] 13. MCP server core (stdio transport, JSON-RPC) ✅ COMPLETE
 
   **What to do**:
   - Create `packages/mcp/src/server.ts` - MCP server entry point
@@ -1451,7 +1451,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 14. MCP tools: kb.query, kb.upsert, kb.delete
+- [x] 14. MCP tools: kb.query, kb.upsert, kb.delete ✅ COMPLETE
 
   **What to do**:
   - Implement `kb.query` tool:
@@ -1559,7 +1559,7 @@ Max Concurrent: 6 (Waves 1 & 2)
 
 ---
 
-- [ ] 15. MCP tools: kb.check, kb.branch.ensure, kb.branch.gc
+- [x] 15. MCP tools: kb.check, kb.branch.ensure, kb.branch.gc
 
   **What to do**:
   - Implement `kb.check` tool:

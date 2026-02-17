@@ -9,6 +9,7 @@
         "depends_on",
         "specified_by",
         "verified_by",
+        "validates",
         "implements",
         "covered_by",
         "constrained_by",

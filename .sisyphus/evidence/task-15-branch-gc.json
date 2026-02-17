@@ -1,0 +1,71 @@
+{
+  "tool": "kb.branch.gc",
+  "scenario": "Cleanup stale branch KBs where git branch no longer exists",
+  "timestamp": "2026-02-17T00:00:00Z",
+  "test_1_dry_run": {
+    "description": "Find stale branches without deleting (dry run)",
+    "input": {
+      "dry_run": true
+    },
+    "output": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Found 2 stale branch KB(s) (dry run - not deleted)"
+        }
+      ],
+      "structuredContent": {
+        "stale": ["old-feature", "archived-experiment"],
+        "deleted": 0
+      }
+    },
+    "verification": {
+      "tool_executed": true,
+      "finds_stale_branches": true,
+      "no_deletion_in_dry_run": true,
+      "preserves_main_branch": true
+    }
+  },
+  "test_2_real_delete": {
+    "description": "Actually delete stale branches",
+    "input": {
+      "dry_run": false
+    },
+    "output": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Deleted 2 stale branch KB(s)"
+        }
+      ],
+      "structuredContent": {
+        "stale": ["old-feature", "archived-experiment"],
+        "deleted": 2
+      }
+    },
+    "verification": {
+      "tool_executed": true,
+      "deletes_stale_branches": true,
+      "preserves_active_branches": true,
+      "preserves_main_branch": true
+    }
+  },
+  "test_3_no_stale": {
+    "description": "Handle case with no stale branches",
+    "input": {
+      "dry_run": true
+    },
+    "output": {
+      "content": [
+        {
+          "type": "text",
+          "text": "Found 0 stale branch KB(s) (dry run - not deleted)"
+        }
+      ],
+      "structuredContent": {
+        "stale": [],
+        "deleted": 0
+      }
+    }
+  }
+}

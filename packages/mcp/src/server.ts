@@ -2,6 +2,13 @@ import path from "node:path";
 import process from "node:process";
 import { createInterface } from "node:readline";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import {
+  type BranchEnsureArgs,
+  type BranchGcArgs,
+  handleKbBranchEnsure,
+  handleKbBranchGc,
+} from "./tools/branch.js";
+import { type CheckArgs, handleKbCheck } from "./tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
@@ -123,19 +130,15 @@ const TOOLS = [
   {
     name: "kb_check",
     description:
-      "Check if an entity exists in the knowledge base. Returns boolean.",
+      "Run validation rules on the knowledge base. Returns violations array with rule names and entity IDs.",
     inputSchema: {
       type: "object",
-      required: ["type", "id"],
       properties: {
-        type: {
-          type: "string",
-          enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
-          description: "Entity type",
-        },
-        id: {
-          type: "string",
-          description: "Entity ID to check",
+        rules: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Specific rules to check (optional, defaults to all). Available: must-priority-coverage, no-dangling-refs, no-cycles, required-fields",
         },
       },
     },
@@ -310,6 +313,18 @@ async function handleToolCall(
       case "kb_delete":
         return await handleKbDelete(prologProcess, params as DeleteArgs);
 
+      case "kb_check":
+        return await handleKbCheck(prologProcess, params as CheckArgs);
+
+      case "kb_branch_ensure":
+        return await handleKbBranchEnsure(
+          prologProcess,
+          params as BranchEnsureArgs,
+        );
+
+      case "kb_branch_gc":
+        return await handleKbBranchGc(prologProcess, params as BranchGcArgs);
+
       case "kb_list_entity_types":
         return {
           content: [
@@ -353,12 +368,6 @@ async function handleToolCall(
               "relates_to",
             ],
           },
-        };
-
-      case "kb_check":
-        // Stub for T15
-        return {
-          content: [{ type: "text", text: "Check tool not yet implemented" }],
         };
 
       default:
