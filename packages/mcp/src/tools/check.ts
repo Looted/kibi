@@ -62,7 +62,10 @@ export async function handleKbCheck(
     }
 
     // Return MCP structured response
-    const summary = `${violations.length} violations found${violations.length === 0 ? " (KB is valid)" : ""}`;
+    const summary =
+      violations.length === 0
+        ? "No violations found"
+        : `${violations.length} violations found`;
 
     return {
       content: [
