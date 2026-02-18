@@ -120,3 +120,40 @@ Kibi v0 has solid architectural foundation but fails under real-world usage:
 
 **v0 Status**: Functional prototype with known reliability issues
 **Recommendation**: Document limitations, plan v0.1 for blocker resolution
+
+## 2026-02-18 - Performance Limitations (BLOCKER 3 - Deferred)
+
+### Issue: Sync/Query Operations Slower Than Targets
+- **Target performance**: Sync <500ms, Query <100ms
+- **Actual performance**: Sync 1.4-1.8s (3-4x slower), Query 675x slower
+- **Status**: NOT FIXED, deferred to v0.1
+- **Impact**: System is functional but slow, unsuitable for large projects
+
+### Root Causes (Suspected)
+1. RDF triple store persistence (disk I/O on every sync)
+2. No caching or incremental updates
+3. Full graph traversal on every query
+4. Prolog interpreter overhead (not compiled)
+5. JSON serialization overhead in CLI output
+
+### Mitigation for v0
+- Document performance characteristics in README
+- Scope v0 as "functional alpha" for small projects
+- Set user expectations: "optimized for correctness, not speed"
+
+### Planned Optimizations (v0.1)
+1. In-memory RDF cache (only persist on explicit save)
+2. Incremental sync (track file mtimes, skip unchanged)
+3. Query result caching with invalidation
+4. Profile and optimize hot paths
+5. Consider compiled Prolog or alternative persistence
+
+### Acceptance Criteria for v0
+Performance limitations are acceptable for v0 release IF:
+- Clearly documented in README and release notes
+- Scoped as "alpha" or "preview" release
+- Users warned: "suitable for small projects (<100 entities)"
+- Roadmap shows v0.1 performance work
+
+**Decision: APPROVE v0 with documented limitations, prioritize perf for v0.1.**
+

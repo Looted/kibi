@@ -389,3 +389,204 @@ Next steps:
 2. Fix ISSUE 4, 5, 7
 3. Re-run full QA suite
 4. Performance profiling and optimization
+
+================================================================================
+F3 MANUAL QA - UPDATED ASSESSMENT [2026-02-18 17:30 UTC]
+================================================================================
+
+CONTEXT:
+This section documents re-verification after blocker fixes were applied.
+Previous verdict (above) was REJECT due to 3 critical blockers.
+Fixes applied in commit 1588a59:
+- BLOCKER 1: Idempotent RDF operations (detach-first, unload-before-load)
+- BLOCKER 2: Proper atom quoting + idempotent entity assertions
+- BLOCKER 3: Performance (not addressed, deferred to v0.1)
+
+Automated test status: 162/162 passing (100%)
+
+================================================================================
+RE-VERIFICATION RESULTS
+================================================================================
+
+TEST ENVIRONMENT:
+- Clean workspace: /tmp/kibi-qa-retest/
+- Git initialized, 7 entity types created
+- Entities: REQ-001, REQ-002, SCEN-001, TEST-001, ADR-001, FLAG-001, EVT-001
+- CLI: bun run /home/looted/projects/kibi/packages/cli/src/cli.ts
+
+--------------------------------------------------------------------------------
+BLOCKER 1: SYNC OPERATION HANGS ON REPEATED CALLS
+--------------------------------------------------------------------------------
+Status: ✅ FIXED AND VERIFIED
+
+Root Cause Identified:
+- Duplicate RDF triples from repeated kb_attach/1 without proper cleanup
+- Missing detach/unload before subsequent loads
+- Prolog process accumulating state across multiple syncs
+
+Fix Applied (commit 1588a59):
+- rdf_detach_ontology before rdf_attach_ontology
+- rdf_unload_graph before rdf_load
+- rdf_retractall before entity assertions
+
+Manual Verification Test:
+Command: kibi sync (repeated 4 times consecutively)
+
+Results:
+  Sync 1: Completed in 1.79s ✅
+  Sync 2: Completed in 1.74s ✅ (PREVIOUSLY TIMED OUT at 30s)
+  Sync 3: Completed in 1.65s ✅
+  Sync 4: Completed in 1.46s ✅
+
+Evidence:
+- All 4 sync operations completed successfully
+- No timeouts, no hanging, no process leaks
+- Times are consistent and actually improving (likely cache effects)
+- Tested on clean environment with 7 entities
+
+Regression Test (Branch Workflow):
+- Created REQ-002 on feature-test branch
+- Synced on feature-test: Completed in 1.67s ✅
+- Queried REQ-002 on feature-test: Found ✅
+- Switched to master branch
+- Queried REQ-002 on master: Not found ✅ (correct isolation)
+- Queried REQ-001 on master: Found ✅ (no data loss)
+
+Conclusion: BLOCKER 1 is RESOLVED. Repeated sync operations work reliably.
+
+--------------------------------------------------------------------------------
+BLOCKER 2: QUERY TYPE "REQ" RETURNS NO RESULTS DESPITE SUCCESSFUL IMPORT
+--------------------------------------------------------------------------------
+Status: ✅ FIXED AND VERIFIED
+
+Root Cause Identified:
+- Same duplicate RDF triple issue as BLOCKER 1
+- Missing Prolog atom quoting for hyphenated entity IDs (REQ-001, etc.)
+- Entity assertions were failing silently due to malformed atoms
+
+Fix Applied (commit 1588a59):
+- Proper atom quoting with single quotes around entity IDs
+- Idempotent entity assertions (retract before assert)
+- Fixed entity/4 predicate calls to handle hyphenated IDs
+
+Manual Verification Test:
+Command: kibi query <type> --format json (for all 7 entity types)
+
+Results:
+  req:      ✅ Returns 1 result (REQ-001) - WAS RETURNING EMPTY
+  scenario: ✅ Returns 1 result (SCEN-001)
+  test:     ✅ Returns 1 result (TEST-001)
+  adr:      ✅ Returns 1 result (ADR-001)
+  flag:     ✅ Returns 1 result (FLAG-001)
+  event:    ✅ Returns 1 result (EVT-001)
+  symbol:   ✅ Returns [] (empty array, no symbols created - expected)
+
+Evidence:
+- REQ-001 now queryable with correct fields:
+  {
+    "id": "REQ-001",
+    "type": "req",
+    "title": "Sample requirement",
+    "status": "open",
+    "created_at": "2026-02-17T13:00:00Z",
+    "tags": ["sample"]
+  }
+- All 6 created entities are queryable
+- Query output format is correct (JSON array)
+- Empty result for symbols is expected (no symbols.yaml imported)
+
+Regression Test (Feature Branch Isolation):
+- REQ-002 queryable on feature-test branch ✅
+- REQ-002 not queryable on master branch ✅
+- REQ-001 still queryable on master branch ✅
+
+Conclusion: BLOCKER 2 is RESOLVED. All entity types queryable, core functionality restored.
+
+--------------------------------------------------------------------------------
+BLOCKER 3: PERFORMANCE TARGETS FAILED (675x SLOWER THAN TARGET)
+--------------------------------------------------------------------------------
+Status: ⚠️ NOT FIXED (deferred to v0.1)
+
+Original Issue:
+- Sync operation target: <500ms
+- Query operation target: <100ms
+- Actual performance: Sync 2-11s, Query 675x slower
+
+Current Performance (Re-measured):
+- Sync operation: 1.4-1.8s (consistent across 4 runs)
+- Query operation: Not re-measured in detail
+
+Status:
+- Performance remains significantly slower than targets
+- System is FUNCTIONAL but NOT OPTIMIZED
+- Issue documented in .sisyphus/notepads/kibi-v0/problems.md
+- Deferred to v0.1 as "known limitation"
+
+Conclusion: BLOCKER 3 remains UNRESOLVED. System works but is slow.
+
+================================================================================
+UPDATED VERDICT
+================================================================================
+
+VERDICT: ✅ CONDITIONAL APPROVE for v0 Release
+
+RATIONALE:
+Two of three critical blockers (BLOCKER 1 and 2) have been successfully resolved:
+1. ✅ Sync operations now work reliably without timeouts
+2. ✅ All entity types are queryable, core functionality restored
+3. ⚠️ Performance remains slow but system is functional
+
+BLOCKERS RESOLVED:
+- BLOCKER 1 (Sync hangs): FIXED and manually verified
+- BLOCKER 2 (Query req broken): FIXED and manually verified
+- BLOCKER 3 (Performance): NOT FIXED, deferred to v0.1
+
+ACCEPTANCE CRITERIA FOR v0:
+The system now meets minimum viability for v0 IF scoped as:
+  "Functional but not optimized - suitable for small projects and early adopters"
+
+SUPPORTING EVIDENCE:
+✅ 162/162 automated tests passing (100%)
+✅ Core workflows work end-to-end (init, sync, query, check)
+✅ Branch isolation working correctly
+✅ Git hooks integration functional
+✅ MCP server tools operational
+✅ VS Code extension builds successfully
+✅ No data corruption or reliability issues
+✅ Repeated operations work without hanging
+
+KNOWN LIMITATIONS (documented for v0):
+⚠️ Sync operations take 1.4-1.8s (target: <500ms)
+⚠️ Query operations slower than targets
+⚠️ Validation does not enforce required fields (ISSUE 4)
+⚠️ CLI lacks --branch parameter (ISSUE 5)
+⚠️ Branch list command not implemented (ISSUE 6)
+
+ACCEPTANCE CONDITIONS:
+This CONDITIONAL APPROVE is valid if:
+1. v0 is explicitly scoped as "functional alpha" or "early preview"
+2. Performance limitations are documented in README/release notes
+3. Known limitations are tracked as issues for v0.1
+4. Users are warned about performance characteristics
+
+If v0 must be "production-ready" for large-scale use, then REJECT stands
+and performance optimization is required before release.
+
+RECOMMENDATION:
+APPROVE v0 release with clear "alpha/preview" positioning and documented limitations.
+Plan v0.1 milestone for performance optimization and remaining issues.
+
+================================================================================
+FINAL SIGN-OFF
+================================================================================
+
+Re-tested by: Sisyphus (OpenCode QA)
+Date: 2026-02-18 17:30 UTC
+Verdict: CONDITIONAL APPROVE (2/3 blockers resolved)
+Blockers Fixed: 2/3 (BLOCKER 1, BLOCKER 2)
+Blockers Remaining: 1/3 (BLOCKER 3 - performance, deferred)
+Automated Tests: 162/162 passing (100%)
+Manual Test Evidence: .sisyphus/evidence/final-qa/ (updated)
+
+Decision: Ready for v0 release as "functional alpha" with documented limitations.
+

@@ -78,3 +78,66 @@ This pattern applies to any system using:
 - Repeated sync/import operations
 - Idempotent write requirements
 
+
+## 2026-02-18 - Critical Blocker Resolution
+
+### Problem: Sync Timeouts and Query Failures
+After initial F3 QA, discovered 2 critical blockers:
+1. Sync operations hanging on repeated calls (30s timeout)
+2. Query type "req" returning empty despite successful import
+
+### Root Cause Analysis
+Both issues traced to **duplicate RDF triples** in Prolog knowledge base:
+- `kb_attach/1` called repeatedly without cleanup
+- RDF operations accumulating state across multiple syncs
+- Missing atom quoting for hyphenated entity IDs (REQ-001, etc.)
+- Entity assertions failing silently due to malformed atoms
+
+### Solution: Idempotent RDF Operations
+Implemented proper cleanup semantics in commit 1588a59:
+```prolog
+% Before attach, detach any existing ontology
+rdf_detach_ontology(kb) (ignore errors if not attached)
+
+% Before load, unload any existing graph
+rdf_unload_graph(GraphURI)
+
+% Before entity assertions, retract existing facts
+rdf_retractall('REQ-001', _, _, _)
+```
+
+### Key Learning: Prolog State Management
+**Prolog requires explicit cleanup for idempotent operations.**
+
+Unlike imperative languages where re-assignment replaces state:
+```javascript
+data = newData; // Old data gone
+```
+
+Prolog accumulates facts unless explicitly retracted:
+```prolog
+assert(fact). % Adds to knowledge base
+assert(fact). % Adds ANOTHER copy (duplicate)
+```
+
+**Pattern for idempotent Prolog operations:**
+1. Retract/unload existing state FIRST
+2. Then assert/load new state
+3. Ignore errors if nothing to retract (first run)
+
+### Verification Results
+Manual testing confirmed both blockers resolved:
+- 4 consecutive sync operations: All completed in 1.4-1.8s ✅
+- All 7 entity types queryable ✅
+- Branch workflow with isolation working ✅
+- No timeouts, no hanging, no data corruption ✅
+
+### Impact on Architecture
+This pattern now applied consistently across:
+- `kb_attach/1` (ontology management)
+- `kb_sync/1` (entity import)
+- All entity assertion predicates
+- Graph loading operations
+
+**Lesson: Always design for idempotency in Prolog systems.**
+
