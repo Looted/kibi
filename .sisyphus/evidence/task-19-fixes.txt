@@ -1,0 +1,167 @@
+bun test v1.3.6 (d530ed99)
+
+tests/integration/mcp-crud.test.ts:
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 67949)
+[MCP] KB attached: /tmp/kibi-integration-mcp-Qu8Q93/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 68138)
+[MCP] KB attached: /tmp/kibi-integration-mcp-wij3he/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 68559)
+[MCP] KB attached: /tmp/kibi-integration-mcp-2OblGS/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 68656)
+[MCP] KB attached: /tmp/kibi-integration-mcp-RLY7cy/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_upsert
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 68782)
+[MCP] KB attached: /tmp/kibi-integration-mcp-HCAPzg/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69137)
+[MCP] KB attached: /tmp/kibi-integration-mcp-HCAPzg/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_upsert
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69231)
+[MCP] KB attached: /tmp/kibi-integration-mcp-cFkS9E/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69269)
+[MCP] KB attached: /tmp/kibi-integration-mcp-cFkS9E/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_delete
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69416)
+[MCP] KB attached: /tmp/kibi-integration-mcp-udX7UP/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_query
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69468)
+[MCP] KB attached: /tmp/kibi-integration-mcp-udX7UP/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_delete
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69879)
+[MCP] KB attached: /tmp/kibi-integration-mcp-LfyZi2/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+MCP stderr: [MCP] Tool call: kb_check
+[MCP] Auto-initializing for tool call...
+
+MCP stderr: [MCP] Client initialized, starting Prolog process...
+
+MCP stderr: [MCP] Prolog process started (PID: 69997)
+[MCP] KB attached: /tmp/kibi-integration-mcp-DwulRP/.kb/branches/main
+
+MCP stderr: [MCP] Shutting down...
+
+MCP stderr: [MCP] Kibi MCP Server v0.1.0
+[MCP] Listening on stdin...
+
+
+ 34 pass
+ 0 fail
+ 85 expect() calls
+Ran 34 tests across 4 files. [56.82s]

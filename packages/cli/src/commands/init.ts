@@ -39,11 +39,13 @@ export async function initCommand(options: InitOptions): Promise<void> {
   let currentBranch = "main";
   try {
     const { execSync } = await import("node:child_process");
-    currentBranch = execSync("git branch --show-current", {
+    const branch = execSync("git branch --show-current", {
       cwd: process.cwd(),
       encoding: "utf8",
     }).trim();
-    if (!currentBranch) currentBranch = "main";
+    if (branch && branch !== "master") {
+      currentBranch = branch;
+    }
   } catch {
     currentBranch = "main";
   }

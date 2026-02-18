@@ -362,12 +362,11 @@ tags: [performance]
 
     expect(syncOutput).toContain("Imported 0 entities");
 
-    // Query should return empty result
     const queryOutput = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
     });
 
-    expect(queryOutput).toContain("[]");
+    expect(queryOutput).toContain("No entities found");
   });
 });
