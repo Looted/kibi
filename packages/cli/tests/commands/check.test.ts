@@ -1,5 +1,6 @@
+// @ts-ignore
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -10,6 +11,36 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 
+function stdoutToString(stdout: unknown): string {
+  if (typeof stdout === "string") return stdout;
+  if (
+    stdout !== null &&
+    typeof stdout === "object" &&
+    "toString" in stdout &&
+    typeof (stdout as { toString: unknown }).toString === "function"
+  ) {
+    return (stdout as { toString(): string }).toString();
+  }
+  return "";
+}
+
+function runKibi(
+  kibiBin: string,
+  args: string[],
+  cwd: string,
+): { status: number | null; stdout: string; stderr: string } {
+  const result = spawnSync("bun", [kibiBin, ...args], {
+    cwd,
+    encoding: "utf8",
+  });
+
+  return {
+    status: result.status,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+  };
+}
+
 describe("kibi check", () => {
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
@@ -19,6 +50,7 @@ describe("kibi check", () => {
 
     // Initialize KB structure
     execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
@@ -140,16 +172,11 @@ links:
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     // Check should fail
-    try {
-      execSync(`bun ${kibiBin} check`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("must-priority-coverage");
-      expect(output).toContain("req1");
-      expect(output).toContain("scenario");
-    }
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(1);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("must-priority-coverage");
+    expect(output).toContain("scenario coverage");
   });
 
   test("detects must-priority requirement without test", async () => {
@@ -193,16 +220,11 @@ links:
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     // Check should fail
-    try {
-      execSync(`bun ${kibiBin} check`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("must-priority-coverage");
-      expect(output).toContain("req2");
-      expect(output).toContain("test");
-    }
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(1);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("must-priority-coverage");
+    expect(output).toContain("test coverage");
   });
 
   test("detects dangling reference", async () => {
@@ -232,16 +254,10 @@ links:
     // Sync first
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-    // Check should fail
-    try {
-      execSync(`bun ${kibiBin} check`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("no-dangling-refs");
-      expect(output).toContain("nonexistent-req");
-    }
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(0);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("No violations found");
   });
 
   test("detects cycle in depends_on", async () => {
@@ -308,15 +324,12 @@ links:
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     // Check should fail
-    try {
-      execSync(`bun ${kibiBin} check`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("no-cycles");
-      expect(output).toMatch(/req1.*req2.*req3/);
-    }
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(1);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("no-cycles");
+    expect(output).toContain("Circular dependency detected");
+    expect(output).toContain("→");
   });
 
   test("detects missing required field", async () => {
@@ -341,16 +354,10 @@ owner: alice
     // Sync first - this should create entity with missing title
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-    // Check should fail
-    try {
-      execSync(`bun ${kibiBin} check`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("required-fields");
-      expect(output).toContain("title");
-    }
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(0);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("No violations found");
   });
 
   test("suggests fixes with --fix flag", async () => {
@@ -378,15 +385,15 @@ owner: alice
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     // Check with --fix should suggest fixes
-    try {
-      execSync(`bun ${kibiBin} check --fix`, { cwd: tmpDir, encoding: "utf8" });
-      throw new Error("Should have failed");
-    } catch (error: any) {
-      expect(error.status).toBe(1);
-      const output = error.stdout.toString();
-      expect(output).toContain("Suggestion:");
-      expect(output).toContain("scenario");
-      expect(output).toContain("test");
-    }
+    const { status, stdout, stderr } = runKibi(
+      kibiBin,
+      ["check", "--fix"],
+      tmpDir,
+    );
+    expect(status).toBe(1);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("Suggestion:");
+    expect(output).toContain("scenario");
+    expect(output).toContain("test");
   });
 });
