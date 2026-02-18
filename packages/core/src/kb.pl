@@ -84,12 +84,12 @@ kb_save :-
     (   kb_attached(Directory)
     ->  (
             % Save RDF graph to file with namespace declarations
+            atom_concat(Directory, '/kb.rdf', DataFile),
+            % If we have a graph URI, save that graph. Otherwise save all data
+            % (fallback) so a kb.rdf is always produced. Report errors if save fails.
             (   kb_graph(GraphURI)
-            ->  (
-                    atom_concat(Directory, '/kb.rdf', DataFile),
-                    rdf_save(DataFile, [graph(GraphURI), namespaces([kb, xsd])])
-                )
-            ;   true
+            ->  catch(rdf_save(DataFile, [graph(GraphURI), namespaces([kb, xsd])]), E, print_message(error, E))
+            ;   catch(rdf_save(DataFile, [namespaces([kb, xsd])]), E2, print_message(error, E2))
             ),
             % Sync audit log
             (   kb_audit_db(_)
