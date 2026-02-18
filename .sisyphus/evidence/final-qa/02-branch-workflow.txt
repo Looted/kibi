@@ -1,0 +1,43 @@
+=== BRANCH WORKFLOW TEST ===
+Date: 2026-02-18
+
+TEST EXECUTION:
+✅ PASS - Initial commit with fixtures successful
+✅ PASS - Created feature-test branch
+✅ PASS - Git hook fired on branch creation (sync triggered automatically)
+✅ PASS - Branch KB directory created (.kb/branches/feature-test/)
+
+ISSUE ENCOUNTERED:
+❌ FAIL - Sync operation timeout during relationship assertion
+Error: "Query timeout after 30s" when asserting TEST-002 -> SCEN-002 relationship
+
+Root cause: Prolog process hanging during RDF relationship assertion
+- Process: swipl -g use_module(...kb.pl) became unresponsive
+- Timeout occurred at 30s (configured threshold)
+- Multiple Prolog processes observed (indicates leak or stale sessions)
+
+PARTIAL RESULTS BEFORE TIMEOUT:
+✅ Initial sync on feature-test succeeded (10 entities, 4 relationships)
+✅ Branch KB directory structure created correctly
+✅ Query executed (returned "No entities found" - consistent with req type issue from test 01)
+
+UNABLE TO COMPLETE:
+❌ Test per-branch isolation (new entity on feature vs master)
+❌ Test branch merge workflow
+❌ Test gc --dry-run and --force
+❌ Verify branch KB cleanup
+
+CRITICAL BLOCKER:
+The sync operation hangs when processing relationships during concurrent or repeated 
+operations. This blocks the full branch workflow test and indicates a serious issue 
+with Prolog RDF transaction handling or locking.
+
+OBSERVED BEHAVIOR:
+- First sync after init works fine
+- Subsequent syncs on branch switches may hang
+- Prolog process becomes unresponsive (required kill -9)
+- Multiple swipl processes spawn (process leak?)
+
+RECOMMENDATION:
+This is a BLOCKER for production use. Branch workflow cannot be tested due to 
+reliability issues in the sync operation.

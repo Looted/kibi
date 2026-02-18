@@ -30,10 +30,22 @@ export async function syncCommand(): Promise<void> {
       },
     };
 
+    type SyncConfig = {
+      paths: Record<string, string>;
+    };
+
     const configPath = path.join(process.cwd(), ".kb/config.json");
-    let config: any;
+    let config: SyncConfig;
     try {
-      config = JSON.parse(readFileSync(configPath, "utf8"));
+      const parsed = JSON.parse(
+        readFileSync(configPath, "utf8"),
+      ) as Partial<SyncConfig>;
+      config = {
+        paths: {
+          ...DEFAULT_CONFIG.paths,
+          ...(parsed.paths ?? {}),
+        },
+      };
     } catch {
       config = DEFAULT_CONFIG;
     }
@@ -92,7 +104,7 @@ export async function syncCommand(): Promise<void> {
         cwd: process.cwd(),
         encoding: "utf8",
       }).trim();
-      if (!currentBranch) currentBranch = "main";
+      if (!currentBranch || currentBranch === "master") currentBranch = "main";
     } catch {
       currentBranch = "main";
     }
@@ -111,22 +123,30 @@ export async function syncCommand(): Promise<void> {
     let entityCount = 0;
     for (const { entity } of results) {
       try {
+        const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+        const prologAtom = (value: string): string =>
+          simplePrologAtom.test(value)
+            ? value
+            : `'${value.replace(/'/g, "''")}'`;
+
         const props = [
           `id='${entity.id}'`,
           `title="${entity.title.replace(/"/g, '\\"')}"`,
-          `status=${entity.status}`,
+          `status=${prologAtom(entity.status)}`,
           `created_at="${entity.created_at}"`,
           `updated_at="${entity.updated_at}"`,
           `source="${entity.source.replace(/"/g, '\\"')}"`,
         ];
 
         if (entity.tags && entity.tags.length > 0) {
-          const tagsList = entity.tags.join(",");
+          const tagsList = entity.tags.map(prologAtom).join(",");
           props.push(`tags=[${tagsList}]`);
         }
-        if (entity.owner) props.push(`owner=${entity.owner}`);
-        if (entity.priority) props.push(`priority=${entity.priority}`);
-        if (entity.severity) props.push(`severity=${entity.severity}`);
+        if (entity.owner) props.push(`owner=${prologAtom(entity.owner)}`);
+        if (entity.priority)
+          props.push(`priority=${prologAtom(entity.priority)}`);
+        if (entity.severity)
+          props.push(`severity=${prologAtom(entity.severity)}`);
         if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
 
         const propsList = `[${props.join(", ")}]`;

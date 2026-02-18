@@ -23,6 +23,7 @@
 
 % RDF namespace for KB entities and relationships
 :- rdf_register_prefix(kb, 'http://kibi.dev/kb/').
+:- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
 :- rdf_meta
     kb_entity(?, ?, ?),
     kb_relationship(?, ?, ?).
@@ -40,6 +41,12 @@
 % Attach to a KB directory with RDF persistence and file locking.
 % Creates directory if it doesn't exist.
 kb_attach(Directory) :-
+    % If we were already attached in this process, detach first.
+    % This prevents accidentally loading the same RDF snapshot multiple times.
+    (   kb_attached(_)
+    ->  kb_detach
+    ;   true
+    ),
     % Ensure directory exists
     (   exists_directory(Directory)
     ->  true
@@ -47,6 +54,11 @@ kb_attach(Directory) :-
     ),
     % Create RDF graph name from directory
     atom_concat('file://', Directory, GraphURI),
+    % If a graph with this URI is already present, unload it to avoid duplicates.
+    (   rdf_graph(GraphURI)
+    ->  rdf_unload_graph(GraphURI)
+    ;   true
+    ),
     % Load existing RDF data if present
     atom_concat(Directory, '/kb.rdf', DataFile),
     (   exists_file(DataFile)
@@ -67,7 +79,7 @@ kb_attach(Directory) :-
 %% kb_detach
 % Safely detach from KB, flushing journals and closing audit log.
 kb_detach :-
-    (   kb_attached(Directory)
+    (   kb_attached(_Directory)
     ->  (
             kb_save,
             % Clear state
@@ -92,8 +104,8 @@ kb_save :-
             ;   catch(rdf_save(DataFile, [namespaces([kb, xsd])]), E2, print_message(error, E2))
             ),
             % Sync audit log
-            (   kb_audit_db(_)
-            ->  db_sync(_)
+            (   kb_audit_db(AuditLog)
+            ->  db_sync(AuditLog)
             ;   true
             )
         )
@@ -119,6 +131,8 @@ kb_assert_entity(Type, Props) :-
     with_kb_mutex((
         % Create entity URI
         atom_concat('kb:entity/', Id, EntityURI),
+        % Upsert semantics: remove any existing triples for this entity first.
+        rdf_retractall(EntityURI, _, _, Graph),
         % Store type as string literal to prevent URI interpretation
         atom_string(Type, TypeStr),
         rdf_assert(EntityURI, kb:type, TypeStr^^'http://www.w3.org/2001/XMLSchema#string', Graph),
@@ -175,8 +189,10 @@ kb_entity(Id, Type, Props) :-
 kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
     % Validate entities exist and relationship is valid
-    kb_entity(FromId, FromType, _),
-    kb_entity(ToId, ToType, _),
+    % Use once/1 to keep this predicate deterministic even if the store
+    % contains duplicate type triples from previous versions.
+    once(kb_entity(FromId, FromType, _)),
+    once(kb_entity(ToId, ToType, _)),
     validate_relationship(RelType, FromType, ToType),
     % Execute with mutex protection
     with_kb_mutex((
@@ -185,6 +201,8 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
         atom_concat('kb:entity/', ToId, ToURI),
         % Create relationship property URI (full URI to match saved/loaded RDF)
         atom_concat('http://kibi.dev/kb/', RelType, RelURI),
+        % Upsert semantics: ensure the exact triple isn't duplicated.
+        rdf_retractall(FromURI, RelURI, ToURI, Graph),
         % Assert relationship triple
         rdf_assert(FromURI, RelURI, ToURI, Graph),
         % Log to audit

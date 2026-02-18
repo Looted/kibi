@@ -1,0 +1,87 @@
+F1 Plan Compliance Audit - Kibi v0
+Date: 2026-02-18
+
+Plan: .sisyphus/plans/kibi-v0.md (Must Have: 103-110, Must NOT Have: 112-120)
+
+Must Have [3/7] | Must NOT Have [4/8] | Tasks Evidence [19/22] | VERDICT: REJECT
+
+Must Have
+1) Per-branch KB with copy-from-main semantics: PARTIAL
+   - PASS (copy-from-main exists): packages/cli/src/commands/branch.ts:9-24 uses fs.cpSync(mainPath, kbPath)
+   - PASS (MCP ensure exists): packages/mcp/src/tools/branch.ts:49-77 copies main -> branch
+   - FAIL (init seeds current branch, not main): packages/cli/src/commands/init.ts:39-60 creates .kb/branches/<currentBranch>
+   - FAIL (check hardcodes main, not current branch): packages/cli/src/commands/check.ts:21-22 attaches .kb/branches/main
+
+2) Atomic write operations with mutex protection: FAIL
+   - Mutex exists (in-process only): packages/core/src/kb.pl:103-107 (with_mutex(kb_lock, Goal))
+   - Persistence is rdf_load/rdf_save to a single file, not directory-based journaled store; no attach/lock semantics:
+     packages/core/src/kb.pl:51-55 (rdf_load kb.rdf), packages/core/src/kb.pl:81-91 (rdf_save kb.rdf)
+   - No rdf_persistency usage found in core source (searched packages/core/src for rdf_persistency/rdf_attach_db): grep returned no matches.
+
+3) Validated changesets (JSON Schema) before Prolog writes: FAIL
+   - CLI sync writes directly without JSON Schema validation: packages/cli/src/commands/sync.ts:110-144 (kb_assert_entity), :154-173 (kb_assert_relationship)
+   - MCP upsert validates entities/relationships with AJV: packages/mcp/src/tools/upsert.ts:20-76
+   - BUT MCP tool input schema does not match handler payload shape (schema requires type/id/properties): packages/mcp/src/server.ts:87-109
+     while handler expects entities[]/relationships[]: packages/mcp/src/tools/upsert.ts:6-9
+
+4) Append-only audit log of all changesets: PASS
+   - Persistent predicate changeset/4 declared: packages/core/src/kb.pl:30-33
+   - Writes log on entity upsert/delete and relationship upsert: packages/core/src/kb.pl:131-134, 145-149, 190-195
+
+5) Consistent entity schema fields (id,title,status,created_at,updated_at,source): PASS
+   - Required properties declared for all entity types: packages/core/schema/entities.pl:31-37
+   - Extractors populate required fields (defaults applied if missing):
+     packages/cli/src/extractors/markdown.ts:63-77
+     packages/cli/src/extractors/manifest.ts:79-93
+
+6) All 7 entity types (req,scenario,test,adr,flag,event,symbol): PASS
+   - Defined: packages/core/schema/entities.pl:6-12
+
+7) All relationship types from brief.md: FAIL
+   - Direction mismatch for specified_by:
+     brief.md:27-28 requires specified_by(req, scenario)
+     packages/core/schema/relationships.pl:20 defines valid_relationship(specified_by, scenario, req)
+   - Extra relationship type validates(test, req) not listed in brief.md v0 set: packages/core/schema/relationships.pl:9 and :22
+   - CLI check logic depends on the reversed direction and validates:
+     packages/cli/src/commands/check.ts:92-100 queries specified_by, ScenarioId, ReqId and validates, TestId, ReqId
+
+Must NOT Have (Guardrails)
+1) NO automatic KB merging between branches: PASS (no evidence of auto-merge logic found in reviewed sources)
+
+2) NO MCP tools beyond the 6 specified: FAIL
+   - Extra tool names handled by server dispatch:
+     packages/mcp/src/server.ts:330-349 (kb_list_entity_types)
+     packages/mcp/src/server.ts:351-373 (kb_list_relationship_types)
+
+3) NO VS Code graph visualization: PASS
+   - Searched packages/vscode for common viz libs (cytoscape/graphviz/mermaid/d3/etc): no matches.
+
+4) NO language-specific symbol extraction (manifest files only): PASS
+   - Searched packages/cli/src for ts-morph/tree-sitter/etc: no matches.
+
+5) NO arbitrary Prolog execution via MCP (structured queries only): PASS
+   - MCP query tool builds fixed-shape goals based on args; no raw goal passthrough observed: packages/mcp/src/tools/query.ts:50-68
+
+6) NO file modifications outside .kb/ or configured paths: FAIL
+   - init writes .gitignore: packages/cli/src/commands/init.ts:66-77
+   - init installs .git/hooks scripts: packages/cli/src/commands/init.ts:100-143
+
+7) NO CI artifact uploading or KB history tracking: PASS
+   - Searched .github/workflows for upload-artifact/artifact: no matches.
+
+8) NO user-defined IDs (content-based SHA256 only): FAIL
+   - Markdown extractor accepts explicit frontmatter id (overrides hash): packages/cli/src/extractors/markdown.ts:59
+
+Tasks Evidence Coverage
+- Plan marks tasks T1-T22 complete (see checklist items in .sisyphus/plans/kibi-v0.md).
+- Evidence present for tasks: 1,2,3,6,7,8,9,10,11,12,13,14,15,17,18,19,20,21,22.
+- Evidence missing (no .sisyphus/evidence/task-N* found): 4,5,16.
+
+Hands-on verification (Success Criteria: kibi init && kibi sync && kibi check)
+- Attempted in repo fixtures directory: test/fixtures
+  Command: bun ../../packages/cli/bin/kibi init && bun ../../packages/cli/bin/kibi sync && bun ../../packages/cli/bin/kibi check
+  Result: init ran; sync failed with: "Patterns must be a string (non empty) or an array of strings"
+  Root cause: fixtures config uses paths.manifests and prefixed globs, while sync expects paths.symbols:
+    test/fixtures/.kb/config.json:2-10 (manifests key, patterns rooted at test/fixtures/...)
+    packages/cli/src/commands/sync.ts:21-31 (expects symbols key)
+  Therefore this required hands-on check is currently FAIL.

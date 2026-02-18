@@ -1,0 +1,58 @@
+=== EDGE CASES TEST ===
+Date: 2026-02-18
+
+EDGE CASE 1: Empty KB
+✅ PASS - System handles empty KB gracefully
+  - Init succeeds with no entities
+  - Query returns: "No entities found" (user-friendly message)
+  - Check passes: "✓ No violations found. KB is valid."
+  - No crashes or errors
+
+EDGE CASE 2: Invalid YAML Frontmatter
+✅ PASS - System handles malformed YAML gracefully
+  - Sync operation completes (does not crash)
+  - Warning logged: "Failed to parse frontmatter: unexpected end of the stream..."
+  - File skipped, sync continues: "✓ Imported 0 entities, 0 relationships"
+  - No data corruption
+
+EDGE CASE 3: Missing Required Fields
+⚠️  PARTIAL PASS - System accepts entity with missing fields
+  - Sync succeeds: "✓ Imported 1 entities, 0 relationships"
+  - Entity BAD-001 imported despite missing: status, created_at, updated_at, etc.
+  - Check command returns: "✓ No violations found. KB is valid."
+  
+  Issue: Validation does not enforce required fields from JSON schema.
+  Impact: KB can contain incomplete entities.
+  Expected: Check command should report violations for missing required fields.
+  
+  This suggests validation rules may not be fully implemented or schema 
+  enforcement is not active during sync/check operations.
+
+EDGE CASE 4: Non-existent Branch Query
+❌ FAIL - CLI does not support --branch parameter
+  - Command: kibi query req --branch nonexistent
+  - Error: "error: unknown option '--branch'"
+  
+  Issue: README and MCP docs reference branch-aware queries, but CLI doesn't 
+  expose --branch flag for query command.
+  
+  Discrepancy: MCP tools accept "branch" parameter, but CLI does not.
+  Impact: Cannot test per-branch queries via CLI.
+
+EDGE CASE 5: Race Conditions (Rapid Sync)
+❌ NOT TESTED - Blocked by earlier sync timeout issues (test 02)
+  - Cannot safely test concurrent sync operations
+  - Previous tests showed Prolog hangs on repeated sync calls
+  - Risk of deadlock/resource exhaustion
+
+EDGE CASE SUMMARY:
+✅ PASS: Empty KB handling
+✅ PASS: Invalid YAML handling (graceful degradation)
+⚠️  ISSUE: Missing field validation not enforced
+❌ ISSUE: CLI lacks --branch parameter (feature gap vs MCP)
+❌ BLOCKED: Race condition testing (sync reliability issue)
+
+CRITICAL FINDINGS:
+1. Validation appears permissive (accepts incomplete entities)
+2. CLI/MCP feature parity gap (branch parameter)
+3. Cannot test concurrency due to sync stability issues

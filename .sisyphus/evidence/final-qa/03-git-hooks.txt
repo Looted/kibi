@@ -1,0 +1,35 @@
+=== GIT HOOKS TEST ===
+Date: 2026-02-18
+
+TEST EVIDENCE FROM PREVIOUS TESTS:
+
+HOOK INSTALLATION (from test 01):
+✅ PASS - post-checkout hook created at .git/hooks/post-checkout
+✅ PASS - post-merge hook created at .git/hooks/post-merge
+✅ PASS - Both hooks are executable (755 permissions)
+✅ PASS - Hook content verified:
+  #!/bin/sh
+  bun /home/looted/projects/kibi/packages/cli/bin/kibi sync
+
+HOOK EXECUTION (from test 02):
+✅ PASS - post-checkout hook fired automatically on branch creation
+Evidence: Output showed "✓ Imported 10 entities, 4 relationships" immediately after 
+"Switched to a new branch 'feature-test'" without explicit sync command
+
+HOOK BEHAVIOR:
+✅ PASS - Hooks trigger sync automatically on git checkout
+✅ PASS - Sync output visible in git command output (not silent)
+✅ PASS - Hook uses absolute path to kibi CLI (robust)
+
+LIMITATION DISCOVERED:
+⚠️  Hook execution triggers sync which can hang (see test 02 blocker)
+The hook mechanism works correctly, but the underlying sync operation has reliability 
+issues during repeated/concurrent operations.
+
+UNABLE TO TEST:
+❌ post-merge hook behavior (test blocked by sync timeout in test 02)
+
+SUMMARY:
+Git hooks are correctly installed and execute automatically on checkout.
+The hook mechanism itself works as designed.
+The sync operation called by hooks has reliability issues (separate blocker).
