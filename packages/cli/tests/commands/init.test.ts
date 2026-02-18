@@ -84,7 +84,8 @@ describe("kibi init", () => {
       stdio: "pipe",
     });
 
-    expect(out.toLowerCase()).toContain("already exists");
+    // init is idempotent and prints a skipping message when .kb exists
+    expect(out.toLowerCase()).toContain("already exists, skipping");
   });
 
   test("installs git hooks with --hooks flag", () => {
@@ -141,6 +142,7 @@ describe("kibi init", () => {
       stdio: "pipe",
     });
 
-    expect(out.toLowerCase()).toContain("already exists");
+    // init is idempotent and prints a skipping message when .kb exists
+    expect(out.toLowerCase()).toContain("already exists, skipping");
   });
 });

@@ -394,6 +394,10 @@ Test requirement for MCP operations.
     const result = response.result as {
       content: Array<{ type: string; text: string }>;
     };
+    // defensive checks: ensure content exists and has at least one item
+    expect(result.content).toBeDefined();
+    expect(result.content.length).toBeGreaterThan(0);
+    // Match either 'N violations' or 'No violations found'
     expect(result.content[0].text).toMatch(
       /(\d+ violations|No violations found)/,
     );

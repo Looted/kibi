@@ -16,3 +16,15 @@
   - Register `xsd` prefix (so rdf_save namespaces work) and fix `db_sync/1` call to use the actual audit log handle.
 - Fix (packages/cli/src/commands/sync.ts): treat git branch `master` as `main` so sync writes/reads `.kb/branches/main` in freshly `git init`’d repos.
 - Result: `bun test packages/cli/tests/commands/sync.test.ts` now passes 5/5 and no longer hits the 30s timeout.
+
+## [2026-02-18] Fix Blocker 2: `kibi query req` empty after sync
+
+- Symptom: `kibi sync` reported success but `kibi query req` returned no results (other types like scenario worked). In git-init repos, some queries also attached to `.kb/branches/master` while sync wrote to `.kb/branches/main`.
+- Root cause (import): Prolog assertion goals for atom-valued fields (notably `owner`, also `status/priority/severity/tags`) were emitted without quoting; values containing hyphens (e.g. `product-team`) are not valid bare Prolog atoms and caused `kb_assert_entity/2` to fail, so req entities were never imported.
+- Root cause (query attach): `query` used current git branch verbatim; in repos initialized on `master` it attached to `.kb/branches/master` while `sync` mapped `master` -> `main`.
+- Fix:
+  - packages/cli/src/commands/sync.ts: added `prologAtom()` that quotes/escapes non-simple atoms; applied to `status`, `owner`, `priority`, `severity`, and `tags` items so extraction can import req docs with hyphenated values.
+  - packages/cli/src/commands/query.ts: map missing branch or `master` -> `main` before `kb_attach`.
+  - packages/cli/src/commands/query.ts: for empty results, `--format json` prints `[]` (table keeps `No entities found`).
+  - Updated tests accordingly: tests/integration/branch-workflow.test.ts (empty output + increased timeouts), tests/integration/hook-integration.test.ts (increased timeout), packages/cli/tests/commands/init.test.ts (init is idempotent when .kb exists), tests/integration/mcp-crud.test.ts (accept either "No violations found" or "N violations" for kb_check).
+- Result: manual workflow shows all 7 types queryable after sync; `bun test` green (162/162).
