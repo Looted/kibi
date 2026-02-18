@@ -238,16 +238,18 @@ value_to_literal(Value, Literal) :-
 literal_to_value(Literal, Value) :-
     (   % Handle ^^/2 functor (RDF typed literal shorthand)
         Literal = ^^(StrVal, 'http://www.w3.org/2001/XMLSchema#string')
-    ->  (   % Try to parse as Prolog list term (handles both atoms and strings)
+    ->  (   % Preserve RDF typed literal functor for string values so callers
+            % can inspect datatype if needed; but also attempt to parse lists
+            % encoded as string into Prolog lists when appropriate.
             (atom(StrVal) ; string(StrVal)),
             (atom_concat('[', _, StrVal) ; string_concat("[", _, StrVal)),
             catch(atom_to_term(StrVal, ParsedValue, []), _, fail),
             is_list(ParsedValue)
         ->  Value = ParsedValue
-        ;   Value = StrVal
+        ;   Value = ^^(StrVal, 'http://www.w3.org/2001/XMLSchema#string')
         )
-    ;   Literal = ^^(Val, _)
-    ->  Value = Val  % Other typed literals - extract value
+    ;   Literal = ^^(Val, Type)
+    ->  Value = ^^(Val, Type)  % Preserve other typed literals as their functor
     ;   Literal = literal(type('http://www.w3.org/2001/XMLSchema#string', StrVal))
     ->  (   % Try to parse as Prolog list term (handles both atoms and strings)
             (atom(StrVal) ; string(StrVal)),
@@ -269,8 +271,13 @@ literal_to_value(Literal, Value) :-
 %% literal_to_atom(+Literal, -Atom)
 % Convert RDF literal to atom (for type field).
 literal_to_atom(Literal, Atom) :-
-    (   Literal = ^^(StringVal, _Type)
-    ->  atom_string(Atom, StringVal)
+    (   % Handle RDF typed literal shorthand functor ^^(Value, Type)
+        Literal = ^^(Val, _Type)
+    ->  (   % Val may be atom or string
+            atom(Val)
+        ->  Atom = Val
+        ;   atom_string(Atom, Val)
+        )
     ;   Literal = literal(type(_, StringVal))
     ->  atom_string(Atom, StringVal)
     ;   Literal = literal(Value)
