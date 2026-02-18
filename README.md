@@ -1,5 +1,7 @@
 # Kibi Knowledge Base
 
+> **⚠️ Functional Alpha Release** - Kibi v0 is an early preview suitable for small projects and early adopters. Performance is not optimized. See [Known Limitations](KNOWN_LIMITATIONS.md) for details.
+
 ## Project Overview
 Kibi is a branch-aware, queryable knowledge base for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, and code symbols, along with typed relationships between them. The KB is accessible via CLI and MCP server, supporting deterministic agent workflows and human review.
 
@@ -7,6 +9,8 @@ Kibi is a branch-aware, queryable knowledge base for software projects. It store
 Kibi enables traceable, auditable project memory, linking requirements to tests, decisions, and code. It supports per-branch KBs for isolated feature development, and integrates with git automation for seamless updates.
 
 ## Quick Start
+
+> **Performance Note**: Kibi v0 is optimized for correctness, not speed. Sync operations take ~2s, suitable for small projects (<100 entities). Performance optimization is the primary goal for v0.1.
 
 ### Prerequisites
 - SWI-Prolog >= 9.0 (https://www.swi-prolog.org/)
