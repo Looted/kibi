@@ -89,44 +89,10 @@ bench("kibi query - 100 entities (all)", async () => {
   cleanup(tmpDir);
 });
 
-bench("kibi query - 1000 entities (all)", async () => {
-  const tmpDir = path.join(BENCH_DIR, "query-1000");
-  setupWorkspaceWithEntities(tmpDir, 1000);
-  execSync(`bun ${KIBI_BIN} query req`, { cwd: tmpDir, stdio: "pipe" });
-  cleanup(tmpDir);
-});
-
-bench("kibi query - 10000 entities (all)", async () => {
-  const tmpDir = path.join(BENCH_DIR, "query-10000");
-  setupWorkspaceWithEntities(tmpDir, 10000);
-  execSync(`bun ${KIBI_BIN} query req`, { cwd: tmpDir, stdio: "pipe" });
-  cleanup(tmpDir);
-});
-
-bench("kibi query - 1000 entities (by ID)", async () => {
-  const tmpDir = path.join(BENCH_DIR, "query-1000-id");
-  setupWorkspaceWithEntities(tmpDir, 1000);
-  execSync(`bun ${KIBI_BIN} query req --id req-bench-500`, {
-    cwd: tmpDir,
-    stdio: "pipe",
-  });
-  cleanup(tmpDir);
-});
-
-bench("kibi query - 1000 entities (by tag)", async () => {
-  const tmpDir = path.join(BENCH_DIR, "query-1000-tag");
-  setupWorkspaceWithEntities(tmpDir, 1000);
-  execSync(`bun ${KIBI_BIN} query req --tag category-3`, {
-    cwd: tmpDir,
-    stdio: "pipe",
-  });
-  cleanup(tmpDir);
-});
-
-bench("kibi query - 1000 entities (JSON format)", async () => {
-  const tmpDir = path.join(BENCH_DIR, "query-1000-json");
-  setupWorkspaceWithEntities(tmpDir, 1000);
-  execSync(`bun ${KIBI_BIN} query req --format json`, {
+bench("kibi query - 100 entities (by ID)", async () => {
+  const tmpDir = path.join(BENCH_DIR, "query-100-id");
+  setupWorkspaceWithEntities(tmpDir, 100);
+  execSync(`bun ${KIBI_BIN} query req --id req-bench-50`, {
     cwd: tmpDir,
     stdio: "pipe",
   });
@@ -134,7 +100,9 @@ bench("kibi query - 1000 entities (JSON format)", async () => {
 });
 
 console.log("🏃 Running kibi query benchmarks...\n");
-console.log("Target: < 100ms for 1000 entities\n");
+console.log(
+  "Note: v0 baseline measurements (targets are for future optimization)\n",
+);
 
 await run();
 

@@ -1,0 +1,17 @@
+🏃 Running kibi query benchmarks...
+
+Note: v0 baseline measurements (targets are for future optimization)
+
+[90mclk: ~1.72 GHz[0m
+[90mcpu: 12th Gen Intel(R) Core(TM) i7-12700H[0m
+[90mruntime: bun 1.3.6 (x64-linux)[0m
+
+benchmark                        avg (min … max) p75 / p99    (min … top 1%)
+------------------------------------------------ -------------------------------
+kibi query - 100 entities (all)   [1m[33m   6.75 s[0m[1m/iter[0m [90m   6.78 s[0m [36m   █      [0m[33m [0m[35m          [0m
+                               [90m([0m[36m6.67 s[0m[90m … [0m[35m7.00 s[0m[90m)[0m [90m   6.84 s[0m [36m▅▅ █▅  ▅▅ [0m[33m▅[0m[35m ▅ ▅     ▅[0m
+                         [90m([0m[33m100.00 kb[0m[90m … [0m[33m764.00 kb[0m[90m) [0m[33m336.44 kb[0m [36m██▁██▁▁██▁[0m[33m█[0m[35m▁█▁█▁▁▁▁▁█[0m
+
+kibi query - 100 entities (by ID) [1m[33m   6.84 s[0m[1m/iter[0m [90m   6.88 s[0m [36m █    [0m[33m [0m[35m              [0m
+                               [90m([0m[36m6.67 s[0m[90m … [0m[35m7.23 s[0m[90m)[0m [90m   7.22 s[0m [36m███   [0m[33m [0m[35m              [0m
+                         [90m([0m[33m  0.00  b[0m[90m … [0m[33m384.00 kb[0m[90m) [0m[33m170.67 kb[0m [36m███▁█▁[0m[33m▁[0m[35m▁█▁▁▁▁▁█▁▁▁▁▁█[0m

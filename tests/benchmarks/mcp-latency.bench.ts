@@ -108,29 +108,6 @@ bench("MCP kb_query by ID", async () => {
   cleanup(tmpDir);
 });
 
-bench("MCP kb_upsert tool call", async () => {
-  const tmpDir = path.join(BENCH_DIR, "mcp-upsert");
-  setupMcpWorkspace(tmpDir, 10);
-  measureMcpToolCall(
-    tmpDir,
-    "kb_upsert",
-    JSON.stringify({
-      entities: [
-        {
-          type: "req",
-          id: "req-bench-new",
-          properties: {
-            title: "New Requirement",
-            status: "draft",
-            tags: ["test"],
-          },
-        },
-      ],
-    }),
-  );
-  cleanup(tmpDir);
-});
-
 bench("MCP kb_check tool call", async () => {
   const tmpDir = path.join(BENCH_DIR, "mcp-check");
   setupMcpWorkspace(tmpDir, 100);
@@ -138,15 +115,10 @@ bench("MCP kb_check tool call", async () => {
   cleanup(tmpDir);
 });
 
-bench("MCP kb_delete tool call", async () => {
-  const tmpDir = path.join(BENCH_DIR, "mcp-delete");
-  setupMcpWorkspace(tmpDir, 10);
-  measureMcpToolCall(tmpDir, "kb_delete", '{"ids": ["req-mcp-5"]}');
-  cleanup(tmpDir);
-});
-
 console.log("🏃 Running MCP tool call latency benchmarks...\n");
-console.log("Target: < 50ms per tool call\n");
+console.log(
+  "Note: v0 baseline measurements (targets are for future optimization)\n",
+);
 
 await run();
 

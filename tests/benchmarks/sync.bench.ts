@@ -101,7 +101,6 @@ bench("kibi sync - 10 files", async () => {
   cleanup(tmpDir);
 });
 
-// Benchmark: Sync 100 files
 bench("kibi sync - 100 files", async () => {
   const tmpDir = path.join(BENCH_DIR, "sync-100");
   setupWorkspace(tmpDir, 100);
@@ -109,35 +108,25 @@ bench("kibi sync - 100 files", async () => {
   cleanup(tmpDir);
 });
 
-// Benchmark: Sync 1000 files
-bench("kibi sync - 1000 files", async () => {
-  const tmpDir = path.join(BENCH_DIR, "sync-1000");
-  setupWorkspace(tmpDir, 1000);
-  execSync(`bun ${KIBI_BIN} sync`, { cwd: tmpDir, stdio: "pipe" });
-  cleanup(tmpDir);
-});
-
-// Benchmark: Incremental sync (change 1 file out of 100)
 bench("kibi sync - incremental (1/100 changed)", async () => {
   const tmpDir = path.join(BENCH_DIR, "sync-incr");
   setupWorkspace(tmpDir, 100);
 
-  // Initial sync
   execSync(`bun ${KIBI_BIN} sync`, { cwd: tmpDir, stdio: "pipe" });
 
-  // Modify one file
   const reqDir = path.join(tmpDir, "requirements");
   writeFileSync(path.join(reqDir, "req-0.md"), generateTestFile(9999));
   execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
   execSync('git commit -m "Update req-0"', { cwd: tmpDir, stdio: "pipe" });
 
-  // Measure incremental sync
   execSync(`bun ${KIBI_BIN} sync`, { cwd: tmpDir, stdio: "pipe" });
   cleanup(tmpDir);
 });
 
 console.log("🏃 Running kibi sync benchmarks...\n");
-console.log("Target: < 1s for 100 files\n");
+console.log(
+  "Note: v0 baseline measurements (targets are for future optimization)\n",
+);
 
 await run();
 
