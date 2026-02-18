@@ -246,15 +246,14 @@ Test requirement for MCP operations.
       params: {
         name: "kb_upsert",
         arguments: {
-          entities: [
-            {
-              type: "req",
-              id: "req-new",
-              title: "New Requirement",
-              status: "draft",
-              tags: ["new"],
-            },
-          ],
+          type: "req",
+          id: "req-new",
+          properties: {
+            title: "New Requirement",
+            status: "draft",
+            source: "test://integration",
+            tags: ["new"],
+          },
         },
       },
     });
@@ -263,7 +262,7 @@ Test requirement for MCP operations.
     const result = response.result as {
       content: Array<{ type: string; text: string }>;
     };
-    expect(result.content[0].text).toContain("Upserted 1 entities");
+    expect(result.content[0].text).toContain("req-new");
 
     const queryResponse = await sendJsonRpc({
       jsonrpc: "2.0",
@@ -292,15 +291,14 @@ Test requirement for MCP operations.
       params: {
         name: "kb_upsert",
         arguments: {
-          entities: [
-            {
-              type: "req",
-              id: "req1",
-              title: "Updated Title",
-              status: "approved",
-              tags: ["updated"],
-            },
-          ],
+          type: "req",
+          id: "req1",
+          properties: {
+            title: "Updated Title",
+            status: "approved",
+            source: "test://integration",
+            tags: ["updated"],
+          },
         },
       },
     });

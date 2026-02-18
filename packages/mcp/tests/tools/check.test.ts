@@ -46,18 +46,16 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should detect must-priority requirement without scenario", async () => {
-    const reqEntity = {
-      id: "req-must-001",
+    await handleKbUpsert(prolog, {
       type: "req",
-      title: "Must-priority requirement",
-      status: "active",
-      priority: "must",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      source: "test://check-test",
-    };
-
-    await handleKbUpsert(prolog, { entities: [reqEntity] });
+      id: "req-must-001",
+      properties: {
+        title: "Must-priority requirement",
+        status: "active",
+        priority: "must",
+        source: "test://check-test",
+      },
+    });
 
     const result = await handleKbCheck(prolog, {});
 
@@ -71,16 +69,6 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should detect must-priority requirement with scenario but no test", async () => {
-    const scenarioEntity = {
-      id: "scenario-001",
-      type: "scenario",
-      title: "Scenario for must req",
-      status: "active",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      source: "test://check-test",
-    };
-
     const relationship = {
       type: "specified_by",
       from: "scenario-001",
@@ -91,7 +79,13 @@ describe("MCP Check Tool Handler", () => {
     };
 
     await handleKbUpsert(prolog, {
-      entities: [scenarioEntity],
+      type: "scenario",
+      id: "scenario-001",
+      properties: {
+        title: "Scenario for must req",
+        status: "active",
+        source: "test://check-test",
+      },
       relationships: [relationship],
     });
 
@@ -107,16 +101,6 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should pass must-priority coverage with both scenario and test", async () => {
-    const testEntity = {
-      id: "test-001",
-      type: "test",
-      title: "Test for must req",
-      status: "active",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      source: "test://check-test",
-    };
-
     const relationship = {
       type: "validates",
       from: "test-001",
@@ -124,7 +108,13 @@ describe("MCP Check Tool Handler", () => {
     };
 
     await handleKbUpsert(prolog, {
-      entities: [testEntity],
+      type: "test",
+      id: "test-001",
+      properties: {
+        title: "Test for must req",
+        status: "active",
+        source: "test://check-test",
+      },
       relationships: [relationship],
     });
 
@@ -138,17 +128,15 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should run required-fields rule without errors", async () => {
-    const validEntity = {
-      id: "complete-req-001",
+    await handleKbUpsert(prolog, {
       type: "req",
-      title: "Complete requirement",
-      status: "active",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      source: "test://check-test",
-    };
-
-    await handleKbUpsert(prolog, { entities: [validEntity] });
+      id: "complete-req-001",
+      properties: {
+        title: "Complete requirement",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
 
     const result = await handleKbCheck(prolog, {
       rules: ["required-fields"],
@@ -172,17 +160,15 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should run no-dangling-refs rule without errors", async () => {
-    const reqEntity = {
-      id: "req-valid-001",
+    await handleKbUpsert(prolog, {
       type: "req",
-      title: "Valid requirement",
-      status: "active",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      source: "test://check-test",
-    };
-
-    await handleKbUpsert(prolog, { entities: [reqEntity] });
+      id: "req-valid-001",
+      properties: {
+        title: "Valid requirement",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
 
     const result = await handleKbCheck(prolog, {
       rules: ["no-dangling-refs"],
@@ -193,28 +179,6 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should run no-cycles rule without errors", async () => {
-    const timestamp = new Date().toISOString();
-
-    const reqA = {
-      id: "req-nocycle-a",
-      type: "req",
-      title: "Requirement A",
-      status: "active",
-      created_at: timestamp,
-      updated_at: timestamp,
-      source: "test://check-test",
-    };
-
-    const reqB = {
-      id: "req-nocycle-b",
-      type: "req",
-      title: "Requirement B",
-      status: "active",
-      created_at: timestamp,
-      updated_at: timestamp,
-      source: "test://check-test",
-    };
-
     const relationship = {
       type: "depends_on",
       from: "req-nocycle-a",
@@ -222,7 +186,23 @@ describe("MCP Check Tool Handler", () => {
     };
 
     await handleKbUpsert(prolog, {
-      entities: [reqA, reqB],
+      type: "req",
+      id: "req-nocycle-a",
+      properties: {
+        title: "Requirement A",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-nocycle-b",
+      properties: {
+        title: "Requirement B",
+        status: "active",
+        source: "test://check-test",
+      },
       relationships: [relationship],
     });
 

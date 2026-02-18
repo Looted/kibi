@@ -4,7 +4,13 @@ import relationshipSchema from "@kibi/cli/src/schemas/relationship.schema.json";
 import Ajv from "ajv";
 
 export interface UpsertArgs {
-  entities: Array<Record<string, unknown>>;
+  /** Entity type (req, scenario, test, adr, flag, event, symbol) */
+  type: string;
+  /** Unique entity identifier */
+  id: string;
+  /** Key-value pairs to store as RDF properties (title, status, source, tags, etc.) */
+  properties: Record<string, unknown>;
+  /** Optional relationships to create alongside this entity */
   relationships?: Array<Record<string, unknown>>;
 }
 
@@ -23,41 +29,49 @@ const validateRelationship = ajv.compile(relationshipSchema);
 
 /**
  * Handle kb.upsert tool calls
- * Validates entities/relationships against JSON Schema before Prolog writes
+ * Accepts { type, id, properties } — the flat format matching the tool schema.
+ * Validates the assembled entity against JSON Schema before Prolog writes.
  */
 export async function handleKbUpsert(
   prolog: PrologProcess,
   args: UpsertArgs,
 ): Promise<UpsertResult> {
-  const { entities, relationships = [] } = args;
+  const { type, id, properties, relationships = [] } = args;
 
-  if (!entities || entities.length === 0) {
-    throw new Error("At least one entity required for upsert");
+  if (!type || !id) {
+    throw new Error("'type' and 'id' are required for upsert");
   }
+
+  // Assemble full entity from flat args + properties
+  const entity: Record<string, unknown> = {
+    id,
+    type,
+    ...properties,
+  };
+
+  // Fill in defaults for optional required fields
+  if (!entity.created_at) {
+    entity.created_at = new Date().toISOString();
+  }
+  if (!entity.updated_at) {
+    entity.updated_at = new Date().toISOString();
+  }
+  if (!entity.source) {
+    entity.source = "mcp://kibi/upsert";
+  }
+
+  const entities = [entity];
 
   // Validate all entities
   for (let i = 0; i < entities.length; i++) {
-    const entity = entities[i];
+    const ent = entities[i];
 
-    // Add default values for missing required fields
-    if (!entity.created_at) {
-      entity.created_at = new Date().toISOString();
-    }
-    if (!entity.updated_at) {
-      entity.updated_at = new Date().toISOString();
-    }
-    if (!entity.source) {
-      entity.source = "mcp://kibi/upsert";
-    }
-
-    if (!validateEntity(entity)) {
+    if (!validateEntity(ent)) {
       const errors = validateEntity.errors || [];
       const errorMessages = errors
         .map((e) => `${e.instancePath || "root"}: ${e.message}`)
         .join("; ");
-      throw new Error(
-        `Entity validation failed at index ${i}: ${errorMessages}`,
-      );
+      throw new Error(`Entity validation failed: ${errorMessages}`);
     }
   }
 
@@ -142,7 +156,7 @@ export async function handleKbUpsert(
       content: [
         {
           type: "text",
-          text: `Upserted ${entities.length} entities (${created} created, ${updated} updated) and ${relationshipsCreated} relationships.`,
+          text: `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s).`,
         },
       ],
       structuredContent: {

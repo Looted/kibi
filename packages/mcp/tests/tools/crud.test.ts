@@ -83,124 +83,112 @@ describe("MCP CRUD Tool Handlers", () => {
 
   describe("kb.upsert", () => {
     test("should create a new entity", async () => {
-      const entity = {
-        id: "test-req-001",
+      const result = await handleKbUpsert(prolog, {
         type: "req",
-        title: "Test Requirement",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-        tags: ["test", "mcp"],
-      };
-
-      const result = await handleKbUpsert(prolog, { entities: [entity] });
+        id: "test-req-001",
+        properties: {
+          title: "Test Requirement",
+          status: "active",
+          source: "test://mcp-crud",
+          tags: ["test", "mcp"],
+        },
+      });
 
       expect(result.structuredContent?.created).toBe(1);
       expect(result.structuredContent?.updated).toBe(0);
     });
 
     test("should update existing entity", async () => {
-      const entity = {
-        id: "test-req-001",
+      const result = await handleKbUpsert(prolog, {
         type: "req",
-        title: "Updated Test Requirement",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-        tags: ["test", "mcp", "updated"],
-      };
-
-      const result = await handleKbUpsert(prolog, { entities: [entity] });
+        id: "test-req-001",
+        properties: {
+          title: "Updated Test Requirement",
+          status: "active",
+          source: "test://mcp-crud",
+          tags: ["test", "mcp", "updated"],
+        },
+      });
 
       expect(result.structuredContent?.updated).toBe(1);
       expect(result.structuredContent?.created).toBe(0);
     });
 
     test("should create entity with relationships", async () => {
-      const entity1 = {
-        id: "test-req-002",
+      await handleKbUpsert(prolog, {
         type: "req",
-        title: "Requirement 2",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
-      const entity2 = {
-        id: "test-scenario-001",
-        type: "scenario",
-        title: "Scenario 1",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
-      const relationship = {
-        type: "specified_by",
-        from: "test-scenario-001",
-        to: "test-req-002",
-      };
-
-      const result = await handleKbUpsert(prolog, {
-        entities: [entity1, entity2],
-        relationships: [relationship],
+        id: "test-req-002",
+        properties: {
+          title: "Requirement 2",
+          status: "active",
+          source: "test://mcp-crud",
+        },
       });
 
-      expect(result.structuredContent?.created).toBe(2);
+      const result = await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "test-scenario-001",
+        properties: {
+          title: "Scenario 1",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+        relationships: [
+          {
+            type: "specified_by",
+            from: "test-scenario-001",
+            to: "test-req-002",
+          },
+        ],
+      });
+
+      expect(result.structuredContent?.created).toBe(1);
       expect(result.structuredContent?.relationships_created).toBe(1);
     });
 
     test("should reject entity with missing required fields", async () => {
-      const invalidEntity = {
-        id: "test-invalid",
-        type: "req",
-      };
-
       await expect(
-        handleKbUpsert(prolog, { entities: [invalidEntity] }),
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "test-invalid",
+          properties: {},
+        }),
       ).rejects.toThrow(/validation failed/);
     });
 
     test("should reject entity with invalid type", async () => {
-      const invalidEntity = {
-        id: "test-invalid-type",
-        type: "invalid_type",
-        title: "Invalid",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
       await expect(
-        handleKbUpsert(prolog, { entities: [invalidEntity] }),
+        handleKbUpsert(prolog, {
+          type: "invalid_type",
+          id: "test-invalid-type",
+          properties: {
+            title: "Invalid",
+            status: "active",
+            source: "test://mcp-crud",
+          },
+        }),
       ).rejects.toThrow(/validation failed/);
     });
 
-    test("should reject empty entities array", async () => {
-      await expect(handleKbUpsert(prolog, { entities: [] })).rejects.toThrow(
-        /At least one entity required/,
-      );
+    test("should reject call missing type or id", async () => {
+      await expect(
+        // @ts-expect-error intentional bad args
+        handleKbUpsert(prolog, { properties: { title: "No type or id" } }),
+      ).rejects.toThrow(/'type' and 'id' are required/);
     });
   });
 
   describe("kb.delete", () => {
     test("should delete existing entity", async () => {
-      const entity = {
-        id: "test-delete-001",
+      await handleKbUpsert(prolog, {
         type: "flag",
-        title: "To Be Deleted",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
-      await handleKbUpsert(prolog, { entities: [entity] });
+        id: "test-delete-001",
+        properties: {
+          title: "To Be Deleted",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
 
       const result = await handleKbDelete(prolog, { ids: ["test-delete-001"] });
 
@@ -221,28 +209,24 @@ describe("MCP CRUD Tool Handlers", () => {
     });
 
     test("should prevent deletion of entity with dependents", async () => {
-      const parentEntity = {
-        id: "test-parent-001",
+      await handleKbUpsert(prolog, {
         type: "req",
-        title: "Parent Requirement",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
-      const childEntity = {
-        id: "test-child-001",
-        type: "scenario",
-        title: "Child Scenario",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
+        id: "test-parent-001",
+        properties: {
+          title: "Parent Requirement",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
 
       await handleKbUpsert(prolog, {
-        entities: [parentEntity, childEntity],
+        type: "scenario",
+        id: "test-child-001",
+        properties: {
+          title: "Child Scenario",
+          status: "active",
+          source: "test://mcp-crud",
+        },
         relationships: [
           {
             type: "specified_by",
@@ -262,27 +246,25 @@ describe("MCP CRUD Tool Handlers", () => {
     });
 
     test("should delete multiple entities", async () => {
-      const entity1 = {
+      await handleKbUpsert(prolog, {
+        type: "event",
         id: "test-multi-delete-001",
-        type: "event",
-        title: "Event 1",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
+        properties: {
+          title: "Event 1",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
 
-      const entity2 = {
+      await handleKbUpsert(prolog, {
+        type: "event",
         id: "test-multi-delete-002",
-        type: "event",
-        title: "Event 2",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://mcp-crud",
-      };
-
-      await handleKbUpsert(prolog, { entities: [entity1, entity2] });
+        properties: {
+          title: "Event 2",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
 
       const result = await handleKbDelete(prolog, {
         ids: ["test-multi-delete-001", "test-multi-delete-002"],
@@ -301,18 +283,16 @@ describe("MCP CRUD Tool Handlers", () => {
 
   describe("integration: query after upsert", () => {
     test("should find entity immediately after creation", async () => {
-      const entity = {
-        id: "test-integration-001",
+      await handleKbUpsert(prolog, {
         type: "symbol",
-        title: "Integration Test Symbol",
-        status: "active",
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        source: "test://integration",
-        tags: ["integration"],
-      };
-
-      await handleKbUpsert(prolog, { entities: [entity] });
+        id: "test-integration-001",
+        properties: {
+          title: "Integration Test Symbol",
+          status: "active",
+          source: "test://integration",
+          tags: ["integration"],
+        },
+      });
 
       const queryResult = await handleKbQuery(prolog, {
         id: "test-integration-001",

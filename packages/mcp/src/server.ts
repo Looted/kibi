@@ -11,6 +11,10 @@ import {
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
+import {
+  type QueryRelationshipsArgs,
+  handleKbQueryRelationships,
+} from "./tools/query-relationships.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 
 // JSON-RPC 2.0 Types
@@ -102,7 +106,21 @@ const TOOLS = [
         },
         properties: {
           type: "object",
-          description: "Key-value pairs to store as RDF properties",
+          description:
+            "Key-value pairs to store as RDF properties (title, status, source, tags, owner, priority, etc.)",
+        },
+        relationships: {
+          type: "array",
+          description: "Optional relationships to create alongside this entity",
+          items: {
+            type: "object",
+            required: ["type", "from", "to"],
+            properties: {
+              type: { type: "string" },
+              from: { type: "string" },
+              to: { type: "string" },
+            },
+          },
         },
       },
     },
@@ -172,6 +190,50 @@ const TOOLS = [
         },
       },
     },
+  },
+  {
+    name: "kb_query_relationships",
+    description:
+      "Query relationships between entities. Filter by source entity (from), target entity (to), or relationship type.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        from: {
+          type: "string",
+          description: "Source entity ID",
+        },
+        to: {
+          type: "string",
+          description: "Target entity ID",
+        },
+        type: {
+          type: "string",
+          enum: [
+            "depends_on",
+            "specified_by",
+            "verified_by",
+            "implements",
+            "covered_by",
+            "constrained_by",
+            "guards",
+            "publishes",
+            "consumes",
+            "relates_to",
+          ],
+          description: "Relationship type to filter by",
+        },
+      },
+    },
+  },
+  {
+    name: "kb_list_entity_types",
+    description: "List all supported entity types in the knowledge base.",
+    inputSchema: { type: "object", properties: {} },
+  },
+  {
+    name: "kb_list_relationship_types",
+    description: "List all supported relationship types in the knowledge base.",
+    inputSchema: { type: "object", properties: {} },
   },
 ];
 
@@ -250,8 +312,24 @@ async function handleInitializedNotification(): Promise<void> {
     prologProcess = new PrologProcess({ timeout: 30000 });
     await prologProcess.start();
 
-    // Attach KB to main branch
-    const kbPath = path.resolve(process.cwd(), ".kb/branches/main");
+    // Determine current branch from env override or git
+    let branch = process.env.KIBI_BRANCH || "main";
+    if (!process.env.KIBI_BRANCH) {
+      try {
+        const { execSync } = await import("node:child_process");
+        const detected = execSync("git branch --show-current", {
+          cwd: process.cwd(),
+          encoding: "utf8",
+          timeout: 3000,
+        }).trim();
+        if (detected && detected !== "master") branch = detected;
+      } catch {
+        // fall back to main
+      }
+    }
+
+    // Attach KB to the resolved branch
+    const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
     const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
@@ -326,6 +404,12 @@ async function handleToolCall(
 
       case "kb_branch_gc":
         return await handleKbBranchGc(prologProcess, params as BranchGcArgs);
+
+      case "kb_query_relationships":
+        return await handleKbQueryRelationships(
+          prologProcess,
+          params as QueryRelationshipsArgs,
+        );
 
       case "kb_list_entity_types":
         return {

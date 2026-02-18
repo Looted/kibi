@@ -2,24 +2,44 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
-  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
-  "activationEvents": ["onStartupFinished", "workspaceContains:.kb"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "knowledge base",
+    "requirements",
+    "adr",
+    "scenarios",
+    "mcp"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:kibi-knowledge-base",
+    "onCommand:kibi.focusKnowledgeBase"
+  ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kibi-sidebar",
+          "title": "Kibi",
+          "icon": "media/kibi-activitybar.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "kibi-sidebar": [
         {
           "id": "kibi-knowledge-base",
           "name": "Kibi Knowledge Base",
-          "when": "workspaceContains:.kb",
-          "contextualTitle": "Kibi Explorer"
+          "contextualTitle": "Kibi"
         }
       ]
     },
@@ -31,6 +51,22 @@
           "light": "$(refresh)",
           "dark": "$(refresh)"
         }
+      },
+      {
+        "command": "kibi.openEntity",
+        "title": "Kibi: Open Entity File"
+      },
+      {
+        "command": "kibi.openEntityById",
+        "title": "Kibi: Open Entity File by ID"
+      },
+      {
+        "command": "kibi.browseLinkedEntities",
+        "title": "Kibi: Browse Linked Entities"
+      },
+      {
+        "command": "kibi.focusKnowledgeBase",
+        "title": "Kibi: Focus Knowledge Base"
       }
     ],
     "menus": {
@@ -40,13 +76,23 @@
           "when": "view == kibi-knowledge-base",
           "group": "navigation"
         }
+      ],
+      "commandPalette": [
+        {
+          "command": "kibi.focusKnowledgeBase"
+        },
+        {
+          "command": "kibi.refreshTree"
+        }
       ]
     },
     "mcp": {
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+          "args": [
+            "${workspaceFolder}/packages/mcp/bin/kibi-mcp"
+          ],
           "env": {}
         }
       }
@@ -67,10 +113,12 @@
     "esbuild": "^0.23.0",
     "typescript": "^5.0.0"
   },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/kibi-org/kibi.git",
-    "directory": "packages/vscode"
+    "url": "https://github.com/kibi-org/kibi.git"
   },
   "license": "MIT"
 }

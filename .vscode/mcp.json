@@ -1,0 +1,12 @@
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "bun",
+      "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+      "env": {
+        "KB_PATH": "${workspaceFolder}/.kb"
+      }
+    }
+  }
+}

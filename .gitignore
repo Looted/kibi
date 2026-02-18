@@ -1,8 +1,45 @@
+# --- Dependencies ---
 node_modules/
-.kb/branches/
+bun.lockb
+
+# --- Build outputs ---
 dist/
+*.vsix
+packages/vscode/kibi-vscode-*.vsix
+
+# --- KB runtime data (branch stores are local-only) ---
+.kb/branches/
+
+# --- Logs & temp ---
 *.log
+*.log.*
+npm-debug.log*
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor ---
+.vscode/settings.json
+.vscode/launch.json
+*.swp
+*.swo
+*~
+
+# --- Build tools ---
 .turbo/
-# Do NOT ignore these project files (kept intentionally tracked):
+.cache/
+
+# --- Test artifacts ---
+coverage/
+*.lcov
+
+# --- Bun ---
+.bun/
+
+# --- Do NOT ignore these (intentionally tracked) ---
 #! .kb/config.json
 #! .kb/schema/
+#! bun.lock
+.sisyphus
