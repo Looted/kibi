@@ -367,6 +367,6 @@ tags: [performance]
       encoding: "utf8",
     });
 
-    expect(queryOutput).toContain("No entities found");
+    expect(queryOutput).toContain("[]");
   });
 });

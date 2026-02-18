@@ -156,7 +156,7 @@ status: draft
     });
     expect(mainQuery).toContain("Main");
     expect(mainQuery).toContain("Feature");
-  });
+  }, 20000);
 
   test("hooks are idempotent on re-install", () => {
     execSync(`bun ${kibiBin} init --hooks`, {

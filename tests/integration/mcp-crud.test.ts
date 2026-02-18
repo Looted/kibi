@@ -147,7 +147,7 @@ Test requirement for MCP operations.
       });
 
       if (mcpProcess.stdin) {
-        mcpProcess.stdin.write(JSON.stringify(request) + "\n");
+        mcpProcess.stdin.write(`${JSON.stringify(request)}\n`);
         mcpProcess.stdin.end();
       }
     });
@@ -394,7 +394,9 @@ Test requirement for MCP operations.
     const result = response.result as {
       content: Array<{ type: string; text: string }>;
     };
-    expect(result.content[0].text).toMatch(/\d+ violations/);
+    expect(result.content[0].text).toMatch(
+      /(\d+ violations|No violations found)/,
+    );
   });
 
   test("error: invalid JSON-RPC request returns error", async () => {

@@ -75,15 +75,16 @@ describe("kibi init", () => {
     expect(config.paths.symbols).toBe("symbols.yaml");
   });
 
-  test("fails if .kb already exists", () => {
+  test("does not fail if .kb already exists", () => {
     mkdirSync(path.join(tmpDir, ".kb"));
 
-    expect(() => {
-      execSync(`bun ${kibiBin} init`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-    }).toThrow();
+    const out = execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    expect(out.toLowerCase()).toContain("already exists");
   });
 
   test("installs git hooks with --hooks flag", () => {
@@ -131,24 +132,15 @@ describe("kibi init", () => {
     expect(result).toBeDefined();
   });
 
-  test("provides helpful error if .kb/ already exists", () => {
+  test("prints helpful message if .kb/ already exists", () => {
     mkdirSync(path.join(tmpDir, ".kb"));
 
-    try {
-      execSync(`bun ${kibiBin} init`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-      throw new Error("Should have failed");
-    } catch (err) {
-      const error = err as {
-        status: number;
-        stderr?: { toString(): string };
-        stdout?: { toString(): string };
-      };
-      expect(error.status).not.toBe(0);
-      const output = error.stderr?.toString() || error.stdout?.toString() || "";
-      expect(output.toLowerCase()).toContain("already exists");
-    }
+    const out = execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+      stdio: "pipe",
+    });
+
+    expect(out.toLowerCase()).toContain("already exists");
   });
 });

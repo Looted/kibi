@@ -30,7 +30,7 @@ export async function queryCommand(
         cwd: process.cwd(),
         encoding: "utf8",
       }).trim();
-      if (!currentBranch) currentBranch = "main";
+      if (!currentBranch || currentBranch === "master") currentBranch = "main";
     } catch {
       currentBranch = "main";
     }
@@ -93,9 +93,9 @@ export async function queryCommand(
         goal = `kb_entity('${safeId}', '${type}', Props), Id = '${safeId}', Type = '${type}', Result = [Id, Type, Props]`;
       } else if (options.tag) {
         const safeTag = String(options.tag).replace(/'/g, "''");
-        goal = `findall([Id,${type},Props], (kb_entity(Id, ${type}, Props), memberchk(tags=Tags, Props), member('${safeTag}', Tags)), Results)`;
+        goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member('${safeTag}', Tags)), Results)`;
       } else {
-        goal = `findall([Id,${type},Props], kb_entity(Id, ${type}, Props), Results)`;
+        goal = `findall([Id,'${type}',Props], kb_entity(Id, '${type}', Props), Results)`;
       }
 
       const queryResult = await prolog.query(goal);
@@ -137,7 +137,11 @@ export async function queryCommand(
     const paginated = results.slice(offset, offset + limit);
 
     if (!paginated || paginated.length === 0) {
-      console.log("No entities found");
+      if (options.format === "json") {
+        console.log("[]");
+      } else {
+        console.log("No entities found");
+      }
       process.exit(0);
     }
 
@@ -171,11 +175,24 @@ function parseListOfLists(listStr: string): string[][] {
 
   const results: string[][] = [];
   let depth = 0;
+  let inQuotes = false;
   let current = "";
   let currentList: string[] = [];
 
   for (let i = 0; i < cleaned.length; i++) {
     const char = cleaned[i];
+    const prevChar = i > 0 ? cleaned[i - 1] : "";
+
+    if (char === '"' && prevChar !== "\\") {
+      inQuotes = !inQuotes;
+      current += char;
+      continue;
+    }
+
+    if (inQuotes) {
+      current += char;
+      continue;
+    }
 
     if (char === "[") {
       depth++;

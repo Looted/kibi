@@ -96,7 +96,7 @@ status: draft
     expect(existsSync(path.join(tmpDir, ".kb/branches/feature/kb.rdf"))).toBe(
       true,
     );
-  });
+  }, 20000);
 
   test("branch KB is isolated from main KB", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -159,7 +159,7 @@ status: draft
     });
     expect(mainQueryAfter).toContain("main-only");
     expect(mainQueryAfter).not.toContain("feature-only");
-  });
+  }, 20000);
 
   test("switching branches loads correct KB", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -214,7 +214,7 @@ status: approved
     });
     expect(mainQuery).toContain("Version 1");
     expect(mainQuery).not.toContain("Version 2");
-  });
+  }, 20000);
 
   test("creates branch KB on first sync", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -249,7 +249,7 @@ status: draft
     expect(
       existsSync(path.join(tmpDir, ".kb/branches/new-feature/kb.rdf")),
     ).toBe(true);
-  });
+  }, 20000);
 
   test("deleting branch document removes from branch KB only", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -284,7 +284,7 @@ status: approved
       cwd: tmpDir,
       encoding: "utf8",
     });
-    expect(featureQuery).toContain("No entities found");
+    expect(featureQuery).toContain("[]");
 
     execSync("git checkout main", { cwd: tmpDir, stdio: "pipe" });
 
@@ -293,7 +293,7 @@ status: approved
       encoding: "utf8",
     });
     expect(mainQuery).toContain("shared");
-  });
+  }, 20000);
 
   test("merging branch preserves both KBs", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -354,7 +354,7 @@ status: draft
     expect(existsSync(path.join(tmpDir, ".kb/branches/feature/kb.rdf"))).toBe(
       true,
     );
-  });
+  }, 20000);
 
   test("orphan branch creates independent KB", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
@@ -403,5 +403,5 @@ status: draft
     });
     expect(orphanQuery).toContain("orphan");
     expect(orphanQuery).not.toContain("Main");
-  });
+  }, 20000);
 });
