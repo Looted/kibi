@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { ensureMainBranch } from "./helpers";
 
 /**
  * Integration tests for end-to-end CLI workflow:
@@ -51,7 +52,8 @@ describe("init-sync-check workflow", () => {
       cwd: tmpDir,
       encoding: "utf8",
     });
-
+    // init may create the first commit and branch; normalize branch name
+    ensureMainBranch(tmpDir);
     expect(output).toContain("Kibi initialized successfully");
 
     // Verify KB structure created
@@ -74,6 +76,8 @@ describe("init-sync-check workflow", () => {
       cwd: tmpDir,
       stdio: "pipe",
     });
+    // ensure branch name normalized if init created commits
+    ensureMainBranch(tmpDir);
 
     // Step 2: Create test fixtures
     const reqDir = path.join(tmpDir, "requirements");

@@ -1,4 +1,10 @@
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
 
@@ -7,13 +13,11 @@ interface InitOptions {
 }
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
-# Kibi git hook: sync KB on branch checkout
-kibi sync
+bun __KIBI_BIN__ sync
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh
-# Kibi git hook: sync KB after merge
-kibi sync
+bun __KIBI_BIN__ sync
 `;
 
 const DEFAULT_CONFIG = {
@@ -30,40 +34,66 @@ const DEFAULT_CONFIG = {
 
 export async function initCommand(options: InitOptions): Promise<void> {
   const kbDir = path.join(process.cwd(), ".kb");
+  const kbExists = existsSync(kbDir);
 
-  if (existsSync(kbDir)) {
-    console.error("Error: .kb/ directory already exists");
-    console.error("If you want to reinitialize, remove .kb/ first");
-    process.exit(1);
+  let currentBranch = "main";
+  try {
+    const { execSync } = await import("node:child_process");
+    currentBranch = execSync("git branch --show-current", {
+      cwd: process.cwd(),
+      encoding: "utf8",
+    }).trim();
+    if (!currentBranch) currentBranch = "main";
+  } catch {
+    currentBranch = "main";
   }
 
   try {
-    mkdirSync(kbDir, { recursive: true });
-    mkdirSync(path.join(kbDir, "schema"), { recursive: true });
-    mkdirSync(path.join(kbDir, "branches", "main"), { recursive: true });
+    if (!kbExists) {
+      mkdirSync(kbDir, { recursive: true });
+      mkdirSync(path.join(kbDir, "schema"), { recursive: true });
+      mkdirSync(path.join(kbDir, "branches", currentBranch), {
+        recursive: true,
+      });
 
-    writeFileSync(
-      path.join(kbDir, "config.json"),
-      JSON.stringify(DEFAULT_CONFIG, null, 2),
-    );
+      writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(DEFAULT_CONFIG, null, 2),
+      );
 
-    const cliSrcDir = path.resolve(__dirname, "..");
-    const schemaSourceDir = path.resolve(cliSrcDir, "../../core/schema");
-    const schemaFiles = await fg("*.pl", {
-      cwd: schemaSourceDir,
-      absolute: false,
-    });
+      const gitignorePath = path.join(process.cwd(), ".gitignore");
+      const gitignoreContent = existsSync(gitignorePath)
+        ? readFileSync(gitignorePath, "utf8")
+        : "";
 
-    for (const file of schemaFiles) {
-      const sourcePath = path.join(schemaSourceDir, file);
-      const destPath = path.join(kbDir, "schema", file);
-      copyFileSync(sourcePath, destPath);
+      if (!gitignoreContent.includes(".kb/")) {
+        const newContent = gitignoreContent
+          ? `${gitignoreContent.trimEnd()}\n.kb/\n`
+          : ".kb/\n";
+        writeFileSync(gitignorePath, newContent);
+        console.log("✓ Added .kb/ to .gitignore");
+      }
+
+      const cliSrcDir = path.resolve(__dirname, "..");
+      const schemaSourceDir = path.resolve(cliSrcDir, "../../core/schema");
+      const schemaFiles = await fg("*.pl", {
+        cwd: schemaSourceDir,
+        absolute: false,
+      });
+
+      for (const file of schemaFiles) {
+        const sourcePath = path.join(schemaSourceDir, file);
+        const destPath = path.join(kbDir, "schema", file);
+        copyFileSync(sourcePath, destPath);
+      }
+
+      console.log("✓ Created .kb/ directory structure");
+      console.log("✓ Created config.json with default paths");
+      console.log(`✓ Copied ${schemaFiles.length} schema files`);
+      console.log(`✓ Created branches/${currentBranch}/ directory`);
+    } else {
+      console.log("✓ .kb/ directory already exists, skipping creation");
     }
-
-    console.log("✓ Created .kb/ directory structure");
-    console.log("✓ Created config.json with default paths");
-    console.log(`✓ Copied ${schemaFiles.length} schema files`);
-    console.log("✓ Created branches/main/ directory");
 
     if (options.hooks) {
       const gitDir = path.join(process.cwd(), ".git");
@@ -76,8 +106,35 @@ export async function initCommand(options: InitOptions): Promise<void> {
         const postCheckoutPath = path.join(hooksDir, "post-checkout");
         const postMergePath = path.join(hooksDir, "post-merge");
 
-        writeFileSync(postCheckoutPath, POST_CHECKOUT_HOOK, { mode: 0o755 });
-        writeFileSync(postMergePath, POST_MERGE_HOOK, { mode: 0o755 });
+        const binPath = path.resolve(__dirname, "../../bin/kibi");
+
+        const checkoutHookContent = POST_CHECKOUT_HOOK.replace(
+          "__KIBI_BIN__",
+          binPath,
+        );
+        const mergeHookContent = POST_MERGE_HOOK.replace(
+          "__KIBI_BIN__",
+          binPath,
+        );
+
+        const installHook = (hookPath: string, content: string) => {
+          if (existsSync(hookPath)) {
+            const existing = readFileSync(hookPath, "utf8");
+            if (!existing.includes(`bun ${binPath}`)) {
+              writeFileSync(hookPath, `${existing}\n${content}`, {
+                mode: 0o755,
+              });
+            }
+          } else {
+            writeFileSync(hookPath, `#!/bin/sh\n${content}`, { mode: 0o755 });
+          }
+        };
+
+        installHook(
+          postCheckoutPath,
+          checkoutHookContent.replace("#!/bin/sh\n", ""),
+        );
+        installHook(postMergePath, mergeHookContent.replace("#!/bin/sh\n", ""));
 
         console.log("✓ Installed git hooks (post-checkout, post-merge)");
       }

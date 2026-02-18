@@ -17,9 +17,26 @@ export class SyncError extends Error {
 
 export async function syncCommand(): Promise<void> {
   try {
-    // Load config
+    // Load config (fall back to defaults if missing)
+    const DEFAULT_CONFIG = {
+      paths: {
+        requirements: "requirements/**/*.md",
+        scenarios: "scenarios/**/*.md",
+        tests: "tests/**/*.md",
+        adr: "adr/**/*.md",
+        flags: "flags/**/*.md",
+        events: "events/**/*.md",
+        symbols: "symbols.yaml",
+      },
+    };
+
     const configPath = path.join(process.cwd(), ".kb/config.json");
-    const config = JSON.parse(readFileSync(configPath, "utf8"));
+    let config: any;
+    try {
+      config = JSON.parse(readFileSync(configPath, "utf8"));
+    } catch {
+      config = DEFAULT_CONFIG;
+    }
     const paths = config.paths;
 
     // Discover files
@@ -68,7 +85,19 @@ export async function syncCommand(): Promise<void> {
     const prolog = new PrologProcess();
     await prolog.start();
 
-    const kbPath = path.join(process.cwd(), ".kb/branches/main");
+    let currentBranch = "main";
+    try {
+      const { execSync } = await import("node:child_process");
+      currentBranch = execSync("git branch --show-current", {
+        cwd: process.cwd(),
+        encoding: "utf8",
+      }).trim();
+      if (!currentBranch) currentBranch = "main";
+    } catch {
+      currentBranch = "main";
+    }
+
+    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
     const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
@@ -92,7 +121,7 @@ export async function syncCommand(): Promise<void> {
         ];
 
         if (entity.tags && entity.tags.length > 0) {
-          const tagsList = entity.tags.map((t) => `"${t}"`).join(",");
+          const tagsList = entity.tags.join(",");
           props.push(`tags=[${tagsList}]`);
         }
         if (entity.owner) props.push(`owner=${entity.owner}`);

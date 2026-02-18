@@ -23,7 +23,19 @@ export async function queryCommand(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
 
-    const kbPath = path.join(process.cwd(), ".kb/branches/main");
+    let currentBranch = "main";
+    try {
+      const { execSync } = await import("node:child_process");
+      currentBranch = execSync("git branch --show-current", {
+        cwd: process.cwd(),
+        encoding: "utf8",
+      }).trim();
+      if (!currentBranch) currentBranch = "main";
+    } catch {
+      currentBranch = "main";
+    }
+
+    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
     const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
@@ -77,9 +89,11 @@ export async function queryCommand(
       let goal: string;
 
       if (options.id) {
-        goal = `kb_entity('${options.id}', '${type}', Props), Id = '${options.id}', Type = '${type}', Result = [Id, Type, Props]`;
+        const safeId = String(options.id).replace(/'/g, "''");
+        goal = `kb_entity('${safeId}', '${type}', Props), Id = '${safeId}', Type = '${type}', Result = [Id, Type, Props]`;
       } else if (options.tag) {
-        goal = `findall([Id,${type},Props], (kb_entity(Id, ${type}, Props), memberchk(tags=Tags, Props), member(${options.tag}, Tags)), Results)`;
+        const safeTag = String(options.tag).replace(/'/g, "''");
+        goal = `findall([Id,${type},Props], (kb_entity(Id, ${type}, Props), memberchk(tags=Tags, Props), member('${safeTag}', Tags)), Results)`;
       } else {
         goal = `findall([Id,${type},Props], kb_entity(Id, ${type}, Props), Results)`;
       }
@@ -121,6 +135,11 @@ export async function queryCommand(
     const limit = Number.parseInt(options.limit || "100");
     const offset = Number.parseInt(options.offset || "0");
     const paginated = results.slice(offset, offset + limit);
+
+    if (!paginated || paginated.length === 0) {
+      console.log("No entities found");
+      process.exit(0);
+    }
 
     // Format output
     if (options.format === "table") {

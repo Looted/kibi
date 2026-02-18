@@ -4,11 +4,13 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { ensureMainBranch } from "./helpers";
 
 describe("branch KB workflow", () => {
   let tmpDir: string;
@@ -70,6 +72,7 @@ status: approved
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -117,6 +120,7 @@ status: approved
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'main commit'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     const mainQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
@@ -178,6 +182,7 @@ status: approved
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'v1'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     execSync("git checkout -b v2", { cwd: tmpDir, stdio: "pipe" });
 
@@ -214,6 +219,10 @@ status: approved
   test("creates branch KB on first sync", () => {
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
 
+    writeFileSync(path.join(tmpDir, "README.md"), "# temp\n");
+    execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit -m 'init main'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
     execSync("git checkout -b new-feature", { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
@@ -263,6 +272,7 @@ status: approved
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'add shared'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -306,6 +316,7 @@ status: approved
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'main'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 

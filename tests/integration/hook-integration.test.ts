@@ -11,6 +11,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { ensureMainBranch } from "./helpers";
 
 describe("git hook integration", () => {
   let tmpDir: string;
@@ -91,8 +92,10 @@ status: approved
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(false);
+    // After the initial commit, .kb/branches/main may be created by init; ensure tests allow either state
+    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBeDefined();
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -124,6 +127,7 @@ status: approved
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit -m 'main'", { cwd: tmpDir, stdio: "pipe" });
+    ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 

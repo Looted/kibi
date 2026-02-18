@@ -103,7 +103,8 @@ export async function handleKbQuery(
         .map((e) => {
           const id = (e.id as string).replace(/^file:\/\/.*\//, "");
           const title = e.title as string;
-          return `${id} (${title})`;
+          const status = e.status as string;
+          return `${id} (${title}, status=${status})`;
         })
         .join(", ");
       text = `Found ${results.length} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${details}`;

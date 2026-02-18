@@ -236,7 +236,19 @@ value_to_literal(Value, Literal) :-
 %% literal_to_value(+Literal, -Value)
 % Extract value from RDF literal, parse list syntax back to Prolog lists.
 literal_to_value(Literal, Value) :-
-    (   Literal = literal(type('http://www.w3.org/2001/XMLSchema#string', StrVal))
+    (   % Handle ^^/2 functor (RDF typed literal shorthand)
+        Literal = ^^(StrVal, 'http://www.w3.org/2001/XMLSchema#string')
+    ->  (   % Try to parse as Prolog list term (handles both atoms and strings)
+            (atom(StrVal) ; string(StrVal)),
+            (atom_concat('[', _, StrVal) ; string_concat("[", _, StrVal)),
+            catch(atom_to_term(StrVal, ParsedValue, []), _, fail),
+            is_list(ParsedValue)
+        ->  Value = ParsedValue
+        ;   Value = StrVal
+        )
+    ;   Literal = ^^(Val, _)
+    ->  Value = Val  % Other typed literals - extract value
+    ;   Literal = literal(type('http://www.w3.org/2001/XMLSchema#string', StrVal))
     ->  (   % Try to parse as Prolog list term (handles both atoms and strings)
             (atom(StrVal) ; string(StrVal)),
             (atom_concat('[', _, StrVal) ; string_concat("[", _, StrVal)),
