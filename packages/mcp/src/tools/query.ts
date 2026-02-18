@@ -55,7 +55,7 @@ export async function handleKbQuery(
     } else if (id) {
       goal = `findall([Id,Type,Props], kb_entity('${id}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
-      const tagList = `[${tags.join(",")}]`;
+      const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
       if (type) {
         goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
       } else {
@@ -94,12 +94,27 @@ export async function handleKbQuery(
     // Apply pagination
     const paginated = results.slice(offset, offset + limit);
 
+    // Build human-readable text with entity IDs and titles
+    let text: string;
+    if (results.length === 0) {
+      text = `No entities found${type ? ` of type '${type}'` : ""}.`;
+    } else {
+      const details = paginated
+        .map((e) => {
+          const id = (e.id as string).replace(/^file:\/\/.*\//, "");
+          const title = e.title as string;
+          return `${id} (${title})`;
+        })
+        .join(", ");
+      text = `Found ${results.length} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${details}`;
+    }
+
     // Return MCP structured response
     return {
       content: [
         {
           type: "text",
-          text: `Found ${results.length} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}).`,
+          text,
         },
       ],
       structuredContent: {

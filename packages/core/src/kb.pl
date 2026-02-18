@@ -3,6 +3,7 @@
 :- module(kb, [
     kb_attach/1,
     kb_detach/0,
+    kb_save/0,
     with_kb_mutex/1,
     kb_assert_entity/2,
     kb_retract_entity/1,
@@ -68,6 +69,20 @@ kb_attach(Directory) :-
 kb_detach :-
     (   kb_attached(Directory)
     ->  (
+            kb_save,
+            % Clear state
+            retractall(kb_attached(_)),
+            retractall(kb_audit_db(_)),
+            retractall(kb_graph(_))
+        )
+    ;   true
+    ).
+
+%% kb_save
+% Save RDF graph and sync audit log to disk
+kb_save :-
+    (   kb_attached(Directory)
+    ->  (
             % Save RDF graph to file with namespace declarations
             (   kb_graph(GraphURI)
             ->  (
@@ -76,15 +91,11 @@ kb_detach :-
                 )
             ;   true
             ),
-            % Close audit log
+            % Sync audit log
             (   kb_audit_db(_)
             ->  db_sync(_)
             ;   true
-            ),
-            % Clear state
-            retractall(kb_attached(_)),
-            retractall(kb_audit_db(_)),
-            retractall(kb_graph(_))
+            )
         )
     ;   true
     ).
@@ -223,10 +234,19 @@ value_to_literal(Value, Literal) :-
     ).
 
 %% literal_to_value(+Literal, -Value)
-% Extract value from RDF literal, preserving typed literals for properties.
+% Extract value from RDF literal, parse list syntax back to Prolog lists.
 literal_to_value(Literal, Value) :-
-    (   Literal = literal(type(_, _))
-    ->  Value = Literal  % Keep typed literals as-is
+    (   Literal = literal(type('http://www.w3.org/2001/XMLSchema#string', StrVal))
+    ->  (   % Try to parse as Prolog list term (handles both atoms and strings)
+            (atom(StrVal) ; string(StrVal)),
+            (atom_concat('[', _, StrVal) ; string_concat("[", _, StrVal)),
+            catch(atom_to_term(StrVal, ParsedValue, []), _, fail),
+            is_list(ParsedValue)
+        ->  Value = ParsedValue
+        ;   Value = StrVal
+        )
+    ;   Literal = literal(type(_, _))
+    ->  Value = Literal  % Keep other typed literals as-is
     ;   Literal = literal(lang(_, Val))
     ->  Value = Val
     ;   Literal = literal(Value)

@@ -77,7 +77,7 @@ export async function queryCommand(
       let goal: string;
 
       if (options.id) {
-        goal = `kb_entity(${options.id}, ${type}, Props), Id = ${options.id}, Type = ${type}, Result = [Id, Type, Props]`;
+        goal = `kb_entity('${options.id}', '${type}', Props), Id = '${options.id}', Type = '${type}', Result = [Id, Type, Props]`;
       } else if (options.tag) {
         goal = `findall([Id,${type},Props], (kb_entity(Id, ${type}, Props), memberchk(tags=Tags, Props), member(${options.tag}, Tags)), Results)`;
       } else {

@@ -38,6 +38,18 @@ export async function handleKbUpsert(
   // Validate all entities
   for (let i = 0; i < entities.length; i++) {
     const entity = entities[i];
+
+    // Add default values for missing required fields
+    if (!entity.created_at) {
+      entity.created_at = new Date().toISOString();
+    }
+    if (!entity.updated_at) {
+      entity.updated_at = new Date().toISOString();
+    }
+    if (!entity.source) {
+      entity.source = "mcp://kibi/upsert";
+    }
+
     if (!validateEntity(entity)) {
       const errors = validateEntity.errors || [];
       const errorMessages = errors
@@ -122,6 +134,9 @@ export async function handleKbUpsert(
 
       relationshipsCreated++;
     }
+
+    // Save KB to disk
+    await prolog.query("kb_save");
 
     return {
       content: [

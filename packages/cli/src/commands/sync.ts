@@ -92,8 +92,8 @@ export async function syncCommand(): Promise<void> {
         ];
 
         if (entity.tags && entity.tags.length > 0) {
-          const tagsStr = JSON.stringify(entity.tags);
-          props.push(`tags=${tagsStr}`);
+          const tagsList = entity.tags.map((t) => `"${t}"`).join(",");
+          props.push(`tags=[${tagsList}]`);
         }
         if (entity.owner) props.push(`owner=${entity.owner}`);
         if (entity.priority) props.push(`priority=${entity.priority}`);
@@ -143,7 +143,8 @@ export async function syncCommand(): Promise<void> {
       }
     }
 
-    // Detach and cleanup
+    // Save KB and detach
+    await prolog.query("kb_save");
     await prolog.query("kb_detach");
     await prolog.terminate();
 

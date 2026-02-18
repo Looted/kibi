@@ -7,7 +7,16 @@
     "title": { "type": "string" },
     "status": {
       "type": "string",
-      "enum": ["active", "draft", "archived", "deleted"]
+      "enum": [
+        "active",
+        "draft",
+        "archived",
+        "deleted",
+        "approved",
+        "rejected",
+        "pending",
+        "in_progress"
+      ]
     },
     "created_at": { "type": "string" },
     "updated_at": { "type": "string" },

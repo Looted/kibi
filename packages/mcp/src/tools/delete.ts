@@ -92,6 +92,9 @@ export async function handleKbDelete(
       }
     }
 
+    // Save KB to disk
+    await prolog.query("kb_save");
+
     return {
       content: [
         {

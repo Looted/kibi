@@ -56,7 +56,7 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
       throw new FrontmatterError("Missing required field: title", filePath);
     }
 
-    const id = generateId(filePath, data.title);
+    const id = data.id || generateId(filePath, data.title);
     const relationships = extractRelationships(data.links || [], id);
 
     return {

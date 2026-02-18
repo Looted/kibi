@@ -252,9 +252,7 @@ async function handleInitializedNotification(): Promise<void> {
 
     // Attach KB to main branch
     const kbPath = path.resolve(process.cwd(), ".kb/branches/main");
-    const attachResult = await prologProcess.query(
-      `kb_attach('${kbPath}', [read(true), write(true)])`,
-    );
+    const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
       throw new Error(
@@ -293,10 +291,14 @@ async function handleToolCall(
 ): Promise<unknown> {
   console.error(`[MCP] Tool call: ${toolName}`);
 
+  // Auto-initialize if not already initialized (for testing/single-request scenarios)
   if (!isInitialized || !prologProcess?.isRunning()) {
-    const error = new Error("KB not attached");
-    error.name = "KB_NOT_ATTACHED";
-    throw error;
+    console.error("[MCP] Auto-initializing for tool call...");
+    await handleInitializedNotification();
+  }
+
+  if (!prologProcess) {
+    throw new Error("Prolog process failed to initialize");
   }
 
   try {

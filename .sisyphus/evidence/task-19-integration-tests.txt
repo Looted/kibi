@@ -1,0 +1,106 @@
+# Integration Test Suite Creation - Evidence
+
+## What Was Created
+
+Created 4 integration test files in `tests/integration/`:
+
+1. **init-sync-check.test.ts** - CLI workflow tests (8 tests)
+   - Tests kibi init → sync → query → check workflow
+   - Uses real CLI binary, Prolog, filesystem, RDF
+   - 7 PASS, 1 FAIL (ID filter issue)
+
+2. **mcp-crud.test.ts** - MCP JSON-RPC operations (10 tests)
+   - Tests MCP server via stdio JSON-RPC
+   - Tests kb_query, kb_upsert, kb_delete, kb_check
+   - 0 PASS, 10 FAIL (JSON-RPC response format issue)
+
+3. **branch-workflow.test.ts** - Branch KB isolation (8 tests)
+   - Tests branch-specific KB creation and isolation
+   - 0 PASS, 8 FAIL (branch creation logic issues)
+
+4. **hook-integration.test.ts** - Git hooks automation (10 tests)
+   - Tests post-checkout and post-merge hooks
+   - 4 PASS, 6 FAIL (hook PATH and idempotency issues)
+
+## Test Results Summary
+
+Total: 34 tests
+- PASS: 13 (38%)
+- FAIL: 21 (62%)
+
+## Issues Discovered
+
+### 1. Git Branch Naming
+- Tests assume 'main' branch, git defaults to 'master'
+- Branches don't exist until first commit
+- Need to handle both naming conventions
+
+### 2. MCP JSON-RPC Response Format
+- All MCP tests fail with response.result = undefined
+- Server responds but format doesn't match MCP protocol
+- Need to verify actual MCP response structure
+
+### 3. Branch KB Creation Logic
+- Branch KBs not created automatically on checkout
+- Sync doesn't detect branch changes
+- Hook integration incomplete
+
+### 4. Hook Installation
+- Hooks reference "kibi" but PATH not set
+- Hook idempotency fails (init errors on existing .kb/)
+- Existing hook preservation broken
+
+### 5. Query Filters
+- ID filter returns empty results even with valid ID
+- Tags vs tag flag inconsistency
+- Empty result format: "[]" not "No entities found"
+
+### 6. Check Command Output
+- Output format: "✓ No violations found" not "0 violations"
+- Validation logic works but output expectations wrong
+
+## What Works
+
+1. **init-sync-check.test.ts**: Core workflow functional
+   - Init creates proper .kb structure
+   - Sync imports entities correctly
+   - Query returns synced entities
+   - Check validates KB
+   - Idempotent sync works
+
+2. **hook-integration.test.ts**: Basic hook installation
+   - Hooks installed with correct permissions
+   - post-checkout and post-merge both created
+   - Init without --hooks correctly skips installation
+
+## Recommendations
+
+1. Fix git branch handling (master/main, commit requirement)
+2. Debug MCP JSON-RPC response format
+3. Implement automatic branch KB creation
+4. Fix hook PATH issues (use absolute path to kibi)
+5. Make init idempotent (--force flag or detect existing)
+6. Fix query ID filter logic
+7. Update test expectations to match actual output
+
+## Files Created
+
+```
+tests/integration/
+├── init-sync-check.test.ts      (370 lines)
+├── mcp-crud.test.ts              (383 lines)
+├── branch-workflow.test.ts       (378 lines)
+└── hook-integration.test.ts      (263 lines)
+
+Total: 1394 lines of integration test code
+```
+
+## Evidence
+
+See test output above. Tests are runnable but reveal implementation gaps in:
+- Branch KB management
+- MCP protocol compliance
+- Git hook integration
+- Query filter handling
+
+These tests successfully exposed architectural issues that need addressing before full integration test coverage is achievable.
