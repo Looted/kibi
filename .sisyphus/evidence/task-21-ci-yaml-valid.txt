@@ -1,0 +1,3 @@
+ci.yml created and contains required commands
+Verification commands:
+grep -E "(bun test|kibi init|kibi sync|kibi check)" .github/workflows/ci.yml

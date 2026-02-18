@@ -1,0 +1,12 @@
+CI steps present in .github/workflows/ci.yml:
+- Install SWI-Prolog: sudo apt-get install -y swi-prolog
+- Setup Bun: oven-sh/setup-bun@v1
+- bun install
+- bun test
+- bun test tests/integration/
+- kibi init
+- kibi sync
+- kibi check
+
+Command grep check:
+grep -E "(bun test|kibi init|kibi sync|kibi check)" .github/workflows/ci.yml
