@@ -51,7 +51,7 @@ describe("kibi check", () => {
     // Initialize KB structure
     execSync("git init", { cwd: tmpDir, stdio: "pipe" });
     execSync("git branch -M main", { cwd: tmpDir, stdio: "pipe" });
-    execSync(`bun ${kibiBin} init`, {
+    execSync(`KB_PATH=.kb/branches/main bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -65,9 +65,9 @@ describe("kibi check", () => {
 
   test("passes on valid KB", async () => {
     // Create valid requirement with scenario and test
-    const reqDir = path.join(tmpDir, "requirements");
-    const scenarioDir = path.join(tmpDir, "scenarios");
-    const testDir = path.join(tmpDir, "tests");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
+    const scenarioDir = path.join(tmpDir, "documentation", "scenarios");
+    const testDir = path.join(tmpDir, "documentation", "tests");
 
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
@@ -132,8 +132,8 @@ links:
   });
 
   test("detects must-priority requirement without scenario", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
-    const testDir = path.join(tmpDir, "tests");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
+    const testDir = path.join(tmpDir, "documentation", "tests");
 
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(testDir, { recursive: true });
@@ -180,8 +180,8 @@ links:
   });
 
   test("detects must-priority requirement without test", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
-    const scenarioDir = path.join(tmpDir, "scenarios");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
+    const scenarioDir = path.join(tmpDir, "documentation", "scenarios");
 
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
@@ -228,7 +228,7 @@ links:
   });
 
   test("detects dangling reference", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
 
     mkdirSync(reqDir, { recursive: true });
 
@@ -261,7 +261,7 @@ links:
   });
 
   test("detects cycle in depends_on", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
 
     mkdirSync(reqDir, { recursive: true });
 
@@ -333,7 +333,7 @@ links:
   });
 
   test("detects missing required field", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
 
     mkdirSync(reqDir, { recursive: true });
 
@@ -361,7 +361,7 @@ owner: alice
   });
 
   test("suggests fixes with --fix flag", async () => {
-    const reqDir = path.join(tmpDir, "requirements");
+    const reqDir = path.join(tmpDir, "documentation", "requirements");
 
     mkdirSync(reqDir, { recursive: true });
 
@@ -395,5 +395,89 @@ owner: alice
     expect(output).toContain("Suggestion:");
     expect(output).toContain("scenario");
     expect(output).toContain("test");
+  });
+
+  test("detects deprecated ADR with no successor", async () => {
+    const adrDir = path.join(tmpDir, "documentation", "adr");
+
+    mkdirSync(adrDir, { recursive: true });
+
+    // Create deprecated ADR without supersedes relationship
+    writeFileSync(
+      path.join(adrDir, "ADR-001.md"),
+      `---
+id: ADR-001
+title: Old Decision
+status: deprecated
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: adr/ADR-001.md
+---
+
+# Old Decision
+`,
+    );
+
+    // Sync first
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+    // Check should fail with deprecated-adr-no-successor violation
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(1);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("deprecated-adr-no-successor");
+    expect(output).toContain("ADR-001");
+  });
+
+  test("passes when deprecated ADR has a supersedes relationship", async () => {
+    const adrDir = path.join(tmpDir, "documentation", "adr");
+
+    mkdirSync(adrDir, { recursive: true });
+
+    // Create deprecated ADR with successor
+    writeFileSync(
+      path.join(adrDir, "ADR-001.md"),
+      `---
+id: ADR-001
+title: Old Decision
+status: deprecated
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: adr/ADR-001.md
+links:
+  - type: supersedes
+    target: ADR-002
+---
+
+# Old Decision
+`,
+    );
+
+    writeFileSync(
+      path.join(adrDir, "ADR-002.md"),
+      `---
+id: ADR-002
+title: New Decision
+status: active
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: adr/ADR-002.md
+links:
+  - type: supersedes
+    target: ADR-001
+---
+
+# New Decision
+`,
+    );
+
+    // Sync first
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+    // Check should pass
+    const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+    expect(status).toBe(0);
+    const output = stdoutToString(stdout || stderr);
+    expect(output).toContain("No violations found");
   });
 });

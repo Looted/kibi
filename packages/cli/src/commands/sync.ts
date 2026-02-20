@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import * as fs from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
@@ -104,21 +105,40 @@ function writeSyncCache(cachePath: string, cache: SyncCache): void {
     mkdirSync(cacheDir, { recursive: true });
   }
 
-  writeFileSync(cachePath, `${JSON.stringify(cache, null, 2)}
-`, "utf8");
+  writeFileSync(
+    cachePath,
+    `${JSON.stringify(cache, null, 2)}
+`,
+    "utf8",
+  );
 }
 
 export async function syncCommand(): Promise<void> {
   try {
+    // Detect current branch early (needed for cache and KB paths)
+    let currentBranch = "main";
+    try {
+      const { execSync } = await import("node:child_process");
+      const branch = execSync("git branch --show-current", {
+        cwd: process.cwd(),
+        encoding: "utf8",
+      }).trim();
+      if (branch && branch !== "master") {
+        currentBranch = branch;
+      }
+    } catch {
+      currentBranch = "main";
+    }
+
     // Load config (fall back to defaults if missing)
     const DEFAULT_CONFIG = {
       paths: {
-        requirements: "requirements/**/*.md",
-        scenarios: "scenarios/**/*.md",
-        tests: "tests/**/*.md",
-        adr: "adr/**/*.md",
-        flags: "flags/**/*.md",
-        events: "events/**/*.md",
+        requirements: "requirements",
+        scenarios: "scenarios",
+        tests: "tests",
+        adr: "adr",
+        flags: "flags",
+        events: "events",
         symbols: "symbols.yaml",
       },
     };
@@ -144,15 +164,15 @@ export async function syncCommand(): Promise<void> {
     }
     const paths = config.paths;
 
-    // Discover files
+    // Discover files - construct glob patterns from directory paths
     const markdownPatterns = [
-      paths.requirements,
-      paths.scenarios,
-      paths.tests,
-      paths.adr,
-      paths.flags,
-      paths.events,
-    ].filter(Boolean);
+      paths.requirements ? `${paths.requirements}/**/*.md` : null,
+      paths.scenarios ? `${paths.scenarios}/**/*.md` : null,
+      paths.tests ? `${paths.tests}/**/*.md` : null,
+      paths.adr ? `${paths.adr}/**/*.md` : null,
+      paths.flags ? `${paths.flags}/**/*.md` : null,
+      paths.events ? `${paths.events}/**/*.md` : null,
+    ].filter((p): p is string => Boolean(p));
 
     const markdownFiles = await fg(markdownPatterns, {
       cwd: process.cwd(),
@@ -165,7 +185,11 @@ export async function syncCommand(): Promise<void> {
     });
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
-    const cachePath = path.join(process.cwd(), ".kb/sync-cache.json");
+    // Use branch-specific cache to handle branch isolation correctly
+    const cachePath = path.join(
+      process.cwd(),
+      `.kb/branches/${currentBranch}/sync-cache.json`,
+    );
     const syncCache = readSyncCache(cachePath);
     const nowIso = new Date().toISOString();
     const nowMs = Date.now();
@@ -262,19 +286,26 @@ export async function syncCommand(): Promise<void> {
     const prolog = new PrologProcess();
     await prolog.start();
 
-    let currentBranch = "main";
-    try {
-      const { execSync } = await import("node:child_process");
-      currentBranch = execSync("git branch --show-current", {
-        cwd: process.cwd(),
-        encoding: "utf8",
-      }).trim();
-      if (!currentBranch) currentBranch = "main";
-    } catch {
-      currentBranch = "main";
+    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
+    const mainPath = path.join(process.cwd(), ".kb/branches/main");
+
+    // If branch KB doesn't exist but main does, copy from main (copy-on-write)
+    // Skip for orphan branches (branches with no commits yet)
+    if (!existsSync(kbPath) && existsSync(mainPath)) {
+      const hasCommits = (() => {
+        try {
+          const { execSync } = require("node:child_process");
+          execSync("git rev-parse HEAD", { cwd: process.cwd(), stdio: "pipe" });
+          return true;
+        } catch {
+          return false;
+        }
+      })();
+      if (hasCommits) {
+        fs.cpSync(mainPath, kbPath, { recursive: true });
+      }
     }
 
-    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
     const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
@@ -297,11 +328,11 @@ export async function syncCommand(): Promise<void> {
 
         const props = [
           `id='${entity.id}'`,
-          `title="${entity.title.replace(/"/g, '\"')}"`,
+          `title="${entity.title.replace(/"/g, '"')}"`,
           `status=${prologAtom(entity.status)}`,
           `created_at="${entity.created_at}"`,
           `updated_at="${entity.updated_at}"`,
-          `source="${entity.source.replace(/"/g, '\"')}"`,
+          `source="${entity.source.replace(/"/g, '"')}"`,
         ];
 
         if (entity.tags && entity.tags.length > 0) {
@@ -427,7 +458,9 @@ async function refreshManifestCoordinates(
   }
 
   const before = rawSymbols.map((entry) =>
-    isRecord(entry) ? ({ ...entry } as ManifestSymbolEntry) : ({} as ManifestSymbolEntry),
+    isRecord(entry)
+      ? ({ ...entry } as ManifestSymbolEntry)
+      : ({} as ManifestSymbolEntry),
   );
   const enriched = await enrichSymbolCoordinates(before, workspaceRoot);
   parsed.symbols = enriched;

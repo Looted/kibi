@@ -21,6 +21,11 @@
     orphaned/1,
     conflicting/2,
     deprecated_still_used/2,
+    current_adr/1,
+    superseded_by/2,
+    adr_chain/2,
+    deprecated_no_successor/1,
+    normalize_term_atom/2,
     changeset/4  % Export for testing
 ]).
 
@@ -481,6 +486,43 @@ deprecated_still_used(Adr, Symbols) :-
     setof(Symbol, kb_relationship(constrained_by, Symbol, Adr), Symbols),
     !.
 deprecated_still_used(_, []).
+
+%% ------------------------------------------------------------------
+%% ADR Supersession Predicates
+%% ------------------------------------------------------------------
+
+%% current_adr(+Id)
+% True when Id is an ADR not superseded by any other ADR.
+current_adr(Id) :-
+    kb_entity(Id, adr, _),
+    \+ kb_relationship(supersedes, _, Id).
+
+%% superseded_by(+OldId, -NewId)
+% Direct supersession.
+superseded_by(OldId, NewId) :-
+    kb_relationship(supersedes, NewId, OldId).
+
+%% adr_chain(+AnyId, -Chain)
+% Full ordered chain from AnyId to the current ADR (newest last).
+% Cycle-safe via visited accumulator.
+adr_chain(Id, Chain) :-
+    adr_chain_acc(Id, [], Chain).
+adr_chain_acc(Id, Visited, [Id]) :-
+    \+ member(Id, Visited),
+    \+ kb_relationship(supersedes, _, Id).
+adr_chain_acc(Id, Visited, [Id|Rest]) :-
+    \+ member(Id, Visited),
+    kb_relationship(supersedes, Newer, Id),
+    adr_chain_acc(Newer, [Id|Visited], Rest).
+
+%% deprecated_no_successor(+OldId)
+% Lint rule: ADR is archived/deprecated but has no supersedes relationship pointing to it.
+deprecated_no_successor(Id) :-
+    kb_entity(Id, adr, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, StatusAtom),
+    memberchk(StatusAtom, [archived, deprecated]),
+    \+ kb_relationship(supersedes, _, Id).
 
 normalize_term_atom(Val^^_Type, Atom) :-
     !,

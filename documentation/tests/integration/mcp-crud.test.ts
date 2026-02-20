@@ -32,8 +32,8 @@ interface JsonRpcResponse {
 describe("MCP server CRUD operations", () => {
   let tmpDir: string;
   let mcpProcess: ChildProcess;
-  const kibiBin = path.resolve(__dirname, "../../packages/cli/bin/kibi");
-  const mcpBin = path.resolve(__dirname, "../../packages/mcp/bin/kibi-mcp");
+  const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
+  const mcpBin = path.resolve(__dirname, "../../../packages/mcp/bin/kibi-mcp");
 
   beforeEach(async () => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-integration-mcp-"));

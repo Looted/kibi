@@ -288,6 +288,7 @@ Kibi supports ten relationship types. Each relationship has metadata:
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
+| supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -425,6 +426,18 @@ relationship:
   created_at: 2026-02-17T14:00:00Z
   created_by: analyst
   source: https://example.com/fixtures/entities/ENTITY-A
+```
+
+**supersedes**
+```yaml
+# adr ADR-010 supersedes adr ADR-009
+relationship:
+  type: supersedes
+  source: ADR-010
+  target: ADR-009
+  created_at: 2026-02-20T10:00:00Z
+  created_by: architect
+  source: https://example.com/fixtures/adrs/ADR-010
 ```
 
 ---

@@ -374,9 +374,17 @@ function parsePrologValue(value: string): any {
     return value.substring(1, value.length - 1);
   }
 
-  // Handle quoted atom
+  // Handle quoted atom (may contain file URLs that need extraction)
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.substring(1, value.length - 1);
+    const unquoted = value.substring(1, value.length - 1);
+    // Check if unquoted value is a file URL
+    if (unquoted.startsWith("file:///")) {
+      const lastSlash = unquoted.lastIndexOf("/");
+      if (lastSlash !== -1) {
+        return unquoted.substring(lastSlash + 1);
+      }
+    }
+    return unquoted;
   }
 
   // Handle list

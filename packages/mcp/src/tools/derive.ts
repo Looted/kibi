@@ -11,7 +11,10 @@ export type DeriveRule =
   | "stale"
   | "orphaned"
   | "conflicting"
-  | "deprecated_still_used";
+  | "deprecated_still_used"
+  | "current_adr"
+  | "adr_chain"
+  | "superseded_by";
 
 export interface DeriveArgs {
   rule: DeriveRule;
@@ -45,6 +48,9 @@ const RULES: DeriveRule[] = [
   "orphaned",
   "conflicting",
   "deprecated_still_used",
+  "current_adr",
+  "adr_chain",
+  "superseded_by",
 ];
 
 export async function handleKbDerive(
@@ -89,6 +95,15 @@ export async function handleKbDerive(
       break;
     case "deprecated_still_used":
       rows = await deriveDeprecatedStillUsed(prolog, params);
+      break;
+    case "current_adr":
+      rows = await deriveCurrentAdr(prolog);
+      break;
+    case "adr_chain":
+      rows = await deriveAdrChain(prolog, params);
+      break;
+    case "superseded_by":
+      rows = await deriveSupersededBy(prolog, params);
       break;
   }
 
@@ -148,7 +163,10 @@ async function deriveImpactedByChange(
   prolog: PrologProcess,
   params: Record<string, unknown>,
 ): Promise<DeriveRow[]> {
-  const changed = asRequiredString(params.changed, "params.changed is required");
+  const changed = asRequiredString(
+    params.changed,
+    "params.changed is required",
+  );
   const goal = `setof(Entity, impacted_by_change(Entity, '${escapeAtom(changed)}'), Rows)`;
   const entities = await queryAtomRows(prolog, goal, "Rows");
   return entities.map((entity) => ({ changed, entity }));
@@ -180,7 +198,9 @@ async function deriveCoverageGap(
   return pairs.map(([req, reason]) => ({ req, reason }));
 }
 
-async function deriveUntestedSymbols(prolog: PrologProcess): Promise<DeriveRow[]> {
+async function deriveUntestedSymbols(
+  prolog: PrologProcess,
+): Promise<DeriveRow[]> {
   const result = await prolog.query("untested_symbols(Symbols)");
   if (!result.success || !result.bindings.Symbols) {
     return [];
@@ -246,7 +266,9 @@ async function deriveDeprecatedStillUsed(
     if (!result.success || !result.bindings.Symbols) {
       return [];
     }
-    return [{ adr: adrFilter, symbols: parseAtomList(result.bindings.Symbols) }];
+    return [
+      { adr: adrFilter, symbols: parseAtomList(result.bindings.Symbols) },
+    ];
   }
 
   const pairs = await queryPairRows(prolog, goal, "Rows");
@@ -303,4 +325,98 @@ function makeConjunction(parts: string[]): string {
 
 function escapeAtom(value: string): string {
   return value.replace(/'/g, "\\'");
+}
+
+async function deriveCurrentAdr(prolog: PrologProcess): Promise<DeriveRow[]> {
+  // Query for all current ADRs and their titles
+  const result = await prolog.query(
+    "setof([Id,TitleAtom], (kb_entity(Id, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom), current_adr(Id)), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  const pairs = parsePairList(result.bindings.Rows);
+  return pairs.map(([id, title]) => ({ id, title }));
+}
+
+async function deriveAdrChain(
+  prolog: PrologProcess,
+  params: Record<string, unknown>,
+): Promise<DeriveRow[]> {
+  const adr = asRequiredString(params.adr, "params.adr is required");
+
+  // Query for the full chain including status
+  const result = await prolog.query(
+    `findall([Id,TitleAtom,StatusAtom], (kb_entity(Id, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom), memberchk(status=Status, Props), normalize_term_atom(Status, StatusAtom), adr_chain('${escapeAtom(adr)}', Chain), member(Id, Chain)), Rows)`,
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  // Parse triplets and include status
+  const triplets = parseTripleList(result.bindings.Rows);
+  return triplets.map(([id, title, status]) => ({ id, title, status }));
+}
+
+async function deriveSupersededBy(
+  prolog: PrologProcess,
+  params: Record<string, unknown>,
+): Promise<DeriveRow[]> {
+  const adr = asRequiredString(params.adr, "params.adr is required");
+
+  // Query for direct supersession
+  const result = await prolog.query(
+    `superseded_by('${escapeAtom(adr)}', NewAdr), kb_entity(NewAdr, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom)`,
+  );
+
+  if (
+    !result.success ||
+    !result.bindings.NewAdr ||
+    !result.bindings.TitleAtom
+  ) {
+    return [];
+  }
+
+  const newAdr = String(result.bindings.NewAdr).replace(/^'|'$/g, "");
+  const newAdrTitle = String(result.bindings.TitleAtom).replace(/^'|'$/g, "");
+
+  return [
+    {
+      adr,
+      successor_id: newAdr,
+      successor_title: newAdrTitle,
+    },
+  ];
+}
+
+function parseTripleList(raw: string): [string, string, string][] {
+  const match = raw.match(/\[(.*)\]/);
+  if (!match) {
+    return [];
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return [];
+  }
+
+  // Parse triplets: [[a,b,c],[x,y,z],...]
+  const triplets: [string, string, string][] = [];
+  const tripletRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
+  let tripletMatch: RegExpExecArray | null;
+  do {
+    tripletMatch = tripletRegex.exec(content);
+    if (tripletMatch !== null) {
+      triplets.push([
+        tripletMatch[1].trim().replace(/^'|'$/g, ""),
+        tripletMatch[2].trim().replace(/^'|'$/g, ""),
+        tripletMatch[3].trim().replace(/^'|'$/g, ""),
+      ]);
+    }
+  } while (tripletMatch !== null);
+
+  return triplets;
 }

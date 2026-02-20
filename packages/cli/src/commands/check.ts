@@ -39,6 +39,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
 
+    violations.push(...(await checkDeprecatedAdrs(prolog)));
+
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -375,6 +377,63 @@ async function checkRequiredFields(
         }
       }
     }
+  }
+
+  return violations;
+}
+
+async function checkDeprecatedAdrs(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  // Use Prolog predicate to find deprecated ADRs without successors
+  const result = await prolog.query(
+    "setof(Id, deprecated_no_successor(Id), Ids)",
+  );
+
+  if (!result.success || !result.bindings.Ids) {
+    return violations;
+  }
+
+  const idsStr = result.bindings.Ids;
+  const match = idsStr.match(/\[(.*)\]/);
+  if (!match) {
+    return violations;
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return violations;
+  }
+
+  const adrIds = content
+    .split(",")
+    .map((id) => id.trim().replace(/^'|'$/g, ""));
+
+  for (const adrId of adrIds) {
+    // Get source for better error message
+    const entityResult = await prolog.query(
+      `kb_entity('${adrId}', adr, Props)`,
+    );
+
+    let source = "";
+    if (entityResult.success && entityResult.bindings.Props) {
+      const propsStr = entityResult.bindings.Props;
+      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
+      if (sourceMatch) {
+        source = sourceMatch[1];
+      }
+    }
+
+    violations.push({
+      rule: "deprecated-adr-no-successor",
+      entityId: adrId,
+      description:
+        "Archived/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
+      suggestion: `Create a new ADR and add: links: [{type: supersedes, target: ${adrId}}]`,
+      source,
+    });
   }
 
   return violations;

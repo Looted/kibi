@@ -45,6 +45,19 @@ Kibi v0.5 introduces deterministic derived predicates exposed via MCP.
   - ADR status in `archived|deprecated|rejected`
   - Returns symbols still constrained by that ADR
 
+- `current_adr(Id)`
+  - True when Id is an ADR not superseded by any other ADR
+  - Returns all currently active/architectural decisions
+
+- `superseded_by(OldId, NewId)`
+  - Direct supersession relationship
+  - OldId is superseded by NewId
+
+- `adr_chain(AnyId, Chain)`
+  - Full ordered chain from AnyId to the current ADR (newest last)
+  - Cycle-safe via visited accumulator
+  - Returns complete decision history for a topic
+
 ## MCP Tools
 
 ### `kb_derive`
@@ -86,6 +99,9 @@ Supported rules:
 - `orphaned`
 - `conflicting`
 - `deprecated_still_used`
+- `current_adr`
+- `adr_chain`
+- `superseded_by`
 
 ### `kb_impact`
 
@@ -121,6 +137,100 @@ Output fields:
 - `coverage.requirements`: totals and gap reasons
 - `coverage.symbols`: totals and untested symbol IDs
 - `provenance.predicates`: predicates used for derivation
+
+### Additional MCP Tools
+
+#### kb_current_adr
+
+Returns all current (non-superseded) ADRs.
+
+Input: No params
+
+Output:
+```json
+{
+  "content": [{"type": "text", "text": "Derived X row(s) for rule 'current_adr'."}],
+  "structuredContent": {
+    "rule": "current_adr",
+    "params": {},
+    "count": N,
+    "rows": [
+      {"id": "ADR-001", "title": "Use SWI-Prolog..."},
+      {"id": "ADR-002", "title": "Use Bun/Node.js..."}
+    ],
+    "provenance": {
+      "predicate": "current_adr",
+      "deterministic": true
+    }
+  }
+}
+```
+
+#### kb_adr_chain
+
+Returns full temporal chain from a starting ADR to the current one.
+
+Input:
+```json
+{
+  "adr": "ADR-005"
+}
+```
+
+Output:
+```json
+{
+  "content": [{"type": "text", "text": "Derived 3 row(s) for rule 'adr_chain'."}],
+  "structuredContent": {
+    "rule": "adr_chain",
+    "params": {"adr": "ADR-005"},
+    "count": 3,
+    "rows": [
+      {"id": "ADR-005", "title": "...", "status": "superseded"},
+      {"id": "ADR-008", "title": "...", "status": "active"},
+      {"id": "ADR-010", "title": "...", "status": "accepted"}
+    ],
+    "provenance": {
+      "predicate": "adr_chain",
+      "deterministic": true
+    }
+  }
+}
+```
+
+#### kb_superseded_by
+
+Returns direct successor for an ADR.
+
+Input:
+```json
+{
+  "adr": "ADR-005"
+}
+```
+
+Output:
+```json
+{
+  "content": [{"type": "text", "text": "Derived 1 row(s) for rule 'superseded_by'."}],
+  "structuredContent": {
+    "rule": "superseded_by",
+    "params": {"adr": "ADR-005"},
+    "count": 1,
+    "rows": [
+      {
+        "adr": "ADR-005",
+        "successor_id": "ADR-008",
+        "successor_title": "AST-derived symbol coordinates..."
+      }
+    ],
+    "provenance": {
+      "predicate": "superseded_by",
+      "deterministic": true
+    }
+  }
+}
+```
 
 ## Determinism Guarantees
 

@@ -24,7 +24,7 @@ import { ensureMainBranch } from "./helpers";
  */
 describe("init-sync-check workflow", () => {
   let tmpDir: string;
-  const kibiBin = path.resolve(__dirname, "../../packages/cli/bin/kibi");
+  const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-integration-init-"));
@@ -66,8 +66,8 @@ describe("init-sync-check workflow", () => {
       readFileSync(path.join(tmpDir, ".kb/config.json"), "utf8"),
     );
     expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements/**/*.md");
-    expect(config.paths.scenarios).toBe("scenarios/**/*.md");
+    expect(config.paths.requirements).toBe("requirements");
+    expect(config.paths.scenarios).toBe("scenarios");
   });
 
   test("full workflow: sync imports entities from documents", () => {
@@ -285,7 +285,7 @@ Content.
     const firstCount = firstMatch ? Number.parseInt(firstMatch[1]) : 0;
     expect(firstCount).toBeGreaterThan(0);
 
-    // Second sync (should be idempotent)
+    // Second sync (should be idempotent - no new imports since cache hit)
     const secondSync = execSync(`bun ${kibiBin} sync`, {
       cwd: tmpDir,
       encoding: "utf8",
@@ -294,7 +294,9 @@ Content.
     const secondMatch = secondSync.match(/Imported (\d+) entities/);
     const secondCount = secondMatch ? Number.parseInt(secondMatch[1]) : 0;
 
-    expect(secondCount).toBe(firstCount);
+    // Second sync should report 0 new imports (cache hit, no changes)
+    // This verifies idempotency - no duplicate entities created
+    expect(secondCount).toBe(0);
   });
 
   test("full workflow: query with ID filter returns specific entity", () => {

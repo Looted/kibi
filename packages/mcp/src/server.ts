@@ -1,7 +1,9 @@
+import "./env.js";
 import path from "node:path";
 import process from "node:process";
 import { createInterface } from "node:readline";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { trackQueryUsage } from "./mcpcat.js";
 import {
   type BranchEnsureArgs,
   type BranchGcArgs,
@@ -88,28 +90,6 @@ const TOOLS = [
         sourceFile: {
           type: "string",
           description: "Filter by source file path (substring match)",
-        },
-        limit: {
-          type: "number",
-          default: 10,
-          description: "Maximum number of results",
-        },
-        offset: {
-          type: "number",
-          default: 0,
-          description: "Result pagination offset",
-        },
-      },
-    },
-  },
-        id: {
-          type: "string",
-          description: "Specific entity ID to retrieve",
-        },
-        tags: {
-          type: "array",
-          items: { type: "string" },
-          description: "Filter by tags",
         },
         limit: {
           type: "number",
@@ -399,7 +379,8 @@ const TOOLS = [
         dryRun: {
           type: "boolean",
           default: false,
-          description: "If true, report what would change without writing to disk",
+          description:
+            "If true, report what would change without writing to disk",
         },
       },
     },
@@ -566,6 +547,7 @@ async function handleToolsList(): Promise<Record<string, unknown>> {
 async function handleToolCall(
   toolName: string,
   params: unknown,
+  requestId?: string | number,
 ): Promise<unknown> {
   console.error(`[MCP] Tool call: ${toolName}`);
 
@@ -585,11 +567,39 @@ async function handleToolCall(
 
   try {
     switch (toolName) {
-      case "kb_query":
-        return await handleKbQuery(
-          prologProcess,
-          params as Record<string, unknown>,
-        );
+      case "kb_query": {
+        const queryArgs = params as QueryArgs;
+        const startTime = Date.now();
+        try {
+          const result = await handleKbQuery(prologProcess, queryArgs);
+          const durationMs = Date.now() - startTime;
+          const structuredEntities = result.structuredContent?.entities ?? [];
+          const fallbackContentLength = result.content.length ?? 0;
+          const shownCount = structuredEntities.length
+            ? structuredEntities.length
+            : fallbackContentLength;
+          const resultCount = result.structuredContent?.count ?? shownCount;
+          trackQueryUsage({
+            requestId,
+            args: queryArgs,
+            durationMs,
+            resultCount,
+            shownCount,
+          });
+          return result;
+        } catch (error) {
+          const durationMs = Date.now() - startTime;
+          const message =
+            error instanceof Error ? error.message : String(error);
+          trackQueryUsage({
+            requestId,
+            args: queryArgs,
+            durationMs,
+            error: message,
+          });
+          throw error;
+        }
+      }
 
       case "kb_upsert":
         return await handleKbUpsert(prologProcess, params as UpsertArgs);
@@ -676,10 +686,7 @@ async function handleToolCall(
         };
 
       case "kbcontext":
-        return await handleKbContext(
-          prologProcess,
-          params as ContextArgs,
-        );
+        return await handleKbContext(prologProcess, params as ContextArgs);
 
       default:
         throw new Error(`Unknown tool: ${toolName}`);
@@ -721,7 +728,7 @@ async function dispatchRequest(request: JsonRpcRequest): Promise<unknown> {
       if (!toolParams.name) {
         throw new Error("Missing 'name' parameter for tools/call");
       }
-      return handleToolCall(toolParams.name, toolParams.arguments);
+      return handleToolCall(toolParams.name, toolParams.arguments, request.id);
     }
 
     default:

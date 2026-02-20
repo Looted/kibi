@@ -14,7 +14,7 @@ import { ensureMainBranch } from "./helpers";
 
 describe("branch KB workflow", () => {
   let tmpDir: string;
-  const kibiBin = path.resolve(__dirname, "../../packages/cli/bin/kibi");
+  const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
 
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-integration-branch-"));

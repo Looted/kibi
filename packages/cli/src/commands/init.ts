@@ -27,12 +27,12 @@ bun __KIBI_BIN__ check
 
 const DEFAULT_CONFIG = {
   paths: {
-    requirements: "requirements/**/*.md",
-    scenarios: "scenarios/**/*.md",
-    tests: "tests/**/*.md",
-    adr: "adr/**/*.md",
-    flags: "flags/**/*.md",
-    events: "events/**/*.md",
+    requirements: "requirements",
+    scenarios: "scenarios",
+    tests: "tests",
+    adr: "adr",
+    flags: "flags",
+    events: "events",
     symbols: "symbols.yaml",
   },
 };

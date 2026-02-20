@@ -122,4 +122,30 @@ describe("Markdown Extractor", () => {
 
     unlinkSync(tempFile);
   });
+
+  test("extracts supersedes relationship from ADR frontmatter", () => {
+    const tempFile = "/tmp/test-supersedes.md";
+    writeFileSync(
+      tempFile,
+      `---
+id: ADR-010
+title: New Decision
+type: adr
+status: active
+links:
+  - type: supersedes
+    target: ADR-005
+---
+# Content
+`,
+    );
+
+    const result = extractFromMarkdown(tempFile);
+    expect(result.relationships).toBeInstanceOf(Array);
+    expect(result.relationships.length).toBe(1);
+    expect(result.relationships[0].type).toBe("supersedes");
+    expect(result.relationships[0].to).toBe("ADR-005");
+
+    unlinkSync(tempFile);
+  });
 });
