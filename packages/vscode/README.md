@@ -45,9 +45,59 @@ code --install-extension kibi-vscode-*.vsix
 - **📅 Events**: Domain events and system events
 - **🔤 Symbols**: Code symbols and references
 
+## Configuration
+
+The extension provides the following configuration settings:
+
+### `kibi.mcp.serverPath`
+
+**Type:** `string`  
+**Default:** `""` (empty)
+
+Absolute path to the kibi-mcp executable. Examples:
+- `/path/to/kibi/packages/mcp/bin/kibi-mcp` (local clone)
+- `/usr/local/bin/kibi-mcp` (global installation)
+
+If left empty, the extension will attempt to auto-detect `kibi-mcp` in your system PATH.
+
+#### Finding the correct path
+
+**Option 1: Check your PATH**
+```bash
+which kibi-mcp
+# or on Windows:
+where kibi-mcp
+```
+
+**Option 2: Point to your Kibi clone**
+If you have the Kibi repository cloned locally:
+```bash
+# Replace /path/to/kibi with your actual clone path
+/path/to/kibi/packages/mcp/bin/kibi-mcp
+```
+
+**Option 3: Install globally**
+If you've installed Kibi globally, the path might be:
+- `~/.local/bin/kibi-mcp`
+- `~/.bun/bin/kibi-mcp`
+- `/usr/local/bin/kibi-mcp`
+
+### Setting the configuration
+
+1. Open VS Code Settings (`Cmd+,` / `Ctrl+,`)
+2. Search for "Kibi"
+3. Set **Kibi: Mcp: Server Path** to the absolute path of your kibi-mcp executable
+
+Or edit `settings.json` directly:
+```json
+{
+  "kibi.mcp.serverPath": "/path/to/kibi/packages/mcp/bin/kibi-mcp"
+}
+```
+
 ## MCP Integration
 
-This extension includes MCP (Model Context Protocol) server integration pointing to the Kibi MCP server at `packages/mcp/bin/kibi-mcp`. This enables AI assistants to query and interact with your knowledge base.
+This extension includes MCP (Model Context Protocol) server integration for AI assistant interaction with your knowledge base. The MCP server path is configurable (see Configuration section above) and defaults to auto-detection from your system PATH.
 
 ## Current Limitations (v0.1)
 

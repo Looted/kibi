@@ -18,12 +18,17 @@
   "icon": "icon.png",
   "contributes": {
     "configuration": {
-      "title": "Kibi",
+      "title": "Kibi Knowledge Base",
       "properties": {
         "kibi.contextOnOpen": {
           "type": "boolean",
           "default": true,
           "description": "Show KB entities linked to file when opening it"
+        },
+        "kibi.mcp.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the kibi-mcp executable (e.g., /path/to/kibi/packages/mcp/bin/kibi-mcp). If left empty, the extension will attempt to find 'kibi-mcp' in your system PATH."
         }
       }
     },
@@ -89,7 +94,7 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+          "args": ["${config:kibi.mcp.serverPath}"],
           "env": {}
         }
       }

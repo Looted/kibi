@@ -370,7 +370,7 @@ const TOOLS = [
     },
   },
   {
-    name: "kb.symbols.refresh",
+    name: "kb_symbols_refresh",
     description:
       "Refresh AST-derived coordinates (sourceLine, sourceColumn, etc.) for all symbol entries in symbols.yaml. Call this after refactoring code that contains tracked symbols. Safe to call at any time — authored fields (id, title, links) are never modified.",
     inputSchema: {
@@ -551,7 +551,7 @@ async function handleToolCall(
 ): Promise<unknown> {
   console.error(`[MCP] Tool call: ${toolName}`);
 
-  if (toolName === "kb.symbols.refresh") {
+  if (toolName === "kb_symbols_refresh") {
     return handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
   }
 
@@ -637,7 +637,7 @@ async function handleToolCall(
           params as CoverageReportArgs,
         );
 
-      case "kb.symbols.refresh":
+      case "kb_symbols_refresh":
         return await handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
 
       case "kb_list_entity_types":

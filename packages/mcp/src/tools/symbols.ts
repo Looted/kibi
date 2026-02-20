@@ -35,9 +35,9 @@ interface ManifestSymbolEntry {
 const COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
 #   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
-# Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
+# Run \`kibi sync\` or call the \`kb_symbols_refresh\` MCP tool to refresh coordinates.
 `;
 
 const GENERATED_COORD_FIELDS = [
@@ -74,14 +74,21 @@ export async function handleKbSymbolsRefresh(
   }
 
   const original = parsed.symbols.map((entry) =>
-    isRecord(entry) ? ({ ...entry } as ManifestSymbolEntry) : ({} as ManifestSymbolEntry),
+    isRecord(entry)
+      ? ({ ...entry } as ManifestSymbolEntry)
+      : ({} as ManifestSymbolEntry),
   );
-  const entriesForEnrichment: CliManifestSymbolEntry[] = original.map((entry) => ({
-    ...entry,
-    id: typeof entry.id === "string" ? entry.id : "",
-    title: typeof entry.title === "string" ? entry.title : "",
-  }));
-  const enriched = await enrichSymbolCoordinates(entriesForEnrichment, workspaceRoot);
+  const entriesForEnrichment: CliManifestSymbolEntry[] = original.map(
+    (entry) => ({
+      ...entry,
+      id: typeof entry.id === "string" ? entry.id : "",
+      title: typeof entry.title === "string" ? entry.title : "",
+    }),
+  );
+  const enriched = await enrichSymbolCoordinates(
+    entriesForEnrichment,
+    workspaceRoot,
+  );
   parsed.symbols = enriched;
 
   let refreshed = 0;
@@ -131,7 +138,7 @@ export async function handleKbSymbolsRefresh(
     content: [
       {
         type: "text",
-        text: `kb.symbols.refresh ${dryRun ? "(dry run) " : ""}completed for ${path.relative(workspaceRoot, manifestPath)}: refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed}`,
+        text: `kb_symbols_refresh ${dryRun ? "(dry run) " : ""}completed for ${path.relative(workspaceRoot, manifestPath)}: refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed}`,
       },
     ],
     structuredContent: {
@@ -156,7 +163,9 @@ export async function refreshCoordinatesForSymbolId(
   }
 
   const symbols = parsed.symbols.map((entry) =>
-    isRecord(entry) ? ({ ...entry } as ManifestSymbolEntry) : ({} as ManifestSymbolEntry),
+    isRecord(entry)
+      ? ({ ...entry } as ManifestSymbolEntry)
+      : ({} as ManifestSymbolEntry),
   );
 
   const index = symbols.findIndex((entry) => entry.id === symbolId);
@@ -176,13 +185,17 @@ export async function refreshCoordinatesForSymbolId(
         ? ((original as ManifestSymbolEntry).title as string)
         : "",
   };
-  const [enriched] = await enrichSymbolCoordinates([singleEntry], workspaceRoot);
+  const [enriched] = await enrichSymbolCoordinates(
+    [singleEntry],
+    workspaceRoot,
+  );
 
   symbols[index] = enriched ?? (original as ManifestSymbolEntry);
   parsed.symbols = symbols;
 
   const refreshed = GENERATED_COORD_FIELDS.some(
-    (field) => (original as ManifestSymbolEntry)[field] !== symbols[index][field],
+    (field) =>
+      (original as ManifestSymbolEntry)[field] !== symbols[index][field],
   );
 
   const dumped = dumpYAML(parsed, {
@@ -232,7 +245,10 @@ function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
   );
 }
 
-function isEligible(sourceFile: string | undefined, workspaceRoot: string): boolean {
+function isEligible(
+  sourceFile: string | undefined,
+  workspaceRoot: string,
+): boolean {
   if (!sourceFile) return false;
 
   const absolute = path.isAbsolute(sourceFile)

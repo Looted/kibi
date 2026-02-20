@@ -1,3 +1,4 @@
+import * as child_process from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -48,6 +49,9 @@ export function activate(context: vscode.ExtensionContext) {
     ) ?? vscode.Uri.file(workspaceRoot);
 
   output.appendLine(`Workspace root: ${workspaceRoot}`);
+
+  // ── MCP Server Path Validation ─────────────────────────────────────────────
+  validateMcpServerPath(output);
 
   // ── Tree view ──────────────────────────────────────────────────────────────
   const treeDataProvider = new KibiTreeDataProvider(workspaceRoot);
@@ -277,12 +281,21 @@ export function activate(context: vscode.ExtensionContext) {
         const relativePath = path.relative(workspaceRoot, document.uri.fsPath);
 
         try {
-          const mcpResult = await vscode.commands.executeCommand<any>(
+          interface McpResult {
+            structuredContent?: {
+              entities?: unknown[];
+            };
+          }
+          const mcpResult = await vscode.commands.executeCommand<McpResult>(
             "kibi-mcp.kbcontext",
             { sourceFile: relativePath },
           );
 
-          if (mcpResult?.structuredContent?.entities?.length > 0) {
+          if (
+            mcpResult?.structuredContent?.entities &&
+            Array.isArray(mcpResult.structuredContent.entities) &&
+            mcpResult.structuredContent.entities.length > 0
+          ) {
             const count = mcpResult.structuredContent.entities.length;
             vscode.window.showInformationMessage(
               `Kibi: ${count} KB entities linked to this file. Open Kibi panel to explore.`,
@@ -313,6 +326,96 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   output.appendLine("Kibi extension activation complete.");
+}
+
+function validateMcpServerPath(output: vscode.OutputChannel): void {
+  const config = vscode.workspace.getConfiguration("kibi");
+  let serverPath = config.get<string>("mcp.serverPath", "");
+
+  if (!serverPath || serverPath.trim() === "") {
+    const detectedPath = findKibiMcpInPath();
+    if (detectedPath) {
+      output.appendLine(`Auto-detected kibi-mcp at: ${detectedPath}`);
+      serverPath = detectedPath;
+    } else {
+      output.appendLine(
+        "Kibi MCP server path is not configured and kibi-mcp was not found in PATH.",
+      );
+      vscode.window
+        .showWarningMessage(
+          "Kibi MCP server path is not configured and kibi-mcp was not found in PATH.",
+          "Open Settings",
+        )
+        .then((selection) => {
+          if (selection === "Open Settings") {
+            vscode.commands.executeCommand(
+              "workbench.action.openSettings",
+              "kibi.mcp.serverPath",
+            );
+          }
+        });
+      return;
+    }
+  }
+
+  if (!fs.existsSync(serverPath)) {
+    output.appendLine(
+      `Kibi MCP server not found at configured path: ${serverPath}`,
+    );
+    vscode.window
+      .showErrorMessage(
+        "Kibi MCP server not found at configured path. Please check your settings.",
+        "Open Settings",
+      )
+      .then((selection) => {
+        if (selection === "Open Settings") {
+          vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "kibi.mcp.serverPath",
+          );
+        }
+      });
+    return;
+  }
+
+  output.appendLine(`Kibi MCP server path validated: ${serverPath}`);
+}
+
+function findKibiMcpInPath(): string | undefined {
+  try {
+    const isWindows = process.platform === "win32";
+    const command = isWindows ? "where kibi-mcp" : "which kibi-mcp";
+
+    const result = child_process.execSync(command, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+
+    const paths = result.trim().split(/\r?\n/);
+    for (const p of paths) {
+      const trimmed = p.trim();
+      if (trimmed && fs.existsSync(trimmed)) {
+        return trimmed;
+      }
+    }
+  } catch {
+    // Command failed or kibi-mcp not found in PATH
+  }
+
+  const commonPaths = [
+    "/usr/local/bin/kibi-mcp",
+    "/usr/bin/kibi-mcp",
+    path.join(process.env.HOME || "", ".local/bin/kibi-mcp"),
+    path.join(process.env.HOME || "", ".bun/bin/kibi-mcp"),
+  ];
+
+  for (const p of commonPaths) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+
+  return undefined;
 }
 
 export function deactivate() {}

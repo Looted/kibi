@@ -165,7 +165,7 @@ describe("MCP Server", () => {
     expect(tools[7].name).toBe("kb_derive");
     expect(tools[8].name).toBe("kb_impact");
     expect(tools[9].name).toBe("kb_coverage_report");
-    expect(tools[10].name).toBe("kb.symbols.refresh");
+    expect(tools[10].name).toBe("kb_symbols_refresh");
     expect(tools[11].name).toBe("kb_list_entity_types");
     expect(tools[12].name).toBe("kb_list_relationship_types");
 
