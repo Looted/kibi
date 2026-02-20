@@ -1,9 +1,10 @@
 import "./env.js";
 import path from "node:path";
 import process from "node:process";
-import { createInterface } from "node:readline";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
-import { trackQueryUsage } from "./mcpcat.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { attachMcpcat } from "./mcpcat.js";
 import {
   type BranchEnsureArgs,
   type BranchGcArgs,
@@ -29,53 +30,6 @@ import {
   handleKbSymbolsRefresh,
 } from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
-
-// JSON-RPC 2.0 Types
-interface JsonRpcRequest {
-  jsonrpc: "2.0";
-  id?: string | number;
-  method: string;
-  params?: unknown;
-}
-
-interface JsonRpcResponse {
-  jsonrpc: "2.0";
-  id: string | number;
-  result?: unknown;
-  error?: JsonRpcError;
-}
-
-interface JsonRpcError {
-  code: number;
-  message: string;
-  data?: unknown;
-}
-
-// JSON-RPC 2.0 Error Codes
-const ERROR_CODES = {
-  PARSE_ERROR: -32700,
-  INVALID_REQUEST: -32600,
-  METHOD_NOT_FOUND: -32601,
-  INVALID_PARAMS: -32602,
-  INTERNAL_ERROR: -32603,
-  // Custom error codes
-  PROLOG_QUERY_FAILED: -32000,
-  KB_NOT_ATTACHED: -32001,
-  VALIDATION_ERROR: -32002,
-} as const;
-
-interface PromptArgumentDefinition {
-  name: string;
-  description: string;
-  required?: boolean;
-}
-
-interface PromptDefinition {
-  name: string;
-  description: string;
-  arguments?: PromptArgumentDefinition[];
-  text: string;
-}
 
 interface DocResource {
   uri: string;
@@ -542,65 +496,61 @@ function renderToolsDoc(): string {
   return lines.join("\n");
 }
 
-function registerPrompts(): PromptDefinition[] {
-  return [
-    {
-      name: "kibi_overview",
-      description:
-        "High-level model for using kibi-mcp safely and effectively.",
-      text: [
-        "# kibi-mcp Overview",
-        "",
-        "Treat this server as a branch-aware knowledge graph interface for software traceability.",
-        "",
-        "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
-        "- Reuse canonical fact IDs across requirements; shared constrained facts make contradictions detectable.",
-        "- Use read tools first (`kb_query`, `kb_query_relationships`, `kbcontext`) to establish context.",
-        "- Use mutation tools (`kb_upsert`, `kb_delete`, branch tools) only after you can justify the change.",
-        "- Use inference tools (`kb_derive`, `kb_impact`, `kb_coverage_report`) for deterministic analysis.",
-        "- Prefer explicit IDs and enum values to avoid invalid parameters.",
-        "- Assume every write can affect downstream traceability queries.",
-      ].join("\n"),
-    },
-    {
-      name: "kibi_workflow",
-      description:
-        "Step-by-step call order for discovery, mutation, and verification.",
-      text: [
-        "# kibi-mcp Workflow",
-        "",
-        "Follow this sequence for reliable operation:",
-        "",
-        "1. **Discover**: Call `kb_list_entity_types`/`kb_list_relationship_types` if you are unsure about allowed values.",
-        "2. **Inspect**: Call `kb_query` or `kbcontext` to confirm current state before any mutation.",
-        "3. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property`.",
-        "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
-        "5. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
-        "6. **Verify integrity**: Call `kb_check` after mutations.",
-        "7. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
-        "",
-        "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, or relationship type).",
-      ].join("\n"),
-    },
-    {
-      name: "kibi_constraints",
-      description:
-        "Operational limits, validation rules, and mutation gotchas.",
-      text: [
-        "# kibi-mcp Constraints",
-        "",
-        "Apply these rules before calling write operations:",
-        "",
-        "- `kb_upsert` validates entity and relationship payloads against JSON Schema.",
-        "- `kb_delete` blocks deletion when dependents still reference the entity.",
-        "- `kb_branch_gc` may permanently remove stale branch KB directories when `dry_run` is `false`.",
-        "- Relationship and rule names are strict enums; unknown values fail validation.",
-        "- Branch names are sanitized; path traversal patterns are rejected.",
-        "- `kb_symbols_refresh` can rewrite the symbols manifest unless `dryRun` is enabled.",
-      ].join("\n"),
-    },
-  ];
-}
+const PROMPTS = [
+  {
+    name: "kibi_overview",
+    description: "High-level model for using kibi-mcp safely and effectively.",
+    text: [
+      "# kibi-mcp Overview",
+      "",
+      "Treat this server as a branch-aware knowledge graph interface for software traceability.",
+      "",
+      "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
+      "- Reuse canonical fact IDs across requirements; shared constrained facts make contradictions detectable.",
+      "- Use read tools first (`kb_query`, `kb_query_relationships`, `kbcontext`) to establish context.",
+      "- Use mutation tools (`kb_upsert`, `kb_delete`, branch tools) only after you can justify the change.",
+      "- Use inference tools (`kb_derive`, `kb_impact`, `kb_coverage_report`) for deterministic analysis.",
+      "- Prefer explicit IDs and enum values to avoid invalid parameters.",
+      "- Assume every write can affect downstream traceability queries.",
+    ].join("\n"),
+  },
+  {
+    name: "kibi_workflow",
+    description:
+      "Step-by-step call order for discovery, mutation, and verification.",
+    text: [
+      "# kibi-mcp Workflow",
+      "",
+      "Follow this sequence for reliable operation:",
+      "",
+      "1. **Discover**: Call `kb_list_entity_types`/`kb_list_relationship_types` if you are unsure about allowed values.",
+      "2. **Inspect**: Call `kb_query` or `kbcontext` to confirm current state before any mutation.",
+      "3. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property`.",
+      "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
+      "5. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
+      "6. **Verify integrity**: Call `kb_check` after mutations.",
+      "7. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
+      "",
+      "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, or relationship type).",
+    ].join("\n"),
+  },
+  {
+    name: "kibi_constraints",
+    description: "Operational limits, validation rules, and mutation gotchas.",
+    text: [
+      "# kibi-mcp Constraints",
+      "",
+      "Apply these rules before calling write operations:",
+      "",
+      "- `kb_upsert` validates entity and relationship payloads against JSON Schema.",
+      "- `kb_delete` blocks deletion when dependents still reference the entity.",
+      "- `kb_branch_gc` may permanently remove stale branch KB directories when `dry_run` is `false`.",
+      "- Relationship and rule names are strict enums; unknown values fail validation.",
+      "- Branch names are sanitized; path traversal patterns are rejected.",
+      "- `kb_symbols_refresh` can rewrite the symbols manifest unless `dryRun` is enabled.",
+    ].join("\n"),
+  },
+];
 
 function registerDocResources(): DocResource[] {
   const overview = [
@@ -687,7 +637,6 @@ function registerDocResources(): DocResource[] {
   ];
 }
 
-const PROMPTS = registerPrompts();
 const DOC_RESOURCES = registerDocResources();
 
 function getHelpText(topic?: string): string {
@@ -698,584 +647,336 @@ function getHelpText(topic?: string): string {
   }
 
   if (normalized === "workflow") {
-    return (
-      PROMPTS.find((prompt) => prompt.name === "kibi_workflow")?.text ?? ""
-    );
+    return PROMPTS.find((p) => p.name === "kibi_workflow")?.text ?? "";
   }
 
   if (normalized === "constraints") {
-    return (
-      PROMPTS.find((prompt) => prompt.name === "kibi_constraints")?.text ?? ""
-    );
+    return PROMPTS.find((p) => p.name === "kibi_constraints")?.text ?? "";
   }
 
   if (normalized === "examples") {
     return (
-      DOC_RESOURCES.find((res) => res.uri === "kibi://docs/examples")?.text ??
-      ""
+      DOC_RESOURCES.find((r) => r.uri === "kibi://docs/examples")?.text ?? ""
     );
   }
 
   if (normalized === "errors") {
     return (
-      DOC_RESOURCES.find((res) => res.uri === "kibi://docs/errors")?.text ?? ""
+      DOC_RESOURCES.find((r) => r.uri === "kibi://docs/errors")?.text ?? ""
     );
   }
 
   return (
-    DOC_RESOURCES.find((res) => res.uri === "kibi://docs/overview")?.text ?? ""
+    DOC_RESOURCES.find((r) => r.uri === "kibi://docs/overview")?.text ?? ""
   );
 }
 
-// Server State
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 
-/**
- * Create a JSON-RPC 2.0 success response
- */
-function createResponse(id: string | number, result: unknown): JsonRpcResponse {
-  return {
-    jsonrpc: "2.0",
-    id,
-    result,
-  };
-}
+async function ensureProlog(): Promise<PrologProcess> {
+  if (isInitialized && prologProcess?.isRunning()) {
+    return prologProcess;
+  }
 
-/**
- * Create a JSON-RPC 2.0 error response
- */
-function createError(
-  id: string | number | null,
-  code: number,
-  message: string,
-  data?: unknown,
-): JsonRpcResponse {
-  return {
-    jsonrpc: "2.0",
-    id: id ?? 0,
-    error: {
-      code,
-      message,
-      data,
-    },
-  };
-}
+  console.error("[MCP] Initializing Prolog process...");
 
-/**
- * Handle the 'initialize' method
- */
-async function handleInitialize(
-  params: unknown,
-): Promise<Record<string, unknown>> {
-  const clientParams = params as {
-    protocolVersion?: string;
-    capabilities?: unknown;
-    clientInfo?: unknown;
-  };
+  prologProcess = new PrologProcess({ timeout: 30000 });
+  await prologProcess.start();
 
-  // Log client info to stderr
+  let branch = process.env.KIBI_BRANCH || "main";
+  if (!process.env.KIBI_BRANCH) {
+    try {
+      const { execSync } = await import("node:child_process");
+      const detected = execSync("git branch --show-current", {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        timeout: 3000,
+      }).trim();
+      if (detected) {
+        branch = detected === "master" ? "main" : detected;
+      }
+    } catch {
+      // fall back to main
+    }
+  }
+
+  const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
+  const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
+
+  if (!attachResult.success) {
+    throw new Error(
+      `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
+    );
+  }
+
+  isInitialized = true;
   console.error(
-    `[MCP] Client connected: ${JSON.stringify(clientParams.clientInfo)}`,
+    `[MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
+  );
+  console.error(`[MCP] KB attached: ${kbPath}`);
+  return prologProcess;
+}
+
+type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
+
+function addTool(
+  server: McpServer,
+  name: string,
+  description: string,
+  inputSchema: object,
+  handler: ToolHandler,
+): void {
+  (
+    server as McpServer & {
+      registerTool: (n: string, c: object, h: ToolHandler) => void;
+    }
+  ).registerTool(name, { description, inputSchema }, handler);
+}
+
+export async function startServer(): Promise<void> {
+  const server = new McpServer({ name: "kibi-mcp", version: "0.1.0" });
+
+  attachMcpcat(server);
+
+  for (const prompt of PROMPTS) {
+    server.prompt(prompt.name, prompt.description, async () => ({
+      messages: [
+        {
+          role: "user" as const,
+          content: { type: "text" as const, text: prompt.text },
+        },
+      ],
+    }));
+  }
+
+  for (const resource of DOC_RESOURCES) {
+    server.resource(
+      resource.name,
+      resource.uri,
+      { description: resource.description, mimeType: resource.mimeType },
+      async () => ({
+        contents: [
+          {
+            uri: resource.uri,
+            mimeType: resource.mimeType,
+            text: resource.text,
+          },
+        ],
+      }),
+    );
+  }
+
+  const toolDef = (name: string) => {
+    const t = TOOLS.find((t) => t.name === name);
+    if (!t) throw new Error(`Unknown tool: ${name}`);
+    return t;
+  };
+
+  addTool(
+    server,
+    "kb_query",
+    toolDef("kb_query").description,
+    toolDef("kb_query").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbQuery(prolog, args as QueryArgs);
+    },
   );
 
-  return {
-    protocolVersion: "2024-11-05",
-    serverInfo: {
-      name: "kibi-mcp",
-      version: "0.1.0",
+  addTool(
+    server,
+    "kb_upsert",
+    toolDef("kb_upsert").description,
+    toolDef("kb_upsert").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbUpsert(prolog, args as unknown as UpsertArgs);
     },
-    capabilities: {
-      tools: {},
-      prompts: {},
-      resources: {},
+  );
+
+  addTool(
+    server,
+    "kb_delete",
+    toolDef("kb_delete").description,
+    toolDef("kb_delete").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbDelete(prolog, args as unknown as DeleteArgs);
     },
-  };
-}
+  );
 
-/**
- * Handle the 'notifications/initialized' notification
- */
-async function handleInitializedNotification(): Promise<void> {
-  console.error("[MCP] Client initialized, starting Prolog process...");
+  addTool(
+    server,
+    "kb_check",
+    toolDef("kb_check").description,
+    toolDef("kb_check").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbCheck(prolog, args as CheckArgs);
+    },
+  );
 
-  try {
-    // Start Prolog process
-    prologProcess = new PrologProcess({ timeout: 30000 });
-    await prologProcess.start();
+  addTool(
+    server,
+    "kb_branch_ensure",
+    toolDef("kb_branch_ensure").description,
+    toolDef("kb_branch_ensure").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbBranchEnsure(prolog, args as unknown as BranchEnsureArgs);
+    },
+  );
 
-    // Determine current branch from env override or git
-    let branch = process.env.KIBI_BRANCH || "main";
-    if (!process.env.KIBI_BRANCH) {
-      try {
-        const { execSync } = await import("node:child_process");
-        const detected = execSync("git branch --show-current", {
-          cwd: process.cwd(),
-          encoding: "utf8",
-          timeout: 3000,
-        }).trim();
-        if (detected) {
-          branch = detected === "master" ? "main" : detected;
-        }
-      } catch {
-        // fall back to main
-      }
-    }
+  addTool(
+    server,
+    "kb_branch_gc",
+    toolDef("kb_branch_gc").description,
+    toolDef("kb_branch_gc").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbBranchGc(prolog, args as BranchGcArgs);
+    },
+  );
 
-    // Attach KB to the resolved branch
-    const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
-    const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
+  addTool(
+    server,
+    "kb_query_relationships",
+    toolDef("kb_query_relationships").description,
+    toolDef("kb_query_relationships").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbQueryRelationships(prolog, args as QueryRelationshipsArgs);
+    },
+  );
 
-    if (!attachResult.success) {
-      throw new Error(
-        `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
-      );
-    }
+  addTool(
+    server,
+    "kb_derive",
+    toolDef("kb_derive").description,
+    toolDef("kb_derive").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbDerive(prolog, args as unknown as DeriveArgs);
+    },
+  );
 
-    isInitialized = true;
-    console.error(
-      `[MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
-    );
-    console.error(`[MCP] KB attached: ${kbPath}`);
-  } catch (error) {
-    console.error(
-      `[MCP] Failed to start Prolog: ${error instanceof Error ? error.message : String(error)}`,
-    );
-    throw error;
-  }
-}
+  addTool(
+    server,
+    "kb_impact",
+    toolDef("kb_impact").description,
+    toolDef("kb_impact").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbImpact(prolog, args as unknown as ImpactArgs);
+    },
+  );
 
-/**
- * Handle the 'tools/list' method
- */
-async function handleToolsList(): Promise<Record<string, unknown>> {
-  return {
-    tools: TOOLS,
-  };
-}
+  addTool(
+    server,
+    "kb_coverage_report",
+    toolDef("kb_coverage_report").description,
+    toolDef("kb_coverage_report").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbCoverageReport(prolog, args as CoverageReportArgs);
+    },
+  );
 
-async function handlePromptsList(): Promise<Record<string, unknown>> {
-  return {
-    prompts: PROMPTS.map((prompt) => ({
-      name: prompt.name,
-      description: prompt.description,
-      arguments: prompt.arguments ?? [],
-    })),
-  };
-}
+  addTool(
+    server,
+    "kb_symbols_refresh",
+    toolDef("kb_symbols_refresh").description,
+    toolDef("kb_symbols_refresh").inputSchema,
+    async (args) => handleKbSymbolsRefresh(args as SymbolsRefreshArgs),
+  );
 
-async function handlePromptsGet(
-  params: unknown,
-): Promise<Record<string, unknown>> {
-  const request = params as {
-    name?: string;
-    arguments?: Record<string, unknown>;
-  };
-
-  if (!request.name) {
-    throw new Error("Missing 'name' parameter for prompts/get");
-  }
-
-  const prompt = PROMPTS.find((entry) => entry.name === request.name);
-  if (!prompt) {
-    throw new Error(`Unknown prompt: ${request.name}`);
-  }
-
-  return {
-    description: prompt.description,
-    messages: [
-      {
-        role: "user",
-        content: {
-          type: "text",
-          text: prompt.text,
+  addTool(
+    server,
+    "kb_list_entity_types",
+    toolDef("kb_list_entity_types").description,
+    toolDef("kb_list_entity_types").inputSchema,
+    async () => ({
+      content: [
+        {
+          type: "text" as const,
+          text: "Available entity types: req, scenario, test, adr, flag, event, symbol, fact",
         },
+      ],
+      structuredContent: {
+        types: [
+          "req",
+          "scenario",
+          "test",
+          "adr",
+          "flag",
+          "event",
+          "symbol",
+          "fact",
+        ],
       },
-    ],
-  };
-}
+    }),
+  );
 
-async function handleResourcesList(): Promise<Record<string, unknown>> {
-  return {
-    resources: DOC_RESOURCES.map((resource) => ({
-      uri: resource.uri,
-      name: resource.name,
-      description: resource.description,
-      mimeType: resource.mimeType,
-    })),
-  };
-}
-
-async function handleResourcesRead(
-  params: unknown,
-): Promise<Record<string, unknown>> {
-  const request = params as { uri?: string };
-
-  if (!request.uri) {
-    throw new Error("Missing 'uri' parameter for resources/read");
-  }
-
-  const resource = DOC_RESOURCES.find((entry) => entry.uri === request.uri);
-  if (!resource) {
-    throw new Error(`Unknown resource: ${request.uri}`);
-  }
-
-  return {
-    contents: [
-      {
-        uri: resource.uri,
-        mimeType: resource.mimeType,
-        text: resource.text,
+  addTool(
+    server,
+    "kb_list_relationship_types",
+    toolDef("kb_list_relationship_types").description,
+    toolDef("kb_list_relationship_types").inputSchema,
+    async () => ({
+      content: [
+        {
+          type: "text" as const,
+          text: "Available relationship types: depends_on, specified_by, verified_by, validates, implements, covered_by, constrained_by, constrains, requires_property, guards, publishes, consumes, supersedes, relates_to",
+        },
+      ],
+      structuredContent: {
+        types: [
+          "depends_on",
+          "specified_by",
+          "verified_by",
+          "validates",
+          "implements",
+          "covered_by",
+          "constrained_by",
+          "constrains",
+          "requires_property",
+          "guards",
+          "publishes",
+          "consumes",
+          "supersedes",
+          "relates_to",
+        ],
       },
-    ],
-  };
-}
+    }),
+  );
 
-/**
- * Handle tool invocation
- */
-async function handleToolCall(
-  toolName: string,
-  params: unknown,
-  requestId?: string | number,
-): Promise<unknown> {
-  console.error(`[MCP] Tool call: ${toolName}`);
+  addTool(
+    server,
+    "kbcontext",
+    toolDef("kbcontext").description,
+    toolDef("kbcontext").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbContext(prolog, args as unknown as ContextArgs);
+    },
+  );
 
-  if (toolName === "kb_symbols_refresh") {
-    return handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
-  }
+  addTool(
+    server,
+    "get_help",
+    toolDef("get_help").description,
+    toolDef("get_help").inputSchema,
+    async (args) => {
+      const topic = typeof args?.topic === "string" ? args.topic : undefined;
+      const text = getHelpText(topic);
+      return {
+        content: [{ type: "text" as const, text }],
+        structuredContent: { topic: topic ?? "overview" },
+      };
+    },
+  );
 
-  // Auto-initialize if not already initialized (for testing/single-request scenarios)
-  if (!isInitialized || !prologProcess?.isRunning()) {
-    console.error("[MCP] Auto-initializing for tool call...");
-    await handleInitializedNotification();
-  }
-
-  if (!prologProcess) {
-    throw new Error("Prolog process failed to initialize");
-  }
-
-  try {
-    switch (toolName) {
-      case "kb_query": {
-        const queryArgs = params as QueryArgs;
-        const startTime = Date.now();
-        try {
-          const result = await handleKbQuery(prologProcess, queryArgs);
-          const durationMs = Date.now() - startTime;
-          const structuredEntities = result.structuredContent?.entities ?? [];
-          const fallbackContentLength = result.content.length ?? 0;
-          const shownCount = structuredEntities.length
-            ? structuredEntities.length
-            : fallbackContentLength;
-          const resultCount = result.structuredContent?.count ?? shownCount;
-          trackQueryUsage({
-            requestId,
-            args: queryArgs,
-            durationMs,
-            resultCount,
-            shownCount,
-          });
-          return result;
-        } catch (error) {
-          const durationMs = Date.now() - startTime;
-          const message =
-            error instanceof Error ? error.message : String(error);
-          trackQueryUsage({
-            requestId,
-            args: queryArgs,
-            durationMs,
-            error: message,
-          });
-          throw error;
-        }
-      }
-
-      case "kb_upsert":
-        return await handleKbUpsert(prologProcess, params as UpsertArgs);
-
-      case "kb_delete":
-        return await handleKbDelete(prologProcess, params as DeleteArgs);
-
-      case "kb_check":
-        return await handleKbCheck(prologProcess, params as CheckArgs);
-
-      case "kb_branch_ensure":
-        return await handleKbBranchEnsure(
-          prologProcess,
-          params as BranchEnsureArgs,
-        );
-
-      case "kb_branch_gc":
-        return await handleKbBranchGc(prologProcess, params as BranchGcArgs);
-
-      case "kb_query_relationships":
-        return await handleKbQueryRelationships(
-          prologProcess,
-          params as QueryRelationshipsArgs,
-        );
-
-      case "kb_derive":
-        return await handleKbDerive(prologProcess, params as DeriveArgs);
-
-      case "kb_impact":
-        return await handleKbImpact(prologProcess, params as ImpactArgs);
-
-      case "kb_coverage_report":
-        return await handleKbCoverageReport(
-          prologProcess,
-          params as CoverageReportArgs,
-        );
-
-      case "kb_symbols_refresh":
-        return await handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
-
-      case "kb_list_entity_types":
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Available entity types: req, scenario, test, adr, flag, event, symbol, fact",
-            },
-          ],
-          structuredContent: {
-            types: [
-              "req",
-              "scenario",
-              "test",
-              "adr",
-              "flag",
-              "event",
-              "symbol",
-              "fact",
-            ],
-          },
-        };
-
-      case "kb_list_relationship_types":
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Available relationship types: depends_on, specified_by, verified_by, validates, implements, covered_by, constrained_by, constrains, requires_property, guards, publishes, consumes, supersedes, relates_to",
-            },
-          ],
-          structuredContent: {
-            types: [
-              "depends_on",
-              "specified_by",
-              "verified_by",
-              "validates",
-              "implements",
-              "covered_by",
-              "constrained_by",
-              "constrains",
-              "requires_property",
-              "guards",
-              "publishes",
-              "consumes",
-              "supersedes",
-              "relates_to",
-            ],
-          },
-        };
-
-      case "kbcontext":
-        return await handleKbContext(prologProcess, params as ContextArgs);
-
-      case "get_help": {
-        const helpArgs = (params ?? {}) as { topic?: string };
-        const topic =
-          typeof helpArgs.topic === "string" ? helpArgs.topic : undefined;
-        const text = getHelpText(topic);
-        return {
-          content: [
-            {
-              type: "text",
-              text,
-            },
-          ],
-          structuredContent: {
-            topic: topic ?? "overview",
-          },
-        };
-      }
-
-      default:
-        throw new Error(`Unknown tool: ${toolName}`);
-    }
-  } catch (error) {
-    // Re-throw with proper error type
-    if (error instanceof Error) {
-      if (error.name === "KB_NOT_ATTACHED") {
-        error.name = "KB_NOT_ATTACHED";
-      } else if (error.message.includes("validation failed")) {
-        const validationError = new Error(error.message);
-        validationError.name = "VALIDATION_ERROR";
-        throw validationError;
-      }
-    }
-    throw error;
-  }
-}
-
-/**
- * Dispatch a JSON-RPC request to the appropriate handler
- */
-async function dispatchRequest(request: JsonRpcRequest): Promise<unknown> {
-  const { method, params } = request;
-
-  switch (method) {
-    case "initialize":
-      return handleInitialize(params);
-
-    case "notifications/initialized":
-      await handleInitializedNotification();
-      return undefined; // Notification, no response
-
-    case "tools/list":
-      return handleToolsList();
-
-    case "prompts/list":
-      return handlePromptsList();
-
-    case "prompts/get":
-      return handlePromptsGet(params);
-
-    case "resources/list":
-      return handleResourcesList();
-
-    case "resources/read":
-      return handleResourcesRead(params);
-
-    case "tools/call": {
-      const toolParams = params as { name?: string; arguments?: unknown };
-      if (!toolParams.name) {
-        throw new Error("Missing 'name' parameter for tools/call");
-      }
-      return handleToolCall(toolParams.name, toolParams.arguments, request.id);
-    }
-
-    default:
-      throw new Error(`Unknown method: ${method}`);
-  }
-}
-
-/**
- * Process a single JSON-RPC message
- */
-async function processMessage(line: string): Promise<void> {
-  let request: JsonRpcRequest;
-
-  // Parse JSON
-  try {
-    request = JSON.parse(line);
-  } catch (error) {
-    const response = createError(
-      null,
-      ERROR_CODES.PARSE_ERROR,
-      "Parse error",
-      error instanceof Error ? error.message : String(error),
-    );
-    console.log(JSON.stringify(response));
-    return;
-  }
-
-  // Validate JSON-RPC structure
-  if (request.jsonrpc !== "2.0" || typeof request.method !== "string") {
-    const response = createError(
-      request.id ?? null,
-      ERROR_CODES.INVALID_REQUEST,
-      "Invalid request",
-    );
-    console.log(JSON.stringify(response));
-    return;
-  }
-
-  // Handle notification (no id, no response)
-  if (request.id === undefined) {
-    try {
-      await dispatchRequest(request);
-    } catch (error) {
-      console.error(
-        `[MCP] Notification error: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-    return;
-  }
-
-  // Handle request (has id, requires response)
-  try {
-    const result = await dispatchRequest(request);
-    const response = createResponse(request.id, result);
-    console.log(JSON.stringify(response));
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    let errorCode: number = ERROR_CODES.INTERNAL_ERROR;
-
-    // Map errors to JSON-RPC error codes
-    if (errorMessage.includes("Unknown method")) {
-      errorCode = ERROR_CODES.METHOD_NOT_FOUND;
-    } else if (
-      errorMessage.includes("Missing") ||
-      errorMessage.includes("Invalid")
-    ) {
-      errorCode = ERROR_CODES.INVALID_PARAMS;
-    } else if (errorMessage.includes("Prolog")) {
-      errorCode = ERROR_CODES.PROLOG_QUERY_FAILED;
-    } else if (errorMessage.includes("KB not")) {
-      errorCode = ERROR_CODES.KB_NOT_ATTACHED;
-    }
-
-    const response = createError(request.id, errorCode, errorMessage);
-    console.log(JSON.stringify(response));
-  }
-}
-
-/**
- * Start the MCP server (stdio transport)
- */
-export async function startServer(): Promise<void> {
-  console.error("[MCP] Kibi MCP Server v0.1.0");
-  console.error("[MCP] Listening on stdin...");
-
-  // Set up readline interface for line-by-line stdin processing
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: false,
-  });
-
-  // Process each line as a JSON-RPC message
-  rl.on("line", async (line: string) => {
-    if (line.trim()) {
-      await processMessage(line);
-    }
-  });
-
-  // Handle EOF
-  rl.on("close", async () => {
-    console.error("[MCP] stdin closed, shutting down...");
-    if (prologProcess) {
-      await prologProcess.terminate();
-    }
-    process.exit(0);
-  });
-
-  // Handle graceful shutdown
-  process.on("SIGINT", async () => {
-    console.error("[MCP] Shutting down...");
-    if (prologProcess) {
-      await prologProcess.terminate();
-    }
-    process.exit(0);
-  });
-
-  process.on("SIGTERM", async () => {
-    console.error("[MCP] Shutting down...");
-    if (prologProcess) {
-      await prologProcess.terminate();
-    }
-    process.exit(0);
-  });
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
 }

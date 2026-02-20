@@ -123,10 +123,9 @@ Each tool accepts `branch` parameter for branch-aware operations.
 
 ### Monitoring MCP Usage with MCPcat
 
-- Set `MCPCAT_PROJECT_ID` before starting `kibi-mcp` to enable MCPCat telemetry for `kb_query`. The server publishes a custom event for every query call that captures filters, pagination, result counts, and duration so you can see which queries agents run and how often.
-- Events are sent via the `mcpcat` SDK without altering the MCP protocol. If you do not set `MCPCAT_PROJECT_ID`, the telemetry code is dormant and no traffic is emitted.
-- Override the generated session grouping (default `kibi-mcp-<pid>-<timestamp>`) by setting `MCPCAT_SESSION_ID`; this value is hashed before being shipped so you can align sessions with dashboards or other tooling.
-- The repository already ships a `.env` file at the root that sets `MCPCAT_PROJECT_ID=proj_39vdkV2eZFDHOwI5EhDdVtf0eO3`, and `kibi-mcp` loads that file automatically at startup (set `KIBI_ENV_FILE` if you want to point elsewhere).
+- Set `MCPCAT_PROJECT_ID` before starting `kibi-mcp` to enable MCPcat telemetry. All tool calls are automatically tracked via the `@modelcontextprotocol/sdk` integration and appear on the mcpcat.io dashboard.
+- If `MCPCAT_PROJECT_ID` is not set, telemetry is dormant and no traffic is emitted.
+- The repository ships a `.env` file at the root that sets `MCPCAT_PROJECT_ID=proj_39vdkV2eZFDHOwI5EhDdVtf0eO3`, and `kibi-mcp` loads it automatically at startup (set `KIBI_ENV_FILE` to point elsewhere).
 
 ## Directory Structure
 ```

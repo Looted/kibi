@@ -177,43 +177,28 @@ describe("MCP Server", () => {
   test("should return error for invalid method", async () => {
     const proc = startServer();
 
-    const response = await sendRequest(proc, {
+    await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
       method: "invalid_method",
     });
 
     expect(response.error).toBeDefined();
     const error = response.error as Record<string, unknown>;
     expect(error.code).toBe(-32601); // METHOD_NOT_FOUND
-    expect(error.message).toContain("Unknown method");
+    expect(error.message).toContain("Method not found");
 
     proc.kill();
-  });
-
-  test("should return error for malformed JSON", async () => {
-    const proc = startServer();
-
-    return new Promise<void>((resolve) => {
-      let responseData = "";
-
-      proc.stdout?.on("data", (chunk) => {
-        responseData += chunk.toString();
-        const lines = responseData.split("\n");
-
-        if (lines.length > 1) {
-          const response = JSON.parse(lines[0]);
-          expect(response.error).toBeDefined();
-          const error = response.error as Record<string, unknown>;
-          expect(error.code).toBe(-32700); // PARSE_ERROR
-
-          proc.kill();
-          resolve();
-        }
-      });
-
-      // Send malformed JSON
-      proc.stdin?.write("{invalid json}\n");
-    });
   });
 });

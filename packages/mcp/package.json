@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@kibi/cli": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "ajv": "^8.18.0",
     "js-yaml": "^4.1.0",
     "mcpcat": "^0.1.12"
