@@ -6,7 +6,8 @@
   "scripts": {
     "test": "bun test",
     "check": "biome check .",
-    "format": "biome format --write ."
+    "format": "biome format --write .",
+    "pack:drive": "./scripts/pack-to-drive.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

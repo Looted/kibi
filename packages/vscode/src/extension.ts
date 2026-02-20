@@ -1,10 +1,16 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
 import * as vscode from "vscode";
-import { KibiTreeDataProvider } from "./treeProvider";
 import {
   KibiCodeActionProvider,
   browseLinkedEntities,
   openFileAtLine,
 } from "./codeActionProvider";
+import { KibiCodeLensProvider } from "./codeLensProvider";
+import { KibiHoverProvider } from "./hoverProvider";
+import { RelationshipCache } from "./relationshipCache";
+import { type SymbolIndex, buildIndex } from "./symbolIndex";
+import { KibiTreeDataProvider } from "./treeProvider";
 
 const KIBI_VIEW_ID = "kibi-knowledge-base";
 
@@ -13,12 +19,34 @@ export function activate(context: vscode.ExtensionContext) {
   output.appendLine("Activating Kibi extension...");
   context.subscriptions.push(output);
 
-  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (!workspaceFolder) {
+  let workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (!workspaceRoot) {
+    const envWorkspaceRoot = process.env.KIBI_WORKSPACE_ROOT;
+    if (envWorkspaceRoot) {
+      const resolved = path.resolve(envWorkspaceRoot);
+      const kbConfigPath = path.join(resolved, ".kb", "config.json");
+      if (fs.existsSync(kbConfigPath)) {
+        workspaceRoot = resolved;
+        output.appendLine(
+          `No workspace folder attached; using KIBI_WORKSPACE_ROOT fallback: ${workspaceRoot}`,
+        );
+      } else {
+        output.appendLine(
+          `KIBI_WORKSPACE_ROOT is set but missing .kb/config.json: ${resolved}`,
+        );
+      }
+    }
+  }
+  if (!workspaceRoot) {
     output.appendLine("No workspace folder found; activation skipped.");
     return;
   }
-  const workspaceRoot = workspaceFolder.uri.fsPath;
+
+  const workspacePatternBase =
+    vscode.workspace.workspaceFolders?.find(
+      (folder) => folder.uri.fsPath === workspaceRoot,
+    ) ?? vscode.Uri.file(workspaceRoot);
+
   output.appendLine(`Workspace root: ${workspaceRoot}`);
 
   // ── Tree view ──────────────────────────────────────────────────────────────
@@ -30,6 +58,8 @@ export function activate(context: vscode.ExtensionContext) {
   });
   output.appendLine(`Tree view registered: ${KIBI_VIEW_ID}`);
 
+  const relationshipCache = new RelationshipCache();
+
   const refreshCommand = vscode.commands.registerCommand(
     "kibi.refreshTree",
     () => {
@@ -39,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Watch .kb/branches/**/kb.rdf for changes and auto-refresh
   const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(workspaceFolder, ".kb/branches/**/kb.rdf"),
+    new vscode.RelativePattern(workspacePatternBase, ".kb/branches/**/kb.rdf"),
   );
   watcher.onDidChange(() => treeDataProvider.refresh());
   watcher.onDidCreate(() => treeDataProvider.refresh());
@@ -105,13 +135,13 @@ export function activate(context: vscode.ExtensionContext) {
       "kibi.browseLinkedEntities",
       async (
         symbolId: string,
-        staticLinks: string[],
+        relationships: Array<{ type: string; from: string; to: string }>,
         sourceFile?: string,
         sourceLine?: number,
       ) => {
         await browseLinkedEntities(
           symbolId,
-          staticLinks ?? [],
+          relationships ?? [],
           workspaceRoot,
           (id) => treeDataProvider.getLocalPathForEntity(id),
           sourceFile,
@@ -137,6 +167,95 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  // ── CodeLens provider ──────────────────────────────────────────────────────
+  let codeLensRegistration: vscode.Disposable | undefined;
+
+  try {
+    const codeLensProvider = new KibiCodeLensProvider(
+      workspaceRoot,
+      relationshipCache,
+    );
+    codeLensProvider.watchSources(context);
+
+    codeLensRegistration = vscode.languages.registerCodeLensProvider(
+      [{ language: "typescript" }, { language: "javascript" }],
+      codeLensProvider,
+    );
+    codeLensProvider.refresh();
+
+    output.appendLine("CodeLens indicators initialized.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    output.appendLine(`CodeLens initialization failed: ${message}`);
+    vscode.window.showWarningMessage(
+      "Kibi CodeLens indicators failed to initialize. Knowledge Base view remains available.",
+    );
+  }
+
+  // ── Symbol index ─────────────────────────────────────────────────────────────
+  // Resolve manifest path using same logic as CodeLens provider
+  const resolveManifestPath = (): string => {
+    const configPath = vscode.Uri.joinPath(
+      vscode.Uri.file(workspaceRoot),
+      ".kb",
+      "config.json",
+    ).fsPath;
+    try {
+      const fs = require("node:fs") as typeof import("node:fs");
+      const path = require("node:path") as typeof import("node:path");
+      if (fs.existsSync(configPath)) {
+        const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
+          symbolsManifest?: string;
+        };
+        if (config.symbolsManifest) {
+          return path.isAbsolute(config.symbolsManifest)
+            ? config.symbolsManifest
+            : path.resolve(workspaceRoot, config.symbolsManifest);
+        }
+      }
+    } catch {
+      // ignore
+    }
+    // Default convention: symbols.yaml at workspace root
+    const path = require("node:path") as typeof import("node:path");
+    const fs = require("node:fs") as typeof import("node:fs");
+    const candidates = [
+      path.join(workspaceRoot, "symbols.yaml"),
+      path.join(workspaceRoot, "symbols.yml"),
+    ];
+    return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
+  };
+
+  const manifestPath = resolveManifestPath();
+  const symbolIndex: SymbolIndex | null = buildIndex(
+    manifestPath,
+    workspaceRoot,
+  );
+
+  // ── Hover provider ─────────────────────────────────────────────────────────
+  let hoverRegistration: vscode.Disposable | undefined;
+
+  try {
+    const hoverProvider = new KibiHoverProvider(
+      workspaceRoot,
+      symbolIndex,
+      relationshipCache,
+    );
+
+    hoverRegistration = vscode.languages.registerHoverProvider(
+      [{ language: "typescript" }, { language: "javascript" }],
+      hoverProvider,
+    );
+
+    output.appendLine("Hover provider initialized.");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    output.appendLine(`Hover provider initialization failed: ${message}`);
+    vscode.window.showWarningMessage(
+      "Kibi hover provider failed to initialize. Knowledge Base view remains available.",
+    );
+  }
+
   context.subscriptions.push(
     refreshCommand,
     treeView,
@@ -146,6 +265,8 @@ export function activate(context: vscode.ExtensionContext) {
     focusKnowledgeBaseCommand,
     ...(browseLinkedEntitiesCommand ? [browseLinkedEntitiesCommand] : []),
     ...(codeActionRegistration ? [codeActionRegistration] : []),
+    ...(codeLensRegistration ? [codeLensRegistration] : []),
+    ...(hoverRegistration ? [hoverRegistration] : []),
   );
 
   output.appendLine("Kibi extension activation complete.");

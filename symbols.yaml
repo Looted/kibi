@@ -7,6 +7,11 @@ symbols:
     links:
       - REQ-001
       - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
 
   - id: SYM-002
     title: handleKbUpsert
@@ -15,6 +20,11 @@ symbols:
     links:
       - REQ-002
       - REQ-011
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-011
 
   - id: SYM-003
     title: handleKbQuery
@@ -22,6 +32,9 @@ symbols:
     sourceLine: 23
     links:
       - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
 
   - id: SYM-004
     title: handleKbCheck
@@ -30,6 +43,11 @@ symbols:
     links:
       - REQ-002
       - REQ-006
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-006
 
   - id: SYM-005
     title: KibiTreeDataProvider
@@ -38,6 +56,11 @@ symbols:
     links:
       - REQ-010
       - REQ-vscode-traceability
+    relationships:
+      - type: implements
+        target: REQ-010
+      - type: implements
+        target: REQ-vscode-traceability
 
   - id: SYM-007
     title: extractFromManifest
@@ -45,6 +68,9 @@ symbols:
     sourceLine: 61
     links:
       - REQ-007
+    relationships:
+      - type: implements
+        target: REQ-007
 
   - id: SYM-010
     title: startServer
@@ -52,6 +78,9 @@ symbols:
     sourceLine: 581
     links:
       - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
 
   # --- Traceability symbols ---
   - id: SYM-KibiTreeDataProvider
@@ -61,6 +90,11 @@ symbols:
     links:
       - REQ-vscode-traceability
       - REQ-010
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: implements
+        target: REQ-010
 
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
@@ -69,6 +103,11 @@ symbols:
     links:
       - REQ-vscode-traceability
       - ADR-annotation-strategy
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: constrained_by
+        target: ADR-annotation-strategy
 
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
@@ -77,6 +116,11 @@ symbols:
     links:
       - REQ-vscode-traceability
       - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: implements
+        target: REQ-002
 
   - id: SYM-KibiMCPServer
     title: kibi MCP server (startServer)
@@ -84,3 +128,58 @@ symbols:
     sourceLine: 581
     links:
       - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
+
+  - id: SYM-activateKibiExtension
+    title: activate
+    sourceFile: packages/vscode/src/extension.ts
+    sourceLine: 17
+    links:
+      - REQ-vscode-traceability
+      - REQ-010
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: implements
+        target: REQ-010
+
+  - id: SYM-KibiCodeLensProvider
+    title: KibiCodeLensProvider
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 22
+    links:
+      - REQ-vscode-traceability
+      - ADR-annotation-strategy
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: constrained_by
+        target: ADR-annotation-strategy
+
+  - id: SYM-mergeStaticLinks
+    title: mergeStaticLinks
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 167
+    links:
+      - REQ-vscode-traceability
+      - TEST-vscode-traceability
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+
+  - id: SYM-parseSymbolsManifest
+    title: parseSymbolsManifest
+    sourceFile: packages/vscode/src/symbolIndex.ts
+    sourceLine: 81
+    links:
+      - ADR-annotation-strategy
+      - REQ-vscode-traceability
+    relationships:
+      - type: constrained_by
+        target: ADR-annotation-strategy
+      - type: implements
+        target: REQ-vscode-traceability

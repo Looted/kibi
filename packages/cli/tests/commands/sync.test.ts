@@ -10,7 +10,6 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { PrologProcess } from "../../src/prolog.js";
 
 describe("kibi sync", () => {
   let tmpDir: string;
@@ -98,11 +97,16 @@ User logs in with OAuth2 provider.
     expect(output).toMatch(/\d+ entities/);
     expect(output).toMatch(/\d+ relationships/);
 
-    const kbPath = path.join(tmpDir, ".kb/branches/main");
+    const currentBranch =
+      execSync("git branch --show-current", {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }).trim() || "main";
+    const kbPath = path.join(tmpDir, `.kb/branches/${currentBranch}`);
     expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
   });
 
-  test("is idempotent (no duplicate entities on re-run)", async () => {
+  test("skips unchanged files on re-run using hash cache", async () => {
     const firstRun = execSync(`bun ${kibiBin} sync`, {
       cwd: tmpDir,
       encoding: "utf8",
@@ -120,8 +124,68 @@ User logs in with OAuth2 provider.
     const secondMatch = secondRun.match(/Imported (\d+) entities/);
     const secondCount = secondMatch ? Number.parseInt(secondMatch[1]) : 0;
 
-    // Same count = idempotent upsert worked
-    expect(secondCount).toBe(firstCount);
+    expect(secondCount).toBe(0);
+  });
+
+  test("writes sync cache with per-file hashes", async () => {
+    execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    const cachePath = path.join(tmpDir, ".kb/sync-cache.json");
+    expect(existsSync(cachePath)).toBe(true);
+
+    const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
+      version: number;
+      hashes: Record<string, string>;
+      seenAt: Record<string, string>;
+    };
+
+    expect(cache.version).toBe(1);
+    expect(Object.keys(cache.hashes).length).toBeGreaterThanOrEqual(3);
+    expect(cache.hashes["requirements/req1.md"]).toMatch(/^[a-f0-9]{64}$/);
+    expect(cache.hashes["scenarios/scenario1.md"]).toMatch(/^[a-f0-9]{64}$/);
+    expect(cache.hashes["symbols.yaml"]).toMatch(/^[a-f0-9]{64}$/);
+    expect(typeof cache.seenAt["requirements/req1.md"]).toBe("string");
+  });
+
+  test("re-imports only changed file hashes", async () => {
+    execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    writeFileSync(
+      path.join(tmpDir, "requirements", "req1.md"),
+      `---
+title: User Authentication Updated
+type: req
+status: approved
+tags: [security, auth]
+owner: alice
+links:
+  - type: relates_to
+    target: scenario1
+---
+
+# User Authentication
+
+System must support OAuth2 authentication with session renewal.
+`,
+    );
+
+    const output = execSync(`bun ${kibiBin} sync`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    const match = output.match(/Imported (\d+) entities, (\d+) relationships/);
+    expect(match).toBeDefined();
+    if (!match) throw new Error("Output format mismatch");
+
+    const entityCount = Number.parseInt(match[1]);
+    expect(entityCount).toBe(1);
   });
 
   test("handles missing paths gracefully", async () => {

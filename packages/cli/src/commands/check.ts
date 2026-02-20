@@ -47,7 +47,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       process.exit(0);
     }
 
-    console.log(`Found ${violations.length} violation(s):\n`);
+    console.log(`Found ${violations.length} violation(s):
+`);
 
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;

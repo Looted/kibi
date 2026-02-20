@@ -21,10 +21,10 @@ VS Code extension for Kibi knowledge base system, providing TreeView visualizati
 ### Development Installation
 
 ```bash
-cd packages/vscode
+cd /path/to/kibi
 bun install
-bun run build
-bun run package
+bun run --cwd packages/vscode build
+bun run --cwd packages/vscode package
 code --install-extension kibi-vscode-*.vsix
 ```
 
@@ -60,21 +60,55 @@ This extension includes MCP (Model Context Protocol) server integration pointing
 ### Build
 
 ```bash
-bun run build     # Compile TypeScript
-bun run watch     # Watch mode
+bun run --cwd packages/vscode build     # Compile extension bundle
+bun run --cwd packages/vscode watch     # Watch mode
 ```
 
 ### Package
 
 ```bash
-bun run package   # Create VSIX file
+bun run --cwd packages/vscode package   # Create VSIX file
 ```
 
 ### Test
 
 ```bash
-bun test         # Run unit tests
+bun run --cwd packages/vscode test       # Run VS Code package tests
 ```
+
+### Debugging (Extension Host)
+
+1. Build the extension bundle:
+
+```bash
+bun run --cwd packages/vscode build
+```
+
+2. In VS Code, run the launch config `Run Kibi VS Code Extension` (F5).
+3. In the Extension Development Host window, open `View -> Output` and select `Kibi`.
+4. Confirm logs include:
+   - `Activating Kibi extension...`
+   - `CodeLens indicators initialized.`
+
+### Debugging CodeLens (Installed VSIX)
+
+1. Uninstall older `kibi-vscode` versions.
+2. Install a single VSIX from `packages/vscode/`.
+3. Reload VS Code.
+4. Verify these conditions:
+   - `editor.codeLens` is enabled.
+   - Active file language is `TypeScript` or `JavaScript`.
+   - Workspace root contains `.kb/config.json` and `symbols.yaml`.
+   - The file path is listed in `symbols.yaml` under `sourceFile`.
+5. Check `Developer: Show Running Extensions` and confirm `kibi-vscode` is active.
+6. If lenses still do not appear, capture:
+   - `Kibi` output channel logs
+   - `Help -> Toggle Developer Tools` console errors
+
+### CodeLens Scope
+
+- CodeLens is currently registered only for `typescript` and `javascript`.
+- CodeLens appears only for symbols whose `sourceFile` in `symbols.yaml` resolves to the currently opened file path.
 
 ## Contributing
 

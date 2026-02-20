@@ -67,7 +67,7 @@ const REL_LABELS: Record<string, string> = {
 function isLocalPath(src: string): boolean {
   return (
     src.startsWith("/") ||
-    /^[A-Za-z]:[/\\]/.test(src) ||
+    /^[A-Za-z]:[/\]/.test(src) ||
     src.startsWith("file://")
   );
 }
@@ -85,7 +85,7 @@ function resolveLocalPath(
     }
   }
   if (src.startsWith("/")) return fs.existsSync(src) ? src : undefined;
-  if (/^[A-Za-z]:[/\\]/.test(src)) return fs.existsSync(src) ? src : undefined;
+  if (/^[A-Za-z]:[/\]/.test(src)) return fs.existsSync(src) ? src : undefined;
   // Relative path — resolve against workspace root
   const resolved = path.resolve(workspaceRoot, src);
   return fs.existsSync(resolved) ? resolved : undefined;
@@ -293,14 +293,14 @@ export class KibiTreeDataProvider
   }
 
   private extractText(block: string, tag: string): string {
-    const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
+    const re = new RegExp(`<${tag}[^>]*>([\s\S]*?)<\/${tag}>`);
     const m = block.match(re);
     return m ? m[1].trim() : "";
   }
 
   private extractResourceSuffix(block: string, tag: string): string {
     const re = new RegExp(
-      `<${tag}[^>]*rdf:resource="[^"]*\\/([^"\\/]+)"[^>]*\\/?>`,
+      `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
     return m ? m[1] : "";
@@ -360,7 +360,8 @@ export class KibiTreeDataProvider
         relChildren.length > 0
           ? vscode.TreeItemCollapsibleState.Collapsed
           : vscode.TreeItemCollapsibleState.None,
-      tooltip: tooltipLines.join("\n"),
+      tooltip: tooltipLines.join("
+"),
       localPath: e.localPath,
       children: relChildren,
     };

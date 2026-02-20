@@ -10,11 +10,11 @@ import {
 } from "./tools/branch.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
-import { type QueryArgs, handleKbQuery } from "./tools/query.js";
 import {
   type QueryRelationshipsArgs,
   handleKbQueryRelationships,
 } from "./tools/query-relationships.js";
+import { type QueryArgs, handleKbQuery } from "./tools/query.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 
 // JSON-RPC 2.0 Types
@@ -107,7 +107,46 @@ const TOOLS = [
         properties: {
           type: "object",
           description:
-            "Key-value pairs to store as RDF properties (title, status, source, tags, owner, priority, etc.)",
+            "Entity properties stored as RDF triples. created_at, updated_at auto-filled if omitted.",
+          properties: {
+            title: { type: "string", description: "Entity title (required)" },
+            status: {
+              type: "string",
+              enum: [
+                "active",
+                "draft",
+                "archived",
+                "deleted",
+                "approved",
+                "rejected",
+                "pending",
+                "in_progress",
+              ],
+              description: "Entity status (required)",
+            },
+            source: {
+              type: "string",
+              description: "Source reference (auto-filled if omitted)",
+            },
+            tags: {
+              type: "array",
+              items: { type: "string" },
+              description: "Categorization tags",
+            },
+            owner: { type: "string", description: "Owning team or person" },
+            priority: { type: "string", description: "Priority level" },
+            severity: { type: "string", description: "Severity level" },
+            links: {
+              type: "array",
+              items: { type: "string" },
+              description: "Related URLs or references",
+            },
+            text_ref: {
+              type: "string",
+              description: "Reference to source text",
+            },
+          },
+          required: ["title", "status"],
         },
         relationships: {
           type: "array",
@@ -116,9 +155,34 @@ const TOOLS = [
             type: "object",
             required: ["type", "from", "to"],
             properties: {
-              type: { type: "string" },
-              from: { type: "string" },
-              to: { type: "string" },
+              type: {
+                type: "string",
+                enum: [
+                  "depends_on",
+                  "specified_by",
+                  "verified_by",
+                  "validates",
+                  "implements",
+                  "covered_by",
+                  "constrained_by",
+                  "guards",
+                  "publishes",
+                  "consumes",
+                  "relates_to",
+                ],
+                description:
+                  "Relationship type. Direction constraints: depends_on(req→req), specified_by(scenario→req), verified_by(req→test), validates(test→req), implements(symbol→req), covered_by(symbol→test), constrained_by(symbol→adr), guards(flag→symbol|event|req), publishes(symbol→event), consumes(symbol→event), relates_to(any→any)",
+              },
+              from: {
+                type: "string",
+                description:
+                  "Source entity ID (must exist). This entity is the subject of the relationship.",
+              },
+              to: {
+                type: "string",
+                description:
+                  "Target entity ID (must exist). This entity is the object of the relationship.",
+              },
             },
           },
         },
@@ -322,7 +386,9 @@ async function handleInitializedNotification(): Promise<void> {
           encoding: "utf8",
           timeout: 3000,
         }).trim();
-        if (detected && detected !== "master") branch = detected;
+        if (detected) {
+          branch = detected === "master" ? "main" : detected;
+        }
       } catch {
         // fall back to main
       }
@@ -594,6 +660,15 @@ export async function startServer(): Promise<void> {
     if (line.trim()) {
       await processMessage(line);
     }
+  });
+
+  // Handle EOF
+  rl.on("close", async () => {
+    console.error("[MCP] stdin closed, shutting down...");
+    if (prologProcess) {
+      await prologProcess.terminate();
+    }
+    process.exit(0);
   });
 
   // Handle graceful shutdown

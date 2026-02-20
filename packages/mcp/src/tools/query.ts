@@ -343,7 +343,7 @@ function splitTopLevel(str: string, delimiter: string): string[] {
     const char = str[i];
     const prevChar = i > 0 ? str[i - 1] : "";
 
-    if (char === '"' && prevChar !== "\\") {
+    if (char === '"' && prevChar !== "\") {
       inQuotes = !inQuotes;
       current += char;
     } else if (!inQuotes && (char === "[" || char === "(")) {

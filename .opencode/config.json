@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "kibi-mcp": {
+      "command": "bun",
+      "args": ["./packages/mcp/bin/kibi-mcp"]
+    }
+  }
+}

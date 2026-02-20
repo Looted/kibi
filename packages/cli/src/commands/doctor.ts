@@ -31,7 +31,8 @@ export async function doctorCommand(): Promise<void> {
     },
   ];
 
-  console.log("Kibi Environment Diagnostics\n");
+  console.log("Kibi Environment Diagnostics
+");
 
   let allPassed = true;
 

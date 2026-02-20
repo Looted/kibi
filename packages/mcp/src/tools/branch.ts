@@ -139,7 +139,8 @@ export async function handleKbBranchGc(
       gitBranches = new Set(
         output
           .trim()
-          .split("\n")
+          .split("
+")
           .map((b) => b.trim().replace(/^'|'$/g, ""))
           .filter((b) => b),
       );

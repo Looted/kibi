@@ -1,10 +1,11 @@
-import { execSync } from "node:child_process";
+import { execSync, spawn } from "node:child_process";
 import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
+import { createInterface } from "node:readline";
 import { bench, run } from "mitata";
 
 const BENCH_DIR = path.join("/tmp", ".kibi-bench-tmp");
-const MCP_BIN = "/home/looted/projects/kibi/packages/mcp/bin/kibi-mcp.ts";
+const MCP_BIN = "/home/looted/projects/kibi/packages/mcp/bin/kibi-mcp";
 
 function generateTestFile(id: number): string {
   return `---
@@ -63,28 +64,70 @@ function setupMcpWorkspace(tmpDir: string, entityCount: number): void {
   execSync(`bun ${cliBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 }
 
-function measureMcpToolCall(
+async function measureMcpToolCall(
   tmpDir: string,
   toolName: string,
   params: string,
-): void {
-  const request = JSON.stringify({
-    jsonrpc: "2.0",
-    id: 1,
-    method: "tools/call",
-    params: {
-      name: toolName,
-      arguments: JSON.parse(params),
-    },
-  });
-
+): Promise<void> {
   const kbPath = path.join(tmpDir, ".kb");
   const env = { ...process.env, KB_PATH: kbPath };
 
-  execSync(`echo '${request}' | bun ${MCP_BIN}`, {
-    cwd: tmpDir,
-    stdio: "pipe",
-    env,
+  return new Promise((resolve, reject) => {
+    const child = spawn("bun", [MCP_BIN], {
+      cwd: tmpDir,
+      env,
+      stdio: ["pipe", "pipe", "inherit"],
+    });
+
+    const rl = createInterface({ input: child.stdout });
+    let responseCount = 0;
+    const requiredResponses = 2; // initialize response + tool call response
+
+    rl.on("line", (line) => {
+      if (line.includes('"jsonrpc"')) {
+        responseCount++;
+        if (responseCount >= requiredResponses) {
+          child.kill("SIGINT");
+        }
+      }
+    });
+
+    child.on("error", reject);
+    child.on("exit", () => {
+      resolve();
+    });
+
+    // MCP initialization sequence
+    const initRequest = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "benchmark", version: "1.0.0" },
+      },
+    });
+
+    const initNotification = JSON.stringify({
+      jsonrpc: "2.0",
+      method: "notifications/initialized",
+    });
+
+    const toolRequest = JSON.stringify({
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: toolName,
+        arguments: JSON.parse(params),
+      },
+    });
+
+    // Send initialization, then notification, then tool call
+    child.stdin.write(`${initRequest}\n`);
+    child.stdin.write(`${initNotification}\n`);
+    child.stdin.write(`${toolRequest}\n`);
   });
 }
 
@@ -94,25 +137,29 @@ function cleanup(tmpDir: string): void {
   }
 }
 
+const tmpDirQuery = path.join(BENCH_DIR, "mcp-query");
+const tmpDirQueryId = path.join(BENCH_DIR, "mcp-query-id");
+const tmpDirCheck = path.join(BENCH_DIR, "mcp-check");
+
+console.log("🏗️ Setting up benchmark workspaces...");
+setupMcpWorkspace(tmpDirQuery, 100);
+setupMcpWorkspace(tmpDirQueryId, 100);
+setupMcpWorkspace(tmpDirCheck, 100);
+
 bench("MCP kb_query tool call", async () => {
-  const tmpDir = path.join(BENCH_DIR, "mcp-query");
-  setupMcpWorkspace(tmpDir, 100);
-  measureMcpToolCall(tmpDir, "kb_query", '{"type": "req"}');
-  cleanup(tmpDir);
+  await measureMcpToolCall(tmpDirQuery, "kb_query", '{"type": "req"}');
 });
 
 bench("MCP kb_query by ID", async () => {
-  const tmpDir = path.join(BENCH_DIR, "mcp-query-id");
-  setupMcpWorkspace(tmpDir, 100);
-  measureMcpToolCall(tmpDir, "kb_query", '{"type": "req", "id": "req-mcp-50"}');
-  cleanup(tmpDir);
+  await measureMcpToolCall(
+    tmpDirQueryId,
+    "kb_query",
+    '{"type": "req", "id": "req-mcp-50"}',
+  );
 });
 
 bench("MCP kb_check tool call", async () => {
-  const tmpDir = path.join(BENCH_DIR, "mcp-check");
-  setupMcpWorkspace(tmpDir, 100);
-  measureMcpToolCall(tmpDir, "kb_check", "{}");
-  cleanup(tmpDir);
+  await measureMcpToolCall(tmpDirCheck, "kb_check", "{}");
 });
 
 console.log("🏃 Running MCP tool call latency benchmarks...\n");
@@ -121,6 +168,10 @@ console.log(
 );
 
 await run();
+
+cleanup(tmpDirQuery);
+cleanup(tmpDirQueryId);
+cleanup(tmpDirCheck);
 
 if (existsSync(BENCH_DIR)) {
   rmSync(BENCH_DIR, { recursive: true, force: true });

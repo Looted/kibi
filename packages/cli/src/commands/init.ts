@@ -70,8 +70,11 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
       if (!gitignoreContent.includes(".kb/")) {
         const newContent = gitignoreContent
-          ? `${gitignoreContent.trimEnd()}\n.kb/\n`
-          : ".kb/\n";
+          ? `${gitignoreContent.trimEnd()}
+.kb/
+`
+          : ".kb/
+";
         writeFileSync(gitignorePath, newContent);
         console.log("✓ Added .kb/ to .gitignore");
       }
@@ -123,26 +126,31 @@ export async function initCommand(options: InitOptions): Promise<void> {
           if (existsSync(hookPath)) {
             const existing = readFileSync(hookPath, "utf8");
             if (!existing.includes(`bun ${binPath}`)) {
-              writeFileSync(hookPath, `${existing}\n${content}`, {
+              writeFileSync(hookPath, `${existing}
+${content}`, {
                 mode: 0o755,
               });
             }
           } else {
-            writeFileSync(hookPath, `#!/bin/sh\n${content}`, { mode: 0o755 });
+            writeFileSync(hookPath, `#!/bin/sh
+${content}`, { mode: 0o755 });
           }
         };
 
         installHook(
           postCheckoutPath,
-          checkoutHookContent.replace("#!/bin/sh\n", ""),
+          checkoutHookContent.replace("#!/bin/sh
+", ""),
         );
-        installHook(postMergePath, mergeHookContent.replace("#!/bin/sh\n", ""));
+        installHook(postMergePath, mergeHookContent.replace("#!/bin/sh
+", ""));
 
         console.log("✓ Installed git hooks (post-checkout, post-merge)");
       }
     }
 
-    console.log("\nKibi initialized successfully!");
+    console.log("
+Kibi initialized successfully!");
     console.log("Next steps:");
     console.log("  1. Run 'kibi doctor' to verify setup");
     console.log("  2. Run 'kibi sync' to extract entities from documents");
