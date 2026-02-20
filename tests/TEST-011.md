@@ -11,5 +11,4 @@ tags:
 links:
   - REQ-014
 ---
-
 Covered by packages/cli/tests/commands/init.test.ts pre-commit hook tests.

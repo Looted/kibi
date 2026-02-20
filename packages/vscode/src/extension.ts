@@ -256,6 +256,49 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  // ── Context on file open ───────────────────────────────────────────────────
+  const config = vscode.workspace.getConfiguration("kibi");
+  const contextOnOpen = config.get<boolean>("contextOnOpen", true);
+
+  if (contextOnOpen) {
+    const docOpenListener = vscode.workspace.onDidOpenTextDocument(
+      async (document) => {
+        if (!workspaceRoot || document.uri.scheme !== "file") {
+          return;
+        }
+
+        const kbConfigPath = path.join(workspaceRoot, ".kb");
+        const kbExists = fs.existsSync(kbConfigPath);
+
+        if (!kbExists) {
+          return;
+        }
+
+        const relativePath = path.relative(workspaceRoot, document.uri.fsPath);
+
+        try {
+          const mcpResult = await vscode.commands.executeCommand<any>(
+            "kibi-mcp.kbcontext",
+            { sourceFile: relativePath },
+          );
+
+          if (mcpResult?.structuredContent?.entities?.length > 0) {
+            const count = mcpResult.structuredContent.entities.length;
+            vscode.window.showInformationMessage(
+              `Kibi: ${count} KB entities linked to this file. Open Kibi panel to explore.`,
+            );
+          }
+        } catch (error) {
+          output.appendLine(
+            `Context query failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      },
+    );
+
+    context.subscriptions.push(docOpenListener);
+  }
+
   context.subscriptions.push(
     refreshCommand,
     treeView,

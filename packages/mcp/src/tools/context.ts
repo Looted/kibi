@@ -1,124 +1,94 @@
 import type { PrologProcess } from "@kibi/cli/src/prolog.js";
 
-export interface QueryArgs {
-  type?: string;
-  id?: string;
-  tags?: string[];
-  sourceFile?: string;
-  limit?: number;
-  offset?: number;
+export interface ContextArgs {
+  sourceFile: string;
+  branch?: string;
 }
 
-export interface QueryResult {
+export interface ContextResult {
   content: Array<{ type: string; text: string }>;
   structuredContent?: {
-    entities: Record<string, unknown>[];
-    count: number;
+    sourceFile: string;
+    entities: Array<{
+      id: string;
+      type: string;
+      title: string;
+      status: string;
+      tags: string[];
+    }>;
+    relationships: Array<{ relType: string; fromId: string; toId: string }>;
+    provenance: {
+      predicate: string;
+      deterministic: boolean;
+    };
   };
 }
 
-/**
- * Handle kb.query tool calls
- * Reuses query logic from CLI command
- */
-export async function handleKbQuery(
+export async function handleKbContext(
   prolog: PrologProcess,
-  args: QueryArgs,
-): Promise<QueryResult> {
-  const { type, id, tags, sourceFile, limit = 100, offset = 0 } = args;
+  args: ContextArgs,
+): Promise<ContextResult> {
+  const { sourceFile } = args;
 
   try {
-    let results: Record<string, unknown>[] = [];
+    const safeSource = sourceFile.replace(/'/g, "\\'");
 
-    // Validate type if provided
-    if (type) {
-      const validTypes = [
-        "req",
-        "scenario",
-        "test",
-        "adr",
-        "flag",
-        "event",
-        "symbol",
-      ];
-      if (!validTypes.includes(type)) {
-        throw new Error(
-          `Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
-        );
+    const entityGoal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+    const entityQueryResult = await prolog.query(entityGoal);
+
+    const entities: Array<{
+      id: string;
+      type: string;
+      title: string;
+      status: string;
+      tags: string[];
+    }> = [];
+    const entityIds: string[] = [];
+
+    if (entityQueryResult.success && entityQueryResult.bindings.Results) {
+      const entitiesData = parseListOfLists(entityQueryResult.bindings.Results);
+
+      for (const data of entitiesData) {
+        const entity = parseEntityFromList(data);
+        entities.push({
+          id: entity.id as string,
+          type: entity.type as string,
+          title: entity.title as string,
+          status: entity.status as string,
+          tags: (entity.tags as string[]) || [],
+        });
+        entityIds.push(entity.id as string);
       }
     }
 
-    // Build Prolog query
-    let goal: string;
+    const relationships: Array<{
+      relType: string;
+      fromId: string;
+      toId: string;
+    }> = [];
 
-    if (sourceFile) {
-      const safeSource = sourceFile.replace(/'/g, "\\'");
-      if (type) {
-        goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
-      } else {
-        goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
-      }
-    } else if (id && type) {
-      goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
-    } else if (id) {
-      goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
-    } else if (tags && tags.length > 0) {
-      const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
-      if (type) {
-        goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
-      } else {
-        goal = `findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
-      }
-    } else if (type) {
-      goal = `findall([Id,'${type}',Props], kb_entity(Id, '${type}', Props), Results)`;
-    } else {
-      goal = "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
-    }
+    for (const entityId of entityIds) {
+      const relGoal = `findall([RelType,FromId,ToId], (kb_relationship(RelType, FromId, ToId), (FromId = '${entityId}' ; ToId = '${entityId}')), RelResults)`;
+      const relQueryResult = await prolog.query(relGoal);
 
-    const queryResult = await prolog.query(goal);
+      if (relQueryResult.success && relQueryResult.bindings.RelResults) {
+        const relData = parseListOfLists(relQueryResult.bindings.RelResults);
 
-    if (queryResult.success) {
-      if (id && type) {
-        // Single entity query
-        if (queryResult.bindings.Result) {
-          const entity = parseEntityFromBinding(queryResult.bindings.Result);
-          results = [entity];
-        }
-      } else {
-        // Multiple entities query
-        if (queryResult.bindings.Results) {
-          const entitiesData = parseListOfLists(queryResult.bindings.Results);
-
-          for (const data of entitiesData) {
-            const entity = parseEntityFromList(data);
-            results.push(entity);
-          }
+        for (const rel of relData) {
+          relationships.push({
+            relType: rel[0],
+            fromId: rel[1],
+            toId: rel[2],
+          });
         }
       }
-    } else {
-      throw new Error(queryResult.error || "Query failed with unknown error");
     }
 
-    // Apply pagination
-    const paginated = results.slice(offset, offset + limit);
+    const text =
+      entities.length > 0
+        ? `Found ${entities.length} KB entities linked to source file "${sourceFile}": ${entities.map((e) => e.id).join(", ")}`
+        : `No KB entities found for source file "${sourceFile}"`;
 
-    // Build human-readable text with entity IDs and titles
-    let text: string;
-    if (results.length === 0) {
-      text = `No entities found${type ? ` of type '${type}'` : ""}.`;
-    } else {
-      const details = paginated
-        .map((e) => {
-          const id = (e.id as string).replace(/^file:\/\/.*\//, "");
-          const title = e.title as string;
-          const status = e.status as string;
-          return `${id} (${title}, status=${status})`;
-        })
-        .join(", ");
-      text = `Found ${results.length} entities${type ? ` of type '${type}'` : ""}. Showing ${paginated.length} (offset ${offset}, limit ${limit}): ${details}`;
-    }
-
-    // Return MCP structured response
     return {
       content: [
         {
@@ -127,21 +97,21 @@ export async function handleKbQuery(
         },
       ],
       structuredContent: {
-        entities: paginated,
-        count: results.length,
+        sourceFile,
+        entities,
+        relationships,
+        provenance: {
+          predicate: "kb_entities_by_source",
+          deterministic: true,
+        },
       },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Query execution failed: ${message}`);
+    throw new Error(`Context query failed: ${message}`);
   }
 }
 
-/**
- * Parse a Prolog list of lists into a JavaScript array.
- * Input: "[[a,b,c],[d,e,f]]"
- * Output: [["a", "b", "c"], ["d", "e", "f"]]
- */
 function parseListOfLists(listStr: string): string[][] {
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
@@ -180,7 +150,6 @@ function parseListOfLists(listStr: string): string[][] {
         current = "";
       }
     } else if (char === "," && depth === 0) {
-      // Skip comma between lists
     } else {
       current += char;
     }
@@ -189,30 +158,6 @@ function parseListOfLists(listStr: string): string[][] {
   return results;
 }
 
-/**
- * Parse a single entity from Prolog binding format.
- * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
- */
-function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
-  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-  const parts = splitTopLevel(cleaned, ",");
-
-  if (parts.length < 3) {
-    return {};
-  }
-
-  const id = parts[0].trim();
-  const type = parts[1].trim();
-  const propsStr = parts.slice(2).join(",").trim();
-
-  const props = parsePropertyList(propsStr);
-  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
-}
-
-/**
- * Parse entity from array returned by parseListOfLists.
- * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
- */
 function parseEntityFromList(data: string[]): Record<string, unknown> {
   if (data.length < 3) {
     return {};
@@ -226,9 +171,6 @@ function parseEntityFromList(data: string[]): Record<string, unknown> {
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-/**
- * Parse Prolog property list into JavaScript object.
- */
 function parsePropertyList(propsStr: string): Record<string, unknown> {
   const props: Record<string, unknown> = {};
 
@@ -260,13 +202,9 @@ function parsePropertyList(propsStr: string): Record<string, unknown> {
   return props;
 }
 
-/**
- * Parse a single Prolog value, handling typed literals and URIs.
- */
 function parsePrologValue(valueInput: string): unknown {
   const value = valueInput.trim();
 
-  // Handle typed literal: ^^("value", type)
   if (value.startsWith("^^(")) {
     const innerStart = value.indexOf("(") + 1;
     let depth = 1;
@@ -291,7 +229,6 @@ function parsePrologValue(valueInput: string): unknown {
         literalValue = literalValue.substring(1, literalValue.length - 1);
       }
 
-      // Handle array notation
       if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
         const listContent = literalValue.substring(1, literalValue.length - 1);
         if (listContent === "") {
@@ -304,7 +241,6 @@ function parsePrologValue(valueInput: string): unknown {
     }
   }
 
-  // Handle URI
   if (value.startsWith("file:///")) {
     const lastSlash = value.lastIndexOf("/");
     if (lastSlash !== -1) {
@@ -313,17 +249,14 @@ function parsePrologValue(valueInput: string): unknown {
     return value;
   }
 
-  // Handle quoted string
   if (value.startsWith('"') && value.endsWith('"')) {
     return value.substring(1, value.length - 1);
   }
 
-  // Handle quoted atom
   if (value.startsWith("'") && value.endsWith("'")) {
     return value.substring(1, value.length - 1);
   }
 
-  // Handle list
   if (value.startsWith("[") && value.endsWith("]")) {
     const listContent = value.substring(1, value.length - 1);
     if (listContent === "") {
@@ -338,9 +271,6 @@ function parsePrologValue(valueInput: string): unknown {
   return value;
 }
 
-/**
- * Split a string by delimiter at the top level (not inside brackets or quotes).
- */
 function splitTopLevel(str: string, delimiter: string): string[] {
   const results: string[] = [];
   let current = "";

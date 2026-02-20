@@ -11,7 +11,6 @@ tags:
 links:
   - REQ-014
 ---
-
 Steps:
 1. KB contains REQ-X with priority: must but no specifiedby scenario.
 2. Developer attempts git commit.

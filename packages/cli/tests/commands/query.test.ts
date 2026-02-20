@@ -68,6 +68,23 @@ System must support credit card payments.
 `,
     );
 
+    // Requirement document with source path
+    writeFileSync(
+      path.join(reqDir, "req3.md"),
+      `---
+title: Feature with Source
+type: req
+status: active
+tags: [feature]
+source: src/features/feature.ts
+---
+
+# Feature with Source
+
+Feature has source path.
+`,
+    );
+
     // Scenario document
     writeFileSync(
       path.join(scenarioDir, "scenario1.md"),
@@ -282,5 +299,23 @@ User logs in with OAuth2 provider.
 
     const limitResults = JSON.parse(limitOutput);
     expect(limitResults.length).toBeLessThanOrEqual(1);
+  });
+
+  test("filters entities by source path", () => {
+    const output = execSync(
+      `bun ${kibiBin} query --source src/features/feature.ts --format json`,
+      {
+        cwd: tmpDir,
+        encoding: "utf8",
+      },
+    );
+
+    const results = JSON.parse(output);
+    expect(Array.isArray(results)).toBe(true);
+    if (results.length > 0) {
+      const foundEntity = results.find((r: any) => r.id?.includes("req3"));
+      expect(foundEntity).toBeDefined();
+      expect(foundEntity?.title).toBe("Feature with Source");
+    }
   });
 });

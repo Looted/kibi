@@ -32,9 +32,10 @@ program
 
 program
   .command("query [type]")
-  .description("Query the knowledge base")
+  .description("Query knowledge base")
   .option("--id <id>", "Query specific entity by ID")
   .option("--tag <tag>", "Filter by tag")
+  .option("--source <path>", "Filter by source file path (substring match)")
   .option("--relationships <id>", "Get relationships from entity")
   .option("--format <format>", "Output format: json|table", "json")
   .option("--limit <n>", "Limit results", "100")

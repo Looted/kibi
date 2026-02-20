@@ -7,16 +7,8 @@
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "keywords": [
-    "knowledge base",
-    "requirements",
-    "adr",
-    "scenarios",
-    "mcp"
-  ],
+  "categories": ["Other"],
+  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
@@ -25,6 +17,16 @@
   "main": "./dist/extension.js",
   "icon": "icon.png",
   "contributes": {
+    "configuration": {
+      "title": "Kibi",
+      "properties": {
+        "kibi.contextOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show KB entities linked to file when opening it"
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -87,9 +89,7 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": [
-            "${workspaceFolder}/packages/mcp/bin/kibi-mcp"
-          ],
+          "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
           "env": {}
         }
       }

@@ -9,12 +9,13 @@ import {
   handleKbBranchGc,
 } from "./tools/branch.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
+import { type ContextArgs, handleKbContext } from "./tools/context.js";
 import {
   type CoverageReportArgs,
   handleKbCoverageReport,
 } from "./tools/coverage-report.js";
-import { type DeriveArgs, handleKbDerive } from "./tools/derive.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
+import { type DeriveArgs, handleKbDerive } from "./tools/derive.js";
 import { type ImpactArgs, handleKbImpact } from "./tools/impact.js";
 import {
   type QueryRelationshipsArgs,
@@ -66,7 +67,7 @@ const TOOLS = [
   {
     name: "kb_query",
     description:
-      "Query entities from the knowledge base. Supports filtering by type, ID, tags, and pagination.",
+      "Query entities from knowledge base. Supports filtering by type, ID, tags, source file, and pagination.",
     inputSchema: {
       type: "object",
       properties: {
@@ -75,6 +76,32 @@ const TOOLS = [
           enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
           description: "Entity type to query",
         },
+        id: {
+          type: "string",
+          description: "Specific entity ID to retrieve",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+          description: "Filter by tags",
+        },
+        sourceFile: {
+          type: "string",
+          description: "Filter by source file path (substring match)",
+        },
+        limit: {
+          type: "number",
+          default: 10,
+          description: "Maximum number of results",
+        },
+        offset: {
+          type: "number",
+          default: 0,
+          description: "Result pagination offset",
+        },
+      },
+    },
+  },
         id: {
           type: "string",
           description: "Specific entity ID to retrieve",
@@ -387,6 +414,25 @@ const TOOLS = [
     description: "List all supported relationship types in the knowledge base.",
     inputSchema: { type: "object", properties: {} },
   },
+  {
+    name: "kbcontext",
+    description:
+      "Returns full traceability context for a source file or symbol. Given a file path, returns all KB entities linked to that file, plus their first-hop relationships (requirements they implement, scenarios that specify them, tests that verify them, ADRs that govern them).",
+    inputSchema: {
+      type: "object",
+      required: ["sourceFile"],
+      properties: {
+        sourceFile: {
+          type: "string",
+          description: "Relative path substring, e.g. 'src/auth/login.ts'",
+        },
+        branch: {
+          type: "string",
+          description: "Branch name (defaults to current git branch)",
+        },
+      },
+    },
+  },
 ];
 
 // Server State
@@ -628,6 +674,12 @@ async function handleToolCall(
             ],
           },
         };
+
+      case "kbcontext":
+        return await handleKbContext(
+          prologProcess,
+          params as ContextArgs,
+        );
 
       default:
         throw new Error(`Unknown tool: ${toolName}`);

@@ -20,7 +20,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 362
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:20.757Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.072Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -36,7 +36,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 184
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:20.963Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.280Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -49,7 +49,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 130
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.018Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.330Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -65,7 +65,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 87
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.078Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.403Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -81,7 +81,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 418
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.225Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.555Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -94,7 +94,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 120
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.276Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.607Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -107,7 +107,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 797
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.336Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.676Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -123,7 +123,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 418
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.336Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.676Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -139,7 +139,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 114
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.338Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.679Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -155,7 +155,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 130
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.381Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.732Z'
   - id: SYM-KibiMCPServer
     title: kibi MCP server (startServer)
     sourceFile: packages/mcp/src/server.ts
@@ -179,7 +179,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 273
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.436Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.791Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -195,7 +195,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 313
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-20T09:44:21.436Z'
+    coordinatesGeneratedAt: '2026-02-20T09:50:57.791Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts

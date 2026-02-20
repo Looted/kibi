@@ -8,6 +8,7 @@
     kb_assert_entity/2,
     kb_retract_entity/1,
     kb_entity/3,
+    kb_entities_by_source/2,
     kb_assert_relationship/4,
     kb_relationship/3,
     transitively_implements/2,
@@ -194,6 +195,15 @@ kb_entity(Id, Type, Props) :-
         uri_to_key(PropURI, Key),
         literal_to_value(ValueLiteral, Value)
     ), Props).
+
+%% kb_entities_by_source(+SourcePath, -Ids)
+% Returns all entity IDs whose source property matches SourcePath (substring match).
+kb_entities_by_source(SourcePath, Ids) :-
+    findall(Id,
+        (kb_entity(Id, _Type, Props),
+         memberchk(source-S, Props),
+         sub_atom(S, _, _, _, SourcePath)),
+        Ids).
 
 %% kb_assert_relationship(+Type, +From, +To, +Metadata)
 % Assert a relationship between two entities with validation.
