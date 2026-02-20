@@ -79,9 +79,7 @@ export function buildIndex(
 }
 
 function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
-  const lines = content.split(/
-?
-/);
+  const lines = content.split(/\r?\n/);
   const symbols: Array<Record<string, unknown>> = [];
 
   let inSymbols = false;

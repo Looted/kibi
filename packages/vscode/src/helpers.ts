@@ -150,6 +150,5 @@ export function buildHoverMarkdown(
   lines.push("");
   lines.push("[Browse entities](command:kibi.browseLinkedEntities)");
 
-  return lines.join("
-");
+  return lines.join("\n");
 }

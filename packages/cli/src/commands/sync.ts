@@ -2,11 +2,16 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
+import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import { extractFromManifest } from "../extractors/manifest.js";
 import {
   type ExtractionResult,
   extractFromMarkdown,
 } from "../extractors/markdown.js";
+import {
+  type ManifestSymbolEntry,
+  enrichSymbolCoordinates,
+} from "../extractors/symbols-coordinator.js";
 import { PrologProcess } from "../prolog.js";
 
 export class SyncError extends Error {
@@ -24,6 +29,30 @@ type SyncCache = {
 
 const SYNC_CACHE_VERSION = 1;
 const SYNC_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
+# AUTHORED fields (edit freely):
+#   id, title, sourceFile, links, status, tags, owner, priority
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+# Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
+`;
+const SYMBOL_COORD_EXTENSIONS = new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".mts",
+  ".cts",
+  ".mjs",
+  ".cjs",
+]);
+const GENERATED_COORD_FIELDS = [
+  "sourceLine",
+  "sourceColumn",
+  "sourceEndLine",
+  "sourceEndColumn",
+  "coordinatesGeneratedAt",
+] as const;
 
 function toCacheKey(filePath: string): string {
   return path.relative(process.cwd(), filePath).split(path.sep).join("/");
@@ -196,6 +225,17 @@ export async function syncCommand(): Promise<void> {
       }
     }
 
+    for (const file of manifestFiles) {
+      try {
+        await refreshManifestCoordinates(file, process.cwd());
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
+        );
+      }
+    }
+
     if (results.length === 0) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -362,4 +402,109 @@ export async function syncCommand(): Promise<void> {
     }
     process.exit(1);
   }
+}
+
+async function refreshManifestCoordinates(
+  manifestPath: string,
+  workspaceRoot: string,
+): Promise<void> {
+  const rawContent = readFileSync(manifestPath, "utf8");
+  const parsed = parseYAML(rawContent);
+
+  if (!isRecord(parsed)) {
+    console.warn(
+      `Warning: symbols manifest ${manifestPath} is not a YAML object; skipping coordinate refresh`,
+    );
+    return;
+  }
+
+  const rawSymbols = parsed.symbols;
+  if (!Array.isArray(rawSymbols)) {
+    console.warn(
+      `Warning: symbols manifest ${manifestPath} has no symbols array; skipping coordinate refresh`,
+    );
+    return;
+  }
+
+  const before = rawSymbols.map((entry) =>
+    isRecord(entry) ? ({ ...entry } as ManifestSymbolEntry) : ({} as ManifestSymbolEntry),
+  );
+  const enriched = await enrichSymbolCoordinates(before, workspaceRoot);
+  parsed.symbols = enriched;
+
+  let refreshed = 0;
+  let failed = 0;
+  let unchanged = 0;
+
+  for (let i = 0; i < before.length; i++) {
+    const previous = before[i] ?? ({} as ManifestSymbolEntry);
+    const current = enriched[i] ?? previous;
+    const changed = GENERATED_COORD_FIELDS.some(
+      (field) => previous[field] !== current[field],
+    );
+
+    if (changed) {
+      refreshed++;
+      continue;
+    }
+
+    const eligible = isEligibleForCoordinateRefresh(
+      typeof current.sourceFile === "string"
+        ? current.sourceFile
+        : typeof previous.sourceFile === "string"
+          ? previous.sourceFile
+          : undefined,
+      workspaceRoot,
+    );
+
+    if (eligible && !hasAllGeneratedCoordinates(current)) {
+      failed++;
+    } else {
+      unchanged++;
+    }
+  }
+
+  const dumped = dumpYAML(parsed, {
+    lineWidth: -1,
+    noRefs: true,
+    sortKeys: false,
+  });
+  const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
+
+  if (rawContent !== nextContent) {
+    writeFileSync(manifestPath, nextContent, "utf8");
+  }
+
+  console.log(
+    `✓ Refreshed symbol coordinates in ${path.relative(workspaceRoot, manifestPath)} (refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed})`,
+  );
+}
+
+function hasAllGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
+  return (
+    typeof entry.sourceLine === "number" &&
+    typeof entry.sourceColumn === "number" &&
+    typeof entry.sourceEndLine === "number" &&
+    typeof entry.sourceEndColumn === "number" &&
+    typeof entry.coordinatesGeneratedAt === "string" &&
+    entry.coordinatesGeneratedAt.length > 0
+  );
+}
+
+function isEligibleForCoordinateRefresh(
+  sourceFile: string | undefined,
+  workspaceRoot: string,
+): boolean {
+  if (!sourceFile) return false;
+  const absolute = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(workspaceRoot, sourceFile);
+
+  if (!existsSync(absolute)) return false;
+  const ext = path.extname(absolute).toLowerCase();
+  return SYMBOL_COORD_EXTENSIONS.has(ext);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

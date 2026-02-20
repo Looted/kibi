@@ -2,7 +2,7 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
@@ -47,10 +47,7 @@
       {
         "command": "kibi.refreshTree",
         "title": "Refresh",
-        "icon": {
-          "light": "$(refresh)",
-          "dark": "$(refresh)"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "kibi.openEntity",

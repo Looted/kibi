@@ -15,7 +15,8 @@
         "approved",
         "rejected",
         "pending",
-        "in_progress"
+        "in_progress",
+        "superseded"
       ]
     },
     "created_at": { "type": "string" },

@@ -21,6 +21,10 @@ import {
   handleKbQueryRelationships,
 } from "./tools/query-relationships.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
+import {
+  type SymbolsRefreshArgs,
+  handleKbSymbolsRefresh,
+} from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 
 // JSON-RPC 2.0 Types
@@ -127,6 +131,7 @@ const TOOLS = [
                 "rejected",
                 "pending",
                 "in_progress",
+                "superseded",
               ],
               description: "Entity status (required)",
             },
@@ -358,6 +363,21 @@ const TOOLS = [
     },
   },
   {
+    name: "kb.symbols.refresh",
+    description:
+      "Refresh AST-derived coordinates (sourceLine, sourceColumn, etc.) for all symbol entries in symbols.yaml. Call this after refactoring code that contains tracked symbols. Safe to call at any time — authored fields (id, title, links) are never modified.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        dryRun: {
+          type: "boolean",
+          default: false,
+          description: "If true, report what would change without writing to disk",
+        },
+      },
+    },
+  },
+  {
     name: "kb_list_entity_types",
     description: "List all supported entity types in the knowledge base.",
     inputSchema: { type: "object", properties: {} },
@@ -503,6 +523,10 @@ async function handleToolCall(
 ): Promise<unknown> {
   console.error(`[MCP] Tool call: ${toolName}`);
 
+  if (toolName === "kb.symbols.refresh") {
+    return handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
+  }
+
   // Auto-initialize if not already initialized (for testing/single-request scenarios)
   if (!isInitialized || !prologProcess?.isRunning()) {
     console.error("[MCP] Auto-initializing for tool call...");
@@ -556,6 +580,9 @@ async function handleToolCall(
           prologProcess,
           params as CoverageReportArgs,
         );
+
+      case "kb.symbols.refresh":
+        return await handleKbSymbolsRefresh(params as SymbolsRefreshArgs);
 
       case "kb_list_entity_types":
         return {
