@@ -53,7 +53,7 @@ export async function handleKbQuery(
     if (id && type) {
       goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
     } else if (id) {
-      goal = `findall([Id,Type,Props], kb_entity('${id}', Type, Props), Results)`;
+      goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
       const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
       if (type) {
@@ -198,7 +198,7 @@ function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
   const propsStr = parts.slice(2).join(",").trim();
 
   const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
+  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
 /**
@@ -215,7 +215,7 @@ function parseEntityFromList(data: string[]): Record<string, unknown> {
   const propsStr = data[2].trim();
 
   const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
+  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
 /**
@@ -343,7 +343,7 @@ function splitTopLevel(str: string, delimiter: string): string[] {
     const char = str[i];
     const prevChar = i > 0 ? str[i - 1] : "";
 
-    if (char === '"' && prevChar !== "\") {
+    if (char === '"' && prevChar !== "\\") {
       inQuotes = !inQuotes;
       current += char;
     } else if (!inQuotes && (char === "[" || char === "(")) {
@@ -367,4 +367,23 @@ function splitTopLevel(str: string, delimiter: string): string[] {
   }
 
   return results;
+}
+
+function stripOuterQuotes(value: string): string {
+  if (value.startsWith("'") && value.endsWith("'")) {
+    return value.slice(1, -1);
+  }
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
+function normalizeEntityId(value: string): string {
+  if (!value.startsWith("file:///")) {
+    return value;
+  }
+
+  const idx = value.lastIndexOf("/");
+  return idx === -1 ? value : value.slice(idx + 1);
 }

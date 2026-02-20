@@ -9,7 +9,13 @@ import {
   handleKbBranchGc,
 } from "./tools/branch.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
+import {
+  type CoverageReportArgs,
+  handleKbCoverageReport,
+} from "./tools/coverage-report.js";
+import { type DeriveArgs, handleKbDerive } from "./tools/derive.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
+import { type ImpactArgs, handleKbImpact } from "./tools/impact.js";
 import {
   type QueryRelationshipsArgs,
   handleKbQueryRelationships,
@@ -290,6 +296,68 @@ const TOOLS = [
     },
   },
   {
+    name: "kb_derive",
+    description:
+      "Run a supported inference rule and return deterministic machine-readable rows.",
+    inputSchema: {
+      type: "object",
+      required: ["rule"],
+      properties: {
+        rule: {
+          type: "string",
+          enum: [
+            "transitively_implements",
+            "transitively_depends",
+            "impacted_by_change",
+            "affected_symbols",
+            "coverage_gap",
+            "untested_symbols",
+            "stale",
+            "orphaned",
+            "conflicting",
+            "deprecated_still_used",
+          ],
+          description: "Inference predicate name",
+        },
+        params: {
+          type: "object",
+          description:
+            "Optional predicate parameters (rule-dependent). Example: { changed: 'REQ-001' }",
+        },
+      },
+    },
+  },
+  {
+    name: "kb_impact",
+    description:
+      "Impact analysis shorthand for impacted_by_change(Entity, Changed).",
+    inputSchema: {
+      type: "object",
+      required: ["entity"],
+      properties: {
+        entity: {
+          type: "string",
+          description: "Changed entity ID",
+        },
+      },
+    },
+  },
+  {
+    name: "kb_coverage_report",
+    description:
+      "Aggregate traceability coverage for requirements and symbols.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: {
+          type: "string",
+          enum: ["req", "symbol"],
+          description: "Optional focus area",
+        },
+      },
+    },
+  },
+  {
     name: "kb_list_entity_types",
     description: "List all supported entity types in the knowledge base.",
     inputSchema: { type: "object", properties: {} },
@@ -475,6 +543,18 @@ async function handleToolCall(
         return await handleKbQueryRelationships(
           prologProcess,
           params as QueryRelationshipsArgs,
+        );
+
+      case "kb_derive":
+        return await handleKbDerive(prologProcess, params as DeriveArgs);
+
+      case "kb_impact":
+        return await handleKbImpact(prologProcess, params as ImpactArgs);
+
+      case "kb_coverage_report":
+        return await handleKbCoverageReport(
+          prologProcess,
+          params as CoverageReportArgs,
         );
 
       case "kb_list_entity_types":

@@ -93,6 +93,9 @@ export class PrologProcess {
 
     if (this.useOneShotMode) {
       const oneShotResult = await this.queryOneShot(goal);
+      if (!cacheable && oneShotResult.success) {
+        this.invalidateCache();
+      }
       if (cacheable && oneShotResult.success) {
         this.cache.set(goalKey, oneShotResult);
       }
@@ -255,11 +258,9 @@ export class PrologProcess {
 
     if (stdout.includes("__KIBI_TRUE__")) {
       const clean = stdout
-        .split("
-")
+        .split("\n")
         .filter((line) => !line.includes("__KIBI_TRUE__"))
-        .join("
-");
+        .join("\n");
       return {
         success: true,
         bindings: this.extractBindings(clean),
@@ -287,8 +288,7 @@ export class PrologProcess {
 
   private extractBindings(output: string): Record<string, string> {
     const bindings: Record<string, string> = {};
-    const lines = output.split("
-");
+    const lines = output.split("\n");
 
     for (const line of lines) {
       const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.+)\.?\s*$/);
@@ -325,8 +325,7 @@ export class PrologProcess {
       .replace(/ERROR:\s*/g, "")
       .replace(/^\*\*.*\*\*$/gm, "")
       .replace(/^\s+/gm, "")
-      .split("
-")[0]
+      .split("\n")[0]
       .trim();
 
     return simpleError || "Unknown error";

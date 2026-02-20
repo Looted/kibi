@@ -10,6 +10,16 @@
     kb_entity/3,
     kb_assert_relationship/4,
     kb_relationship/3,
+    transitively_implements/2,
+    transitively_depends/2,
+    impacted_by_change/2,
+    affected_symbols/2,
+    coverage_gap/2,
+    untested_symbols/1,
+    stale/2,
+    orphaned/1,
+    conflicting/2,
+    deprecated_still_used/2,
     changeset/4  % Export for testing
 ]).
 
@@ -17,6 +27,7 @@
 :- use_module(library(persistency)).
 :- use_module(library(thread)).
 :- use_module(library(filesex)).
+:- use_module(library(ordsets)).
 :- use_module('../schema/entities.pl', [entity_type/1, entity_property/3, required_property/2]).
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
@@ -314,3 +325,195 @@ uri_to_key(URI, Key) :-
     ->  true
     ;   URI = Key
     ).
+
+%% ------------------------------------------------------------------
+%% Inference predicates (Phase 1)
+%% ------------------------------------------------------------------
+
+%% transitively_implements(+Symbol, +Req)
+% A symbol transitively implements a requirement if it directly implements it,
+% or if it is covered by a test that validates/verifies the requirement.
+transitively_implements(Symbol, Req) :-
+    kb_relationship(implements, Symbol, Req).
+transitively_implements(Symbol, Req) :-
+    kb_relationship(covered_by, Symbol, Test),
+    kb_relationship(validates, Test, Req).
+transitively_implements(Symbol, Req) :-
+    kb_relationship(covered_by, Symbol, Test),
+    kb_relationship(verified_by, Req, Test).
+
+%% transitively_depends(+Req1, +Req2)
+% Req1 transitively depends on Req2 through depends_on chains.
+transitively_depends(Req1, Req2) :-
+    transitively_depends_(Req1, Req2, []).
+
+transitively_depends_(Req1, Req2, _) :-
+    kb_relationship(depends_on, Req1, Req2).
+transitively_depends_(Req1, Req2, Visited) :-
+    kb_relationship(depends_on, Req1, Mid),
+    Req1 \= Mid,
+    \+ memberchk(Mid, Visited),
+    transitively_depends_(Mid, Req2, [Req1|Visited]).
+
+%% impacted_by_change(?Entity, +Changed)
+% Entity is impacted if it is connected to Changed by any relationship
+% direction via bounded, cycle-safe traversal.
+impacted_by_change(Changed, Changed).
+impacted_by_change(Entity, Changed) :-
+    dif(Entity, Changed),
+    connected_entity(Changed, Entity, [Changed]).
+
+connected_entity(Current, Target, _Visited) :-
+    linked_entity(Current, Target).
+connected_entity(Current, Target, Visited) :-
+    linked_entity(Current, Next),
+    \+ memberchk(Next, Visited),
+    connected_entity(Next, Target, [Next|Visited]).
+
+linked_entity(A, B) :-
+    relationship_type(RelType),
+    kb_relationship(RelType, A, B).
+linked_entity(A, B) :-
+    relationship_type(RelType),
+    kb_relationship(RelType, B, A).
+
+%% affected_symbols(+Req, -Symbols)
+% Symbols affected by a requirement change include symbols implementing Req,
+% and symbols implementing requirements that depend on Req.
+affected_symbols(Req, Symbols) :-
+    setof(Symbol,
+          RelatedReq^(requirement_in_scope(RelatedReq, Req),
+                     transitively_implements(Symbol, RelatedReq)),
+          Symbols),
+    !.
+affected_symbols(_, []).
+
+requirement_in_scope(Req, Req).
+requirement_in_scope(RelatedReq, Req) :-
+    transitively_depends(RelatedReq, Req).
+
+%% coverage_gap(+Req, -Reason)
+% Detects missing scenario/test coverage for MUST requirements.
+coverage_gap(Req, missing_scenario_and_test) :-
+    must_requirement(Req),
+    \+ has_scenario(Req),
+    \+ has_test(Req).
+coverage_gap(Req, missing_scenario) :-
+    must_requirement(Req),
+    \+ has_scenario(Req),
+    has_test(Req).
+coverage_gap(Req, missing_test) :-
+    must_requirement(Req),
+    has_scenario(Req),
+    \+ has_test(Req).
+
+must_requirement(Req) :-
+    kb_entity(Req, req, Props),
+    memberchk(priority=Priority, Props),
+    normalize_term_atom(Priority, PriorityAtom),
+    atom_string(PriorityAtom, PriorityStr),
+    sub_string(PriorityStr, _, 4, 0, "must").
+
+has_scenario(Req) :-
+    kb_relationship(specified_by, _, Req).
+
+has_test(Req) :-
+    kb_relationship(validates, _, Req).
+has_test(Req) :-
+    kb_relationship(verified_by, Req, _).
+
+%% untested_symbols(-Symbols)
+% Returns symbols with no test coverage relationship.
+untested_symbols(Symbols) :-
+    setof(Symbol,
+          (kb_entity(Symbol, symbol, _),
+           \+ kb_relationship(covered_by, Symbol, _)),
+          Symbols),
+    !.
+untested_symbols([]).
+
+%% stale(+Entity, +MaxAgeDays)
+% Entity is stale if updated_at is older than MaxAgeDays.
+stale(Entity, MaxAgeDays) :-
+    number(MaxAgeDays),
+    MaxAgeDays >= 0,
+    kb_entity(Entity, _, Props),
+    memberchk(updated_at=UpdatedAt, Props),
+    coerce_timestamp_atom(UpdatedAt, UpdatedAtAtom),
+    parse_time(UpdatedAtAtom, iso_8601, UpdatedTs),
+    get_time(NowTs),
+    AgeDays is (NowTs - UpdatedTs) / 86400,
+    AgeDays > MaxAgeDays.
+
+%% orphaned(+Symbol)
+% Symbol is orphaned if it has no core traceability links.
+orphaned(Symbol) :-
+    kb_entity(Symbol, symbol, _),
+    \+ kb_relationship(implements, Symbol, _),
+    \+ kb_relationship(covered_by, Symbol, _),
+    \+ kb_relationship(constrained_by, Symbol, _).
+
+%% conflicting(?Adr1, ?Adr2)
+% ADRs conflict if they both constrain the same symbol and are distinct.
+conflicting(Adr1, Adr2) :-
+    kb_relationship(constrained_by, Symbol, Adr1),
+    kb_relationship(constrained_by, Symbol, Adr2),
+    Adr1 \= Adr2,
+    Adr1 @< Adr2.
+
+%% deprecated_still_used(+Adr, -Symbols)
+% Deprecated/archived/rejected ADRs that still constrain symbols.
+deprecated_still_used(Adr, Symbols) :-
+    kb_entity(Adr, adr, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, StatusAtom),
+    memberchk(StatusAtom, [deprecated, archived, rejected]),
+    setof(Symbol, kb_relationship(constrained_by, Symbol, Adr), Symbols),
+    !.
+deprecated_still_used(_, []).
+
+normalize_term_atom(Val^^_Type, Atom) :-
+    !,
+    normalize_term_atom(Val, Atom).
+normalize_term_atom(literal(type(_, Val)), Atom) :-
+    !,
+    normalize_term_atom(Val, Atom).
+normalize_term_atom(Val, Atom) :-
+    string(Val),
+    !,
+    atom_string(ValAtom, Val),
+    normalize_uri_atom(ValAtom, Atom).
+normalize_term_atom(Val, Atom) :-
+    atom(Val),
+    !,
+    normalize_uri_atom(Val, Atom).
+normalize_term_atom(Val, Atom) :-
+    term_string(Val, ValStr),
+    atom_string(ValAtom, ValStr),
+    normalize_uri_atom(ValAtom, Atom).
+
+normalize_uri_atom(Value, Atom) :-
+    (   sub_atom(Value, _, _, _, '/')
+    ->  atomic_list_concat(Parts, '/', Value),
+        last(Parts, Last),
+        Atom = Last
+    ;   Atom = Value
+    ).
+
+coerce_timestamp_atom(Val^^_Type, Atom) :-
+    !,
+    coerce_timestamp_atom(Val, Atom).
+coerce_timestamp_atom(literal(type(_, Val)), Atom) :-
+    !,
+    coerce_timestamp_atom(Val, Atom).
+coerce_timestamp_atom(Val, Atom) :-
+    atom(Val),
+    !,
+    Atom = Val.
+coerce_timestamp_atom(Val, Atom) :-
+    string(Val),
+    !,
+    atom_string(Atom, Val).
+coerce_timestamp_atom(Val, Atom) :-
+    term_string(Val, Str),
+    atom_string(Atom, Str).
