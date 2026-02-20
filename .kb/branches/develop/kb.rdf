@@ -12,243 +12,59 @@
     xmlns:rdfs="&rdfs;"
     xmlns:xsd="&xsd;"
 >
-<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-TOOLS-CORE-3">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-TOOLS-CORE-3"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-TOOLS-CORE-3.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[inference,tools]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Core Inference Toolset Of Three</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/EVT-005">
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-006"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-005"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-005.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[lifecycle,gc]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">KB garbage collected: stale branch stores deleted by kibi gc</kb:title>
-  <kb:type rdf:datatype="&xsd;string">event</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-KibiMCPServer">
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiMCPServer"/>
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">kibi MCP server (startServer)</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-002">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-002"/>
+<rdf:Description rdf:about="kb:entity/TEST-010">
+  <kb:relates_to rdf:resource="kb:entity/ADR-008"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-013"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-008"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-010"/>
   <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-002.md</kb:source>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-010.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,bun,nodejs]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-vscode-traceability">
-  <kb:relates_to rdf:resource="kb:entity/SCEN-vscode-code-action"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-vscode-open-entity"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-vscode-traceability"/>
-  <kb:owner rdf:resource="file:///home/looted/projects/kibi/.kb/branches/dev"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-vscode-traceability.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,traceability,ux]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Bidirectional traceability in VS Code extension</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-KibiCodeLensProvider">
-  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiCodeLensProvider"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">KibiCodeLensProvider</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-activateKibiExtension">
-  <kb:implements rdf:resource="kb:entity/REQ-010"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-activateKibiExtension"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">activate</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-003">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-003"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-003.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,transport,json-rpc]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Use stdio JSON-RPC transport for MCP server (no embedded newlines)</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-003">
-  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-012"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-003"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-003.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[branching,hooks]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Branch switch triggers copy-from-main KB creation and auto-sync</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-005">
-  <kb:constrains rdf:resource="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-005"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-RELATIONSHIP-AUDIT-METADATA"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-005.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[schema,relationships]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Typed relationships between entities with audit metadata</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-SCHEMA-RELATIONSHIP-MODEL.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[schema,relationships]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Relationship Schema Model</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-COPY-FROM-MAIN">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-COPY-FROM-MAIN"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-COPY-FROM-MAIN.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[branching,copy-from-main]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Copy From Main Branch Snapshot</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-TRANSPORT-STDIO">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-TRANSPORT-STDIO"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-TRANSPORT-STDIO.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,transport]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP Transport Is Stdio</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-ADR-TEMPORAL-INFERENCE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ADR-TEMPORAL-INFERENCE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ADR-TEMPORAL-INFERENCE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[adr,inference,temporal]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Temporal ADR Inference</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-001">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-001"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-001.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,query]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Agent queries requirements from KB via MCP kb_query tool</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-vscode-code-action">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-vscode-code-action"/>
-  <kb:owner rdf:resource="file:///home/looted/projects/kibi/.kb/branches/dev"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-vscode-code-action.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,traceability,code-action]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Code action on a symbol opens Quick Pick of linked KB entities</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-002">
-  <kb:requires_property rdf:resource="kb:entity/FACT-MCP-TOOLSET-CORE-6"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-TRANSPORT-STDIO"/>
-  <kb:constrains rdf:resource="kb:entity/FACT-MCP-SERVER-INTERFACE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:24 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-002"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-002.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,api,tools]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP server with 6 tools over stdio transport</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-011">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-011"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-014"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-011.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[enforcement,hooks]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">pre-commit hook blocks commit on coverage violation</kb:title>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,inference,integration]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Inference MCP tools return deterministic impact and coverage outputs</kb:title>
   <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/FACT-RELATIONSHIP-AUDIT-METADATA">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-RELATIONSHIP-AUDIT-METADATA"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-RELATIONSHIP-AUDIT-METADATA.md</kb:source>
+<rdf:Description rdf:about="kb:entity/ADR-annotation-strategy">
+  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-annotation-strategy"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-annotation-strategy.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[schema,audit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Relationship Audit Metadata</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,annotation,symbols,manifest]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Use symbols.yaml manifest for code-symbol-to-entity mapping (no inline annotations)</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-006">
+  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-003"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-006"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-006.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[integration,hooks,git]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Git hooks fire on branch switch and trigger KB sync</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-handleKbQueryRelationships">
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-handleKbQueryRelationships"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">handleKbQueryRelationships</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/TEST-vscode-traceability">
@@ -266,16 +82,95 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/REQ-008">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-008"/>
+<rdf:Description rdf:about="kb:entity/ADR-006">
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-006"/>
   <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-008.md</kb:source>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-006.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[git,hooks,automation]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Git hooks for automated KB sync on branch checkout and merge</kb:title>
+  <kb:tags rdf:datatype="&xsd;string">[monorepo,structure]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Monorepo structure: core (Prolog) + cli + mcp + vscode packages</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-007">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-007"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-009"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-007.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[prolog,core,unit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Prolog KB attaches, asserts, and retrieves entities correctly</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-mcp-query-relationships">
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-mcp-query-relationships"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-mcp-query-relationships.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,test]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP kb_query_relationships tool tests</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-TOOLS-CORE-3">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-TOOLS-CORE-3"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-TOOLS-CORE-3.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[inference,tools]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Core Inference Toolset Of Three</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-007">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-007"/>
+  <kb:implements rdf:resource="kb:entity/REQ-007"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">extractFromManifest</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-007">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-007"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-007.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[sync,extractors]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">kibi sync imports entities from Markdown frontmatter and YAML manifest</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-018">
+  <kb:constrains rdf:resource="kb:entity/FACT-USER-ROLE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:05:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-018"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-LIMIT-2"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-018.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[auth]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Users have a maximum of 2 roles</kb:title>
   <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:05:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/REQ-014">
@@ -295,66 +190,40 @@
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/FLAG-005">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-005"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-006"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-005.md</kb:source>
+<rdf:Description rdf:about="kb:entity/FACT-COPY-FROM-MAIN">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-COPY-FROM-MAIN"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-COPY-FROM-MAIN.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[ci,coverage,deferred]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">ci-coverage-import: import test coverage data from CI into KB</kb:title>
-  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:tags rdf:datatype="&xsd;string">[branching,copy-from-main]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Copy From Main Branch Snapshot</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/TEST-012">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-012"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-012.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,context]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">kbcontext returns entities linked to a source file</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-  <kb:validates rdf:resource="kb:entity/REQ-015"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-001">
-  <kb:implements rdf:resource="kb:entity/REQ-001"/>
-  <kb:implements rdf:resource="kb:entity/REQ-009"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-001"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">PrologProcess</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-006">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-006"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+<rdf:Description rdf:about="kb:entity/EVT-005">
   <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-006.md</kb:source>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-006"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-005"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-005.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[gc,branches]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">kibi gc removes KB directory for branch deleted from git</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:tags rdf:datatype="&xsd;string">[lifecycle,gc]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">KB garbage collected: stale branch stores deleted by kibi gc</kb:title>
+  <kb:type rdf:datatype="&xsd;string">event</kb:type>
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/SYM-010">
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-010"/>
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">startServer</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
+<rdf:Description rdf:about="kb:entity/FACT-CLI-SURFACE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CLI-SURFACE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CLI-SURFACE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">CLI Command Surface</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/REQ-012">
@@ -372,34 +241,6 @@
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/EVT-002">
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-002"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-002"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-002.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[lifecycle,init]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">KB initialized on repository with kibi init</kb:title>
-  <kb:type rdf:datatype="&xsd;string">event</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-005">
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-001"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-005"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-005.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,server,unit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP server responds to all 9 tools with valid JSON-RPC format</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
 <rdf:Description rdf:about="kb:entity/EVT-003">
   <kb:relates_to rdf:resource="kb:entity/REQ-012"/>
   <kb:relates_to rdf:resource="kb:entity/SCEN-003"/>
@@ -412,6 +253,90 @@
   <kb:title rdf:datatype="&xsd;string">Branch KB created from main snapshot on first checkout</kb:title>
   <kb:type rdf:datatype="&xsd;string">event</kb:type>
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-mergeStaticLinks">
+  <kb:covered_by rdf:resource="kb:entity/TEST-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-mergeStaticLinks"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">mergeStaticLinks</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-011">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-011"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-014"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-011.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[enforcement,hooks]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">pre-commit hook blocks commit on coverage violation</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-002">
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:implements rdf:resource="kb:entity/REQ-011"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">handleKbUpsert</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-SCHEMA-RELATIONSHIP-MODEL.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[schema,relationships]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Relationship Schema Model</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-LIMIT-2">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-LIMIT-2"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-LIMIT-2.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cardinality]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Maximum of Two</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-006">
+  <kb:constrains rdf:resource="kb:entity/FACT-CONSISTENCY-CHECKING"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-006"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-CHECK-RULESET-CORE-3"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-006.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[validation,check]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Built-in consistency validation rules (must-priority-coverage, no-cycles, no-dangling-refs)</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-SCHEMA-ENTITY-MODEL">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-SCHEMA-ENTITY-MODEL"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-SCHEMA-ENTITY-MODEL.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[schema,entities]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Entity Schema Model</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/TEST-009">
@@ -429,524 +354,6 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/SYM-003">
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-003"/>
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">handleKbQuery</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-003">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-003"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-003.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,query,unit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">kibi query returns correct entities by type, id, and tag filters</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-013">
-  <kb:relates_to rdf:resource="kb:entity/ADR-008"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-008"/>
-  <kb:relates_to rdf:resource="kb:entity/TEST-010"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-INFERENCE-DETERMINISTIC"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-INFERENCE-TOOLS-CORE-3"/>
-  <kb:constrains rdf:resource="kb:entity/FACT-INFERENCE-SURFACE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-013"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-013.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[inference,mcp,reasoning]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Deterministic inference tools for impact and coverage analysis</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FLAG-002">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-002"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
-  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-002.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[symbols,scip,deferred]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">scip-symbol-extraction: SCIP/LSP-based language-specific symbol indexing</kb:title>
-  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FLAG-001">
-  <kb:relates_to rdf:resource="kb:entity/ADR-007"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-010"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-001"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-001.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,deferred,graph]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">vscode-full-features: full VS Code extension with graph visualization</kb:title>
-  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-CHECK-RULESET-CORE-3">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CHECK-RULESET-CORE-3"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CHECK-RULESET-CORE-3.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[validation,rules]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Core Check Ruleset Of Three</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/EVT-004">
-  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-003"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-004"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-004.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[lifecycle,hooks,sync]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Entity sync triggered by post-checkout or post-merge git hook</kb:title>
-  <kb:type rdf:datatype="&xsd;string">event</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-010">
-  <kb:relates_to rdf:resource="kb:entity/ADR-008"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-013"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-008"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-010"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-010.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,inference,integration]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Inference MCP tools return deterministic impact and coverage outputs</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-MCP-SERVER-INTERFACE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-MCP-SERVER-INTERFACE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-MCP-SERVER-INTERFACE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,api]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP Server Interface</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-007">
-  <kb:relates_to rdf:resource="kb:entity/FLAG-001"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-010"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-007"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-007.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,scope,deferred]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Defer graph visualization and full VS Code features to post-v0</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-001">
-  <kb:requires_property rdf:resource="kb:entity/FACT-KB-PER-BRANCH"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-KB-REPO-LOCAL"/>
-  <kb:constrains rdf:resource="kb:entity/FACT-KB-SCOPE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:24 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-001"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-001.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[core,storage,branching]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Repo-local per-branch knowledge base</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-013">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-013"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-013.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[adr,inference,temporal]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">supersedes relationship traversal and current_adr inference</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:updated_at>
-  <kb:validates rdf:resource="kb:entity/REQ-016"/>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-LIMIT-3">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-LIMIT-3"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-LIMIT-3.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cardinality]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Maximum of Three</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-003">
-  <kb:constrains rdf:resource="kb:entity/FACT-CLI-SURFACE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-003"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-CLI-COMMAND-SET-CORE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-003.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">CLI with init, sync, query, check, gc, doctor commands</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-005">
-  <kb:implements rdf:resource="kb:entity/REQ-010"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-005"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">KibiTreeDataProvider</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-KibiCodeActionProvider">
-  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiCodeActionProvider"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">KibiCodeActionProvider</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-LIMIT-2">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-LIMIT-2"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-LIMIT-2.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cardinality]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Maximum of Two</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-SCHEMA-ENTITY-MODEL">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-SCHEMA-ENTITY-MODEL"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-SCHEMA-ENTITY-MODEL.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[schema,entities]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Entity Schema Model</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-MCP-TOOLSET-CORE-6">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-MCP-TOOLSET-CORE-6"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-MCP-TOOLSET-CORE-6.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,tools]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP Core Toolset Of Six</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-KB-SCOPE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-SCOPE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-SCOPE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[core,storage]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Knowledge Base Scope</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-006">
-  <kb:constrains rdf:resource="kb:entity/FACT-CONSISTENCY-CHECKING"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-006"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-CHECK-RULESET-CORE-3"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-006.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[validation,check]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Built-in consistency validation rules (must-priority-coverage, no-cycles, no-dangling-refs)</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FLAG-004">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-004"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-004.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[federation,multi-repo,deferred]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">cross-repo-support: KB federation across multiple repositories</kb:title>
-  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-018">
-  <kb:constrains rdf:resource="kb:entity/FACT-USER-ROLE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:05:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-018"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-LIMIT-2"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-018.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[auth]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Users have a maximum of 2 roles</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:05:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-AUDIT-APPEND-ONLY">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-AUDIT-APPEND-ONLY"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-AUDIT-APPEND-ONLY.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[audit,history]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Append-Only Audit History</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-USER-ROLE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-USER-ROLE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-USER-ROLE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[domain,auth]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">User Role Assignment</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-CLI-SURFACE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CLI-SURFACE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CLI-SURFACE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">CLI Command Surface</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-011">
-  <kb:requires_property rdf:resource="kb:entity/FACT-AUDIT-APPEND-ONLY"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-UPSERT-VALIDATION"/>
-  <kb:constrains rdf:resource="kb:entity/FACT-WRITE-GOVERNANCE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-011"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-011.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[governance,audit,safety]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Write governance: validated changesets and append-only audit log</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-SURFACE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-SURFACE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-SURFACE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[inference,mcp]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Inference API Surface</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-KB-PER-BRANCH">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-PER-BRANCH"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-PER-BRANCH.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[core,branching]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">KB Is Per Branch</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-001">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-001"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-009"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-001.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[storage,prolog,rdf]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Use SWI-Prolog with RDF persistence for knowledge base storage</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-UPSERT-VALIDATION">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-UPSERT-VALIDATION"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-UPSERT-VALIDATION.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[governance,validation]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Upsert Validation</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-010">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-010"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-010.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,ui]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">VS Code extension with TreeView sidebar for KB navigation</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-CONSISTENCY-CHECKING">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CONSISTENCY-CHECKING"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CONSISTENCY-CHECKING.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[validation,check]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Consistency Checking</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-mergeStaticLinks">
-  <kb:covered_by rdf:resource="kb:entity/TEST-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-mergeStaticLinks"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">mergeStaticLinks</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-KB-REPO-LOCAL">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-REPO-LOCAL"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-REPO-LOCAL.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[core,storage]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">KB Is Repo Local</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-009">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-009"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-009.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[storage,prolog,rdf]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">RDF persistence using SWI-Prolog rdf_persistency library</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-016">
-  <kb:requires_property rdf:resource="kb:entity/FACT-ADR-SUPERSESSION"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-ADR-TEMPORAL-INFERENCE"/>
-  <kb:constrains rdf:resource="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:depends_on rdf:resource="kb:entity/REQ-005"/>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-016"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-016.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[adr,temporal,inference,schema]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Temporal ADR supersession chain</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-019">
-  <kb:constrains rdf:resource="kb:entity/FACT-USER-ROLE"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:06:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-019"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:requires_property rdf:resource="kb:entity/FACT-LIMIT-3"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-019.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[auth]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Users can now have 3 roles</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:06:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-KibiTreeDataProvider">
-  <kb:implements rdf:resource="kb:entity/REQ-010"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiTreeDataProvider"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">KibiTreeDataProvider</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-015">
-  <kb:depends_on rdf:resource="kb:entity/REQ-002"/>
-  <kb:depends_on rdf:resource="kb:entity/REQ-003"/>
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-015"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-015.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[query,context,mcp,cli]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Query KB entities by source file path</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-004">
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-011"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-004"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-004.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,upsert,validation]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">LLM agent upserts new requirement via MCP and KB validates schema</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
 <rdf:Description rdf:about="kb:entity/REQ-004">
   <kb:constrains rdf:resource="kb:entity/FACT-SCHEMA-ENTITY-MODEL"/>
   <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
@@ -961,148 +368,6 @@
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:30:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/ADR-004">
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-012"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-004"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-004.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[branching,isolation]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Per-branch KB isolation with no automatic cross-branch merging</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-006">
-  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-003"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-006"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-006.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[integration,hooks,git]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Git hooks fire on branch switch and trigger KB sync</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-004">
-  <kb:relates_to rdf:resource="kb:entity/REQ-006"/>
-  <kb:relates_to rdf:resource="kb:entity/SCEN-005"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-004"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-004.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,check,unit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">kibi check detects must-priority coverage violations</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-009">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-009"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-014"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-009.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[enforcement,pre-commit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Commit blocked when must-priority requirement lacks scenario coverage</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/REQ-007">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-007"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-007.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[extractors,sync]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Markdown and YAML manifest extractors for entity import</kb:title>
-  <kb:type rdf:datatype="&xsd;string">req</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-CLI-COMMAND-SET-CORE">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CLI-COMMAND-SET-CORE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CLI-COMMAND-SET-CORE.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Core CLI Command Set</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-CHECK-ENFORCEMENT">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CHECK-ENFORCEMENT"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CHECK-ENFORCEMENT.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[validation,enforcement]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Enforcement Via Check Gate</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-006">
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-006"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-006.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[monorepo,structure]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Monorepo structure: core (Prolog) + cli + mcp + vscode packages</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-008">
-  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T17:24:55.048Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-008"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-008.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:supersedes rdf:resource="kb:entity/ADR-005"/>
-  <kb:tags rdf:datatype="&xsd;string">[symbols,manifest,vscode,mcp]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">AST-derived symbol coordinates; MCP-enforced freshness</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T17:24:55.048Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-ENTITY-TYPES-CORE-7">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ENTITY-TYPES-CORE-7"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ENTITY-TYPES-CORE-7.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[schema,entities]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Eight Core Entity Types</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:30:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-ADR-SUPERSESSION">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ADR-SUPERSESSION"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ADR-SUPERSESSION.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[adr,schema]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">ADR Supersession Semantics</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
 <rdf:Description rdf:about="kb:entity/FACT-CI-GATING">
   <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
   <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CI-GATING"/>
@@ -1114,184 +379,50 @@
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-DETERMINISTIC">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-DETERMINISTIC"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-DETERMINISTIC.md</kb:source>
+<rdf:Description rdf:about="kb:entity/FACT-KB-SCOPE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-SCOPE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-SCOPE.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[inference,determinism]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Deterministic Inference Execution</kb:title>
+  <kb:tags rdf:datatype="&xsd;string">[core,storage]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Knowledge Base Scope</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-010">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-010"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-010.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,ui]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">VS Code extension with TreeView sidebar for KB navigation</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-009">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-009"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-009.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[storage,prolog,rdf]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">RDF persistence using SWI-Prolog rdf_persistency library</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-ADR-SUPERSESSION">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ADR-SUPERSESSION"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ADR-SUPERSESSION.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[adr,schema]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">ADR Supersession Semantics</kb:title>
   <kb:type rdf:datatype="&xsd;string">fact</kb:type>
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-002">
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-002"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-002.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[cli,init]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Developer initializes KB on fresh repository with kibi init --hooks</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-011">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-011"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-011.md</kb:source>
-  <kb:specified_by rdf:resource="kb:entity/REQ-016"/>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[adr,temporal,agent-workflow]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Agent retrieves full ADR decision history before making an architectural change</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-BRANCH-INITIALIZATION">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-BRANCH-INITIALIZATION"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-BRANCH-INITIALIZATION.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[branching,initialization]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Branch KB Initialization</kb:title>
-  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SCEN-007">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-007"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-007.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[sync,extractors]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">kibi sync imports entities from Markdown frontmatter and YAML manifest</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/EVT-001">
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-001"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-001.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[release,milestone]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">v0.0.1 released as Functional Alpha</kb:title>
-  <kb:type rdf:datatype="&xsd;string">event</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-008">
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-008"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-008.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[integration,e2e,cli]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">End-to-end init then sync then query then check pipeline passes</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-parseSymbolsManifest">
-  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-parseSymbolsManifest"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">parseSymbolsManifest</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-004">
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:implements rdf:resource="kb:entity/REQ-006"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-004"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">handleKbCheck</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FLAG-003">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-003"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-003.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[ui,web,deferred]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">web-ui: browser-based KB explorer UI</kb:title>
-  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-mcp-query-relationships">
-  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-mcp-query-relationships"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-mcp-query-relationships.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,test]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">MCP kb_query_relationships tool tests</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/TEST-007">
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-007"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-009"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-007.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[prolog,core,unit]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Prolog KB attaches, asserts, and retrieves entities correctly</kb:title>
-  <kb:type rdf:datatype="&xsd;string">test</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-002">
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:implements rdf:resource="kb:entity/REQ-011"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-002"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">handleKbUpsert</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/SYM-handleKbQueryRelationships">
-  <kb:implements rdf:resource="kb:entity/REQ-002"/>
-  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-handleKbQueryRelationships"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">handleKbQueryRelationships</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/TEST-001">
@@ -1308,6 +439,19 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
+<rdf:Description rdf:about="kb:entity/TEST-013">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-013"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-013.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[adr,inference,temporal]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">supersedes relationship traversal and current_adr inference</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:validates rdf:resource="kb:entity/REQ-016"/>
+</rdf:Description>
+
 <rdf:Description rdf:about="kb:entity/SCEN-008">
   <kb:relates_to rdf:resource="kb:entity/ADR-008"/>
   <kb:relates_to rdf:resource="kb:entity/REQ-013"/>
@@ -1320,6 +464,157 @@
   <kb:title rdf:datatype="&xsd;string">Agent derives impact and coverage from a requirement change</kb:title>
   <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FLAG-005">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-005"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-006"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-005.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[ci,coverage,deferred]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">ci-coverage-import: import test coverage data from CI into KB</kb:title>
+  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-UPSERT-VALIDATION">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-UPSERT-VALIDATION"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-UPSERT-VALIDATION.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[governance,validation]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Upsert Validation</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-003">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-003"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-003.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,query,unit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">kibi query returns correct entities by type, id, and tag filters</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FLAG-002">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-002"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
+  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-002.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[symbols,scip,deferred]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">scip-symbol-extraction: SCIP/LSP-based language-specific symbol indexing</kb:title>
+  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-004">
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:implements rdf:resource="kb:entity/REQ-006"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-004"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">handleKbCheck</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-001">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-001"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-009"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-001.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[storage,prolog,rdf]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Use SWI-Prolog with RDF persistence for knowledge base storage</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-007">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-007"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-007.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[extractors,sync]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Markdown and YAML manifest extractors for entity import</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FLAG-003">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-003"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-003.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[ui,web,deferred]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">web-ui: browser-based KB explorer UI</kb:title>
+  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-001">
+  <kb:implements rdf:resource="kb:entity/REQ-001"/>
+  <kb:implements rdf:resource="kb:entity/REQ-009"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-001"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">PrologProcess</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-007">
+  <kb:relates_to rdf:resource="kb:entity/FLAG-001"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-010"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-007"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-007.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,scope,deferred]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Defer graph visualization and full VS Code features to post-v0</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-vscode-code-action">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-vscode-code-action"/>
+  <kb:owner rdf:resource="file:///home/looted/projects/kibi/.kb/branches/dev"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-vscode-code-action.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,traceability,code-action]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Code action on a symbol opens Quick Pick of linked KB entities</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-CHECK-RULESET-CORE-3">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CHECK-RULESET-CORE-3"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CHECK-RULESET-CORE-3.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[validation,rules]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Core Check Ruleset Of Three</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/SCEN-005">
@@ -1349,6 +644,46 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
+<rdf:Description rdf:about="kb:entity/REQ-005">
+  <kb:constrains rdf:resource="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-005"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-RELATIONSHIP-AUDIT-METADATA"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-005.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[schema,relationships]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Typed relationships between entities with audit metadata</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-activateKibiExtension">
+  <kb:implements rdf:resource="kb:entity/REQ-010"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-activateKibiExtension"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">activate</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-015">
+  <kb:depends_on rdf:resource="kb:entity/REQ-002"/>
+  <kb:depends_on rdf:resource="kb:entity/REQ-003"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-015"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-015.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[query,context,mcp,cli]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Query KB entities by source file path</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
 <rdf:Description rdf:about="kb:entity/ADR-005">
   <kb:relates_to rdf:resource="kb:entity/FLAG-002"/>
   <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
@@ -1363,40 +698,616 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/SYM-007">
-  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-007"/>
-  <kb:implements rdf:resource="kb:entity/REQ-007"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
-  <kb:title rdf:datatype="&xsd;string">extractFromManifest</kb:title>
-  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T19:20:50.371Z</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/ADR-annotation-strategy">
-  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
-  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
-  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-annotation-strategy"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-annotation-strategy.md</kb:source>
-  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[vscode,annotation,symbols,manifest]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Use symbols.yaml manifest for code-symbol-to-entity mapping (no inline annotations)</kb:title>
-  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
-</rdf:Description>
-
-<rdf:Description rdf:about="kb:entity/FACT-WRITE-GOVERNANCE">
+<rdf:Description rdf:about="kb:entity/FACT-BRANCH-INITIALIZATION">
   <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-WRITE-GOVERNANCE"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-WRITE-GOVERNANCE.md</kb:source>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-BRANCH-INITIALIZATION"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-BRANCH-INITIALIZATION.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[governance,safety]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Write Governance</kb:title>
+  <kb:tags rdf:datatype="&xsd;string">[branching,initialization]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Branch KB Initialization</kb:title>
   <kb:type rdf:datatype="&xsd;string">fact</kb:type>
   <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-011">
+  <kb:requires_property rdf:resource="kb:entity/FACT-AUDIT-APPEND-ONLY"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-UPSERT-VALIDATION"/>
+  <kb:constrains rdf:resource="kb:entity/FACT-WRITE-GOVERNANCE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-011"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-011.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[governance,audit,safety]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Write governance: validated changesets and append-only audit log</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-MCPCAT-IDENTITY-FALLBACK">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:34:17 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-MCPCAT-IDENTITY-FALLBACK"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-MCPCAT-IDENTITY-FALLBACK.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,telemetry,mcpcat]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCPcat Identify Uses Stable Anonymous Fallback</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:34:17 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-006">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-006"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-006.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[gc,branches]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">kibi gc removes KB directory for branch deleted from git</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-KibiTreeDataProvider">
+  <kb:implements rdf:resource="kb:entity/REQ-010"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiTreeDataProvider"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">KibiTreeDataProvider</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-008">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-008"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-008.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[git,hooks,automation]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Git hooks for automated KB sync on branch checkout and merge</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:26 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/EVT-002">
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-002"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-002"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-002.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[lifecycle,init]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">KB initialized on repository with kibi init</kb:title>
+  <kb:type rdf:datatype="&xsd;string">event</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-KB-REPO-LOCAL">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-REPO-LOCAL"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-REPO-LOCAL.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[core,storage]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">KB Is Repo Local</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-010">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-010"/>
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">startServer</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-CLI-COMMAND-SET-CORE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CLI-COMMAND-SET-CORE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CLI-COMMAND-SET-CORE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Core CLI Command Set</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-003">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-003"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-003.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,transport,json-rpc]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Use stdio JSON-RPC transport for MCP server (no embedded newlines)</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-ADR-TEMPORAL-INFERENCE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ADR-TEMPORAL-INFERENCE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ADR-TEMPORAL-INFERENCE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[adr,inference,temporal]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Temporal ADR Inference</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-RELATIONSHIP-AUDIT-METADATA">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-RELATIONSHIP-AUDIT-METADATA"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-RELATIONSHIP-AUDIT-METADATA.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[schema,audit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Relationship Audit Metadata</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-004">
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-012"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-004"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-004.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[branching,isolation]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Per-branch KB isolation with no automatic cross-branch merging</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-AUDIT-APPEND-ONLY">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-AUDIT-APPEND-ONLY"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-AUDIT-APPEND-ONLY.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[audit,history]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Append-Only Audit History</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-005">
+  <kb:implements rdf:resource="kb:entity/REQ-010"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-005"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">KibiTreeDataProvider</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-002">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-002"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-002.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,bun,nodejs]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-002">
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-002"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-002.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,init]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Developer initializes KB on fresh repository with kibi init --hooks</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-parseSymbolsManifest">
+  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-parseSymbolsManifest"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">parseSymbolsManifest</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-MCP-SERVER-INTERFACE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-MCP-SERVER-INTERFACE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-MCP-SERVER-INTERFACE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,api]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP Server Interface</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-010">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-010"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-010.md</kb:source>
+  <kb:specified_by rdf:resource="kb:entity/REQ-015"/>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,context,agent-workflow]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Agent queries full KB context for a source file before editing it</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-CONSISTENCY-CHECKING">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CONSISTENCY-CHECKING"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CONSISTENCY-CHECKING.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[validation,check]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Consistency Checking</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-011">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-011"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-011.md</kb:source>
+  <kb:specified_by rdf:resource="kb:entity/REQ-016"/>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[adr,temporal,agent-workflow]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Agent retrieves full ADR decision history before making an architectural change</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-LIMIT-3">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-LIMIT-3"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-LIMIT-3.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cardinality]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Maximum of Three</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-DETERMINISTIC">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-DETERMINISTIC"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-DETERMINISTIC.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[inference,determinism]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Deterministic Inference Execution</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-008">
+  <kb:relates_to rdf:resource="kb:entity/ADR-005"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T17:24:55.048Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/ADR-008"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/adr/ADR-008.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:supersedes rdf:resource="kb:entity/ADR-005"/>
+  <kb:tags rdf:datatype="&xsd;string">[symbols,manifest,vscode,mcp]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">AST-derived symbol coordinates; MCP-enforced freshness</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T17:24:55.048Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-USER-ROLE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-USER-ROLE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-USER-ROLE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[domain,auth]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">User Role Assignment</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-KibiCodeActionProvider">
+  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiCodeActionProvider"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">KibiCodeActionProvider</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-002">
+  <kb:requires_property rdf:resource="kb:entity/FACT-MCP-TOOLSET-CORE-6"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-MCPCAT-IDENTITY-FALLBACK"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-TRANSPORT-STDIO"/>
+  <kb:constrains rdf:resource="kb:entity/FACT-MCP-SERVER-INTERFACE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:24 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-002"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-002.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,api,tools]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP server with 6 tools over stdio transport</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:34:38 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/EVT-004">
+  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-003"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-004"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-004.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[lifecycle,hooks,sync]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Entity sync triggered by post-checkout or post-merge git hook</kb:title>
+  <kb:type rdf:datatype="&xsd;string">event</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-001">
+  <kb:requires_property rdf:resource="kb:entity/FACT-KB-PER-BRANCH"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-KB-REPO-LOCAL"/>
+  <kb:constrains rdf:resource="kb:entity/FACT-KB-SCOPE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:24 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-001"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-001.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[core,storage,branching]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Repo-local per-branch knowledge base</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-001">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-001"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-001.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,query]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Agent queries requirements from KB via MCP kb_query tool</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-INFERENCE-SURFACE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-INFERENCE-SURFACE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-INFERENCE-SURFACE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[inference,mcp]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Inference API Surface</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-005">
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-001"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-005"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-005.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,server,unit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP server responds to all 9 tools with valid JSON-RPC format</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-003">
+  <kb:relates_to rdf:resource="kb:entity/REQ-008"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-012"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-003"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-003.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[branching,hooks]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Branch switch triggers copy-from-main KB creation and auto-sync</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-016">
+  <kb:requires_property rdf:resource="kb:entity/FACT-ADR-SUPERSESSION"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-ADR-TEMPORAL-INFERENCE"/>
+  <kb:constrains rdf:resource="kb:entity/FACT-SCHEMA-RELATIONSHIP-MODEL"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:09 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:depends_on rdf:resource="kb:entity/REQ-005"/>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-016"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-016.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[adr,temporal,inference,schema]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Temporal ADR supersession chain</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-003">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-003"/>
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">handleKbQuery</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-008">
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-007"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-008"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-008.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[integration,e2e,cli]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">End-to-end init then sync then query then check pipeline passes</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-012">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-012"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-012.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,context]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">kbcontext returns entities linked to a source file</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:validates rdf:resource="kb:entity/REQ-015"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/EVT-001">
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-003"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/EVT-001"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/events/EVT-001.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[release,milestone]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">v0.0.1 released as Functional Alpha</kb:title>
+  <kb:type rdf:datatype="&xsd;string">event</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-019">
+  <kb:constrains rdf:resource="kb:entity/FACT-USER-ROLE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:06:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-019"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-LIMIT-3"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-019.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[auth]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Users can now have 3 roles</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 14:06:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-TRANSPORT-STDIO">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-TRANSPORT-STDIO"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-TRANSPORT-STDIO.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,transport]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP Transport Is Stdio</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FLAG-001">
+  <kb:relates_to rdf:resource="kb:entity/ADR-007"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-010"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-001"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/should"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-001.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,deferred,graph]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">vscode-full-features: full VS Code extension with graph visualization</kb:title>
+  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FLAG-004">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FLAG-004"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/could"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-001"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/flags/FLAG-004.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[federation,multi-repo,deferred]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">cross-repo-support: KB federation across multiple repositories</kb:title>
+  <kb:type rdf:datatype="&xsd;string">flag</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-004">
+  <kb:relates_to rdf:resource="kb:entity/REQ-002"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-011"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-004"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-004.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,upsert,validation]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">LLM agent upserts new requirement via MCP and KB validates schema</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SCEN-009">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-009"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:relates_to rdf:resource="kb:entity/REQ-014"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-009.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[enforcement,pre-commit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Commit blocked when must-priority requirement lacks scenario coverage</kb:title>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 10:36:22 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-MCP-TOOLSET-CORE-6">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-MCP-TOOLSET-CORE-6"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-MCP-TOOLSET-CORE-6.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[mcp,tools]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">MCP Core Toolset Of Six</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-003">
+  <kb:constrains rdf:resource="kb:entity/FACT-CLI-SURFACE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-003"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-CLI-COMMAND-SET-CORE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-003.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,commands]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">CLI with init, sync, query, check, gc, doctor commands</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 <rdf:Description rdf:about="kb:entity/SCEN-vscode-open-entity">
@@ -1414,17 +1325,118 @@
   <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
-<rdf:Description rdf:about="kb:entity/SCEN-010">
-  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:created_at>
-  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SCEN-010"/>
-  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
-  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/scenarios/SCEN-010.md</kb:source>
-  <kb:specified_by rdf:resource="kb:entity/REQ-015"/>
+<rdf:Description rdf:about="kb:entity/SYM-KibiMCPServer">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiMCPServer"/>
+  <kb:implements rdf:resource="kb:entity/REQ-002"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">kibi MCP server (startServer)</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-KB-PER-BRANCH">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-KB-PER-BRANCH"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-KB-PER-BRANCH.md</kb:source>
   <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
-  <kb:tags rdf:datatype="&xsd;string">[mcp,context,agent-workflow]</kb:tags>
-  <kb:title rdf:datatype="&xsd;string">Agent queries full KB context for a source file before editing it</kb:title>
-  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
-  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 11:35:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+  <kb:tags rdf:datatype="&xsd;string">[core,branching]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">KB Is Per Branch</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:25:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-vscode-traceability">
+  <kb:relates_to rdf:resource="kb:entity/SCEN-vscode-code-action"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-vscode-open-entity"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-vscode-traceability"/>
+  <kb:owner rdf:resource="file:///home/looted/projects/kibi/.kb/branches/dev"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-vscode-traceability.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[vscode,traceability,ux]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Bidirectional traceability in VS Code extension</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 01:00:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-013">
+  <kb:relates_to rdf:resource="kb:entity/ADR-008"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-008"/>
+  <kb:relates_to rdf:resource="kb:entity/TEST-010"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-INFERENCE-DETERMINISTIC"/>
+  <kb:requires_property rdf:resource="kb:entity/FACT-INFERENCE-TOOLS-CORE-3"/>
+  <kb:constrains rdf:resource="kb:entity/FACT-INFERENCE-SURFACE"/>
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 09:10:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/REQ-013"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/requirements/REQ-013.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[inference,mcp,reasoning]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Deterministic inference tools for impact and coverage analysis</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-CHECK-ENFORCEMENT">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-CHECK-ENFORCEMENT"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-CHECK-ENFORCEMENT.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[validation,enforcement]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Enforcement Via Check Gate</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/TEST-004">
+  <kb:relates_to rdf:resource="kb:entity/REQ-006"/>
+  <kb:relates_to rdf:resource="kb:entity/SCEN-005"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/TEST-004"/>
+  <kb:priority rdf:resource="file:///home/looted/projects/kibi/.kb/branches/must"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/tests/TEST-004.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[cli,check,unit]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">kibi check detects must-priority coverage violations</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 18 2026 14:12:25 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/SYM-KibiCodeLensProvider">
+  <kb:constrained_by rdf:resource="kb:entity/ADR-annotation-strategy"/>
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/SYM-KibiCodeLensProvider"/>
+  <kb:implements rdf:resource="kb:entity/REQ-vscode-traceability"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/symbols.yaml</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/draft"/>
+  <kb:title rdf:datatype="&xsd;string">KibiCodeLensProvider</kb:title>
+  <kb:type rdf:datatype="&xsd;string">symbol</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-20T20:34:44.215Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-WRITE-GOVERNANCE">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-WRITE-GOVERNANCE"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-WRITE-GOVERNANCE.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[governance,safety]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Write Governance</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-ENTITY-TYPES-CORE-7">
+  <kb:created_at rdf:datatype="&xsd;string">Fri Feb 20 2026 15:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:resource="file:///home/looted/projects/kibi/.kb/branches/FACT-ENTITY-TYPES-CORE-7"/>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/documentation/facts/FACT-ENTITY-TYPES-CORE-7.md</kb:source>
+  <kb:status rdf:resource="file:///home/looted/projects/kibi/.kb/branches/active"/>
+  <kb:tags rdf:datatype="&xsd;string">[schema,entities]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Eight Core Entity Types</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Fri Feb 20 2026 21:30:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
 </rdf:Description>
 
 </rdf:RDF>
