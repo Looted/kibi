@@ -142,7 +142,7 @@ const TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -234,7 +234,7 @@ const TOOLS = [
         relationships: {
           type: "array",
           description:
-            "Optional relationship rows to create in the same call. Side effect: asserts edges in KB.",
+            "Optional relationship rows to create in the same call. For requirement encoding, prefer `constrains` + `requires_property` edges from req IDs to shared fact IDs to maximize reuse and detect conflicts. Side effect: asserts edges in KB.",
           items: {
             type: "object",
             required: ["type", "from", "to"],
@@ -553,6 +553,8 @@ function registerPrompts(): PromptDefinition[] {
         "",
         "Treat this server as a branch-aware knowledge graph interface for software traceability.",
         "",
+        "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
+        "- Reuse canonical fact IDs across requirements; shared constrained facts make contradictions detectable.",
         "- Use read tools first (`kb_query`, `kb_query_relationships`, `kbcontext`) to establish context.",
         "- Use mutation tools (`kb_upsert`, `kb_delete`, branch tools) only after you can justify the change.",
         "- Use inference tools (`kb_derive`, `kb_impact`, `kb_coverage_report`) for deterministic analysis.",
@@ -571,10 +573,11 @@ function registerPrompts(): PromptDefinition[] {
         "",
         "1. **Discover**: Call `kb_list_entity_types`/`kb_list_relationship_types` if you are unsure about allowed values.",
         "2. **Inspect**: Call `kb_query` or `kbcontext` to confirm current state before any mutation.",
-        "3. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
-        "4. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
-        "5. **Verify integrity**: Call `kb_check` after mutations.",
-        "6. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
+        "3. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property`.",
+        "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
+        "5. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
+        "6. **Verify integrity**: Call `kb_check` after mutations.",
+        "7. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
         "",
         "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, or relationship type).",
       ].join("\n"),
@@ -629,6 +632,12 @@ function registerDocResources(): DocResource[] {
 
   const examples = [
     "# kibi-mcp Examples",
+    "",
+    "## Model requirements as reusable facts",
+    "1. `kb_query` to find existing fact IDs before creating new ones",
+    "2. `kb_upsert` for the req entity and include `relationships` with `constrains` and `requires_property`",
+    "3. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
+    '4. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }`',
     "",
     "## Discover requirement coverage gaps",
     '1. `kb_query` with `{ "type": "req", "limit": 20 }`',
