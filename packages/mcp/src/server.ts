@@ -4,6 +4,7 @@ import process from "node:process";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
 import { attachMcpcat } from "./mcpcat.js";
 import {
   type BranchEnsureArgs,
@@ -720,6 +721,118 @@ async function ensureProlog(): Promise<PrologProcess> {
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
+function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
+  if (!schema || typeof schema !== "object") {
+    return z.any();
+  }
+
+  const obj = schema as Record<string, unknown>;
+
+  if (Array.isArray(obj.enum) && obj.enum.length > 0) {
+    const values = obj.enum;
+    const literals = values.map((v) => z.literal(v));
+    const union = z.union(
+      literals as [z.ZodLiteral<unknown>, ...z.ZodLiteral<unknown>[]],
+    );
+    const description =
+      typeof obj.description === "string" ? obj.description : undefined;
+    return description ? union.describe(description) : union;
+  }
+
+  const schemaType = typeof obj.type === "string" ? obj.type : undefined;
+
+  switch (schemaType) {
+    case "object": {
+      const properties =
+        obj.properties && typeof obj.properties === "object"
+          ? (obj.properties as Record<string, unknown>)
+          : {};
+      const required = new Set(
+        Array.isArray(obj.required)
+          ? obj.required.filter(
+              (k): k is string => typeof k === "string" && k.length > 0,
+            )
+          : [],
+      );
+
+      const shape: Record<string, z.ZodTypeAny> = {};
+      for (const [key, value] of Object.entries(properties)) {
+        const propSchema = jsonSchemaToZod(value);
+        shape[key] = required.has(key) ? propSchema : propSchema.optional();
+      }
+
+      let objectSchema: z.ZodTypeAny = z.object(shape);
+      if (obj.additionalProperties !== false) {
+        objectSchema = objectSchema.passthrough();
+      }
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      return description ? objectSchema.describe(description) : objectSchema;
+    }
+    case "array": {
+      const itemSchema = jsonSchemaToZod(obj.items);
+      let arraySchema: z.ZodTypeAny = z.array(itemSchema);
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      if (typeof obj.minItems === "number") {
+        arraySchema = arraySchema.min(obj.minItems);
+      }
+      if (typeof obj.maxItems === "number") {
+        arraySchema = arraySchema.max(obj.maxItems);
+      }
+      return description ? arraySchema.describe(description) : arraySchema;
+    }
+    case "string": {
+      let s: z.ZodTypeAny = z.string();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      if (typeof obj.minLength === "number") {
+        s = s.min(obj.minLength);
+      }
+      if (typeof obj.maxLength === "number") {
+        s = s.max(obj.maxLength);
+      }
+      return description ? s.describe(description) : s;
+    }
+    case "number": {
+      let n: z.ZodTypeAny = z.number();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      if (typeof obj.minimum === "number") {
+        n = n.min(obj.minimum);
+      }
+      if (typeof obj.maximum === "number") {
+        n = n.max(obj.maximum);
+      }
+      return description ? n.describe(description) : n;
+    }
+    case "integer": {
+      let n: z.ZodTypeAny = z.number().int();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      if (typeof obj.minimum === "number") {
+        n = n.min(obj.minimum);
+      }
+      if (typeof obj.maximum === "number") {
+        n = n.max(obj.maximum);
+      }
+      return description ? n.describe(description) : n;
+    }
+    case "boolean": {
+      const b = z.boolean();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      return description ? b.describe(description) : b;
+    }
+    default: {
+      const anySchema = z.any();
+      const description =
+        typeof obj.description === "string" ? obj.description : undefined;
+      return description ? anySchema.describe(description) : anySchema;
+    }
+  }
+}
+
 function addTool(
   server: McpServer,
   name: string,
@@ -729,9 +842,17 @@ function addTool(
 ): void {
   (
     server as McpServer & {
-      registerTool: (n: string, c: object, h: ToolHandler) => void;
+      registerTool: (
+        n: string,
+        c: { description: string; inputSchema: z.ZodTypeAny },
+        h: ToolHandler,
+      ) => void;
     }
-  ).registerTool(name, { description, inputSchema }, handler);
+  ).registerTool(
+    name,
+    { description, inputSchema: jsonSchemaToZod(inputSchema) },
+    handler,
+  );
 }
 
 export async function startServer(): Promise<void> {
