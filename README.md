@@ -152,18 +152,23 @@ Each tool accepts `branch` parameter for branch-aware operations.
 - `flag`: Feature flag
 - `event`: Domain/system event
 - `symbol`: Code symbol (function/class/module)
+- `fact`: Atomic domain fact used by requirements and inference checks
 
 ## Relationship Types
 - `depends_on(req, req)`
 - `specified_by(req, scenario)`
 - `verified_by(req, test)`
+- `validates(test, req)`
 - `implements(symbol, req)`
 - `covered_by(symbol, test)`
 - `constrained_by(symbol, adr)`
+- `constrains(req, fact)`
+- `requires_property(req, fact)`
 - `guards(flag, symbol|event|req)`
 - `publishes(symbol, event)`
 - `consumes(symbol, event)`
-- `relates_to(a, b, kind)`
+- `supersedes(adr, adr)`
+- `relates_to(a, b)`
 
 ## Example Entity (from test fixtures)
 ```yaml

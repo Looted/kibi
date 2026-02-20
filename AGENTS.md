@@ -4,7 +4,7 @@ This document provides guidelines for AI agents working on the kibi codebase.
 
 ## Project Overview
 
-**Kibi** is a repo-local, per-branch, queryable long-term memory for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, and code symbols—along with typed relationships between them.
+**Kibi** is a repo-local, per-branch, queryable long-term memory for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts—along with typed relationships between them.
 
 The KB is accessible via:
 - **CLI**: `kibi` command-line tool
@@ -14,7 +14,7 @@ The KB is accessible via:
 
 ## Entity Types
 
-Kibi supports 7 entity types:
+Kibi supports 8 entity types:
 
 | Type | Description | ID Prefix | Status Values |
 |------|-------------|-----------|---------------|
@@ -25,6 +25,7 @@ Kibi supports 7 entity types:
 | `flag` | Feature flag | FLAG-XXX | active, inactive, deprecated |
 | `event` | Domain/system event | EVT-XXX | active, deprecated |
 | `symbol` | Code symbol (function/class/module) | Varies | active, deprecated, removed |
+| `fact` | Atomic domain fact | FACT-XXX | active, deprecated |
 
 ---
 
@@ -35,13 +36,16 @@ Kibi supports 7 entity types:
 | `depends_on` | req → req | Requirement depends on another |
 | `specified_by` | req → scenario | Requirement specified by scenario |
 | `verified_by` | req → test | Requirement verified by test |
+| `validates` | test → req | Test validates requirement |
 | `implements` | symbol → req | Symbol implements requirement |
 | `covered_by` | symbol → test | Symbol covered by test |
 | `constrained_by` | symbol → adr | Symbol constrained by ADR |
-| `affects` | adr → symbol | ADR affects symbol/component |
+| `constrains` | req → fact | Requirement constrains domain fact |
+| `requires_property` | req → fact | Requirement requires property/value fact |
 | `guards` | flag → symbol/event/req | Flag guards entity |
 | `publishes` | symbol → event | Symbol publishes event |
 | `consumes` | symbol → event | Symbol consumes event |
+| `supersedes` | adr → adr | ADR supersedes prior ADR |
 | `relates_to` | any → any | Generic relationship |
 
 ---
@@ -117,6 +121,7 @@ This ensures the knowledge base grows with each investigation, making future wor
    - ADRs: `adr/ADR-XXX.md`
    - Flags: `flags/FLAG-XXX.md`
    - Events: `events/EVT-XXX.md`
+   - Facts: `facts/FACT-XXX.md`
 
 2. Include frontmatter with required fields:
    ```yaml

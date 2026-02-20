@@ -5,7 +5,7 @@ import Ajv from "ajv";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 export interface UpsertArgs {
-  /** Entity type (req, scenario, test, adr, flag, event, symbol) */
+  /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
   type: string;
   /** Unique entity identifier */
   id: string;

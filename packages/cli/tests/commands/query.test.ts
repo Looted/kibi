@@ -151,6 +151,20 @@ User logs in with OAuth2 provider.
   );
 
   test(
+    "accepts fact as a valid entity type",
+    () => {
+      const output = execSync(`bun ${kibiBin} query fact --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      const results = JSON.parse(output);
+      expect(Array.isArray(results)).toBe(true);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "queries specific entity by ID",
     () => {
       const allOutput = execSync(`bun ${kibiBin} query req --format json`, {

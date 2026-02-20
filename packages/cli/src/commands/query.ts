@@ -78,6 +78,7 @@ export async function queryCommand(
           "flag",
           "event",
           "symbol",
+          "fact",
         ];
         if (!validTypes.includes(type)) {
           await prolog.query("kb_detach");
