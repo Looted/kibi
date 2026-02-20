@@ -64,12 +64,32 @@ const ERROR_CODES = {
   VALIDATION_ERROR: -32002,
 } as const;
 
-// MCP Tool Definitions
+interface PromptArgumentDefinition {
+  name: string;
+  description: string;
+  required?: boolean;
+}
+
+interface PromptDefinition {
+  name: string;
+  description: string;
+  arguments?: PromptArgumentDefinition[];
+  text: string;
+}
+
+interface DocResource {
+  uri: string;
+  name: string;
+  description: string;
+  mimeType: "text/markdown";
+  text: string;
+}
+
 const TOOLS = [
   {
     name: "kb_query",
     description:
-      "Query entities from knowledge base. Supports filtering by type, ID, tags, source file, and pagination.",
+      "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects.",
     inputSchema: {
       type: "object",
       properties: {
@@ -85,30 +105,36 @@ const TOOLS = [
             "symbol",
             "fact",
           ],
-          description: "Entity type to query",
+          description:
+            "Optional entity type filter. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
         },
         id: {
           type: "string",
-          description: "Specific entity ID to retrieve",
+          description:
+            "Optional exact entity ID. Example: 'REQ-001'. If omitted, returns matching entities by other filters.",
         },
         tags: {
           type: "array",
           items: { type: "string" },
-          description: "Filter by tags",
+          description:
+            "Optional tag filter. Matches entities that contain any provided tag. Example: ['security','billing'].",
         },
         sourceFile: {
           type: "string",
-          description: "Filter by source file path (substring match)",
+          description:
+            "Optional source-file substring filter. Example: 'src/auth/login.ts'. Uses KB source linkage, not file-system scanning.",
         },
         limit: {
           type: "number",
-          default: 10,
-          description: "Maximum number of results",
+          default: 100,
+          description:
+            "Optional max rows to return after filtering. Default: 100 when omitted. Example: 25.",
         },
         offset: {
           type: "number",
           default: 0,
-          description: "Result pagination offset",
+          description:
+            "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
         },
       },
     },
@@ -116,7 +142,7 @@ const TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update an entity in the knowledge base. All properties are stored as RDF triples.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -133,18 +159,24 @@ const TOOLS = [
             "symbol",
             "fact",
           ],
-          description: "Entity type",
+          description:
+            "Entity type to create/update. Allowed: req, scenario, test, adr, flag, event, symbol, fact. Example: 'req'.",
         },
         id: {
           type: "string",
-          description: "Unique entity identifier",
+          description:
+            "Unique entity ID (string). Example: 'REQ-123'. Existing ID updates the entity; new ID creates it.",
         },
         properties: {
           type: "object",
           description:
-            "Entity properties stored as RDF triples. created_at, updated_at auto-filled if omitted.",
+            "Entity fields to persist. Must include title and status. If created_at, updated_at, or source are omitted, server fills defaults.",
           properties: {
-            title: { type: "string", description: "Entity title (required)" },
+            title: {
+              type: "string",
+              description:
+                "Required short title. Example: 'Protect account settings endpoint'.",
+            },
             status: {
               type: "string",
               enum: [
@@ -158,35 +190,51 @@ const TOOLS = [
                 "in_progress",
                 "superseded",
               ],
-              description: "Entity status (required)",
+              description:
+                "Required lifecycle state. Allowed values are fixed enum options. Example: 'active'.",
             },
             source: {
               type: "string",
-              description: "Source reference (auto-filled if omitted)",
+              description:
+                "Optional provenance string. Example: 'docs/requirements/REQ-123.md'. Defaults to 'mcp://kibi/upsert'.",
             },
             tags: {
               type: "array",
               items: { type: "string" },
-              description: "Categorization tags",
+              description:
+                "Optional categorization tags. Example: ['security','api'].",
             },
-            owner: { type: "string", description: "Owning team or person" },
-            priority: { type: "string", description: "Priority level" },
-            severity: { type: "string", description: "Severity level" },
+            owner: {
+              type: "string",
+              description:
+                "Optional owner name/team. Example: 'platform-team'.",
+            },
+            priority: {
+              type: "string",
+              description: "Optional priority label. Example: 'high'.",
+            },
+            severity: {
+              type: "string",
+              description: "Optional severity label. Example: 'critical'.",
+            },
             links: {
               type: "array",
               items: { type: "string" },
-              description: "Related URLs or references",
+              description:
+                "Optional references. Example: ['REQ-010','https://example.com/spec'].",
             },
             text_ref: {
               type: "string",
-              description: "Reference to source text",
+              description:
+                "Optional text anchor/reference. Example: 'requirements.md#L40'.",
             },
           },
           required: ["title", "status"],
         },
         relationships: {
           type: "array",
-          description: "Optional relationships to create alongside this entity",
+          description:
+            "Optional relationship rows to create in the same call. Side effect: asserts edges in KB.",
           items: {
             type: "object",
             required: ["type", "from", "to"],
@@ -210,17 +258,17 @@ const TOOLS = [
                   "relates_to",
                 ],
                 description:
-                  "Relationship type. Direction constraints: depends_on(req→req), specified_by(scenario→req), verified_by(req→test), validates(test→req), implements(symbol→req), covered_by(symbol→test), constrained_by(symbol→adr), constrains(req→fact), requires_property(req→fact), guards(flag→symbol|event|req), publishes(symbol→event), consumes(symbol→event), supersedes(adr→adr|req→req), relates_to(any→any)",
+                  "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req->test).",
               },
               from: {
                 type: "string",
                 description:
-                  "Source entity ID (must exist). This entity is the subject of the relationship.",
+                  "Source entity ID (must exist). Example: 'SYM-login-handler'.",
               },
               to: {
                 type: "string",
                 description:
-                  "Target entity ID (must exist). This entity is the object of the relationship.",
+                  "Target entity ID (must exist). Example: 'REQ-001'.",
               },
             },
           },
@@ -231,28 +279,16 @@ const TOOLS = [
   {
     name: "kb_delete",
     description:
-      "Delete an entity and all its properties from the knowledge base.",
+      "Delete entities by ID. Use only for intentional removals after dependency checks. Do not use as a bulk cleanup shortcut. Side effects: mutates and saves KB; skips entities with dependents.",
     inputSchema: {
       type: "object",
-      required: ["type", "id"],
+      required: ["ids"],
       properties: {
-        type: {
-          type: "string",
-          enum: [
-            "req",
-            "scenario",
-            "test",
-            "adr",
-            "flag",
-            "event",
-            "symbol",
-            "fact",
-          ],
-          description: "Entity type",
-        },
-        id: {
-          type: "string",
-          description: "Entity ID to delete",
+        ids: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
         },
       },
     },
@@ -260,7 +296,7 @@ const TOOLS = [
   {
     name: "kb_check",
     description:
-      "Run validation rules on the knowledge base. Returns violations array with rule names and entity IDs.",
+      "Run KB validation rules and return violations. Use before or after mutations. Do not use for point lookups. No write side effects.",
     inputSchema: {
       type: "object",
       properties: {
@@ -268,7 +304,7 @@ const TOOLS = [
           type: "array",
           items: { type: "string" },
           description:
-            "Specific rules to check (optional, defaults to all). Available: must-priority-coverage, no-dangling-refs, no-cycles, required-fields",
+            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields. If omitted, server runs all.",
         },
       },
     },
@@ -276,14 +312,15 @@ const TOOLS = [
   {
     name: "kb_branch_ensure",
     description:
-      "Ensure a branch exists in the knowledge base. Creates if missing.",
+      "Ensure a branch KB exists, creating it from main when missing. Use when targeting non-main branches. Do not use to switch git branches. Side effects: creates .kb/branches/<branch>.",
     inputSchema: {
       type: "object",
       required: ["branch"],
       properties: {
         branch: {
           type: "string",
-          description: "Branch name (e.g., 'main', 'feature/xyz')",
+          description:
+            "Required git branch name. Example: 'feature/auth-hardening'. Path traversal patterns are rejected.",
         },
       },
     },
@@ -291,14 +328,15 @@ const TOOLS = [
   {
     name: "kb_branch_gc",
     description:
-      "Garbage collect unused branches from the knowledge base. Preserves 'main' branch.",
+      "Find or delete stale branch KB directories not present in git. Use for repository hygiene. Do not use if you need historical branch KBs. Side effects: can delete branch KB folders when dry_run is false.",
     inputSchema: {
       type: "object",
       properties: {
         dry_run: {
           type: "boolean",
           default: true,
-          description: "If true, only report what would be deleted",
+          description:
+            "Optional safety flag. true = report only; false = delete stale branch KBs. Default: true.",
         },
       },
     },
@@ -306,17 +344,17 @@ const TOOLS = [
   {
     name: "kb_query_relationships",
     description:
-      "Query relationships between entities. Filter by source entity (from), target entity (to), or relationship type.",
+      "Read relationship edges with optional from/to/type filters. Use for traceability traversal. Do not use to create links. No mutation side effects.",
     inputSchema: {
       type: "object",
       properties: {
         from: {
           type: "string",
-          description: "Source entity ID",
+          description: "Optional source entity ID filter. Example: 'REQ-001'.",
         },
         to: {
           type: "string",
-          description: "Target entity ID",
+          description: "Optional target entity ID filter. Example: 'TEST-010'.",
         },
         type: {
           type: "string",
@@ -336,7 +374,8 @@ const TOOLS = [
             "supersedes",
             "relates_to",
           ],
-          description: "Relationship type to filter by",
+          description:
+            "Optional relationship type filter. Allowed enum values only. Example: 'implements'.",
         },
       },
     },
@@ -344,7 +383,7 @@ const TOOLS = [
   {
     name: "kb_derive",
     description:
-      "Run a supported inference rule and return deterministic machine-readable rows.",
+      "Run deterministic inference predicates and return rows. Use for impact, coverage, and consistency analysis. Do not use for entity CRUD. No mutation side effects.",
     inputSchema: {
       type: "object",
       required: ["rule"],
@@ -367,12 +406,13 @@ const TOOLS = [
             "superseded_by",
             "domain_contradictions",
           ],
-          description: "Inference predicate name",
+          description:
+            "Required inference rule name. Allowed values are the enum options. Example: 'coverage_gap'.",
         },
         params: {
           type: "object",
           description:
-            "Optional predicate parameters (rule-dependent). Example: { changed: 'REQ-001' }",
+            "Optional rule-specific parameters. Example: { changed: 'REQ-001' } for impacted_by_change.",
         },
       },
     },
@@ -380,14 +420,14 @@ const TOOLS = [
   {
     name: "kb_impact",
     description:
-      "Impact analysis shorthand for impacted_by_change(Entity, Changed).",
+      "Return entities impacted by a changed entity ID. Use for quick change blast radius checks. Do not use for general querying. No mutation side effects.",
     inputSchema: {
       type: "object",
       required: ["entity"],
       properties: {
         entity: {
           type: "string",
-          description: "Changed entity ID",
+          description: "Required changed entity ID. Example: 'REQ-001'.",
         },
       },
     },
@@ -395,14 +435,15 @@ const TOOLS = [
   {
     name: "kb_coverage_report",
     description:
-      "Aggregate traceability coverage for requirements and symbols.",
+      "Compute aggregate traceability coverage for requirements and/or symbols. Use for health snapshots. Do not use for raw entity dumps. No mutation side effects.",
     inputSchema: {
       type: "object",
       properties: {
         type: {
           type: "string",
           enum: ["req", "symbol"],
-          description: "Optional focus area",
+          description:
+            "Optional focus scope: 'req' or 'symbol'. Omit to include both.",
         },
       },
     },
@@ -410,7 +451,7 @@ const TOOLS = [
   {
     name: "kb_symbols_refresh",
     description:
-      "Refresh AST-derived coordinates (sourceLine, sourceColumn, etc.) for all symbol entries in symbols.yaml. Call this after refactoring code that contains tracked symbols. Safe to call at any time — authored fields (id, title, links) are never modified.",
+      "Refresh generated symbol coordinates in the symbols manifest. Use after refactors that move symbols. Do not use for semantic edits. Side effects: may rewrite symbols.yaml unless dryRun is true.",
     inputSchema: {
       type: "object",
       properties: {
@@ -418,41 +459,264 @@ const TOOLS = [
           type: "boolean",
           default: false,
           description:
-            "If true, report what would change without writing to disk",
+            "Optional preview mode. true = report only, false = apply file updates. Default: false.",
         },
       },
     },
   },
   {
     name: "kb_list_entity_types",
-    description: "List all supported entity types in the knowledge base.",
+    description:
+      "List supported entity type names. Use when building valid tool arguments. Do not use for entity data retrieval. No mutation side effects.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "kb_list_relationship_types",
-    description: "List all supported relationship types in the knowledge base.",
+    description:
+      "List supported relationship type names. Use before asserting or filtering relationships. Do not use for graph traversal. No mutation side effects.",
     inputSchema: { type: "object", properties: {} },
   },
   {
     name: "kbcontext",
     description:
-      "Returns full traceability context for a source file or symbol. Given a file path, returns all KB entities linked to that file, plus their first-hop relationships (requirements they implement, scenarios that specify them, tests that verify them, ADRs that govern them).",
+      "Return KB entities linked to a source file plus first-hop relationships. Use for file-centric traceability. Do not use for cross-repo search. No mutation side effects.",
     inputSchema: {
       type: "object",
       required: ["sourceFile"],
       properties: {
         sourceFile: {
           type: "string",
-          description: "Relative path substring, e.g. 'src/auth/login.ts'",
+          description:
+            "Required source path substring. Example: 'src/auth/login.ts'.",
         },
         branch: {
           type: "string",
-          description: "Branch name (defaults to current git branch)",
+          description:
+            "Optional branch hint for clients. Server-side handler currently resolves against attached branch context.",
+        },
+      },
+    },
+  },
+  {
+    name: "get_help",
+    description:
+      "Returns documentation for this MCP server. Call this first if you are unsure how to proceed or which tool to use. Available topics: overview, tools, workflow, constraints, examples, errors.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        topic: {
+          type: "string",
+          enum: [
+            "overview",
+            "tools",
+            "workflow",
+            "constraints",
+            "examples",
+            "errors",
+          ],
+          description:
+            "Optional documentation section. Omit to return overview. Example: 'workflow'.",
         },
       },
     },
   },
 ];
+
+function renderToolsDoc(): string {
+  const lines = [
+    "# kibi-mcp Tools",
+    "",
+    "Use this reference to choose the correct tool before calling it.",
+    "",
+    "| Tool | Summary | Required Parameters |",
+    "| --- | --- | --- |",
+  ];
+
+  for (const tool of TOOLS) {
+    const required = Array.isArray(tool.inputSchema?.required)
+      ? tool.inputSchema.required.join(", ")
+      : "none";
+    lines.push(`| ${tool.name} | ${tool.description} | ${required} |`);
+  }
+
+  return lines.join("\n");
+}
+
+function registerPrompts(): PromptDefinition[] {
+  return [
+    {
+      name: "kibi_overview",
+      description:
+        "High-level model for using kibi-mcp safely and effectively.",
+      text: [
+        "# kibi-mcp Overview",
+        "",
+        "Treat this server as a branch-aware knowledge graph interface for software traceability.",
+        "",
+        "- Use read tools first (`kb_query`, `kb_query_relationships`, `kbcontext`) to establish context.",
+        "- Use mutation tools (`kb_upsert`, `kb_delete`, branch tools) only after you can justify the change.",
+        "- Use inference tools (`kb_derive`, `kb_impact`, `kb_coverage_report`) for deterministic analysis.",
+        "- Prefer explicit IDs and enum values to avoid invalid parameters.",
+        "- Assume every write can affect downstream traceability queries.",
+      ].join("\n"),
+    },
+    {
+      name: "kibi_workflow",
+      description:
+        "Step-by-step call order for discovery, mutation, and verification.",
+      text: [
+        "# kibi-mcp Workflow",
+        "",
+        "Follow this sequence for reliable operation:",
+        "",
+        "1. **Discover**: Call `kb_list_entity_types`/`kb_list_relationship_types` if you are unsure about allowed values.",
+        "2. **Inspect**: Call `kb_query` or `kbcontext` to confirm current state before any mutation.",
+        "3. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
+        "4. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
+        "5. **Verify integrity**: Call `kb_check` after mutations.",
+        "6. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
+        "",
+        "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, or relationship type).",
+      ].join("\n"),
+    },
+    {
+      name: "kibi_constraints",
+      description:
+        "Operational limits, validation rules, and mutation gotchas.",
+      text: [
+        "# kibi-mcp Constraints",
+        "",
+        "Apply these rules before calling write operations:",
+        "",
+        "- `kb_upsert` validates entity and relationship payloads against JSON Schema.",
+        "- `kb_delete` blocks deletion when dependents still reference the entity.",
+        "- `kb_branch_gc` may permanently remove stale branch KB directories when `dry_run` is `false`.",
+        "- Relationship and rule names are strict enums; unknown values fail validation.",
+        "- Branch names are sanitized; path traversal patterns are rejected.",
+        "- `kb_symbols_refresh` can rewrite the symbols manifest unless `dryRun` is enabled.",
+      ].join("\n"),
+    },
+  ];
+}
+
+function registerDocResources(): DocResource[] {
+  const overview = [
+    "# kibi-mcp Server Overview",
+    "",
+    "kibi-mcp is a stdio MCP server for querying and mutating the Kibi knowledge base.",
+    "",
+    "Scope:",
+    "- Entity CRUD-like operations for KB records",
+    "- Relationship inspection",
+    "- Validation and branch KB maintenance",
+    "- Deterministic inference for traceability and impact analysis",
+    "",
+    "Use this server when you need branch-local, machine-readable project memory.",
+  ].join("\n");
+
+  const errors = [
+    "# kibi-mcp Error Guide",
+    "",
+    "Common failure modes and recoveries:",
+    "",
+    "- `-32602 INVALID_PARAMS`: Tool arguments are missing/invalid. Recover by checking enum values and required fields.",
+    "- `-32601 METHOD_NOT_FOUND`: Unknown MCP method. Recover by using supported methods (`tools/*`, `prompts/*`, `resources/*`).",
+    "- `-32000 PROLOG_QUERY_FAILED`: Prolog query failed. Recover by validating IDs, rule names, and relationship types.",
+    "- `VALIDATION_ERROR` message: `kb_upsert` payload failed schema checks. Recover by fixing required fields and enum values.",
+    "- Delete blocked by dependents: `kb_delete` detected incoming references. Recover by removing/rewiring relationships first.",
+    "- Empty results: filters may be too strict. Recover by loosening type/id/tags/source filters and retrying.",
+  ].join("\n");
+
+  const examples = [
+    "# kibi-mcp Examples",
+    "",
+    "## Discover requirement coverage gaps",
+    '1. `kb_query` with `{ "type": "req", "limit": 20 }`',
+    '2. `kb_coverage_report` with `{ "type": "req" }`',
+    '3. `kb_derive` with `{ "rule": "coverage_gap" }`',
+    "",
+    "## Add a requirement and link it to a test",
+    "1. `kb_query` for existing IDs to avoid collisions",
+    "2. `kb_upsert` with entity payload and `relationships` containing `verified_by`",
+    '3. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }`',
+    "",
+    "## Safe cleanup of stale branch KBs",
+    '1. `kb_branch_gc` with `{ "dry_run": true }`',
+    "2. Review `structuredContent.stale`",
+    '3. `kb_branch_gc` with `{ "dry_run": false }` only when deletion is intended',
+  ].join("\n");
+
+  return [
+    {
+      uri: "kibi://docs/overview",
+      name: "kibi docs overview",
+      description: "Full server description, purpose, and scope.",
+      mimeType: "text/markdown",
+      text: overview,
+    },
+    {
+      uri: "kibi://docs/tools",
+      name: "kibi docs tools",
+      description: "Available tools with summaries and required parameters.",
+      mimeType: "text/markdown",
+      text: renderToolsDoc(),
+    },
+    {
+      uri: "kibi://docs/errors",
+      name: "kibi docs errors",
+      description: "Common error modes and suggested recovery actions.",
+      mimeType: "text/markdown",
+      text: errors,
+    },
+    {
+      uri: "kibi://docs/examples",
+      name: "kibi docs examples",
+      description: "Concrete tool call sequences for common tasks.",
+      mimeType: "text/markdown",
+      text: examples,
+    },
+  ];
+}
+
+const PROMPTS = registerPrompts();
+const DOC_RESOURCES = registerDocResources();
+
+function getHelpText(topic?: string): string {
+  const normalized = (topic ?? "overview").trim().toLowerCase();
+
+  if (normalized === "tools") {
+    return renderToolsDoc();
+  }
+
+  if (normalized === "workflow") {
+    return (
+      PROMPTS.find((prompt) => prompt.name === "kibi_workflow")?.text ?? ""
+    );
+  }
+
+  if (normalized === "constraints") {
+    return (
+      PROMPTS.find((prompt) => prompt.name === "kibi_constraints")?.text ?? ""
+    );
+  }
+
+  if (normalized === "examples") {
+    return (
+      DOC_RESOURCES.find((res) => res.uri === "kibi://docs/examples")?.text ??
+      ""
+    );
+  }
+
+  if (normalized === "errors") {
+    return (
+      DOC_RESOURCES.find((res) => res.uri === "kibi://docs/errors")?.text ?? ""
+    );
+  }
+
+  return (
+    DOC_RESOURCES.find((res) => res.uri === "kibi://docs/overview")?.text ?? ""
+  );
+}
 
 // Server State
 let prologProcess: PrologProcess | null = null;
@@ -514,6 +778,8 @@ async function handleInitialize(
     },
     capabilities: {
       tools: {},
+      prompts: {},
+      resources: {},
     },
   };
 }
@@ -576,6 +842,83 @@ async function handleInitializedNotification(): Promise<void> {
 async function handleToolsList(): Promise<Record<string, unknown>> {
   return {
     tools: TOOLS,
+  };
+}
+
+async function handlePromptsList(): Promise<Record<string, unknown>> {
+  return {
+    prompts: PROMPTS.map((prompt) => ({
+      name: prompt.name,
+      description: prompt.description,
+      arguments: prompt.arguments ?? [],
+    })),
+  };
+}
+
+async function handlePromptsGet(
+  params: unknown,
+): Promise<Record<string, unknown>> {
+  const request = params as {
+    name?: string;
+    arguments?: Record<string, unknown>;
+  };
+
+  if (!request.name) {
+    throw new Error("Missing 'name' parameter for prompts/get");
+  }
+
+  const prompt = PROMPTS.find((entry) => entry.name === request.name);
+  if (!prompt) {
+    throw new Error(`Unknown prompt: ${request.name}`);
+  }
+
+  return {
+    description: prompt.description,
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: prompt.text,
+        },
+      },
+    ],
+  };
+}
+
+async function handleResourcesList(): Promise<Record<string, unknown>> {
+  return {
+    resources: DOC_RESOURCES.map((resource) => ({
+      uri: resource.uri,
+      name: resource.name,
+      description: resource.description,
+      mimeType: resource.mimeType,
+    })),
+  };
+}
+
+async function handleResourcesRead(
+  params: unknown,
+): Promise<Record<string, unknown>> {
+  const request = params as { uri?: string };
+
+  if (!request.uri) {
+    throw new Error("Missing 'uri' parameter for resources/read");
+  }
+
+  const resource = DOC_RESOURCES.find((entry) => entry.uri === request.uri);
+  if (!resource) {
+    throw new Error(`Unknown resource: ${request.uri}`);
+  }
+
+  return {
+    contents: [
+      {
+        uri: resource.uri,
+        mimeType: resource.mimeType,
+        text: resource.text,
+      },
+    ],
   };
 }
 
@@ -731,6 +1074,24 @@ async function handleToolCall(
       case "kbcontext":
         return await handleKbContext(prologProcess, params as ContextArgs);
 
+      case "get_help": {
+        const helpArgs = (params ?? {}) as { topic?: string };
+        const topic =
+          typeof helpArgs.topic === "string" ? helpArgs.topic : undefined;
+        const text = getHelpText(topic);
+        return {
+          content: [
+            {
+              type: "text",
+              text,
+            },
+          ],
+          structuredContent: {
+            topic: topic ?? "overview",
+          },
+        };
+      }
+
       default:
         throw new Error(`Unknown tool: ${toolName}`);
     }
@@ -765,6 +1126,18 @@ async function dispatchRequest(request: JsonRpcRequest): Promise<unknown> {
 
     case "tools/list":
       return handleToolsList();
+
+    case "prompts/list":
+      return handlePromptsList();
+
+    case "prompts/get":
+      return handlePromptsGet(params);
+
+    case "resources/list":
+      return handleResourcesList();
+
+    case "resources/read":
+      return handleResourcesRead(params);
 
     case "tools/call": {
       const toolParams = params as { name?: string; arguments?: unknown };
