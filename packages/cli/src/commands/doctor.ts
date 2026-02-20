@@ -29,10 +29,13 @@ export async function doctorCommand(): Promise<void> {
       name: "Git hooks",
       check: checkGitHooks,
     },
+    {
+      name: "pre-commit hook",
+      check: checkPreCommitHook,
+    },
   ];
 
-  console.log("Kibi Environment Diagnostics
-");
+  console.log("Kibi Environment Diagnostics\n");
 
   let allPassed = true;
 
@@ -227,4 +230,56 @@ function checkGitHooks(): {
     message: "Partially installed",
     remediation: "Run: kibi init --hooks",
   };
+}
+
+function checkPreCommitHook(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
+  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
+  const preCommitPath = path.join(process.cwd(), ".git/hooks/pre-commit");
+
+  const postCheckoutExists = existsSync(postCheckoutPath);
+  const postMergeExists = existsSync(postMergePath);
+
+  if (!postCheckoutExists && !postMergeExists) {
+    return {
+      passed: true,
+      message: "Not installed (optional)",
+    };
+  }
+
+  const preCommitExists = existsSync(preCommitPath);
+
+  if (!preCommitExists) {
+    return {
+      passed: false,
+      message: "Not installed",
+      remediation: "Run: kibi init --hooks",
+    };
+  }
+
+  try {
+    const preCommitStats = statSync(preCommitPath);
+    const preCommitExecutable = (preCommitStats.mode & 0o111) !== 0;
+
+    if (preCommitExecutable) {
+      return {
+        passed: true,
+        message: "Installed and executable",
+      };
+    }
+    return {
+      passed: false,
+      message: "Installed but not executable",
+      remediation: "Run: chmod +x .git/hooks/pre-commit",
+    };
+  } catch (error) {
+    return {
+      passed: false,
+      message: "Unable to check hook permissions",
+    };
+  }
 }

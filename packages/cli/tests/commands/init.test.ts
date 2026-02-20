@@ -117,9 +117,29 @@ describe("kibi init", () => {
 
     const postCheckout = path.join(tmpDir, ".git/hooks/post-checkout");
     const postMerge = path.join(tmpDir, ".git/hooks/post-merge");
+    const preCommit = path.join(tmpDir, ".git/hooks/pre-commit");
 
     expect(existsSync(postCheckout)).toBe(false);
     expect(existsSync(postMerge)).toBe(false);
+    expect(existsSync(preCommit)).toBe(false);
+  });
+
+  test("installs pre-commit hook with --hooks flag", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --hooks`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const preCommit = path.join(tmpDir, ".git/hooks/pre-commit");
+
+    expect(existsSync(preCommit)).toBe(true);
+
+    const preCommitStats = statSync(preCommit);
+    expect(preCommitStats.mode & 0o111).not.toBe(0);
+
+    const content = readFileSync(preCommit, "utf8");
+    expect(content).toContain("kibi check");
   });
 
   test("exits with code 0 on success", () => {

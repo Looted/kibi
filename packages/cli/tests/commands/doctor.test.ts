@@ -159,10 +159,25 @@ describe("kibi doctor", () => {
 
     const output = execSync(`bun ${kibiBin} doctor`, {
       cwd: tmpDir,
-      encoding: "utf-8",
+      encoding: "utf8",
     });
 
     expect(output).toContain("hooks");
+  });
+
+  test("checks pre-commit hook if --hooks was used", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init --hooks`, {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+
+    const output = execSync(`bun ${kibiBin} doctor`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    expect(output).toContain("pre-commit");
   });
 
   test("exits with code 0 if all checks pass", () => {

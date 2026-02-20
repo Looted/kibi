@@ -20,6 +20,11 @@ const POST_MERGE_HOOK = `#!/bin/sh
 bun __KIBI_BIN__ sync
 `;
 
+const PRE_COMMIT_HOOK = `#!/bin/sh
+set -e
+bun __KIBI_BIN__ check
+`;
+
 const DEFAULT_CONFIG = {
   paths: {
     requirements: "requirements/**/*.md",
@@ -70,11 +75,8 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
       if (!gitignoreContent.includes(".kb/")) {
         const newContent = gitignoreContent
-          ? `${gitignoreContent.trimEnd()}
-.kb/
-`
-          : ".kb/
-";
+          ? `${gitignoreContent.trimEnd()}\n.kb/\n`
+          : ".kb/\n";
         writeFileSync(gitignorePath, newContent);
         console.log("✓ Added .kb/ to .gitignore");
       }
@@ -110,6 +112,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
         const postCheckoutPath = path.join(hooksDir, "post-checkout");
         const postMergePath = path.join(hooksDir, "post-merge");
+        const preCommitPath = path.join(hooksDir, "pre-commit");
 
         const binPath = path.resolve(__dirname, "../../bin/kibi");
 
@@ -121,36 +124,51 @@ export async function initCommand(options: InitOptions): Promise<void> {
           "__KIBI_BIN__",
           binPath,
         );
+        const preCommitHookContent = PRE_COMMIT_HOOK.replace(
+          "__KIBI_BIN__",
+          binPath,
+        );
 
         const installHook = (hookPath: string, content: string) => {
           if (existsSync(hookPath)) {
             const existing = readFileSync(hookPath, "utf8");
             if (!existing.includes(`bun ${binPath}`)) {
-              writeFileSync(hookPath, `${existing}
-${content}`, {
-                mode: 0o755,
-              });
+              writeFileSync(
+                hookPath,
+                `${existing}
+${content}`,
+                {
+                  mode: 0o755,
+                },
+              );
             }
           } else {
-            writeFileSync(hookPath, `#!/bin/sh
-${content}`, { mode: 0o755 });
+            writeFileSync(
+              hookPath,
+              `#!/bin/sh
+${content}`,
+              { mode: 0o755 },
+            );
           }
         };
 
         installHook(
           postCheckoutPath,
-          checkoutHookContent.replace("#!/bin/sh
-", ""),
+          checkoutHookContent.replace("#!/bin/sh\n", ""),
         );
-        installHook(postMergePath, mergeHookContent.replace("#!/bin/sh
-", ""));
+        installHook(postMergePath, mergeHookContent.replace("#!/bin/sh\n", ""));
+        installHook(
+          preCommitPath,
+          preCommitHookContent.replace("#!/bin/sh\n", ""),
+        );
 
-        console.log("✓ Installed git hooks (post-checkout, post-merge)");
+        console.log(
+          "✓ Installed git hooks (pre-commit, post-checkout, post-merge)",
+        );
       }
     }
 
-    console.log("
-Kibi initialized successfully!");
+    console.log("\nKibi initialized successfully!");
     console.log("Next steps:");
     console.log("  1. Run 'kibi doctor' to verify setup");
     console.log("  2. Run 'kibi sync' to extract entities from documents");

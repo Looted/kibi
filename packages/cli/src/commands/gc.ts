@@ -38,8 +38,7 @@ export async function gcCommand(options: {
       gitBranches = new Set(
         output
           .trim()
-          .split("
-")
+          .split("\n")
           .map((b) => b.trim().replace(/^'|'$/g, ""))
           .filter((b) => b),
       );
