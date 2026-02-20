@@ -40,6 +40,7 @@ export async function handleKbQuery(
         "flag",
         "event",
         "symbol",
+        "fact",
       ];
       if (!validTypes.includes(type)) {
         throw new Error(

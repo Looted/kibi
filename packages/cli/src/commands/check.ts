@@ -41,6 +41,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     violations.push(...(await checkDeprecatedAdrs(prolog)));
 
+    violations.push(...(await checkDomainContradictions(prolog)));
+
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -185,6 +187,9 @@ async function checkNoDanglingRefs(
     "verified_by",
     "validates",
     "specified_by",
+    "constrains",
+    "requires_property",
+    "supersedes",
     "relates_to",
   ];
 
@@ -437,4 +442,53 @@ async function checkDeprecatedAdrs(
   }
 
   return violations;
+}
+
+async function checkDomainContradictions(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+  const result = await prolog.query(
+    "setof([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return violations;
+  }
+
+  const rows = parseTripleRows(result.bindings.Rows);
+  for (const [reqA, reqB, reason] of rows) {
+    violations.push({
+      rule: "domain-contradictions",
+      entityId: `${reqA}/${reqB}`,
+      description: reason,
+      suggestion:
+        "Supersede one requirement or align both to the same required property",
+    });
+  }
+
+  return violations;
+}
+
+function parseTripleRows(raw: string): Array<[string, string, string]> {
+  const cleaned = raw.trim();
+  if (cleaned === "[]" || cleaned.length === 0) {
+    return [];
+  }
+
+  const rows: Array<[string, string, string]> = [];
+  const rowRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
+  let match: RegExpExecArray | null;
+  do {
+    match = rowRegex.exec(cleaned);
+    if (match) {
+      rows.push([
+        match[1].trim().replace(/^'|'$/g, ""),
+        match[2].trim().replace(/^'|'$/g, ""),
+        match[3].trim().replace(/^'|'$/g, ""),
+      ]);
+    }
+  } while (match);
+
+  return rows;
 }

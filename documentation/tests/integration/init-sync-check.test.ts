@@ -23,6 +23,7 @@ import { ensureMainBranch } from "./helpers";
  * - Real RDF/Turtle persistence
  */
 describe("init-sync-check workflow", () => {
+  const TEST_TIMEOUT_MS = 20000;
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
 
@@ -47,48 +48,54 @@ describe("init-sync-check workflow", () => {
     }
   });
 
-  test("full workflow: init creates .kb structure", () => {
-    const output = execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
-    // init may create the first commit and branch; normalize branch name
-    ensureMainBranch(tmpDir);
-    expect(output).toContain("Kibi initialized successfully");
+  test(
+    "full workflow: init creates .kb structure",
+    () => {
+      const output = execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+      // init may create the first commit and branch; normalize branch name
+      ensureMainBranch(tmpDir);
+      expect(output).toContain("Kibi initialized successfully");
 
-    // Verify KB structure created
-    expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+      // Verify KB structure created
+      expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
+      expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
+      expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
 
-    // Verify config content
-    const config = JSON.parse(
-      readFileSync(path.join(tmpDir, ".kb/config.json"), "utf8"),
-    );
-    expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements");
-    expect(config.paths.scenarios).toBe("scenarios");
-  });
+      // Verify config content
+      const config = JSON.parse(
+        readFileSync(path.join(tmpDir, ".kb/config.json"), "utf8"),
+      );
+      expect(config.paths).toBeDefined();
+      expect(config.paths.requirements).toBe("requirements");
+      expect(config.paths.scenarios).toBe("scenarios");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: sync imports entities from documents", () => {
-    // Step 1: Initialize
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
-    // ensure branch name normalized if init created commits
-    ensureMainBranch(tmpDir);
+  test(
+    "full workflow: sync imports entities from documents",
+    () => {
+      // Step 1: Initialize
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      // ensure branch name normalized if init created commits
+      ensureMainBranch(tmpDir);
 
-    // Step 2: Create test fixtures
-    const reqDir = path.join(tmpDir, "requirements");
-    const scenarioDir = path.join(tmpDir, "scenarios");
+      // Step 2: Create test fixtures
+      const reqDir = path.join(tmpDir, "requirements");
+      const scenarioDir = path.join(tmpDir, "scenarios");
 
-    mkdirSync(reqDir, { recursive: true });
-    mkdirSync(scenarioDir, { recursive: true });
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(scenarioDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req1.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req1.md"),
+        `---
 title: User Login
 type: req
 status: approved
@@ -100,11 +107,11 @@ owner: alice
 
 System must authenticate users via OAuth2.
 `,
-    );
+      );
 
-    writeFileSync(
-      path.join(scenarioDir, "login.md"),
-      `---
+      writeFileSync(
+        path.join(scenarioDir, "login.md"),
+        `---
 title: Login Flow
 type: scenario
 status: active
@@ -115,35 +122,39 @@ tags: [auth]
 
 User clicks login button and authenticates with provider.
 `,
-    );
+      );
 
-    // Step 3: Sync
-    const syncOutput = execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Step 3: Sync
+      const syncOutput = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(syncOutput).toContain("Imported");
-    expect(syncOutput).toMatch(/\d+ entities/);
+      expect(syncOutput).toContain("Imported");
+      expect(syncOutput).toMatch(/\d+ entities/);
 
-    // Verify RDF file created
-    const kbPath = path.join(tmpDir, ".kb/branches/main");
-    expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
-  });
+      // Verify RDF file created
+      const kbPath = path.join(tmpDir, ".kb/branches/main");
+      expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: query returns synced entities", () => {
-    // Setup: init + fixtures + sync
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: query returns synced entities",
+    () => {
+      // Setup: init + fixtures + sync
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req-auth.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req-auth.md"),
+        `---
 title: Authentication Required
 type: req
 status: approved
@@ -154,37 +165,41 @@ tags: [security]
 
 All API endpoints require authentication.
 `,
-    );
+      );
 
-    execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    // Query requirements
-    const queryOutput = execSync(`bun ${kibiBin} query req`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Query requirements
+      const queryOutput = execSync(`bun ${kibiBin} query req`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(queryOutput).toContain("req-auth");
-    expect(queryOutput).toContain("Authentication Required");
-    expect(queryOutput).toContain("security");
-  });
+      expect(queryOutput).toContain("req-auth");
+      expect(queryOutput).toContain("Authentication Required");
+      expect(queryOutput).toContain("security");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: check validates KB with no violations", () => {
-    // Setup: init + fixtures + sync
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: check validates KB with no violations",
+    () => {
+      // Setup: init + fixtures + sync
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "valid-req.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "valid-req.md"),
+        `---
 title: Valid Requirement
 type: req
 status: approved
@@ -196,36 +211,40 @@ owner: bob
 
 This requirement has all required fields.
 `,
-    );
+      );
 
-    execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    // Check for violations
-    const checkOutput = execSync(`bun ${kibiBin} check`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Check for violations
+      const checkOutput = execSync(`bun ${kibiBin} check`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(checkOutput).toContain("No violations found");
-  });
+      expect(checkOutput).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: check detects violations", () => {
-    // Setup: init + fixtures with intentional violation + sync
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: check detects violations",
+    () => {
+      // Setup: init + fixtures with intentional violation + sync
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    // Requirement with missing required field (owner)
-    writeFileSync(
-      path.join(reqDir, "invalid-req.md"),
-      `---
+      // Requirement with missing required field (owner)
+      writeFileSync(
+        path.join(reqDir, "invalid-req.md"),
+        `---
 title: Invalid Requirement
 type: req
 status: approved
@@ -236,34 +255,38 @@ tags: [feature]
 
 Missing owner field violates schema.
 `,
-    );
+      );
 
-    execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    // Check should detect violation
-    const checkOutput = execSync(`bun ${kibiBin} check`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Check should detect violation
+      const checkOutput = execSync(`bun ${kibiBin} check`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(checkOutput).toContain("No violations found");
-  });
+      expect(checkOutput).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: idempotent sync does not duplicate entities", () => {
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: idempotent sync does not duplicate entities",
+    () => {
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req1.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req1.md"),
+        `---
 title: Test Requirement
 type: req
 status: draft
@@ -273,44 +296,48 @@ status: draft
 
 Content.
 `,
-    );
+      );
 
-    // First sync
-    const firstSync = execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // First sync
+      const firstSync = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    const firstMatch = firstSync.match(/Imported (\d+) entities/);
-    const firstCount = firstMatch ? Number.parseInt(firstMatch[1]) : 0;
-    expect(firstCount).toBeGreaterThan(0);
+      const firstMatch = firstSync.match(/Imported (\d+) entities/);
+      const firstCount = firstMatch ? Number.parseInt(firstMatch[1]) : 0;
+      expect(firstCount).toBeGreaterThan(0);
 
-    // Second sync (should be idempotent - no new imports since cache hit)
-    const secondSync = execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Second sync (should be idempotent - no new imports since cache hit)
+      const secondSync = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    const secondMatch = secondSync.match(/Imported (\d+) entities/);
-    const secondCount = secondMatch ? Number.parseInt(secondMatch[1]) : 0;
+      const secondMatch = secondSync.match(/Imported (\d+) entities/);
+      const secondCount = secondMatch ? Number.parseInt(secondMatch[1]) : 0;
 
-    // Second sync should report 0 new imports (cache hit, no changes)
-    // This verifies idempotency - no duplicate entities created
-    expect(secondCount).toBe(0);
-  });
+      // Second sync should report 0 new imports (cache hit, no changes)
+      // This verifies idempotency - no duplicate entities created
+      expect(secondCount).toBe(0);
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: query with ID filter returns specific entity", () => {
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: query with ID filter returns specific entity",
+    () => {
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req-auth.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req-auth.md"),
+        `---
 id: req-auth
 title: Auth Requirement
 type: req
@@ -320,11 +347,11 @@ tags: [auth, security]
 
 # Auth
 `,
-    );
+      );
 
-    writeFileSync(
-      path.join(reqDir, "req-perf.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req-perf.md"),
+        `---
 id: req-perf
 title: Performance Requirement
 type: req
@@ -334,41 +361,47 @@ tags: [performance]
 
 # Performance
 `,
-    );
+      );
 
-    execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const queryOutput = execSync(`bun ${kibiBin} query req --id req-auth`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      const queryOutput = execSync(`bun ${kibiBin} query req --id req-auth`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(queryOutput).toContain("req-auth");
-    expect(queryOutput).not.toContain("req-perf");
-  });
+      expect(queryOutput).toContain("req-auth");
+      expect(queryOutput).not.toContain("req-perf");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("full workflow: handles empty repository gracefully", () => {
-    execSync(`bun ${kibiBin} init`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "full workflow: handles empty repository gracefully",
+    () => {
+      execSync(`bun ${kibiBin} init`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    // Sync with no documents
-    const syncOutput = execSync(`bun ${kibiBin} sync`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      // Sync with no documents
+      const syncOutput = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(syncOutput).toContain("Imported 0 entities");
+      expect(syncOutput).toContain("Imported 0 entities");
 
-    const queryOutput = execSync(`bun ${kibiBin} query req`, {
-      cwd: tmpDir,
-      encoding: "utf8",
-    });
+      const queryOutput = execSync(`bun ${kibiBin} query req`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
 
-    expect(queryOutput).toContain("[]");
-  });
+      expect(queryOutput).toContain("[]");
+    },
+    TEST_TIMEOUT_MS,
+  );
 });

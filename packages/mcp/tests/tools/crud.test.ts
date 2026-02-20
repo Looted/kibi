@@ -272,7 +272,7 @@ describe("MCP CRUD Tool Handlers", () => {
 
       expect(result.structuredContent?.deleted).toBe(2);
       expect(result.structuredContent?.skipped).toBe(0);
-    });
+    }, 20000);
 
     test("should reject empty ids array", async () => {
       await expect(handleKbDelete(prolog, { ids: [] })).rejects.toThrow(

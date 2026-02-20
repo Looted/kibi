@@ -14,7 +14,8 @@ export type DeriveRule =
   | "deprecated_still_used"
   | "current_adr"
   | "adr_chain"
-  | "superseded_by";
+  | "superseded_by"
+  | "domain_contradictions";
 
 export interface DeriveArgs {
   rule: DeriveRule;
@@ -51,6 +52,7 @@ const RULES: DeriveRule[] = [
   "current_adr",
   "adr_chain",
   "superseded_by",
+  "domain_contradictions",
 ];
 
 export async function handleKbDerive(
@@ -104,6 +106,9 @@ export async function handleKbDerive(
       break;
     case "superseded_by":
       rows = await deriveSupersededBy(prolog, params);
+      break;
+    case "domain_contradictions":
+      rows = await deriveDomainContradictions(prolog);
       break;
   }
 
@@ -419,4 +424,19 @@ function parseTripleList(raw: string): [string, string, string][] {
   } while (tripletMatch !== null);
 
   return triplets;
+}
+
+async function deriveDomainContradictions(
+  prolog: PrologProcess,
+): Promise<DeriveRow[]> {
+  const result = await prolog.query(
+    "setof([ReqA,ReqB,Reason], contradicting_reqs(ReqA, ReqB, Reason), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  const rows = parseTripleList(result.bindings.Rows);
+  return rows.map(([reqA, reqB, reason]) => ({ reqA, reqB, reason }));
 }

@@ -30,6 +30,7 @@ interface JsonRpcResponse {
 }
 
 describe("MCP server CRUD operations", () => {
+  const TEST_TIMEOUT_MS = 70000;
   let tmpDir: string;
   let mcpProcess: ChildProcess;
   const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
@@ -119,16 +120,33 @@ Test requirement for MCP operations.
         stdio: ["pipe", "pipe", "pipe"],
       });
 
-      let responseData = "";
+      let responseBuffer = "";
+      const timeout = setTimeout(() => {
+        if (mcpProcess && !mcpProcess.killed) {
+          mcpProcess.kill();
+        }
+        reject(new Error("Timed out waiting for MCP JSON-RPC response"));
+      }, 30000);
 
       mcpProcess.stdout?.on("data", (data) => {
-        responseData += data.toString();
-        try {
-          const response = JSON.parse(responseData);
-          mcpProcess.kill();
-          resolve(response);
-        } catch {
-          // Continue accumulating data
+        responseBuffer += data.toString();
+        const lines = responseBuffer.split("\n");
+        responseBuffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          try {
+            const response = JSON.parse(trimmed) as JsonRpcResponse;
+            if (response.id === request.id) {
+              clearTimeout(timeout);
+              if (mcpProcess && !mcpProcess.killed) {
+                mcpProcess.kill();
+              }
+              resolve(response);
+              return;
+            }
+          } catch {}
         }
       });
 
@@ -137,279 +155,320 @@ Test requirement for MCP operations.
       });
 
       mcpProcess.on("error", (err) => {
+        clearTimeout(timeout);
         reject(err);
       });
 
       mcpProcess.on("exit", (code) => {
-        if (code !== 0 && code !== null && !responseData) {
+        if (code !== 0 && code !== null) {
+          clearTimeout(timeout);
           reject(new Error(`MCP process exited with code ${code}`));
         }
       });
 
       if (mcpProcess.stdin) {
         mcpProcess.stdin.write(`${JSON.stringify(request)}\n`);
-        mcpProcess.stdin.end();
       }
     });
   }
 
-  test("kb_query: returns existing entities", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          type: "req",
-        },
-      },
-    });
-
-    expect(response.jsonrpc).toBe("2.0");
-    expect(response.id).toBe(1);
-    expect(response.result).toBeDefined();
-
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(result.content).toBeDefined();
-    expect(result.content[0].text).toContain("req1");
-  });
-
-  test("kb_query: filters by type", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 2,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          type: "scenario",
-        },
-      },
-    });
-
-    expect(response.result).toBeDefined();
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(result.content[0].text).toContain("No entities found");
-  });
-
-  test("kb_query: filters by ID", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 3,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          id: "req1",
-        },
-      },
-    });
-
-    expect(response.result).toBeDefined();
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(result.content[0].text).toContain("req1");
-    expect(result.content[0].text).toContain("Initial Requirement");
-  });
-
-  test("kb_query: filters by tags", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 4,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          tags: ["test"],
-        },
-      },
-    });
-
-    expect(response.result).toBeDefined();
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(result.content[0].text).toContain("req1");
-  });
-
-  test("kb_upsert: creates new entity", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 5,
-      method: "tools/call",
-      params: {
-        name: "kb_upsert",
-        arguments: {
-          type: "req",
-          id: "req-new",
-          properties: {
-            title: "New Requirement",
-            status: "draft",
-            source: "test://integration",
-            tags: ["new"],
+  test(
+    "kb_query: returns existing entities",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            type: "req",
           },
         },
-      },
-    });
+      });
 
-    expect(response.result).toBeDefined();
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(result.content[0].text).toContain("req-new");
+      expect(response.jsonrpc).toBe("2.0");
+      expect(response.id).toBe(1);
+      expect(response.result).toBeDefined();
 
-    const queryResponse = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 6,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          id: "req-new",
-        },
-      },
-    });
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(result.content).toBeDefined();
+      expect(result.content[0].text).toContain("req1");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-    const queryResult = queryResponse.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(queryResult.content[0].text).toContain("req-new");
-    expect(queryResult.content[0].text).toContain("New Requirement");
-  });
-
-  test("kb_upsert: updates existing entity", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 7,
-      method: "tools/call",
-      params: {
-        name: "kb_upsert",
-        arguments: {
-          type: "req",
-          id: "req1",
-          properties: {
-            title: "Updated Title",
-            status: "approved",
-            source: "test://integration",
-            tags: ["updated"],
+  test(
+    "kb_query: filters by type",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            type: "scenario",
           },
         },
-      },
-    });
+      });
 
-    expect(response.result).toBeDefined();
+      expect(response.result).toBeDefined();
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(result.content[0].text).toContain("No entities found");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-    const queryResponse = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 8,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          id: "req1",
+  test(
+    "kb_query: filters by ID",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            id: "req1",
+          },
         },
-      },
-    });
+      });
 
-    const queryResult = queryResponse.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(queryResult.content[0].text).toContain("Updated Title");
-    expect(queryResult.content[0].text).toContain("approved");
-  });
+      expect(response.result).toBeDefined();
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(result.content[0].text).toContain("req1");
+      expect(result.content[0].text).toContain("Initial Requirement");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("kb_delete: removes entity", async () => {
-    const deleteResponse = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 9,
-      method: "tools/call",
-      params: {
-        name: "kb_delete",
-        arguments: {
-          ids: ["req1"],
+  test(
+    "kb_query: filters by tags",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 4,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            tags: ["test"],
+          },
         },
-      },
-    });
+      });
 
-    expect(deleteResponse.result).toBeDefined();
-    const deleteResult = deleteResponse.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(deleteResult.content[0].text).toContain("Deleted 1 entities");
+      expect(response.result).toBeDefined();
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(result.content[0].text).toContain("req1");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-    const queryResponse = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 10,
-      method: "tools/call",
-      params: {
-        name: "kb_query",
-        arguments: {
-          id: "req1",
+  test(
+    "kb_upsert: creates new entity",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 5,
+        method: "tools/call",
+        params: {
+          name: "kb_upsert",
+          arguments: {
+            type: "req",
+            id: "req-new",
+            properties: {
+              title: "New Requirement",
+              status: "draft",
+              source: "test://integration",
+              tags: ["new"],
+            },
+          },
         },
-      },
-    });
+      });
 
-    const queryResult = queryResponse.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    expect(queryResult.content[0].text).toContain("No entities found");
-  });
+      expect(response.result).toBeDefined();
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(result.content[0].text).toContain("req-new");
 
-  test("kb_delete: handles non-existent entity", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 11,
-      method: "tools/call",
-      params: {
-        name: "kb_delete",
-        arguments: {
-          ids: ["non-existent"],
+      const queryResponse = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 6,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            id: "req-new",
+          },
         },
-      },
-    });
+      });
 
-    expect(response.result).toBeDefined();
-  });
+      const queryResult = queryResponse.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(queryResult.content[0].text).toContain("req-new");
+      expect(queryResult.content[0].text).toContain("New Requirement");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
-  test("kb_check: validates KB", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 12,
-      method: "tools/call",
-      params: {
-        name: "kb_check",
-        arguments: {},
-      },
-    });
+  test(
+    "kb_upsert: updates existing entity",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 7,
+        method: "tools/call",
+        params: {
+          name: "kb_upsert",
+          arguments: {
+            type: "req",
+            id: "req1",
+            properties: {
+              title: "Updated Title",
+              status: "approved",
+              source: "test://integration",
+              tags: ["updated"],
+            },
+          },
+        },
+      });
 
-    expect(response.result).toBeDefined();
-    const result = response.result as {
-      content: Array<{ type: string; text: string }>;
-    };
-    // defensive checks: ensure content exists and has at least one item
-    expect(result.content).toBeDefined();
-    expect(result.content.length).toBeGreaterThan(0);
-    // Match either 'N violations' or 'No violations found'
-    expect(result.content[0].text).toMatch(
-      /(\d+ violations|No violations found)/,
-    );
-  });
+      expect(response.result).toBeDefined();
 
-  test("error: invalid JSON-RPC request returns error", async () => {
-    const response = await sendJsonRpc({
-      jsonrpc: "2.0",
-      id: 13,
-      method: "invalid_method",
-      params: {},
-    });
+      const queryResponse = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 8,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            id: "req1",
+          },
+        },
+      });
 
-    expect(response.error).toBeDefined();
-    expect(response.error?.code).toBe(-32601);
-  });
+      const queryResult = queryResponse.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(queryResult.content[0].text).toContain("Updated Title");
+      expect(queryResult.content[0].text).toContain("approved");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "kb_delete: removes entity",
+    async () => {
+      const deleteResponse = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 9,
+        method: "tools/call",
+        params: {
+          name: "kb_delete",
+          arguments: {
+            ids: ["req1"],
+          },
+        },
+      });
+
+      expect(deleteResponse.result).toBeDefined();
+      const deleteResult = deleteResponse.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(deleteResult.content[0].text).toContain("Deleted 1 entities");
+
+      const queryResponse = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 10,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            id: "req1",
+          },
+        },
+      });
+
+      const queryResult = queryResponse.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      expect(queryResult.content[0].text).toContain("No entities found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "kb_delete: handles non-existent entity",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 11,
+        method: "tools/call",
+        params: {
+          name: "kb_delete",
+          arguments: {
+            ids: ["non-existent"],
+          },
+        },
+      });
+
+      expect(response.result).toBeDefined();
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "kb_check: validates KB",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 12,
+        method: "tools/call",
+        params: {
+          name: "kb_check",
+          arguments: {},
+        },
+      });
+
+      expect(response.result).toBeDefined();
+      const result = response.result as {
+        content: Array<{ type: string; text: string }>;
+      };
+      // defensive checks: ensure content exists and has at least one item
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBeGreaterThan(0);
+      // Match either 'N violations' or 'No violations found'
+      expect(result.content[0].text).toMatch(
+        /(\d+ violations|No violations found)/,
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "error: invalid JSON-RPC request returns error",
+    async () => {
+      const response = await sendJsonRpc({
+        jsonrpc: "2.0",
+        id: 13,
+        method: "invalid_method",
+        params: {},
+      });
+
+      expect(response.error).toBeDefined();
+      expect(response.error?.code).toBe(-32601);
+    },
+    TEST_TIMEOUT_MS,
+  );
 });

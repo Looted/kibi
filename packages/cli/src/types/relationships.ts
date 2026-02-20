@@ -6,9 +6,12 @@ export interface BaseRelationship {
     | "implements"
     | "covered_by"
     | "constrained_by"
+    | "constrains"
+    | "requires_property"
     | "guards"
     | "publishes"
     | "consumes"
+    | "supersedes"
     | "relates_to";
   from: string; // entity ID
   to: string; // entity ID

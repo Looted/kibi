@@ -100,6 +100,7 @@ function inferTypeFromPath(filePath: string): string | null {
   if (filePath.includes("/adr/")) return "adr";
   if (filePath.includes("/flags/")) return "flag";
   if (filePath.includes("/events/")) return "event";
+  if (filePath.includes("/facts/")) return "fact";
   return null;
 }
 

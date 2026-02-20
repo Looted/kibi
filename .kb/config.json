@@ -6,6 +6,7 @@
     "adr": "documentation/adr/**/*.md",
     "flags": "documentation/flags/**/*.md",
     "events": "documentation/events/**/*.md",
+    "facts": "documentation/facts/**/*.md",
     "symbols": "documentation/symbols.yaml"
   }
 }

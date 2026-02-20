@@ -75,7 +75,16 @@ const TOOLS = [
       properties: {
         type: {
           type: "string",
-          enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
           description: "Entity type to query",
         },
         id: {
@@ -114,7 +123,16 @@ const TOOLS = [
       properties: {
         type: {
           type: "string",
-          enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
           description: "Entity type",
         },
         id: {
@@ -183,13 +201,16 @@ const TOOLS = [
                   "implements",
                   "covered_by",
                   "constrained_by",
+                  "constrains",
+                  "requires_property",
                   "guards",
                   "publishes",
                   "consumes",
+                  "supersedes",
                   "relates_to",
                 ],
                 description:
-                  "Relationship type. Direction constraints: depends_on(req→req), specified_by(scenario→req), verified_by(req→test), validates(test→req), implements(symbol→req), covered_by(symbol→test), constrained_by(symbol→adr), guards(flag→symbol|event|req), publishes(symbol→event), consumes(symbol→event), relates_to(any→any)",
+                  "Relationship type. Direction constraints: depends_on(req→req), specified_by(scenario→req), verified_by(req→test), validates(test→req), implements(symbol→req), covered_by(symbol→test), constrained_by(symbol→adr), constrains(req→fact), requires_property(req→fact), guards(flag→symbol|event|req), publishes(symbol→event), consumes(symbol→event), supersedes(adr→adr|req→req), relates_to(any→any)",
               },
               from: {
                 type: "string",
@@ -217,7 +238,16 @@ const TOOLS = [
       properties: {
         type: {
           type: "string",
-          enum: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
           description: "Entity type",
         },
         id: {
@@ -294,12 +324,16 @@ const TOOLS = [
             "depends_on",
             "specified_by",
             "verified_by",
+            "validates",
             "implements",
             "covered_by",
             "constrained_by",
+            "constrains",
+            "requires_property",
             "guards",
             "publishes",
             "consumes",
+            "supersedes",
             "relates_to",
           ],
           description: "Relationship type to filter by",
@@ -328,6 +362,10 @@ const TOOLS = [
             "orphaned",
             "conflicting",
             "deprecated_still_used",
+            "current_adr",
+            "adr_chain",
+            "superseded_by",
+            "domain_contradictions",
           ],
           description: "Inference predicate name",
         },
@@ -645,7 +683,7 @@ async function handleToolCall(
           content: [
             {
               type: "text",
-              text: "Available entity types: req, scenario, test, adr, flag, event, symbol",
+              text: "Available entity types: req, scenario, test, adr, flag, event, symbol, fact",
             },
           ],
           structuredContent: {
@@ -657,6 +695,7 @@ async function handleToolCall(
               "flag",
               "event",
               "symbol",
+              "fact",
             ],
           },
         };
@@ -666,7 +705,7 @@ async function handleToolCall(
           content: [
             {
               type: "text",
-              text: "Available relationship types: depends_on, specified_by, verified_by, implements, covered_by, constrained_by, guards, publishes, consumes, relates_to",
+              text: "Available relationship types: depends_on, specified_by, verified_by, validates, implements, covered_by, constrained_by, constrains, requires_property, guards, publishes, consumes, supersedes, relates_to",
             },
           ],
           structuredContent: {
@@ -674,12 +713,16 @@ async function handleToolCall(
               "depends_on",
               "specified_by",
               "verified_by",
+              "validates",
               "implements",
               "covered_by",
               "constrained_by",
+              "constrains",
+              "requires_property",
               "guards",
               "publishes",
               "consumes",
+              "supersedes",
               "relates_to",
             ],
           },

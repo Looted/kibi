@@ -66,12 +66,13 @@ describe("kibi init", () => {
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
 
     expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements/**/*.md");
-    expect(config.paths.scenarios).toBe("scenarios/**/*.md");
-    expect(config.paths.tests).toBe("tests/**/*.md");
-    expect(config.paths.adr).toBe("adr/**/*.md");
-    expect(config.paths.flags).toBe("flags/**/*.md");
-    expect(config.paths.events).toBe("events/**/*.md");
+    expect(config.paths.requirements).toBe("requirements");
+    expect(config.paths.scenarios).toBe("scenarios");
+    expect(config.paths.tests).toBe("tests");
+    expect(config.paths.adr).toBe("adr");
+    expect(config.paths.flags).toBe("flags");
+    expect(config.paths.events).toBe("events");
+    expect(config.paths.facts).toBe("facts");
     expect(config.paths.symbols).toBe("symbols.yaml");
   });
 

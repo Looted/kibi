@@ -33,6 +33,7 @@ const DEFAULT_CONFIG = {
     adr: "adr",
     flags: "flags",
     events: "events",
+    facts: "facts",
     symbols: "symbols.yaml",
   },
 };

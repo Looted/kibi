@@ -25,6 +25,8 @@
     superseded_by/2,
     adr_chain/2,
     deprecated_no_successor/1,
+    current_req/1,
+    contradicting_reqs/3,
     normalize_term_atom/2,
     changeset/4  % Export for testing
 ]).
@@ -523,6 +525,28 @@ deprecated_no_successor(Id) :-
     normalize_term_atom(Status, StatusAtom),
     memberchk(StatusAtom, [archived, deprecated]),
     \+ kb_relationship(supersedes, _, Id).
+
+%% current_req(+Id)
+% Requirement is current when active and not superseded by another requirement.
+current_req(Id) :-
+    kb_entity(Id, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, active),
+    \+ kb_relationship(supersedes, _, Id).
+
+%% contradicting_reqs(-ReqA, -ReqB, -Reason)
+% Two current requirements contradict if they constrain the same fact
+% but require different properties.
+contradicting_reqs(ReqA, ReqB, Reason) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(constrains, ReqA, FactId),
+    kb_relationship(constrains, ReqB, FactId),
+    kb_relationship(requires_property, ReqA, PropA),
+    kb_relationship(requires_property, ReqB, PropB),
+    PropA \= PropB,
+    format(atom(Reason), 'Conflict on ~w: ~w vs ~w', [FactId, PropA, PropB]).
 
 normalize_term_atom(Val^^_Type, Atom) :-
     !,

@@ -58,6 +58,11 @@ Kibi v0.5 introduces deterministic derived predicates exposed via MCP.
   - Cycle-safe via visited accumulator
   - Returns complete decision history for a topic
 
+- `contradicting_reqs(ReqA, ReqB, Reason)`
+  - Finds two active, non-superseded requirements that constrain the same fact
+  - Flags contradiction when they require different property facts
+  - `Reason` describes the conflicting fact/property pair
+
 ## MCP Tools
 
 ### `kb_derive`
@@ -102,6 +107,7 @@ Supported rules:
 - `current_adr`
 - `adr_chain`
 - `superseded_by`
+- `domain_contradictions`
 
 ### `kb_impact`
 

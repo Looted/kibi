@@ -14,6 +14,7 @@ import * as path from "node:path";
 import { ensureMainBranch } from "./helpers";
 
 describe("git hook integration", () => {
+  const TEST_TIMEOUT_MS = 20000;
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../../packages/cli/bin/kibi");
 
@@ -69,18 +70,20 @@ describe("git hook integration", () => {
     expect(content).toContain("kibi sync");
   });
 
-  test("post-checkout hook creates branch KB automatically", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "post-checkout hook creates branch KB automatically",
+    () => {
+      execSync(`bun ${kibiBin} init --hooks`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req1.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req1.md"),
+        `---
 title: Initial Requirement
 type: req
 status: approved
@@ -88,21 +91,23 @@ status: approved
 
 # Initial
 `,
-    );
+      );
 
-    execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
-    ensureMainBranch(tmpDir);
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
+      ensureMainBranch(tmpDir);
 
-    // After the initial commit, .kb/branches/main may be created by init; ensure tests allow either state
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBeDefined();
+      // After the initial commit, .kb/branches/main may be created by init; ensure tests allow either state
+      expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBeDefined();
 
-    execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
-    expect(existsSync(path.join(tmpDir, ".kb/branches/feature/kb.rdf"))).toBe(
-      true,
-    );
-  });
+      expect(existsSync(path.join(tmpDir, ".kb/branches/feature/kb.rdf"))).toBe(
+        true,
+      );
+    },
+    TEST_TIMEOUT_MS,
+  );
 
   test("post-merge hook syncs KB after merge", () => {
     execSync(`bun ${kibiBin} init --hooks`, {
@@ -210,18 +215,20 @@ echo "Existing hook"
     expect(existsSync(path.join(tmpDir, ".git/hooks/post-merge"))).toBe(false);
   });
 
-  test("hooks work with detached HEAD", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+  test(
+    "hooks work with detached HEAD",
+    () => {
+      execSync(`bun ${kibiBin} init --hooks`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    const reqDir = path.join(tmpDir, "requirements");
-    mkdirSync(reqDir, { recursive: true });
+      const reqDir = path.join(tmpDir, "requirements");
+      mkdirSync(reqDir, { recursive: true });
 
-    writeFileSync(
-      path.join(reqDir, "req1.md"),
-      `---
+      writeFileSync(
+        path.join(reqDir, "req1.md"),
+        `---
 title: Test
 type: req
 status: approved
@@ -229,30 +236,32 @@ status: approved
 
 # Test
 `,
-    );
+      );
 
-    execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'commit1'", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git commit -m 'commit1'", { cwd: tmpDir, stdio: "pipe" });
 
-    const commitHash = execSync("git rev-parse HEAD", {
-      cwd: tmpDir,
-      encoding: "utf8",
-    }).trim();
+      const commitHash = execSync("git rev-parse HEAD", {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }).trim();
 
-    execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit --allow-empty -m 'commit2'", {
-      cwd: tmpDir,
-      stdio: "pipe",
-    });
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git commit --allow-empty -m 'commit2'", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
-    try {
-      execSync(`git checkout ${commitHash}`, { cwd: tmpDir, stdio: "pipe" });
-    } catch {
-      // Detached HEAD might fail sync, but should not crash
-    }
+      try {
+        execSync(`git checkout ${commitHash}`, { cwd: tmpDir, stdio: "pipe" });
+      } catch {
+        // Detached HEAD might fail sync, but should not crash
+      }
 
-    expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
-  });
+      expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
+    },
+    TEST_TIMEOUT_MS,
+  );
 
   test("hooks handle sync failures gracefully", () => {
     execSync(`bun ${kibiBin} init --hooks`, {

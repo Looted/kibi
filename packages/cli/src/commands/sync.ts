@@ -133,12 +133,13 @@ export async function syncCommand(): Promise<void> {
     // Load config (fall back to defaults if missing)
     const DEFAULT_CONFIG = {
       paths: {
-        requirements: "requirements",
-        scenarios: "scenarios",
-        tests: "tests",
-        adr: "adr",
-        flags: "flags",
-        events: "events",
+        requirements: "requirements/**/*.md",
+        scenarios: "scenarios/**/*.md",
+        tests: "tests/**/*.md",
+        adr: "adr/**/*.md",
+        flags: "flags/**/*.md",
+        events: "events/**/*.md",
+        facts: "facts/**/*.md",
         symbols: "symbols.yaml",
       },
     };
@@ -165,13 +166,22 @@ export async function syncCommand(): Promise<void> {
     const paths = config.paths;
 
     // Discover files - construct glob patterns from directory paths
+    const normalizeMarkdownPath = (
+      pattern: string | undefined,
+    ): string | null => {
+      if (!pattern) return null;
+      if (pattern.includes("*")) return pattern;
+      return `${pattern}/**/*.md`;
+    };
+
     const markdownPatterns = [
-      paths.requirements ? `${paths.requirements}/**/*.md` : null,
-      paths.scenarios ? `${paths.scenarios}/**/*.md` : null,
-      paths.tests ? `${paths.tests}/**/*.md` : null,
-      paths.adr ? `${paths.adr}/**/*.md` : null,
-      paths.flags ? `${paths.flags}/**/*.md` : null,
-      paths.events ? `${paths.events}/**/*.md` : null,
+      normalizeMarkdownPath(paths.requirements),
+      normalizeMarkdownPath(paths.scenarios),
+      normalizeMarkdownPath(paths.tests),
+      normalizeMarkdownPath(paths.adr),
+      normalizeMarkdownPath(paths.flags),
+      normalizeMarkdownPath(paths.events),
+      normalizeMarkdownPath(paths.facts),
     ].filter((p): p is string => Boolean(p));
 
     const markdownFiles = await fg(markdownPatterns, {
