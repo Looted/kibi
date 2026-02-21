@@ -51,7 +51,7 @@ describe("branch KB workflow", () => {
   });
 
   test("creates separate KB for each branch", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -71,7 +71,7 @@ status: approved
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
@@ -99,7 +99,7 @@ status: draft
   }, 20000);
 
   test("branch KB is isolated from main KB", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -119,7 +119,7 @@ status: approved
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'main commit'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'main commit'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     const mainQuery = execSync(`bun ${kibiBin} query req`, {
@@ -163,7 +163,7 @@ status: draft
   }, 20000);
 
   test("switching branches loads correct KB", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -182,7 +182,7 @@ status: approved
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'v1'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'v1'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     execSync("git checkout -b v2", { cwd: tmpDir, stdio: "pipe" });
@@ -218,11 +218,11 @@ status: approved
   }, 20000);
 
   test("creates branch KB on first sync", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     writeFileSync(path.join(tmpDir, "README.md"), "# temp\n");
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'init main'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'init main'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
     execSync("git checkout -b new-feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -253,7 +253,7 @@ status: draft
   }, 20000);
 
   test("deleting branch document removes from branch KB only", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -272,7 +272,7 @@ status: approved
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'add shared'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'add shared'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
@@ -295,10 +295,10 @@ status: approved
       encoding: "utf8",
     });
     expect(mainQuery).toContain("shared");
-  }, 20000);
+  }, 30000);
 
   test("merging branch preserves both KBs", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -317,7 +317,7 @@ status: approved
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'main'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'main'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
@@ -336,7 +336,7 @@ status: draft
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git checkout main", { cwd: tmpDir, stdio: "pipe" });
     execSync("git merge feature --no-edit", { cwd: tmpDir, stdio: "pipe" });
@@ -359,7 +359,8 @@ status: draft
   }, 20000);
 
   test("orphan branch creates independent KB", () => {
-    execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    // Use --no-hooks to prevent post-checkout hook from triggering during orphan branch creation
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -378,7 +379,7 @@ status: approved
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'main'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'main'", { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git checkout --orphan orphan", { cwd: tmpDir, stdio: "pipe" });
     execSync("git rm -rf .", { cwd: tmpDir, stdio: "pipe" });

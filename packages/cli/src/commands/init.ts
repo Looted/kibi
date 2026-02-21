@@ -13,16 +13,16 @@ interface InitOptions {
 }
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
-bun __KIBI_BIN__ sync
+kibi sync
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh
-bun __KIBI_BIN__ sync
+kibi sync
 `;
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
 set -e
-bun __KIBI_BIN__ check
+kibi check
 `;
 
 const DEFAULT_CONFIG = {
@@ -115,25 +115,14 @@ export async function initCommand(options: InitOptions): Promise<void> {
         const postMergePath = path.join(hooksDir, "post-merge");
         const preCommitPath = path.join(hooksDir, "pre-commit");
 
-        const binPath = path.resolve(__dirname, "../../bin/kibi");
-
-        const checkoutHookContent = POST_CHECKOUT_HOOK.replace(
-          "__KIBI_BIN__",
-          binPath,
-        );
-        const mergeHookContent = POST_MERGE_HOOK.replace(
-          "__KIBI_BIN__",
-          binPath,
-        );
-        const preCommitHookContent = PRE_COMMIT_HOOK.replace(
-          "__KIBI_BIN__",
-          binPath,
-        );
+        const checkoutHookContent = POST_CHECKOUT_HOOK;
+        const mergeHookContent = POST_MERGE_HOOK;
+        const preCommitHookContent = PRE_COMMIT_HOOK;
 
         const installHook = (hookPath: string, content: string) => {
           if (existsSync(hookPath)) {
             const existing = readFileSync(hookPath, "utf8");
-            if (!existing.includes(`bun ${binPath}`)) {
+            if (!existing.includes("kibi")) {
               writeFileSync(
                 hookPath,
                 `${existing}

@@ -152,7 +152,7 @@ describe("kibi doctor", () => {
 
   test("checks git hooks if --hooks was used", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -167,7 +167,7 @@ describe("kibi doctor", () => {
 
   test("checks pre-commit hook if --hooks was used", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
