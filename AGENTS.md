@@ -100,13 +100,14 @@ When you encounter code that is not obvious about its intent on first sight:
 
 This ensures the knowledge base grows with each investigation, making future work easier for both humans and agents.
 
-### Rule 2: Commit Your Work
+### Rule 2: Git Workflow Rules
 
-**Make commits for your work following standard conventions.**
+**Commit your work whenever a deliverable is ready, using industry-standard conventions.**
 
-- Follow conventional commit format when appropriate (e.g., `feat:`, `fix:`, `docs:`, `refactor:`)
-- The key is that commits happen so kibi hooks can run their checks
-- Kibi's git hooks (`post-checkout`, `post-merge`) automatically sync and validate the KB
+- **Conventional Commits**: Always use the [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
+- **Commit on Ready**: Create a commit as soon as a feature, fix, or documentation update is complete.
+- **Local Only**: Do **not** push your commits. Just perform the local commit.
+- **Kibi Integration**: Commits trigger Kibi's git hooks to automatically sync and validate the knowledge base.
 
 ---
 
