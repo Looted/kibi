@@ -18,7 +18,7 @@ program
 program
   .command("init")
   .description("Initialize .kb/ directory")
-  .option("--hooks", "Install git hooks (post-checkout, post-merge)")
+  .option("--no-hooks", "Do not install git hooks (hooks installed by default)")
   .action(async (options) => {
     await initCommand(options);
   });

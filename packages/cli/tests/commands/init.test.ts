@@ -89,9 +89,9 @@ describe("kibi init", () => {
     expect(out.toLowerCase()).toContain("already exists, skipping");
   });
 
-  test("installs git hooks with --hooks flag", () => {
+  test("installs git hooks by default", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
@@ -109,9 +109,9 @@ describe("kibi init", () => {
     expect(mergeStats.mode & 0o111).not.toBe(0);
   });
 
-  test("does not install hooks without --hooks flag", () => {
+  test("does not install hooks when --no-hooks is used", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init`, {
+    execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
@@ -125,9 +125,9 @@ describe("kibi init", () => {
     expect(existsSync(preCommit)).toBe(false);
   });
 
-  test("installs pre-commit hook with --hooks flag", () => {
+  test("installs pre-commit hook by default", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });

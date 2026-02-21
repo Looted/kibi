@@ -134,6 +134,12 @@ export async function syncCommand(
     } catch {
       currentBranch = "main";
     }
+    if (process.env.KIBI_DEBUG) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log("[kibi-debug] currentBranch:", currentBranch);
+      } catch {}
+    }
 
     // Load config (fall back to defaults if missing)
     const DEFAULT_CONFIG = {
@@ -193,6 +199,15 @@ export async function syncCommand(
       cwd: process.cwd(),
       absolute: true,
     });
+
+    if (process.env.KIBI_DEBUG) {
+      try {
+        // eslint-disable-next-line no-console
+        console.log("[kibi-debug] markdownPatterns:", markdownPatterns);
+        // eslint-disable-next-line no-console
+        console.log("[kibi-debug] markdownFiles:", markdownFiles);
+      } catch {}
+    }
 
     const manifestFiles = await fg(paths.symbols, {
       cwd: process.cwd(),
@@ -340,6 +355,15 @@ export async function syncCommand(
       })();
       if (hasCommits) {
         fs.cpSync(mainPath, kbPath, { recursive: true });
+        // Remove copied sync cache to avoid cross-branch cache pollution
+        try {
+          const copiedCache = path.join(kbPath, "sync-cache.json");
+          if (existsSync(copiedCache)) {
+            fs.rmSync(copiedCache);
+          }
+        } catch {
+          // ignore errors cleaning up cache
+        }
       }
     }
 

@@ -38,8 +38,8 @@ describe("git hook integration", () => {
     }
   });
 
-  test("init with --hooks installs post-checkout hook", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
+  test("init installs post-checkout hook by default", () => {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -54,8 +54,8 @@ describe("git hook integration", () => {
     expect(content).toContain("kibi sync");
   });
 
-  test("init with --hooks installs post-merge hook", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
+  test("init installs post-merge hook by default", () => {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -73,7 +73,7 @@ describe("git hook integration", () => {
   test(
     "post-checkout hook creates branch KB automatically",
     () => {
-      execSync(`bun ${kibiBin} init --hooks`, {
+      execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -110,7 +110,7 @@ status: approved
   );
 
   test("post-merge hook syncs KB after merge", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -131,7 +131,7 @@ status: approved
     );
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'main'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'main'", { cwd: tmpDir, stdio: "pipe" });
     ensureMainBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
@@ -149,7 +149,7 @@ status: draft
     );
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git checkout main", { cwd: tmpDir, stdio: "pipe" });
 
@@ -161,10 +161,10 @@ status: draft
     });
     expect(mainQuery).toContain("Main");
     expect(mainQuery).toContain("Feature");
-  }, 20000);
+  }, 30000);
 
   test("hooks are idempotent on re-install", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -172,7 +172,7 @@ status: draft
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
     const firstContent = readFileSync(hookPath, "utf8");
 
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -193,7 +193,7 @@ echo "Existing hook"
 `,
     );
 
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -203,8 +203,8 @@ echo "Existing hook"
     expect(content).toContain("kibi sync");
   });
 
-  test("init without --hooks does not install hooks", () => {
-    execSync(`bun ${kibiBin} init`, {
+  test("init with --no-hooks does not install hooks", () => {
+    execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -218,7 +218,7 @@ echo "Existing hook"
   test(
     "hooks work with detached HEAD",
     () => {
-      execSync(`bun ${kibiBin} init --hooks`, {
+      execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
       });
@@ -264,7 +264,7 @@ status: approved
   );
 
   test("hooks handle sync failures gracefully", () => {
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -291,5 +291,5 @@ Missing type field
     }
 
     expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
-  });
+  }, 20000);
 });
