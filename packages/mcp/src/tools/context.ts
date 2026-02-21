@@ -27,8 +27,20 @@ export interface ContextResult {
 export async function handleKbContext(
   prolog: PrologProcess,
   args: ContextArgs,
+  activeBranch?: string,
 ): Promise<ContextResult> {
-  const { sourceFile } = args;
+  const { sourceFile, branch } = args;
+
+  if (branch && activeBranch && branch !== activeBranch) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Error: branch parameter is not supported server-side; set KIBI_BRANCH at startup or restart server on the desired branch. (Requested: ${branch}, Active: ${activeBranch})`,
+        },
+      ],
+    };
+  }
 
   try {
     const safeSource = sourceFile.replace(/'/g, "\\'");

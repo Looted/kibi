@@ -268,4 +268,65 @@ System must support OAuth2 authentication with session renewal.
     },
     TEST_TIMEOUT_MS,
   );
+
+  describe("validate-only mode", () => {
+    test(
+      "validate-only does not modify output artifacts",
+      async () => {
+        const currentBranch =
+          execSync("git branch --show-current", {
+            cwd: tmpDir,
+            encoding: "utf8",
+          }).trim() || "main";
+        const effectiveBranch =
+          currentBranch === "master" ? "main" : currentBranch;
+        const kbPath = path.join(tmpDir, `.kb/branches/${effectiveBranch}`);
+        const rdfPath = path.join(kbPath, "kb.rdf");
+
+        if (existsSync(rdfPath)) {
+          rmSync(rdfPath);
+        }
+
+        const output = execSync(`bun ${kibiBin} sync --validate-only`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        });
+
+        expect(output).toContain("OK: Validation passed");
+        expect(existsSync(rdfPath)).toBe(false);
+
+        const cachePath = path.join(kbPath, "sync-cache.json");
+        expect(existsSync(cachePath)).toBe(false);
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "validate-only returns non-zero on errors",
+      async () => {
+        writeFileSync(
+          path.join(tmpDir, "requirements", "invalid.md"),
+          `---
+invalid: yaml: [
+---
+`,
+        );
+
+        try {
+          execSync(`bun ${kibiBin} sync --validate-only`, {
+            cwd: tmpDir,
+            encoding: "utf8",
+            stdio: "pipe",
+          });
+          throw new Error("Should have failed");
+        } catch (error: any) {
+          expect(error.status).toBe(1);
+          const stderr = error.stderr.toString();
+          expect(stderr).toContain("invalid.md");
+          expect(stderr).toContain("FAILED");
+        }
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
 });

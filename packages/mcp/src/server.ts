@@ -97,7 +97,7 @@ const TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -447,7 +447,7 @@ const TOOLS = [
         branch: {
           type: "string",
           description:
-            "Optional branch hint for clients. Server-side handler currently resolves against attached branch context.",
+            "Optional branch hint for clients. Must match the server's active branch or will return an error.",
         },
       },
     },
@@ -468,6 +468,7 @@ const TOOLS = [
             "constraints",
             "examples",
             "errors",
+            "branching",
           ],
           description:
             "Optional documentation section. Omit to return overview. Example: 'workflow'.",
@@ -667,6 +668,28 @@ function getHelpText(topic?: string): string {
     );
   }
 
+  if (normalized === "branching") {
+    return [
+      "# Branch Selection",
+      "",
+      "Kibi is branch-aware. By default, the MCP server detects the current git branch and attaches to the corresponding KB in `.kb/branches/<branch>`.",
+      "",
+      "## Forcing a Branch",
+      "You can override the detected branch by setting the `KIBI_BRANCH` environment variable before starting the server.",
+      "",
+      "Example:",
+      "```bash",
+      "KIBI_BRANCH=feature/auth bun run packages/mcp/src/server.ts",
+      "```",
+      "",
+      "## How it works",
+      "1. If `KIBI_BRANCH` is set, it uses that value.",
+      "2. If not set, it runs `git branch --show-current`.",
+      "3. If git detection fails, it falls back to `main`.",
+      "4. The server logs the selection process to stderr on startup.",
+    ].join("\n");
+  }
+
   return (
     DOC_RESOURCES.find((r) => r.uri === "kibi://docs/overview")?.text ?? ""
   );
@@ -674,6 +697,7 @@ function getHelpText(topic?: string): string {
 
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
+let activeBranchName = "main";
 
 async function ensureProlog(): Promise<PrologProcess> {
   if (isInitialized && prologProcess?.isRunning()) {
@@ -686,6 +710,8 @@ async function ensureProlog(): Promise<PrologProcess> {
   await prologProcess.start();
 
   let branch = process.env.KIBI_BRANCH || "main";
+  let gitBranch: string | undefined;
+
   if (!process.env.KIBI_BRANCH) {
     try {
       const { execSync } = await import("node:child_process");
@@ -695,13 +721,23 @@ async function ensureProlog(): Promise<PrologProcess> {
         timeout: 3000,
       }).trim();
       if (detected) {
-        branch = detected === "master" ? "main" : detected;
+        gitBranch = detected === "master" ? "main" : detected;
+        branch = gitBranch;
       }
     } catch {
       // fall back to main
     }
   }
 
+  console.error("[MCP] Branch selection:");
+  console.error(
+    `[MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
+  );
+  console.error(`[MCP]   Git branch: ${gitBranch || "n/a"}`);
+  console.error(`[MCP]   Attached to: ${branch}`);
+  console.error("[MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
+
+  activeBranchName = branch;
   const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
@@ -1079,7 +1115,11 @@ export async function startServer(): Promise<void> {
     toolDef("kbcontext").inputSchema,
     async (args) => {
       const prolog = await ensureProlog();
-      return handleKbContext(prolog, args as unknown as ContextArgs);
+      return handleKbContext(
+        prolog,
+        args as unknown as ContextArgs,
+        activeBranchName,
+      );
     },
   );
 

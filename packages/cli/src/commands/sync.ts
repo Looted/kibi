@@ -113,7 +113,12 @@ function writeSyncCache(cachePath: string, cache: SyncCache): void {
   );
 }
 
-export async function syncCommand(): Promise<void> {
+export async function syncCommand(
+  options: {
+    validateOnly?: boolean;
+  } = {},
+): Promise<void> {
+  const validateOnly = options.validateOnly ?? false;
   try {
     // Detect current branch early (needed for cache and KB paths)
     let currentBranch = "main";
@@ -222,7 +227,7 @@ export async function syncCommand(): Promise<void> {
         nextHashes[key] = hash;
         nextSeenAt[key] = nowIso;
 
-        if (expired || syncCache.hashes[key] !== hash) {
+        if (expired || syncCache.hashes[key] !== hash || validateOnly) {
           if (markdownFiles.includes(file)) {
             changedMarkdownFiles.push(file);
           } else {
@@ -237,13 +242,18 @@ export async function syncCommand(): Promise<void> {
 
     const results: ExtractionResult[] = [];
     const failedCacheKeys = new Set<string>();
+    const errors: { file: string; message: string }[] = [];
 
     for (const file of changedMarkdownFiles) {
       try {
         results.push(extractFromMarkdown(file));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Warning: Failed to extract from ${file}: ${message}`);
+        if (validateOnly) {
+          errors.push({ file, message });
+        } else {
+          console.warn(`Warning: Failed to extract from ${file}: ${message}`);
+        }
         failedCacheKeys.add(toCacheKey(file));
       }
     }
@@ -254,8 +264,25 @@ export async function syncCommand(): Promise<void> {
         results.push(...manifestResults);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(`Warning: Failed to extract from ${file}: ${message}`);
+        if (validateOnly) {
+          errors.push({ file, message });
+        } else {
+          console.warn(`Warning: Failed to extract from ${file}: ${message}`);
+        }
         failedCacheKeys.add(toCacheKey(file));
+      }
+    }
+
+    if (validateOnly) {
+      if (errors.length > 0) {
+        for (const err of errors) {
+          console.error(`${err.file}: ${err.message}`);
+        }
+        console.error(`FAILED: ${errors.length} errors found`);
+        process.exit(1);
+      } else {
+        console.log(`OK: Validation passed (${results.length} entities)`);
+        process.exit(0);
       }
     }
 

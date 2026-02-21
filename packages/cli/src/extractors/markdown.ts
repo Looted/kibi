@@ -30,30 +30,81 @@ export interface ExtractionResult {
 }
 
 export class FrontmatterError extends Error {
+  public classification: string;
+  public hint: string;
+  public originalError?: string;
+
   constructor(
     message: string,
     public filePath: string,
+    options?: {
+      classification?: string;
+      hint?: string;
+      originalError?: string;
+    },
   ) {
     super(message);
     this.name = "FrontmatterError";
+    this.classification = options?.classification || "Generic Error";
+    this.hint = options?.hint || "Check the file for syntax errors.";
+    this.originalError = options?.originalError;
+  }
+
+  override toString() {
+    let msg = `${this.filePath}: [${this.classification}] ${this.message}`;
+    if (this.hint) {
+      msg += `\nHow to fix:\n- ${this.hint}`;
+    }
+    if (this.originalError) {
+      msg += `\n\nOriginal error: ${this.originalError}`;
+    }
+    return msg;
   }
 }
 
 export function extractFromMarkdown(filePath: string): ExtractionResult {
+  let content: string;
   try {
-    const content = readFileSync(filePath, "utf8");
+    content = readFileSync(filePath, "utf8");
+  } catch (error) {
+    throw new FrontmatterError(
+      `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
+      filePath,
+      { classification: "File Read Error" },
+    );
+  }
+
+  try {
     const { data, content: body } = matter(content);
+
+    if (content.trim().startsWith("---")) {
+      const parts = content.split("---");
+      if (parts.length < 3) {
+        throw new FrontmatterError("Missing closing --- delimiter", filePath, {
+          classification: "Missing closing ---",
+          hint: "Ensure the frontmatter is enclosed between two '---' delimiters.",
+        });
+      }
+    }
+
     const type = data.type || inferTypeFromPath(filePath);
 
     if (!type) {
       throw new FrontmatterError(
         "Could not determine entity type from path or frontmatter",
         filePath,
+        {
+          classification: "Missing Type",
+          hint: "Add 'type: <type>' to frontmatter or place file in a typed directory (e.g., /requirements/).",
+        },
       );
     }
 
     if (!data.title) {
-      throw new FrontmatterError("Missing required field: title", filePath);
+      throw new FrontmatterError("Missing required field: title", filePath, {
+        classification: "Missing Field",
+        hint: "Add a 'title: ...' field to the YAML frontmatter.",
+      });
     }
 
     const id = data.id || generateId(filePath, data.title);
@@ -83,9 +134,46 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
     }
 
     if (error instanceof Error) {
+      const message = error.message;
+      let classification = "Frontmatter YAML syntax error";
+      let hint = "Check the YAML syntax in your frontmatter.";
+
+      if (
+        message.includes("incomplete explicit mapping pair") &&
+        message.includes(":")
+      ) {
+        classification = "Unquoted colon likely in title";
+        hint =
+          'Wrap values containing colons in quotes (e.g., title: "Foo: Bar").';
+      } else if (
+        !content.trim().startsWith("---") ||
+        content.split("---").length < 3
+      ) {
+        if (
+          content.trim().startsWith("---") &&
+          content.split("---").length < 3
+        ) {
+          classification = "Missing closing ---";
+          hint =
+            "Ensure the frontmatter is enclosed between two '---' delimiters.";
+        }
+      } else if (
+        message.includes("unexpected end of the stream") ||
+        message.includes("flow collection") ||
+        message.includes("end of the stream")
+      ) {
+        classification = "Generic YAML mapping error";
+        hint = "Check for unclosed brackets, braces, or quotes in your YAML.";
+      }
+
       throw new FrontmatterError(
-        `Failed to parse frontmatter: ${error.message}`,
+        `Failed to parse frontmatter: ${message}`,
         filePath,
+        {
+          classification,
+          hint,
+          originalError: message,
+        },
       );
     }
 

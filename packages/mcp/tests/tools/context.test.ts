@@ -74,5 +74,54 @@ describe("MCP Context Tool", () => {
         expect(result.structuredContent?.relationships).toBeInstanceOf(Array);
       }
     });
+
+    test("should return error when branch parameter is mismatched", async () => {
+      const result = await handleKbContext(
+        prolog,
+        {
+          sourceFile: "src/features/feature.ts",
+          branch: "wrong-branch",
+        },
+        "main",
+      );
+
+      expect(result.content[0].text).toContain(
+        "branch parameter is not supported server-side",
+      );
+      expect(result.content[0].text).toContain("Requested: wrong-branch");
+      expect(result.content[0].text).toContain("Active: main");
+      expect(result.structuredContent).toBeUndefined();
+    });
+
+    test("should work normally when branch parameter matches", async () => {
+      const result = await handleKbContext(
+        prolog,
+        {
+          sourceFile: "src/features/feature.ts",
+          branch: "main",
+        },
+        "main",
+      );
+
+      expect(result.content[0].text).not.toContain(
+        "branch parameter is not supported server-side",
+      );
+      expect(result.structuredContent).toBeDefined();
+    });
+
+    test("should work normally when branch parameter is omitted", async () => {
+      const result = await handleKbContext(
+        prolog,
+        {
+          sourceFile: "src/features/feature.ts",
+        },
+        "main",
+      );
+
+      expect(result.content[0].text).not.toContain(
+        "branch parameter is not supported server-side",
+      );
+      expect(result.structuredContent).toBeDefined();
+    });
   });
 });

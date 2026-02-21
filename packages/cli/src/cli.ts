@@ -26,8 +26,9 @@ program
 program
   .command("sync")
   .description("Sync entities from documents")
-  .action(async () => {
-    await syncCommand();
+  .option("--validate-only", "Perform validation without mutations")
+  .action(async (options) => {
+    await syncCommand(options);
   });
 
 program
