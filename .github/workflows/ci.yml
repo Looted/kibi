@@ -69,7 +69,7 @@ jobs:
           type: scenario
           status: active
           links:
-            - type: specifiedby
+            - type: specified_by
               target: req-ci-test
           ---
           CI test scenario.' > scenarios/scen-ci-test.md
