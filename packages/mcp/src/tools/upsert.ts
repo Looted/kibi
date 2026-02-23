@@ -2,9 +2,10 @@ import type { PrologProcess } from "@kibi/cli/src/prolog.js";
 import entitySchema from "@kibi/cli/src/schemas/entity.schema.json";
 import relationshipSchema from "@kibi/cli/src/schemas/relationship.schema.json";
 import Ajv from "ajv";
+import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 export interface UpsertArgs {
-  /** Entity type (req, scenario, test, adr, flag, event, symbol) */
+  /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
   type: string;
   /** Unique entity identifier */
   id: string;
@@ -151,6 +152,17 @@ export async function handleKbUpsert(
 
     // Save KB to disk
     await prolog.query("kb_save");
+
+    if (type === "symbol") {
+      try {
+        await refreshCoordinatesForSymbolId(id);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn(
+          `[kibi-mcp] Symbol coordinate auto-refresh failed for ${id}: ${message}`,
+        );
+      }
+    }
 
     return {
       content: [

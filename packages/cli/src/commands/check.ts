@@ -39,6 +39,10 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
 
+    violations.push(...(await checkDeprecatedAdrs(prolog)));
+
+    violations.push(...(await checkDomainContradictions(prolog)));
+
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -47,7 +51,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       process.exit(0);
     }
 
-    console.log(`Found ${violations.length} violation(s):\n`);
+    console.log(`Found ${violations.length} violation(s):
+`);
 
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;
@@ -182,6 +187,9 @@ async function checkNoDanglingRefs(
     "verified_by",
     "validates",
     "specified_by",
+    "constrains",
+    "requires_property",
+    "supersedes",
     "relates_to",
   ];
 
@@ -377,4 +385,110 @@ async function checkRequiredFields(
   }
 
   return violations;
+}
+
+async function checkDeprecatedAdrs(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  // Use Prolog predicate to find deprecated ADRs without successors
+  const result = await prolog.query(
+    "setof(Id, deprecated_no_successor(Id), Ids)",
+  );
+
+  if (!result.success || !result.bindings.Ids) {
+    return violations;
+  }
+
+  const idsStr = result.bindings.Ids;
+  const match = idsStr.match(/\[(.*)\]/);
+  if (!match) {
+    return violations;
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return violations;
+  }
+
+  const adrIds = content
+    .split(",")
+    .map((id) => id.trim().replace(/^'|'$/g, ""));
+
+  for (const adrId of adrIds) {
+    // Get source for better error message
+    const entityResult = await prolog.query(
+      `kb_entity('${adrId}', adr, Props)`,
+    );
+
+    let source = "";
+    if (entityResult.success && entityResult.bindings.Props) {
+      const propsStr = entityResult.bindings.Props;
+      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
+      if (sourceMatch) {
+        source = sourceMatch[1];
+      }
+    }
+
+    violations.push({
+      rule: "deprecated-adr-no-successor",
+      entityId: adrId,
+      description:
+        "Archived/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
+      suggestion: `Create a new ADR and add: links: [{type: supersedes, target: ${adrId}}]`,
+      source,
+    });
+  }
+
+  return violations;
+}
+
+async function checkDomainContradictions(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+  const result = await prolog.query(
+    "setof([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return violations;
+  }
+
+  const rows = parseTripleRows(result.bindings.Rows);
+  for (const [reqA, reqB, reason] of rows) {
+    violations.push({
+      rule: "domain-contradictions",
+      entityId: `${reqA}/${reqB}`,
+      description: reason,
+      suggestion:
+        "Supersede one requirement or align both to the same required property",
+    });
+  }
+
+  return violations;
+}
+
+function parseTripleRows(raw: string): Array<[string, string, string]> {
+  const cleaned = raw.trim();
+  if (cleaned === "[]" || cleaned.length === 0) {
+    return [];
+  }
+
+  const rows: Array<[string, string, string]> = [];
+  const rowRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
+  let match: RegExpExecArray | null;
+  do {
+    match = rowRegex.exec(cleaned);
+    if (match) {
+      rows.push([
+        match[1].trim().replace(/^'|'$/g, ""),
+        match[2].trim().replace(/^'|'$/g, ""),
+        match[3].trim().replace(/^'|'$/g, ""),
+      ]);
+    }
+  } while (match);
+
+  return rows;
 }

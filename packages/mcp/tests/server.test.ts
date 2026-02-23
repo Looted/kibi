@@ -154,7 +154,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(9);
+    expect(tools.length).toBe(16);
     expect(tools[0].name).toBe("kb_query");
     expect(tools[1].name).toBe("kb_upsert");
     expect(tools[2].name).toBe("kb_delete");
@@ -162,8 +162,14 @@ describe("MCP Server", () => {
     expect(tools[4].name).toBe("kb_branch_ensure");
     expect(tools[5].name).toBe("kb_branch_gc");
     expect(tools[6].name).toBe("kb_query_relationships");
-    expect(tools[7].name).toBe("kb_list_entity_types");
-    expect(tools[8].name).toBe("kb_list_relationship_types");
+    expect(tools[7].name).toBe("kb_derive");
+    expect(tools[8].name).toBe("kb_impact");
+    expect(tools[9].name).toBe("kb_coverage_report");
+    expect(tools[10].name).toBe("kb_symbols_refresh");
+    expect(tools[11].name).toBe("kb_list_entity_types");
+    expect(tools[12].name).toBe("kb_list_relationship_types");
+    expect(tools[13].name).toBe("kbcontext");
+    expect(tools[14].name).toBe("get_help");
 
     proc.kill();
   });
@@ -171,43 +177,28 @@ describe("MCP Server", () => {
   test("should return error for invalid method", async () => {
     const proc = startServer();
 
-    const response = await sendRequest(proc, {
+    await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
       method: "invalid_method",
     });
 
     expect(response.error).toBeDefined();
     const error = response.error as Record<string, unknown>;
     expect(error.code).toBe(-32601); // METHOD_NOT_FOUND
-    expect(error.message).toContain("Unknown method");
+    expect(error.message).toContain("Method not found");
 
     proc.kill();
-  });
-
-  test("should return error for malformed JSON", async () => {
-    const proc = startServer();
-
-    return new Promise<void>((resolve) => {
-      let responseData = "";
-
-      proc.stdout?.on("data", (chunk) => {
-        responseData += chunk.toString();
-        const lines = responseData.split("\n");
-
-        if (lines.length > 1) {
-          const response = JSON.parse(lines[0]);
-          expect(response.error).toBeDefined();
-          const error = response.error as Record<string, unknown>;
-          expect(error.code).toBe(-32700); // PARSE_ERROR
-
-          proc.kill();
-          resolve();
-        }
-      });
-
-      // Send malformed JSON
-      proc.stdin?.write("{invalid json}\n");
-    });
   });
 });

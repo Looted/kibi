@@ -5,6 +5,7 @@ import { PrologProcess } from "../prolog.js";
 interface QueryOptions {
   id?: string;
   tag?: string;
+  source?: string;
   relationships?: string;
   format?: "json" | "table";
   limit?: string;
@@ -66,29 +67,40 @@ export async function queryCommand(
       }
     }
     // Query entities mode
-    else if (type) {
-      // Validate type
-      const validTypes = [
-        "req",
-        "scenario",
-        "test",
-        "adr",
-        "flag",
-        "event",
-        "symbol",
-      ];
-      if (!validTypes.includes(type)) {
-        await prolog.query("kb_detach");
-        await prolog.terminate();
-        console.error(
-          `Error: Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
-        );
-        process.exit(1);
+    else if (type || options.source) {
+      // Validate type if provided
+      if (type) {
+        const validTypes = [
+          "req",
+          "scenario",
+          "test",
+          "adr",
+          "flag",
+          "event",
+          "symbol",
+          "fact",
+        ];
+        if (!validTypes.includes(type)) {
+          await prolog.query("kb_detach");
+          await prolog.terminate();
+          console.error(
+            `Error: Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
+          );
+          process.exit(1);
+        }
       }
 
       let goal: string;
 
-      if (options.id) {
+      if (options.source) {
+        // Query by source path (substring match)
+        const safeSource = String(options.source).replace(/'/g, "\\'");
+        if (type) {
+          goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
+        } else {
+          goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+        }
+      } else if (options.id) {
         const safeId = String(options.id).replace(/'/g, "''");
         goal = `kb_entity('${safeId}', '${type}', Props), Id = '${safeId}', Type = '${type}', Result = [Id, Type, Props]`;
       } else if (options.tag) {
@@ -123,7 +135,7 @@ export async function queryCommand(
       await prolog.query("kb_detach");
       await prolog.terminate();
       console.error(
-        "Error: Must specify entity type or --relationships option",
+        "Error: Must specify entity type, --source, or --relationships option",
       );
       process.exit(1);
     }
@@ -363,9 +375,17 @@ function parsePrologValue(value: string): any {
     return value.substring(1, value.length - 1);
   }
 
-  // Handle quoted atom
+  // Handle quoted atom (may contain file URLs that need extraction)
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.substring(1, value.length - 1);
+    const unquoted = value.substring(1, value.length - 1);
+    // Check if unquoted value is a file URL
+    if (unquoted.startsWith("file:///")) {
+      const lastSlash = unquoted.lastIndexOf("/");
+      if (lastSlash !== -1) {
+        return unquoted.substring(lastSlash + 1);
+      }
+    }
+    return unquoted;
   }
 
   // Handle list
