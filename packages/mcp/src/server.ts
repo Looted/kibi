@@ -1,5 +1,4 @@
 import "./env.js";
-import path from "node:path";
 import process from "node:process";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -31,6 +30,7 @@ import {
   handleKbSymbolsRefresh,
 } from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
+import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 
 interface DocResource {
   uri: string;
@@ -698,17 +698,79 @@ function getHelpText(topic?: string): string {
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 let activeBranchName = "develop";
+// Shutdown tracking state
+let isShuttingDown = false;
+let shutdownTimeout: NodeJS.Timeout | null = null;
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
+function debugLog(...args: Parameters<typeof console.error>): void {
+  if (process.env.KIBI_MCP_DEBUG) {
+    console.error(...args);
+  }
+}
+
+async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  debugLog(`[KIBI-MCP] Initiating graceful shutdown (exit code: ${exitCode})`);
+
+  // Wait for in-flight requests
+  if (inFlightRequests.size > 0) {
+    debugLog(
+      `[KIBI-MCP] Waiting for ${inFlightRequests.size} in-flight requests to complete...`,
+    );
+
+    const timeoutPromise = new Promise((_, reject) => {
+      shutdownTimeout = setTimeout(() => {
+        reject(new Error("Shutdown timeout"));
+      }, 10000); // 10 second timeout
+    });
+
+    try {
+      await Promise.race([
+        Promise.allSettled(Array.from(inFlightRequests.values())),
+        timeoutPromise,
+      ]);
+      debugLog("[KIBI-MCP] All in-flight requests completed");
+    } catch (_error) {
+      console.error("[KIBI-MCP] Shutdown timeout reached, forcing exit");
+    } finally {
+      if (shutdownTimeout) {
+        clearTimeout(shutdownTimeout);
+        shutdownTimeout = null;
+      }
+    }
+  }
+
+  // Cleanup Prolog process
+  if (prologProcess?.isRunning()) {
+    debugLog("[KIBI-MCP] Terminating Prolog process...");
+    try {
+      await prologProcess.terminate();
+      debugLog("[KIBI-MCP] Prolog process terminated");
+    } catch (error) {
+      console.error("[KIBI-MCP] Error terminating Prolog:", error);
+    }
+  }
+
+  // Exit
+  process.exit(exitCode);
+}
 
 async function ensureProlog(): Promise<PrologProcess> {
   if (isInitialized && prologProcess?.isRunning()) {
     return prologProcess;
   }
 
-  console.error("[MCP] Initializing Prolog process...");
+  debugLog("[KIBI-MCP] Initializing Prolog process...");
 
   prologProcess = new PrologProcess({ timeout: 30000 });
   await prologProcess.start();
 
+  const workspaceRoot = resolveWorkspaceRoot();
   let branch = process.env.KIBI_BRANCH || "develop";
   let gitBranch: string | undefined;
 
@@ -716,7 +778,7 @@ async function ensureProlog(): Promise<PrologProcess> {
     try {
       const { execSync } = await import("node:child_process");
       const detected = execSync("git branch --show-current", {
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 3000,
       }).trim();
@@ -729,16 +791,16 @@ async function ensureProlog(): Promise<PrologProcess> {
     }
   }
 
-  console.error("[MCP] Branch selection:");
-  console.error(
-    `[MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
+  debugLog("[KIBI-MCP] Branch selection:");
+  debugLog(
+    `[KIBI-MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
   );
-  console.error(`[MCP]   Git branch: ${gitBranch || "n/a"}`);
-  console.error(`[MCP]   Attached to: ${branch}`);
-  console.error("[MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
+  debugLog(`[KIBI-MCP]   Git branch: ${gitBranch || "n/a"}`);
+  debugLog(`[KIBI-MCP]   Attached to: ${branch}`);
+  debugLog("[KIBI-MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
 
   activeBranchName = branch;
-  const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
+  const kbPath = resolveKbPath(workspaceRoot, branch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
   if (!attachResult.success) {
@@ -748,14 +810,20 @@ async function ensureProlog(): Promise<PrologProcess> {
   }
 
   isInitialized = true;
-  console.error(
-    `[MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
+  debugLog(
+    `[KIBI-MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
   );
-  console.error(`[MCP] KB attached: ${kbPath}`);
+  debugLog(`[KIBI-MCP] KB attached: ${kbPath}`);
   return prologProcess;
 }
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
+
+type ToolHandlerArgs = Record<string, unknown> & {
+  _requestId?: string;
+};
+
+type JsonPrimitive = string | number | boolean | null;
 
 function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   if (!schema || typeof schema !== "object") {
@@ -765,13 +833,29 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   const obj = schema as Record<string, unknown>;
 
   if (Array.isArray(obj.enum) && obj.enum.length > 0) {
-    const values = obj.enum;
-    const literals = values.map((v) => z.literal(v));
-    const union = z.union(
-      literals as [z.ZodLiteral<unknown>, ...z.ZodLiteral<unknown>[]],
-    );
     const description =
       typeof obj.description === "string" ? obj.description : undefined;
+    const literals = obj.enum.filter(
+      (value): value is JsonPrimitive =>
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        value === null,
+    );
+    if (literals.length === 0) {
+      return description ? z.any().describe(description) : z.any();
+    }
+    const literalSchemas = literals.map((value) => z.literal(value));
+    if (literalSchemas.length === 1) {
+      const single = literalSchemas[0];
+      return description ? single.describe(description) : single;
+    }
+    const union = z.union(
+      literalSchemas as [
+        z.ZodLiteral<JsonPrimitive>,
+        ...z.ZodLiteral<JsonPrimitive>[],
+      ],
+    );
     return description ? union.describe(description) : union;
   }
 
@@ -797,7 +881,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
         shape[key] = required.has(key) ? propSchema : propSchema.optional();
       }
 
-      let objectSchema: z.ZodTypeAny = z.object(shape);
+      let objectSchema = z.object(shape);
       if (obj.additionalProperties !== false) {
         objectSchema = objectSchema.passthrough();
       }
@@ -807,7 +891,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     }
     case "array": {
       const itemSchema = jsonSchemaToZod(obj.items);
-      let arraySchema: z.ZodTypeAny = z.array(itemSchema);
+      let arraySchema = z.array(itemSchema);
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minItems === "number") {
@@ -819,7 +903,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? arraySchema.describe(description) : arraySchema;
     }
     case "string": {
-      let s: z.ZodTypeAny = z.string();
+      let s = z.string();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minLength === "number") {
@@ -831,7 +915,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? s.describe(description) : s;
     }
     case "number": {
-      let n: z.ZodTypeAny = z.number();
+      let n = z.number();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minimum === "number") {
@@ -843,7 +927,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? n.describe(description) : n;
     }
     case "integer": {
-      let n: z.ZodTypeAny = z.number().int();
+      let n = z.number().int();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minimum === "number") {
@@ -892,7 +976,16 @@ async function handleKbListEntityTypes(): Promise<ListEntityTypesResult> {
       },
     ],
     structuredContent: {
-      types: ["req", "scenario", "test", "adr", "flag", "event", "symbol", "fact"],
+      types: [
+        "req",
+        "scenario",
+        "test",
+        "adr",
+        "flag",
+        "event",
+        "symbol",
+        "fact",
+      ],
     },
   };
 }
@@ -937,6 +1030,57 @@ function addTool(
   inputSchema: object,
   handler: ToolHandler,
 ): void {
+  const wrappedHandler: ToolHandler = async (args) => {
+    try {
+      // Validate that args is a valid object
+      if (typeof args !== "object" || args === null) {
+        throw new Error(
+          `Invalid arguments for tool ${name}: expected object, got ${typeof args}`,
+        );
+      }
+
+      // Check if shutting down before processing
+      if (isShuttingDown) {
+        throw new Error(`Tool ${name} rejected: server is shutting down`);
+      }
+
+      // Extract or generate requestId from args
+      const requestIdArg = (args as ToolHandlerArgs)._requestId;
+      const requestId =
+        typeof requestIdArg === "string"
+          ? requestIdArg
+          : `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+
+      // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
+      if (process.env.KIBI_MCP_DEBUG) {
+        console.error(
+          `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
+          JSON.stringify(args),
+        );
+      }
+
+      // Track the handler promise in inFlightRequests Map
+      const handlerPromise = handler(args);
+      inFlightRequests.set(requestId, handlerPromise);
+
+      try {
+        // Execute handler
+        const result = await handlerPromise;
+        return result;
+      } finally {
+        // Always clean up from Map when done (success or failure)
+        inFlightRequests.delete(requestId);
+      }
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`[KIBI-MCP] Error in tool ${name}:`, err.message);
+      if (err.stack) {
+        debugLog(`[KIBI-MCP] Tool ${name} stack:`, err.stack);
+      }
+      throw new Error(`Tool ${name} failed: ${err.message}`, { cause: err });
+    }
+  };
+
   (
     server as McpServer & {
       registerTool: (
@@ -948,7 +1092,7 @@ function addTool(
   ).registerTool(
     name,
     { description, inputSchema: jsonSchemaToZod(inputSchema) },
-    handler,
+    wrappedHandler,
   );
 }
 
@@ -1156,5 +1300,97 @@ export async function startServer(): Promise<void> {
   );
 
   const transport = new StdioServerTransport();
+
+  transport.onerror = (error: Error) => {
+    // Stdio transport surfaces JSON parse / schema validation failures via onerror.
+    // Those errors should not crash the server: emit a JSON-RPC error (id omitted)
+    // and continue reading subsequent messages.
+    if (error.name === "SyntaxError") {
+      debugLog("[KIBI-MCP] Parse error from stdin:", error.message);
+      void transport
+        .send({
+          jsonrpc: "2.0",
+          error: { code: -32700, message: "Parse error" },
+        })
+        .catch((sendError) => {
+          console.error(
+            "[KIBI-MCP] Failed to send parse error response:",
+            sendError,
+          );
+          initiateGracefulShutdown(1);
+        });
+      return;
+    }
+
+    if (error.name === "ZodError") {
+      debugLog("[KIBI-MCP] Invalid JSON-RPC message:", error.message);
+      void transport
+        .send({
+          jsonrpc: "2.0",
+          error: { code: -32600, message: "Invalid Request" },
+        })
+        .catch((sendError) => {
+          console.error(
+            "[KIBI-MCP] Failed to send invalid request response:",
+            sendError,
+          );
+          initiateGracefulShutdown(1);
+        });
+      return;
+    }
+
+    console.error(`[KIBI-MCP] Transport error: ${error.message}`, error);
+    debugLog("[KIBI-MCP] Transport error stack:", error.stack);
+    initiateGracefulShutdown(1);
+  };
+
+  transport.onclose = () => {
+    debugLog("[KIBI-MCP] Transport closed");
+    initiateGracefulShutdown(0);
+  };
+
   await server.connect(transport);
+
+  process.stdout.on("error", (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[KIBI-MCP] stdout error:", message);
+    debugLog("[KIBI-MCP] stdout error detail:", error as Error);
+    initiateGracefulShutdown(1);
+  });
+
+  process.stderr.on("error", (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    try {
+      console.error("[KIBI-MCP] stderr error:", message);
+    } catch {}
+    initiateGracefulShutdown(1);
+  });
+
+  process.on("SIGTERM", () => {
+    debugLog("[KIBI-MCP] Received SIGTERM");
+    initiateGracefulShutdown(0);
+  });
+
+  process.on("SIGINT", () => {
+    debugLog("[KIBI-MCP] Received SIGINT");
+    initiateGracefulShutdown(0);
+  });
+
+  // Handle stdin EOF/close for clean shutdown when client disconnects
+  // Use debugLog so these are only noisy when KIBI_MCP_DEBUG is set.
+  try {
+    process.stdin.on("end", () => {
+      debugLog("[KIBI-MCP] stdin ended");
+      // fire-and-forget; initiateGracefulShutdown is idempotent
+      void initiateGracefulShutdown(0);
+    });
+
+    process.stdin.on("close", () => {
+      debugLog("[KIBI-MCP] stdin closed");
+      void initiateGracefulShutdown(0);
+    });
+  } catch (e) {
+    // Defensive: do not let stdin handler setup throw during startup
+    debugLog("[KIBI-MCP] Failed to attach stdin handlers:", e as Error);
+  }
 }

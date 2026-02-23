@@ -235,10 +235,9 @@ export class KibiTreeDataProvider
       const source = this.extractText(block, "kb:source");
 
       if (id && type && title) {
-        const localPath =
-          isLocalPath(source)
-            ? resolveLocalPath(source, this.workspaceRoot)
-            : undefined;
+        const localPath = isLocalPath(source)
+          ? resolveLocalPath(source, this.workspaceRoot)
+          : undefined;
         entities.push({ id, type, title, status, tags, source, localPath });
       }
     }
@@ -259,9 +258,16 @@ export class KibiTreeDataProvider
 
     // Known relationship types from the KB schema
     const relTypes = [
-      "depends_on", "specified_by", "verified_by", "implements",
-      "covered_by", "constrained_by", "guards", "publishes",
-      "consumes", "relates_to"
+      "depends_on",
+      "specified_by",
+      "verified_by",
+      "implements",
+      "covered_by",
+      "constrained_by",
+      "guards",
+      "publishes",
+      "consumes",
+      "relates_to",
     ];
 
     // Match each rdf:Description block to get the source entity ID
@@ -278,7 +284,7 @@ export class KibiTreeDataProvider
         // Match <kb:relType rdf:resource="...entity/TOID"/>
         const relRe = new RegExp(
           `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
-          "g"
+          "g",
         );
         let relMatch: RegExpExecArray | null;
         while ((relMatch = relRe.exec(block)) !== null) {

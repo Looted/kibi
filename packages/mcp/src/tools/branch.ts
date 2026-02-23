@@ -2,6 +2,7 @@ import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 
 export interface BranchEnsureArgs {
   branch: string;
@@ -31,7 +32,7 @@ export interface BranchGcResult {
  * Handle kb_branch_ensure tool calls - create branch KB if not exists
  */
 export async function handleKbBranchEnsure(
-  prolog: PrologProcess,
+  _prolog: PrologProcess,
   args: BranchEnsureArgs,
 ): Promise<BranchEnsureResult> {
   const { branch } = args;
@@ -47,9 +48,9 @@ export async function handleKbBranchEnsure(
   }
 
   try {
-    const kbRoot = path.resolve(process.cwd(), ".kb/branches");
-    const branchPath = path.join(kbRoot, safeBranch);
-    const developPath = path.join(kbRoot, "develop");
+    const workspaceRoot = resolveWorkspaceRoot();
+    const branchPath = resolveKbPath(workspaceRoot, safeBranch);
+    const developPath = resolveKbPath(workspaceRoot, "develop");
 
     // Check if branch KB already exists
     if (fs.existsSync(branchPath)) {
@@ -97,13 +98,14 @@ export async function handleKbBranchEnsure(
  * Handle kb_branch_gc tool calls - garbage collect stale branch KBs
  */
 export async function handleKbBranchGc(
-  prolog: PrologProcess,
+  _prolog: PrologProcess,
   args: BranchGcArgs,
 ): Promise<BranchGcResult> {
   const { dry_run = true } = args;
 
   try {
-    const kbRoot = path.resolve(process.cwd(), ".kb/branches");
+    const workspaceRoot = resolveWorkspaceRoot();
+    const kbRoot = path.dirname(resolveKbPath(workspaceRoot, "develop"));
 
     // Check if .kb/branches exists
     if (!fs.existsSync(kbRoot)) {
@@ -125,14 +127,14 @@ export async function handleKbBranchGc(
     try {
       execSync("git rev-parse --git-dir", {
         encoding: "utf-8",
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         stdio: ["pipe", "pipe", "pipe"],
         env: process.env,
       });
 
       const output = execSync("git branch --format='%(refname:short)'", {
         encoding: "utf-8",
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         stdio: ["pipe", "pipe", "pipe"],
         env: process.env,
       });

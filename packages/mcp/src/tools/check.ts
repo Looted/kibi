@@ -100,7 +100,9 @@ async function checkMustPriorityCoverage(
 
   const gaps = parsePairList(gapsResult.bindings.Rows);
   for (const [reqId, reason] of gaps) {
-    const entityResult = await prolog.query(`kb_entity('${reqId}', req, Props)`);
+    const entityResult = await prolog.query(
+      `kb_entity('${reqId}', req, Props)`,
+    );
     let source = "";
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;

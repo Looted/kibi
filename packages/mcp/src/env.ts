@@ -1,19 +1,20 @@
 import fs from "node:fs";
-import path from "node:path";
+import { resolveEnvFilePath, resolveWorkspaceRoot } from "./workspace.js";
 
 const DEFAULT_ENV_FILE = ".env";
 const envFileName = process.env.KIBI_ENV_FILE ?? DEFAULT_ENV_FILE;
-const envFilePath = path.resolve(process.cwd(), envFileName);
+const workspaceRoot = resolveWorkspaceRoot();
+const envFilePath = resolveEnvFilePath(envFileName, workspaceRoot);
 
 if (fs.existsSync(envFilePath)) {
   try {
     const raw = fs.readFileSync(envFilePath, "utf8");
-    parseEnvContent(raw).forEach(({ key, value }) => {
+    for (const { key, value } of parseEnvContent(raw)) {
       if (!key || Object.prototype.hasOwnProperty.call(process.env, key)) {
-        return;
+        continue;
       }
       process.env[key] = value;
-    });
+    }
   } catch (error) {
     console.error(
       `[Kibi] Unable to load environment file ${envFilePath}: ${
@@ -44,7 +45,7 @@ function parseEnvContent(content: string): EnvEntry[] {
     const key = line.substring(0, eqIndex).trim();
     let value = line.substring(eqIndex + 1).trim();
 
-    if (value.startsWith("\"") && value.endsWith("\"")) {
+    if (value.startsWith('"') && value.endsWith('"')) {
       value = value.slice(1, -1);
     } else if (value.startsWith("'") && value.endsWith("'")) {
       value = value.slice(1, -1);

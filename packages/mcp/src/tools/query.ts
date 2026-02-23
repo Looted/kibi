@@ -44,7 +44,7 @@ export async function handleKbQuery(
       ];
       if (!validTypes.includes(type)) {
         throw new Error(
-          `Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
+          `Invalid type '${type}'. Valid types: ${validTypes.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
         );
       }
     }
@@ -194,7 +194,9 @@ export function parseListOfLists(listStr: string): string[][] {
  * Parse a single entity from Prolog binding format.
  * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
  */
-export function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
+export function parseEntityFromBinding(
+  bindingStr: string,
+): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTopLevel(cleaned, ",");
 

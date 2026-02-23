@@ -1,5 +1,10 @@
 {
   "$schema": "https://raw.githubusercontent.com/biomejs/biome/main/packages/biome/src/config/schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "formatter": {
     "indentStyle": "space",
     "indentWidth": 2

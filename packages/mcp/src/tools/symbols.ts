@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { resolveWorkspaceRoot } from "../workspace.js";
 import {
   type ManifestSymbolEntry as CliManifestSymbolEntry,
   enrichSymbolCoordinates,
@@ -63,7 +64,7 @@ export async function handleKbSymbolsRefresh(
   args: SymbolsRefreshArgs,
 ): Promise<SymbolsRefreshResult> {
   const dryRun = args.dryRun === true;
-  const workspaceRoot = process.cwd();
+  const workspaceRoot = resolveWorkspaceRoot();
   const manifestPath = resolveManifestPath(workspaceRoot);
 
   const rawContent = readFileSync(manifestPath, "utf8");
@@ -152,7 +153,7 @@ export async function handleKbSymbolsRefresh(
 
 export async function refreshCoordinatesForSymbolId(
   symbolId: string,
-  workspaceRoot: string = process.cwd(),
+  workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
   const manifestPath = resolveManifestPath(workspaceRoot);
   const rawContent = readFileSync(manifestPath, "utf8");

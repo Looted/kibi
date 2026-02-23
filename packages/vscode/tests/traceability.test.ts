@@ -16,22 +16,31 @@ import * as os from "node:os";
 
 const vscode = {
   TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
-  ThemeIcon: class { constructor(public id: string) {} },
+  ThemeIcon: class {
+    constructor(public id: string) {}
+  },
   TreeItem: class {
     command?: unknown;
     resourceUri?: unknown;
     iconPath?: unknown;
     contextValue?: string;
     tooltip?: string;
-    constructor(public label: string, public collapsibleState: number) {}
+    constructor(
+      public label: string,
+      public collapsibleState: number,
+    ) {}
   },
   Uri: {
     file: (p: string) => ({ fsPath: p, scheme: "file", path: p }),
   },
   EventEmitter: class {
     private listeners: Array<(e: unknown) => void> = [];
-    event = (cb: (e: unknown) => void) => { this.listeners.push(cb); };
-    fire(e: unknown) { this.listeners.forEach((l) => l(e)); }
+    event = (cb: (e: unknown) => void) => {
+      this.listeners.push(cb);
+    };
+    fire(e: unknown) {
+      this.listeners.forEach((l) => l(e));
+    }
   },
   window: {
     showInformationMessage: mock(() => Promise.resolve(undefined)),
@@ -52,7 +61,10 @@ const vscode = {
   CodeActionKind: { Empty: "" },
   CodeAction: class {
     command?: unknown;
-    constructor(public title: string, public kind: string) {}
+    constructor(
+      public title: string,
+      public kind: string,
+    ) {}
   },
   Range: class {
     constructor(
@@ -61,7 +73,10 @@ const vscode = {
     ) {}
   },
   Position: class {
-    constructor(public line: number, public character: number) {}
+    constructor(
+      public line: number,
+      public character: number,
+    ) {}
   },
 };
 
@@ -134,7 +149,11 @@ describe("treeProvider – localPath resolution", () => {
   test("resolves file:// URIs to pathnames", () => {
     const resolveLocalPath = (src: string, _root: string) => {
       if (src.startsWith("file://")) {
-        try { return new URL(src).pathname; } catch { return undefined; }
+        try {
+          return new URL(src).pathname;
+        } catch {
+          return undefined;
+        }
       }
       return undefined;
     };
@@ -155,7 +174,11 @@ describe("treeProvider – RDF relationship parsing", () => {
 
     const relBlockRe =
       /<rdf:Description rdf:about="kb:rel\/[^"]*">([\s\S]*?)<\/rdf:Description>/g;
-    const relationships: Array<{ relType: string; fromId: string; toId: string }> = [];
+    const relationships: Array<{
+      relType: string;
+      fromId: string;
+      toId: string;
+    }> = [];
 
     const extractText = (block: string, tag: string) => {
       const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
@@ -169,7 +192,8 @@ describe("treeProvider – RDF relationship parsing", () => {
       const relType = extractText(block, "kb:relType");
       const from = extractText(block, "kb:from");
       const to = extractText(block, "kb:to");
-      if (relType && from && to) relationships.push({ relType, fromId: from, toId: to });
+      if (relType && from && to)
+        relationships.push({ relType, fromId: from, toId: to });
     }
 
     expect(relationships).toHaveLength(1);

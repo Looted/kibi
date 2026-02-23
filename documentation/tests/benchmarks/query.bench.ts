@@ -66,7 +66,10 @@ function setupWorkspaceWithEntities(tmpDir: string, entityCount: number): void {
       stdio: "pipe",
     }).trim();
     if (branch === "master" || branch === "main") {
-      execSync(`git branch -m ${branch} develop`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`git branch -m ${branch} develop`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
     }
   } catch {
     // ignore

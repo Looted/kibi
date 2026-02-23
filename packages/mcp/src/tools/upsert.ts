@@ -158,9 +158,11 @@ export async function handleKbUpsert(
         await refreshCoordinatesForSymbolId(id);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `[kibi-mcp] Symbol coordinate auto-refresh failed for ${id}: ${message}`,
-        );
+        if (process.env.KIBI_MCP_DEBUG) {
+          console.warn(
+            `[KIBI-MCP] Symbol coordinate auto-refresh failed for ${id}: ${message}`,
+          );
+        }
       }
     }
 

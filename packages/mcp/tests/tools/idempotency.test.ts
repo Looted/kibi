@@ -1,4 +1,11 @@
-import { afterAll, beforeAll, describe, expect, test, beforeEach } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  beforeEach,
+} from "bun:test";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
@@ -12,7 +19,9 @@ describe("KB Relationship Idempotency", () => {
     testKbPath = path.join(process.cwd(), ".kb-test-idempotency");
     prolog = new PrologProcess();
     await prolog.start();
-    await prolog.query("set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])");
+    await prolog.query(
+      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+    );
   });
 
   beforeEach(async () => {
@@ -47,9 +56,7 @@ describe("KB Relationship Idempotency", () => {
       type: "scenario",
       id: "scen1",
       properties: { title: "Scen 1", status: "active", source: "test" },
-      relationships: [
-        { type: "specified_by", from: "scen1", to: "req1" },
-      ],
+      relationships: [{ type: "specified_by", from: "scen1", to: "req1" }],
     });
 
     // 3. Assert same relationship second time
@@ -57,9 +64,7 @@ describe("KB Relationship Idempotency", () => {
       type: "scenario",
       id: "scen1",
       properties: { title: "Scen 1", status: "active", source: "test" },
-      relationships: [
-        { type: "specified_by", from: "scen1", to: "req1" },
-      ],
+      relationships: [{ type: "specified_by", from: "scen1", to: "req1" }],
     });
 
     // 4. Verify total count in KB using direct RDF query
@@ -122,9 +127,7 @@ describe("KB Relationship Idempotency", () => {
       type: "scenario",
       id: "scen3",
       properties: { title: "Scen 3", status: "active", source: "test" },
-      relationships: [
-        { type: "specified_by", from: "scen3", to: "req3" },
-      ],
+      relationships: [{ type: "specified_by", from: "scen3", to: "req3" }],
     });
 
     // 3. Retry same assertion
@@ -132,9 +135,7 @@ describe("KB Relationship Idempotency", () => {
       type: "scenario",
       id: "scen3",
       properties: { title: "Scen 3", status: "active", source: "test" },
-      relationships: [
-        { type: "specified_by", from: "scen3", to: "req3" },
-      ],
+      relationships: [{ type: "specified_by", from: "scen3", to: "req3" }],
     });
 
     // 4. Verify total count in KB
