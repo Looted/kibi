@@ -185,6 +185,16 @@ export async function handleKbUpsert(
   }
 }
 
+const ATOM_FIELDS = new Set(["status", "owner", "priority", "severity"]);
+const STRING_FIELDS = new Set([
+  "id",
+  "title",
+  "created_at",
+  "updated_at",
+  "source",
+  "text_ref",
+]);
+
 /**
  * Build Prolog property list from entity object
  * Returns simple Key=Value format without typed literals
@@ -192,16 +202,6 @@ export async function handleKbUpsert(
  */
 function buildPropertyList(entity: Record<string, unknown>): string {
   const pairs: string[] = [];
-
-  const atomFields = new Set(["status", "owner", "priority", "severity"]);
-  const stringFields = new Set([
-    "id",
-    "title",
-    "created_at",
-    "updated_at",
-    "source",
-    "text_ref",
-  ]);
 
   for (const [key, value] of Object.entries(entity)) {
     if (key === "type") continue;
@@ -212,9 +212,9 @@ function buildPropertyList(entity: Record<string, unknown>): string {
       prologValue = `'${value}'`;
     } else if (Array.isArray(value)) {
       prologValue = JSON.stringify(value);
-    } else if (atomFields.has(key) && typeof value === "string") {
+    } else if (ATOM_FIELDS.has(key) && typeof value === "string") {
       prologValue = value;
-    } else if (stringFields.has(key) && typeof value === "string") {
+    } else if (STRING_FIELDS.has(key) && typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
     } else if (typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
