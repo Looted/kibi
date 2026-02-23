@@ -42,7 +42,7 @@
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
-kb_uri('urn:kibi:').
+kb_uri('http://kibi.dev/kb/').
 
 % RDF namespace for KB entities and relationships
 :- kb_uri(URI), rdf_register_prefix(kb, URI).
