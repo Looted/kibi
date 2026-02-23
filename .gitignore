@@ -7,8 +7,6 @@ dist/
 *.vsix
 packages/vscode/kibi-vscode-*.vsix
 
-# --- KB runtime data (branch stores are local-only) ---
-.kb/branches/
 
 # --- Logs & temp ---
 *.log
@@ -22,7 +20,6 @@ desktop.ini
 
 # --- Editor ---
 .vscode/settings.json
-.vscode/launch.json
 *.swp
 *.swo
 *~
@@ -41,5 +38,7 @@ coverage/
 # --- Do NOT ignore these (intentionally tracked) ---
 #! .kb/config.json
 #! .kb/schema/
+#! .kb/branches/
 #! bun.lock
 .sisyphus
+.env
