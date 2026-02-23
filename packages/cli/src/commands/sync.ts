@@ -388,11 +388,11 @@ export async function syncCommand(
       try {
         const props = [
           `id='${entity.id}'`,
-          `title="${entity.title.replace(/"/g, '"')}"`,
+          `title="${entity.title.replace(/"/g, '\\"')}"`,
           `status=${prologAtom(entity.status)}`,
           `created_at="${entity.created_at}"`,
           `updated_at="${entity.updated_at}"`,
-          `source="${entity.source.replace(/"/g, '"')}"`,
+          `source="${entity.source.replace(/"/g, '\\"')}"`,
         ];
 
         if (entity.tags && entity.tags.length > 0) {
