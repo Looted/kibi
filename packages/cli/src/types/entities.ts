@@ -20,6 +20,7 @@ export type ADR = BaseEntity & { type: "adr" };
 export type Flag = BaseEntity & { type: "flag" };
 export type Event = BaseEntity & { type: "event" };
 export type Symbol = BaseEntity & { type: "symbol" };
+export type Fact = BaseEntity & { type: "fact" };
 
 export type Entity =
   | Requirement
@@ -28,4 +29,5 @@ export type Entity =
   | ADR
   | Flag
   | Event
-  | Symbol;
+  | Symbol
+  | Fact;

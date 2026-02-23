@@ -4,6 +4,7 @@ export interface QueryArgs {
   type?: string;
   id?: string;
   tags?: string[];
+  sourceFile?: string;
   limit?: number;
   offset?: number;
 }
@@ -24,7 +25,7 @@ export async function handleKbQuery(
   prolog: PrologProcess,
   args: QueryArgs,
 ): Promise<QueryResult> {
-  const { type, id, tags, limit = 100, offset = 0 } = args;
+  const { type, id, tags, sourceFile, limit = 100, offset = 0 } = args;
 
   try {
     let results: Record<string, unknown>[] = [];
@@ -39,6 +40,7 @@ export async function handleKbQuery(
         "flag",
         "event",
         "symbol",
+        "fact",
       ];
       if (!validTypes.includes(type)) {
         throw new Error(
@@ -50,10 +52,17 @@ export async function handleKbQuery(
     // Build Prolog query
     let goal: string;
 
-    if (id && type) {
+    if (sourceFile) {
+      const safeSource = sourceFile.replace(/'/g, "\\'");
+      if (type) {
+        goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
+      } else {
+        goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+      }
+    } else if (id && type) {
       goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
     } else if (id) {
-      goal = `findall([Id,Type,Props], kb_entity('${id}', Type, Props), Results)`;
+      goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
       const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
       if (type) {
@@ -134,7 +143,7 @@ export async function handleKbQuery(
  * Input: "[[a,b,c],[d,e,f]]"
  * Output: [["a", "b", "c"], ["d", "e", "f"]]
  */
-function parseListOfLists(listStr: string): string[][] {
+export function parseListOfLists(listStr: string): string[][] {
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -185,7 +194,7 @@ function parseListOfLists(listStr: string): string[][] {
  * Parse a single entity from Prolog binding format.
  * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
  */
-function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
+export function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTopLevel(cleaned, ",");
 
@@ -198,14 +207,14 @@ function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
   const propsStr = parts.slice(2).join(",").trim();
 
   const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
+  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
 /**
  * Parse entity from array returned by parseListOfLists.
  * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
  */
-function parseEntityFromList(data: string[]): Record<string, unknown> {
+export function parseEntityFromList(data: string[]): Record<string, unknown> {
   if (data.length < 3) {
     return {};
   }
@@ -215,13 +224,13 @@ function parseEntityFromList(data: string[]): Record<string, unknown> {
   const propsStr = data[2].trim();
 
   const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
+  return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
 /**
  * Parse Prolog property list into JavaScript object.
  */
-function parsePropertyList(propsStr: string): Record<string, unknown> {
+export function parsePropertyList(propsStr: string): Record<string, unknown> {
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -255,7 +264,7 @@ function parsePropertyList(propsStr: string): Record<string, unknown> {
 /**
  * Parse a single Prolog value, handling typed literals and URIs.
  */
-function parsePrologValue(valueInput: string): unknown {
+export function parsePrologValue(valueInput: string): unknown {
   const value = valueInput.trim();
 
   // Handle typed literal: ^^("value", type)
@@ -289,7 +298,7 @@ function parsePrologValue(valueInput: string): unknown {
         if (listContent === "") {
           return [];
         }
-        return listContent.split(",").map((item) => item.trim());
+        return splitTopLevel(listContent, ",").map((item) => item.trim());
       }
 
       return literalValue;
@@ -321,7 +330,7 @@ function parsePrologValue(valueInput: string): unknown {
     if (listContent === "") {
       return [];
     }
-    const items = listContent.split(",").map((item) => {
+    const items = splitTopLevel(listContent, ",").map((item) => {
       return parsePrologValue(item.trim());
     });
     return items;
@@ -333,7 +342,7 @@ function parsePrologValue(valueInput: string): unknown {
 /**
  * Split a string by delimiter at the top level (not inside brackets or quotes).
  */
-function splitTopLevel(str: string, delimiter: string): string[] {
+export function splitTopLevel(str: string, delimiter: string): string[] {
   const results: string[] = [];
   let current = "";
   let depth = 0;
@@ -367,4 +376,23 @@ function splitTopLevel(str: string, delimiter: string): string[] {
   }
 
   return results;
+}
+
+function stripOuterQuotes(value: string): string {
+  if (value.startsWith("'") && value.endsWith("'")) {
+    return value.slice(1, -1);
+  }
+  if (value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+  return value;
+}
+
+function normalizeEntityId(value: string): string {
+  if (!value.startsWith("file:///")) {
+    return value;
+  }
+
+  const idx = value.lastIndexOf("/");
+  return idx === -1 ? value : value.slice(idx + 1);
 }

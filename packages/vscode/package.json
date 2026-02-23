@@ -2,21 +2,13 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.1.3",
+  "version": "0.1.6",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "keywords": [
-    "knowledge base",
-    "requirements",
-    "adr",
-    "scenarios",
-    "mcp"
-  ],
+  "categories": ["Other"],
+  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
@@ -25,6 +17,21 @@
   "main": "./dist/extension.js",
   "icon": "icon.png",
   "contributes": {
+    "configuration": {
+      "title": "Kibi Knowledge Base",
+      "properties": {
+        "kibi.contextOnOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show KB entities linked to file when opening it"
+        },
+        "kibi.mcp.serverPath": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to the kibi-mcp executable (e.g., /path/to/kibi/packages/mcp/bin/kibi-mcp). If left empty, the extension will attempt to find 'kibi-mcp' in your system PATH."
+        }
+      }
+    },
     "viewsContainers": {
       "activitybar": [
         {
@@ -47,10 +54,7 @@
       {
         "command": "kibi.refreshTree",
         "title": "Refresh",
-        "icon": {
-          "light": "$(refresh)",
-          "dark": "$(refresh)"
-        }
+        "icon": "$(refresh)"
       },
       {
         "command": "kibi.openEntity",
@@ -90,18 +94,16 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": [
-            "${workspaceFolder}/packages/mcp/bin/kibi-mcp"
-          ],
+          "args": ["${config:kibi.mcp.serverPath}"],
           "env": {}
         }
       }
     }
   },
   "scripts": {
-    "build": "esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
-    "watch": "npm run build -- --watch",
-    "package": "vsce package",
+    "build": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
+    "watch": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify --watch",
+    "package": "./package-vsix.sh",
     "test": "bun test tests/*.test.ts",
     "clean": "rm -rf dist"
   },
