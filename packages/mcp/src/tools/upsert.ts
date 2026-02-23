@@ -28,6 +28,16 @@ const ajv = new Ajv({ strict: false });
 const validateEntity = ajv.compile(entitySchema);
 const validateRelationship = ajv.compile(relationshipSchema);
 
+const ATOM_FIELDS = new Set(["status", "owner", "priority", "severity"]);
+const STRING_FIELDS = new Set([
+  "id",
+  "title",
+  "created_at",
+  "updated_at",
+  "source",
+  "text_ref",
+]);
+
 /**
  * Handle kb.upsert tool calls
  * Accepts { type, id, properties } — the flat format matching the tool schema.
@@ -184,16 +194,6 @@ export async function handleKbUpsert(
     throw new Error(`Upsert execution failed: ${message}`);
   }
 }
-
-const ATOM_FIELDS = new Set(["status", "owner", "priority", "severity"]);
-const STRING_FIELDS = new Set([
-  "id",
-  "title",
-  "created_at",
-  "updated_at",
-  "source",
-  "text_ref",
-]);
 
 /**
  * Build Prolog property list from entity object
