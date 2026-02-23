@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { ensureDevelopBranch } from "./helpers";
 
 interface JsonRpcRequest {
   jsonrpc: "2.0";
@@ -54,28 +55,8 @@ describe("MCP server CRUD operations", () => {
       stdio: "pipe",
     });
 
-    // After init we need to ensure branch is named 'main' once a commit exists.
-    // The init command may have created the first commit; normalize branch name.
-    const branchCheck = execSync("git branch --show-current", {
-      cwd: tmpDir,
-      encoding: "utf8",
-      stdio: "pipe",
-    }).trim();
-    if (branchCheck === "master") {
-      execSync("git branch -m master main", { cwd: tmpDir, stdio: "pipe" });
-    }
-
-    // Ensure default branch is 'main' after the initial commit performed by init
-    try {
-      const branch = execSync("git branch --show-current", {
-        cwd: tmpDir,
-        encoding: "utf8",
-        stdio: "pipe",
-      }).trim();
-      if (branch === "master") {
-        execSync("git branch -m master main", { cwd: tmpDir, stdio: "pipe" });
-      }
-    } catch {}
+    // After init we need to ensure branch is named 'develop' once a commit exists.
+    ensureDevelopBranch(tmpDir);
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });

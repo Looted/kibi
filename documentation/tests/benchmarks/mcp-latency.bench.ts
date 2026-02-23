@@ -52,8 +52,8 @@ function setupMcpWorkspace(tmpDir: string, entityCount: number): void {
       encoding: "utf8",
       stdio: "pipe",
     }).trim();
-    if (branch === "master") {
-      execSync("git branch -m master main", { cwd: tmpDir, stdio: "pipe" });
+    if (branch === "master" || branch === "main") {
+      execSync(`git branch -m ${branch} develop`, { cwd: tmpDir, stdio: "pipe" });
     }
   } catch {
     // ignore

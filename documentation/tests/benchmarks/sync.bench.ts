@@ -68,15 +68,15 @@ function setupWorkspace(tmpDir: string, fileCount: number): void {
   execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
   execSync('git commit -m "Initial commit"', { cwd: tmpDir, stdio: "pipe" });
 
-  // Ensure we're on main branch
+  // Ensure we're on develop branch
   try {
     const branch = execSync("git branch --show-current", {
       cwd: tmpDir,
       encoding: "utf8",
       stdio: "pipe",
     }).trim();
-    if (branch === "master") {
-      execSync("git branch -m master main", { cwd: tmpDir, stdio: "pipe" });
+    if (branch === "master" || branch === "main") {
+      execSync(`git branch -m ${branch} develop`, { cwd: tmpDir, stdio: "pipe" });
     }
   } catch {
     // ignore
