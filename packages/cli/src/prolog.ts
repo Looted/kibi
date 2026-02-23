@@ -1,6 +1,9 @@
-import { type ChildProcess, spawn } from "node:child_process";
+import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 export interface PrologOptions {
   swiplPath?: string;
@@ -19,6 +22,10 @@ export class PrologProcess {
   private timeout: number;
   private outputBuffer = "";
   private errorBuffer = "";
+  private cache: Map<string, QueryResult> = new Map();
+  private useOneShotMode =
+    typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
+  private attachedKbPath: string | null = null;
 
   constructor(options: PrologOptions = {}) {
     this.swiplPath = options.swiplPath || "swipl";
@@ -32,7 +39,7 @@ export class PrologProcess {
       );
     }
 
-    const kbPath = path.resolve(import.meta.dir, "../../core/src/kb.pl");
+    const kbPath = path.resolve(importMetaDir, "../../core/src/kb.pl");
 
     this.process = spawn(this.swiplPath, [
       "-g",
@@ -72,7 +79,34 @@ export class PrologProcess {
     this.errorBuffer = "";
   }
 
-  async query(goal: string): Promise<QueryResult> {
+  async query(goal: string | string[]): Promise<QueryResult> {
+    const isSingleGoal = typeof goal === "string";
+    const goalKey = isSingleGoal ? goal : null;
+    const cacheable = goalKey !== null && this.isCacheableGoal(goalKey);
+
+    if (cacheable) {
+      const cachedResult = this.cache.get(goalKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+    }
+
+    if (this.useOneShotMode) {
+      const oneShotResult = await this.queryOneShot(goal);
+      if (!cacheable && oneShotResult.success) {
+        this.invalidateCache();
+      }
+      if (cacheable && oneShotResult.success) {
+        this.cache.set(goalKey, oneShotResult);
+      }
+      return oneShotResult;
+    }
+
+    if (!isSingleGoal) {
+      const batchGoal = `(${goal.map((item) => this.normalizeGoal(item)).join(", ")})`;
+      return this.query(batchGoal);
+    }
+
     if (!this.process || !this.process.stdin) {
       throw new Error("Prolog process not started");
     }
@@ -80,7 +114,8 @@ export class PrologProcess {
     this.outputBuffer = "";
     this.errorBuffer = "";
 
-    this.process.stdin.write(`${goal}.\n`);
+    this.process.stdin.write(`${goal}.
+`);
 
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -100,10 +135,14 @@ export class PrologProcess {
           this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m)
         ) {
           clearTimeout(timeoutId);
-          resolve({
+          const result = {
             success: true,
             bindings: this.extractBindings(this.outputBuffer),
-          });
+          };
+          if (cacheable) {
+            this.cache.set(goalKey, result);
+          }
+          resolve(result);
         } else if (
           this.outputBuffer.includes("false.") ||
           this.outputBuffer.includes("fail.")
@@ -121,6 +160,130 @@ export class PrologProcess {
 
       checkResult();
     });
+  }
+
+  invalidateCache(): void {
+    this.cache.clear();
+  }
+
+  private isCacheableGoal(goal: string): boolean {
+    const trimmed = goal.trim();
+    return !(
+      trimmed.startsWith("kb_attach(") ||
+      trimmed.startsWith("kb_detach") ||
+      trimmed.startsWith("kb_save") ||
+      trimmed.startsWith("kb_assert_") ||
+      trimmed.startsWith("kb_delete_") ||
+      trimmed.startsWith("kb_retract_")
+    );
+  }
+
+  private async queryOneShot(goal: string | string[]): Promise<QueryResult> {
+    if (Array.isArray(goal)) {
+      return this.execOneShot(goal, this.attachedKbPath);
+    }
+
+    const trimmedGoal = this.normalizeGoal(goal);
+
+    // Keep a lightweight compatibility layer for callers that rely on
+    // stateful attach/detach across multiple query() calls.
+    if (trimmedGoal.startsWith("kb_detach")) {
+      this.attachedKbPath = null;
+      return { success: true, bindings: {} };
+    }
+
+    const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
+    if (attachMatch) {
+      const attachResult = this.execOneShot(trimmedGoal, null);
+      if (attachResult.success) {
+        this.attachedKbPath = attachMatch[1];
+      }
+      return attachResult;
+    }
+
+    return this.execOneShot(trimmedGoal, this.attachedKbPath);
+  }
+
+  private execOneShot(goal: string, kbPath: string | null): QueryResult;
+  private execOneShot(goal: string[], kbPath: string | null): QueryResult;
+  private execOneShot(
+    goal: string | string[],
+    kbPath: string | null,
+  ): QueryResult {
+    const goalList = Array.isArray(goal)
+      ? goal.map((item) => this.normalizeGoal(item))
+      : [this.normalizeGoal(goal)];
+    const isBatch = goalList.length > 1;
+    const combinedGoal =
+      goalList.length === 1 ? goalList[0] : `(${goalList.join(", ")})`;
+    const kbModulePath = path.resolve(importMetaDir, "../../core/src/kb.pl");
+    const prologGoal = [
+      `use_module('${kbModulePath}')`,
+      "use_module(library(semweb/rdf_db))",
+      "set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])",
+      "getenv('KIBI_GOAL', GoalAtom)",
+      "read_term_from_atom(GoalAtom, Goal, [variable_names(Vars)])",
+      kbPath ? "getenv('KIBI_KB_PATH', KBPath), kb_attach(KBPath)" : "true",
+      isBatch ? "WrappedGoal = rdf_transaction(Goal)" : "WrappedGoal = Goal",
+      "(catch(call(WrappedGoal), E, (print_message(error, E), fail)) -> (forall(member(Name=Value, Vars), (write(Name), write('='), write_term(Value, [quoted(true), max_depth(0)]), writeln('.'))), writeln('__KIBI_TRUE__.')) ; writeln('__KIBI_FALSE__.'))",
+      kbPath ? "kb_save, kb_detach" : "true",
+    ].join(", ");
+
+    const result = spawnSync(
+      this.swiplPath,
+      ["-q", "-g", prologGoal, "-t", "halt"],
+      {
+        encoding: "utf8",
+        timeout: this.timeout,
+        env: {
+          ...process.env,
+          KIBI_GOAL: combinedGoal,
+          ...(kbPath ? { KIBI_KB_PATH: kbPath } : {}),
+        },
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+
+    if (
+      result.error &&
+      (result.error.message.includes("timed out") ||
+        // Bun/Node differ here; keep a conservative timeout detection.
+        result.error.message.includes("ETIMEDOUT"))
+    ) {
+      throw new Error("Query timeout after 30s");
+    }
+
+    const stdout = result.stdout ?? "";
+    const stderr = result.stderr ?? "";
+
+    if (stdout.includes("__KIBI_TRUE__")) {
+      const clean = stdout
+        .split("\n")
+        .filter((line) => !line.includes("__KIBI_TRUE__"))
+        .join("\n");
+      return {
+        success: true,
+        bindings: this.extractBindings(clean),
+      };
+    }
+
+    if (stderr.includes("ERROR")) {
+      return {
+        success: false,
+        bindings: {},
+        error: this.translateError(stderr),
+      };
+    }
+
+    return {
+      success: false,
+      bindings: {},
+      error: "Query failed",
+    };
+  }
+
+  private normalizeGoal(goal: string): string {
+    return goal.trim().replace(/\.+\s*$/, "");
   }
 
   private extractBindings(output: string): Record<string, string> {

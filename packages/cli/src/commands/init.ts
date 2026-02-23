@@ -13,21 +13,27 @@ interface InitOptions {
 }
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
-bun __KIBI_BIN__ sync
+kibi sync
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh
-bun __KIBI_BIN__ sync
+kibi sync
+`;
+
+const PRE_COMMIT_HOOK = `#!/bin/sh
+set -e
+kibi check
 `;
 
 const DEFAULT_CONFIG = {
   paths: {
-    requirements: "requirements/**/*.md",
-    scenarios: "scenarios/**/*.md",
-    tests: "tests/**/*.md",
-    adr: "adr/**/*.md",
-    flags: "flags/**/*.md",
-    events: "events/**/*.md",
+    requirements: "requirements",
+    scenarios: "scenarios",
+    tests: "tests",
+    adr: "adr",
+    flags: "flags",
+    events: "events",
+    facts: "facts",
     symbols: "symbols.yaml",
   },
 };
@@ -107,28 +113,32 @@ export async function initCommand(options: InitOptions): Promise<void> {
 
         const postCheckoutPath = path.join(hooksDir, "post-checkout");
         const postMergePath = path.join(hooksDir, "post-merge");
+        const preCommitPath = path.join(hooksDir, "pre-commit");
 
-        const binPath = path.resolve(__dirname, "../../bin/kibi");
-
-        const checkoutHookContent = POST_CHECKOUT_HOOK.replace(
-          "__KIBI_BIN__",
-          binPath,
-        );
-        const mergeHookContent = POST_MERGE_HOOK.replace(
-          "__KIBI_BIN__",
-          binPath,
-        );
+        const checkoutHookContent = POST_CHECKOUT_HOOK;
+        const mergeHookContent = POST_MERGE_HOOK;
+        const preCommitHookContent = PRE_COMMIT_HOOK;
 
         const installHook = (hookPath: string, content: string) => {
           if (existsSync(hookPath)) {
             const existing = readFileSync(hookPath, "utf8");
-            if (!existing.includes(`bun ${binPath}`)) {
-              writeFileSync(hookPath, `${existing}\n${content}`, {
-                mode: 0o755,
-              });
+            if (!existing.includes("kibi")) {
+              writeFileSync(
+                hookPath,
+                `${existing}
+${content}`,
+                {
+                  mode: 0o755,
+                },
+              );
             }
           } else {
-            writeFileSync(hookPath, `#!/bin/sh\n${content}`, { mode: 0o755 });
+            writeFileSync(
+              hookPath,
+              `#!/bin/sh
+${content}`,
+              { mode: 0o755 },
+            );
           }
         };
 
@@ -137,8 +147,14 @@ export async function initCommand(options: InitOptions): Promise<void> {
           checkoutHookContent.replace("#!/bin/sh\n", ""),
         );
         installHook(postMergePath, mergeHookContent.replace("#!/bin/sh\n", ""));
+        installHook(
+          preCommitPath,
+          preCommitHookContent.replace("#!/bin/sh\n", ""),
+        );
 
-        console.log("✓ Installed git hooks (post-checkout, post-merge)");
+        console.log(
+          "✓ Installed git hooks (pre-commit, post-checkout, post-merge)",
+        );
       }
     }
 

@@ -39,6 +39,11 @@ export class ManifestError extends Error {
   }
 }
 
+interface RelationshipObject {
+  type?: string;
+  target?: string;
+}
+
 interface ManifestSymbol {
   id?: string;
   title?: string;
@@ -49,6 +54,7 @@ interface ManifestSymbol {
   priority?: string;
   severity?: string;
   links?: unknown[];
+  relationships?: RelationshipObject[];
   text_ref?: string;
   created_at?: string;
   updated_at?: string;
@@ -72,8 +78,11 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
         throw new ManifestError("Missing required field: title", filePath);
       }
 
-      const id = generateId(filePath, symbol.title);
-      const relationships = extractRelationships(symbol.links || [], id);
+      const id = symbol.id || generateId(filePath, symbol.title);
+      const relationships = extractRelationships(
+        symbol.relationships || symbol.links || [],
+        id,
+      );
 
       return {
         entity: {

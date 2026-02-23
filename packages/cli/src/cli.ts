@@ -18,7 +18,7 @@ program
 program
   .command("init")
   .description("Initialize .kb/ directory")
-  .option("--hooks", "Install git hooks (post-checkout, post-merge)")
+  .option("--no-hooks", "Do not install git hooks (hooks installed by default)")
   .action(async (options) => {
     await initCommand(options);
   });
@@ -26,15 +26,17 @@ program
 program
   .command("sync")
   .description("Sync entities from documents")
-  .action(async () => {
-    await syncCommand();
+  .option("--validate-only", "Perform validation without mutations")
+  .action(async (options) => {
+    await syncCommand(options);
   });
 
 program
   .command("query [type]")
-  .description("Query the knowledge base")
+  .description("Query knowledge base")
   .option("--id <id>", "Query specific entity by ID")
   .option("--tag <tag>", "Filter by tag")
+  .option("--source <path>", "Filter by source file path (substring match)")
   .option("--relationships <id>", "Get relationships from entity")
   .option("--format <format>", "Output format: json|table", "json")
   .option("--limit <n>", "Limit results", "100")

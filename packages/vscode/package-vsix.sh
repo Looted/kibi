@@ -5,13 +5,22 @@
 set -e
 
 VSCODE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$VSCODE_DIR/../.." && pwd)"
 TEMP_DIR=$(mktemp -d)
 EXTENSION_NAME=$(grep '"name"' "$VSCODE_DIR/package.json" | head -1 | sed 's/.*"\([^"]*\)".*/\1/')
 VERSION=$(grep '"version"' "$VSCODE_DIR/package.json" | head -1 | sed 's/.*"\([^"]*\)".*/\1/')
 OUTPUT_FILE="$EXTENSION_NAME-$VERSION.vsix"
+VSCE_BIN=$(echo "$REPO_ROOT"/node_modules/.bun/@vscode+vsce@*/node_modules/@vscode/vsce/vsce)
 
 echo "📦 Packaging $EXTENSION_NAME v$VERSION..."
 echo "🔷 Temp directory: $TEMP_DIR"
+
+# Ensure dist/extension.js is fresh before packaging.
+# Build in the original monorepo path so workspace-relative tool paths resolve.
+if [ "${1:-}" = "--clean" ]; then
+  bun run --cwd "$VSCODE_DIR" clean 2>/dev/null || true
+fi
+bun run --cwd "$VSCODE_DIR" build
 
 # Copy the extension to the temp directory
 cp -r "$VSCODE_DIR" "$TEMP_DIR/vscode-pkg"
@@ -20,14 +29,10 @@ cd "$TEMP_DIR/vscode-pkg"
 # Remove unnecessary files
 rm -f tsconfig.json.bak vsce-output.txt *.vsix
 
-# Clean up build artifacts if requested
-if [ "$1" == "--clean" ]; then
-  npm run clean 2>/dev/null || true
-fi
-
 # Package the extension
 echo "⚙️  Running vsce package..."
-printf "y\n" | vsce package --skip-license --allow-missing-repository 2>&1 | tail -5
+printf "y
+" | "$VSCE_BIN" package --skip-license --allow-missing-repository --no-dependencies 2>&1 | tail -5
 
 # Copy the VSIX back to the original directory
 VSIX_FILE=$(ls -1 *.vsix)
