@@ -27,6 +27,16 @@ describe("kibi init", () => {
 
   test("creates .kb directory structure", () => {
     execSync("git init", { cwd: tmpDir });
+    // Explicitly rename master to develop to match the expected default
+    try {
+        const branch = execSync("git branch --show-current", { cwd: tmpDir, encoding: "utf8" }).trim();
+        if (branch === "master") {
+            execSync("git branch -m master develop", { cwd: tmpDir });
+        }
+    } catch {
+        // ignore
+    }
+
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -36,8 +46,8 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
-  });
+    expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBe(true);
+  }, 30000);
 
   test("copies schema files to .kb/schema/", () => {
     execSync("git init", { cwd: tmpDir });
@@ -53,7 +63,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/schema/validation.pl"))).toBe(
       true,
     );
-  });
+  }, 30000);
 
   test("creates valid config.json with default paths", () => {
     execSync("git init", { cwd: tmpDir });

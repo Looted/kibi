@@ -267,7 +267,7 @@ const TOOLS = [
   {
     name: "kb_branch_ensure",
     description:
-      "Ensure a branch KB exists, creating it from main when missing. Use when targeting non-main branches. Do not use to switch git branches. Side effects: creates .kb/branches/<branch>.",
+      "Ensure a branch KB exists, creating it from develop when missing. Use when targeting non-develop branches. Do not use to switch git branches. Side effects: creates .kb/branches/<branch>.",
     inputSchema: {
       type: "object",
       required: ["branch"],
@@ -685,7 +685,7 @@ function getHelpText(topic?: string): string {
       "## How it works",
       "1. If `KIBI_BRANCH` is set, it uses that value.",
       "2. If not set, it runs `git branch --show-current`.",
-      "3. If git detection fails, it falls back to `main`.",
+      "3. If git detection fails, it falls back to `develop`.",
       "4. The server logs the selection process to stderr on startup.",
     ].join("\n");
   }
@@ -697,7 +697,7 @@ function getHelpText(topic?: string): string {
 
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
-let activeBranchName = "main";
+let activeBranchName = "develop";
 
 async function ensureProlog(): Promise<PrologProcess> {
   if (isInitialized && prologProcess?.isRunning()) {
@@ -709,7 +709,7 @@ async function ensureProlog(): Promise<PrologProcess> {
   prologProcess = new PrologProcess({ timeout: 30000 });
   await prologProcess.start();
 
-  let branch = process.env.KIBI_BRANCH || "main";
+  let branch = process.env.KIBI_BRANCH || "develop";
   let gitBranch: string | undefined;
 
   if (!process.env.KIBI_BRANCH) {
@@ -721,11 +721,11 @@ async function ensureProlog(): Promise<PrologProcess> {
         timeout: 3000,
       }).trim();
       if (detected) {
-        gitBranch = detected === "master" ? "main" : detected;
+        gitBranch = detected === "master" ? "develop" : detected;
         branch = gitBranch;
       }
     } catch {
-      // fall back to main
+      // fall back to develop
     }
   }
 

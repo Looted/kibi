@@ -11,7 +11,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { ensureMainBranch } from "./helpers";
+import { ensureDevelopBranch } from "./helpers";
 
 describe("git hook integration", () => {
   const TEST_TIMEOUT_MS = 20000;
@@ -37,6 +37,18 @@ describe("git hook integration", () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
   });
+
+  function patchHooks() {
+    const hooks = ["post-checkout", "post-merge", "pre-commit"];
+    for (const hook of hooks) {
+      const hookPath = path.join(tmpDir, ".git/hooks", hook);
+      if (existsSync(hookPath)) {
+        let content = readFileSync(hookPath, "utf8");
+        content = content.replace(/^kibi /m, `bun ${kibiBin} `);
+        writeFileSync(hookPath, content);
+      }
+    }
+  }
 
   test("init installs post-checkout hook by default", () => {
     execSync(`bun ${kibiBin} init`, {
@@ -77,6 +89,7 @@ describe("git hook integration", () => {
         cwd: tmpDir,
         stdio: "pipe",
       });
+      patchHooks();
 
       const reqDir = path.join(tmpDir, "requirements");
       mkdirSync(reqDir, { recursive: true });
@@ -95,10 +108,10 @@ status: approved
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
       execSync("git commit -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
-      ensureMainBranch(tmpDir);
+      ensureDevelopBranch(tmpDir);
 
-      // After the initial commit, .kb/branches/main may be created by init; ensure tests allow either state
-      expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBeDefined();
+      // After the initial commit, .kb/branches/develop may be created by init; ensure tests allow either state
+      expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBeDefined();
 
       execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -114,25 +127,26 @@ status: approved
       cwd: tmpDir,
       stdio: "pipe",
     });
+    patchHooks();
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(
-      path.join(reqDir, "main.md"),
+      path.join(reqDir, "develop.md"),
       `---
-title: Main
+title: Develop
 type: req
 status: approved
 ---
 
-# Main
+# Develop
 `,
     );
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit --no-verify -m 'main'", { cwd: tmpDir, stdio: "pipe" });
-    ensureMainBranch(tmpDir);
+    execSync("git commit --no-verify -m 'develop'", { cwd: tmpDir, stdio: "pipe" });
+    ensureDevelopBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -151,16 +165,16 @@ status: draft
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
 
-    execSync("git checkout main", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git checkout develop", { cwd: tmpDir, stdio: "pipe" });
 
     execSync("git merge feature --no-edit", { cwd: tmpDir, stdio: "pipe" });
 
-    const mainQuery = execSync(`bun ${kibiBin} query req`, {
+    const developQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
     });
-    expect(mainQuery).toContain("Main");
-    expect(mainQuery).toContain("Feature");
+    expect(developQuery).toContain("Develop");
+    expect(developQuery).toContain("Feature");
   }, 30000);
 
   test("hooks are idempotent on re-install", () => {
@@ -222,6 +236,7 @@ echo "Existing hook"
         cwd: tmpDir,
         stdio: "pipe",
       });
+      patchHooks();
 
       const reqDir = path.join(tmpDir, "requirements");
       mkdirSync(reqDir, { recursive: true });
@@ -268,6 +283,7 @@ status: approved
       cwd: tmpDir,
       stdio: "pipe",
     });
+    patchHooks();
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
