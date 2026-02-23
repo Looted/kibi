@@ -869,19 +869,19 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   }
 }
 
-interface ListEntityTypesResult {
+export interface ListEntityTypesResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: { types: string[] };
 }
 
-interface ListRelationshipTypesResult {
+export interface ListRelationshipTypesResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: { types: string[] };
 }
 
 /**
- * Handle kb_list_entity_types tool
- * Returns the list of supported entity type names.
+ * Handle kb_list_entity_types tool calls
+ * Returns the static list of supported KB entity type names (req, scenario, test, adr, flag, event, symbol, fact).
  */
 async function handleKbListEntityTypes(): Promise<ListEntityTypesResult> {
   return {
@@ -898,8 +898,8 @@ async function handleKbListEntityTypes(): Promise<ListEntityTypesResult> {
 }
 
 /**
- * Handle kb_list_relationship_types tool
- * Returns the list of supported relationship type names.
+ * Handle kb_list_relationship_types tool calls
+ * Returns the static list of supported KB relationship type names (depends_on, specified_by, verified_by, etc.).
  */
 async function handleKbListRelationshipTypes(): Promise<ListRelationshipTypesResult> {
   return {
