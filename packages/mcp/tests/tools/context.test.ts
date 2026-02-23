@@ -82,14 +82,14 @@ describe("MCP Context Tool", () => {
           sourceFile: "src/features/feature.ts",
           branch: "wrong-branch",
         },
-        "main",
+        "develop",
       );
 
       expect(result.content[0].text).toContain(
         "branch parameter is not supported server-side",
       );
       expect(result.content[0].text).toContain("Requested: wrong-branch");
-      expect(result.content[0].text).toContain("Active: main");
+      expect(result.content[0].text).toContain("Active: develop");
       expect(result.structuredContent).toBeUndefined();
     });
 
@@ -98,9 +98,9 @@ describe("MCP Context Tool", () => {
         prolog,
         {
           sourceFile: "src/features/feature.ts",
-          branch: "main",
+          branch: "develop",
         },
-        "main",
+        "develop",
       );
 
       expect(result.content[0].text).not.toContain(
@@ -115,7 +115,7 @@ describe("MCP Context Tool", () => {
         {
           sourceFile: "src/features/feature.ts",
         },
-        "main",
+        "develop",
       );
 
       expect(result.content[0].text).not.toContain(

@@ -10,7 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { ensureMainBranch } from "./helpers";
+import { ensureDevelopBranch } from "./helpers";
 
 /**
  * Integration tests for end-to-end CLI workflow:
@@ -56,13 +56,13 @@ describe("init-sync-check workflow", () => {
         encoding: "utf8",
       });
       // init may create the first commit and branch; normalize branch name
-      ensureMainBranch(tmpDir);
+      ensureDevelopBranch(tmpDir);
       expect(output).toContain("Kibi initialized successfully");
 
       // Verify KB structure created
       expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
       expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
-      expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+      expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBe(true);
 
       // Verify config content
       const config = JSON.parse(
@@ -84,7 +84,7 @@ describe("init-sync-check workflow", () => {
         stdio: "pipe",
       });
       // ensure branch name normalized if init created commits
-      ensureMainBranch(tmpDir);
+      ensureDevelopBranch(tmpDir);
 
       // Step 2: Create test fixtures
       const reqDir = path.join(tmpDir, "requirements");
@@ -134,7 +134,7 @@ User clicks login button and authenticates with provider.
       expect(syncOutput).toMatch(/\d+ entities/);
 
       // Verify RDF file created
-      const kbPath = path.join(tmpDir, ".kb/branches/main");
+      const kbPath = path.join(tmpDir, ".kb/branches/develop");
       expect(existsSync(path.join(kbPath, "kb.rdf"))).toBe(true);
     },
     TEST_TIMEOUT_MS,

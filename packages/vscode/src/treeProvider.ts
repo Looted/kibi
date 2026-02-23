@@ -175,10 +175,10 @@ export class KibiTreeDataProvider
         encoding: "utf8",
         timeout: 3000,
       }).trim();
-      if (!branch || branch === "master") return "main";
+      if (!branch || branch === "master") return "develop";
       return branch;
     } catch {
-      return "main";
+      return "develop";
     }
   }
 
@@ -186,7 +186,7 @@ export class KibiTreeDataProvider
     const branch = this.getCurrentBranch();
     const candidates = [
       path.join(this.workspaceRoot, ".kb", "branches", branch, "kb.rdf"),
-      path.join(this.workspaceRoot, ".kb", "branches", "main", "kb.rdf"),
+      path.join(this.workspaceRoot, ".kb", "branches", "develop", "kb.rdf"),
     ];
     for (const p of candidates) {
       if (fs.existsSync(p)) return p;

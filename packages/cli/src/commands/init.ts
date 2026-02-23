@@ -42,7 +42,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
-  let currentBranch = "main";
+  let currentBranch = "develop";
   try {
     const { execSync } = await import("node:child_process");
     const branch = execSync("git branch --show-current", {
@@ -53,7 +53,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
       currentBranch = branch;
     }
   } catch {
-    currentBranch = "main";
+    currentBranch = "develop";
   }
 
   try {
