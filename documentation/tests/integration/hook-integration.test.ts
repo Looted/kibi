@@ -38,6 +38,18 @@ describe("git hook integration", () => {
     }
   });
 
+  function patchHooks() {
+    const hooks = ["post-checkout", "post-merge", "pre-commit"];
+    for (const hook of hooks) {
+      const hookPath = path.join(tmpDir, ".git/hooks", hook);
+      if (existsSync(hookPath)) {
+        let content = readFileSync(hookPath, "utf8");
+        content = content.replace(/^kibi /m, `bun ${kibiBin} `);
+        writeFileSync(hookPath, content);
+      }
+    }
+  }
+
   test("init installs post-checkout hook by default", () => {
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
@@ -77,6 +89,7 @@ describe("git hook integration", () => {
         cwd: tmpDir,
         stdio: "pipe",
       });
+      patchHooks();
 
       const reqDir = path.join(tmpDir, "requirements");
       mkdirSync(reqDir, { recursive: true });
@@ -114,6 +127,7 @@ status: approved
       cwd: tmpDir,
       stdio: "pipe",
     });
+    patchHooks();
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -222,6 +236,7 @@ echo "Existing hook"
         cwd: tmpDir,
         stdio: "pipe",
       });
+      patchHooks();
 
       const reqDir = path.join(tmpDir, "requirements");
       mkdirSync(reqDir, { recursive: true });
@@ -268,6 +283,7 @@ status: approved
       cwd: tmpDir,
       stdio: "pipe",
     });
+    patchHooks();
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });

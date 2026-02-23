@@ -51,7 +51,7 @@ describe("branch KB workflow", () => {
   });
 
   test("creates separate KB for each branch", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -68,7 +68,7 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'initial'", { cwd: tmpDir, stdio: "pipe" });
@@ -88,7 +88,7 @@ status: draft
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     expect(existsSync(path.join(tmpDir, ".kb/branches/develop/kb.rdf"))).toBe(
       true,
@@ -99,7 +99,7 @@ status: draft
   }, 20000);
 
   test("branch KB is isolated from develop KB", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -116,7 +116,7 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'develop commit'", { cwd: tmpDir, stdio: "pipe" });
@@ -125,6 +125,7 @@ status: approved
     const developQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(developQuery).toContain("develop-only");
 
@@ -142,11 +143,12 @@ status: draft
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const featureQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     // JSON format may return [] for empty results; accept either
     expect(featureQuery).toMatch(/(feature-only|\[\]|No entities found)/);
@@ -157,13 +159,14 @@ status: draft
     const developQueryAfter = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(developQueryAfter).toContain("develop-only");
     expect(developQueryAfter).not.toContain("feature-only");
   }, 20000);
 
   test("switching branches loads correct KB", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -180,7 +183,7 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'v1'", { cwd: tmpDir, stdio: "pipe" });
     ensureDevelopBranch(tmpDir);
@@ -199,11 +202,12 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const v2Query = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(v2Query).toContain("Version 2");
 
@@ -212,13 +216,14 @@ status: approved
     const developQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(developQuery).toContain("Version 1");
     expect(developQuery).not.toContain("Version 2");
   }, 20000);
 
   test("creates branch KB on first sync", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     writeFileSync(path.join(tmpDir, "README.md"), "# temp\n");
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
@@ -245,7 +250,7 @@ status: draft
       false,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     expect(
       existsSync(path.join(tmpDir, ".kb/branches/new-feature/kb.rdf")),
@@ -253,7 +258,7 @@ status: draft
   }, 20000);
 
   test("deleting branch document removes from branch KB only", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -270,7 +275,7 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'add shared'", { cwd: tmpDir, stdio: "pipe" });
     ensureDevelopBranch(tmpDir);
@@ -279,11 +284,12 @@ status: approved
 
     rmSync(path.join(reqDir, "shared.md"));
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const featureQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     // Accept either JSON empty array or table 'No entities found'
     expect(featureQuery).toMatch(/(\[\]|No entities found)/);
@@ -293,12 +299,13 @@ status: approved
     const developQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(developQuery).toContain("shared");
   }, 30000);
 
   test("merging branch preserves both KBs", () => {
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -315,7 +322,8 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'develop'", { cwd: tmpDir, stdio: "pipe" });
     ensureDevelopBranch(tmpDir);
@@ -341,11 +349,12 @@ status: draft
     execSync("git checkout develop", { cwd: tmpDir, stdio: "pipe" });
     execSync("git merge feature --no-edit", { cwd: tmpDir, stdio: "pipe" });
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const developQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(developQuery).toContain("Develop");
     expect(developQuery).toContain("Feature");
@@ -360,7 +369,7 @@ status: draft
 
   test("orphan branch creates independent KB", () => {
     // Use --no-hooks to prevent post-checkout hook from triggering during orphan branch creation
-    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} init --no-hooks`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const reqDir = path.join(tmpDir, "requirements");
     mkdirSync(reqDir, { recursive: true });
@@ -377,7 +386,7 @@ status: approved
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
     execSync("git commit --no-verify -m 'develop'", { cwd: tmpDir, stdio: "pipe" });
 
@@ -398,11 +407,12 @@ status: draft
 `,
     );
 
-    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+    execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe", env: process.env });
 
     const orphanQuery = execSync(`bun ${kibiBin} query req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      env: process.env,
     });
     expect(orphanQuery).toContain("orphan");
     expect(orphanQuery).not.toContain("Develop");
