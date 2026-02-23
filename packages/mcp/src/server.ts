@@ -703,19 +703,23 @@ let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
-async function initiateGracefulShutdown(exitCode: number = 0): Promise<void> {
+function debugLog(...args: Parameters<typeof console.error>): void {
+  if (process.env.KIBI_MCP_DEBUG) {
+    console.error(...args);
+  }
+}
+
+async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   if (isShuttingDown) {
     return;
   }
 
   isShuttingDown = true;
-  console.error(
-    `[KIBI-MCP] Initiating graceful shutdown (exit code: ${exitCode})`,
-  );
+  debugLog(`[KIBI-MCP] Initiating graceful shutdown (exit code: ${exitCode})`);
 
   // Wait for in-flight requests
   if (inFlightRequests.size > 0) {
-    console.error(
+    debugLog(
       `[KIBI-MCP] Waiting for ${inFlightRequests.size} in-flight requests to complete...`,
     );
 
@@ -727,21 +731,26 @@ async function initiateGracefulShutdown(exitCode: number = 0): Promise<void> {
 
     try {
       await Promise.race([
-        Promise.all(Array.from(inFlightRequests.values())),
+        Promise.allSettled(Array.from(inFlightRequests.values())),
         timeoutPromise,
       ]);
-      console.error("[KIBI-MCP] All in-flight requests completed");
-    } catch (error) {
+      debugLog("[KIBI-MCP] All in-flight requests completed");
+    } catch (_error) {
       console.error("[KIBI-MCP] Shutdown timeout reached, forcing exit");
+    } finally {
+      if (shutdownTimeout) {
+        clearTimeout(shutdownTimeout);
+        shutdownTimeout = null;
+      }
     }
   }
 
   // Cleanup Prolog process
   if (prologProcess?.isRunning()) {
-    console.error("[KIBI-MCP] Terminating Prolog process...");
+    debugLog("[KIBI-MCP] Terminating Prolog process...");
     try {
       await prologProcess.terminate();
-      console.error("[KIBI-MCP] Prolog process terminated");
+      debugLog("[KIBI-MCP] Prolog process terminated");
     } catch (error) {
       console.error("[KIBI-MCP] Error terminating Prolog:", error);
     }
@@ -756,7 +765,7 @@ async function ensureProlog(): Promise<PrologProcess> {
     return prologProcess;
   }
 
-  console.error("[MCP] Initializing Prolog process...");
+  debugLog("[KIBI-MCP] Initializing Prolog process...");
 
   prologProcess = new PrologProcess({ timeout: 30000 });
   await prologProcess.start();
@@ -782,13 +791,13 @@ async function ensureProlog(): Promise<PrologProcess> {
     }
   }
 
-  console.error("[MCP] Branch selection:");
-  console.error(
-    `[MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
+  debugLog("[KIBI-MCP] Branch selection:");
+  debugLog(
+    `[KIBI-MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
   );
-  console.error(`[MCP]   Git branch: ${gitBranch || "n/a"}`);
-  console.error(`[MCP]   Attached to: ${branch}`);
-  console.error("[MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
+  debugLog(`[KIBI-MCP]   Git branch: ${gitBranch || "n/a"}`);
+  debugLog(`[KIBI-MCP]   Attached to: ${branch}`);
+  debugLog("[KIBI-MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
 
   activeBranchName = branch;
   const kbPath = resolveKbPath(workspaceRoot, branch);
@@ -801,14 +810,18 @@ async function ensureProlog(): Promise<PrologProcess> {
   }
 
   isInitialized = true;
-  console.error(
-    `[MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
+  debugLog(
+    `[KIBI-MCP] Prolog process started (PID: ${prologProcess.getPid()})`,
   );
-  console.error(`[MCP] KB attached: ${kbPath}`);
+  debugLog(`[KIBI-MCP] KB attached: ${kbPath}`);
   return prologProcess;
 }
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
+
+type ToolHandlerArgs = Record<string, unknown> & {
+  _requestId?: string;
+};
 
 type JsonPrimitive = string | number | boolean | null;
 
@@ -1032,9 +1045,11 @@ function addTool(
       }
 
       // Extract or generate requestId from args
+      const requestIdArg = (args as ToolHandlerArgs)._requestId;
       const requestId =
-        (args as any)._requestId ||
-        `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        typeof requestIdArg === "string"
+          ? requestIdArg
+          : `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
       // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
       if (process.env.KIBI_MCP_DEBUG) {
@@ -1057,9 +1072,12 @@ function addTool(
         inFlightRequests.delete(requestId);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`[KIBI-MCP] Error in tool ${name}:`, message);
-      throw new Error(`Tool ${name} failed: ${message}`);
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error(`[KIBI-MCP] Error in tool ${name}:`, err.message);
+      if (err.stack) {
+        debugLog(`[KIBI-MCP] Tool ${name} stack:`, err.stack);
+      }
+      throw new Error(`Tool ${name} failed: ${err.message}`, { cause: err });
     }
   };
 
@@ -1282,7 +1300,97 @@ export async function startServer(): Promise<void> {
   );
 
   const transport = new StdioServerTransport();
-  // Register transport error handlertransport.onerror = (error: Error) => {  console.error(`[KIBI-MCP] Transport error: ${error.message}`, error);  console.error(`[KIBI-MCP] Transport error stack:`, error.stack);  initiateGracefulShutdown(1);};// Register transport close handlertransport.onclose = () => {  console.error('[KIBI-MCP] Transport closed');  initiateGracefulShutdown(0);};
+
+  transport.onerror = (error: Error) => {
+    // Stdio transport surfaces JSON parse / schema validation failures via onerror.
+    // Those errors should not crash the server: emit a JSON-RPC error (id omitted)
+    // and continue reading subsequent messages.
+    if (error.name === "SyntaxError") {
+      debugLog("[KIBI-MCP] Parse error from stdin:", error.message);
+      void transport
+        .send({
+          jsonrpc: "2.0",
+          error: { code: -32700, message: "Parse error" },
+        })
+        .catch((sendError) => {
+          console.error(
+            "[KIBI-MCP] Failed to send parse error response:",
+            sendError,
+          );
+          initiateGracefulShutdown(1);
+        });
+      return;
+    }
+
+    if (error.name === "ZodError") {
+      debugLog("[KIBI-MCP] Invalid JSON-RPC message:", error.message);
+      void transport
+        .send({
+          jsonrpc: "2.0",
+          error: { code: -32600, message: "Invalid Request" },
+        })
+        .catch((sendError) => {
+          console.error(
+            "[KIBI-MCP] Failed to send invalid request response:",
+            sendError,
+          );
+          initiateGracefulShutdown(1);
+        });
+      return;
+    }
+
+    console.error(`[KIBI-MCP] Transport error: ${error.message}`, error);
+    debugLog("[KIBI-MCP] Transport error stack:", error.stack);
+    initiateGracefulShutdown(1);
+  };
+
+  transport.onclose = () => {
+    debugLog("[KIBI-MCP] Transport closed");
+    initiateGracefulShutdown(0);
+  };
+
   await server.connect(transport);
-  // Register signal handlers for graceful shutdownprocess.on('SIGTERM', () => {  console.error('[KIBI-MCP] Received SIGTERM');  initiateGracefulShutdown(0);});process.on('SIGINT', () => {  console.error('[KIBI-MCP] Received SIGINT');  initiateGracefulShutdown(0);});
+
+  process.stdout.on("error", (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[KIBI-MCP] stdout error:", message);
+    debugLog("[KIBI-MCP] stdout error detail:", error as Error);
+    initiateGracefulShutdown(1);
+  });
+
+  process.stderr.on("error", (error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    try {
+      console.error("[KIBI-MCP] stderr error:", message);
+    } catch {}
+    initiateGracefulShutdown(1);
+  });
+
+  process.on("SIGTERM", () => {
+    debugLog("[KIBI-MCP] Received SIGTERM");
+    initiateGracefulShutdown(0);
+  });
+
+  process.on("SIGINT", () => {
+    debugLog("[KIBI-MCP] Received SIGINT");
+    initiateGracefulShutdown(0);
+  });
+
+  // Handle stdin EOF/close for clean shutdown when client disconnects
+  // Use debugLog so these are only noisy when KIBI_MCP_DEBUG is set.
+  try {
+    process.stdin.on("end", () => {
+      debugLog("[KIBI-MCP] stdin ended");
+      // fire-and-forget; initiateGracefulShutdown is idempotent
+      void initiateGracefulShutdown(0);
+    });
+
+    process.stdin.on("close", () => {
+      debugLog("[KIBI-MCP] stdin closed");
+      void initiateGracefulShutdown(0);
+    });
+  } catch (e) {
+    // Defensive: do not let stdin handler setup throw during startup
+    debugLog("[KIBI-MCP] Failed to attach stdin handlers:", e as Error);
+  }
 }

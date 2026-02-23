@@ -20,7 +20,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 362
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.259Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:28.893Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -36,7 +36,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 184
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.473Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:29.441Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -49,7 +49,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 139
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.521Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:29.554Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -65,7 +65,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 87
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.572Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:29.643Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -79,9 +79,9 @@ symbols:
       - type: implements
         target: REQ-vscode-traceability
     sourceColumn: 13
-    sourceEndLine: 418
+    sourceEndLine: 424
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.685Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:29.808Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -94,7 +94,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 120
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.734Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:29.888Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -103,11 +103,11 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
-    sourceLine: 955
+    sourceLine: 1098
     sourceColumn: 22
-    sourceEndLine: 1160
+    sourceEndLine: 1380
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.905Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.444Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -121,9 +121,9 @@ symbols:
       - type: implements
         target: REQ-010
     sourceColumn: 13
-    sourceEndLine: 418
+    sourceEndLine: 424
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.905Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.445Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -139,7 +139,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 114
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.907Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.448Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -155,7 +155,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 134
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:23.956Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.572Z'
   - id: SYM-KibiMCPServer
     title: kibi MCP server (startServer)
     sourceFile: packages/mcp/src/server.ts
@@ -179,7 +179,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 329
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:24.014Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.688Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -195,7 +195,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 313
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-02-23T10:36:24.014Z'
+    coordinatesGeneratedAt: '2026-02-23T19:24:30.689Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
