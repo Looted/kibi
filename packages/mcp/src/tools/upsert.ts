@@ -28,18 +28,6 @@ const ajv = new Ajv({ strict: false });
 const validateEntity = ajv.compile(entitySchema);
 const validateRelationship = ajv.compile(relationshipSchema);
 
-// Using arrays instead of Sets for simplicity and to avoid potential initialization issues
-// in some environments. Performance difference for small lists is negligible.
-const ATOM_FIELDS = ["status", "owner", "priority", "severity"];
-const STRING_FIELDS = [
-  "id",
-  "title",
-  "created_at",
-  "updated_at",
-  "source",
-  "text_ref",
-];
-
 /**
  * Handle kb.upsert tool calls
  * Accepts { type, id, properties } — the flat format matching the tool schema.
@@ -204,6 +192,18 @@ export async function handleKbUpsert(
  */
 function buildPropertyList(entity: Record<string, unknown>): string {
   const pairs: string[] = [];
+
+  // Defined internally to ensure thread safety and avoid initialization order issues.
+  // Using simple arrays instead of Sets is performant enough for small lists and avoids Set allocation overhead.
+  const ATOM_FIELDS = ["status", "owner", "priority", "severity"];
+  const STRING_FIELDS = [
+    "id",
+    "title",
+    "created_at",
+    "updated_at",
+    "source",
+    "text_ref",
+  ];
 
   for (const [key, value] of Object.entries(entity)) {
     if (key === "type") continue;
