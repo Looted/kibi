@@ -130,7 +130,7 @@ async function checkMustPriorityCoverage(
 
 async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
   const result = await prolog.query(
-    'findall(ReqId, (kb_entity(ReqId, req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")), MustReqs)',
+    'findall(ReqId, (kb_entity(ReqId, req, Props), memberchk(priority=P, Props), term_string(P, PS), sub_string(PS, _, 4, 0, "must")), MustReqs)',
   );
 
   if (!result.success || !result.bindings.MustReqs) {
