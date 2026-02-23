@@ -134,7 +134,7 @@ export async function handleKbQuery(
  * Input: "[[a,b,c],[d,e,f]]"
  * Output: [["a", "b", "c"], ["d", "e", "f"]]
  */
-function parseListOfLists(listStr: string): string[][] {
+export function parseListOfLists(listStr: string): string[][] {
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -185,7 +185,7 @@ function parseListOfLists(listStr: string): string[][] {
  * Parse a single entity from Prolog binding format.
  * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
  */
-function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
+export function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTopLevel(cleaned, ",");
 
@@ -205,7 +205,7 @@ function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
  * Parse entity from array returned by parseListOfLists.
  * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
  */
-function parseEntityFromList(data: string[]): Record<string, unknown> {
+export function parseEntityFromList(data: string[]): Record<string, unknown> {
   if (data.length < 3) {
     return {};
   }
@@ -221,7 +221,7 @@ function parseEntityFromList(data: string[]): Record<string, unknown> {
 /**
  * Parse Prolog property list into JavaScript object.
  */
-function parsePropertyList(propsStr: string): Record<string, unknown> {
+export function parsePropertyList(propsStr: string): Record<string, unknown> {
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -255,7 +255,7 @@ function parsePropertyList(propsStr: string): Record<string, unknown> {
 /**
  * Parse a single Prolog value, handling typed literals and URIs.
  */
-function parsePrologValue(valueInput: string): unknown {
+export function parsePrologValue(valueInput: string): unknown {
   const value = valueInput.trim();
 
   // Handle typed literal: ^^("value", type)
@@ -289,7 +289,7 @@ function parsePrologValue(valueInput: string): unknown {
         if (listContent === "") {
           return [];
         }
-        return listContent.split(",").map((item) => item.trim());
+        return splitTopLevel(listContent, ",").map((item) => item.trim());
       }
 
       return literalValue;
@@ -321,7 +321,7 @@ function parsePrologValue(valueInput: string): unknown {
     if (listContent === "") {
       return [];
     }
-    const items = listContent.split(",").map((item) => {
+    const items = splitTopLevel(listContent, ",").map((item) => {
       return parsePrologValue(item.trim());
     });
     return items;
@@ -333,7 +333,7 @@ function parsePrologValue(valueInput: string): unknown {
 /**
  * Split a string by delimiter at the top level (not inside brackets or quotes).
  */
-function splitTopLevel(str: string, delimiter: string): string[] {
+export function splitTopLevel(str: string, delimiter: string): string[] {
   const results: string[] = [];
   let current = "";
   let depth = 0;
