@@ -1,11 +1,11 @@
 import "./env.js";
-import path from "node:path";
 import process from "node:process";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { attachMcpcat } from "./mcpcat.js";
+import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 import {
   type BranchEnsureArgs,
   type BranchGcArgs,
@@ -709,6 +709,7 @@ async function ensureProlog(): Promise<PrologProcess> {
   prologProcess = new PrologProcess({ timeout: 30000 });
   await prologProcess.start();
 
+  const workspaceRoot = resolveWorkspaceRoot();
   let branch = process.env.KIBI_BRANCH || "develop";
   let gitBranch: string | undefined;
 
@@ -716,7 +717,7 @@ async function ensureProlog(): Promise<PrologProcess> {
     try {
       const { execSync } = await import("node:child_process");
       const detected = execSync("git branch --show-current", {
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 3000,
       }).trim();
@@ -738,7 +739,7 @@ async function ensureProlog(): Promise<PrologProcess> {
   console.error("[MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
 
   activeBranchName = branch;
-  const kbPath = path.resolve(process.cwd(), `.kb/branches/${branch}`);
+  const kbPath = resolveKbPath(workspaceRoot, branch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
   if (!attachResult.success) {
@@ -757,6 +758,8 @@ async function ensureProlog(): Promise<PrologProcess> {
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
+type JsonPrimitive = string | number | boolean | null;
+
 function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   if (!schema || typeof schema !== "object") {
     return z.any();
@@ -765,13 +768,29 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   const obj = schema as Record<string, unknown>;
 
   if (Array.isArray(obj.enum) && obj.enum.length > 0) {
-    const values = obj.enum;
-    const literals = values.map((v) => z.literal(v));
-    const union = z.union(
-      literals as [z.ZodLiteral<unknown>, ...z.ZodLiteral<unknown>[]],
-    );
     const description =
       typeof obj.description === "string" ? obj.description : undefined;
+    const literals = obj.enum.filter(
+      (value): value is JsonPrimitive =>
+        typeof value === "string" ||
+        typeof value === "number" ||
+        typeof value === "boolean" ||
+        value === null,
+    );
+    if (literals.length === 0) {
+      return description ? z.any().describe(description) : z.any();
+    }
+    const literalSchemas = literals.map((value) => z.literal(value));
+    if (literalSchemas.length === 1) {
+      const single = literalSchemas[0];
+      return description ? single.describe(description) : single;
+    }
+    const union = z.union(
+      literalSchemas as [
+        z.ZodLiteral<JsonPrimitive>,
+        ...z.ZodLiteral<JsonPrimitive>[],
+      ],
+    );
     return description ? union.describe(description) : union;
   }
 
@@ -797,7 +816,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
         shape[key] = required.has(key) ? propSchema : propSchema.optional();
       }
 
-      let objectSchema: z.ZodTypeAny = z.object(shape);
+      let objectSchema = z.object(shape);
       if (obj.additionalProperties !== false) {
         objectSchema = objectSchema.passthrough();
       }
@@ -807,7 +826,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     }
     case "array": {
       const itemSchema = jsonSchemaToZod(obj.items);
-      let arraySchema: z.ZodTypeAny = z.array(itemSchema);
+      let arraySchema = z.array(itemSchema);
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minItems === "number") {
@@ -819,7 +838,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? arraySchema.describe(description) : arraySchema;
     }
     case "string": {
-      let s: z.ZodTypeAny = z.string();
+      let s = z.string();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minLength === "number") {
@@ -831,7 +850,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? s.describe(description) : s;
     }
     case "number": {
-      let n: z.ZodTypeAny = z.number();
+      let n = z.number();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minimum === "number") {
@@ -843,7 +862,7 @@ function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
       return description ? n.describe(description) : n;
     }
     case "integer": {
-      let n: z.ZodTypeAny = z.number().int();
+      let n = z.number().int();
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       if (typeof obj.minimum === "number") {
@@ -892,7 +911,16 @@ async function handleKbListEntityTypes(): Promise<ListEntityTypesResult> {
       },
     ],
     structuredContent: {
-      types: ["req", "scenario", "test", "adr", "flag", "event", "symbol", "fact"],
+      types: [
+        "req",
+        "scenario",
+        "test",
+        "adr",
+        "flag",
+        "event",
+        "symbol",
+        "fact",
+      ],
     },
   };
 }
@@ -937,6 +965,31 @@ function addTool(
   inputSchema: object,
   handler: ToolHandler,
 ): void {
+  const wrappedHandler: ToolHandler = async (args) => {
+    try {
+      // Validate that args is a valid object
+      if (typeof args !== "object" || args === null) {
+        throw new Error(
+          `Invalid arguments for tool ${name}: expected object, got ${typeof args}`,
+        );
+      }
+
+      // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
+      if (process.env.KIBI_MCP_DEBUG) {
+        console.error(
+          `[KIBI-MCP] Tool called: ${name} with args:`,
+          JSON.stringify(args),
+        );
+      }
+
+      return await handler(args);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`[KIBI-MCP] Error in tool ${name}:`, message);
+      throw new Error(`Tool ${name} failed: ${message}`);
+    }
+  };
+
   (
     server as McpServer & {
       registerTool: (
@@ -948,7 +1001,7 @@ function addTool(
   ).registerTool(
     name,
     { description, inputSchema: jsonSchemaToZod(inputSchema) },
-    handler,
+    wrappedHandler,
   );
 }
 

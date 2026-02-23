@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
-/**
- * Helper to send JSON-RPC request and get response
- */
 async function sendRequest(
   proc: ChildProcess,
   request: Record<string, unknown>,
@@ -12,19 +11,38 @@ async function sendRequest(
   return new Promise((resolve, reject) => {
     let responseData = "";
 
+    const parseJson = (value: string): Record<string, unknown> | null => {
+      try {
+        return JSON.parse(value) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    };
+
     const onData = (chunk: Buffer) => {
       responseData += chunk.toString();
       const lines = responseData.split("\n");
 
-      // Check if we have a complete line
-      if (lines.length > 1) {
-        proc.stdout?.off("data", onData);
-        try {
-          const response = JSON.parse(lines[0]);
-          resolve(response);
-        } catch (error) {
-          reject(new Error(`Failed to parse response: ${lines[0]}`));
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i]?.trim();
+        if (!line) {
+          continue;
         }
+
+        const response = parseJson(line);
+        if (response) {
+          responseData = lines.slice(i + 1).join("\n");
+          proc.stdout?.off("data", onData);
+          resolve(response);
+          return;
+        }
+      }
+
+      const fallback = parseJson(responseData.trim());
+      if (fallback) {
+        responseData = "";
+        proc.stdout?.off("data", onData);
+        resolve(fallback);
       }
     };
 
@@ -41,13 +59,15 @@ async function sendRequest(
   });
 }
 
-/**
- * Helper to start the MCP server
- */
-function startServer(): ChildProcess {
+function startServer(options?: {
+  cwd?: string;
+  env?: Record<string, string>;
+}): ChildProcess {
   const serverPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
   const proc = spawn("bun", ["run", serverPath], {
     stdio: ["pipe", "pipe", "pipe"],
+    cwd: options?.cwd,
+    env: options?.env ? { ...process.env, ...options.env } : process.env,
   });
 
   return proc;
@@ -106,7 +126,6 @@ describe("MCP Server", () => {
   test("should handle notifications/initialized", async () => {
     const proc = startServer();
 
-    // Initialize first
     await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
@@ -118,12 +137,10 @@ describe("MCP Server", () => {
       },
     });
 
-    // Send notification (no response expected, but no error either)
     proc.stdin?.write(
       `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
     );
 
-    // Wait a bit for processing
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     proc.kill();
@@ -172,6 +189,33 @@ describe("MCP Server", () => {
     expect(tools[14].name).toBe("get_help");
 
     proc.kill();
+  });
+
+  test("should initialize from non-repo cwd with workspace override", async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-"));
+    const workspaceRoot = path.resolve(import.meta.dir, "../../..");
+    const proc = startServer({
+      cwd: tempRoot,
+      env: { KIBI_WORKSPACE: workspaceRoot },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    expect(response.jsonrpc).toBe("2.0");
+    expect(response.id).toBe(1);
+    expect(response.result).toBeDefined();
+
+    proc.kill();
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
   test("should return error for invalid method", async () => {
