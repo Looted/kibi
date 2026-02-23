@@ -121,14 +121,12 @@ export async function syncCommand(): Promise<void> {
 
     // Upsert entities
     let entityCount = 0;
+    const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+    const prologAtom = (value: string): string =>
+      simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
+
     for (const { entity } of results) {
       try {
-        const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-        const prologAtom = (value: string): string =>
-          simplePrologAtom.test(value)
-            ? value
-            : `'${value.replace(/'/g, "''")}'`;
-
         const props = [
           `id='${entity.id}'`,
           `title="${entity.title.replace(/"/g, '\\"')}"`,
