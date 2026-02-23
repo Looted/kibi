@@ -181,7 +181,7 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
   }
 }
 
-function inferTypeFromPath(filePath: string): string | null {
+export function inferTypeFromPath(filePath: string): string | null {
   if (filePath.includes("/requirements/")) return "req";
   if (filePath.includes("/scenarios/")) return "scenario";
   if (filePath.includes("/tests/")) return "test";
