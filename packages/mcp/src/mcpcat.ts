@@ -4,10 +4,27 @@ import os from "node:os";
 import path from "node:path";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as mcpcat from "mcpcat";
+import { resolveWorkspaceRoot } from "./workspace.js";
 
 const projectId = (process.env.MCPCAT_PROJECT_ID ?? "").trim();
 const trackedIdentity = resolveTrackedIdentity();
 
+/**
+ * Attach mcpcat analytics tracking to the MCP server.
+ *
+ * NOTE ON SESSIONS: With stdio transport, many MCP clients (including OpenCode)
+ * spawn a new process for each tool call. This means each tool call gets a new
+ * MCP session ID, resulting in single-tool-call "sessions" in mcpcat.
+ *
+ * This is expected behavior for stdio transport - each process IS a different
+ * session. User identity (via the identify() function) still provides useful
+ * aggregation across all tool calls from the same user/machine.
+ *
+ * For true session aggregation, clients would need to either:
+ * 1. Use HTTP transport with persistent connections
+ * 2. Maintain long-lived stdio connections across multiple tool calls
+ * 3. Implement custom session headers
+ */
 export function attachMcpcat(server: McpServer): void {
   if (!projectId) {
     return;
@@ -16,11 +33,18 @@ export function attachMcpcat(server: McpServer): void {
   try {
     mcpcat.track(server, projectId, {
       identify: async () => trackedIdentity,
+      enableReportMissing: false, // Don't add get_more_tools tool - it's internal
+      enableTracing: true,
+      enableToolCallContext: false, // Don't inject context parameter into tools
     });
-    console.error(`[MCPcat] Tracking enabled for project ${projectId}`);
+    if (process.env.KIBI_MCP_DEBUG) {
+      console.error(
+        `[KIBI-MCP] MCPcat tracking enabled for project ${projectId}`,
+      );
+    }
   } catch (error) {
     const details = error instanceof Error ? error.message : String(error);
-    console.error(`[MCPcat] Failed to attach tracking: ${details}`);
+    console.error(`[KIBI-MCP] MCPcat tracking attach failed: ${details}`);
   }
 }
 
@@ -34,7 +58,7 @@ function resolveTrackedIdentity(): mcpcat.UserIdentity {
     };
   }
 
-  const repoRoot = findRepoRoot(process.cwd());
+  const repoRoot = findRepoRoot(resolveWorkspaceRoot());
   const repoName = path.basename(repoRoot);
   const username = readEnv("USER") ?? readEnv("USERNAME") ?? "unknown-user";
   const host = os.hostname() || "unknown-host";

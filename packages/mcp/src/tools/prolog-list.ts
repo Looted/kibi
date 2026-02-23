@@ -19,7 +19,9 @@ export function parsePairList(raw: string): Array<[string, string]> {
   const pairs: Array<[string, string]> = [];
 
   for (const row of rows) {
-    const parts = splitTopLevel(row, ",").map((part) => stripQuotes(part.trim()));
+    const parts = splitTopLevel(row, ",").map((part) =>
+      stripQuotes(part.trim()),
+    );
     if (parts.length >= 2) {
       pairs.push([parts[0], parts[1]]);
     }
@@ -33,7 +35,9 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
   const triples: Array<[string, string, string]> = [];
 
   for (const row of rows) {
-    const parts = splitTopLevel(row, ",").map((part) => stripQuotes(part.trim()));
+    const parts = splitTopLevel(row, ",").map((part) =>
+      stripQuotes(part.trim()),
+    );
     if (parts.length >= 3) {
       triples.push([parts[0], parts[1], parts[2]]);
     }

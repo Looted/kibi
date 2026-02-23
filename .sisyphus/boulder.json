@@ -1,10 +1,7 @@
 {
-  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/kibi-v0.md",
-  "started_at": "2026-02-17T16:39:22.760Z",
-  "session_ids": [
-    "ses_3939f40f4ffe8VNfyyowRu3f6I",
-    "ses_393635ec6ffeyLspDtrngiNrAj"
-  ],
-  "plan_name": "kibi-v0",
+  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/mcp-stdio-wave2-protocol-compliance.md",
+  "started_at": "2026-02-23T19:05:00.000Z",
+  "session_ids": ["ses_3748213efffeH7NliTLsL1aYq7"],
+  "plan_name": "mcp-stdio-wave2-protocol-compliance",
   "agent": "atlas"
 }

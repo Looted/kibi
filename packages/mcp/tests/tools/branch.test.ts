@@ -157,6 +157,7 @@ describe("MCP Branch Tool Handlers", () => {
   describe("kb.branch.gc", () => {
     test("should find stale branches in dry run mode", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
       // Create a fake git repo for testing
       const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc");
@@ -177,7 +178,10 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b develop", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
         // Create .kb/branches structure
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
@@ -188,6 +192,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: true });
 
@@ -203,12 +208,14 @@ describe("MCP Branch Tool Handlers", () => {
         expect(exists).toBe(true);
       } finally {
         process.chdir(originalCwd);
+        process.env.KIBI_WORKSPACE = originalWorkspace;
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });
 
     test("should delete stale branches when dry_run=false", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
       const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-delete");
       await fs.rm(gitTestRoot, { recursive: true, force: true });
@@ -228,7 +235,10 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b develop", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
@@ -238,6 +248,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: false });
 
@@ -252,6 +263,7 @@ describe("MCP Branch Tool Handlers", () => {
         expect(exists).toBe(false);
       } finally {
         process.chdir(originalCwd);
+        process.env.KIBI_WORKSPACE = originalWorkspace;
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });
@@ -277,7 +289,10 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b develop", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
@@ -322,7 +337,10 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b develop", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
         execSync("git checkout -b feature", {
           cwd: gitTestRoot,
           stdio: "ignore",
@@ -349,6 +367,7 @@ describe("MCP Branch Tool Handlers", () => {
 
     test("should handle missing .kb/branches directory", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
       const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-missing");
       await fs.rm(gitTestRoot, { recursive: true, force: true });
@@ -366,6 +385,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: true });
 
@@ -374,6 +394,11 @@ describe("MCP Branch Tool Handlers", () => {
         expect(result.structuredContent?.deleted).toBe(0);
       } finally {
         process.chdir(originalCwd);
+        if (originalWorkspace) {
+          process.env.KIBI_WORKSPACE = originalWorkspace;
+        } else {
+          process.env.KIBI_WORKSPACE = "";
+        }
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });

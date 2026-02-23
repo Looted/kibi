@@ -6,10 +6,7 @@
     "owner": "alice",
     "source": "/tmp/test-query-fixture/requirements/req1.md",
     "status": "approved",
-    "tags": [
-      "security",
-      "auth"
-    ],
+    "tags": ["security", "auth"],
     "title": "User Authentication",
     "updated_at": "2026-02-17T18:59:25.461Z"
   }

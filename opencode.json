@@ -3,11 +3,7 @@
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": [
-        "bun",
-        "run",
-        "packages/mcp/bin/kibi-mcp"
-      ],
+      "command": ["bun", "run", "packages/mcp/bin/kibi-mcp"],
       "enabled": true
     }
   },
@@ -15,15 +11,16 @@
     "prolog": {
       "command": [
         "swipl",
-        "-g", "use_module(library(lsp_server)).",
-        "-g", "lsp_server:main",
-        "-t", "halt",
-        "--", "stdio"
+        "-g",
+        "use_module(library(lsp_server)).",
+        "-g",
+        "lsp_server:main",
+        "-t",
+        "halt",
+        "--",
+        "stdio"
       ],
-      "extensions": [
-        ".pl",
-        ".prolog"
-      ]
+      "extensions": [".pl", ".prolog", ".plt"]
     }
   }
 }

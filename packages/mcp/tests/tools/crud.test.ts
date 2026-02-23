@@ -1,4 +1,11 @@
-import { afterAll, beforeAll, describe, expect, test, beforeEach } from "bun:test";
+import {
+  afterAll,
+  beforeAll,
+  describe,
+  expect,
+  test,
+  beforeEach,
+} from "bun:test";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
@@ -154,7 +161,11 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "idempotency-scen-1",
         properties: { title: "Scen 1", status: "active", source: "test" },
         relationships: [
-          { type: "specified_by", from: "idempotency-scen-1", to: "idempotency-req-1" },
+          {
+            type: "specified_by",
+            from: "idempotency-scen-1",
+            to: "idempotency-req-1",
+          },
         ],
       });
 
@@ -164,7 +175,11 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "idempotency-scen-1",
         properties: { title: "Scen 1", status: "active", source: "test" },
         relationships: [
-          { type: "specified_by", from: "idempotency-scen-1", to: "idempotency-req-1" },
+          {
+            type: "specified_by",
+            from: "idempotency-scen-1",
+            to: "idempotency-req-1",
+          },
         ],
       });
 
@@ -196,8 +211,16 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "idempotency-scen-2",
         properties: { title: "Scen 2", status: "active", source: "test" },
         relationships: [
-          { type: "specified_by", from: "idempotency-scen-2", to: "idempotency-req-2" },
-          { type: "specified_by", from: "idempotency-scen-2", to: "idempotency-req-2" },
+          {
+            type: "specified_by",
+            from: "idempotency-scen-2",
+            to: "idempotency-req-2",
+          },
+          {
+            type: "specified_by",
+            from: "idempotency-scen-2",
+            to: "idempotency-req-2",
+          },
         ],
       });
 
