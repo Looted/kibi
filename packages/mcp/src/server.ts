@@ -242,6 +242,14 @@ let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 
 /**
+ * Type for tool handler functions
+ */
+type ToolHandler = (
+  prolog: PrologProcess,
+  params: any,
+) => Promise<unknown>;
+
+/**
  * Create a JSON-RPC 2.0 success response
  */
 function createResponse(id: string | number, result: unknown): JsonRpcResponse {
@@ -361,6 +369,76 @@ async function handleToolsList(): Promise<Record<string, unknown>> {
 }
 
 /**
+ * Handle kb_list_entity_types tool
+ */
+async function handleKbListEntityTypes(
+  _prolog: PrologProcess,
+  _params: unknown,
+): Promise<unknown> {
+  return {
+    content: [
+      {
+        type: "text",
+        text: "Available entity types: req, scenario, test, adr, flag, event, symbol",
+      },
+    ],
+    structuredContent: {
+      types: ["req", "scenario", "test", "adr", "flag", "event", "symbol"],
+    },
+  };
+}
+
+/**
+ * Handle kb_list_relationship_types tool
+ */
+async function handleKbListRelationshipTypes(
+  _prolog: PrologProcess,
+  _params: unknown,
+): Promise<unknown> {
+  return {
+    content: [
+      {
+        type: "text",
+        text: "Available relationship types: depends_on, specified_by, verified_by, implements, covered_by, constrained_by, guards, publishes, consumes, relates_to",
+      },
+    ],
+    structuredContent: {
+      types: [
+        "depends_on",
+        "specified_by",
+        "verified_by",
+        "implements",
+        "covered_by",
+        "constrained_by",
+        "guards",
+        "publishes",
+        "consumes",
+        "relates_to",
+      ],
+    },
+  };
+}
+
+/**
+ * Map of tool names to their handlers
+ */
+const TOOL_HANDLERS: Record<string, ToolHandler> = {
+  kb_query: (prolog, params) =>
+    handleKbQuery(prolog, params as Record<string, unknown>),
+  kb_upsert: (prolog, params) => handleKbUpsert(prolog, params as UpsertArgs),
+  kb_delete: (prolog, params) => handleKbDelete(prolog, params as DeleteArgs),
+  kb_check: (prolog, params) => handleKbCheck(prolog, params as CheckArgs),
+  kb_branch_ensure: (prolog, params) =>
+    handleKbBranchEnsure(prolog, params as BranchEnsureArgs),
+  kb_branch_gc: (prolog, params) =>
+    handleKbBranchGc(prolog, params as BranchGcArgs),
+  kb_query_relationships: (prolog, params) =>
+    handleKbQueryRelationships(prolog, params as QueryRelationshipsArgs),
+  kb_list_entity_types: handleKbListEntityTypes,
+  kb_list_relationship_types: handleKbListRelationshipTypes,
+};
+
+/**
  * Handle tool invocation
  */
 async function handleToolCall(
@@ -380,85 +458,12 @@ async function handleToolCall(
   }
 
   try {
-    switch (toolName) {
-      case "kb_query":
-        return await handleKbQuery(
-          prologProcess,
-          params as Record<string, unknown>,
-        );
-
-      case "kb_upsert":
-        return await handleKbUpsert(prologProcess, params as UpsertArgs);
-
-      case "kb_delete":
-        return await handleKbDelete(prologProcess, params as DeleteArgs);
-
-      case "kb_check":
-        return await handleKbCheck(prologProcess, params as CheckArgs);
-
-      case "kb_branch_ensure":
-        return await handleKbBranchEnsure(
-          prologProcess,
-          params as BranchEnsureArgs,
-        );
-
-      case "kb_branch_gc":
-        return await handleKbBranchGc(prologProcess, params as BranchGcArgs);
-
-      case "kb_query_relationships":
-        return await handleKbQueryRelationships(
-          prologProcess,
-          params as QueryRelationshipsArgs,
-        );
-
-      case "kb_list_entity_types":
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Available entity types: req, scenario, test, adr, flag, event, symbol",
-            },
-          ],
-          structuredContent: {
-            types: [
-              "req",
-              "scenario",
-              "test",
-              "adr",
-              "flag",
-              "event",
-              "symbol",
-            ],
-          },
-        };
-
-      case "kb_list_relationship_types":
-        return {
-          content: [
-            {
-              type: "text",
-              text: "Available relationship types: depends_on, specified_by, verified_by, implements, covered_by, constrained_by, guards, publishes, consumes, relates_to",
-            },
-          ],
-          structuredContent: {
-            types: [
-              "depends_on",
-              "specified_by",
-              "verified_by",
-              "implements",
-              "covered_by",
-              "constrained_by",
-              "guards",
-              "publishes",
-              "consumes",
-              "relates_to",
-            ],
-          },
-        };
-
-      default:
-        throw new Error(`Unknown tool: ${toolName}`);
+    const handler = TOOL_HANDLERS[toolName];
+    if (!handler) {
+      throw new Error(`Unknown tool: ${toolName}`);
     }
+
+    return await handler(prologProcess, params);
   } catch (error) {
     // Re-throw with proper error type
     if (error instanceof Error) {
