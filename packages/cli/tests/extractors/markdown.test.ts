@@ -52,6 +52,57 @@ describe("Markdown Extractor", () => {
     unlinkSync(tempFile);
   });
 
+  test("diagnoses unquoted colon in title", () => {
+    const tempFile = "/tmp/test-unquoted-colon.md";
+    writeFileSync(tempFile, "---\ntitle: Foo: Bar\n---\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Unquoted colon likely in title");
+      expect(fe.hint).toContain("Wrap values containing colons in quotes");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
+  test("diagnoses missing closing delimiter", () => {
+    const tempFile = "/tmp/test-missing-closing.md";
+    writeFileSync(tempFile, "---\ntitle: Foo\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Missing closing ---");
+      expect(fe.hint).toContain("Ensure the frontmatter is enclosed");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
+  test("diagnoses generic YAML mapping error", () => {
+    const tempFile = "/tmp/test-mapping-error.md";
+    writeFileSync(tempFile, "---\ntitle: Foo\nkey: [unclosed\n---\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Generic YAML mapping error");
+      expect(fe.hint).toContain("Check for unclosed brackets");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
   test("generates consistent IDs", () => {
     const result1 = extractFromMarkdown(
       "packages/cli/tests/fixtures/requirements/REQ-001.md",
@@ -119,6 +170,32 @@ describe("Markdown Extractor", () => {
     expect(result.entity.status).toBe("draft");
     expect(result.entity.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.entity.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+    unlinkSync(tempFile);
+  });
+
+  test("extracts supersedes relationship from ADR frontmatter", () => {
+    const tempFile = "/tmp/test-supersedes.md";
+    writeFileSync(
+      tempFile,
+      `---
+id: ADR-010
+title: New Decision
+type: adr
+status: active
+links:
+  - type: supersedes
+    target: ADR-005
+---
+# Content
+`,
+    );
+
+    const result = extractFromMarkdown(tempFile);
+    expect(result.relationships).toBeInstanceOf(Array);
+    expect(result.relationships.length).toBe(1);
+    expect(result.relationships[0].type).toBe("supersedes");
+    expect(result.relationships[0].to).toBe("ADR-005");
 
     unlinkSync(tempFile);
   });

@@ -6,7 +6,7 @@ This document describes the entity and relationship schema for the Kibi Knowledg
 
 ## Entity Types
 
-Kibi supports seven entity types:
+Kibi supports eight entity types:
 
 | Type     | Description                                                        |
 |----------|--------------------------------------------------------------------|
@@ -17,6 +17,7 @@ Kibi supports seven entity types:
 | flag     | Feature flag controlling functionality rollout                     |
 | event    | Domain or system event published/consumed by components            |
 | symbol   | Abstract code symbol (function, class, module) - language-agnostic |
+| fact     | Atomic domain fact used to model concepts, invariants, and properties |
 
 ---
 
@@ -261,11 +262,45 @@ tags:
 ---
 ```
 
+#### Fact (`fact`)
+
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, and property values). Requirements can link to facts using `constrains` and `requires_property` so contradictions become structural and queryable.
+
+| Property     | Required | Type           | Description                                      |
+|--------------|----------|----------------|--------------------------------------------------|
+| id           | Yes      | string         | Unique identifier                                |
+| title        | Yes      | string         | Fact summary                                     |
+| status       | Yes      | string         | active, deprecated                               |
+| created_at   | Yes      | ISO 8601       | Creation timestamp                               |
+| updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
+| source       | Yes      | string         | Provenance                                       |
+| tags[]       | No       | array[string]  | Tags                                             |
+| owner        | No       | string         | Owner/assignee                                   |
+| priority     | No       | string         | Priority level                                   |
+| severity     | No       | string         | Severity level                                   |
+| links[]      | No       | array[string]  | URLs                                             |
+| text_ref     | No       | string         | Markdown/doc pointer                             |
+
+**Example:**
+```yaml
+---
+id: FACT-USER-ROLE
+title: User Role Assignment
+status: active
+created_at: 2026-02-20T13:00:00Z
+updated_at: 2026-02-20T13:00:00Z
+source: documentation/facts/FACT-USER-ROLE.md
+tags:
+  - domain
+  - auth
+---
+```
+
 ---
 
 ## Relationship Types
 
-Kibi supports ten relationship types. Each relationship has metadata:
+Kibi supports relationship types listed below. Each relationship has metadata:
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -284,10 +319,13 @@ Kibi supports ten relationship types. Each relationship has metadata:
 | implements          | symbol               | req                  | Symbol implements requirement                     |
 | covered_by          | symbol               | test                 | Symbol covered by test                            |
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
+| constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
+| requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
 | affects             | adr                  | symbol/component     | ADR affects symbol/component                      |
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
+| supersedes          | adr                  | adr                  | The source ADR formally replaces the target ADR. The target is expected to carry status: archived or deprecated |
 | relates_to          | a                    | b                    | Generic relationship (escape hatch)               |
 
 ---
@@ -414,6 +452,30 @@ relationship:
   source: https://example.com/fixtures/symbols/SYMBOL-001
 ```
 
+**constrains**
+```yaml
+# req REQ-018 constrains fact FACT-USER-ROLE
+relationship:
+  type: constrains
+  source: REQ-018
+  target: FACT-USER-ROLE
+  created_at: 2026-02-20T14:00:00Z
+  created_by: analyst
+  source: documentation/requirements/REQ-018.md
+```
+
+**requires_property**
+```yaml
+# req REQ-018 requires_property fact FACT-LIMIT-2
+relationship:
+  type: requires_property
+  source: REQ-018
+  target: FACT-LIMIT-2
+  created_at: 2026-02-20T14:01:00Z
+  created_by: analyst
+  source: documentation/requirements/REQ-018.md
+```
+
 **relates_to**
 ```yaml
 # Generic relationship between any two entities
@@ -425,6 +487,18 @@ relationship:
   created_at: 2026-02-17T14:00:00Z
   created_by: analyst
   source: https://example.com/fixtures/entities/ENTITY-A
+```
+
+**supersedes**
+```yaml
+# adr ADR-010 supersedes adr ADR-009
+relationship:
+  type: supersedes
+  source: ADR-010
+  target: ADR-009
+  created_at: 2026-02-20T10:00:00Z
+  created_by: architect
+  source: https://example.com/fixtures/adrs/ADR-010
 ```
 
 ---

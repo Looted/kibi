@@ -8,16 +8,18 @@
 test(entity_types_count) :-
     findall(T, entity_type(T), Ts),
     sort(Ts, Sorted),
-    Sorted == [adr,event,flag,req,scenario,symbol,test].
+    Sorted == [adr,event,fact,flag,req,scenario,symbol,test].
 
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 10 items; ensure length and membership
-    length(Sorted, 10),
+    % relationship_type/1 includes 14 items; ensure length and membership
+    length(Sorted, 14),
     member(depends_on, Sorted),
     member(specified_by, Sorted),
-    member(verified_by, Sorted).
+    member(verified_by, Sorted),
+    member(constrains, Sorted),
+    member(requires_property, Sorted).
 
 test(valid_relationship_ok) :-
     validate_relationship(depends_on, req, req).
