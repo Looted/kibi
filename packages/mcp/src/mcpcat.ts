@@ -2,9 +2,9 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { resolveWorkspaceRoot } from "./workspace.js";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import * as mcpcat from "mcpcat";
+import { resolveWorkspaceRoot } from "./workspace.js";
 
 const projectId = (process.env.MCPCAT_PROJECT_ID ?? "").trim();
 const trackedIdentity = resolveTrackedIdentity();
@@ -37,10 +37,14 @@ export function attachMcpcat(server: McpServer): void {
       enableTracing: true,
       enableToolCallContext: false, // Don't inject context parameter into tools
     });
-    console.error(`[MCPcat] Tracking enabled for project ${projectId}`);
+    if (process.env.KIBI_MCP_DEBUG) {
+      console.error(
+        `[KIBI-MCP] MCPcat tracking enabled for project ${projectId}`,
+      );
+    }
   } catch (error) {
     const details = error instanceof Error ? error.message : String(error);
-    console.error(`[MCPcat] Failed to attach tracking: ${details}`);
+    console.error(`[KIBI-MCP] MCPcat tracking attach failed: ${details}`);
   }
 }
 
