@@ -162,6 +162,331 @@ spawn_entity_thread(N, ThreadId) :-
 
 :- end_tests(kb_mutex).
 
+:- begin_tests(kb_inference).
+
+test(transitively_implements_direct, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-a',
+        title="Req A",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-a',
+        title="Sym A",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(implements, 'sym-a', 'req-a', []),
+    transitively_implements('sym-a', 'req-a').
+
+test(transitively_implements_via_test, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-b',
+        title="Req B",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-b',
+        title="Test B",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-b',
+        title="Sym B",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(validates, 'test-b', 'req-b', []),
+    kb_assert_relationship(covered_by, 'sym-b', 'test-b', []),
+    transitively_implements('sym-b', 'req-b').
+
+test(transitively_depends, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-1',
+        title="Req 1",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-2',
+        title="Req 2",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-3',
+        title="Req 3",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(depends_on, 'req-1', 'req-2', []),
+    kb_assert_relationship(depends_on, 'req-2', 'req-3', []),
+    transitively_depends('req-1', 'req-3').
+
+test(coverage_gap_missing_both, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-gap',
+        title="Req Gap",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    coverage_gap('req-gap', missing_scenario_and_test).
+
+test(untested_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-untested',
+        title="Sym Untested",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    untested_symbols(Symbols),
+    memberchk('sym-untested', Symbols).
+
+test(stale_entity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-old',
+        title="Old Req",
+        status=active,
+        created_at="2020-01-01T00:00:00Z",
+        updated_at="2020-01-01T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    stale('req-old', 30).
+
+test(orphaned_symbol, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-orphan',
+        title="Sym Orphan",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    orphaned('sym-orphan').
+
+test(conflicting_adrs, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-conflict',
+        title="Sym Conflict",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(adr, [
+        id='adr-1',
+        title="ADR 1",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(adr, [
+        id='adr-2',
+        title="ADR 2",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrained_by, 'sym-conflict', 'adr-1', []),
+    kb_assert_relationship(constrained_by, 'sym-conflict', 'adr-2', []),
+    conflicting('adr-1', 'adr-2').
+
+test(deprecated_still_used, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-legacy',
+        title="Sym Legacy",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(adr, [
+        id='adr-legacy',
+        title="ADR Legacy",
+        status=archived,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrained_by, 'sym-legacy', 'adr-legacy', []),
+    deprecated_still_used('adr-legacy', Symbols),
+    memberchk('sym-legacy', Symbols).
+
+test(impacted_by_change, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-main',
+        title="Req Main",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-dependent',
+        title="Req Dep",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(depends_on, 'req-dependent', 'req-main', []),
+    impacted_by_change('req-dependent', 'req-main').
+
+test(affected_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-base',
+        title="Req Base",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-child',
+        title="Req Child",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-child',
+        title="Sym Child",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(depends_on, 'req-child', 'req-base', []),
+    kb_assert_relationship(implements, 'sym-child', 'req-child', []),
+    affected_symbols('req-base', Symbols),
+    memberchk('sym-child', Symbols).
+
+test(contradicting_reqs, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='fact-user-role',
+        title="User Role Assignment",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-2',
+        title="Maximum of Two",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-3',
+        title="Maximum of Three",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-2',
+        title="Users have max 2 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-3',
+        title="Users have max 3 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'req-role-2', 'fact-user-role', []),
+    kb_assert_relationship(constrains, 'req-role-3', 'fact-user-role', []),
+    kb_assert_relationship(requires_property, 'req-role-2', 'fact-limit-2', []),
+    kb_assert_relationship(requires_property, 'req-role-3', 'fact-limit-3', []),
+    contradicting_reqs('req-role-2', 'req-role-3', _).
+
+test(contradicting_reqs_ignores_superseded, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='fact-user-role',
+        title="User Role Assignment",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-2',
+        title="Maximum of Two",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-3',
+        title="Maximum of Three",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-2',
+        title="Users have max 2 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-3',
+        title="Users have max 3 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'req-role-2', 'fact-user-role', []),
+    kb_assert_relationship(constrains, 'req-role-3', 'fact-user-role', []),
+    kb_assert_relationship(requires_property, 'req-role-2', 'fact-limit-2', []),
+    kb_assert_relationship(requires_property, 'req-role-3', 'fact-limit-3', []),
+    kb_assert_relationship(supersedes, 'req-role-3', 'req-role-2', []),
+    \+ contradicting_reqs(_, _, _).
+
+:- end_tests(kb_inference).
+
 % Test setup/cleanup helpers
 setup_kb :-
     cleanup_test_kb,

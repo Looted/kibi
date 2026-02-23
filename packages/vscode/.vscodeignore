@@ -11,4 +11,6 @@ bun.lock
 *.test.ts
 icon.svg
 package-vsix.sh
+.sisyphus
 ../**
+../../**

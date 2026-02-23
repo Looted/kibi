@@ -67,7 +67,7 @@ const REL_LABELS: Record<string, string> = {
 function isLocalPath(src: string): boolean {
   return (
     src.startsWith("/") ||
-    /^[A-Za-z]:[/\\]/.test(src) ||
+    /^[A-Za-z]:[\\/]/.test(src) ||
     src.startsWith("file://")
   );
 }
@@ -85,7 +85,7 @@ function resolveLocalPath(
     }
   }
   if (src.startsWith("/")) return fs.existsSync(src) ? src : undefined;
-  if (/^[A-Za-z]:[/\\]/.test(src)) return fs.existsSync(src) ? src : undefined;
+  if (/^[A-Za-z]:[\\/]/.test(src)) return fs.existsSync(src) ? src : undefined;
   // Relative path — resolve against workspace root
   const resolved = path.resolve(workspaceRoot, src);
   return fs.existsSync(resolved) ? resolved : undefined;
@@ -214,13 +214,14 @@ export class KibiTreeDataProvider
   /**
    * Parse entities from kb.rdf using regex.
    * Each entity is an rdf:Description block containing kb:type, kb:title, kb:id etc.
+   * Supports both prefixed (kb:entity/ID) and full URI (http://kibi.dev/kb/entity/ID) formats.
    */
   private parseRdf(content: string): KbEntity[] {
     const entities: KbEntity[] = [];
 
-    // Match each rdf:Description block
+    // Match each rdf:Description block - supports both kb:entity/ and full URI
     const blockRe =
-      /<rdf:Description rdf:about="kb:entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+      /<rdf:Description rdf:about="(?:(?:http:\/\/kibi\.dev\/kb\/)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
     let match: RegExpExecArray | null;
     while ((match = blockRe.exec(content)) !== null) {
@@ -248,45 +249,43 @@ export class KibiTreeDataProvider
   /**
    * Parse relationships from kb.rdf.
    *
-   * Two formats are attempted in order:
-   *   1. Dedicated rdf:Description blocks with rdf:about="kb:rel/..."
-   *   2. Inline relationship resource references inside entity blocks
+   * Relationships are stored as inline property triples inside entity blocks:
+   *   <kb:depends_on rdf:resource="http://kibi.dev/kb/entity/REQ-002"/>
+   *
+   * This method extracts all such triples by scanning entity blocks.
    */
   private parseRdfRelationships(content: string): KbRelationship[] {
     const relationships: KbRelationship[] = [];
 
-    // Format 1: dedicated relationship blocks
-    const relBlockRe =
-      /<rdf:Description rdf:about="kb:rel\/[^"]*">([\s\S]*?)<\/rdf:Description>/g;
-    let match: RegExpExecArray | null;
-    let foundDedicated = false;
+    // Known relationship types from the KB schema
+    const relTypes = [
+      "depends_on", "specified_by", "verified_by", "implements",
+      "covered_by", "constrained_by", "guards", "publishes",
+      "consumes", "relates_to"
+    ];
 
-    while ((match = relBlockRe.exec(content)) !== null) {
-      foundDedicated = true;
-      const block = match[1];
-      const relType =
-        this.extractText(block, "kb:relType") ||
-        this.extractResourceSuffix(block, "kb:relType");
-      const from =
-        this.extractText(block, "kb:from") ||
-        this.extractResourceSuffix(block, "kb:from");
-      const to =
-        this.extractText(block, "kb:to") ||
-        this.extractResourceSuffix(block, "kb:to");
-      if (relType && from && to) {
-        relationships.push({ relType, fromId: from, toId: to });
+    // Match each rdf:Description block to get the source entity ID
+    const blockRe =
+      /<rdf:Description rdf:about="(?:(?:http:\/\/kibi\.dev\/kb\/)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+
+    let blockMatch: RegExpExecArray | null;
+    while ((blockMatch = blockRe.exec(content)) !== null) {
+      const fromId = blockMatch[1];
+      const block = blockMatch[2];
+
+      // For each relationship type, find all rdf:resource references
+      for (const relType of relTypes) {
+        // Match <kb:relType rdf:resource="...entity/TOID"/>
+        const relRe = new RegExp(
+          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
+          "g"
+        );
+        let relMatch: RegExpExecArray | null;
+        while ((relMatch = relRe.exec(block)) !== null) {
+          const toId = relMatch[1];
+          relationships.push({ relType, fromId, toId });
+        }
       }
-    }
-
-    if (foundDedicated) return relationships;
-
-    // Format 2: inline resource references
-    // <kb:relationship rdf:resource="kb:RELTYPE/FROM/TO"/>
-    const inlineRe =
-      /<kb:relationship[^>]+rdf:resource="kb:([^/]+)\/([^/]+)\/([^"]+)"[^>]*\/?>/g;
-    while ((match = inlineRe.exec(content)) !== null) {
-      const [, relType, fromId, toId] = match;
-      relationships.push({ relType, fromId, toId });
     }
 
     return relationships;
@@ -300,7 +299,7 @@ export class KibiTreeDataProvider
 
   private extractResourceSuffix(block: string, tag: string): string {
     const re = new RegExp(
-      `<${tag}[^>]*rdf:resource="[^"]*\\/([^"\\/]+)"[^>]*\\/?>`,
+      `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
     return m ? m[1] : "";
