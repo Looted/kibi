@@ -7,10 +7,7 @@
     "created_at": "2024-01-16T09:00:00.000Z",
     "updated_at": "2024-01-16T09:00:00.000Z",
     "source": "packages/cli/tests/fixtures/scenarios/SCEN-001.md",
-    "tags": [
-      "authentication",
-      "e2e"
-    ],
+    "tags": ["authentication", "e2e"],
     "links": [
       {
         "type": "specified_by",

@@ -381,9 +381,7 @@ export async function syncCommand(
     let kbModified = false;
     const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
     const prologAtom = (value: string): string =>
-      simplePrologAtom.test(value)
-        ? value
-        : `'${value.replace(/'/g, "''")}'`;
+      simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
     for (const { entity } of results) {
       try {
         const props = [

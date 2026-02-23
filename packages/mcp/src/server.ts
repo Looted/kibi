@@ -703,6 +703,54 @@ let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
+async function initiateGracefulShutdown(exitCode: number = 0): Promise<void> {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  console.error(
+    `[KIBI-MCP] Initiating graceful shutdown (exit code: ${exitCode})`,
+  );
+
+  // Wait for in-flight requests
+  if (inFlightRequests.size > 0) {
+    console.error(
+      `[KIBI-MCP] Waiting for ${inFlightRequests.size} in-flight requests to complete...`,
+    );
+
+    const timeoutPromise = new Promise((_, reject) => {
+      shutdownTimeout = setTimeout(() => {
+        reject(new Error("Shutdown timeout"));
+      }, 10000); // 10 second timeout
+    });
+
+    try {
+      await Promise.race([
+        Promise.all(Array.from(inFlightRequests.values())),
+        timeoutPromise,
+      ]);
+      console.error("[KIBI-MCP] All in-flight requests completed");
+    } catch (error) {
+      console.error("[KIBI-MCP] Shutdown timeout reached, forcing exit");
+    }
+  }
+
+  // Cleanup Prolog process
+  if (prologProcess?.isRunning()) {
+    console.error("[KIBI-MCP] Terminating Prolog process...");
+    try {
+      await prologProcess.terminate();
+      console.error("[KIBI-MCP] Prolog process terminated");
+    } catch (error) {
+      console.error("[KIBI-MCP] Error terminating Prolog:", error);
+    }
+  }
+
+  // Exit
+  process.exit(exitCode);
+}
+
 async function ensureProlog(): Promise<PrologProcess> {
   if (isInitialized && prologProcess?.isRunning()) {
     return prologProcess;
@@ -978,15 +1026,36 @@ function addTool(
         );
       }
 
+      // Check if shutting down before processing
+      if (isShuttingDown) {
+        throw new Error(`Tool ${name} rejected: server is shutting down`);
+      }
+
+      // Extract or generate requestId from args
+      const requestId =
+        (args as any)._requestId ||
+        `${name}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
       // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
       if (process.env.KIBI_MCP_DEBUG) {
         console.error(
-          `[KIBI-MCP] Tool called: ${name} with args:`,
+          `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
           JSON.stringify(args),
         );
       }
 
-      return await handler(args);
+      // Track the handler promise in inFlightRequests Map
+      const handlerPromise = handler(args);
+      inFlightRequests.set(requestId, handlerPromise);
+
+      try {
+        // Execute handler
+        const result = await handlerPromise;
+        return result;
+      } finally {
+        // Always clean up from Map when done (success or failure)
+        inFlightRequests.delete(requestId);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       console.error(`[KIBI-MCP] Error in tool ${name}:`, message);
@@ -1213,5 +1282,7 @@ export async function startServer(): Promise<void> {
   );
 
   const transport = new StdioServerTransport();
+  // Register transport error handlertransport.onerror = (error: Error) => {  console.error(`[KIBI-MCP] Transport error: ${error.message}`, error);  console.error(`[KIBI-MCP] Transport error stack:`, error.stack);  initiateGracefulShutdown(1);};// Register transport close handlertransport.onclose = () => {  console.error('[KIBI-MCP] Transport closed');  initiateGracefulShutdown(0);};
   await server.connect(transport);
+  // Register signal handlers for graceful shutdownprocess.on('SIGTERM', () => {  console.error('[KIBI-MCP] Received SIGTERM');  initiateGracefulShutdown(0);});process.on('SIGINT', () => {  console.error('[KIBI-MCP] Received SIGINT');  initiateGracefulShutdown(0);});
 }
