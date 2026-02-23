@@ -49,7 +49,7 @@ export async function handleKbBranchEnsure(
   try {
     const kbRoot = path.resolve(process.cwd(), ".kb/branches");
     const branchPath = path.join(kbRoot, safeBranch);
-    const mainPath = path.join(kbRoot, "main");
+    const developPath = path.join(kbRoot, "develop");
 
     // Check if branch KB already exists
     if (fs.existsSync(branchPath)) {
@@ -67,19 +67,19 @@ export async function handleKbBranchEnsure(
       };
     }
 
-    // Ensure main branch exists
-    if (!fs.existsSync(mainPath)) {
-      throw new Error("Main branch KB does not exist. Run 'kb init' first.");
+    // Ensure develop branch exists
+    if (!fs.existsSync(developPath)) {
+      throw new Error("Develop branch KB does not exist. Run 'kb init' first.");
     }
 
-    // Copy main branch KB to new branch
-    fs.cpSync(mainPath, branchPath, { recursive: true });
+    // Copy develop branch KB to new branch
+    fs.cpSync(developPath, branchPath, { recursive: true });
 
     return {
       content: [
         {
           type: "text",
-          text: `Created branch KB '${safeBranch}' from main`,
+          text: `Created branch KB '${safeBranch}' from develop`,
         },
       ],
       structuredContent: {
@@ -156,9 +156,9 @@ export async function handleKbBranchGc(
       .filter((dirent) => dirent.isDirectory())
       .map((dirent) => dirent.name);
 
-    // Find stale branches (KB exists but git branch doesn't, excluding main)
+    // Find stale branches (KB exists but git branch doesn't, excluding develop)
     const staleBranches = kbBranches.filter(
-      (kb) => kb !== "main" && !gitBranches.has(kb),
+      (kb) => kb !== "develop" && !gitBranches.has(kb),
     );
 
     // Delete stale branches if not dry run
