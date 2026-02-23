@@ -54,6 +54,7 @@ describe("init-sync-check workflow", () => {
       const output = execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
       // init may create the first commit and branch; normalize branch name
       ensureDevelopBranch(tmpDir);
@@ -82,6 +83,7 @@ describe("init-sync-check workflow", () => {
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
       // ensure branch name normalized if init created commits
       ensureDevelopBranch(tmpDir);
@@ -128,6 +130,7 @@ User clicks login button and authenticates with provider.
       const syncOutput = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(syncOutput).toContain("Imported");
@@ -147,6 +150,7 @@ User clicks login button and authenticates with provider.
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const reqDir = path.join(tmpDir, "requirements");
@@ -170,12 +174,14 @@ All API endpoints require authentication.
       execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       // Query requirements
       const queryOutput = execSync(`bun ${kibiBin} query req`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(queryOutput).toContain("req-auth");
@@ -192,6 +198,7 @@ All API endpoints require authentication.
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const reqDir = path.join(tmpDir, "requirements");
@@ -216,12 +223,14 @@ This requirement has all required fields.
       execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       // Check for violations
       const checkOutput = execSync(`bun ${kibiBin} check`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(checkOutput).toContain("No violations found");
@@ -236,6 +245,7 @@ This requirement has all required fields.
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const reqDir = path.join(tmpDir, "requirements");
@@ -260,12 +270,14 @@ Missing owner field violates schema.
       execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       // Check should detect violation
       const checkOutput = execSync(`bun ${kibiBin} check`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(checkOutput).toContain("No violations found");
@@ -279,6 +291,7 @@ Missing owner field violates schema.
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const reqDir = path.join(tmpDir, "requirements");
@@ -302,6 +315,7 @@ Content.
       const firstSync = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       const firstMatch = firstSync.match(/Imported (\d+) entities/);
@@ -312,6 +326,7 @@ Content.
       const secondSync = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       const secondMatch = secondSync.match(/Imported (\d+) entities/);
@@ -330,6 +345,7 @@ Content.
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const reqDir = path.join(tmpDir, "requirements");
@@ -366,11 +382,13 @@ tags: [performance]
       execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       const queryOutput = execSync(`bun ${kibiBin} query req --id req-auth`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(queryOutput).toContain("req-auth");
@@ -385,12 +403,14 @@ tags: [performance]
       execSync(`bun ${kibiBin} init`, {
         cwd: tmpDir,
         stdio: "pipe",
+        env: process.env,
       });
 
       // Sync with no documents
       const syncOutput = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(syncOutput).toContain("Imported 0 entities");
@@ -398,6 +418,7 @@ tags: [performance]
       const queryOutput = execSync(`bun ${kibiBin} query req`, {
         cwd: tmpDir,
         encoding: "utf8",
+        env: process.env,
       });
 
       expect(queryOutput).toContain("[]");

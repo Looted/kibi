@@ -54,6 +54,7 @@ describe("git hook integration", () => {
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
 
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
@@ -70,6 +71,7 @@ describe("git hook integration", () => {
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
 
     const hookPath = path.join(tmpDir, ".git/hooks/post-merge");
@@ -128,6 +130,7 @@ status: approved
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
     patchHooks();
 
@@ -189,6 +192,7 @@ status: draft
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
 
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
