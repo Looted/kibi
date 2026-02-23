@@ -69,7 +69,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 4. Verify total count in KB using direct RDF query
     const countResult = await prolog.query(
-      "findall(t(S,P,O), rdf(S, 'http://kibi.dev/kb/specified_by', O), Results)",
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);
@@ -102,7 +102,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 3. Verify total count in KB using direct RDF query
     const countResult = await prolog.query(
-      "findall(t(S,P,O), rdf(S, 'http://kibi.dev/kb/specified_by', O), Results)",
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);
@@ -140,7 +140,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 4. Verify total count in KB
     const countResult = await prolog.query(
-      "findall(t(S,P,O), rdf(S, 'http://kibi.dev/kb/specified_by', O), Results)",
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);

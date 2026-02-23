@@ -28,7 +28,8 @@
     current_req/1,
     contradicting_reqs/3,
     normalize_term_atom/2,
-    changeset/4  % Export for testing
+    changeset/4, % Export for testing
+    kb_uri/1
 ]).
 
 :- use_module(library(semweb/rdf11)).
@@ -40,8 +41,11 @@
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
+% Constants
+kb_uri('urn:kibi:').
+
 % RDF namespace for KB entities and relationships
-:- rdf_register_prefix(kb, 'http://kibi.dev/kb/').
+:- kb_uri(URI), rdf_register_prefix(kb, URI).
 :- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
 :- rdf_meta
     kb_entity(?, ?, ?),
@@ -198,7 +202,9 @@ kb_entity(Id, Type, Props) :-
     % Collect all properties (exclude kb:type which expands to full URI)
     findall(Key=Value, (
         rdf(EntityURI, PropURI, ValueLiteral, Graph),
-        PropURI \= 'http://kibi.dev/kb/type',
+        kb_uri(BaseURI),
+        atom_concat(BaseURI, type, TypeURI),
+        PropURI \= TypeURI,
         uri_to_key(PropURI, Key),
         literal_to_value(ValueLiteral, Value)
     ), Props).
@@ -228,7 +234,8 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
         atom_concat('kb:entity/', FromId, FromURI),
         atom_concat('kb:entity/', ToId, ToURI),
         % Create relationship property URI (full URI to match saved/loaded RDF)
-        atom_concat('http://kibi.dev/kb/', RelType, RelURI),
+        kb_uri(BaseURI),
+        atom_concat(BaseURI, RelType, RelURI),
         % Upsert semantics: ensure the exact triple isn't duplicated.
         rdf_retractall(FromURI, RelURI, ToURI, Graph),
         % Assert relationship triple
@@ -245,7 +252,8 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
 kb_relationship(RelType, FromId, ToId) :-
     kb_graph(Graph),
     % Create relationship property URI (full URI to match loaded RDF)
-    atom_concat('http://kibi.dev/kb/', RelType, RelURI),
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, RelType, RelURI),
     % Find matching relationships
     rdf(FromURI, RelURI, ToURI, Graph),
     % Extract IDs from URIs
@@ -258,7 +266,8 @@ kb_relationship(RelType, FromId, ToId) :-
 % Store a property as an RDF triple with appropriate datatype.
 store_property(EntityURI, Key, Value, Graph) :-
     % Build full property URI
-    atom_concat('http://kibi.dev/kb/', Key, PropURI),
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, Key, PropURI),
     (   atom(Value)
     ->  % Atoms stored as URIs/resources (for status, id, etc.)
         rdf_assert(EntityURI, PropURI, Value, Graph)
@@ -336,7 +345,8 @@ literal_to_atom(Literal, Atom) :-
 %% uri_to_key(+URI, -Key)
 % Convert URI to property key (strip kb: namespace prefix).
 uri_to_key(URI, Key) :-
-    (   atom_concat('http://kibi.dev/kb/', Key, URI)
+    (   kb_uri(BaseURI),
+        atom_concat(BaseURI, Key, URI)
     ->  true
     ;   atom_concat('kb:', Key, URI)
     ->  true
