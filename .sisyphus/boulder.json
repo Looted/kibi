@@ -1,10 +1,9 @@
 {
-  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/kibi-v0.md",
-  "started_at": "2026-02-17T16:39:22.760Z",
+  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/mcp-stdio-error-proofing.md",
+  "started_at": "2026-02-23T17:46:17.323Z",
   "session_ids": [
-    "ses_3939f40f4ffe8VNfyyowRu3f6I",
-    "ses_393635ec6ffeyLspDtrngiNrAj"
+    "ses_3748213efffeH7NliTLsL1aYq7"
   ],
-  "plan_name": "kibi-v0",
+  "plan_name": "mcp-stdio-error-proofing",
   "agent": "atlas"
 }

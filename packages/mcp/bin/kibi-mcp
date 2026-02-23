@@ -23,6 +23,21 @@ if (process.env.KIBI_MCP_DEBUG) {
   });
 }
 
+process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+  console.error('[KIBI-MCP] Unhandled rejection at promise:', promise);
+  console.error('[KIBI-MCP] Reason:', reason);
+  if (reason instanceof Error) {
+    console.error('[KIBI-MCP] Stack:', reason.stack);
+  }
+  process.exit(1);
+});
+
+process.on('uncaughtException', (error: Error) => {
+  console.error('[KIBI-MCP] Uncaught exception:', error.message);
+  console.error('[KIBI-MCP] Stack:', error.stack);
+  process.exit(1);
+});
+
 startServer().catch((error) => {
   console.error("Fatal error:", error);
   process.exit(1);
