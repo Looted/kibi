@@ -379,21 +379,20 @@ export async function syncCommand(
     // Upsert entities
     let entityCount = 0;
     let kbModified = false;
+    const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+    const prologAtom = (value: string): string =>
+      simplePrologAtom.test(value)
+        ? value
+        : `'${value.replace(/'/g, "''")}'`;
     for (const { entity } of results) {
       try {
-        const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-        const prologAtom = (value: string): string =>
-          simplePrologAtom.test(value)
-            ? value
-            : `'${value.replace(/'/g, "''")}'`;
-
         const props = [
           `id='${entity.id}'`,
-          `title="${entity.title.replace(/"/g, '"')}"`,
+          `title="${entity.title.replace(/"/g, '\\"')}"`,
           `status=${prologAtom(entity.status)}`,
           `created_at="${entity.created_at}"`,
           `updated_at="${entity.updated_at}"`,
-          `source="${entity.source.replace(/"/g, '"')}"`,
+          `source="${entity.source.replace(/"/g, '\\"')}"`,
         ];
 
         if (entity.tags && entity.tags.length > 0) {
