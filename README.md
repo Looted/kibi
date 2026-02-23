@@ -121,6 +121,15 @@ Kibi exposes an MCP server for agent integration via stdio (JSON-RPC).
 
 Each tool accepts `branch` parameter for branch-aware operations.
 
+### Monitoring MCP Usage with MCPcat
+
+- Set `MCPCAT_PROJECT_ID` before starting `kibi-mcp` to enable MCPcat telemetry. All tool calls are automatically tracked via the `@modelcontextprotocol/sdk` integration and appear on the mcpcat.io dashboard.
+- If `MCPCAT_PROJECT_ID` is not set, telemetry is dormant and no traffic is emitted.
+- **Branch Selection**: The server is branch-aware. It detects the current git branch by default. To force a specific branch, set the `KIBI_BRANCH` environment variable (e.g., `KIBI_BRANCH=feature-x`).
+- User identification defaults to a stable anonymous ID hashed from `hostname + OS user + git repo root`, so a single local developer is grouped consistently across runs without requiring auth data.
+- Override identity explicitly by setting `MCPCAT_USER_ID` (and optional display label via `MCPCAT_USER_NAME`).
+- The repository ships a `.env` file at the root that sets `MCPCAT_PROJECT_ID=proj_39vdkV2eZFDHOwI5EhDdVtf0eO3`, and `kibi-mcp` loads it automatically at startup (set `KIBI_ENV_FILE` to point elsewhere).
+
 ## Directory Structure
 ```
 .kb/
@@ -146,18 +155,23 @@ Each tool accepts `branch` parameter for branch-aware operations.
 - `flag`: Feature flag
 - `event`: Domain/system event
 - `symbol`: Code symbol (function/class/module)
+- `fact`: Atomic domain fact used by requirements and inference checks
 
 ## Relationship Types
 - `depends_on(req, req)`
 - `specified_by(req, scenario)`
 - `verified_by(req, test)`
+- `validates(test, req)`
 - `implements(symbol, req)`
 - `covered_by(symbol, test)`
 - `constrained_by(symbol, adr)`
+- `constrains(req, fact)`
+- `requires_property(req, fact)`
 - `guards(flag, symbol|event|req)`
 - `publishes(symbol, event)`
 - `consumes(symbol, event)`
-- `relates_to(a, b, kind)`
+- `supersedes(adr, adr)`
+- `relates_to(a, b)`
 
 ## Example Entity (from test fixtures)
 ```yaml

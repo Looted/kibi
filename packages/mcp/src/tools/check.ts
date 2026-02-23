@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { parsePairList } from "./prolog-list.js";
 
 export interface CheckArgs {
   rules?: string[];
@@ -90,14 +91,16 @@ async function checkMustPriorityCoverage(
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
-  // Find all must-priority requirements
-  const mustReqs = await findMustPriorityReqs(prolog);
+  const gapsResult = await prolog.query(
+    "setof([Req,Reason], coverage_gap(Req, Reason), Rows)",
+  );
+  if (!gapsResult.success || !gapsResult.bindings.Rows) {
+    return violations;
+  }
 
-  for (const reqId of mustReqs) {
-    const entityResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props)`,
-    );
-
+  const gaps = parsePairList(gapsResult.bindings.Rows);
+  for (const [reqId, reason] of gaps) {
+    const entityResult = await prolog.query(`kb_entity('${reqId}', req, Props)`);
     let source = "";
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
@@ -107,56 +110,26 @@ async function checkMustPriorityCoverage(
       }
     }
 
-    const scenarioResult = await prolog.query(
-      `kb_relationship(specified_by, ScenarioId, '${reqId}')`,
-    );
-
-    const hasScenario = scenarioResult.success;
-
-    const testResult = await prolog.query(
-      `kb_relationship(validates, TestId, '${reqId}')`,
-    );
-
-    const hasTest = testResult.success;
-
-    if (!hasScenario || !hasTest) {
-      let desc = "Must-priority requirement lacks ";
-      const missing: string[] = [];
-      if (!hasScenario) missing.push("scenario");
-      if (!hasTest) missing.push("test");
-      desc = `${desc}${missing.join(" and ")} coverage`;
-
-      violations.push({
-        rule: "must-priority-coverage",
-        entityId: reqId,
-        description: desc,
-        source,
-        suggestion: missing
-          .map((m) => `Create ${m} that covers this requirement`)
-          .join("; "),
-      });
+    const missing: string[] = [];
+    if (reason.includes("scenario")) {
+      missing.push("scenario");
     }
+    if (reason.includes("test")) {
+      missing.push("test");
+    }
+
+    violations.push({
+      rule: "must-priority-coverage",
+      entityId: reqId,
+      description: `Must-priority requirement lacks ${missing.join(" and ")} coverage`,
+      source,
+      suggestion: missing
+        .map((m) => `Create ${m} that covers this requirement`)
+        .join("; "),
+    });
   }
 
   return violations;
-}
-
-async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
-  const mustReqs: string[] = [];
-
-  const allReqIds = await getAllEntityIds(prolog, "req");
-
-  for (const reqId of allReqIds) {
-    const propsResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")`,
-    );
-
-    if (propsResult.success) {
-      mustReqs.push(reqId);
-    }
-  }
-
-  return mustReqs;
 }
 
 async function getAllEntityIds(
