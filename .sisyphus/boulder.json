@@ -1,9 +1,7 @@
 {
   "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/mcp-stdio-error-proofing.md",
   "started_at": "2026-02-23T17:46:17.323Z",
-  "session_ids": [
-    "ses_3748213efffeH7NliTLsL1aYq7"
-  ],
+  "session_ids": ["ses_3748213efffeH7NliTLsL1aYq7"],
   "plan_name": "mcp-stdio-error-proofing",
   "agent": "atlas"
 }

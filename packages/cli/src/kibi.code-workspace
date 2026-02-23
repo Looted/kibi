@@ -1,8 +1,8 @@
 {
-	"folders": [
-		{
-			"name": "kibi",
-			"path": "../../.."
-		}
-	]
+  "folders": [
+    {
+      "name": "kibi",
+      "path": "../../.."
+    }
+  ]
 }

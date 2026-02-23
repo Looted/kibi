@@ -135,16 +135,16 @@ function getOrAddSourceFile(
   }
 }
 
-type NamedDeclarationCandidate =
-  | Node
-  | ClassDeclaration
-  | VariableDeclaration;
+type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;
 
 function findNamedDeclaration(
   sourceFile: SourceFile,
   title: string,
 ): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
-  const candidates: Array<{ node: NamedDeclarationCandidate; getNameNode: () => Node }> = [];
+  const candidates: Array<{
+    node: NamedDeclarationCandidate;
+    getNameNode: () => Node;
+  }> = [];
 
   for (const decl of sourceFile.getFunctions()) {
     if (!decl.isExported()) continue;

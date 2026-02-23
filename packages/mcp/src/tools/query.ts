@@ -194,7 +194,9 @@ export function parseListOfLists(listStr: string): string[][] {
  * Parse a single entity from Prolog binding format.
  * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
  */
-export function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
+export function parseEntityFromBinding(
+  bindingStr: string,
+): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTopLevel(cleaned, ",");
 

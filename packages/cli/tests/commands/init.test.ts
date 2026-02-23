@@ -29,12 +29,15 @@ describe("kibi init", () => {
     execSync("git init", { cwd: tmpDir });
     // Explicitly rename master to develop to match the expected default
     try {
-        const branch = execSync("git branch --show-current", { cwd: tmpDir, encoding: "utf8" }).trim();
-        if (branch === "master") {
-            execSync("git branch -m master develop", { cwd: tmpDir });
-        }
+      const branch = execSync("git branch --show-current", {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }).trim();
+      if (branch === "master") {
+        execSync("git branch -m master develop", { cwd: tmpDir });
+      }
     } catch {
-        // ignore
+      // ignore
     }
 
     execSync(`bun ${kibiBin} init`, {

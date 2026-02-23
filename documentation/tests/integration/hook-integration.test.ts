@@ -111,7 +111,9 @@ status: approved
       ensureDevelopBranch(tmpDir);
 
       // After the initial commit, .kb/branches/develop may be created by init; ensure tests allow either state
-      expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBeDefined();
+      expect(
+        existsSync(path.join(tmpDir, ".kb/branches/develop")),
+      ).toBeDefined();
 
       execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
 
@@ -145,7 +147,10 @@ status: approved
     );
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit --no-verify -m 'develop'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'develop'", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
     ensureDevelopBranch(tmpDir);
 
     execSync("git checkout -b feature", { cwd: tmpDir, stdio: "pipe" });
@@ -163,7 +168,10 @@ status: draft
     );
 
     execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
-    execSync("git commit --no-verify -m 'feature'", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --no-verify -m 'feature'", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
 
     execSync("git checkout develop", { cwd: tmpDir, stdio: "pipe" });
 
