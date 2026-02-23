@@ -24,7 +24,7 @@ const entities: EntityDef[] = [
   { type: "req", id: "REQ-001", properties: { title: "Repo-local per-branch knowledge base", status: "active", source: "brief.md#3.1", priority: "must", tags: ["core", "storage", "branching"] } },
   { type: "req", id: "REQ-002", properties: { title: "MCP server with 6 tools over stdio transport", status: "active", source: "brief.md#4.2", priority: "must", tags: ["mcp", "api", "tools"] } },
   { type: "req", id: "REQ-003", properties: { title: "CLI with init, sync, query, check, gc, doctor commands", status: "active", source: "brief.md#4.3", priority: "must", tags: ["cli", "commands"] } },
-  { type: "req", id: "REQ-004", properties: { title: "Seven entity types: req, scenario, test, adr, flag, event, symbol", status: "active", source: "brief.md#2.1", priority: "must", tags: ["schema", "entities"] } },
+  { type: "req", id: "REQ-004", properties: { title: "Eight entity types: req, scenario, test, adr, flag, event, symbol, fact", status: "active", source: "brief.md#2.1", priority: "must", tags: ["schema", "entities"] } },
   { type: "req", id: "REQ-005", properties: { title: "Typed relationships between entities with audit metadata", status: "active", source: "brief.md#2.2", priority: "must", tags: ["schema", "relationships"] } },
   { type: "req", id: "REQ-006", properties: { title: "Built-in consistency validation rules (must-priority-coverage, no-cycles, no-dangling-refs)", status: "active", source: "brief.md#2.3", priority: "must", tags: ["validation", "check"] } },
   { type: "req", id: "REQ-007", properties: { title: "Markdown and YAML manifest extractors for entity import", status: "active", source: "brief.md#5.2", priority: "must", tags: ["extractors", "sync"] } },

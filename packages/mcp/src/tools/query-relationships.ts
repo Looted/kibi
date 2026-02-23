@@ -24,12 +24,16 @@ const VALID_REL_TYPES = [
   "depends_on",
   "specified_by",
   "verified_by",
+  "validates",
   "implements",
   "covered_by",
   "constrained_by",
+  "constrains",
+  "requires_property",
   "guards",
   "publishes",
   "consumes",
+  "supersedes",
   "relates_to",
 ];
 
@@ -181,7 +185,9 @@ function parsePairResults(raw: string): Array<[string, string]> {
 function parsePair(pairStr: string): [string, string] | null {
   // expect "[From,To]"
   const inner = pairStr.replace(/^\[/, "").replace(/\]$/, "").trim();
-  const parts = inner.split(",").map((s) => s.trim().replace(/^'|'$/g, "").replace(/^"|"$/g, ""));
+  const parts = inner
+    .split(",")
+    .map((s) => s.trim().replace(/^'|'$/g, "").replace(/^"|"$/g, ""));
   if (parts.length < 2) return null;
   return [parts[0], parts[1]];
 }
