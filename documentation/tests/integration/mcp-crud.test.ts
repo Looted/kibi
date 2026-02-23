@@ -53,6 +53,7 @@ describe("MCP server CRUD operations", () => {
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
 
     // After init we need to ensure branch is named 'develop' once a commit exists.
@@ -80,6 +81,7 @@ Test requirement for MCP operations.
     execSync(`bun ${kibiBin} sync`, {
       cwd: tmpDir,
       stdio: "pipe",
+      env: process.env,
     });
   });
 
@@ -99,6 +101,7 @@ Test requirement for MCP operations.
       mcpProcess = spawn("bun", [mcpBin], {
         cwd: tmpDir,
         stdio: ["pipe", "pipe", "pipe"],
+        env: process.env,
       });
 
       let responseBuffer = "";
