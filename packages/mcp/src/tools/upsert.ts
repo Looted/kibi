@@ -260,5 +260,5 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
  * Escape double quotes in strings for Prolog
  */
 function escapeQuotes(str: string): string {
-  return str.replace(/"/g, '\"');
+  return str.replace(/"/g, '\\"');
 }
