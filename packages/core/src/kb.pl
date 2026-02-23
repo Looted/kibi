@@ -42,7 +42,7 @@
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
 % Constants
-kb_uri('urn:kibi:').
+kb_uri('urn-kibi:').
 
 % RDF namespace for KB entities and relationships
 :- kb_uri(URI), rdf_register_prefix(kb, URI).
@@ -120,11 +120,13 @@ kb_save :-
     ->  (
             % Save RDF graph to file with namespace declarations
             atom_concat(Directory, '/kb.rdf', DataFile),
+            % Get current graph URI
+            kb_graph(GraphURI),
             % If we have a graph URI, save that graph. Otherwise save all data
             % (fallback) so a kb.rdf is always produced. Report errors if save fails.
             (   kb_graph(GraphURI)
-            ->  catch(rdf_save(DataFile, [graph(GraphURI), namespaces([kb, xsd])]), E, print_message(error, E))
-            ;   catch(rdf_save(DataFile, [namespaces([kb, xsd])]), E2, print_message(error, E2))
+            ->  catch(rdf_save(DataFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]), E, print_message(error, E))
+            ;   catch(rdf_save(DataFile, [base_uri('urn-kibi:'), namespaces([kb, xsd])]), E2, print_message(error, E2))
             ),
             % Sync audit log
             (   kb_audit_db(AuditLog)
@@ -152,8 +154,8 @@ kb_assert_entity(Type, Props) :-
     kb_graph(Graph),
     % Execute with mutex protection
     with_kb_mutex((
-        % Create entity URI
-        atom_concat('kb:entity/', Id, EntityURI),
+        % Create entity URI using prefix notation for namespace expansion
+        format(atom(EntityURI), 'kb:entity/~w', [Id]),
         % Upsert semantics: remove any existing triples for this entity first.
         rdf_retractall(EntityURI, _, _, Graph),
         % Store type as string literal to prevent URI interpretation
@@ -264,17 +266,14 @@ kb_relationship(RelType, FromId, ToId) :-
 
 %% store_property(+EntityURI, +Key, +Value, +Graph)
 % Store a property as an RDF triple with appropriate datatype.
+% All values are stored as typed string literals to avoid URI interpretation issues.
+% Uses prefix notation (kb:Key) to enable proper namespace expansion.
 store_property(EntityURI, Key, Value, Graph) :-
-    % Build full property URI
-    kb_uri(BaseURI),
-    atom_concat(BaseURI, Key, PropURI),
-    (   atom(Value)
-    ->  % Atoms stored as URIs/resources (for status, id, etc.)
-        rdf_assert(EntityURI, PropURI, Value, Graph)
-    ;   % Other types as literals
-        value_to_literal(Value, Literal),
-        rdf_assert(EntityURI, PropURI, Literal, Graph)
-    ).
+    % Build property URI using prefix notation for namespace expansion
+    format(atom(PropURI), 'kb:~w', [Key]),
+    % Always convert to literal (never store as URI/resource)
+    value_to_literal(Value, Literal),
+    rdf_assert(EntityURI, PropURI, Literal, Graph).
 
 %% value_to_literal(+Value, -Literal)
 % Convert Prolog value to RDF literal with appropriate datatype.

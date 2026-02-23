@@ -214,14 +214,14 @@ export class KibiTreeDataProvider
   /**
    * Parse entities from kb.rdf using regex.
    * Each entity is an rdf:Description block containing kb:type, kb:title, kb:id etc.
-   * Supports both prefixed (kb:entity/ID) and full URI (http://kibi.dev/kb/entity/ID) formats.
+   * Supports both prefixed (kb:entity/ID) and full URI (urn:kibi:entity/ID) formats.
    */
   private parseRdf(content: string): KbEntity[] {
     const entities: KbEntity[] = [];
 
     // Match each rdf:Description block - supports both kb:entity/ and full URI
     const blockRe =
-      /<rdf:Description rdf:about="(?:(?:http:\/\/kibi\.dev\/kb\/)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
     let match: RegExpExecArray | null;
     while ((match = blockRe.exec(content)) !== null) {
@@ -249,7 +249,7 @@ export class KibiTreeDataProvider
    * Parse relationships from kb.rdf.
    *
    * Relationships are stored as inline property triples inside entity blocks:
-   *   <kb:depends_on rdf:resource="http://kibi.dev/kb/entity/REQ-002"/>
+   *   <kb:depends_on rdf:resource="urn:kibi:entity/REQ-002"/>
    *
    * This method extracts all such triples by scanning entity blocks.
    */
@@ -272,7 +272,7 @@ export class KibiTreeDataProvider
 
     // Match each rdf:Description block to get the source entity ID
     const blockRe =
-      /<rdf:Description rdf:about="(?:(?:http:\/\/kibi\.dev\/kb\/)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
     let blockMatch: RegExpExecArray | null;
     while ((blockMatch = blockRe.exec(content)) !== null) {

@@ -94,7 +94,7 @@ function writeTestRdf(dir: string): string {
   const rdfPath = path.join(dir, "kb.rdf");
   const rdf = `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:kb="http://kibi.dev/kb#">
+         xmlns:kb="urn:kibi:">
 
   <rdf:Description rdf:about="kb:entity/REQ-001">
     <kb:type>req</kb:type>
