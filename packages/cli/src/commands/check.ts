@@ -129,21 +129,15 @@ async function checkMustPriorityCoverage(
 }
 
 async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
-  const mustReqs: string[] = [];
+  const result = await prolog.query(
+    'findall(ReqId, (kb_entity(ReqId, req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")), MustReqs)',
+  );
 
-  const allReqIds = await getAllEntityIds(prolog, "req");
-
-  for (const reqId of allReqIds) {
-    const propsResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")`,
-    );
-
-    if (propsResult.success) {
-      mustReqs.push(reqId);
-    }
+  if (!result.success || !result.bindings.MustReqs) {
+    return [];
   }
 
-  return mustReqs;
+  return parsePrologList(result.bindings.MustReqs);
 }
 
 async function getAllEntityIds(
@@ -159,18 +153,7 @@ async function getAllEntityIds(
     return [];
   }
 
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+  return parsePrologList(result.bindings.Ids);
 }
 
 async function checkNoDanglingRefs(
@@ -491,4 +474,18 @@ function parseTripleRows(raw: string): Array<[string, string, string]> {
   } while (match);
 
   return rows;
+}
+
+function parsePrologList(raw: string): string[] {
+  const match = raw.match(/\[(.*)\]/);
+  if (!match) {
+    return [];
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return [];
+  }
+
+  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
