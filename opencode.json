@@ -22,7 +22,8 @@
       ],
       "extensions": [
         ".pl",
-        ".prolog"
+        ".prolog",
+        ".plt"
       ]
     }
   }

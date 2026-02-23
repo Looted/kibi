@@ -5,7 +5,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { attachMcpcat } from "./mcpcat.js";
-import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 import {
   type BranchEnsureArgs,
   type BranchGcArgs,
@@ -31,6 +30,7 @@ import {
   handleKbSymbolsRefresh,
 } from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
+import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 
 interface DocResource {
   uri: string;
@@ -698,6 +698,10 @@ function getHelpText(topic?: string): string {
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 let activeBranchName = "develop";
+// Shutdown tracking state
+let isShuttingDown = false;
+let shutdownTimeout: NodeJS.Timeout | null = null;
+const inFlightRequests = new Map<string, Promise<unknown>>();
 
 async function ensureProlog(): Promise<PrologProcess> {
   if (isInitialized && prologProcess?.isRunning()) {
