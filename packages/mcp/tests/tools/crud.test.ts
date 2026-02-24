@@ -157,28 +157,28 @@ describe("MCP CRUD Tool Handlers", () => {
 
       // Create relationship first time
       await handleKbUpsert(prolog, {
-        type: "scenario",
-        id: "idempotency-scen-1",
-        properties: { title: "Scen 1", status: "active", source: "test" },
+        type: "req",
+        id: "idempotency-req-1",
+        properties: { title: "Req 1", status: "active", source: "test" },
         relationships: [
           {
             type: "specified_by",
-            from: "idempotency-scen-1",
-            to: "idempotency-req-1",
+            from: "idempotency-req-1",
+            to: "idempotency-scen-1",
           },
         ],
       });
 
       // Create same relationship second time (should not duplicate)
       await handleKbUpsert(prolog, {
-        type: "scenario",
-        id: "idempotency-scen-1",
-        properties: { title: "Scen 1", status: "active", source: "test" },
+        type: "req",
+        id: "idempotency-req-1",
+        properties: { title: "Req 1", status: "active", source: "test" },
         relationships: [
           {
             type: "specified_by",
-            from: "idempotency-scen-1",
-            to: "idempotency-req-1",
+            from: "idempotency-req-1",
+            to: "idempotency-scen-1",
           },
         ],
       });
@@ -207,19 +207,19 @@ describe("MCP CRUD Tool Handlers", () => {
 
       // Create batch with duplicate relationships
       const result = await handleKbUpsert(prolog, {
-        type: "scenario",
-        id: "idempotency-scen-2",
-        properties: { title: "Scen 2", status: "active", source: "test" },
+        type: "req",
+        id: "idempotency-req-2",
+        properties: { title: "Req 2", status: "active", source: "test" },
         relationships: [
           {
             type: "specified_by",
-            from: "idempotency-scen-2",
-            to: "idempotency-req-2",
+            from: "idempotency-req-2",
+            to: "idempotency-scen-2",
           },
           {
             type: "specified_by",
-            from: "idempotency-scen-2",
-            to: "idempotency-req-2",
+            from: "idempotency-req-2",
+            to: "idempotency-scen-2",
           },
         ],
       });

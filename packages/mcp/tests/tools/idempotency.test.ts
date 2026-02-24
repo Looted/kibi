@@ -53,18 +53,18 @@ describe("KB Relationship Idempotency", () => {
 
     // 2. Assert relationship first time
     await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "scen1",
-      properties: { title: "Scen 1", status: "active", source: "test" },
-      relationships: [{ type: "specified_by", from: "scen1", to: "req1" }],
+      type: "req",
+      id: "req1",
+      properties: { title: "Req 1", status: "active", source: "test" },
+      relationships: [{ type: "specified_by", from: "req1", to: "scen1" }],
     });
 
     // 3. Assert same relationship second time
     await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "scen1",
-      properties: { title: "Scen 1", status: "active", source: "test" },
-      relationships: [{ type: "specified_by", from: "scen1", to: "req1" }],
+      type: "req",
+      id: "req1",
+      properties: { title: "Req 1", status: "active", source: "test" },
+      relationships: [{ type: "specified_by", from: "req1", to: "scen1" }],
     });
 
     // 4. Verify total count in KB using direct RDF query
@@ -91,12 +91,12 @@ describe("KB Relationship Idempotency", () => {
 
     // 2. Assert relationship twice in a batch
     await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "scen2",
-      properties: { title: "Scen 2", status: "active", source: "test" },
+      type: "req",
+      id: "req2",
+      properties: { title: "Req 2", status: "active", source: "test" },
       relationships: [
-        { type: "specified_by", from: "scen2", to: "req2" },
-        { type: "specified_by", from: "scen2", to: "req2" },
+        { type: "specified_by", from: "req2", to: "scen2" },
+        { type: "specified_by", from: "req2", to: "scen2" },
       ],
     });
 
@@ -124,18 +124,18 @@ describe("KB Relationship Idempotency", () => {
 
     // 2. Assert relationship
     await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "scen3",
-      properties: { title: "Scen 3", status: "active", source: "test" },
-      relationships: [{ type: "specified_by", from: "scen3", to: "req3" }],
+      type: "req",
+      id: "req3",
+      properties: { title: "Req 3", status: "active", source: "test" },
+      relationships: [{ type: "specified_by", from: "req3", to: "scen3" }],
     });
 
     // 3. Retry same assertion
     await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "scen3",
-      properties: { title: "Scen 3", status: "active", source: "test" },
-      relationships: [{ type: "specified_by", from: "scen3", to: "req3" }],
+      type: "req",
+      id: "req3",
+      properties: { title: "Req 3", status: "active", source: "test" },
+      relationships: [{ type: "specified_by", from: "req3", to: "scen3" }],
     });
 
     // 4. Verify total count in KB
