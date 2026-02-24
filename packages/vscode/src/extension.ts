@@ -205,8 +205,6 @@ export function activate(context: vscode.ExtensionContext) {
       "config.json",
     ).fsPath;
     try {
-      const fs = require("node:fs") as typeof import("node:fs");
-      const path = require("node:path") as typeof import("node:path");
       if (fs.existsSync(configPath)) {
         const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
           symbolsManifest?: string;
@@ -221,8 +219,6 @@ export function activate(context: vscode.ExtensionContext) {
       // ignore
     }
     // Default convention: symbols.yaml at workspace root
-    const path = require("node:path") as typeof import("node:path");
-    const fs = require("node:fs") as typeof import("node:fs");
     const candidates = [
       path.join(workspaceRoot, "symbols.yaml"),
       path.join(workspaceRoot, "symbols.yml"),
