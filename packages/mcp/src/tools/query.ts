@@ -17,6 +17,17 @@ export interface QueryResult {
   };
 }
 
+export const VALID_ENTITY_TYPES = [
+  "req",
+  "scenario",
+  "test",
+  "adr",
+  "flag",
+  "event",
+  "symbol",
+  "fact",
+];
+
 /**
  * Handle kb.query tool calls
  * Reuses query logic from CLI command
@@ -32,19 +43,9 @@ export async function handleKbQuery(
 
     // Validate type if provided
     if (type) {
-      const validTypes = [
-        "req",
-        "scenario",
-        "test",
-        "adr",
-        "flag",
-        "event",
-        "symbol",
-        "fact",
-      ];
-      if (!validTypes.includes(type)) {
+      if (!VALID_ENTITY_TYPES.includes(type)) {
         throw new Error(
-          `Invalid type '${type}'. Valid types: ${validTypes.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
+          `Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
         );
       }
     }
