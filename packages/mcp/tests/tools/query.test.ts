@@ -7,10 +7,15 @@ import {
   parseListOfLists,
   parseEntityFromBinding,
   parseEntityFromList,
+  VALID_ENTITY_TYPES,
 } from "../../src/tools/query.js";
 import { PrologProcess } from "@kibi/cli/src/prolog.js";
 
 describe("MCP kb.query Parsing Functions", () => {
+  test("VALID_ENTITY_TYPES should be defined", () => {
+    expect(VALID_ENTITY_TYPES).toBeArray();
+    expect(VALID_ENTITY_TYPES.length).toBeGreaterThan(0);
+  });
   describe("splitTopLevel", () => {
     test("should split simple strings", () => {
       expect(splitTopLevel("a,b,c", ",")).toEqual(["a", "b", "c"]);
@@ -226,9 +231,12 @@ describe("MCP kb.query Parsing Functions", () => {
     });
 
     test("should throw error on invalid type", async () => {
+      const invalidType = "invalid";
       await expect(
-        handleKbQuery(mockProlog, { type: "invalid" as any }),
-      ).rejects.toThrow(/Invalid type 'invalid'/);
+        handleKbQuery(mockProlog, { type: invalidType as any }),
+      ).rejects.toThrow(
+        `Invalid type '${invalidType}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
+      );
     });
   });
 });
