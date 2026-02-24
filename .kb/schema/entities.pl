@@ -10,6 +10,7 @@ entity_type(adr).
 entity_type(flag).
 entity_type(event).
 entity_type(symbol).
+entity_type(fact).
 
 % entity_property(EntityType, Property, Type).
 % Basic typing hints (atom, string, datetime, list, uri)

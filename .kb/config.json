@@ -1,12 +1,12 @@
 {
   "paths": {
-    "requirements": "documentation/requirements/**/*.md",
-    "scenarios": "documentation/scenarios/**/*.md",
-    "tests": "documentation/tests/**/*.md",
-    "adr": "documentation/adr/**/*.md",
-    "flags": "documentation/flags/**/*.md",
-    "events": "documentation/events/**/*.md",
-    "facts": "documentation/facts/**/*.md",
-    "symbols": "documentation/symbols.yaml"
+    "requirements": "requirements",
+    "scenarios": "scenarios",
+    "tests": "tests",
+    "adr": "adr",
+    "flags": "flags",
+    "events": "events",
+    "facts": "facts",
+    "symbols": "symbols.yaml"
   }
 }

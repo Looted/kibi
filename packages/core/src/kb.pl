@@ -441,12 +441,12 @@ must_requirement(Req) :-
     sub_string(PriorityStr, _, 4, 0, "must").
 
 has_scenario(Req) :-
-    kb_relationship(specified_by, _, Req).
+    once(kb_relationship(specified_by, Req, _)).
 
 has_test(Req) :-
-    kb_relationship(validates, _, Req).
+    once(kb_relationship(validates, _, Req)).
 has_test(Req) :-
-    kb_relationship(verified_by, Req, _).
+    once(kb_relationship(verified_by, Req, _)).
 
 %% untested_symbols(-Symbols)
 % Returns symbols with no test coverage relationship.

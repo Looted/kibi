@@ -71,8 +71,8 @@ describe("MCP Check Tool Handler", () => {
   test("should detect must-priority requirement with scenario but no test", async () => {
     const relationship = {
       type: "specified_by",
-      from: "scenario-001",
-      to: "req-must-001",
+      from: "req-must-001",
+      to: "scenario-001",
       created_at: new Date().toISOString(),
       created_by: "test",
       source: "test://check-test",
