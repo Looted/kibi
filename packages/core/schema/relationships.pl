@@ -20,7 +20,7 @@ relationship_type(requires_property).
 
 % valid_relationship(RelType, FromType, ToType).
 valid_relationship(depends_on, req, req).
-valid_relationship(specified_by, scenario, req).
+valid_relationship(specified_by, req, scenario).
 valid_relationship(verified_by, req, test).
 valid_relationship(validates, test, req).
 valid_relationship(implements, symbol, req).

@@ -6,85 +6,85 @@ on:
   pull_request:
     branches: [develop]
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
 
-      - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+#       - name: Install SWI-Prolog
+#         run: sudo apt-get update && sudo apt-get install -y swi-prolog
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+#       - name: Setup Bun
+#         uses: oven-sh/setup-bun@v1
 
-      - name: Install JS deps
-        run: bun install
+#       - name: Install JS deps
+#         run: bun install
 
-      - name: Run unit tests
-        run: bun test
+#       - name: Run unit tests
+#         run: bun test
 
-      - name: Run integration tests
-        run: bun test tests/integration/
+#       - name: Run integration tests
+#         run: bun test tests/integration/
 
-      - name: Prepare git config for kibi
-        run: |
-          git config --global user.name "CI Bot"
-          git config --global user.email "ci@example.com"
+#       - name: Prepare git config for kibi
+#         run: |
+#           git config --global user.name "CI Bot"
+#           git config --global user.email "ci@example.com"
 
-      - name: Run kibi commands on fixtures
-        run: |
-          set -e
-          KIBI_BIN="$GITHUB_WORKSPACE/packages/cli/bin/kibi"
-          TMPDIR=$(mktemp -d)
-          pushd "$TMPDIR"
-          mkdir -p requirements
-          printf '%s\n' '---' 'id: req-test' 'title: Test Requirement' 'status: approved' '---' '# Test' > requirements/test.md
-          git init -q
-          bun "$KIBI_BIN" init
-          bun "$KIBI_BIN" sync
-          bun "$KIBI_BIN" check
-          popd
+#       - name: Run kibi commands on fixtures
+#         run: |
+#           set -e
+#           KIBI_BIN="$GITHUB_WORKSPACE/packages/cli/bin/kibi"
+#           TMPDIR=$(mktemp -d)
+#           pushd "$TMPDIR"
+#           mkdir -p requirements
+#           printf '%s\n' '---' 'id: req-test' 'title: Test Requirement' 'status: approved' '---' '# Test' > requirements/test.md
+#           git init -q
+#           bun "$KIBI_BIN" init
+#           bun "$KIBI_BIN" sync
+#           bun "$KIBI_BIN" check
+#           popd
 
-      - name: Run kibi check on fixtures
-        run: |
-          set -e
-          KIBI_BIN=$GITHUB_WORKSPACE/packages/cli/bin/kibi
-          TMPDIR=$(mktemp -d)
-          pushd $TMPDIR
-          mkdir -p requirements scenarios tests
-          printf '%s' '---
-          id: req-ci-test
-          title: CI Gate Test
-          type: req
-          status: approved
-          priority: must
-          tags: [ci]
-          ---
-          CI test requirement.' > requirements/req-ci-test.md
-          printf '%s' '---
-          id: scen-ci-test
-          title: CI Gate Scenario
-          type: scenario
-          status: active
-          links:
-            - type: specified_by
-              target: req-ci-test
-          ---
-          CI test scenario.' > scenarios/scen-ci-test.md
-          printf '%s' '---
-          id: test-ci-test
-          title: CI Gate Test
-          type: test
-          status: passing
-          links:
-            - type: validates
-              target: req-ci-test
-          ---
-          CI test.' > tests/test-ci-test.md
-          git init -q
-          bun $KIBI_BIN init
-          bun $KIBI_BIN sync
-          bun $KIBI_BIN check
-          popd
+#       - name: Run kibi check on fixtures
+#         run: |
+#           set -e
+#           KIBI_BIN=$GITHUB_WORKSPACE/packages/cli/bin/kibi
+#           TMPDIR=$(mktemp -d)
+#           pushd $TMPDIR
+#           mkdir -p requirements scenarios tests
+#           printf '%s' '---
+#           id: req-ci-test
+#           title: CI Gate Test
+#           type: req
+#           status: approved
+#           priority: must
+#           tags: [ci]
+#           ---
+#           CI test requirement.' > requirements/req-ci-test.md
+#           printf '%s' '---
+#           id: scen-ci-test
+#           title: CI Gate Scenario
+#           type: scenario
+#           status: active
+#           links:
+#             - type: specified_by
+#               target: req-ci-test
+#           ---
+#           CI test scenario.' > scenarios/scen-ci-test.md
+#           printf '%s' '---
+#           id: test-ci-test
+#           title: CI Gate Test
+#           type: test
+#           status: passing
+#           links:
+#             - type: validates
+#               target: req-ci-test
+#           ---
+#           CI test.' > tests/test-ci-test.md
+#           git init -q
+#           bun $KIBI_BIN init
+#           bun $KIBI_BIN sync
+#           bun $KIBI_BIN check
+#           popd

@@ -1,22 +1,11 @@
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
-export interface CheckOptions {
-  fix?: boolean;
-}
-
-export interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
-}
 
 export interface CheckOptions {
   fix?: boolean;
 }
 
-export interface Violation {
+interface Violation {
   rule: string;
   entityId: string;
   description: string;
@@ -43,10 +32,15 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     const allEntityIds = await getAllEntityIds(prolog);
 
     violations.push(...(await checkMustPriorityCoverage(prolog)));
+
     violations.push(...(await checkNoDanglingRefs(prolog)));
+
     violations.push(...(await checkNoCycles(prolog)));
+
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
+
     violations.push(...(await checkDeprecatedAdrs(prolog)));
+
     violations.push(...(await checkDomainContradictions(prolog)));
 
     await prolog.query("kb_detach");
@@ -57,8 +51,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       process.exit(0);
     }
 
-    console.log(`Found ${violations.length} violation(s):`);
-    console.log();
+    console.log(`Found ${violations.length} violation(s):
+`);
 
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;
@@ -78,23 +72,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
   }
 }
 
-function stdoutToString(stdout: unknown): string {
-  return typeof stdout === "string" ? stdout : String(stdout);
-}
-
-function runKibi(
-  kibiBin: string,
-  args: string[],
-  cwd: string,
-): { status: number | null; stdout: string; stderr: string } {
-  const proc = spawnSync(kibiBin, args, { cwd });
-  return {
-    status: proc.status,
-    stdout: stdoutToString(proc.stdout),
-    stderr: stdoutToString(proc.stderr),
-  };
-}
-
 async function checkMustPriorityCoverage(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -102,6 +79,8 @@ async function checkMustPriorityCoverage(
 
   // Find all must-priority requirements
   const mustReqs = await findMustPriorityReqs(prolog);
+  console.log('Found must-priority reqs:', mustReqs);
+
 
   for (const reqId of mustReqs) {
     const entityResult = await prolog.query(
@@ -122,12 +101,16 @@ async function checkMustPriorityCoverage(
     );
 
     const hasScenario = scenarioResult.success;
+  console.log('Scenario query success for reqId', reqId, ':', scenarioResult.success);
+
 
     const testResult = await prolog.query(
       `kb_relationship(validates, TestId, '${reqId}')`,
     );
 
     const hasTest = testResult.success;
+  console.log('Test query success for reqId', reqId, ':', testResult.success);
+
 
     if (!hasScenario || !hasTest) {
       let desc = "Must-priority requirement lacks ";
@@ -153,7 +136,10 @@ async function checkMustPriorityCoverage(
 
 async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
   const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")), Ids)`;
+
   const result = await prolog.query(query);
+  console.log('Success:', result.success);
+  if (result.success && result.bindings) console.log('Ids:', result.bindings.Ids);
 
   if (!result.success || !result.bindings.Ids) {
     return [];
@@ -179,6 +165,7 @@ async function getAllEntityIds(
 ): Promise<string[]> {
   const typeFilter = type ? `, Type = ${type}` : "";
   const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
+
   const result = await prolog.query(query);
 
   if (!result.success || !result.bindings.Ids) {
@@ -253,9 +240,10 @@ async function checkNoDanglingRefs(
         suggestion: "Remove relationship or create missing entity",
       });
     }
+
     if (!allEntityIds.has(rel.to)) {
       violations.push({
-        representation: "no-dangling-refs",
+        rule: "no-dangling-refs",
         entityId: rel.to,
         description: `Relationship references non-existent entity: ${rel.to}`,
         suggestion: "Remove relationship or create missing entity",
@@ -296,6 +284,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   for (const depMatch of depMatches) {
     const from = depMatch[1].trim().replace(/^'|'$/g, "");
     const to = depMatch[2].trim().replace(/^'|'$/g, "");
+
     if (!graph.has(from)) {
       graph.set(from, []);
     }
@@ -355,7 +344,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
           entityId: cyclePath[0],
           description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
           suggestion:
-            "Break cycle by removing one of the depends_on relationships",
+            "Break the cycle by removing one of the depends_on relationships",
         });
         break; // Report only first cycle found
       }
@@ -445,6 +434,7 @@ async function checkDeprecatedAdrs(
     const entityResult = await prolog.query(
       `kb_entity('${adrId}', adr, Props)`,
     );
+
     let source = "";
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
@@ -471,7 +461,6 @@ async function checkDomainContradictions(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
-
   const result = await prolog.query(
     "setof([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
   );
@@ -481,7 +470,6 @@ async function checkDomainContradictions(
   }
 
   const rows = parseTripleRows(result.bindings.Rows);
-
   for (const [reqA, reqB, reason] of rows) {
     violations.push({
       rule: "domain-contradictions",
@@ -514,5 +502,6 @@ function parseTripleRows(raw: string): Array<[string, string, string]> {
       ]);
     }
   } while (match);
+
   return rows;
 }
