@@ -85,6 +85,9 @@ status: approved
 priority: must
 tags: [security]
 owner: alice
+links:
+  - type: specified_by
+    target: scenario1
 ---
 
 # User Authentication
@@ -97,9 +100,6 @@ owner: alice
 title: Login Scenario
 status: active
 tags: [auth]
-links:
-  - type: specified_by
-    target: req1
 ---
 
 # Login Scenario
@@ -180,6 +180,8 @@ links:
 
       // Check should fail
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      console.log(`[TEST DEBUG] stdout: ${stdout}`);
+      console.log(`[TEST DEBUG] stderr: ${stderr}`);
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("must-priority-coverage");
