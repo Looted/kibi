@@ -3,9 +3,49 @@ import { unlinkSync, writeFileSync } from "node:fs";
 import {
   FrontmatterError,
   extractFromMarkdown,
+  inferTypeFromPath,
 } from "../../src/extractors/markdown";
 
 describe("Markdown Extractor", () => {
+  describe("Type Inference", () => {
+    test("infers type from path for all supported directories", () => {
+      const cases = [
+        { path: "/path/to/requirements/REQ-001.md", expected: "req" },
+        { path: "/path/to/scenarios/SCEN-001.md", expected: "scenario" },
+        { path: "/path/to/tests/TEST-001.md", expected: "test" },
+        { path: "/path/to/adr/ADR-001.md", expected: "adr" },
+        { path: "/path/to/flags/FLAG-001.md", expected: "flag" },
+        { path: "/path/to/events/EVT-001.md", expected: "event" },
+        { path: "/path/to/facts/FACT-001.md", expected: "fact" },
+      ];
+
+      for (const { path, expected } of cases) {
+        expect(inferTypeFromPath(path)).toBe(expected);
+      }
+    });
+
+    test("returns null for paths without type indicators", () => {
+      expect(inferTypeFromPath("/path/to/other/doc.md")).toBe(null);
+      expect(inferTypeFromPath("/requirements-doc.md")).toBe(null);
+    });
+
+    test("handles nested paths correctly", () => {
+      expect(inferTypeFromPath("/src/requirements/nested/doc.md")).toBe("req");
+    });
+
+    test("prioritizes types based on check order", () => {
+      // The implementation checks in this order: requirements, scenarios, tests, adr, flags, events, facts
+      // So /requirements/scenarios/ should be 'req'
+      expect(inferTypeFromPath("/requirements/scenarios/doc.md")).toBe("req");
+
+      // /scenarios/requirements/ should also be 'req' because includes("/requirements/") is checked first
+      expect(inferTypeFromPath("/scenarios/requirements/doc.md")).toBe("req");
+
+      // /tests/scenarios/ should be 'scenario' because includes("/scenarios/") is checked before includes("/tests/")
+      expect(inferTypeFromPath("/tests/scenarios/doc.md")).toBe("scenario");
+    });
+  });
+
   test("extracts requirement from markdown", () => {
     const result = extractFromMarkdown(
       "packages/cli/tests/fixtures/requirements/REQ-001.md",
