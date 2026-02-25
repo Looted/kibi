@@ -42,6 +42,21 @@ kibi sync           # Imports entities from Markdown/YAML documents
 kibi query req --format table   # List requirements
 kibi query test --tag sample    # Query tests by tag
 kibi query scenario --id SCEN-001  # Query scenario by ID
+
+### Installation (npm)
+Kibi packages can be installed via npm for Node.js environments.
+
+```bash
+npm install -g @kibi/cli @kibi/mcp
+```
+
+The CLI package installs the `kibi` command, and the MCP package installs the `kibi-mcp` command.
+
+### Initialize KB (npm)
+When installed via npm, the `kibi init` command uses bundled schema files included in the CLI package.
+
+```bash
+kibi init --hooks
 ```
 
 ### Validate KB

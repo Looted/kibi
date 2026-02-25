@@ -1,6 +1,6 @@
 import "./env.js";
 import process from "node:process";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "@kibi/cli/prolog";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";

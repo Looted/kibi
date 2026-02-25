@@ -1,0 +1,38 @@
+// Public export of relationship schema
+// Generated from relationship.schema.json
+const relationshipSchema = {
+  $id: "relationship.schema.json",
+  title: "Relationship",
+  type: "object",
+  properties: {
+    type: {
+      type: "string",
+      enum: [
+        "depends_on",
+        "specified_by",
+        "verified_by",
+        "validates",
+        "implements",
+        "covered_by",
+        "constrained_by",
+        "constrains",
+        "requires_property",
+        "guards",
+        "publishes",
+        "consumes",
+        "supersedes",
+        "relates_to",
+      ],
+    },
+    from: { type: "string" },
+    to: { type: "string" },
+    created_at: { type: "string" },
+    created_by: { type: "string" },
+    source: { type: "string" },
+    confidence: { type: "number", minimum: 0, maximum: 1 },
+  },
+  required: ["type", "from", "to"],
+  additionalProperties: false,
+};
+
+export default relationshipSchema;

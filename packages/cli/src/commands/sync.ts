@@ -7,8 +7,10 @@ import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import { extractFromManifest } from "../extractors/manifest.js";
 import {
   type ExtractionResult,
+  type ExtractedRelationship,
   extractFromMarkdown,
 } from "../extractors/markdown.js";
+
 import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
@@ -427,8 +429,11 @@ export async function syncCommand(
       idLookup.set(entity.id, entity.id);
     }
 
-    // Assert relationships
+    // Assert relationships - two-pass approach to handle targets that don't exist yet
     let relCount = 0;
+    const failedRelationships: Array<{ rel: ExtractedRelationship; fromId: string; toId: string; error: string }> = [];
+    
+    // First pass: try all relationships
     for (const { relationships } of results) {
       for (const rel of relationships) {
         try {
@@ -440,15 +445,56 @@ export async function syncCommand(
           if (result.success) {
             relCount++;
             kbModified = true;
+          } else {
+            failedRelationships.push({ rel, fromId, toId, error: result.error || "Unknown error" });
           }
         } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to assert relationship ${rel.type}: ${rel.from} -> ${rel.to}: ${message}`,
-          );
+          const message = error instanceof Error ? error.message : String(error);
+          const fromId = idLookup.get(rel.from) || rel.from;
+          const toId = idLookup.get(rel.to) || rel.to;
+          failedRelationships.push({ rel, fromId, toId, error: message });
         }
       }
+    }
+    
+    // Second pass: retry failed relationships (targets may have been created in first pass)
+    const retryCount = 3;
+    for (let pass = 0; pass < retryCount && failedRelationships.length > 0; pass++) {
+      const remainingFailed: typeof failedRelationships = [];
+      
+      for (const { rel, fromId, toId, error } of failedRelationships) {
+        try {
+          const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+          const result = await prolog.query(goal);
+          if (result.success) {
+            relCount++;
+            kbModified = true;
+          } else {
+            remainingFailed.push({ rel, fromId, toId, error: result.error || "Unknown error" });
+          }
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          remainingFailed.push({ rel, fromId, toId, error: message });
+        }
+      }
+      
+      failedRelationships.length = 0;
+      failedRelationships.push(...remainingFailed);
+    }
+    
+    // Report remaining failed relationships after all passes
+    if (failedRelationships.length > 0) {
+      console.warn(`\nWarning: ${failedRelationships.length} relationship(s) failed to sync:`);
+      const seen = new Set<string>();
+      for (const { rel, fromId, toId, error } of failedRelationships) {
+        const key = `${rel.type}:${fromId}->${toId}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          console.warn(`  - ${rel.type}: ${fromId} -> ${toId}`);
+          console.warn(`    Error: ${error}`);
+        }
+      }
+      console.warn("\nTip: Ensure target entities exist before creating relationships.");
     }
 
     if (kbModified) {

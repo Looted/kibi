@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   copySchemaFiles,
   createConfigFile,
@@ -7,7 +8,10 @@ import {
   getCurrentBranch,
   installGitHooks,
   updateGitIgnore,
-} from "./init-helpers";
+} from "./init-helpers.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 interface InitOptions {
   hooks?: boolean;
@@ -25,8 +29,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
       createConfigFile(kbDir);
       updateGitIgnore(process.cwd());
 
-      const cliSrcDir = path.resolve(__dirname, "..");
-      const schemaSourceDir = path.resolve(cliSrcDir, "../../core/schema");
+      const schemaSourceDir = path.resolve(__dirname, "..", "..", "schema");
 
       await copySchemaFiles(kbDir, schemaSourceDir);
     } else {

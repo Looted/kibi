@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "@kibi/cli/prolog";
 import {
   handleKbBranchEnsure,
   handleKbBranchGc,

@@ -1,4 +1,4 @@
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+import type { PrologProcess } from "@kibi/cli/prolog";
 import { parseAtomList } from "./prolog-list.js";
 
 export interface ImpactArgs {

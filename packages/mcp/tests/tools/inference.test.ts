@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "@kibi/cli/prolog";
 import { handleKbCoverageReport } from "../../src/tools/coverage-report.js";
 import { handleKbDerive } from "../../src/tools/derive.js";
 import { handleKbImpact } from "../../src/tools/impact.js";

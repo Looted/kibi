@@ -1,12 +1,28 @@
-#!/usr/bin/env bun
-import { startServer } from "../src/server.js";
+#!/usr/bin/env node
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
 
-// Debug wrapper to log all stdio traffic
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+import { startServer } from "../dist/server.js";
+
 if (process.env.KIBI_MCP_DEBUG) {
   const originalStdoutWrite = process.stdout.write.bind(process.stdout);
   const originalStderrWrite = process.stderr.write.bind(process.stderr);
   
-  process.stdout.write = function(chunk: any, encoding?: any, callback?: any) {
+  process.stdout.write = function(chunk, encoding, callback) {
     const str = chunk.toString().trim();
     if (str) {
       originalStderrWrite(`[KIBI-MCP-OUT] ${str}\n`);
@@ -14,7 +30,6 @@ if (process.env.KIBI_MCP_DEBUG) {
     return originalStdoutWrite(chunk, encoding, callback);
   };
   
-  // Log incoming stdin data
   process.stdin.on('data', (data) => {
     const str = data.toString().trim();
     if (str) {
@@ -23,7 +38,7 @@ if (process.env.KIBI_MCP_DEBUG) {
   });
 }
 
-process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+process.on('unhandledRejection', (reason, promise) => {
   console.error('[KIBI-MCP] Unhandled rejection at promise:', promise);
   console.error('[KIBI-MCP] Reason:', reason);
   if (reason instanceof Error) {
@@ -32,7 +47,7 @@ process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) =>
   process.exit(1);
 });
 
-process.on('uncaughtException', (error: Error) => {
+process.on('uncaughtException', (error) => {
   console.error('[KIBI-MCP] Uncaught exception:', error.message);
   console.error('[KIBI-MCP] Stack:', error.stack);
   process.exit(1);

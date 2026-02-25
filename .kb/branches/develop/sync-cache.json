@@ -1,13 +1,19 @@
 {
   "version": 1,
   "hashes": {
+    "adr/ADR-002-public-api-exports.md": "07b4f6a0973632b120922de909924807e3e2d7704de51212f050a2484ff02d34",
+    "adr/ADR-003-esm-compatibility.md": "b06d7c6e9bd649ee8521bf4df169c4487f4e9a0f94313b79a75bbda07849fdcb",
+    "adr/ADR-npm-bun-dual-publish.md": "e83c5d5625e4ccb86898ccd08524db8b67137044a53aba2b3d85b4533f7db30a",
     "requirements/main-only.md": "b08551e1fa2cfd61408f0dc87a9dc6d3000816f4c4a18278aca40eb82269233f",
     "requirements/req1.md": "e42b681b3b2d2fcff60221c1fa7e59277fd934aa2fe273209513ab0568a2520d",
     "tests/test1.md": "891db7a366772356fcaa9386321221a370680dbc3cd2398c2a073bac20fd98be"
   },
   "seenAt": {
-    "requirements/main-only.md": "2026-02-24T11:17:24.884Z",
-    "requirements/req1.md": "2026-02-24T11:17:24.884Z",
-    "tests/test1.md": "2026-02-24T11:17:24.884Z"
+    "adr/ADR-002-public-api-exports.md": "2026-02-25T12:23:10.668Z",
+    "adr/ADR-003-esm-compatibility.md": "2026-02-25T12:23:10.668Z",
+    "adr/ADR-npm-bun-dual-publish.md": "2026-02-25T12:23:10.668Z",
+    "requirements/main-only.md": "2026-02-25T12:23:10.668Z",
+    "requirements/req1.md": "2026-02-25T12:23:10.668Z",
+    "tests/test1.md": "2026-02-25T12:23:10.668Z"
   }
 }

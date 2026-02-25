@@ -1,4 +1,4 @@
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+import type { PrologProcess } from "@kibi/cli/prolog";
 import { parseAtomList, parsePairList } from "./prolog-list.js";
 
 type CoverageType = "req" | "symbol";
