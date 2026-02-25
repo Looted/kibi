@@ -21,7 +21,7 @@ import { startServer } from "../dist/server.js";
 if (process.env.KIBI_MCP_DEBUG) {
   const originalStdoutWrite = process.stdout.write.bind(process.stdout);
   const originalStderrWrite = process.stderr.write.bind(process.stderr);
-  
+
   process.stdout.write = function(chunk, encoding, callback) {
     const str = chunk.toString().trim();
     if (str) {
@@ -29,7 +29,7 @@ if (process.env.KIBI_MCP_DEBUG) {
     }
     return originalStdoutWrite(chunk, encoding, callback);
   };
-  
+
   process.stdin.on('data', (data) => {
     const str = data.toString().trim();
     if (str) {
