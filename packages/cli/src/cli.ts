@@ -1,19 +1,20 @@
 import { Command } from "commander";
-import packageJson from "../package.json";
-import { branchEnsureCommand } from "./commands/branch";
-import { checkCommand } from "./commands/check";
-import { doctorCommand } from "./commands/doctor";
+import { branchEnsureCommand } from "./commands/branch.js";
+import { checkCommand } from "./commands/check.js";
+import { doctorCommand } from "./commands/doctor.js";
 import { gcCommand } from "./commands/gc.js";
-import { initCommand } from "./commands/init";
-import { queryCommand } from "./commands/query";
-import { syncCommand } from "./commands/sync";
+import { initCommand } from "./commands/init.js";
+import { queryCommand } from "./commands/query.js";
+import { syncCommand } from "./commands/sync.js";
+
+const VERSION = "0.1.0";
 
 const program = new Command();
 
 program
   .name("kibi")
   .description("Prolog-based project knowledge base")
-  .version(packageJson.version);
+  .version(VERSION);
 
 program
   .command("init")

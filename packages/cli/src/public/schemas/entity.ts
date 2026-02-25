@@ -1,0 +1,59 @@
+// Public export of entity schema
+// Generated from entity.schema.json
+const entitySchema = {
+  $id: "entity.schema.json",
+  title: "Entity",
+  type: "object",
+  properties: {
+    id: { type: "string" },
+    title: { type: "string" },
+    status: {
+      type: "string",
+      enum: [
+        "active",
+        "draft",
+        "archived",
+        "deleted",
+        "approved",
+        "rejected",
+        "pending",
+        "in_progress",
+        "superseded",
+      ],
+    },
+    created_at: { type: "string" },
+    updated_at: { type: "string" },
+    source: { type: "string" },
+    tags: { type: "array", items: { type: "string" } },
+    owner: { type: "string" },
+    priority: { type: "string" },
+    severity: { type: "string" },
+    links: { type: "array", items: { type: "string" } },
+    text_ref: { type: "string" },
+    type: {
+      type: "string",
+      enum: [
+        "req",
+        "scenario",
+        "test",
+        "adr",
+        "flag",
+        "event",
+        "symbol",
+        "fact",
+      ],
+    },
+  },
+  required: [
+    "id",
+    "title",
+    "status",
+    "created_at",
+    "updated_at",
+    "source",
+    "type",
+  ],
+  additionalProperties: false,
+};
+
+export default entitySchema;

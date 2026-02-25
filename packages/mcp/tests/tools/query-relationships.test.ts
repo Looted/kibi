@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "@kibi/cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import { handleKbQueryRelationships } from "../../src/tools/query-relationships.js";
 
