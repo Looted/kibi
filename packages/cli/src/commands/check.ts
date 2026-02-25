@@ -12,18 +12,6 @@ export interface Violation {
   source?: string;
 }
 
-export interface CheckOptions {
-  fix?: boolean;
-}
-
-export interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
-}
-
 export async function checkCommand(options: CheckOptions): Promise<void> {
   try {
     const prolog = new PrologProcess();
@@ -76,23 +64,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     console.error(`Error: ${message}`);
     process.exit(1);
   }
-}
-
-function stdoutToString(stdout: unknown): string {
-  return typeof stdout === "string" ? stdout : String(stdout);
-}
-
-function runKibi(
-  kibiBin: string,
-  args: string[],
-  cwd: string,
-): { status: number | null; stdout: string; stderr: string } {
-  const proc = spawnSync(kibiBin, args, { cwd });
-  return {
-    status: proc.status,
-    stdout: stdoutToString(proc.stdout),
-    stderr: stdoutToString(proc.stderr),
-  };
 }
 
 async function checkMustPriorityCoverage(
@@ -255,7 +226,7 @@ async function checkNoDanglingRefs(
     }
     if (!allEntityIds.has(rel.to)) {
       violations.push({
-        representation: "no-dangling-refs",
+        rule: "no-dangling-refs",
         entityId: rel.to,
         description: `Relationship references non-existent entity: ${rel.to}`,
         suggestion: "Remove relationship or create missing entity",
