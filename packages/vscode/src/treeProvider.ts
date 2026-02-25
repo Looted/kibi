@@ -1,7 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import * as vscode from "vscode";
+
+const execAsync = promisify(exec);
 
 export interface KibiTreeItem {
   label: string;
@@ -168,13 +171,14 @@ export class KibiTreeDataProvider
     return this.getRootItems();
   }
 
-  private getCurrentBranch(): string {
+  private async getCurrentBranch(): Promise<string> {
     try {
-      const branch = execSync("git branch --show-current", {
+      const { stdout } = await execAsync("git branch --show-current", {
         cwd: this.workspaceRoot,
         encoding: "utf8",
         timeout: 3000,
-      }).trim();
+      });
+      const branch = stdout.trim();
       if (!branch || branch === "master") return "develop";
       return branch;
     } catch {
@@ -182,14 +186,19 @@ export class KibiTreeDataProvider
     }
   }
 
-  private getKbRdfPath(): string | null {
-    const branch = this.getCurrentBranch();
+  private async getKbRdfPath(): Promise<string | null> {
+    const branch = await this.getCurrentBranch();
     const candidates = [
       path.join(this.workspaceRoot, ".kb", "branches", branch, "kb.rdf"),
       path.join(this.workspaceRoot, ".kb", "branches", "develop", "kb.rdf"),
     ];
     for (const p of candidates) {
-      if (fs.existsSync(p)) return p;
+      try {
+        await fs.promises.access(p);
+        return p;
+      } catch {
+        // continue
+      }
     }
     return null;
   }
@@ -199,11 +208,11 @@ export class KibiTreeDataProvider
     this.entities = [];
     this.relationships = [];
 
-    const rdfPath = this.getKbRdfPath();
+    const rdfPath = await this.getKbRdfPath();
     if (!rdfPath) return;
 
     try {
-      const content = fs.readFileSync(rdfPath, "utf8");
+      const content = await fs.promises.readFile(rdfPath, "utf8");
       this.entities = this.parseRdf(content);
       this.relationships = this.parseRdfRelationships(content);
     } catch {
