@@ -99,14 +99,32 @@ describe("MCP Branch Tool Handlers", () => {
       }
     });
 
-    test("should reject path traversal in branch name", async () => {
+    test("should reject path traversal and invalid branch names", async () => {
       const originalCwd = process.cwd();
       process.chdir(testKbRoot);
 
+      const invalidBranches = [
+        "../evil",
+        "../../evil",
+        "/absolute/path",
+        "foo/../../bar",
+        "..../evil",
+        "....//evil",
+        "./../evil",
+        "foo//bar",
+        "foo/.",
+        "foo/..",
+        ".",
+        "..",
+        "...",
+      ];
+
       try {
-        await expect(
-          handleKbBranchEnsure(prolog, { branch: "../evil" }),
-        ).rejects.toThrow(/Invalid branch name/);
+        for (const branch of invalidBranches) {
+          await expect(
+            handleKbBranchEnsure(prolog, { branch }),
+          ).rejects.toThrow(/Invalid branch name/);
+        }
       } finally {
         process.chdir(originalCwd);
       }

@@ -42,10 +42,32 @@ export async function handleKbBranchEnsure(
   }
 
   // Sanitize branch name (prevent path traversal)
-  const safeBranch = branch.replace(/\.\./g, "").replace(/^\/+/, "");
-  if (safeBranch !== branch) {
+  const isSafe = (name: string) => {
+    // No empty or excessively long names
+    if (!name || name.length > 255) return false;
+    // No path traversal or absolute paths
+    if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
+      return false;
+    }
+    // Whitelist characters (alphanumeric, dot, underscore, hyphen, forward slash)
+    if (!/^[a-zA-Z0-9._\-/]+$/.test(name)) return false;
+    // No redundant slashes or trailing slash/dot
+    if (
+      name.includes("//") ||
+      name.endsWith("/") ||
+      name.endsWith(".") ||
+      name.includes("\\")
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  if (!isSafe(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
+  const safeBranch = branch;
 
   try {
     const workspaceRoot = resolveWorkspaceRoot();
