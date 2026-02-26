@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbContext } from "../../src/tools/context.js";
 
 describe("MCP Context Tool", () => {
@@ -9,10 +10,7 @@ describe("MCP Context Tool", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-context");
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
-    await fs.mkdir(testKbPath, { recursive: true });
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-context-"));
 
     prolog = new PrologProcess();
     await prolog.start();

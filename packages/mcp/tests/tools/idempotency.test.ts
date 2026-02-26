@@ -1,14 +1,15 @@
 import {
   afterAll,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   test,
-  beforeEach,
 } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
 describe("KB Relationship Idempotency", () => {
@@ -16,12 +17,13 @@ describe("KB Relationship Idempotency", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-idempotency");
     prolog = new PrologProcess();
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
+
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-idempotency-"));
   });
 
   beforeEach(async () => {
@@ -69,7 +71,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 4. Verify total count in KB using direct RDF query
     const countResult = await prolog.query(
-      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)",
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);
@@ -102,7 +104,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 3. Verify total count in KB using direct RDF query
     const countResult = await prolog.query(
-      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)",
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);
@@ -140,7 +142,7 @@ describe("KB Relationship Idempotency", () => {
 
     // 4. Verify total count in KB
     const countResult = await prolog.query(
-      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)"
+      "findall(t(S,P,O), (kb_uri(Base), atom_concat(Base, specified_by, P), rdf(S, P, O)), Results)",
     );
     expect(countResult.success).toBe(true);
     const matches = countResult.bindings.Results.match(/t\(/g);

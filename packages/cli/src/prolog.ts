@@ -26,6 +26,7 @@ export class PrologProcess {
   private useOneShotMode =
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
   private attachedKbPath: string | null = null;
+  private onProcessExit: (() => void) | null = null;
 
   constructor(options: PrologOptions = {}) {
     this.swiplPath = options.swiplPath || "swipl";
@@ -59,9 +60,12 @@ export class PrologProcess {
       this.errorBuffer += chunk.toString();
     });
 
-    process.on("exit", () => {
-      this.terminate();
-    });
+    if (!this.onProcessExit) {
+      this.onProcessExit = () => {
+        void this.terminate();
+      };
+      process.on("exit", this.onProcessExit);
+    }
 
     await this.waitForReady();
   }
@@ -340,6 +344,11 @@ export class PrologProcess {
   }
 
   async terminate(): Promise<void> {
+    if (this.onProcessExit) {
+      process.off("exit", this.onProcessExit);
+      this.onProcessExit = null;
+    }
+
     if (this.process) {
       this.process.stdin?.end();
       this.process.kill("SIGTERM");

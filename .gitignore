@@ -38,7 +38,7 @@ coverage/
 # --- Do NOT ignore these (intentionally tracked) ---
 #! .kb/config.json
 #! .kb/schema/
-#! .kb/branches/
+.kb/branches/
 #! bun.lock
 .sisyphus
 .env

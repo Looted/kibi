@@ -1,0 +1,21 @@
+---
+id: FACT-008
+title: npm packages published as kibi-cli and kibi-mcp
+status: active
+created_at: 2026-02-25T15:50:00Z
+updated_at: 2026-02-25T15:50:00Z
+source: packages/cli/package.json, packages/mcp/package.json
+tags:
+  - deployment
+  - npm
+  - package-naming
+---
+
+Kibi packages are published to npm as unscoped names:
+- CLI package: `kibi-cli` (installs `kibi` command)
+- MCP package: `kibi-mcp` (installs `kibi-mcp` command)
+
+The `@kibi` scoped package name was unavailable on npm, so the packages were renamed to unscoped names. This change is reflected in:
+- package.json `name` fields
+- internal imports between packages
+- README installation instructions
