@@ -1,7 +1,7 @@
 {
-  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/mcp-stdio-wave2-protocol-compliance.md",
-  "started_at": "2026-02-23T19:05:00.000Z",
-  "session_ids": ["ses_3748213efffeH7NliTLsL1aYq7"],
-  "plan_name": "mcp-stdio-wave2-protocol-compliance",
+  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/test-pollution-isolation.md",
+  "started_at": "2026-02-26T07:19:28.584Z",
+  "session_ids": ["ses_367487aa6ffe7ueMxNLAfkGkSq"],
+  "plan_name": "test-pollution-isolation",
   "agent": "atlas"
 }

@@ -2,11 +2,31 @@ import fs from "node:fs";
 import { resolveEnvFilePath, resolveWorkspaceRoot } from "./workspace.js";
 
 const DEFAULT_ENV_FILE = ".env";
-const envFileName = process.env.KIBI_ENV_FILE ?? DEFAULT_ENV_FILE;
-const workspaceRoot = resolveWorkspaceRoot();
-const envFilePath = resolveEnvFilePath(envFileName, workspaceRoot);
 
-if (fs.existsSync(envFilePath)) {
+export type LoadEnvResult = {
+  loaded: boolean;
+  envFilePath: string;
+  keysLoaded: string[];
+};
+
+export function loadDefaultEnvFile(): LoadEnvResult {
+  const envFileName = process.env.KIBI_ENV_FILE ?? DEFAULT_ENV_FILE;
+  const workspaceRoot = resolveWorkspaceRoot();
+  return loadEnvFile({ envFileName, workspaceRoot });
+}
+
+export function loadEnvFile(options: {
+  envFileName: string;
+  workspaceRoot: string;
+}): LoadEnvResult {
+  const { envFileName, workspaceRoot } = options;
+  const envFilePath = resolveEnvFilePath(envFileName, workspaceRoot);
+  const keysLoaded: string[] = [];
+
+  if (!fs.existsSync(envFilePath)) {
+    return { loaded: false, envFilePath, keysLoaded };
+  }
+
   try {
     const raw = fs.readFileSync(envFilePath, "utf8");
     for (const { key, value } of parseEnvContent(raw)) {
@@ -14,13 +34,16 @@ if (fs.existsSync(envFilePath)) {
         continue;
       }
       process.env[key] = value;
+      keysLoaded.push(key);
     }
+    return { loaded: true, envFilePath, keysLoaded };
   } catch (error) {
     console.error(
       `[Kibi] Unable to load environment file ${envFilePath}: ${
         error instanceof Error ? error.message : String(error)
       }`,
     );
+    return { loaded: false, envFilePath, keysLoaded };
   }
 }
 

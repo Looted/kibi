@@ -1,10 +1,11 @@
-import "./env.js";
 import process from "node:process";
-import { PrologProcess } from "@kibi/cli/prolog";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { PrologProcess } from "kibi-cli/prolog";
 import { z } from "zod";
+import { loadDefaultEnvFile } from "./env.js";
 import { attachMcpcat } from "./mcpcat.js";
+import { TOOLS } from "./tools-config.js";
 import {
   type BranchEnsureArgs,
   type BranchGcArgs,
@@ -21,6 +22,12 @@ import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
 import { type DeriveArgs, handleKbDerive } from "./tools/derive.js";
 import { type ImpactArgs, handleKbImpact } from "./tools/impact.js";
 import {
+  type ListEntityTypesResult,
+  type ListRelationshipTypesResult,
+  handleKbListEntityTypes,
+  handleKbListRelationshipTypes,
+} from "./tools/list-types.js";
+import {
   type QueryRelationshipsArgs,
   handleKbQueryRelationships,
 } from "./tools/query-relationships.js";
@@ -30,14 +37,7 @@ import {
   handleKbSymbolsRefresh,
 } from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
-import {
-  type ListEntityTypesResult,
-  type ListRelationshipTypesResult,
-  handleKbListEntityTypes,
-  handleKbListRelationshipTypes,
-} from "./tools/list-types.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
-import { TOOLS } from "./tools-config.js";
 
 interface DocResource {
   uri: string;
@@ -46,8 +46,6 @@ interface DocResource {
   mimeType: "text/markdown";
   text: string;
 }
-
-
 
 function renderToolsDoc(): string {
   const lines = [
@@ -598,6 +596,8 @@ function addTool(
 }
 
 export async function startServer(): Promise<void> {
+  loadDefaultEnvFile();
+
   const server = new McpServer({ name: "kibi-mcp", version: "0.1.0" });
 
   attachMcpcat(server);

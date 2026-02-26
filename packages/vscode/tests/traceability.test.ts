@@ -7,10 +7,10 @@
  *
  * These tests run under Bun without the VS Code runtime, so VS Code APIs are mocked.
  */
-import { describe, expect, test, mock, beforeEach } from "bun:test";
-import * as path from "node:path";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
+import * as path from "node:path";
 
 // ── Minimal VS Code API mock ────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ const vscode = {
       this.listeners.push(cb);
     };
     fire(e: unknown) {
-      this.listeners.forEach((l) => l(e));
+      for (const listener of this.listeners) listener(e);
     }
   },
   window: {
@@ -82,11 +82,18 @@ const vscode = {
 
 // Inject mock before the modules load
 // @ts-ignore
+const originalGlobalRequire = globalThis.require;
+// @ts-ignore
 globalThis.require = ((originalRequire) => (id: string) => {
   if (id === "vscode") return vscode;
   return originalRequire(id);
   // @ts-ignore
 })(typeof require !== "undefined" ? require : () => ({}));
+
+afterAll(() => {
+  // @ts-ignore
+  globalThis.require = originalGlobalRequire;
+});
 
 // ── Helper: write a minimal kb.rdf with known entities + relationships ───────
 
@@ -186,14 +193,16 @@ describe("treeProvider – RDF relationship parsing", () => {
       return m ? m[1].trim() : "";
     };
 
-    let m: RegExpExecArray | null;
-    while ((m = relBlockRe.exec(content)) !== null) {
-      const block = m[1];
+    let match: RegExpExecArray | null = relBlockRe.exec(content);
+    while (match !== null) {
+      const block = match[1];
       const relType = extractText(block, "kb:relType");
       const from = extractText(block, "kb:from");
       const to = extractText(block, "kb:to");
       if (relType && from && to)
         relationships.push({ relType, fromId: from, toId: to });
+
+      match = relBlockRe.exec(content);
     }
 
     expect(relationships).toHaveLength(1);

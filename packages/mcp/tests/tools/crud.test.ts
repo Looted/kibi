@@ -1,28 +1,30 @@
 import {
   afterAll,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   test,
-  beforeEach,
 } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
-import { handleKbUpsert } from "../../src/tools/upsert.js";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbQuery } from "../../src/tools/query.js";
+import { handleKbUpsert } from "../../src/tools/upsert.js";
 
 describe("MCP CRUD Tool Handlers", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-crud");
     prolog = new PrologProcess();
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
+
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-crud-"));
   });
 
   beforeEach(async () => {

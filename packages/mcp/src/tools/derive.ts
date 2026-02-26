@@ -1,4 +1,4 @@
-import type { PrologProcess } from "@kibi/cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { parseAtomList, parsePairList } from "./prolog-list.js";
 
 export type DeriveRule =

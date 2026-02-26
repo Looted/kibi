@@ -9,7 +9,7 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "@kibi/cli/*": ["../../cli/dist/*"]
+      "kibi-cli/*": ["../../cli/dist/*"]
     }
   },
   "include": ["src/**/*"],

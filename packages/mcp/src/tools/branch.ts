@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { PrologProcess } from "@kibi/cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 
 export interface BranchEnsureArgs {

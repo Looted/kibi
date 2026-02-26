@@ -9,7 +9,7 @@ import {
   parseEntityFromList,
   VALID_ENTITY_TYPES,
 } from "../../src/tools/query.js";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 
 describe("MCP kb.query Parsing Functions", () => {
   test("VALID_ENTITY_TYPES should be defined", () => {
