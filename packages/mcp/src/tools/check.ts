@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import type { PrologProcess } from "@kibi/cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { parsePairList } from "./prolog-list.js";
 
 export interface CheckArgs {

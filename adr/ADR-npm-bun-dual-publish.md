@@ -39,8 +39,8 @@ Kibi was originally developed to run exclusively on Bun runtime, with TypeScript
 - Both runtimes can execute the compiled binaries
 
 ### Dependency Management
-- MCP package depends on `@kibi/cli: ^0.1.0` (exact version) instead of `workspace:*`
-- This ensures published MCP package has a concrete dependency on the @kibi/cli package
+- MCP package depends on `kibi-cli: ^0.1.0` (exact version) instead of `workspace:*`
+- This ensures published MCP package has a concrete dependency on kibi-cli package
 
 ### Asset Bundling
 - Prolog schema files (entities.pl, relationships.pl, validation.pl) bundled into `packages/cli/schema/` directory

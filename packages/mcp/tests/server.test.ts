@@ -51,7 +51,11 @@ async function sendRequest(
     // Write request
     proc.stdin?.write(`${JSON.stringify(request)}\n`);
 
-    // Timeout after 5s
+    // Timeout after 15s
+    setTimeout(() => {
+      proc.stdout?.off("data", onData);
+      reject(new Error("Request timeout"));
+    }, 15000);
     setTimeout(() => {
       proc.stdout?.off("data", onData);
       reject(new Error("Request timeout"));

@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -10,10 +11,7 @@ describe("MCP Check Tool Handler", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-check");
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
-    await fs.mkdir(testKbPath, { recursive: true });
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-check-"));
 
     prolog = new PrologProcess();
     await prolog.start();

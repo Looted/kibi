@@ -1,4 +1,4 @@
-import type { PrologProcess } from "@kibi/cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 
 export interface DeleteArgs {
   ids: string[];
