@@ -166,4 +166,4 @@ This extension is part of the larger Kibi project. See the main repository for c
 
 ## License
 
-MIT - See LICENSE file for details.
+AGPL-3.0-or-later - See LICENSE file for details.
