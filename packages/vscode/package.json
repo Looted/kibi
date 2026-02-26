@@ -122,5 +122,6 @@
     "type": "git",
     "url": "https://github.com/kibi-org/kibi.git"
   },
-  "license": "MIT"
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk"
 }

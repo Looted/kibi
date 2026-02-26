@@ -47,5 +47,8 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "ts-morph": "^23.0.0"
-  }
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk"
+}
 }
