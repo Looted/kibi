@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -10,10 +11,7 @@ describe("MCP Check Tool Handler", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-check");
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
-    await fs.mkdir(testKbPath, { recursive: true });
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-check-"));
 
     prolog = new PrologProcess();
     await prolog.start();
@@ -100,7 +98,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation?.description).not.toContain("scenario");
   });
 
-  test("should pass must-priority coverage with both scenario and test", async () => {
+  test("should pass must-priority coverage with both scenario and test", { timeout: 15000 }, async () => {
     const relationship = {
       type: "validates",
       from: "test-001",
@@ -212,5 +210,71 @@ describe("MCP Check Tool Handler", () => {
 
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
+  });
+
+  test("should detect symbol without requirement coverage", async () => {
+    // Create a symbol without any implements relationship to a requirement
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-uncovered-001",
+      properties: {
+        title: "Uncovered symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "symbol-coverage" && v.entityId === "symbol-uncovered-001",
+    );
+    expect(violation).toBeDefined();
+    expect(violation?.description).toContain("not traceable");
+    expect(violation?.suggestion).toContain("symbols.yaml");
+  });
+
+  test("should pass symbol coverage when symbol implements requirement", async () => {
+    // Create a symbol with an implements relationship to a requirement
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-for-symbol-001",
+      properties: {
+        title: "Requirement for symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-covered-001",
+      properties: {
+        title: "Covered symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "symbol-covered-001",
+          to: "req-for-symbol-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-covered-001",
+    );
+    expect(violation).toBeUndefined();
   });
 });

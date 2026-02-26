@@ -1,19 +1,19 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
-import { handleKbUpsert } from "../../src/tools/upsert.js";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbQueryRelationships } from "../../src/tools/query-relationships.js";
+import { handleKbUpsert } from "../../src/tools/upsert.js";
 
 describe("MCP kb_query_relationships Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-query-rels");
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
-    await fs.mkdir(testKbPath, { recursive: true });
+    testKbPath = await fs.mkdtemp(
+      path.join(os.tmpdir(), "kibi-mcp-query-rels-"),
+    );
 
     prolog = new PrologProcess();
     await prolog.start();

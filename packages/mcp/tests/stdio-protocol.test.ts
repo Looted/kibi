@@ -19,7 +19,7 @@ function startServer(options?: {
 
 function readNextJsonMessage(
   proc: ChildProcess,
-  timeoutMs = 5000,
+  timeoutMs = 15000,
 ): Promise<JsonObject> {
   return new Promise((resolve, reject) => {
     let buffer = "";

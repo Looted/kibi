@@ -50,7 +50,7 @@ export const TOOLS = [
             "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_upsert",
@@ -187,7 +187,7 @@ export const TOOLS = [
           },
         },
       },
-    },
+      },
   },
   {
     name: "kb_delete",
@@ -204,7 +204,7 @@ export const TOOLS = [
             "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_check",
@@ -217,10 +217,10 @@ export const TOOLS = [
           type: "array",
           items: { type: "string" },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields, symbol-coverage. If omitted, server runs all.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_branch_ensure",
@@ -236,7 +236,7 @@ export const TOOLS = [
             "Required git branch name. Example: 'feature/auth-hardening'. Path traversal patterns are rejected.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_branch_gc",
@@ -252,7 +252,7 @@ export const TOOLS = [
             "Optional safety flag. true = report only; false = delete stale branch KBs. Default: true.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_query_relationships",
@@ -291,7 +291,7 @@ export const TOOLS = [
             "Optional relationship type filter. Allowed enum values only. Example: 'implements'.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_derive",
@@ -328,7 +328,7 @@ export const TOOLS = [
             "Optional rule-specific parameters. Example: { changed: 'REQ-001' } for impacted_by_change.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_impact",
@@ -343,7 +343,7 @@ export const TOOLS = [
           description: "Required changed entity ID. Example: 'REQ-001'.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_coverage_report",
@@ -359,7 +359,7 @@ export const TOOLS = [
             "Optional focus scope: 'req' or 'symbol'. Omit to include both.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_symbols_refresh",
@@ -375,7 +375,7 @@ export const TOOLS = [
             "Optional preview mode. true = report only, false = apply file updates. Default: false.",
         },
       },
-    },
+      },
   },
   {
     name: "kb_list_entity_types",
@@ -430,6 +430,22 @@ export const TOOLS = [
           ],
           description:
             "Optional documentation section. Omit to return overview. Example: 'workflow'.",
+        },
+      },
+    },
+  },
+  {
+    name: "analyze_shared_facts",
+    description:
+      "Analyze requirements and suggest shared domain facts for extraction. LLMs call this to identify missed semantic opportunities before upserting. Lightweight heuristic: finds overlapping capitalized terms and repeated phrases across requirements.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        min_frequency: {
+          type: "number",
+          default: 2,
+          description:
+            "Minimum frequency threshold for shared concepts. Default: 2. Example: 3 to only show concepts mentioned in 3+ requirements.",
         },
       },
     },

@@ -1,6 +1,6 @@
-import type { PrologProcess } from "@kibi/cli/prolog";
-import entitySchema from "@kibi/cli/schemas/entity";
-import relationshipSchema from "@kibi/cli/schemas/relationship";
+import type { PrologProcess } from "kibi-cli/prolog";
+import entitySchema from "kibi-cli/schemas/entity";
+import relationshipSchema from "kibi-cli/schemas/relationship";
 import Ajv from "ajv";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 

@@ -47,7 +47,7 @@ kibi query scenario --id SCEN-001  # Query scenario by ID
 Kibi packages can be installed via npm for Node.js environments.
 
 ```bash
-npm install -g @kibi/cli @kibi/mcp
+npm install -g kibi-cli kibi-mcp
 ```
 
 The CLI package installs the `kibi` command, and the MCP package installs the `kibi-mcp` command.

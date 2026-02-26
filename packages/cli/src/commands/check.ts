@@ -27,16 +27,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     }
 
     const violations: Violation[] = [];
-
-    const allEntityIds = await getAllEntityIds(prolog);
-
     violations.push(...(await checkMustPriorityCoverage(prolog)));
+    violations.push(...(await checkSymbolCoverage(prolog)));
     violations.push(...(await checkNoDanglingRefs(prolog)));
     violations.push(...(await checkNoCycles(prolog)));
+    const allEntityIds = await getAllEntityIds(prolog);
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     violations.push(...(await checkDeprecatedAdrs(prolog)));
     violations.push(...(await checkDomainContradictions(prolog)));
-
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -169,7 +167,6 @@ async function getAllEntityIds(
 
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
-
 async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -465,6 +462,42 @@ async function checkDomainContradictions(
 
   return violations;
 }
+
+async function checkSymbolCoverage(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const uncoveredResult = await prolog.query(
+    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)"
+  );
+
+  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
+    const symbolsStr = uncoveredResult.bindings.Symbols;
+    const match = symbolsStr.match(/\[(.*)\]/);
+
+    if (match) {
+      const content = match[1].trim();
+      if (content) {
+        const symbolMatches = content.matchAll(/'([^']+)'/g);
+        for (const symbolMatch of symbolMatches) {
+          const symbolId = symbolMatch[1];
+          violations.push({
+            rule: "symbol-coverage",
+            entityId: symbolId,
+            description:
+              "Code symbol is not traceable to any functional requirement.",
+            suggestion:
+              "Update symbols.yaml to link this symbol to a related requirement.",
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
 
 function parseTripleRows(raw: string): Array<[string, string, string]> {
   const cleaned = raw.trim();

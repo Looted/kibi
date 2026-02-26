@@ -1,0 +1,59 @@
+name: Publish to npm
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Perform a dry run (no actual publish)'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SWI-Prolog
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build packages
+        run: bun run build
+
+      - name: Run tests
+        run: bun test
+
+      - name: Publish (Dry Run)
+        if: ${{ inputs.dry-run == true }}
+        run: |
+          cd packages/cli && npm publish --provenance --access public --dry-run
+          cd ../mcp && npm publish --provenance --access public --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          cd packages/cli && npm publish --provenance --access public
+          cd ../mcp && npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

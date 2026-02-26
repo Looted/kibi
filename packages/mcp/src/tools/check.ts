@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import type { PrologProcess } from "@kibi/cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { parsePairList } from "./prolog-list.js";
 
 export interface CheckArgs {
@@ -43,6 +43,7 @@ export async function handleKbCheck(
       "no-dangling-refs",
       "no-cycles",
       "required-fields",
+      "symbol-coverage",
     ];
     const rulesToRun = rules && rules.length > 0 ? rules : allRules;
 
@@ -60,6 +61,10 @@ export async function handleKbCheck(
 
     if (rulesToRun.includes("required-fields")) {
       violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
+    }
+
+    if (rulesToRun.includes("symbol-coverage")) {
+      violations.push(...(await checkSymbolCoverage(prolog)));
     }
 
     // Return MCP structured response
@@ -371,3 +376,39 @@ async function checkRequiredFields(
 
   return violations;
 }
+
+async function checkSymbolCoverage(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const uncoveredResult = await prolog.query(
+    "setof(Symbol, (kb_entity(Symbol, symbol, _), \\+ transitively_implements(Symbol, _)), Symbols)",
+  );
+
+  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
+    const symbolsStr = uncoveredResult.bindings.Symbols;
+    const match = symbolsStr.match(/\[(.*)\]/);
+
+    if (match) {
+      const content = match[1].trim();
+      if (content) {
+        const symbolMatches = content.matchAll(/'([^']+)'/g);
+        for (const symbolMatch of symbolMatches) {
+          const symbolId = symbolMatch[1];
+          violations.push({
+            rule: "symbol-coverage",
+            entityId: symbolId,
+            description:
+              "Code symbol is not traceable to any functional requirement.",
+            suggestion:
+              "Update symbols.yaml to link this symbol to a related requirement.",
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
