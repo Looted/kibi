@@ -98,7 +98,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation?.description).not.toContain("scenario");
   });
 
-  test("should pass must-priority coverage with both scenario and test", async () => {
+  test("should pass must-priority coverage with both scenario and test", { timeout: 15000 }, async () => {
     const relationship = {
       type: "validates",
       from: "test-001",

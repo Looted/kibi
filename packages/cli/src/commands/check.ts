@@ -469,7 +469,7 @@ async function checkSymbolCoverage(
   const violations: Violation[] = [];
 
   const uncoveredResult = await prolog.query(
-    "setof(Symbol, symbol_no_req_coverage(Symbol), Symbols)"
+    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)"
   );
 
   if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {

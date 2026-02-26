@@ -51,15 +51,20 @@ export async function handleKbCheck(
       violations.push(...(await checkMustPriorityCoverage(prolog)));
     }
 
+    if (rulesToRun.includes("no-dangling-refs")) {
+      violations.push(...(await checkNoDanglingRefs(prolog)));
+    }
+
+    if (rulesToRun.includes("no-cycles")) {
+      violations.push(...(await checkNoCycles(prolog)));
+    }
+
     if (rulesToRun.includes("required-fields")) {
       violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     }
 
     if (rulesToRun.includes("symbol-coverage")) {
       violations.push(...(await checkSymbolCoverage(prolog)));
-    }
-    if (rulesToRun.includes("required-fields")) {
-      violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     }
 
     // Return MCP structured response

@@ -57,7 +57,7 @@ export async function handleSuggestSharedFacts(
 
     // Query all existing facts for context
     const factsResult = await prolog.query(
-      "findall([Id,Title], kb_entity(Id, fact, Props), memberchk(title=Title, Props), Facts)",
+      "findall([Id,Title], (kb_entity(Id, fact, Props), memberchk(title=Title, Props)), Facts)"
     );
 
     if (!factsResult.success || !factsResult.bindings.Facts) {
@@ -113,12 +113,14 @@ function analyzeSharedConcepts(
   const conceptCounts = new Map<string, Set<string>>();
 
   for (const req of requirements) {
-    const text = `${req.title} ${req.description || ""}`.toLowerCase();
+    const originalText = `${req.title} ${req.description || ""}`;
+    const text = originalText.toLowerCase();
 
     // Extract capitalized terms (potential domain concepts)
     // Pattern: words starting with capital letters that aren't at sentence start
-    const capitalizedTerms = text.matchAll(/\b([A-Z][a-z]+)\b/g);
+    const capitalizedTerms = originalText.matchAll(/\b([A-Z][a-z]+)\b/g);
 
+    // Extract repeated phrases (2+ words)
     // Extract repeated phrases (2+ words)
     const words = text.split(/\s+/).filter(w => w.length > 3);
     for (let i = 0; i < words.length - 1; i++) {

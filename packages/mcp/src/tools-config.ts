@@ -217,7 +217,7 @@ export const TOOLS = [
           type: "array",
           items: { type: "string" },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields, symbol-coverage. If omitted, server runs all.",
         },
       },
       },

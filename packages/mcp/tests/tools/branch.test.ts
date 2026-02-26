@@ -3,7 +3,7 @@ import { execSync } from "node:child_process";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import {
   handleKbBranchEnsure,
   handleKbBranchGc,
