@@ -32,11 +32,15 @@ import {
   handleKbQueryRelationships,
 } from "./tools/query-relationships.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
+import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 import {
   type SymbolsRefreshArgs,
   handleKbSymbolsRefresh,
 } from "./tools/symbols.js";
-import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
+import {
+  type SuggestSharedFactsArgs,
+  handleSuggestSharedFacts,
+} from "./tools/suggest-shared-facts.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 
 interface DocResource {
@@ -800,6 +804,16 @@ export async function startServer(): Promise<void> {
     },
   );
 
+  addTool(
+    server,
+    "analyze_shared_facts",
+    toolDef("analyze_shared_facts").description,
+    toolDef("analyze_shared_facts").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleSuggestSharedFacts(prolog, args as unknown as SuggestSharedFactsArgs);
+    },
+  );
   const transport = new StdioServerTransport();
 
   transport.onerror = (error: Error) => {

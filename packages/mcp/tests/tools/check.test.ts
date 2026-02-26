@@ -211,4 +211,70 @@ describe("MCP Check Tool Handler", () => {
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
   });
+
+  test("should detect symbol without requirement coverage", async () => {
+    // Create a symbol without any implements relationship to a requirement
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-uncovered-001",
+      properties: {
+        title: "Uncovered symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "symbol-coverage" && v.entityId === "symbol-uncovered-001",
+    );
+    expect(violation).toBeDefined();
+    expect(violation?.description).toContain("not traceable");
+    expect(violation?.suggestion).toContain("symbols.yaml");
+  });
+
+  test("should pass symbol coverage when symbol implements requirement", async () => {
+    // Create a symbol with an implements relationship to a requirement
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-for-symbol-001",
+      properties: {
+        title: "Requirement for symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-covered-001",
+      properties: {
+        title: "Covered symbol",
+        status: "active",
+        source: "test://check-test",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "symbol-covered-001",
+          to: "req-for-symbol-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-covered-001",
+    );
+    expect(violation).toBeUndefined();
+  });
 });

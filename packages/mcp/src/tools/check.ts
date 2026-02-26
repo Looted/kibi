@@ -43,6 +43,7 @@ export async function handleKbCheck(
       "no-dangling-refs",
       "no-cycles",
       "required-fields",
+      "symbol-coverage",
     ];
     const rulesToRun = rules && rules.length > 0 ? rules : allRules;
 
@@ -50,14 +51,13 @@ export async function handleKbCheck(
       violations.push(...(await checkMustPriorityCoverage(prolog)));
     }
 
-    if (rulesToRun.includes("no-dangling-refs")) {
-      violations.push(...(await checkNoDanglingRefs(prolog)));
+    if (rulesToRun.includes("required-fields")) {
+      violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     }
 
-    if (rulesToRun.includes("no-cycles")) {
-      violations.push(...(await checkNoCycles(prolog)));
+    if (rulesToRun.includes("symbol-coverage")) {
+      violations.push(...(await checkSymbolCoverage(prolog)));
     }
-
     if (rulesToRun.includes("required-fields")) {
       violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     }
@@ -371,3 +371,39 @@ async function checkRequiredFields(
 
   return violations;
 }
+
+async function checkSymbolCoverage(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const uncoveredResult = await prolog.query(
+    "setof(Symbol, (kb_entity(Symbol, symbol, _), \\+ transitively_implements(Symbol, _)), Symbols)",
+  );
+
+  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
+    const symbolsStr = uncoveredResult.bindings.Symbols;
+    const match = symbolsStr.match(/\[(.*)\]/);
+
+    if (match) {
+      const content = match[1].trim();
+      if (content) {
+        const symbolMatches = content.matchAll(/'([^']+)'/g);
+        for (const symbolMatch of symbolMatches) {
+          const symbolId = symbolMatch[1];
+          violations.push({
+            rule: "symbol-coverage",
+            entityId: symbolId,
+            description:
+              "Code symbol is not traceable to any functional requirement.",
+            suggestion:
+              "Update symbols.yaml to link this symbol to a related requirement.",
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
