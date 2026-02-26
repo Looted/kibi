@@ -25,7 +25,7 @@
     superseded_by/2,
     adr_chain/2,
     deprecated_no_successor/1,
-    current_req/1,
+    symbol_no_req_coverage/2,
     contradicting_reqs/3,
     normalize_term_atom/2,
     changeset/4, % Export for testing
@@ -584,6 +584,18 @@ normalize_uri_atom(Value, Atom) :-
         Atom = Last
     ;   Atom = Value
     ).
+
+%% symbol_no_req_coverage(+Symbol, -Reason)
+% Find symbols that are not traceable to any functional requirement.
+symbol_no_req_coverage(Symbol, no_path_to_req) :-
+    kb_entity(Symbol, symbol, _),
+    \+ transitively_implements(Symbol, _).
+
+% Helper predicate for readability - symbols with no traceability
+symbol_uncovered(Symbol) :-
+    kb_entity(Symbol, symbol, _),
+    \+ transitively_implements(Symbol, _).
+
 
 coerce_timestamp_atom(Val^^_Type, Atom) :-
     !,
