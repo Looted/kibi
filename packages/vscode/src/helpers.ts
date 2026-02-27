@@ -42,14 +42,7 @@
         fi
       fi
     done
-
- Notes:
- - Apply the header to the source files (TS/JS/other) in `packages/*/src` before building.
- - For small CLI wrapper scripts (e.g. `packages/*/bin/*`) you can add the header as a block comment directly above the shebang line or below it; if you need the shebang to remain the very first line, place the header after the shebang.
- - Built `dist/` files are generated; prefer to modify source files and rebuild rather than editing `dist/` directly.
-
 */
-
 /**
  * Pure helper functions for VS Code extension - no VS Code imports
  */

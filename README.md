@@ -1,79 +1,74 @@
-# Kibi Knowledge Base
+# Kibi (alpha)
 
-> **⚠️ Functional Alpha Release** - Kibi v0 is an early preview suitable for small projects and early adopters. Performance is not optimized. See [Known Limitations](KNOWN_LIMITATIONS.md) for details.
+Kibi is a repo-local, per-git-branch, queryable knowledge base for software projects. It is designed to be used by both developers (via CLI) and LLM agents (via MCP) to maintain a living, verifiable project memory.
 
-## Project Overview
-Kibi is a branch-aware, queryable knowledge base for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, and code symbols, along with typed relationships between them. The KB is accessible via CLI and MCP server, supporting deterministic agent workflows and human review.
+Kibi stores eight typed entity kinds (requirements, scenarios, tests, ADRs, flags, events, symbols, and facts) plus typed relationships between them to ensure end-to-end traceability.
 
-### Motivation
-Kibi enables traceable, auditable project memory, linking requirements to tests, decisions, and code. It supports per-branch KBs for isolated feature development, and integrates with git automation for seamless updates.
+⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli` and `kibi-mcp` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
 
-## Quick Start
+## Strong Points
 
-> **Performance Note**: Kibi v0 is optimized for correctness, not speed. Sync operations take ~2s, suitable for small projects (<100 entities). Performance optimization is the primary goal for v0.1.
+- **Branch-Aware Context:** Every git branch gets its own KB snapshot under `.kb/branches/<branch>`, tracking your code context accurately as you switch contexts.
+- **Agent-First Interface:** A robust Model Context Protocol (MCP) server allows LLMs to query and manipulate the KB predictably without risking corrupted files.
+- **Built-in Validation:** Runs rules to catch requirement coverage gaps, dangling references, cycles, and missing required fields.
+- **Automation Friendly:** Git hooks automatically extract entities and sync the KB on checkout and merge.
 
-### Prerequisites
-- SWI-Prolog >= 9.0 (https://www.swi-prolog.org/)
-- Bun (https://bun.sh/)
-- Git (for branch-aware KB)
+## Prerequisites
 
-### Installation
-```bash
-bun install
-```
+- **SWI-Prolog 9.0+**: The core RDF graph and validation rules run on Prolog. You must have `swipl` installed and available in your PATH.
 
-### Initialize KB
-```bash
-kibi init --hooks   # Creates .kb/, installs git hooks
-```
+## Installation
 
-### Verify Environment
-```bash
-kibi doctor         # Checks SWI-Prolog, .kb/, config, git, hooks
-```
-
-### Extract Entities
-```bash
-kibi sync           # Imports entities from Markdown/YAML documents
-```
-
-### Query KB
-```bash
-kibi query req --format table   # List requirements
-kibi query test --tag sample    # Query tests by tag
-kibi query scenario --id SCEN-001  # Query scenario by ID
-
-### Installation (npm)
-Kibi packages can be installed via npm for Node.js environments.
-
+### Using npm
 ```bash
 npm install -g kibi-cli kibi-mcp
 ```
 
-The CLI package installs the `kibi` command, and the MCP package installs the `kibi-mcp` command.
+### Using bun
+```bash
+bun add -g kibi-cli kibi-mcp
+```
 
-### Initialize KB (npm)
-When installed via npm, the `kibi init` command uses bundled schema files included in the CLI package.
+## Quick Start
+
+Initialize a new Kibi project in your repository:
 
 ```bash
+# Verify environment prerequisites
+kibi doctor
+
+# Scaffold the .kb folder, default configuration, and optional git hooks
 kibi init --hooks
+
+# Parse markdown docs and symbols into the branch KB
+kibi sync
+
+# Run integrity checks
+kibi check
 ```
 
-### Validate KB
-```bash
-kibi check           # Runs consistency checks
-```
+## Usage Instructions
 
-### Clean Up Branch KBs
-```bash
-kibi gc --dry-run    # List stale branch KBs
-kibi gc --force      # Delete stale branch KBs
-```
+### Core Concepts and Data Model
 
-### List Branch KBs
-```bash
-kibi branch --list   # Show all branch KBs
-```
+Kibi maps your project into a standard taxonomy. Entities are extracted from Markdown frontmatter or manifest files (`.yaml`) defined in `.kb/config.json`.
+
+- **Entities:** `req`, `scenario`, `test`, `adr`, `flag`, `event`, `symbol`, `fact`
+- **Required fields:** `id`, `title`, `status`, `created_at`, `updated_at`, `source`
+- **Relationships:** e.g., `depends_on`, `specified_by`, `verified_by`, `implements`
+
+### Hooks and Syncing
+
+If you run `kibi init --hooks`, Kibi installs `post-checkout` and `post-merge` hooks.
+
+- On checkout: Kibi runs `kibi branch ensure` (creating a snapshot from `main` if the branch is new) followed by `kibi sync`.
+- On merge: Kibi runs `kibi sync` to update the graph based on the latest merged files.
+
+### Providing LLM Rules
+
+When using an LLM to manage your project, you must instruct the agent to use the Kibi MCP server. The LLM must read and write data exclusively via tools like `kb_upsert` and `kb_query`. **Never** allow the LLM to manually edit the raw RDF or Prolog files located inside `.kb/branches/`.
+
+See [docs/prompts/llm-rules.md](docs/prompts/llm-rules.md) for ready-to-copy system prompts.
 
 ## CLI Reference
 
@@ -85,7 +80,7 @@ kibi branch --list   # Show all branch KBs
 
 ### `kibi sync`
 - Extracts entities and relationships from project documents
-- Supports Markdown for req, scenario, test, adr, flag, event
+- Supports Markdown for req, scenario, test, adr, flag, event, fact
 - Imports symbol manifests from YAML
 - Updates KB for current branch
 
@@ -122,30 +117,33 @@ kibi branch --list   # Show all branch KBs
   - Git repository presence
   - Git hooks installed/executable
 
-## MCP Server Tools
+## MCP Server
 
 Kibi exposes an MCP server for agent integration via stdio (JSON-RPC).
 
 ### Tools
+
 - `kb_query`: Query entities by type, ID, tags, relationships
 - `kb_upsert`: Insert or update entities
 - `kb_delete`: Delete entities by ID
 - `kb_check`: Validate KB integrity
+- `kb_query_relationships`: Query relationships between entities
 - `kb_branch_ensure`: Ensure branch KB exists (copy-from-main)
 - `kb_branch_gc`: Garbage collect merged branch KBs
 
 Each tool accepts `branch` parameter for branch-aware operations.
 
-### Monitoring MCP Usage with MCPcat
+### Configuration
 
-- Set `MCPCAT_PROJECT_ID` before starting `kibi-mcp` to enable MCPcat telemetry. All tool calls are automatically tracked via the `@modelcontextprotocol/sdk` integration and appear on the mcpcat.io dashboard.
-- If `MCPCAT_PROJECT_ID` is not set, telemetry is dormant and no traffic is emitted.
-- **Branch Selection**: The server is branch-aware. It detects the current git branch by default. To force a specific branch, set the `KIBI_BRANCH` environment variable (e.g., `KIBI_BRANCH=feature-x`).
-- User identification defaults to a stable anonymous ID hashed from `hostname + OS user + git repo root`, so a single local developer is grouped consistently across runs without requiring auth data.
-- Override identity explicitly by setting `MCPCAT_USER_ID` (and optional display label via `MCPCAT_USER_NAME`).
-- The repository ships a `.env` file at the root that sets `MCPCAT_PROJECT_ID=proj_39vdkV2eZFDHOwI5EhDdVtf0eO3`, and `kibi-mcp` loads it automatically at startup (set `KIBI_ENV_FILE` to point elsewhere).
+- Transport: stdio (JSON-RPC, newline-delimited)
+- No embedded newlines in messages
+- Server writes only valid MCP messages to stdout
+- Branch-aware: every tool call accepts `branch` parameter
+
+See [docs/mcp-reference.md](docs/mcp-reference.md) for detailed MCP server documentation.
 
 ## Directory Structure
+
 ```
 .kb/
 ├── config.json           # Document paths configuration
@@ -163,72 +161,73 @@ Each tool accepts `branch` parameter for branch-aware operations.
 ```
 
 ## Entity Types
-- `req`: Requirement
-- `scenario`: BDD scenario
-- `test`: Unit/integration/e2e test
-- `adr`: Architecture decision record
-- `flag`: Feature flag
-- `event`: Domain/system event
-- `symbol`: Code symbol (function/class/module)
-- `fact`: Atomic domain fact used by requirements and inference checks
+
+| Type     | Description                                                        | ID Prefix  |
+|----------|--------------------------------------------------------------------|------------|
+| `req`    | Requirement                                                        | REQ-XXX    |
+| `scenario` | BDD scenario describing user behavior                              | SCEN-XXX   |
+| `test`   | Unit, integration, or e2e test case                                | TEST-XXX   |
+| `adr`    | Architecture decision record documenting technical choices           | ADR-XXX    |
+| `flag`   | Feature flag controlling functionality rollout                     | FLAG-XXX   |
+| `event`  | Domain or system event published/consumed by components            | EVT-XXX    |
+| `symbol` | Abstract code symbol (function, class, module) - language-agnostic | Varies     |
+| `fact`   | Atomic domain fact used by requirements and inference checks        | FACT-XXX   |
 
 ## Relationship Types
-- `depends_on(req, req)`
-- `specified_by(req, scenario)`
-- `verified_by(req, test)`
-- `validates(test, req)`
-- `implements(symbol, req)`
-- `covered_by(symbol, test)`
-- `constrained_by(symbol, adr)`
-- `constrains(req, fact)`
-- `requires_property(req, fact)`
-- `guards(flag, symbol|event|req)`
-- `publishes(symbol, event)`
-- `consumes(symbol, event)`
-- `supersedes(adr, adr)`
-- `relates_to(a, b)`
 
-## Example Entity (from test fixtures)
+| Relationship        | Source → Target       | Description                                      |
+|---------------------|----------------------|--------------------------------------------------|
+| `depends_on`        | req → req            | Requirement depends on another requirement        |
+| `specified_by`      | req → scenario       | Requirement specified by scenario                 |
+| `verified_by`       | req → test           | Requirement verified by test                      |
+| `validates`         | test → req           | Test validates requirement                        |
+| `implements`        | symbol → req        | Symbol implements requirement                     |
+| `covered_by`        | symbol → test        | Symbol covered by test                            |
+| `constrained_by`    | symbol → adr        | Symbol constrained by ADR                         |
+| `constrains`        | req → fact           | Requirement constrains domain fact                |
+| `requires_property` | req → fact           | Requirement requires property fact/value         |
+| `guards`            | flag → symbol/event/req | Flag guards entity                         |
+| `publishes`         | symbol → event       | Symbol publishes event                            |
+| `consumes`          | symbol → event       | Symbol consumes event                             |
+| `supersedes`        | adr → adr            | ADR supersedes prior ADR                         |
+| `relates_to`        | any → any            | Generic relationship                             |
+
+## Example Entity
+
 ```yaml
 ---
 id: REQ-001
-title: Sample requirement REQ-001
+title: Sample requirement
 status: open
-created_at: 2026-02-17T13:00:00Z
-updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/requirements/REQ-001
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-001
 tags:
   - sample
-owner: product-team
-priority: medium
-links: []
 ---
-Placeholder: This is a sample requirement used for tests.
+Placeholder: This is a sample requirement used for documentation.
 ```
 
-## VS Code Extension
-- Sidebar TreeView shows entity types
-- Activates on workspace with `.kb/` directory
-- MCP contribution for `kibi-mcp` server
-- Minimal scaffolding; full features planned for future versions
+## Troubleshooting & Migrations
 
-## MCP Server Configuration
-- Transport: stdio (JSON-RPC, newline-delimited)
-- No embedded newlines in messages
-- Server writes only valid MCP messages to stdout
-- Branch-aware: every tool call accepts `branch` parameter
+- **Corrupted KB / Migration:** Since this is an alpha release with no automatic migrations, if the KB state breaks or you upgrade versions, simply delete the `.kb/branches` folder and run `kibi sync` to rebuild it.
+- **Dangling Refs:** If `kibi check` fails with `no-dangling-refs`, verify that your relationship IDs exactly match existing entity IDs.
+- Run `kibi doctor` for environment checks
+- Run `kibi init --hooks` to reinstall hooks
+- Check `.kb/config.json` for document path configuration
+
+## Documentation
+
+- **Architecture:** [docs/architecture.md](docs/architecture.md)
+- **Entity Schema:** [docs/entity-schema.md](docs/entity-schema.md)
+- **Inference Rules:** [docs/inference-rules.md](docs/inference-rules.md)
+- **MCP Reference:** [docs/mcp-reference.md](docs/mcp-reference.md)
+- **LLM Prompts:** [docs/prompts/llm-rules.md](docs/prompts/llm-rules.md)
 
 ## Notes
+
 - `.kb/` is repo-local, per-branch
 - KBs are copied from `main` on new branch creation
 - Content-based SHA256 IDs (or explicit `id:` in frontmatter)
 - RDF persistence uses SWI-Prolog `library(semweb/rdf_persistency)`
 - Git hooks automate KB sync on branch checkout/merge
-
-## Troubleshooting
-- Run `kibi doctor` for environment checks
-- Run `kibi init --hooks` to reinstall hooks
-- Check `.kb/config.json` for document path configuration
-
----
-For architecture and schema details, see `architecture.md` and `entity-schema.md`.
