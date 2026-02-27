@@ -13,7 +13,7 @@
     "build:cli": "bun --filter ./packages/cli build",
     "build:mcp": "bun --filter ./packages/mcp build",
     "build": "bun run build:cli && bun run build:mcp",
-    "release:npm": "bun run build && npm publish --workspaces",
+    "release:npm": "bun run build && npm publish --workspace packages/core && npm publish --workspace packages/cli && npm publish --workspace packages/mcp",
     "release:bun": "bun run build && bun publish --workspaces"
   },
   "devDependencies": {
