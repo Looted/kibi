@@ -1,7 +1,9 @@
 {
   "name": "kibi",
   "version": "0.1.4",
-  "private": true,
+  "private": false,
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
   "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun test",
@@ -21,8 +23,5 @@
     "bun-types": "^1.2.0",
     "mitata": "^1.0.34",
     "typescript": "^5.7.0"
-  },
-  "license": "AGPL-3.0-or-later",
-  "author": "Piotr Franczyk"
-}
+  }
 }
