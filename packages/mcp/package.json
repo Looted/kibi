@@ -35,5 +35,9 @@
     "@types/node": "latest"
   },
   "license": "AGPL-3.0-or-later",
-  "author": "Piotr Franczyk"
+  "author": "Piotr Franczyk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  }
 }
