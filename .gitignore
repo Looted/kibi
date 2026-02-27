@@ -4,9 +4,10 @@ bun.lockb
 
 # --- Build outputs ---
 dist/
+*.tgz
+*.tar.gz
 *.vsix
 packages/vscode/kibi-vscode-*.vsix
-
 
 # --- Logs & temp ---
 *.log
