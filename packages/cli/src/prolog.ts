@@ -45,11 +45,35 @@
 */
 import { type ChildProcess, spawn, spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
+const require = createRequire(import.meta.url);
+
+function resolveKbPlPath(): string {
+  // 1) Prefer installed dependency (works after publish)
+  try {
+    const corePkgJson = require.resolve("kibi-core/package.json");
+    const coreDir = path.dirname(corePkgJson);
+    const installedKbPl = path.join(coreDir, "src", "kb.pl");
+    if (existsSync(installedKbPl)) return installedKbPl;
+  } catch {
+    // ignore; fall back to dev layout
+  }
+
+  // 2) Dev fallback for monorepo checkout
+  const devKbPl = path.resolve(importMetaDir, "../../core/src/kb.pl");
+  if (existsSync(devKbPl)) return devKbPl;
+
+  // 3) Hard fail with actionable message
+  throw new Error(
+    "Unable to resolve kb.pl. Expected kibi-core to be installed (node_modules) " +
+      "or to be running inside the monorepo checkout.",
+  );
+}
 export interface PrologOptions {
   swiplPath?: string;
   timeout?: number;
@@ -85,8 +109,7 @@ export class PrologProcess {
       );
     }
 
-    const kbPath = path.resolve(importMetaDir, "../../core/src/kb.pl");
-
+    const kbPath = resolveKbPlPath();
     this.process = spawn(this.swiplPath, [
       "-g",
       `use_module('${kbPath}'), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
@@ -265,7 +288,7 @@ export class PrologProcess {
     const isBatch = goalList.length > 1;
     const combinedGoal =
       goalList.length === 1 ? goalList[0] : `(${goalList.join(", ")})`;
-    const kbModulePath = path.resolve(importMetaDir, "../../core/src/kb.pl");
+    const kbModulePath = resolveKbPlPath();
     const prologGoal = [
       `use_module('${kbModulePath}')`,
       "use_module(library(semweb/rdf_db))",
