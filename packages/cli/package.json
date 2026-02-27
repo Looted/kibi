@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -11,7 +11,13 @@
   "bin": {
     "kibi": "./bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run build"
@@ -40,6 +46,7 @@
   },
   "types": "./dist/cli.d.ts",
   "dependencies": {
+    "kibi-core": "^0.1.4",
     "ajv": "^8.12.0",
     "cli-table3": "^0.6.5",
     "commander": "^11.0.0",
