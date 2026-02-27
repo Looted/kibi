@@ -1,3 +1,49 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
+import * as child_process from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
@@ -48,6 +94,9 @@ export function activate(context: vscode.ExtensionContext) {
     ) ?? vscode.Uri.file(workspaceRoot);
 
   output.appendLine(`Workspace root: ${workspaceRoot}`);
+
+  // ── MCP Server Path Validation ─────────────────────────────────────────────
+  validateMcpServerPath(output);
 
   // ── Tree view ──────────────────────────────────────────────────────────────
   const treeDataProvider = new KibiTreeDataProvider(workspaceRoot);
@@ -201,8 +250,6 @@ export function activate(context: vscode.ExtensionContext) {
       "config.json",
     ).fsPath;
     try {
-      const fs = require("node:fs") as typeof import("node:fs");
-      const path = require("node:path") as typeof import("node:path");
       if (fs.existsSync(configPath)) {
         const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
           symbolsManifest?: string;
@@ -217,8 +264,6 @@ export function activate(context: vscode.ExtensionContext) {
       // ignore
     }
     // Default convention: symbols.yaml at workspace root
-    const path = require("node:path") as typeof import("node:path");
-    const fs = require("node:fs") as typeof import("node:fs");
     const candidates = [
       path.join(workspaceRoot, "symbols.yaml"),
       path.join(workspaceRoot, "symbols.yml"),
@@ -256,6 +301,58 @@ export function activate(context: vscode.ExtensionContext) {
     );
   }
 
+  // ── Context on file open ───────────────────────────────────────────────────
+  const config = vscode.workspace.getConfiguration("kibi");
+  const contextOnOpen = config.get<boolean>("contextOnOpen", true);
+
+  if (contextOnOpen) {
+    const docOpenListener = vscode.workspace.onDidOpenTextDocument(
+      async (document) => {
+        if (!workspaceRoot || document.uri.scheme !== "file") {
+          return;
+        }
+
+        const kbConfigPath = path.join(workspaceRoot, ".kb");
+        const kbExists = fs.existsSync(kbConfigPath);
+
+        if (!kbExists) {
+          return;
+        }
+
+        const relativePath = path.relative(workspaceRoot, document.uri.fsPath);
+
+        try {
+          interface McpResult {
+            structuredContent?: {
+              entities?: unknown[];
+            };
+          }
+          const mcpResult = await vscode.commands.executeCommand<McpResult>(
+            "kibi-mcp.kbcontext",
+            { sourceFile: relativePath },
+          );
+
+          if (
+            mcpResult?.structuredContent?.entities &&
+            Array.isArray(mcpResult.structuredContent.entities) &&
+            mcpResult.structuredContent.entities.length > 0
+          ) {
+            const count = mcpResult.structuredContent.entities.length;
+            vscode.window.showInformationMessage(
+              `Kibi: ${count} KB entities linked to this file. Open Kibi panel to explore.`,
+            );
+          }
+        } catch (error) {
+          output.appendLine(
+            `Context query failed: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+      },
+    );
+
+    context.subscriptions.push(docOpenListener);
+  }
+
   context.subscriptions.push(
     refreshCommand,
     treeView,
@@ -270,6 +367,96 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   output.appendLine("Kibi extension activation complete.");
+}
+
+function validateMcpServerPath(output: vscode.OutputChannel): void {
+  const config = vscode.workspace.getConfiguration("kibi");
+  let serverPath = config.get<string>("mcp.serverPath", "");
+
+  if (!serverPath || serverPath.trim() === "") {
+    const detectedPath = findKibiMcpInPath();
+    if (detectedPath) {
+      output.appendLine(`Auto-detected kibi-mcp at: ${detectedPath}`);
+      serverPath = detectedPath;
+    } else {
+      output.appendLine(
+        "Kibi MCP server path is not configured and kibi-mcp was not found in PATH.",
+      );
+      vscode.window
+        .showWarningMessage(
+          "Kibi MCP server path is not configured and kibi-mcp was not found in PATH.",
+          "Open Settings",
+        )
+        .then((selection) => {
+          if (selection === "Open Settings") {
+            vscode.commands.executeCommand(
+              "workbench.action.openSettings",
+              "kibi.mcp.serverPath",
+            );
+          }
+        });
+      return;
+    }
+  }
+
+  if (!fs.existsSync(serverPath)) {
+    output.appendLine(
+      `Kibi MCP server not found at configured path: ${serverPath}`,
+    );
+    vscode.window
+      .showErrorMessage(
+        "Kibi MCP server not found at configured path. Please check your settings.",
+        "Open Settings",
+      )
+      .then((selection) => {
+        if (selection === "Open Settings") {
+          vscode.commands.executeCommand(
+            "workbench.action.openSettings",
+            "kibi.mcp.serverPath",
+          );
+        }
+      });
+    return;
+  }
+
+  output.appendLine(`Kibi MCP server path validated: ${serverPath}`);
+}
+
+function findKibiMcpInPath(): string | undefined {
+  try {
+    const isWindows = process.platform === "win32";
+    const command = isWindows ? "where kibi-mcp" : "which kibi-mcp";
+
+    const result = child_process.execSync(command, {
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+
+    const paths = result.trim().split(/\r?\n/);
+    for (const p of paths) {
+      const trimmed = p.trim();
+      if (trimmed && fs.existsSync(trimmed)) {
+        return trimmed;
+      }
+    }
+  } catch {
+    // Command failed or kibi-mcp not found in PATH
+  }
+
+  const commonPaths = [
+    "/usr/local/bin/kibi-mcp",
+    "/usr/bin/kibi-mcp",
+    path.join(process.env.HOME || "", ".local/bin/kibi-mcp"),
+    path.join(process.env.HOME || "", ".bun/bin/kibi-mcp"),
+  ];
+
+  for (const p of commonPaths) {
+    if (fs.existsSync(p)) {
+      return p;
+    }
+  }
+
+  return undefined;
 }
 
 export function deactivate() {}

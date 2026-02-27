@@ -1,0 +1,224 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY kb 'urn-kibi:'>
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
+]>
+
+<rdf:RDF
+    xmlns:kb="&kb;"
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+    xmlns:xsd="&xsd;"
+    xml:base="urn-kibi:"
+>
+<rdf:Description rdf:about="kb:entity/FACT-003">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:21:44.070Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-003</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/src/cli.ts</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[esm,node]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Relative imports require .js extension in Node ESM</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:21:44.070Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-009">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-009</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/facts/FACT-009.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[deployment,github-actions,npm,ci-cd]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">GitHub Actions workflow handles npm publishing</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-002">
+  <kb:relates_to rdf:resource="kb:entity/FACT-001"/>
+  <kb:relates_to rdf:resource="kb:entity/FACT-004"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 13:40:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">ADR-002</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/adr/ADR-002-public-api-exports.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">approved</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[architecture,publishing,exports]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Public API exports via re-export modules</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 13:40:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-008">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-008</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/facts/FACT-008.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[deployment,npm,package-naming]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">npm packages published as kibi-cli and kibi-mcp</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-004">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:21:51.845Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-004</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/src/public/schemas/entity.ts</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[json,esm,node]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Convert JSON imports to JS modules to avoid import assertions</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:21:51.845Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/96c00408f86b6386">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:38:39.533Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">96c00408f86b6386</kb:id>
+  <kb:links rdf:datatype="&xsd;string">[FACT-008]</kb:links>
+  <kb:relates_to rdf:resource="kb:entity/FACT-008"/>
+  <kb:source rdf:datatype="&xsd;string">requirements/main-only.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">approved</kb:status>
+  <kb:title rdf:datatype="&xsd;string">Main Only</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:38:39.533Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/REQ-001">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T13:18:40.799Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">REQ-001</kb:id>
+  <kb:relates_to rdf:resource="kb:entity/FACT-007"/>
+  <kb:source rdf:datatype="&xsd;string">mcp://kibi/upsert</kb:source>
+  <kb:status rdf:datatype="&xsd;string">in_progress</kb:status>
+  <kb:title rdf:datatype="&xsd;string">Enable npm and Bun dual-publish for CLI and MCP packages</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T13:18:40.799Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-005">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:21:59.266Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-005</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/bin/kibi, packages/mcp/bin/kibi-mcp</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[bin,node,bun]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Bin shebang #!/usr/bin/env node works for both Node and Bun</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:21:59.266Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/fb794616dc6a854a">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-23T21:41:51.819Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">fb794616dc6a854a</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/tests/test1.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">passing</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[test]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Feature Test</kb:title>
+  <kb:type rdf:datatype="&xsd;string">test</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-23T21:41:51.819Z</kb:updated_at>
+  <kb:validates rdf:resource="kb:entity/12323f249daa3526"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-003">
+  <kb:relates_to rdf:resource="kb:entity/FACT-002"/>
+  <kb:relates_to rdf:resource="kb:entity/FACT-003"/>
+  <kb:relates_to rdf:resource="kb:entity/FACT-005"/>
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 13:45:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">ADR-003</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/adr/ADR-003-esm-compatibility.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">approved</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[architecture,runtime-compatibility,node]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">ESM compatibility for Node.js runtime</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 13:45:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/ADR-001">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 10:57:06 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">ADR-001</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/adr/ADR-npm-bun-dual-publish.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">approved</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[architecture,publishing,runtime-compatibility]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Dual-publish support for npm and bun runtimes</kb:title>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 10:57:06 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-010">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-010</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/facts/FACT-010.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[deployment,github-actions,release-management]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Publishing workflow triggers on master branch push</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 16:50:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-006">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:22:06.085Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-006</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/tsconfig.json, packages/mcp/tsconfig.json</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[tsconfig,build]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Exclude test files from tsconfig to prevent dist/test.js conflicts</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:22:06.085Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-007">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 15:30:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-007</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/facts/FACT-007.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[kb-sync,improvement,relationships]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">KB sync now uses two-pass relationship assertion</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 15:30:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/12323f249daa3526">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:38:31.845Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">12323f249daa3526</kb:id>
+  <kb:links rdf:datatype="&xsd;string">[fb794616dc6a854a,FACT-007]</kb:links>
+  <kb:priority rdf:datatype="&xsd;string">must</kb:priority>
+  <kb:source rdf:datatype="&xsd;string">requirements/req1.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">approved</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[critical]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Critical Feature</kb:title>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:38:31.845Z</kb:updated_at>
+  <kb:verified_by rdf:resource="kb:entity/fb794616dc6a854a"/>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-001">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:21:22.875Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-001</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/package.json</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[exports,publishing]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Public API exports enable Node ESM resolution</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:21:22.875Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-002">
+  <kb:created_at rdf:datatype="&xsd;string">2026-02-25T12:21:36.279Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-002</kb:id>
+  <kb:source rdf:datatype="&xsd;string">packages/cli/src/commands/init.ts</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[esm,node]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">ESM requires import.meta.url + fileURLToPath for __dirname</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">2026-02-25T12:21:36.279Z</kb:updated_at>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/FACT-011">
+  <kb:created_at rdf:datatype="&xsd;string">Wed Feb 25 2026 17:30:00 GMT+0100 (Central European Standard Time)</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">FACT-011</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/facts/FACT-011.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[testing,flakiness,test-pollution]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Test suite has flaky integration tests</kb:title>
+  <kb:type rdf:datatype="&xsd;string">fact</kb:type>
+  <kb:updated_at rdf:datatype="&xsd;string">Wed Feb 25 2026 17:30:00 GMT+0100 (Central European Standard Time)</kb:updated_at>
+</rdf:Description>
+
+</rdf:RDF>

@@ -1,4 +1,49 @@
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
+import type { PrologProcess } from "kibi-cli/prolog";
 import { parseAtomList, parsePairList } from "./prolog-list.js";
 
 export type DeriveRule =
@@ -11,7 +56,11 @@ export type DeriveRule =
   | "stale"
   | "orphaned"
   | "conflicting"
-  | "deprecated_still_used";
+  | "deprecated_still_used"
+  | "current_adr"
+  | "adr_chain"
+  | "superseded_by"
+  | "domain_contradictions";
 
 export interface DeriveArgs {
   rule: DeriveRule;
@@ -45,6 +94,10 @@ const RULES: DeriveRule[] = [
   "orphaned",
   "conflicting",
   "deprecated_still_used",
+  "current_adr",
+  "adr_chain",
+  "superseded_by",
+  "domain_contradictions",
 ];
 
 export async function handleKbDerive(
@@ -89,6 +142,18 @@ export async function handleKbDerive(
       break;
     case "deprecated_still_used":
       rows = await deriveDeprecatedStillUsed(prolog, params);
+      break;
+    case "current_adr":
+      rows = await deriveCurrentAdr(prolog);
+      break;
+    case "adr_chain":
+      rows = await deriveAdrChain(prolog, params);
+      break;
+    case "superseded_by":
+      rows = await deriveSupersededBy(prolog, params);
+      break;
+    case "domain_contradictions":
+      rows = await deriveDomainContradictions(prolog);
       break;
   }
 
@@ -148,7 +213,10 @@ async function deriveImpactedByChange(
   prolog: PrologProcess,
   params: Record<string, unknown>,
 ): Promise<DeriveRow[]> {
-  const changed = asRequiredString(params.changed, "params.changed is required");
+  const changed = asRequiredString(
+    params.changed,
+    "params.changed is required",
+  );
   const goal = `setof(Entity, impacted_by_change(Entity, '${escapeAtom(changed)}'), Rows)`;
   const entities = await queryAtomRows(prolog, goal, "Rows");
   return entities.map((entity) => ({ changed, entity }));
@@ -180,7 +248,9 @@ async function deriveCoverageGap(
   return pairs.map(([req, reason]) => ({ req, reason }));
 }
 
-async function deriveUntestedSymbols(prolog: PrologProcess): Promise<DeriveRow[]> {
+async function deriveUntestedSymbols(
+  prolog: PrologProcess,
+): Promise<DeriveRow[]> {
   const result = await prolog.query("untested_symbols(Symbols)");
   if (!result.success || !result.bindings.Symbols) {
     return [];
@@ -246,7 +316,9 @@ async function deriveDeprecatedStillUsed(
     if (!result.success || !result.bindings.Symbols) {
       return [];
     }
-    return [{ adr: adrFilter, symbols: parseAtomList(result.bindings.Symbols) }];
+    return [
+      { adr: adrFilter, symbols: parseAtomList(result.bindings.Symbols) },
+    ];
   }
 
   const pairs = await queryPairRows(prolog, goal, "Rows");
@@ -303,4 +375,113 @@ function makeConjunction(parts: string[]): string {
 
 function escapeAtom(value: string): string {
   return value.replace(/'/g, "\\'");
+}
+
+async function deriveCurrentAdr(prolog: PrologProcess): Promise<DeriveRow[]> {
+  // Query for all current ADRs and their titles
+  const result = await prolog.query(
+    "setof([Id,TitleAtom], (kb_entity(Id, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom), current_adr(Id)), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  const pairs = parsePairList(result.bindings.Rows);
+  return pairs.map(([id, title]) => ({ id, title }));
+}
+
+async function deriveAdrChain(
+  prolog: PrologProcess,
+  params: Record<string, unknown>,
+): Promise<DeriveRow[]> {
+  const adr = asRequiredString(params.adr, "params.adr is required");
+
+  // Query for the full chain including status
+  const result = await prolog.query(
+    `findall([Id,TitleAtom,StatusAtom], (kb_entity(Id, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom), memberchk(status=Status, Props), normalize_term_atom(Status, StatusAtom), adr_chain('${escapeAtom(adr)}', Chain), member(Id, Chain)), Rows)`,
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  // Parse triplets and include status
+  const triplets = parseTripleList(result.bindings.Rows);
+  return triplets.map(([id, title, status]) => ({ id, title, status }));
+}
+
+async function deriveSupersededBy(
+  prolog: PrologProcess,
+  params: Record<string, unknown>,
+): Promise<DeriveRow[]> {
+  const adr = asRequiredString(params.adr, "params.adr is required");
+
+  // Query for direct supersession
+  const result = await prolog.query(
+    `superseded_by('${escapeAtom(adr)}', NewAdr), kb_entity(NewAdr, adr, Props), memberchk(title=Title, Props), normalize_term_atom(Title, TitleAtom)`,
+  );
+
+  if (
+    !result.success ||
+    !result.bindings.NewAdr ||
+    !result.bindings.TitleAtom
+  ) {
+    return [];
+  }
+
+  const newAdr = String(result.bindings.NewAdr).replace(/^'|'$/g, "");
+  const newAdrTitle = String(result.bindings.TitleAtom).replace(/^'|'$/g, "");
+
+  return [
+    {
+      adr,
+      successor_id: newAdr,
+      successor_title: newAdrTitle,
+    },
+  ];
+}
+
+function parseTripleList(raw: string): [string, string, string][] {
+  const match = raw.match(/\[(.*)\]/);
+  if (!match) {
+    return [];
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return [];
+  }
+
+  // Parse triplets: [[a,b,c],[x,y,z],...]
+  const triplets: [string, string, string][] = [];
+  const tripletRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
+  let tripletMatch: RegExpExecArray | null;
+  do {
+    tripletMatch = tripletRegex.exec(content);
+    if (tripletMatch !== null) {
+      triplets.push([
+        tripletMatch[1].trim().replace(/^'|'$/g, ""),
+        tripletMatch[2].trim().replace(/^'|'$/g, ""),
+        tripletMatch[3].trim().replace(/^'|'$/g, ""),
+      ]);
+    }
+  } while (tripletMatch !== null);
+
+  return triplets;
+}
+
+async function deriveDomainContradictions(
+  prolog: PrologProcess,
+): Promise<DeriveRow[]> {
+  const result = await prolog.query(
+    "setof([ReqA,ReqB,Reason], contradicting_reqs(ReqA, ReqB, Reason), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return [];
+  }
+
+  const rows = parseTripleList(result.bindings.Rows);
+  return rows.map(([reqA, reqB, reason]) => ({ reqA, reqB, reason }));
 }

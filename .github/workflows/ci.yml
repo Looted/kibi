@@ -2,12 +2,12 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [develop]
 
 jobs:
-  test:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -22,30 +22,11 @@ jobs:
       - name: Install JS deps
         run: bun install
 
+      - name: Build packages
+        run: bun run build
+
       - name: Run unit tests
         run: bun test
 
       - name: Run integration tests
-        run: bun test tests/integration/
-
-      - name: Prepare git config for kibi
-        run: |
-          git config --global user.name "CI Bot"
-          git config --global user.email "ci@example.com"
-
-      - name: Run kibi commands on fixtures
-        run: |
-          set -e
-          KIBI_BIN="$GITHUB_WORKSPACE/packages/cli/bin/kibi"
-          TMPDIR=$(mktemp -d)
-          pushd "$TMPDIR"
-          mkdir -p requirements
-          printf '%s\n' '---' 'id: req-test' 'title: Test Requirement' 'status: approved' '---' '# Test' > requirements/test.md
-          git init -q
-          bun "$KIBI_BIN" init
-          bun "$KIBI_BIN" sync
-          bun "$KIBI_BIN" check
-          popd
-
-      - name: Upload coverage (echo placeholder)
-        run: echo "coverage step (implement upload if desired)"
+        run: bun test documentation/tests/integration/

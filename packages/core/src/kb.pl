@@ -8,6 +8,7 @@
     kb_assert_entity/2,
     kb_retract_entity/1,
     kb_entity/3,
+    kb_entities_by_source/2,
     kb_assert_relationship/4,
     kb_relationship/3,
     transitively_implements/2,
@@ -20,7 +21,15 @@
     orphaned/1,
     conflicting/2,
     deprecated_still_used/2,
-    changeset/4  % Export for testing
+    current_adr/1,
+    superseded_by/2,
+    adr_chain/2,
+    deprecated_no_successor/1,
+    symbol_no_req_coverage/2,
+    contradicting_reqs/3,
+    normalize_term_atom/2,
+    changeset/4, % Export for testing
+    kb_uri/1
 ]).
 
 :- use_module(library(semweb/rdf11)).
@@ -32,8 +41,11 @@
 :- use_module('../schema/relationships.pl', [relationship_type/1, valid_relationship/3]).
 :- use_module('../schema/validation.pl', [validate_entity/2, validate_relationship/3]).
 
+% Constants
+kb_uri('urn-kibi:').
+
 % RDF namespace for KB entities and relationships
-:- rdf_register_prefix(kb, 'http://kibi.dev/kb/').
+:- kb_uri(URI), rdf_register_prefix(kb, URI).
 :- rdf_register_prefix(xsd, 'http://www.w3.org/2001/XMLSchema#').
 :- rdf_meta
     kb_entity(?, ?, ?),
@@ -108,11 +120,13 @@ kb_save :-
     ->  (
             % Save RDF graph to file with namespace declarations
             atom_concat(Directory, '/kb.rdf', DataFile),
+            % Get current graph URI
+            kb_graph(GraphURI),
             % If we have a graph URI, save that graph. Otherwise save all data
             % (fallback) so a kb.rdf is always produced. Report errors if save fails.
             (   kb_graph(GraphURI)
-            ->  catch(rdf_save(DataFile, [graph(GraphURI), namespaces([kb, xsd])]), E, print_message(error, E))
-            ;   catch(rdf_save(DataFile, [namespaces([kb, xsd])]), E2, print_message(error, E2))
+            ->  catch(rdf_save(DataFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]), E, print_message(error, E))
+            ;   catch(rdf_save(DataFile, [base_uri('urn-kibi:'), namespaces([kb, xsd])]), E2, print_message(error, E2))
             ),
             % Sync audit log
             (   kb_audit_db(AuditLog)
@@ -140,8 +154,8 @@ kb_assert_entity(Type, Props) :-
     kb_graph(Graph),
     % Execute with mutex protection
     with_kb_mutex((
-        % Create entity URI
-        atom_concat('kb:entity/', Id, EntityURI),
+        % Create entity URI using prefix notation for namespace expansion
+        format(atom(EntityURI), 'kb:entity/~w', [Id]),
         % Upsert semantics: remove any existing triples for this entity first.
         rdf_retractall(EntityURI, _, _, Graph),
         % Store type as string literal to prevent URI interpretation
@@ -190,10 +204,21 @@ kb_entity(Id, Type, Props) :-
     % Collect all properties (exclude kb:type which expands to full URI)
     findall(Key=Value, (
         rdf(EntityURI, PropURI, ValueLiteral, Graph),
-        PropURI \= 'http://kibi.dev/kb/type',
+        kb_uri(BaseURI),
+        atom_concat(BaseURI, type, TypeURI),
+        PropURI \= TypeURI,
         uri_to_key(PropURI, Key),
         literal_to_value(ValueLiteral, Value)
     ), Props).
+
+%% kb_entities_by_source(+SourcePath, -Ids)
+% Returns all entity IDs whose source property matches SourcePath (substring match).
+kb_entities_by_source(SourcePath, Ids) :-
+    findall(Id,
+        (kb_entity(Id, _Type, Props),
+         memberchk(source-S, Props),
+         sub_atom(S, _, _, _, SourcePath)),
+        Ids).
 
 %% kb_assert_relationship(+Type, +From, +To, +Metadata)
 % Assert a relationship between two entities with validation.
@@ -211,7 +236,8 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
         atom_concat('kb:entity/', FromId, FromURI),
         atom_concat('kb:entity/', ToId, ToURI),
         % Create relationship property URI (full URI to match saved/loaded RDF)
-        atom_concat('http://kibi.dev/kb/', RelType, RelURI),
+        kb_uri(BaseURI),
+        atom_concat(BaseURI, RelType, RelURI),
         % Upsert semantics: ensure the exact triple isn't duplicated.
         rdf_retractall(FromURI, RelURI, ToURI, Graph),
         % Assert relationship triple
@@ -228,7 +254,8 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
 kb_relationship(RelType, FromId, ToId) :-
     kb_graph(Graph),
     % Create relationship property URI (full URI to match loaded RDF)
-    atom_concat('http://kibi.dev/kb/', RelType, RelURI),
+    kb_uri(BaseURI),
+    atom_concat(BaseURI, RelType, RelURI),
     % Find matching relationships
     rdf(FromURI, RelURI, ToURI, Graph),
     % Extract IDs from URIs
@@ -239,16 +266,14 @@ kb_relationship(RelType, FromId, ToId) :-
 
 %% store_property(+EntityURI, +Key, +Value, +Graph)
 % Store a property as an RDF triple with appropriate datatype.
+% All values are stored as typed string literals to avoid URI interpretation issues.
+% Uses prefix notation (kb:Key) to enable proper namespace expansion.
 store_property(EntityURI, Key, Value, Graph) :-
-    % Build full property URI
-    atom_concat('http://kibi.dev/kb/', Key, PropURI),
-    (   atom(Value)
-    ->  % Atoms stored as URIs/resources (for status, id, etc.)
-        rdf_assert(EntityURI, PropURI, Value, Graph)
-    ;   % Other types as literals
-        value_to_literal(Value, Literal),
-        rdf_assert(EntityURI, PropURI, Literal, Graph)
-    ).
+    % Build property URI using prefix notation for namespace expansion
+    format(atom(PropURI), 'kb:~w', [Key]),
+    % Always convert to literal (never store as URI/resource)
+    value_to_literal(Value, Literal),
+    rdf_assert(EntityURI, PropURI, Literal, Graph).
 
 %% value_to_literal(+Value, -Literal)
 % Convert Prolog value to RDF literal with appropriate datatype.
@@ -319,7 +344,8 @@ literal_to_atom(Literal, Atom) :-
 %% uri_to_key(+URI, -Key)
 % Convert URI to property key (strip kb: namespace prefix).
 uri_to_key(URI, Key) :-
-    (   atom_concat('http://kibi.dev/kb/', Key, URI)
+    (   kb_uri(BaseURI),
+        atom_concat(BaseURI, Key, URI)
     ->  true
     ;   atom_concat('kb:', Key, URI)
     ->  true
@@ -415,12 +441,12 @@ must_requirement(Req) :-
     sub_string(PriorityStr, _, 4, 0, "must").
 
 has_scenario(Req) :-
-    kb_relationship(specified_by, _, Req).
+    once(kb_relationship(specified_by, Req, _)).
 
 has_test(Req) :-
-    kb_relationship(validates, _, Req).
+    once(kb_relationship(validates, _, Req)).
 has_test(Req) :-
-    kb_relationship(verified_by, Req, _).
+    once(kb_relationship(verified_by, Req, _)).
 
 %% untested_symbols(-Symbols)
 % Returns symbols with no test coverage relationship.
@@ -472,6 +498,65 @@ deprecated_still_used(Adr, Symbols) :-
     !.
 deprecated_still_used(_, []).
 
+%% ------------------------------------------------------------------
+%% ADR Supersession Predicates
+%% ------------------------------------------------------------------
+
+%% current_adr(+Id)
+% True when Id is an ADR not superseded by any other ADR.
+current_adr(Id) :-
+    kb_entity(Id, adr, _),
+    \+ kb_relationship(supersedes, _, Id).
+
+%% superseded_by(+OldId, -NewId)
+% Direct supersession.
+superseded_by(OldId, NewId) :-
+    kb_relationship(supersedes, NewId, OldId).
+
+%% adr_chain(+AnyId, -Chain)
+% Full ordered chain from AnyId to the current ADR (newest last).
+% Cycle-safe via visited accumulator.
+adr_chain(Id, Chain) :-
+    adr_chain_acc(Id, [], Chain).
+adr_chain_acc(Id, Visited, [Id]) :-
+    \+ member(Id, Visited),
+    \+ kb_relationship(supersedes, _, Id).
+adr_chain_acc(Id, Visited, [Id|Rest]) :-
+    \+ member(Id, Visited),
+    kb_relationship(supersedes, Newer, Id),
+    adr_chain_acc(Newer, [Id|Visited], Rest).
+
+%% deprecated_no_successor(+OldId)
+% Lint rule: ADR is archived/deprecated but has no supersedes relationship pointing to it.
+deprecated_no_successor(Id) :-
+    kb_entity(Id, adr, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, StatusAtom),
+    memberchk(StatusAtom, [archived, deprecated]),
+    \+ kb_relationship(supersedes, _, Id).
+
+%% current_req(+Id)
+% Requirement is current when active and not superseded by another requirement.
+current_req(Id) :-
+    kb_entity(Id, req, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, active),
+    \+ kb_relationship(supersedes, _, Id).
+
+%% contradicting_reqs(-ReqA, -ReqB, -Reason)
+% Two current requirements contradict if they constrain the same fact
+% but require different properties.
+contradicting_reqs(ReqA, ReqB, Reason) :-
+    current_req(ReqA),
+    current_req(ReqB),
+    ReqA @< ReqB,
+    kb_relationship(constrains, ReqA, FactId),
+    kb_relationship(constrains, ReqB, FactId),
+    kb_relationship(requires_property, ReqA, PropA),
+    kb_relationship(requires_property, ReqB, PropB),
+    PropA \= PropB,
+    format(atom(Reason), 'Conflict on ~w: ~w vs ~w', [FactId, PropA, PropB]).
+
 normalize_term_atom(Val^^_Type, Atom) :-
     !,
     normalize_term_atom(Val, Atom).
@@ -499,6 +584,18 @@ normalize_uri_atom(Value, Atom) :-
         Atom = Last
     ;   Atom = Value
     ).
+
+%% symbol_no_req_coverage(+Symbol, -Reason)
+% Find symbols that are not traceable to any functional requirement.
+symbol_no_req_coverage(Symbol, no_path_to_req) :-
+    kb_entity(Symbol, symbol, _),
+    \+ transitively_implements(Symbol, _).
+
+% Helper predicate for readability - symbols with no traceability
+symbol_uncovered(Symbol) :-
+    kb_entity(Symbol, symbol, _),
+    \+ transitively_implements(Symbol, _).
+
 
 coerce_timestamp_atom(Val^^_Type, Atom) :-
     !,

@@ -1,22 +1,39 @@
 {
-  "name": "@kibi/mcp",
+  "name": "kibi-mcp",
   "version": "0.1.0",
   "type": "module",
   "description": "Model Context Protocol server for Kibi knowledge base",
-  "main": "./src/server.js",
+  "main": "./dist/server.js",
   "bin": {
     "kibi-mcp": "./bin/kibi-mcp"
   },
   "scripts": {
     "test": "bun test",
-    "dev": "bun run bin/kibi-mcp"
+    "dev": "bun run bin/kibi-mcp",
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "files": ["dist", "bin"],
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0"
+  },
+  "exports": {
+    ".": "./dist/server.js",
+    "./src/*": "./src/*.ts"
   },
   "dependencies": {
-    "@kibi/cli": "workspace:*",
-    "ajv": "^8.18.0"
+    "kibi-cli": "^0.1.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "ajv": "^8.18.0",
+    "js-yaml": "^4.1.0",
+    "mcpcat": "^0.1.12",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "latest"
-  }
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk"
 }

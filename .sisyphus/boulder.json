@@ -1,10 +1,7 @@
 {
-  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/kibi-v0.md",
-  "started_at": "2026-02-17T16:39:22.760Z",
-  "session_ids": [
-    "ses_3939f40f4ffe8VNfyyowRu3f6I",
-    "ses_393635ec6ffeyLspDtrngiNrAj"
-  ],
-  "plan_name": "kibi-v0",
+  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/test-pollution-isolation.md",
+  "started_at": "2026-02-26T07:19:28.584Z",
+  "session_ids": ["ses_367487aa6ffe7ueMxNLAfkGkSq"],
+  "plan_name": "test-pollution-isolation",
   "agent": "atlas"
 }

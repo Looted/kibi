@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "kibi-cli/prolog";
 import {
   handleKbBranchEnsure,
   handleKbBranchGc,
@@ -13,14 +14,12 @@ describe("MCP Branch Tool Handlers", () => {
   let testKbRoot: string;
 
   beforeAll(async () => {
-    testKbRoot = path.join(process.cwd(), ".kb-test-mcp-branch");
-
-    await fs.rm(testKbRoot, { recursive: true, force: true });
-    await fs.mkdir(path.join(testKbRoot, ".kb/branches/main"), {
+    testKbRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-branch-"));
+    await fs.mkdir(path.join(testKbRoot, ".kb/branches/develop"), {
       recursive: true,
     });
 
-    const mainPath = path.join(testKbRoot, ".kb/branches/main");
+    const mainPath = path.join(testKbRoot, ".kb/branches/develop");
     await fs.writeFile(path.join(mainPath, "kb.rdf"), "");
     await fs.writeFile(path.join(mainPath, "kb.rdf.lock"), "");
     await fs.mkdir(path.join(mainPath, "journal"), { recursive: true });
@@ -38,7 +37,7 @@ describe("MCP Branch Tool Handlers", () => {
   });
 
   describe("kb.branch.ensure", () => {
-    test("should create new branch KB from main", async () => {
+    test("should create new branch KB from develop", async () => {
       const originalCwd = process.cwd();
       process.chdir(testKbRoot);
 
@@ -99,14 +98,32 @@ describe("MCP Branch Tool Handlers", () => {
       }
     });
 
-    test("should reject path traversal in branch name", async () => {
+    test("should reject path traversal and invalid branch names", async () => {
       const originalCwd = process.cwd();
       process.chdir(testKbRoot);
 
+      const invalidBranches = [
+        "../evil",
+        "../../evil",
+        "/absolute/path",
+        "foo/../../bar",
+        "..../evil",
+        "....//evil",
+        "./../evil",
+        "foo//bar",
+        "foo/.",
+        "foo/..",
+        ".",
+        "..",
+        "...",
+      ];
+
       try {
-        await expect(
-          handleKbBranchEnsure(prolog, { branch: "../evil" }),
-        ).rejects.toThrow(/Invalid branch name/);
+        for (const branch of invalidBranches) {
+          await expect(
+            handleKbBranchEnsure(prolog, { branch }),
+          ).rejects.toThrow(/Invalid branch name/);
+        }
       } finally {
         process.chdir(originalCwd);
       }
@@ -134,22 +151,24 @@ describe("MCP Branch Tool Handlers", () => {
       }
     });
 
-    test("should fail if main branch does not exist", async () => {
+    test("should fail if develop branch does not exist", async () => {
       const originalCwd = process.cwd();
-      const noMainKb = path.join(process.cwd(), ".kb-test-no-main");
+      const noDevelopKb = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-mcp-no-develop-"),
+      );
 
       try {
-        await fs.mkdir(path.join(noMainKb, ".kb/branches"), {
+        await fs.mkdir(path.join(noDevelopKb, ".kb/branches"), {
           recursive: true,
         });
-        process.chdir(noMainKb);
+        process.chdir(noDevelopKb);
 
         await expect(
           handleKbBranchEnsure(prolog, { branch: "new-branch" }),
-        ).rejects.toThrow(/Main branch KB does not exist/);
+        ).rejects.toThrow(/Develop branch KB does not exist/);
       } finally {
         process.chdir(originalCwd);
-        await fs.rm(noMainKb, { recursive: true, force: true });
+        await fs.rm(noDevelopKb, { recursive: true, force: true });
       }
     });
   });
@@ -157,11 +176,12 @@ describe("MCP Branch Tool Handlers", () => {
   describe("kb.branch.gc", () => {
     test("should find stale branches in dry run mode", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
       // Create a fake git repo for testing
-      const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc");
-      await fs.rm(gitTestRoot, { recursive: true, force: true });
-      await fs.mkdir(gitTestRoot, { recursive: true });
+      const gitTestRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-git-gc-"),
+      );
 
       try {
         execSync("git init", { cwd: gitTestRoot, stdio: "ignore" });
@@ -177,10 +197,13 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b main", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
         // Create .kb/branches structure
-        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/main"), {
+        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
         });
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/deleted-branch"), {
@@ -188,6 +211,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: true });
 
@@ -203,16 +227,18 @@ describe("MCP Branch Tool Handlers", () => {
         expect(exists).toBe(true);
       } finally {
         process.chdir(originalCwd);
+        process.env.KIBI_WORKSPACE = originalWorkspace;
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });
 
     test("should delete stale branches when dry_run=false", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
-      const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-delete");
-      await fs.rm(gitTestRoot, { recursive: true, force: true });
-      await fs.mkdir(gitTestRoot, { recursive: true });
+      const gitTestRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-git-gc-delete-"),
+      );
 
       try {
         execSync("git init", { cwd: gitTestRoot, stdio: "ignore" });
@@ -228,9 +254,12 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b main", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
-        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/main"), {
+        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
         });
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/stale-branch"), {
@@ -238,6 +267,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: false });
 
@@ -252,16 +282,17 @@ describe("MCP Branch Tool Handlers", () => {
         expect(exists).toBe(false);
       } finally {
         process.chdir(originalCwd);
+        process.env.KIBI_WORKSPACE = originalWorkspace;
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });
 
-    test("should preserve main branch", async () => {
+    test("should preserve develop branch", async () => {
       const originalCwd = process.cwd();
 
-      const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-main");
-      await fs.rm(gitTestRoot, { recursive: true, force: true });
-      await fs.mkdir(gitTestRoot, { recursive: true });
+      const gitTestRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-git-gc-develop-"),
+      );
 
       try {
         execSync("git init", { cwd: gitTestRoot, stdio: "ignore" });
@@ -277,9 +308,12 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b main", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
 
-        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/main"), {
+        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
         });
 
@@ -287,11 +321,11 @@ describe("MCP Branch Tool Handlers", () => {
 
         const result = await handleKbBranchGc(prolog, { dry_run: false });
 
-        expect(result.structuredContent?.stale).not.toContain("main");
+        expect(result.structuredContent?.stale).not.toContain("develop");
 
-        // Verify main branch still exists
+        // Verify develop branch still exists
         const exists = await fs
-          .access(path.join(gitTestRoot, ".kb/branches/main"))
+          .access(path.join(gitTestRoot, ".kb/branches/develop"))
           .then(() => true)
           .catch(() => false);
         expect(exists).toBe(true);
@@ -304,9 +338,9 @@ describe("MCP Branch Tool Handlers", () => {
     test("should handle no stale branches", async () => {
       const originalCwd = process.cwd();
 
-      const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-none");
-      await fs.rm(gitTestRoot, { recursive: true, force: true });
-      await fs.mkdir(gitTestRoot, { recursive: true });
+      const gitTestRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-git-gc-none-"),
+      );
 
       try {
         execSync("git init", { cwd: gitTestRoot, stdio: "ignore" });
@@ -322,13 +356,16 @@ describe("MCP Branch Tool Handlers", () => {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
-        execSync("git checkout -b main", { cwd: gitTestRoot, stdio: "ignore" });
+        execSync("git checkout -b develop", {
+          cwd: gitTestRoot,
+          stdio: "ignore",
+        });
         execSync("git checkout -b feature", {
           cwd: gitTestRoot,
           stdio: "ignore",
         });
 
-        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/main"), {
+        await fs.mkdir(path.join(gitTestRoot, ".kb/branches/develop"), {
           recursive: true,
         });
         await fs.mkdir(path.join(gitTestRoot, ".kb/branches/feature"), {
@@ -349,10 +386,11 @@ describe("MCP Branch Tool Handlers", () => {
 
     test("should handle missing .kb/branches directory", async () => {
       const originalCwd = process.cwd();
+      const originalWorkspace = process.env.KIBI_WORKSPACE ?? "";
 
-      const gitTestRoot = path.join(process.cwd(), ".kb-test-git-gc-missing");
-      await fs.rm(gitTestRoot, { recursive: true, force: true });
-      await fs.mkdir(gitTestRoot, { recursive: true });
+      const gitTestRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-git-gc-missing-"),
+      );
 
       try {
         execSync("git init", { cwd: gitTestRoot, stdio: "ignore" });
@@ -366,6 +404,7 @@ describe("MCP Branch Tool Handlers", () => {
         });
 
         process.chdir(gitTestRoot);
+        process.env.KIBI_WORKSPACE = gitTestRoot;
 
         const result = await handleKbBranchGc(prolog, { dry_run: true });
 
@@ -374,6 +413,11 @@ describe("MCP Branch Tool Handlers", () => {
         expect(result.structuredContent?.deleted).toBe(0);
       } finally {
         process.chdir(originalCwd);
+        if (originalWorkspace) {
+          process.env.KIBI_WORKSPACE = originalWorkspace;
+        } else {
+          process.env.KIBI_WORKSPACE = "";
+        }
         await fs.rm(gitTestRoot, { recursive: true, force: true });
       }
     });
@@ -381,8 +425,9 @@ describe("MCP Branch Tool Handlers", () => {
     test("should fail if not in git repository", async () => {
       const originalCwd = process.cwd();
 
-      const nonGitRoot = path.join("/tmp", `.kb-test-non-git-${Date.now()}`);
-      await fs.rm(nonGitRoot, { recursive: true, force: true });
+      const nonGitRoot = await fs.mkdtemp(
+        path.join(os.tmpdir(), "kibi-non-git-"),
+      );
       await fs.mkdir(path.join(nonGitRoot, ".kb/branches"), {
         recursive: true,
       });

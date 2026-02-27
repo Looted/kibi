@@ -1,3 +1,48 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
 import * as path from "node:path";
 import Table from "cli-table3";
 import { PrologProcess } from "../prolog.js";
@@ -5,6 +50,7 @@ import { PrologProcess } from "../prolog.js";
 interface QueryOptions {
   id?: string;
   tag?: string;
+  source?: string;
   relationships?: string;
   format?: "json" | "table";
   limit?: string;
@@ -66,29 +112,40 @@ export async function queryCommand(
       }
     }
     // Query entities mode
-    else if (type) {
-      // Validate type
-      const validTypes = [
-        "req",
-        "scenario",
-        "test",
-        "adr",
-        "flag",
-        "event",
-        "symbol",
-      ];
-      if (!validTypes.includes(type)) {
-        await prolog.query("kb_detach");
-        await prolog.terminate();
-        console.error(
-          `Error: Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
-        );
-        process.exit(1);
+    else if (type || options.source) {
+      // Validate type if provided
+      if (type) {
+        const validTypes = [
+          "req",
+          "scenario",
+          "test",
+          "adr",
+          "flag",
+          "event",
+          "symbol",
+          "fact",
+        ];
+        if (!validTypes.includes(type)) {
+          await prolog.query("kb_detach");
+          await prolog.terminate();
+          console.error(
+            `Error: Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
+          );
+          process.exit(1);
+        }
       }
 
       let goal: string;
 
-      if (options.id) {
+      if (options.source) {
+        // Query by source path (substring match)
+        const safeSource = String(options.source).replace(/'/g, "\\'");
+        if (type) {
+          goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
+        } else {
+          goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+        }
+      } else if (options.id) {
         const safeId = String(options.id).replace(/'/g, "''");
         goal = `kb_entity('${safeId}', '${type}', Props), Id = '${safeId}', Type = '${type}', Result = [Id, Type, Props]`;
       } else if (options.tag) {
@@ -123,7 +180,7 @@ export async function queryCommand(
       await prolog.query("kb_detach");
       await prolog.terminate();
       console.error(
-        "Error: Must specify entity type or --relationships option",
+        "Error: Must specify entity type, --source, or --relationships option",
       );
       process.exit(1);
     }
@@ -183,7 +240,7 @@ function parseListOfLists(listStr: string): string[][] {
     const char = cleaned[i];
     const prevChar = i > 0 ? cleaned[i - 1] : "";
 
-    if (char === '"' && prevChar !== "\") {
+    if (char === '"' && prevChar !== "\\") {
       inQuotes = !inQuotes;
       current += char;
       continue;
@@ -363,9 +420,17 @@ function parsePrologValue(value: string): any {
     return value.substring(1, value.length - 1);
   }
 
-  // Handle quoted atom
+  // Handle quoted atom (may contain file URLs that need extraction)
   if (value.startsWith("'") && value.endsWith("'")) {
-    return value.substring(1, value.length - 1);
+    const unquoted = value.substring(1, value.length - 1);
+    // Check if unquoted value is a file URL
+    if (unquoted.startsWith("file:///")) {
+      const lastSlash = unquoted.lastIndexOf("/");
+      if (lastSlash !== -1) {
+        return unquoted.substring(lastSlash + 1);
+      }
+    }
+    return unquoted;
   }
 
   // Handle list
@@ -397,7 +462,7 @@ function splitTopLevel(str: string, delimiter: string): string[] {
     const char = str[i];
     const prevChar = i > 0 ? str[i - 1] : "";
 
-    if (char === '"' && prevChar !== "\") {
+    if (char === '"' && prevChar !== "\\") {
       inQuotes = !inQuotes;
       current += char;
     } else if (!inQuotes && (char === "[" || char === "(")) {

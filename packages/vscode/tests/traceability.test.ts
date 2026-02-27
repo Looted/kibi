@@ -7,31 +7,40 @@
  *
  * These tests run under Bun without the VS Code runtime, so VS Code APIs are mocked.
  */
-import { describe, expect, test, mock, beforeEach } from "bun:test";
-import * as path from "node:path";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
+import * as path from "node:path";
 
 // ── Minimal VS Code API mock ────────────────────────────────────────────────
 
 const vscode = {
   TreeItemCollapsibleState: { None: 0, Collapsed: 1, Expanded: 2 },
-  ThemeIcon: class { constructor(public id: string) {} },
+  ThemeIcon: class {
+    constructor(public id: string) {}
+  },
   TreeItem: class {
     command?: unknown;
     resourceUri?: unknown;
     iconPath?: unknown;
     contextValue?: string;
     tooltip?: string;
-    constructor(public label: string, public collapsibleState: number) {}
+    constructor(
+      public label: string,
+      public collapsibleState: number,
+    ) {}
   },
   Uri: {
     file: (p: string) => ({ fsPath: p, scheme: "file", path: p }),
   },
   EventEmitter: class {
     private listeners: Array<(e: unknown) => void> = [];
-    event = (cb: (e: unknown) => void) => { this.listeners.push(cb); };
-    fire(e: unknown) { this.listeners.forEach((l) => l(e)); }
+    event = (cb: (e: unknown) => void) => {
+      this.listeners.push(cb);
+    };
+    fire(e: unknown) {
+      for (const listener of this.listeners) listener(e);
+    }
   },
   window: {
     showInformationMessage: mock(() => Promise.resolve(undefined)),
@@ -52,7 +61,10 @@ const vscode = {
   CodeActionKind: { Empty: "" },
   CodeAction: class {
     command?: unknown;
-    constructor(public title: string, public kind: string) {}
+    constructor(
+      public title: string,
+      public kind: string,
+    ) {}
   },
   Range: class {
     constructor(
@@ -61,11 +73,16 @@ const vscode = {
     ) {}
   },
   Position: class {
-    constructor(public line: number, public character: number) {}
+    constructor(
+      public line: number,
+      public character: number,
+    ) {}
   },
 };
 
 // Inject mock before the modules load
+// @ts-ignore
+const originalGlobalRequire = globalThis.require;
 // @ts-ignore
 globalThis.require = ((originalRequire) => (id: string) => {
   if (id === "vscode") return vscode;
@@ -73,13 +90,18 @@ globalThis.require = ((originalRequire) => (id: string) => {
   // @ts-ignore
 })(typeof require !== "undefined" ? require : () => ({}));
 
+afterAll(() => {
+  // @ts-ignore
+  globalThis.require = originalGlobalRequire;
+});
+
 // ── Helper: write a minimal kb.rdf with known entities + relationships ───────
 
 function writeTestRdf(dir: string): string {
   const rdfPath = path.join(dir, "kb.rdf");
   const rdf = `<?xml version="1.0"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-         xmlns:kb="http://kibi.dev/kb#">
+         xmlns:kb="urn:kibi:">
 
   <rdf:Description rdf:about="kb:entity/REQ-001">
     <kb:type>req</kb:type>
@@ -134,7 +156,11 @@ describe("treeProvider – localPath resolution", () => {
   test("resolves file:// URIs to pathnames", () => {
     const resolveLocalPath = (src: string, _root: string) => {
       if (src.startsWith("file://")) {
-        try { return new URL(src).pathname; } catch { return undefined; }
+        try {
+          return new URL(src).pathname;
+        } catch {
+          return undefined;
+        }
       }
       return undefined;
     };
@@ -155,7 +181,11 @@ describe("treeProvider – RDF relationship parsing", () => {
 
     const relBlockRe =
       /<rdf:Description rdf:about="kb:rel\/[^"]*">([\s\S]*?)<\/rdf:Description>/g;
-    const relationships: Array<{ relType: string; fromId: string; toId: string }> = [];
+    const relationships: Array<{
+      relType: string;
+      fromId: string;
+      toId: string;
+    }> = [];
 
     const extractText = (block: string, tag: string) => {
       const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
@@ -163,13 +193,16 @@ describe("treeProvider – RDF relationship parsing", () => {
       return m ? m[1].trim() : "";
     };
 
-    let m: RegExpExecArray | null;
-    while ((m = relBlockRe.exec(content)) !== null) {
-      const block = m[1];
+    let match: RegExpExecArray | null = relBlockRe.exec(content);
+    while (match !== null) {
+      const block = match[1];
       const relType = extractText(block, "kb:relType");
       const from = extractText(block, "kb:from");
       const to = extractText(block, "kb:to");
-      if (relType && from && to) relationships.push({ relType, fromId: from, toId: to });
+      if (relType && from && to)
+        relationships.push({ relType, fromId: from, toId: to });
+
+      match = relBlockRe.exec(content);
     }
 
     expect(relationships).toHaveLength(1);

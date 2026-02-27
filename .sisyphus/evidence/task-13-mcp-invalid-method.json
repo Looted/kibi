@@ -1,1 +1,5 @@
-{"jsonrpc":"2.0","id":1,"error":{"code":-32601,"message":"Unknown method: invalid_method"}}
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": { "code": -32601, "message": "Unknown method: invalid_method" }
+}

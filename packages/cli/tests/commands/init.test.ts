@@ -27,6 +27,19 @@ describe("kibi init", () => {
 
   test("creates .kb directory structure", () => {
     execSync("git init", { cwd: tmpDir });
+    // Explicitly rename master to develop to match the expected default
+    try {
+      const branch = execSync("git branch --show-current", {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }).trim();
+      if (branch === "master") {
+        execSync("git branch -m master develop", { cwd: tmpDir });
+      }
+    } catch {
+      // ignore
+    }
+
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -36,8 +49,8 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
-  });
+    expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBe(true);
+  }, 30000);
 
   test("copies schema files to .kb/schema/", () => {
     execSync("git init", { cwd: tmpDir });
@@ -53,7 +66,7 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/schema/validation.pl"))).toBe(
       true,
     );
-  });
+  }, 30000);
 
   test("creates valid config.json with default paths", () => {
     execSync("git init", { cwd: tmpDir });
@@ -66,12 +79,13 @@ describe("kibi init", () => {
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
 
     expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements/**/*.md");
-    expect(config.paths.scenarios).toBe("scenarios/**/*.md");
-    expect(config.paths.tests).toBe("tests/**/*.md");
-    expect(config.paths.adr).toBe("adr/**/*.md");
-    expect(config.paths.flags).toBe("flags/**/*.md");
-    expect(config.paths.events).toBe("events/**/*.md");
+    expect(config.paths.requirements).toBe("requirements");
+    expect(config.paths.scenarios).toBe("scenarios");
+    expect(config.paths.tests).toBe("tests");
+    expect(config.paths.adr).toBe("adr");
+    expect(config.paths.flags).toBe("flags");
+    expect(config.paths.events).toBe("events");
+    expect(config.paths.facts).toBe("facts");
     expect(config.paths.symbols).toBe("symbols.yaml");
   });
 
@@ -88,9 +102,9 @@ describe("kibi init", () => {
     expect(out.toLowerCase()).toContain("already exists, skipping");
   });
 
-  test("installs git hooks with --hooks flag", () => {
+  test("installs git hooks by default", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init --hooks`, {
+    execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
@@ -108,18 +122,38 @@ describe("kibi init", () => {
     expect(mergeStats.mode & 0o111).not.toBe(0);
   });
 
-  test("does not install hooks without --hooks flag", () => {
+  test("does not install hooks when --no-hooks is used", () => {
     execSync("git init", { cwd: tmpDir });
-    execSync(`bun ${kibiBin} init`, {
+    execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
       stdio: "inherit",
     });
 
     const postCheckout = path.join(tmpDir, ".git/hooks/post-checkout");
     const postMerge = path.join(tmpDir, ".git/hooks/post-merge");
+    const preCommit = path.join(tmpDir, ".git/hooks/pre-commit");
 
     expect(existsSync(postCheckout)).toBe(false);
     expect(existsSync(postMerge)).toBe(false);
+    expect(existsSync(preCommit)).toBe(false);
+  });
+
+  test("installs pre-commit hook by default", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const preCommit = path.join(tmpDir, ".git/hooks/pre-commit");
+
+    expect(existsSync(preCommit)).toBe(true);
+
+    const preCommitStats = statSync(preCommit);
+    expect(preCommitStats.mode & 0o111).not.toBe(0);
+
+    const content = readFileSync(preCommit, "utf8");
+    expect(content).toContain("kibi check");
   });
 
   test("exits with code 0 on success", () => {

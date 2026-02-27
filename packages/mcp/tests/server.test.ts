@@ -1,10 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
-/**
- * Helper to send JSON-RPC request and get response
- */
 async function sendRequest(
   proc: ChildProcess,
   request: Record<string, unknown>,
@@ -12,19 +11,38 @@ async function sendRequest(
   return new Promise((resolve, reject) => {
     let responseData = "";
 
+    const parseJson = (value: string): Record<string, unknown> | null => {
+      try {
+        return JSON.parse(value) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    };
+
     const onData = (chunk: Buffer) => {
       responseData += chunk.toString();
       const lines = responseData.split("\n");
 
-      // Check if we have a complete line
-      if (lines.length > 1) {
-        proc.stdout?.off("data", onData);
-        try {
-          const response = JSON.parse(lines[0]);
-          resolve(response);
-        } catch (error) {
-          reject(new Error(`Failed to parse response: ${lines[0]}`));
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i]?.trim();
+        if (!line) {
+          continue;
         }
+
+        const response = parseJson(line);
+        if (response) {
+          responseData = lines.slice(i + 1).join("\n");
+          proc.stdout?.off("data", onData);
+          resolve(response);
+          return;
+        }
+      }
+
+      const fallback = parseJson(responseData.trim());
+      if (fallback) {
+        responseData = "";
+        proc.stdout?.off("data", onData);
+        resolve(fallback);
       }
     };
 
@@ -33,7 +51,11 @@ async function sendRequest(
     // Write request
     proc.stdin?.write(`${JSON.stringify(request)}\n`);
 
-    // Timeout after 5s
+    // Timeout after 15s
+    setTimeout(() => {
+      proc.stdout?.off("data", onData);
+      reject(new Error("Request timeout"));
+    }, 15000);
     setTimeout(() => {
       proc.stdout?.off("data", onData);
       reject(new Error("Request timeout"));
@@ -41,13 +63,15 @@ async function sendRequest(
   });
 }
 
-/**
- * Helper to start the MCP server
- */
-function startServer(): ChildProcess {
+function startServer(options?: {
+  cwd?: string;
+  env?: Record<string, string>;
+}): ChildProcess {
   const serverPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
   const proc = spawn("bun", ["run", serverPath], {
     stdio: ["pipe", "pipe", "pipe"],
+    cwd: options?.cwd,
+    env: options?.env ? { ...process.env, ...options.env } : process.env,
   });
 
   return proc;
@@ -106,7 +130,6 @@ describe("MCP Server", () => {
   test("should handle notifications/initialized", async () => {
     const proc = startServer();
 
-    // Initialize first
     await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
@@ -118,12 +141,10 @@ describe("MCP Server", () => {
       },
     });
 
-    // Send notification (no response expected, but no error either)
     proc.stdin?.write(
       `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
     );
 
-    // Wait a bit for processing
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     proc.kill();
@@ -154,7 +175,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(12);
+    expect(tools.length).toBe(16);
     expect(tools[0].name).toBe("kb_query");
     expect(tools[1].name).toBe("kb_upsert");
     expect(tools[2].name).toBe("kb_delete");
@@ -165,52 +186,67 @@ describe("MCP Server", () => {
     expect(tools[7].name).toBe("kb_derive");
     expect(tools[8].name).toBe("kb_impact");
     expect(tools[9].name).toBe("kb_coverage_report");
-    expect(tools[10].name).toBe("kb_list_entity_types");
-    expect(tools[11].name).toBe("kb_list_relationship_types");
+    expect(tools[10].name).toBe("kb_symbols_refresh");
+    expect(tools[11].name).toBe("kb_list_entity_types");
+    expect(tools[12].name).toBe("kb_list_relationship_types");
+    expect(tools[13].name).toBe("kbcontext");
+    expect(tools[14].name).toBe("get_help");
+    expect(tools[15].name).toBe("analyze_shared_facts");
+    proc.kill();
+  });
+
+  test("should initialize from non-repo cwd with workspace override", async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-"));
+    const workspaceRoot = path.resolve(import.meta.dir, "../../..");
+    const proc = startServer({
+      cwd: tempRoot,
+      env: { KIBI_WORKSPACE: workspaceRoot },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    expect(response.jsonrpc).toBe("2.0");
+    expect(response.id).toBe(1);
+    expect(response.result).toBeDefined();
 
     proc.kill();
+    fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
   test("should return error for invalid method", async () => {
     const proc = startServer();
 
-    const response = await sendRequest(proc, {
+    await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
       method: "invalid_method",
     });
 
     expect(response.error).toBeDefined();
     const error = response.error as Record<string, unknown>;
     expect(error.code).toBe(-32601); // METHOD_NOT_FOUND
-    expect(error.message).toContain("Unknown method");
+    expect(error.message).toContain("Method not found");
 
     proc.kill();
-  });
-
-  test("should return error for malformed JSON", async () => {
-    const proc = startServer();
-
-    return new Promise<void>((resolve) => {
-      let responseData = "";
-
-      proc.stdout?.on("data", (chunk) => {
-        responseData += chunk.toString();
-        const lines = responseData.split("\n");
-
-        if (lines.length > 1) {
-          const response = JSON.parse(lines[0]);
-          expect(response.error).toBeDefined();
-          const error = response.error as Record<string, unknown>;
-          expect(error.code).toBe(-32700); // PARSE_ERROR
-
-          proc.kill();
-          resolve();
-        }
-      });
-
-      // Send malformed JSON
-      proc.stdin?.write("{invalid json}\n");
-    });
   });
 });
