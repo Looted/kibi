@@ -1,16 +1,53 @@
 {
-  "name": "@kibi/cli",
+  "name": "kibi-cli",
   "version": "0.1.0",
-  "private": true,
+  "type": "module",
+  "description": "Kibi CLI for knowledge base management",
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.0"
+  },
+  "main": "./dist/cli.js",
   "bin": {
     "kibi": "./bin/kibi"
   },
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/cli.d.ts",
+      "default": "./dist/cli.js"
+    },
+    "./prolog": {
+      "types": "./dist/public/prolog/index.d.ts",
+      "default": "./dist/public/prolog/index.js"
+    },
+    "./extractors/symbols-coordinator": {
+      "types": "./dist/public/extractors/symbols-coordinator.d.ts",
+      "default": "./dist/public/extractors/symbols-coordinator.js"
+    },
+    "./schemas/entity": {
+      "types": "./dist/public/schemas/entity.d.ts",
+      "default": "./dist/public/schemas/entity.js"
+    },
+    "./schemas/relationship": {
+      "types": "./dist/public/schemas/relationship.d.ts",
+      "default": "./dist/public/schemas/relationship.js"
+    }
+  },
+  "types": "./dist/cli.d.ts",
   "dependencies": {
     "ajv": "^8.12.0",
     "cli-table3": "^0.6.5",
     "commander": "^11.0.0",
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.0"
-  }
+    "js-yaml": "^4.1.0",
+    "ts-morph": "^23.0.0"
+  },
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk"
 }

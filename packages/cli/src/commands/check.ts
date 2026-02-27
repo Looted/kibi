@@ -1,11 +1,55 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
-
 export interface CheckOptions {
   fix?: boolean;
 }
 
-interface Violation {
+export interface Violation {
   rule: string;
   entityId: string;
   description: string;
@@ -28,17 +72,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     }
 
     const violations: Violation[] = [];
-
-    const allEntityIds = await getAllEntityIds(prolog);
-
     violations.push(...(await checkMustPriorityCoverage(prolog)));
-
+    violations.push(...(await checkSymbolCoverage(prolog)));
     violations.push(...(await checkNoDanglingRefs(prolog)));
-
     violations.push(...(await checkNoCycles(prolog)));
-
+    const allEntityIds = await getAllEntityIds(prolog);
     violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
-
+    violations.push(...(await checkDeprecatedAdrs(prolog)));
+    violations.push(...(await checkDomainContradictions(prolog)));
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -47,8 +88,8 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       process.exit(0);
     }
 
-    console.log(`Found ${violations.length} violation(s):
-`);
+    console.log(`Found ${violations.length} violation(s):`);
+    console.log();
 
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;
@@ -91,7 +132,7 @@ async function checkMustPriorityCoverage(
     }
 
     const scenarioResult = await prolog.query(
-      `kb_relationship(specified_by, ScenarioId, '${reqId}')`,
+      `kb_relationship(specified_by, '${reqId}', ScenarioId)`,
     );
 
     const hasScenario = scenarioResult.success;
@@ -125,30 +166,7 @@ async function checkMustPriorityCoverage(
 }
 
 async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
-  const mustReqs: string[] = [];
-
-  const allReqIds = await getAllEntityIds(prolog, "req");
-
-  for (const reqId of allReqIds) {
-    const propsResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props), memberchk(priority=P, Props), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")`,
-    );
-
-    if (propsResult.success) {
-      mustReqs.push(reqId);
-    }
-  }
-
-  return mustReqs;
-}
-
-async function getAllEntityIds(
-  prolog: PrologProcess,
-  type?: string,
-): Promise<string[]> {
-  const typeFilter = type ? `, Type = ${type}` : "";
-  const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
-
+  const query = `findall(Id, (kb_entity(Id, req, Props), memberchk(priority=P, Props), (P = ^^("must", _) ; P = "must" ; P = 'must' ; (atom(P), atom_string(P, PS), sub_string(PS, _, 4, 0, "must")))), Ids)`;
   const result = await prolog.query(query);
 
   if (!result.success || !result.bindings.Ids) {
@@ -169,6 +187,31 @@ async function getAllEntityIds(
   return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
 }
 
+async function getAllEntityIds(
+  prolog: PrologProcess,
+  type?: string,
+): Promise<string[]> {
+  const typeFilter = type ? `, Type = ${type}` : "";
+  const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
+  const result = await prolog.query(query);
+
+  if (!result.success || !result.bindings.Ids) {
+    return [];
+  }
+
+  const idsStr = result.bindings.Ids;
+  const match = idsStr.match(/\[(.*)\]/);
+  if (!match) {
+    return [];
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return [];
+  }
+
+  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
+}
 async function checkNoDanglingRefs(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -183,6 +226,9 @@ async function checkNoDanglingRefs(
     "verified_by",
     "validates",
     "specified_by",
+    "constrains",
+    "requires_property",
+    "supersedes",
     "relates_to",
   ];
 
@@ -220,7 +266,6 @@ async function checkNoDanglingRefs(
         suggestion: "Remove relationship or create missing entity",
       });
     }
-
     if (!allEntityIds.has(rel.to)) {
       violations.push({
         rule: "no-dangling-refs",
@@ -264,7 +309,6 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   for (const depMatch of depMatches) {
     const from = depMatch[1].trim().replace(/^'|'$/g, "");
     const to = depMatch[2].trim().replace(/^'|'$/g, "");
-
     if (!graph.has(from)) {
       graph.set(from, []);
     }
@@ -324,7 +368,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
           entityId: cyclePath[0],
           description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
           suggestion:
-            "Break the cycle by removing one of the depends_on relationships",
+            "Break cycle by removing one of the depends_on relationships",
         });
         break; // Report only first cycle found
       }
@@ -378,4 +422,146 @@ async function checkRequiredFields(
   }
 
   return violations;
+}
+
+async function checkDeprecatedAdrs(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  // Use Prolog predicate to find deprecated ADRs without successors
+  const result = await prolog.query(
+    "setof(Id, deprecated_no_successor(Id), Ids)",
+  );
+
+  if (!result.success || !result.bindings.Ids) {
+    return violations;
+  }
+
+  const idsStr = result.bindings.Ids;
+  const match = idsStr.match(/\[(.*)\]/);
+  if (!match) {
+    return violations;
+  }
+
+  const content = match[1].trim();
+  if (!content) {
+    return violations;
+  }
+
+  const adrIds = content
+    .split(",")
+    .map((id) => id.trim().replace(/^'|'$/g, ""));
+
+  for (const adrId of adrIds) {
+    // Get source for better error message
+    const entityResult = await prolog.query(
+      `kb_entity('${adrId}', adr, Props)`,
+    );
+    let source = "";
+    if (entityResult.success && entityResult.bindings.Props) {
+      const propsStr = entityResult.bindings.Props;
+      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
+      if (sourceMatch) {
+        source = sourceMatch[1];
+      }
+    }
+
+    violations.push({
+      rule: "deprecated-adr-no-successor",
+      entityId: adrId,
+      description:
+        "Archived/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
+      suggestion: `Create a new ADR and add: links: [{type: supersedes, target: ${adrId}}]`,
+      source,
+    });
+  }
+
+  return violations;
+}
+
+async function checkDomainContradictions(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    "setof([A,B,Reason], contradicting_reqs(A, B, Reason), Rows)",
+  );
+
+  if (!result.success || !result.bindings.Rows) {
+    return violations;
+  }
+
+  const rows = parseTripleRows(result.bindings.Rows);
+
+  for (const [reqA, reqB, reason] of rows) {
+    violations.push({
+      rule: "domain-contradictions",
+      entityId: `${reqA}/${reqB}`,
+      description: reason,
+      suggestion:
+        "Supersede one requirement or align both to the same required property",
+    });
+  }
+
+  return violations;
+}
+
+async function checkSymbolCoverage(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const uncoveredResult = await prolog.query(
+    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)"
+  );
+
+  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
+    const symbolsStr = uncoveredResult.bindings.Symbols;
+    const match = symbolsStr.match(/\[(.*)\]/);
+
+    if (match) {
+      const content = match[1].trim();
+      if (content) {
+        const symbolMatches = content.matchAll(/'([^']+)'/g);
+        for (const symbolMatch of symbolMatches) {
+          const symbolId = symbolMatch[1];
+          violations.push({
+            rule: "symbol-coverage",
+            entityId: symbolId,
+            description:
+              "Code symbol is not traceable to any functional requirement.",
+            suggestion:
+              "Update symbols.yaml to link this symbol to a related requirement.",
+          });
+        }
+      }
+    }
+  }
+
+  return violations;
+}
+
+
+function parseTripleRows(raw: string): Array<[string, string, string]> {
+  const cleaned = raw.trim();
+  if (cleaned === "[]" || cleaned.length === 0) {
+    return [];
+  }
+
+  const rows: Array<[string, string, string]> = [];
+  const rowRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
+  let match: RegExpExecArray | null;
+  do {
+    match = rowRegex.exec(cleaned);
+    if (match) {
+      rows.push([
+        match[1].trim().replace(/^'|'$/g, ""),
+        match[2].trim().replace(/^'|'$/g, ""),
+        match[3].trim().replace(/^'|'$/g, ""),
+      ]);
+    }
+  } while (match);
+  return rows;
 }

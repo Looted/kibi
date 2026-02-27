@@ -1,7 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "@kibi/cli/src/prolog.js";
+import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverageReport } from "../../src/tools/coverage-report.js";
 import { handleKbDerive } from "../../src/tools/derive.js";
 import { handleKbImpact } from "../../src/tools/impact.js";
@@ -11,10 +12,9 @@ describe("MCP Inference Tool Handlers", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = path.join(process.cwd(), ".kb-test-mcp-inference");
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
-    await fs.mkdir(testKbPath, { recursive: true });
+    testKbPath = await fs.mkdtemp(
+      path.join(os.tmpdir(), "kibi-mcp-inference-"),
+    );
 
     prolog = new PrologProcess();
     await prolog.start();
@@ -105,7 +105,9 @@ describe("MCP Inference Tool Handlers", () => {
       params: { symbol: "symbol-orphan" },
     });
 
-    expect(result.structuredContent.rows).toEqual([{ symbol: "symbol-orphan" }]);
+    expect(result.structuredContent.rows).toEqual([
+      { symbol: "symbol-orphan" },
+    ]);
   });
 
   test("kb_derive conflicting returns ADR conflicts", async () => {
@@ -132,14 +134,78 @@ describe("MCP Inference Tool Handlers", () => {
     });
   });
 
+  test("kb_derive current_adr returns active ADRs", async () => {
+    const result = await handleKbDerive(prolog, {
+      rule: "current_adr",
+      params: {},
+    });
+
+    expect(result.structuredContent.rule).toBe("current_adr");
+    expect(result.structuredContent.count).toBeGreaterThanOrEqual(1);
+    expect(result.structuredContent.rows).toContainEqual({
+      id: "adr-a",
+      title: "ADR A",
+    });
+  });
+
+  test("kb_derive adr_chain returns temporal chain", async () => {
+    const result = await handleKbDerive(prolog, {
+      rule: "adr_chain",
+      params: { adr: "adr-legacy" },
+    });
+
+    expect(result.structuredContent.rule).toBe("adr_chain");
+    expect(result.structuredContent.count).toBe(2);
+    expect(result.structuredContent.rows).toContainEqual({
+      id: "adr-legacy",
+      title: "Legacy ADR",
+      status: "deprecated",
+    });
+    expect(result.structuredContent.rows).toContainEqual({
+      id: "adr-new",
+      title: "New ADR",
+      status: "active",
+    });
+  });
+
+  test("kb_derive superseded_by returns direct successor", async () => {
+    const result = await handleKbDerive(prolog, {
+      rule: "superseded_by",
+      params: { adr: "adr-legacy" },
+    });
+
+    expect(result.structuredContent.rule).toBe("superseded_by");
+    expect(result.structuredContent.count).toBe(1);
+    expect(result.structuredContent.rows[0]).toEqual({
+      adr: "adr-legacy",
+      successor_id: "adr-new",
+      successor_title: "New ADR",
+    });
+  });
+
+  test("kb_derive domain_contradictions returns conflicting requirements", async () => {
+    const result = await handleKbDerive(prolog, {
+      rule: "domain_contradictions",
+      params: {},
+    });
+
+    expect(result.structuredContent.rule).toBe("domain_contradictions");
+    expect(result.structuredContent.count).toBe(1);
+    expect(result.structuredContent.rows[0]).toEqual({
+      reqA: "req-role-2",
+      reqB: "req-role-3",
+      reason: "Conflict on fact-user-role: fact-limit-2 vs fact-limit-3",
+    });
+  });
+
   test("kb_impact returns typed impacted entities", async () => {
     const result = await handleKbImpact(prolog, { entity: "req-base" });
 
     expect(result.structuredContent.entity).toBe("req-base");
     expect(result.structuredContent.count).toBeGreaterThan(0);
-    expect(result.structuredContent.impacted.some((x) => x.id === "req-ui")).toBe(
-      true,
-    );
+    expect(
+      result.structuredContent.impacted.some((x) => x.id === "req-ui"),
+    ).toBe(true);
   });
 
   test("kb_coverage_report (all) returns req and symbol stats", async () => {
@@ -148,10 +214,12 @@ describe("MCP Inference Tool Handlers", () => {
     expect(result.structuredContent.requested_type).toBe("all");
     expect(result.structuredContent.coverage.requirements).toBeDefined();
     expect(result.structuredContent.coverage.symbols).toBeDefined();
-    expect(result.structuredContent.coverage.requirements?.gaps).toContainEqual({
-      req: "req-gap",
-      reason: "missing_scenario_and_test",
-    });
+    expect(result.structuredContent.coverage.requirements?.gaps).toContainEqual(
+      {
+        req: "req-gap",
+        reason: "missing_scenario_and_test",
+      },
+    );
   });
 
   test("kb_coverage_report accepts focused type filter", async () => {
@@ -172,14 +240,20 @@ async function seedGraph(prolog: PrologProcess): Promise<void> {
     `kb_assert_entity(req, [id='req-ui', title="UI requirement", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(req, [id='req-gap', title="Gap requirement", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference", priority=must])`,
     `kb_assert_entity(req, [id='req-legacy', title="Legacy requirement", status=active, created_at="${legacyTime}", updated_at="${legacyTime}", source="test://inference"])`,
+    `kb_assert_entity(req, [id='req-role-2', title="Users have max 2 roles", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(req, [id='req-role-3', title="Users have max 3 roles", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(test, [id='test-base', title="Test validates base", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(symbol, [id='symbol-core', title="Core symbol", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(symbol, [id='symbol-via-test', title="Symbol tested against base", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(symbol, [id='symbol-orphan', title="Orphan symbol", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(symbol, [id='symbol-conflict', title="Conflict symbol", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
-    `kb_assert_entity(adr, [id='adr-legacy', title="Legacy ADR", status=archived, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(adr, [id='adr-legacy', title="Legacy ADR", status=deprecated, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(adr, [id='adr-a', title="ADR A", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     `kb_assert_entity(adr, [id='adr-b', title="ADR B", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(adr, [id='adr-new', title="New ADR", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(fact, [id='fact-user-role', title="User Role Assignment", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(fact, [id='fact-limit-2', title="Maximum of Two", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
+    `kb_assert_entity(fact, [id='fact-limit-3', title="Maximum of Three", status=active, created_at="${standardTime}", updated_at="${standardTime}", source="test://inference"])`,
     "kb_assert_relationship(depends_on, 'req-ui', 'req-base', [])",
     "kb_assert_relationship(validates, 'test-base', 'req-base', [])",
     "kb_assert_relationship(implements, 'symbol-core', 'req-base', [])",
@@ -187,6 +261,11 @@ async function seedGraph(prolog: PrologProcess): Promise<void> {
     "kb_assert_relationship(constrained_by, 'symbol-core', 'adr-legacy', [])",
     "kb_assert_relationship(constrained_by, 'symbol-conflict', 'adr-a', [])",
     "kb_assert_relationship(constrained_by, 'symbol-conflict', 'adr-b', [])",
+    "kb_assert_relationship(supersedes, 'adr-new', 'adr-legacy', [])",
+    "kb_assert_relationship(constrains, 'req-role-2', 'fact-user-role', [])",
+    "kb_assert_relationship(constrains, 'req-role-3', 'fact-user-role', [])",
+    "kb_assert_relationship(requires_property, 'req-role-2', 'fact-limit-2', [])",
+    "kb_assert_relationship(requires_property, 'req-role-3', 'fact-limit-3', [])",
   ];
 
   const result = await prolog.query(goals);

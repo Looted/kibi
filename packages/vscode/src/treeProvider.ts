@@ -1,7 +1,55 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { execSync } from "node:child_process";
+import { exec } from "node:child_process";
+import { promisify } from "node:util";
 import * as vscode from "vscode";
+
+const execAsync = promisify(exec);
 
 export interface KibiTreeItem {
   label: string;
@@ -67,7 +115,7 @@ const REL_LABELS: Record<string, string> = {
 function isLocalPath(src: string): boolean {
   return (
     src.startsWith("/") ||
-    /^[A-Za-z]:[/\]/.test(src) ||
+    /^[A-Za-z]:[\\/]/.test(src) ||
     src.startsWith("file://")
   );
 }
@@ -85,7 +133,7 @@ function resolveLocalPath(
     }
   }
   if (src.startsWith("/")) return fs.existsSync(src) ? src : undefined;
-  if (/^[A-Za-z]:[/\]/.test(src)) return fs.existsSync(src) ? src : undefined;
+  if (/^[A-Za-z]:[\\/]/.test(src)) return fs.existsSync(src) ? src : undefined;
   // Relative path — resolve against workspace root
   const resolved = path.resolve(workspaceRoot, src);
   return fs.existsSync(resolved) ? resolved : undefined;
@@ -168,28 +216,34 @@ export class KibiTreeDataProvider
     return this.getRootItems();
   }
 
-  private getCurrentBranch(): string {
+  private async getCurrentBranch(): Promise<string> {
     try {
-      const branch = execSync("git branch --show-current", {
+      const { stdout } = await execAsync("git branch --show-current", {
         cwd: this.workspaceRoot,
         encoding: "utf8",
         timeout: 3000,
-      }).trim();
-      if (!branch || branch === "master") return "main";
+      });
+      const branch = stdout.trim();
+      if (!branch || branch === "master") return "develop";
       return branch;
     } catch {
-      return "main";
+      return "develop";
     }
   }
 
-  private getKbRdfPath(): string | null {
-    const branch = this.getCurrentBranch();
+  private async getKbRdfPath(): Promise<string | null> {
+    const branch = await this.getCurrentBranch();
     const candidates = [
       path.join(this.workspaceRoot, ".kb", "branches", branch, "kb.rdf"),
-      path.join(this.workspaceRoot, ".kb", "branches", "main", "kb.rdf"),
+      path.join(this.workspaceRoot, ".kb", "branches", "develop", "kb.rdf"),
     ];
     for (const p of candidates) {
-      if (fs.existsSync(p)) return p;
+      try {
+        await fs.promises.access(p);
+        return p;
+      } catch {
+        // continue
+      }
     }
     return null;
   }
@@ -199,11 +253,11 @@ export class KibiTreeDataProvider
     this.entities = [];
     this.relationships = [];
 
-    const rdfPath = this.getKbRdfPath();
+    const rdfPath = await this.getKbRdfPath();
     if (!rdfPath) return;
 
     try {
-      const content = fs.readFileSync(rdfPath, "utf8");
+      const content = await fs.promises.readFile(rdfPath, "utf8");
       this.entities = this.parseRdf(content);
       this.relationships = this.parseRdfRelationships(content);
     } catch {
@@ -214,13 +268,14 @@ export class KibiTreeDataProvider
   /**
    * Parse entities from kb.rdf using regex.
    * Each entity is an rdf:Description block containing kb:type, kb:title, kb:id etc.
+   * Supports both prefixed (kb:entity/ID) and full URI (urn:kibi:entity/ID) formats.
    */
   private parseRdf(content: string): KbEntity[] {
     const entities: KbEntity[] = [];
 
-    // Match each rdf:Description block
+    // Match each rdf:Description block - supports both kb:entity/ and full URI
     const blockRe =
-      /<rdf:Description rdf:about="kb:entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
 
     let match: RegExpExecArray | null;
     while ((match = blockRe.exec(content)) !== null) {
@@ -234,10 +289,9 @@ export class KibiTreeDataProvider
       const source = this.extractText(block, "kb:source");
 
       if (id && type && title) {
-        const localPath =
-          isLocalPath(source)
-            ? resolveLocalPath(source, this.workspaceRoot)
-            : undefined;
+        const localPath = isLocalPath(source)
+          ? resolveLocalPath(source, this.workspaceRoot)
+          : undefined;
         entities.push({ id, type, title, status, tags, source, localPath });
       }
     }
@@ -248,52 +302,57 @@ export class KibiTreeDataProvider
   /**
    * Parse relationships from kb.rdf.
    *
-   * Two formats are attempted in order:
-   *   1. Dedicated rdf:Description blocks with rdf:about="kb:rel/..."
-   *   2. Inline relationship resource references inside entity blocks
+   * Relationships are stored as inline property triples inside entity blocks:
+   *   <kb:depends_on rdf:resource="urn:kibi:entity/REQ-002"/>
+   *
+   * This method extracts all such triples by scanning entity blocks.
    */
   private parseRdfRelationships(content: string): KbRelationship[] {
     const relationships: KbRelationship[] = [];
 
-    // Format 1: dedicated relationship blocks
-    const relBlockRe =
-      /<rdf:Description rdf:about="kb:rel\/[^"]*">([\s\S]*?)<\/rdf:Description>/g;
-    let match: RegExpExecArray | null;
-    let foundDedicated = false;
+    // Known relationship types from the KB schema
+    const relTypes = [
+      "depends_on",
+      "specified_by",
+      "verified_by",
+      "implements",
+      "covered_by",
+      "constrained_by",
+      "guards",
+      "publishes",
+      "consumes",
+      "relates_to",
+    ];
 
-    while ((match = relBlockRe.exec(content)) !== null) {
-      foundDedicated = true;
-      const block = match[1];
-      const relType =
-        this.extractText(block, "kb:relType") ||
-        this.extractResourceSuffix(block, "kb:relType");
-      const from =
-        this.extractText(block, "kb:from") ||
-        this.extractResourceSuffix(block, "kb:from");
-      const to =
-        this.extractText(block, "kb:to") ||
-        this.extractResourceSuffix(block, "kb:to");
-      if (relType && from && to) {
-        relationships.push({ relType, fromId: from, toId: to });
+    // Match each rdf:Description block to get the source entity ID
+    const blockRe =
+      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
+
+    let blockMatch: RegExpExecArray | null;
+    while ((blockMatch = blockRe.exec(content)) !== null) {
+      const fromId = blockMatch[1];
+      const block = blockMatch[2];
+
+      // For each relationship type, find all rdf:resource references
+      for (const relType of relTypes) {
+        // Match <kb:relType rdf:resource="...entity/TOID"/>
+        const relRe = new RegExp(
+          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
+          "g",
+        );
+        let relMatch: RegExpExecArray | null;
+        while ((relMatch = relRe.exec(block)) !== null) {
+          const toId = relMatch[1];
+          relationships.push({ relType, fromId, toId });
+        }
       }
-    }
-
-    if (foundDedicated) return relationships;
-
-    // Format 2: inline resource references
-    // <kb:relationship rdf:resource="kb:RELTYPE/FROM/TO"/>
-    const inlineRe =
-      /<kb:relationship[^>]+rdf:resource="kb:([^/]+)\/([^/]+)\/([^"]+)"[^>]*\/?>/g;
-    while ((match = inlineRe.exec(content)) !== null) {
-      const [, relType, fromId, toId] = match;
-      relationships.push({ relType, fromId, toId });
     }
 
     return relationships;
   }
 
   private extractText(block: string, tag: string): string {
-    const re = new RegExp(`<${tag}[^>]*>([\s\S]*?)<\/${tag}>`);
+    const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
     const m = block.match(re);
     return m ? m[1].trim() : "";
   }
@@ -360,8 +419,7 @@ export class KibiTreeDataProvider
         relChildren.length > 0
           ? vscode.TreeItemCollapsibleState.Collapsed
           : vscode.TreeItemCollapsibleState.None,
-      tooltip: tooltipLines.join("
-"),
+      tooltip: tooltipLines.join("\n"),
       localPath: e.localPath,
       children: relChildren,
     };

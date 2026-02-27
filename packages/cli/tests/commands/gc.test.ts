@@ -1,5 +1,6 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const kibiBin = path.resolve(__dirname, "../../bin/kibi");
@@ -9,54 +10,65 @@ function runArgs(args: string[], cwd: string) {
 }
 
 describe("kibi gc", () => {
-  const tmp = path.resolve(__dirname, "tmp-gc");
+  let tmpDir: string;
 
   beforeEach(() => {
-    if (fs.existsSync(tmp)) fs.rmSync(tmp, { recursive: true, force: true });
-    fs.mkdirSync(tmp, { recursive: true });
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-gc-"));
     // init git repo
-    spawnSync("git", ["init"], { cwd: tmp });
-    fs.writeFileSync(path.join(tmp, "README.md"), "init\n");
-    spawnSync("git", ["add", "README.md"], { cwd: tmp });
-    spawnSync("git", ["commit", "-m", "init"], { cwd: tmp });
-    fs.mkdirSync(path.join(tmp, ".kb/branches"), { recursive: true });
+    spawnSync("git", ["init"], { cwd: tmpDir });
+    spawnSync("git", ["config", "user.email", "test@example.com"], {
+      cwd: tmpDir,
+    });
+    spawnSync("git", ["config", "user.name", "Kibi Test"], { cwd: tmpDir });
+    fs.writeFileSync(path.join(tmpDir, "README.md"), "init\n");
+    spawnSync("git", ["add", "README.md"], { cwd: tmpDir });
+    spawnSync("git", ["commit", "-m", "init"], { cwd: tmpDir });
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches"), { recursive: true });
     // create main and stale branch dirs
-    fs.mkdirSync(path.join(tmp, ".kb/branches/main"));
-    fs.mkdirSync(path.join(tmp, ".kb/branches/old-branch"));
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/main"));
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch"));
     // create a git branch that matches 'keep-branch'
-    spawnSync("git", ["checkout", "-b", "keep-branch"], { cwd: tmp });
+    spawnSync("git", ["checkout", "-b", "keep-branch"], { cwd: tmpDir });
+    // Create KB branch matching git branch
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/keep-branch"), {
+      recursive: true,
+    });
   });
 
   afterEach(() => {
-    if (fs.existsSync(tmp)) fs.rmSync(tmp, { recursive: true, force: true });
+    if (tmpDir && fs.existsSync(tmpDir)) {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
   });
 
   test("dry-run does not delete stale KB", () => {
-    const res = runArgs(["gc", "--dry-run"], tmp);
+    const res = runArgs(["gc", "--dry-run"], tmpDir);
     expect(res.status).toBe(0);
-    expect(fs.existsSync(path.join(tmp, ".kb/branches/old-branch"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
+      true,
+    );
     expect(res.stdout).toMatch(/Found 1 stale branch KB/);
   });
 
   test("force deletes stale KB", () => {
-    const res = runArgs(["gc", "--force"], tmp);
-    expect(fs.existsSync(path.join(tmp, ".kb/branches/old-branch"))).toBe(
+    const res = runArgs(["gc", "--force"], tmpDir);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
       false,
     );
     expect(res.stdout).toMatch(/Deleted 1 stale branch KB/);
   });
 
   test("main is preserved", () => {
-    const res = runArgs(["gc", "--force"], tmp);
-    expect(fs.existsSync(path.join(tmp, ".kb/branches/main"))).toBe(true);
+    const res = runArgs(["gc", "--force"], tmpDir);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
   });
 
   test("no stale branches reports zero", () => {
-    fs.rmSync(path.join(tmp, ".kb/branches/old-branch"), {
+    fs.rmSync(path.join(tmpDir, ".kb/branches/old-branch"), {
       recursive: true,
       force: true,
     });
-    const res = runArgs(["gc", "--dry-run"], tmp);
+    const res = runArgs(["gc", "--dry-run"], tmpDir);
     expect(res.stdout).toMatch(/Found 0 stale branch KB/);
   });
 });

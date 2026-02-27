@@ -3,7 +3,12 @@
   "scenario": "Run validation rules on kibi knowledge base",
   "timestamp": "2026-02-17T00:00:00Z",
   "input": {
-    "rules": ["must-priority-coverage", "required-fields", "no-dangling-refs", "no-cycles"]
+    "rules": [
+      "must-priority-coverage",
+      "required-fields",
+      "no-dangling-refs",
+      "no-cycles"
+    ]
   },
   "output": {
     "content": [

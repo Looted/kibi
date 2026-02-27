@@ -1,13 +1,20 @@
 {
   "name": "kibi",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.4",
+  "private": false,
+  "license": "AGPL-3.0-or-later",
+  "author": "Piotr Franczyk",
   "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun test",
     "check": "biome check .",
     "format": "biome format --write .",
-    "pack:drive": "./scripts/pack-to-drive.sh"
+    "pack:drive": "./scripts/pack-to-drive.sh",
+    "build:cli": "bun --filter ./packages/cli build",
+    "build:mcp": "bun --filter ./packages/mcp build",
+    "build": "bun run build:cli && bun run build:mcp",
+    "release:npm": "bun run build && npm publish --workspaces",
+    "release:bun": "bun run build && bun publish --workspaces"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",

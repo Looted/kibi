@@ -390,6 +390,101 @@ test(affected_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     affected_symbols('req-base', Symbols),
     memberchk('sym-child', Symbols).
 
+test(contradicting_reqs, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='fact-user-role',
+        title="User Role Assignment",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-2',
+        title="Maximum of Two",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-3',
+        title="Maximum of Three",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-2',
+        title="Users have max 2 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-3',
+        title="Users have max 3 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'req-role-2', 'fact-user-role', []),
+    kb_assert_relationship(constrains, 'req-role-3', 'fact-user-role', []),
+    kb_assert_relationship(requires_property, 'req-role-2', 'fact-limit-2', []),
+    kb_assert_relationship(requires_property, 'req-role-3', 'fact-limit-3', []),
+    contradicting_reqs('req-role-2', 'req-role-3', _).
+
+test(contradicting_reqs_ignores_superseded, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='fact-user-role',
+        title="User Role Assignment",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-2',
+        title="Maximum of Two",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(fact, [
+        id='fact-limit-3',
+        title="Maximum of Three",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-2',
+        title="Users have max 2 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='req-role-3',
+        title="Users have max 3 roles",
+        status=active,
+        created_at="2026-02-20T00:00:00Z",
+        updated_at="2026-02-20T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'req-role-2', 'fact-user-role', []),
+    kb_assert_relationship(constrains, 'req-role-3', 'fact-user-role', []),
+    kb_assert_relationship(requires_property, 'req-role-2', 'fact-limit-2', []),
+    kb_assert_relationship(requires_property, 'req-role-3', 'fact-limit-3', []),
+    kb_assert_relationship(supersedes, 'req-role-3', 'req-role-2', []),
+    \+ contradicting_reqs(_, _, _).
+
 :- end_tests(kb_inference).
 
 % Test setup/cleanup helpers

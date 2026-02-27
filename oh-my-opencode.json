@@ -12,10 +12,7 @@
         "--",
         "stdio"
       ],
-      "extensions": [
-        ".pl",
-        ".prolog"
-      ]
+      "extensions": [".pl", ".prolog", ".plt"]
     }
   }
 }

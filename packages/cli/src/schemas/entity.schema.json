@@ -15,7 +15,8 @@
         "approved",
         "rejected",
         "pending",
-        "in_progress"
+        "in_progress",
+        "superseded"
       ]
     },
     "created_at": { "type": "string" },
@@ -29,7 +30,16 @@
     "text_ref": { "type": "string" },
     "type": {
       "type": "string",
-      "enum": ["req", "scenario", "test", "adr", "flag", "event", "symbol"]
+      "enum": [
+        "req",
+        "scenario",
+        "test",
+        "adr",
+        "flag",
+        "event",
+        "symbol",
+        "fact"
+      ]
     }
   },
   "required": [

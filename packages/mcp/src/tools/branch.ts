@@ -1,7 +1,53 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+import type { PrologProcess } from "kibi-cli/prolog";
+import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 
 export interface BranchEnsureArgs {
   branch: string;
@@ -31,7 +77,7 @@ export interface BranchGcResult {
  * Handle kb_branch_ensure tool calls - create branch KB if not exists
  */
 export async function handleKbBranchEnsure(
-  prolog: PrologProcess,
+  _prolog: PrologProcess,
   args: BranchEnsureArgs,
 ): Promise<BranchEnsureResult> {
   const { branch } = args;
@@ -41,15 +87,37 @@ export async function handleKbBranchEnsure(
   }
 
   // Sanitize branch name (prevent path traversal)
-  const safeBranch = branch.replace(/\.\./g, "").replace(/^\/+/, "");
-  if (safeBranch !== branch) {
+  const isSafe = (name: string) => {
+    // No empty or excessively long names
+    if (!name || name.length > 255) return false;
+    // No path traversal or absolute paths
+    if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
+      return false;
+    }
+    // Whitelist characters (alphanumeric, dot, underscore, hyphen, forward slash)
+    if (!/^[a-zA-Z0-9._\-/]+$/.test(name)) return false;
+    // No redundant slashes or trailing slash/dot
+    if (
+      name.includes("//") ||
+      name.endsWith("/") ||
+      name.endsWith(".") ||
+      name.includes("\\")
+    ) {
+      return false;
+    }
+
+    return true;
+  };
+
+  if (!isSafe(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
+  const safeBranch = branch;
 
   try {
-    const kbRoot = path.resolve(process.cwd(), ".kb/branches");
-    const branchPath = path.join(kbRoot, safeBranch);
-    const mainPath = path.join(kbRoot, "main");
+    const workspaceRoot = resolveWorkspaceRoot();
+    const branchPath = resolveKbPath(workspaceRoot, safeBranch);
+    const developPath = resolveKbPath(workspaceRoot, "develop");
 
     // Check if branch KB already exists
     if (fs.existsSync(branchPath)) {
@@ -67,19 +135,19 @@ export async function handleKbBranchEnsure(
       };
     }
 
-    // Ensure main branch exists
-    if (!fs.existsSync(mainPath)) {
-      throw new Error("Main branch KB does not exist. Run 'kb init' first.");
+    // Ensure develop branch exists
+    if (!fs.existsSync(developPath)) {
+      throw new Error("Develop branch KB does not exist. Run 'kb init' first.");
     }
 
-    // Copy main branch KB to new branch
-    fs.cpSync(mainPath, branchPath, { recursive: true });
+    // Copy develop branch KB to new branch
+    fs.cpSync(developPath, branchPath, { recursive: true });
 
     return {
       content: [
         {
           type: "text",
-          text: `Created branch KB '${safeBranch}' from main`,
+          text: `Created branch KB '${safeBranch}' from develop`,
         },
       ],
       structuredContent: {
@@ -97,13 +165,14 @@ export async function handleKbBranchEnsure(
  * Handle kb_branch_gc tool calls - garbage collect stale branch KBs
  */
 export async function handleKbBranchGc(
-  prolog: PrologProcess,
+  _prolog: PrologProcess,
   args: BranchGcArgs,
 ): Promise<BranchGcResult> {
   const { dry_run = true } = args;
 
   try {
-    const kbRoot = path.resolve(process.cwd(), ".kb/branches");
+    const workspaceRoot = resolveWorkspaceRoot();
+    const kbRoot = path.dirname(resolveKbPath(workspaceRoot, "develop"));
 
     // Check if .kb/branches exists
     if (!fs.existsSync(kbRoot)) {
@@ -125,14 +194,14 @@ export async function handleKbBranchGc(
     try {
       execSync("git rev-parse --git-dir", {
         encoding: "utf-8",
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         stdio: ["pipe", "pipe", "pipe"],
         env: process.env,
       });
 
       const output = execSync("git branch --format='%(refname:short)'", {
         encoding: "utf-8",
-        cwd: process.cwd(),
+        cwd: workspaceRoot,
         stdio: ["pipe", "pipe", "pipe"],
         env: process.env,
       });
@@ -156,9 +225,9 @@ export async function handleKbBranchGc(
       .filter((dirent) => dirent.isDirectory())
       .map((dirent) => dirent.name);
 
-    // Find stale branches (KB exists but git branch doesn't, excluding main)
+    // Find stale branches (KB exists but git branch doesn't, excluding develop)
     const staleBranches = kbBranches.filter(
-      (kb) => kb !== "main" && !gitBranches.has(kb),
+      (kb) => kb !== "develop" && !gitBranches.has(kb),
     );
 
     // Delete stale branches if not dry run

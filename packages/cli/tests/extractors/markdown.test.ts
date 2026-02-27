@@ -3,9 +3,49 @@ import { unlinkSync, writeFileSync } from "node:fs";
 import {
   FrontmatterError,
   extractFromMarkdown,
+  inferTypeFromPath,
 } from "../../src/extractors/markdown";
 
 describe("Markdown Extractor", () => {
+  describe("Type Inference", () => {
+    test("infers type from path for all supported directories", () => {
+      const cases = [
+        { path: "/path/to/requirements/REQ-001.md", expected: "req" },
+        { path: "/path/to/scenarios/SCEN-001.md", expected: "scenario" },
+        { path: "/path/to/tests/TEST-001.md", expected: "test" },
+        { path: "/path/to/adr/ADR-001.md", expected: "adr" },
+        { path: "/path/to/flags/FLAG-001.md", expected: "flag" },
+        { path: "/path/to/events/EVT-001.md", expected: "event" },
+        { path: "/path/to/facts/FACT-001.md", expected: "fact" },
+      ];
+
+      for (const { path, expected } of cases) {
+        expect(inferTypeFromPath(path)).toBe(expected);
+      }
+    });
+
+    test("returns null for paths without type indicators", () => {
+      expect(inferTypeFromPath("/path/to/other/doc.md")).toBe(null);
+      expect(inferTypeFromPath("/requirements-doc.md")).toBe(null);
+    });
+
+    test("handles nested paths correctly", () => {
+      expect(inferTypeFromPath("/src/requirements/nested/doc.md")).toBe("req");
+    });
+
+    test("prioritizes types based on check order", () => {
+      // The implementation checks in this order: requirements, scenarios, tests, adr, flags, events, facts
+      // So /requirements/scenarios/ should be 'req'
+      expect(inferTypeFromPath("/requirements/scenarios/doc.md")).toBe("req");
+
+      // /scenarios/requirements/ should also be 'req' because includes("/requirements/") is checked first
+      expect(inferTypeFromPath("/scenarios/requirements/doc.md")).toBe("req");
+
+      // /tests/scenarios/ should be 'scenario' because includes("/scenarios/") is checked before includes("/tests/")
+      expect(inferTypeFromPath("/tests/scenarios/doc.md")).toBe("scenario");
+    });
+  });
+
   test("extracts requirement from markdown", () => {
     const result = extractFromMarkdown(
       "packages/cli/tests/fixtures/requirements/REQ-001.md",
@@ -50,6 +90,57 @@ describe("Markdown Extractor", () => {
     expect(() => extractFromMarkdown(tempFile)).toThrow(FrontmatterError);
 
     unlinkSync(tempFile);
+  });
+
+  test("diagnoses unquoted colon in title", () => {
+    const tempFile = "/tmp/test-unquoted-colon.md";
+    writeFileSync(tempFile, "---\ntitle: Foo: Bar\n---\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Unquoted colon likely in title");
+      expect(fe.hint).toContain("Wrap values containing colons in quotes");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
+  test("diagnoses missing closing delimiter", () => {
+    const tempFile = "/tmp/test-missing-closing.md";
+    writeFileSync(tempFile, "---\ntitle: Foo\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Missing closing ---");
+      expect(fe.hint).toContain("Ensure the frontmatter is enclosed");
+    } finally {
+      unlinkSync(tempFile);
+    }
+  });
+
+  test("diagnoses generic YAML mapping error", () => {
+    const tempFile = "/tmp/test-mapping-error.md";
+    writeFileSync(tempFile, "---\ntitle: Foo\nkey: [unclosed\n---\n# Content");
+
+    try {
+      extractFromMarkdown(tempFile);
+      expect(true).toBe(false);
+    } catch (error) {
+      expect(error).toBeInstanceOf(FrontmatterError);
+      const fe = error as FrontmatterError;
+      expect(fe.classification).toBe("Generic YAML mapping error");
+      expect(fe.hint).toContain("Check for unclosed brackets");
+    } finally {
+      unlinkSync(tempFile);
+    }
   });
 
   test("generates consistent IDs", () => {
@@ -119,6 +210,32 @@ describe("Markdown Extractor", () => {
     expect(result.entity.status).toBe("draft");
     expect(result.entity.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.entity.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+
+    unlinkSync(tempFile);
+  });
+
+  test("extracts supersedes relationship from ADR frontmatter", () => {
+    const tempFile = "/tmp/test-supersedes.md";
+    writeFileSync(
+      tempFile,
+      `---
+id: ADR-010
+title: New Decision
+type: adr
+status: active
+links:
+  - type: supersedes
+    target: ADR-005
+---
+# Content
+`,
+    );
+
+    const result = extractFromMarkdown(tempFile);
+    expect(result.relationships).toBeInstanceOf(Array);
+    expect(result.relationships.length).toBe(1);
+    expect(result.relationships[0].type).toBe("supersedes");
+    expect(result.relationships[0].to).toBe("ADR-005");
 
     unlinkSync(tempFile);
   });

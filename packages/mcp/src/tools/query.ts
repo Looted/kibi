@@ -1,9 +1,55 @@
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
+import type { PrologProcess } from "kibi-cli/prolog";
 
 export interface QueryArgs {
   type?: string;
   id?: string;
   tags?: string[];
+  sourceFile?: string;
   limit?: number;
   offset?: number;
 }
@@ -16,6 +62,17 @@ export interface QueryResult {
   };
 }
 
+export const VALID_ENTITY_TYPES = [
+  "req",
+  "scenario",
+  "test",
+  "adr",
+  "flag",
+  "event",
+  "symbol",
+  "fact",
+];
+
 /**
  * Handle kb.query tool calls
  * Reuses query logic from CLI command
@@ -24,25 +81,16 @@ export async function handleKbQuery(
   prolog: PrologProcess,
   args: QueryArgs,
 ): Promise<QueryResult> {
-  const { type, id, tags, limit = 100, offset = 0 } = args;
+  const { type, id, tags, sourceFile, limit = 100, offset = 0 } = args;
 
   try {
     let results: Record<string, unknown>[] = [];
 
     // Validate type if provided
     if (type) {
-      const validTypes = [
-        "req",
-        "scenario",
-        "test",
-        "adr",
-        "flag",
-        "event",
-        "symbol",
-      ];
-      if (!validTypes.includes(type)) {
+      if (!VALID_ENTITY_TYPES.includes(type)) {
         throw new Error(
-          `Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
+          `Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
         );
       }
     }
@@ -50,7 +98,14 @@ export async function handleKbQuery(
     // Build Prolog query
     let goal: string;
 
-    if (id && type) {
+    if (sourceFile) {
+      const safeSource = sourceFile.replace(/'/g, "\\'");
+      if (type) {
+        goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
+      } else {
+        goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
+      }
+    } else if (id && type) {
       goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
     } else if (id) {
       goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
@@ -134,7 +189,7 @@ export async function handleKbQuery(
  * Input: "[[a,b,c],[d,e,f]]"
  * Output: [["a", "b", "c"], ["d", "e", "f"]]
  */
-function parseListOfLists(listStr: string): string[][] {
+export function parseListOfLists(listStr: string): string[][] {
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -185,7 +240,9 @@ function parseListOfLists(listStr: string): string[][] {
  * Parse a single entity from Prolog binding format.
  * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
  */
-function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
+export function parseEntityFromBinding(
+  bindingStr: string,
+): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
   const parts = splitTopLevel(cleaned, ",");
 
@@ -205,7 +262,7 @@ function parseEntityFromBinding(bindingStr: string): Record<string, unknown> {
  * Parse entity from array returned by parseListOfLists.
  * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
  */
-function parseEntityFromList(data: string[]): Record<string, unknown> {
+export function parseEntityFromList(data: string[]): Record<string, unknown> {
   if (data.length < 3) {
     return {};
   }
@@ -221,7 +278,7 @@ function parseEntityFromList(data: string[]): Record<string, unknown> {
 /**
  * Parse Prolog property list into JavaScript object.
  */
-function parsePropertyList(propsStr: string): Record<string, unknown> {
+export function parsePropertyList(propsStr: string): Record<string, unknown> {
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -255,7 +312,7 @@ function parsePropertyList(propsStr: string): Record<string, unknown> {
 /**
  * Parse a single Prolog value, handling typed literals and URIs.
  */
-function parsePrologValue(valueInput: string): unknown {
+export function parsePrologValue(valueInput: string): unknown {
   const value = valueInput.trim();
 
   // Handle typed literal: ^^("value", type)
@@ -289,7 +346,7 @@ function parsePrologValue(valueInput: string): unknown {
         if (listContent === "") {
           return [];
         }
-        return listContent.split(",").map((item) => item.trim());
+        return splitTopLevel(listContent, ",").map((item) => item.trim());
       }
 
       return literalValue;
@@ -321,7 +378,7 @@ function parsePrologValue(valueInput: string): unknown {
     if (listContent === "") {
       return [];
     }
-    const items = listContent.split(",").map((item) => {
+    const items = splitTopLevel(listContent, ",").map((item) => {
       return parsePrologValue(item.trim());
     });
     return items;
@@ -333,7 +390,7 @@ function parsePrologValue(valueInput: string): unknown {
 /**
  * Split a string by delimiter at the top level (not inside brackets or quotes).
  */
-function splitTopLevel(str: string, delimiter: string): string[] {
+export function splitTopLevel(str: string, delimiter: string): string[] {
   const results: string[] = [];
   let current = "";
   let depth = 0;

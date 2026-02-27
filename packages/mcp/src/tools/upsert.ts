@@ -1,10 +1,56 @@
-import type { PrologProcess } from "@kibi/cli/src/prolog.js";
-import entitySchema from "@kibi/cli/src/schemas/entity.schema.json";
-import relationshipSchema from "@kibi/cli/src/schemas/relationship.schema.json";
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/*
+ How to apply this header to source files (examples)
+
+ 1) Prepend header to a single file (POSIX shells):
+
+    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
+
+ 2) Apply to multiple files (example: the project's main entry files):
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
+      if [ -f "$f" ]; then
+        cp "$f" "$f".bak
+        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+      fi
+    done
+
+ 3) Avoid duplicating the header: run a quick guard to only add if missing
+
+    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
+      if [ -f "$f" ]; then
+        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
+          cp "$f" "$f".bak
+          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
+        fi
+      fi
+    done
+*/
+import type { PrologProcess } from "kibi-cli/prolog";
+import entitySchema from "kibi-cli/schemas/entity";
+import relationshipSchema from "kibi-cli/schemas/relationship";
 import Ajv from "ajv";
+import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 export interface UpsertArgs {
-  /** Entity type (req, scenario, test, adr, flag, event, symbol) */
+  /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
   type: string;
   /** Unique entity identifier */
   id: string;
@@ -152,6 +198,19 @@ export async function handleKbUpsert(
     // Save KB to disk
     await prolog.query("kb_save");
 
+    if (type === "symbol") {
+      try {
+        await refreshCoordinatesForSymbolId(id);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        if (process.env.KIBI_MCP_DEBUG) {
+          console.warn(
+            `[KIBI-MCP] Symbol coordinate auto-refresh failed for ${id}: ${message}`,
+          );
+        }
+      }
+    }
+
     return {
       content: [
         {
@@ -179,15 +238,17 @@ export async function handleKbUpsert(
 function buildPropertyList(entity: Record<string, unknown>): string {
   const pairs: string[] = [];
 
-  const atomFields = new Set(["status", "owner", "priority", "severity"]);
-  const stringFields = new Set([
+  // Defined internally to ensure thread safety and avoid initialization order issues.
+  // Using simple arrays instead of Sets is performant enough for small lists and avoids Set allocation overhead.
+  const ATOM_FIELDS = ["status", "owner", "priority", "severity"];
+  const STRING_FIELDS = [
     "id",
     "title",
     "created_at",
     "updated_at",
     "source",
     "text_ref",
-  ]);
+  ];
 
   for (const [key, value] of Object.entries(entity)) {
     if (key === "type") continue;
@@ -198,9 +259,9 @@ function buildPropertyList(entity: Record<string, unknown>): string {
       prologValue = `'${value}'`;
     } else if (Array.isArray(value)) {
       prologValue = JSON.stringify(value);
-    } else if (atomFields.has(key) && typeof value === "string") {
+    } else if (ATOM_FIELDS.includes(key) && typeof value === "string") {
       prologValue = value;
-    } else if (stringFields.has(key) && typeof value === "string") {
+    } else if (STRING_FIELDS.includes(key) && typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
     } else if (typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
@@ -248,5 +309,5 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
  * Escape double quotes in strings for Prolog
  */
 function escapeQuotes(str: string): string {
-  return str.replace(/"/g, '\"');
+  return str.replace(/"/g, '\\"');
 }

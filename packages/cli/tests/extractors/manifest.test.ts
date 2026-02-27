@@ -48,7 +48,7 @@ symbols:
     expect(results[0].entity.status).toBe("defined");
     expect(results[0].entity.source).toBe(filePath);
     expect(results[0].entity.tags).toEqual(["logging", "io"]);
-    expect(results[0].entity.id).toMatch(/^[a-f0-9]{16}$/);
+    expect(results[0].entity.id).toBe("symbol-io-logger");
 
     expect(results[1].entity.title).toBe("Auth service");
     expect(results[1].entity.tags).toEqual(["auth"]);
@@ -105,7 +105,7 @@ symbols:
     const results2 = extractFromManifest(filePath);
 
     expect(results1[0].entity.id).toBe(results2[0].entity.id);
-    expect(results1[0].entity.id).toMatch(/^[a-f0-9]{16}$/);
+    expect(results1[0].entity.id).toBe("symbol-auth-service");
 
     cleanup();
   });
