@@ -1,6 +1,6 @@
 {
   "name": "kibi-mcp",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "type": "module",
   "description": "Model Context Protocol server for Kibi knowledge base",
   "main": "./dist/server.js",
@@ -23,7 +23,7 @@
     "./src/*": "./src/*.ts"
   },
   "dependencies": {
-    "kibi-core": "^0.1.0",
+    "kibi-core": "^0.1.4",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "ajv": "^8.18.0",
     "js-yaml": "^4.1.0",
