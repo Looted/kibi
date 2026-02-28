@@ -5,12 +5,15 @@ on:
     branches: [master]
   workflow_dispatch:
     inputs:
+      packages:
+        description: 'Comma-separated list of packages to publish (e.g., core,cli,mcp). If empty, auto-detect changed packages.'
+        required: false
+        default: ''
       dry-run:
         description: 'Perform a dry run (no actual publish)'
         required: false
         default: false
         type: boolean
-
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -36,24 +39,81 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build packages
-        run: bun run build
+      - name: Build CLI package
+        run: bun run build:cli
 
+      - name: Build MCP package
+        run: bun run build:mcp
       - name: Run tests
         run: bun test
 
-      - name: Publish (Dry Run)
-        if: ${{ inputs.dry-run == true }}
+      - name: Determine packages to publish
+        id: check-packages
         run: |
-          cd packages/cli && npm publish --provenance --access public --dry-run
-          cd ../mcp && npm publish --provenance --access public --dry-run
+          # Function to compare versions
+          check_package() {
+            local pkg_name="$1"
+            local pkg_dir="$2"
+            local version=$(node -p "require('./packages/${pkg_dir}/package.json').version")
+            
+            echo "Checking ${pkg_name} local version: ${version}"
+            
+            # Check npm registry
+            if npm view ${pkg_name}@${version} version > /dev/null 2>&1; then
+              echo "${pkg_name}@${version} already exists on npm"
+              return 0
+            else
+              echo "${pkg_name}@${version} needs to be published"
+              echo "${pkg_dir}=${pkg_name}" >> $GITHUB_OUTPUT
+              return 0
+            fi
+          }
+
+          # If packages input is provided, only check those
+          if [ -n "${{ inputs.packages }}" ]; then
+            IFS=',' read -ra PACKAGES <<< "${{ inputs.packages }}"
+            for pkg in "${PACKAGES[@]}"; do
+              pkg=$(echo $pkg | xargs)  # trim whitespace
+              case $pkg in
+                core) check_package "kibi-core" "core" ;;
+                cli) check_package "kibi-cli" "cli" ;;
+                mcp) check_package "kibi-mcp" "mcp" ;;
+                vscode) echo "kibi-vscode is published to VS Code Marketplace, not npm" ;;
+                *) echo "Unknown package: $pkg" ;;
+              esac
+            done
+          else
+            # Auto-detect: check all packages
+            check_package "kibi-core" "core"
+            check_package "kibi-cli" "cli"
+            check_package "kibi-mcp" "mcp"
+          fi
+
+      - name: Publish (Dry Run)
+        if: ${{ inputs.dry-run == true && steps.check-packages.outputs != '' }}
+        run: |
+          for output in "${{ steps.check-packages.outputs }}"; do
+            pkg_dir="${output%=*}"
+            pkg_name="${output#*=}"
+            echo "Dry run publishing ${pkg_name}..."
+            cd packages/${pkg_dir} && npm publish --provenance --access public --dry-run && cd ../..
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish
-        if: ${{ inputs.dry-run == false }}
+        if: ${{ inputs.dry-run == false && steps.check-packages.outputs != '' }}
         run: |
-          cd packages/cli && npm publish --provenance --access public
-          cd ../mcp && npm publish --provenance --access public
+          for output in "${{ steps.check-packages.outputs }}"; do
+            pkg_dir="${output%=*}"
+            pkg_name="${output#*=}"
+            echo "Publishing ${pkg_name}..."
+            cd packages/${pkg_dir} && npm publish --provenance --access public && cd ../..
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Summary
+        if: steps.check-packages.outputs == ''
+        run: |
+          echo "No packages need to be published. All versions are already on npm."

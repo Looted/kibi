@@ -141,20 +141,64 @@ Each tool accepts `branch` parameter for branch-aware operations.
 - Branch-aware: every tool call accepts `branch` parameter
 
 See [docs/mcp-reference.md](docs/mcp-reference.md) for detailed MCP server documentation.
+## Project Structure
+
+Kibi is organized as a monorepo with the following packages:
+
+- **kibi-core** (`packages/core/`): Core Prolog modules and RDF graph logic. Contains entity definitions, relationship predicates, and validation rules. Not published separately - bundled with kibi-cli and kibi-mcp.
+- **kibi-cli** (`packages/cli/`): Command-line interface for Kibi. Provides the `kibi` command and all CLI functionality. Published as `kibi-cli` on npm.
+- **kibi-mcp** (`packages/mcp/`): Model Context Protocol server for LLM agent integration. Allows AI assistants to query and manipulate the knowledge base. Published as `kibi-mcp` on npm.
+- **kibi-vscode** (`packages/vscode/`): VS Code extension with TreeView visualization and CodeLens integration for symbol-aware development. Published as `kibi-vscode` on the VS Code Marketplace.
+
+### Development Workflow
+
+```bash
+# Install dependencies across all packages
+bun install
+
+# Build all packages
+bun run build
+
+# Run tests
+bun test
+
+# Release packages to npm (selectively publishes only packages with newer versions)
+bun run release:npm  # Publish via npm
+bun run release:bun  # Publish via npm (alias for release:npm)
+
+# Release specific packages only
+bun run publish:selective core,mcp  # publish only core and mcp
+bun run publish:selective cli  # publish only cli
+```
 
 ## Directory Structure
 
 ```
-.kb/
+packages/
+├── core/                 # Core Prolog modules and RDF graph logic
+│   ├── schema/
+│   │   ├── entities.pl     # Entity type definitions
+│   │   ├── relationships.pl # Relationship predicates
+│   │   └── validation.pl   # Validation rules
+│   └── src/               # Core Prolog source files
+├── cli/                  # Command-line interface (kibi-cli)
+│   ├── bin/
+│   │   └── kibi           # CLI entry point
+│   ├── schema/            # Bundled schema files
+│   └── src/               # TypeScript source
+├── mcp/                  # MCP server (kibi-mcp)
+│   ├── bin/
+│   │   └── kibi-mcp       # MCP server entry point
+│   └── src/               # TypeScript source
+└── vscode/               # VS Code extension
+    └── src/               # Extension source
+
+.kb/                      # Knowledge base (generated, per-branch)
 ├── config.json           # Document paths configuration
-├── schema/
-│   ├── entities.pl       # Entity type definitions
-│   ├── relationships.pl  # Relationship predicates
-│   └── validation.pl     # Validation rules
 └── branches/
     ├── main/
-    │   ├── kb.rdf        # RDF triple store (binary snapshot)
-    │   └── audit.log     # Change audit log
+    │   ├── kb.rdf          # RDF triple store (binary snapshot)
+    │   └── audit.log       # Change audit log
     └── feature-branch/
         ├── kb.rdf
         └── audit.log
