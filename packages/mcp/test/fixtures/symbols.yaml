@@ -1,0 +1,12 @@
+symbols:
+  - id: symbol-io-logger
+    title: IO logger
+    source: https://example.com/symbols/io-logger
+    status: defined
+    tags: [logging]
+  - id: symbol-auth-service
+    title: Auth service
+    source: https://example.com/symbols/auth-service
+    status: defined
+    tags: [auth]
+    links: [REQ-001]

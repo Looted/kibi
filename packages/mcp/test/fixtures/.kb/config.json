@@ -1,0 +1,11 @@
+{
+  "paths": {
+    "requirements": "test/fixtures/requirements/**/*.md",
+    "scenarios": "test/fixtures/scenarios/**/*.md",
+    "tests": "test/fixtures/tests/**/*.md",
+    "adr": "test/fixtures/adr/**/*.md",
+    "flags": "test/fixtures/flags/**/*.md",
+    "events": "test/fixtures/events/**/*.md",
+    "manifests": "test/fixtures/*.yaml"
+  }
+}

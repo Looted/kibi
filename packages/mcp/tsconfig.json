@@ -9,7 +9,11 @@
     "outDir": "./dist",
     "baseUrl": ".",
     "paths": {
-      "kibi-cli/*": ["../../cli/dist/*"]
+      "kibi-cli/prolog": ["../../cli/dist/public/prolog"],
+      "kibi-cli/extractors/symbols-coordinator": ["../../cli/dist/public/extractors/symbols-coordinator"],
+      "kibi-cli/schemas/entity": ["../../cli/dist/public/schemas/entity"],
+      "kibi-cli/schemas/relationship": ["../../cli/dist/public/schemas/relationship"],
+      "kibi-cli/schemas": ["../../cli/dist/public/schemas"]
     }
   },
   "include": ["src/**/*"],

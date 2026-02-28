@@ -39,9 +39,11 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Build packages
-        run: bun run build
+      - name: Build CLI package
+        run: bun run build:cli
 
+      - name: Build MCP package
+        run: bun run build:mcp
       - name: Run tests
         run: bun test
 
@@ -52,14 +54,14 @@ jobs:
           check_package() {
             local pkg_name="$1"
             local pkg_dir="$2"
-            local version=$(node -p "require('./${pkg_dir}/package.json').version")
+            local version=$(node -p "require('./packages/${pkg_dir}/package.json').version")
             
             echo "Checking ${pkg_name} local version: ${version}"
             
             # Check npm registry
             if npm view ${pkg_name}@${version} version > /dev/null 2>&1; then
               echo "${pkg_name}@${version} already exists on npm"
-              return 1
+              return 0
             else
               echo "${pkg_name}@${version} needs to be published"
               echo "${pkg_dir}=${pkg_name}" >> $GITHUB_OUTPUT

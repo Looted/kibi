@@ -163,8 +163,8 @@ bun run build
 bun test
 
 # Release packages to npm (selectively publishes only packages with newer versions)
-bun run release:npm  # npm
-bun run release:bun  # bun
+bun run release:npm  # Publish via npm
+bun run release:bun  # Publish via npm (alias for release:npm)
 
 # Release specific packages only
 bun run publish:selective core,mcp  # publish only core and mcp

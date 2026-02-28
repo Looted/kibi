@@ -7,14 +7,15 @@ set -e
 check_and_publish() {
   local pkg_name="$1"
   local pkg_dir="$2"
+  shift 2  # Remove pkg_name and pkg_dir from args, remaining are npm publish flags
   local version=$(node -p "require('./${pkg_dir}/package.json').version")
-
+  
   echo "Checking ${pkg_name} local version: ${version}"
-
+  
   # Check npm registry
   if npm view ${pkg_name}@${version} version > /dev/null 2>&1; then
     echo "${pkg_name}@${version} already exists on npm - skipping"
-    return 1
+    return 0
   else
     echo "Publishing ${pkg_name}@${version}..."
     cd packages/${pkg_dir} && npm publish "$@" && cd ../..
