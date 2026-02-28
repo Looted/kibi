@@ -22,8 +22,11 @@ jobs:
       - name: Install JS deps
         run: bun install
 
-      - name: Build packages
-        run: bun run build
+      - name: Build CLI package
+        run: bun run build:cli
+
+      - name: Build MCP package
+        run: bun run build:mcp
 
       - name: Run unit tests
         run: bun test
