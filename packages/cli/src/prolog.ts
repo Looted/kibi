@@ -54,21 +54,39 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 function resolveKbPlPath(): string {
-  // 1) Prefer installed dependency (works after publish)
-  try {
-    const corePkgJson = require.resolve("kibi-core/package.json");
-    const coreDir = path.dirname(corePkgJson);
-    const installedKbPl = path.join(coreDir, "src", "kb.pl");
-    if (existsSync(installedKbPl)) return installedKbPl;
-  } catch {
-    // ignore; fall back to dev layout
+  const overrideKbPath = process.env.KIBI_KB_PL_PATH;
+  if (overrideKbPath && existsSync(overrideKbPath)) {
+    return overrideKbPath;
   }
 
-  // 2) Dev fallback for monorepo checkout
-  const devKbPl = path.resolve(importMetaDir, "../../core/src/kb.pl");
-  if (existsSync(devKbPl)) return devKbPl;
+  try {
+    const installedKbPl = require.resolve("kibi-core/src/kb.pl");
+    if (existsSync(installedKbPl)) return installedKbPl;
+  } catch {}
 
-  // 3) Hard fail with actionable message
+  const startDirs = [importMetaDir, process.cwd()];
+  for (const startDir of startDirs) {
+    let currentDir = path.resolve(startDir);
+    while (true) {
+      const candidate = path.join(
+        currentDir,
+        "packages",
+        "core",
+        "src",
+        "kb.pl",
+      );
+      if (existsSync(candidate)) {
+        return candidate;
+      }
+
+      const parentDir = path.dirname(currentDir);
+      if (parentDir === currentDir) {
+        break;
+      }
+      currentDir = parentDir;
+    }
+  }
+
   throw new Error(
     "Unable to resolve kb.pl. Expected kibi-core to be installed (node_modules) " +
       "or to be running inside the monorepo checkout.",

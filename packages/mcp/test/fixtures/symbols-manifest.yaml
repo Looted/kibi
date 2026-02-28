@@ -1,0 +1,6 @@
+symbols:
+  - id: symbol-io-logger
+    title: IO logger
+    source: https://example.com/symbols/io-logger
+    status: defined
+    tags: [logging]
