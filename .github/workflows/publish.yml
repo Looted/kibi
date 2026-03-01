@@ -111,7 +111,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish
-        if: ${{ inputs.dry-run == false && steps.check-packages.outputs.to_publish != '' }}
+        if: ${{ inputs.dry-run != true && steps.check-packages.outputs.to_publish != '' }}
         run: |
           while IFS= read -r output; do
             [ -z "$output" ] && continue
