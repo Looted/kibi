@@ -59,6 +59,7 @@ kb_uri('urn-kibi:').
 :- dynamic kb_attached/1.
 :- dynamic kb_audit_db/1.
 :- dynamic kb_graph/1.
+:- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
 %% kb_attach(+Directory)
 % Attach to a KB directory with RDF persistence and file locking.
@@ -97,7 +98,11 @@ kb_attach(Directory) :-
     % Track attachment state
     assert(kb_attached(Directory)),
     assert(kb_audit_db(AuditLog)),
-    assert(kb_graph(GraphURI)).
+    assert(kb_graph(GraphURI)),
+
+    % Load legacy .pl entity files if present
+    load_kb_pl_files(Directory).
+
 
 %% kb_detach
 % Safely detach from KB, flushing journals and closing audit log.
@@ -141,6 +146,25 @@ kb_save :-
 % Execute Goal with KB mutex protection for thread safety.
 with_kb_mutex(Goal) :-
     with_mutex(kb_lock, Goal).
+
+%% load_kb_pl_files(+Directory)
+% Load legacy .pl entity files from the KB directory.
+% These files use entity/4 format: entity(Type, Id, Title, Props).
+load_kb_pl_files(Directory) :-
+    retractall(entity(_, _, _, _)),
+    directory_files(Directory, Files),
+    forall(
+        (
+            member(File, Files),
+            sub_atom(File, _, 3, 0, '.pl'),
+            \+ memberchk(File, ['entities.pl', 'relationships.pl', 'validation.pl'])
+        ),
+        (
+            atom_concat(Directory, '/', Prefix),
+            atom_concat(Prefix, File, FullPath),
+            catch(consult(FullPath), Error, (print_message(warning, Error), fail))
+        )
+    ).
 
 %% kb_assert_entity(+Type, +Properties)
 % Assert an entity into the KB with validation and audit logging.
@@ -209,7 +233,25 @@ kb_entity(Id, Type, Props) :-
         PropURI \= TypeURI,
         uri_to_key(PropURI, Key),
         literal_to_value(ValueLiteral, Value)
-    ), Props).
+), Props).
+
+% Fallback: read from legacy entity/4 facts loaded from .pl files
+kb_entity(Id, Type, Props) :-
+    entity(Type, Id, _Title, PropList),
+    convert_legacy_props(PropList, Props).
+
+% Convert legacy property list format to Key=Value pairs
+convert_legacy_props([], []).
+convert_legacy_props([Prop|Rest], [Key=Value|OutRest]) :-
+    convert_legacy_prop(Prop, Key, Value),
+    convert_legacy_props(Rest, OutRest).
+
+convert_legacy_prop(Prop, Key, Value) :-
+    functor(Prop, Key, 1), !,
+    arg(1, Prop, Value).
+convert_legacy_prop(Key-Value, Key, Value) :- !.
+convert_legacy_prop(Key=Value, Key, Value) :- !.
+convert_legacy_prop(Prop, Prop, true).
 
 %% kb_entities_by_source(+SourcePath, -Ids)
 % Returns all entity IDs whose source property matches SourcePath (substring match).

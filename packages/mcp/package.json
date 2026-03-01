@@ -1,6 +1,19 @@
 {
   "name": "kibi-mcp",
-  "version": "0.1.4",
+  "version": "0.1.5",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "ajv": "^8.18.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^11.0.0",
+    "fast-glob": "^3.2.12",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0",
+    "kibi-core": "^0.1.5",
+    "mcpcat": "^0.1.12",
+    "ts-morph": "^23.0.0",
+    "zod": "^4.3.6"
+  },
   "type": "module",
   "description": "Model Context Protocol server for Kibi knowledge base",
   "main": "./dist/server.js",
@@ -22,19 +35,7 @@
     ".": "./dist/server.js",
     "./src/*": "./src/*.ts"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "ajv": "^8.18.0",
-    "cli-table3": "^0.6.5",
-    "commander": "^11.0.0",
-    "fast-glob": "^3.2.12",
-    "gray-matter": "^4.0.3",
-    "js-yaml": "^4.1.0",
-    "kibi-core": "^0.1.4",
-    "mcpcat": "^0.1.12",
-    "ts-morph": "^23.0.0",
-    "zod": "^4.3.6"
-  },
+
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "latest"
