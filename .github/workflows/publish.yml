@@ -50,6 +50,9 @@ jobs:
       - name: Determine packages to publish
         id: check-packages
         run: |
+          # Initialize the output variable
+          to_publish=""
+          
           # Function to compare versions
           check_package() {
             local pkg_name="$1"
@@ -64,7 +67,7 @@ jobs:
               return 0
             else
               echo "${pkg_name}@${version} needs to be published"
-              echo "${pkg_dir}=${pkg_name}" >> $GITHUB_OUTPUT
+              to_publish="${to_publish}${pkg_dir}=${pkg_name}"$'\n'
               return 0
             fi
           }
@@ -88,32 +91,39 @@ jobs:
             check_package "kibi-cli" "cli"
             check_package "kibi-mcp" "mcp"
           fi
+          
+          # Output the list using heredoc syntax for multiline
+          echo "to_publish<<EOF" >> $GITHUB_OUTPUT
+          echo -n "$to_publish" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Publish (Dry Run)
-        if: ${{ inputs.dry-run == true && steps.check-packages.outputs != '' }}
+        if: ${{ inputs.dry-run == true && steps.check-packages.outputs.to_publish != '' }}
         run: |
-          for output in "${{ steps.check-packages.outputs }}"; do
+          while IFS= read -r output; do
+            [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
             pkg_name="${output#*=}"
             echo "Dry run publishing ${pkg_name}..."
             cd packages/${pkg_dir} && npm publish --provenance --access public --dry-run && cd ../..
-          done
+          done <<< "${{ steps.check-packages.outputs.to_publish }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish
-        if: ${{ inputs.dry-run == false && steps.check-packages.outputs != '' }}
+        if: ${{ inputs.dry-run == false && steps.check-packages.outputs.to_publish != '' }}
         run: |
-          for output in "${{ steps.check-packages.outputs }}"; do
+          while IFS= read -r output; do
+            [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
             pkg_name="${output#*=}"
             echo "Publishing ${pkg_name}..."
             cd packages/${pkg_dir} && npm publish --provenance --access public && cd ../..
-          done
+          done <<< "${{ steps.check-packages.outputs.to_publish }}"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Summary
-        if: steps.check-packages.outputs == ''
+        if: steps.check-packages.outputs.to_publish == ''
         run: |
           echo "No packages need to be published. All versions are already on npm."
