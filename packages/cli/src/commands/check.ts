@@ -45,6 +45,15 @@
 */
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
+// Traceability staged-symbol gate imports
+// Traceability helpers (imported as any to avoid tight typing in CLI orchestration)
+const { getStagedFiles } = require("../traceability/git-staged") as any;
+const { extractSymbolsFromStagedFile } =
+  require("../traceability/symbol-extract") as any;
+const { cleanupTempKb, createOverlayFacts, createTempKb } =
+  require("../traceability/temp-kb") as any;
+const { formatViolations: formatStagedViolations, validateStagedSymbols } =
+  require("../traceability/validate") as any;
 import { getCurrentBranch } from "./init-helpers.js";
 export interface CheckOptions {
   fix?: boolean;
@@ -116,12 +125,74 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     // Helper to conditionally run a check by name
     async function runCheck(
       name: string,
-      fn: (p: PrologProcess, ...args: any[]) => Promise<Violation[]>,
-      ...args: any[]
+      fn: (p: PrologProcess, ...args: unknown[]) => Promise<Violation[]>,
+      ...args: unknown[]
     ) {
       if (rulesAllowlist?.has(name) === false) return;
-      const res = await (fn as any)(prolog, ...args);
+      const res = await fn(prolog, ...args);
       if (res && res.length) violations.push(...res);
+    }
+
+    // If --staged mode requested, run staged-symbol traceability gate
+    if (options.staged) {
+      const minLinks = options.minLinks ? Number(options.minLinks) : 1;
+      try {
+        const stagedFiles = await getStagedFiles();
+        if (!stagedFiles || stagedFiles.length === 0) {
+          console.log("No staged files found.");
+          process.exit(0);
+        }
+
+        const extractedSymbols: Array<{ file: string; symbols: unknown[] }> =
+          [];
+        for (const f of stagedFiles) {
+          try {
+            const symbols = await extractSymbolsFromStagedFile(f as string);
+            if (symbols && (symbols as any[]).length) {
+              extractedSymbols.push({
+                file: f as string,
+                symbols: symbols as unknown[],
+              });
+            }
+          } catch (e) {
+            console.error(
+              `Error extracting symbols from staged file ${f}: ${e instanceof Error ? e.message : String(e)}`,
+            );
+          }
+        }
+
+        const tempKb = await createTempKb();
+        await createOverlayFacts(tempKb, extractedSymbols);
+
+        const violationsRaw = await validateStagedSymbols(tempKb, { minLinks });
+        const violationsFormatted = formatStagedViolations
+          ? formatStagedViolations(violationsRaw)
+          : violationsRaw;
+
+        if (violationsRaw && violationsRaw.length > 0) {
+          if (typeof violationsFormatted === "string") {
+            console.log(violationsFormatted);
+          } else if (Array.isArray(violationsFormatted)) {
+            for (const v of violationsFormatted) console.log(v);
+          } else {
+            console.dir(violationsFormatted, { depth: null });
+          }
+          await cleanupTempKb(tempKb);
+          process.exit(1);
+        }
+
+        console.log("✓ No violations found in staged symbols.");
+        await cleanupTempKb(tempKb);
+        process.exit(0);
+      } catch (err) {
+        console.error(
+          `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        try {
+          await cleanupTempKb();
+        } catch {}
+        process.exit(1);
+      }
     }
 
     await runCheck("must-priority-coverage", checkMustPriorityCoverage);
@@ -129,7 +200,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     await runCheck("no-dangling-refs", checkNoDanglingRefs);
     await runCheck("no-cycles", checkNoCycles);
     const allEntityIds = await getAllEntityIds(prolog);
-    await runCheck("required-fields", checkRequiredFields, allEntityIds);
+    await runCheck("required-fields", checkRequiredFields as any, allEntityIds);
     await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
     await runCheck("domain-contradictions", checkDomainContradictions);
     await prolog.query("kb_detach");
