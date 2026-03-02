@@ -1,7 +1,6 @@
 {
-  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/test-pollution-isolation.md",
-  "started_at": "2026-02-26T07:19:28.584Z",
-  "session_ids": ["ses_367487aa6ffe7ueMxNLAfkGkSq"],
-  "plan_name": "test-pollution-isolation",
-  "agent": "atlas"
+  "active_plan": "/home/looted/projects/kibi/.sisyphus/plans/staged-symbol-traceability-gate-v1.md",
+  "started_at": "2026-03-02T09:59:25.204Z",
+  "session_ids": ["ses_354bfd99effeR9NOnGFdH3eIWN"],
+  "plan_name": "staged-symbol-traceability-gate-v1"
 }

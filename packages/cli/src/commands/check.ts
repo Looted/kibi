@@ -45,8 +45,19 @@
 */
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
+import { getStagedFiles } from "../traceability/git-staged.js";
+import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
+import { cleanupTempKb, consultOverlay, createOverlayFacts, createTempKb } from "../traceability/temp-kb.js";
+import { formatViolations as formatStagedViolations, validateStagedSymbols } from "../traceability/validate.js";
+import { getCurrentBranch } from "./init-helpers.js";
+
 export interface CheckOptions {
   fix?: boolean;
+  kbPath?: string;
+  rules?: string; // comma separated allowlist
+  staged?: boolean;
+  minLinks?: string | number;
+  dryRun?: boolean;
 }
 
 export interface Violation {
@@ -59,11 +70,106 @@ export interface Violation {
 
 export async function checkCommand(options: CheckOptions): Promise<void> {
   try {
+    // Resolve KB path with priority:
+    // --kb-path > git branch --show-current > KIBI_BRANCH env > develop > main
+    let resolvedKbPath = "";
+    if (options.kbPath) {
+      resolvedKbPath = options.kbPath;
+    } else {
+      const envBranch = process.env.KIBI_BRANCH;
+      let branch = envBranch || undefined;
+      if (!branch) {
+        try {
+          branch = await getCurrentBranch(process.cwd());
+        } catch {
+          branch = undefined;
+        }
+      }
+      if (!branch) branch = envBranch || "develop";
+      // fallback to main if develop isn't present? keep path consistent
+      resolvedKbPath = path.join(
+        process.cwd(),
+        ".kb/branches",
+        branch || "main",
+      );
+    }
+
+    // If --staged mode requested, run staged-symbol traceability gate.
+    // We skip creating the main prolog session entirely in this path.
+    if (options.staged) {
+      const minLinks = options.minLinks ? Number(options.minLinks) : 1;
+      let tempCtx: { tempDir: string; kbPath: string; overlayPath: string; prolog: PrologProcess } | null = null;
+      try {
+        // Get staged files
+        const stagedFiles = getStagedFiles();
+        if (!stagedFiles || stagedFiles.length === 0) {
+          console.log("No staged files found.");
+          process.exit(0);
+        }
+
+        // Extract symbols from staged files
+        const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
+        for (const f of stagedFiles) {
+          try {
+            const symbols = extractSymbolsFromStagedFile(f);
+            if (symbols && symbols.length) {
+              allSymbols.push(...symbols);
+            }
+          } catch (e) {
+            console.error(
+              `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`,
+            );
+          }
+        }
+
+        if (allSymbols.length === 0) {
+          console.log("No exported symbols found in staged files.");
+          process.exit(0);
+        }
+
+        // Create temp KB
+        tempCtx = await createTempKb(resolvedKbPath);
+
+        // Write overlay facts THEN consult so Prolog sees the changed_symbol facts
+        const overlayFacts = createOverlayFacts(allSymbols);
+        const fs = await import("node:fs/promises");
+        await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+        await consultOverlay(tempCtx);
+
+        // Validate staged symbols using the temp KB prolog session
+        const violationsRaw = await validateStagedSymbols({ minLinks, prolog: tempCtx.prolog });
+        const violationsFormatted = formatStagedViolations(violationsRaw);
+
+        if (violationsRaw && violationsRaw.length > 0) {
+          console.log(violationsFormatted);
+          await cleanupTempKb(tempCtx.tempDir);
+          if (options.dryRun) {
+            process.exit(0);
+          }
+          process.exit(1);
+        }
+
+        console.log("✓ No violations found in staged symbols.");
+        await cleanupTempKb(tempCtx.tempDir);
+        process.exit(0);
+      } catch (err) {
+        console.error(
+          `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        if (tempCtx) {
+          try {
+            await cleanupTempKb(tempCtx.tempDir);
+          } catch {}
+        }
+        process.exit(1);
+      }
+    }
+
     const prolog = new PrologProcess();
     await prolog.start();
 
-    const kbPath = path.join(process.cwd(), ".kb/branches/main");
-    const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
+    const kbPathEscaped = resolvedKbPath.replace(/'/g, "''");
+    const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
     if (!attachResult.success) {
       await prolog.terminate();
@@ -72,14 +178,36 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     }
 
     const violations: Violation[] = [];
-    violations.push(...(await checkMustPriorityCoverage(prolog)));
-    violations.push(...(await checkSymbolCoverage(prolog)));
-    violations.push(...(await checkNoDanglingRefs(prolog)));
-    violations.push(...(await checkNoCycles(prolog)));
+
+    // Parse rules allowlist if provided
+    let rulesAllowlist: Set<string> | null = null;
+    if (options.rules) {
+      const parts = (options.rules as string)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean) as string[];
+      rulesAllowlist = new Set(parts);
+    }
+
+    // Helper to conditionally run a check by name
+    async function runCheck(
+      name: string,
+      fn: (p: PrologProcess, ...args: unknown[]) => Promise<Violation[]>,
+      ...args: unknown[]
+    ) {
+      if (rulesAllowlist?.has(name) === false) return;
+      const res = await fn(prolog, ...args);
+      if (res && res.length) violations.push(...res);
+    }
+
+    await runCheck("must-priority-coverage", checkMustPriorityCoverage);
+    await runCheck("symbol-coverage", checkSymbolCoverage);
+    await runCheck("no-dangling-refs", checkNoDanglingRefs);
+    await runCheck("no-cycles", checkNoCycles);
     const allEntityIds = await getAllEntityIds(prolog);
-    violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
-    violations.push(...(await checkDeprecatedAdrs(prolog)));
-    violations.push(...(await checkDomainContradictions(prolog)));
+    await runCheck("required-fields", checkRequiredFields as any, allEntityIds);
+    await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
+    await runCheck("domain-contradictions", checkDomainContradictions);
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -514,7 +642,7 @@ async function checkSymbolCoverage(
   const violations: Violation[] = [];
 
   const uncoveredResult = await prolog.query(
-    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)"
+    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)",
   );
 
   if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
@@ -542,7 +670,6 @@ async function checkSymbolCoverage(
 
   return violations;
 }
-
 
 function parseTripleRows(raw: string): Array<[string, string, string]> {
   const cleaned = raw.trim();

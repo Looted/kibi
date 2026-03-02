@@ -90,3 +90,35 @@ Use the following prefixes:
 ---
 
 Clear, practical, and ready for contributors.
+
+## Staged Symbol Traceability: Contributor Guidelines
+
+To help maintain traceability between code and requirements, all new or modified code symbols (functions, classes, modules) must be linked to at least one documented requirement before commit.
+
+### How to add requirement links to new code
+
+When you add or change a function, class, or module, include a comment with the requirement ID(s) it implements. Example:
+
+```typescript
+export function myFunc() { } // implements REQ-001
+```
+
+For multiple requirements:
+
+```typescript
+export class MyClass { } // implements REQ-001, REQ-002
+```
+
+This applies to TypeScript (`.ts`, `.tsx`) and JavaScript (`.js`, `.jsx`) files by default.
+
+### How the pre-commit hook works
+
+If you ran `kibi init --hooks`, a pre-commit hook will automatically check your staged changes for missing requirement links. If any new or modified symbols are not linked to a requirement, your commit will be blocked with an error message. To proceed, add the appropriate `implements REQ-xxx` directive to your code.
+
+You can test your staged changes manually with:
+
+```bash
+kibi check --staged
+```
+
+For more details, see the "Staged Symbol Traceability" section in the README.

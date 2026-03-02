@@ -95,6 +95,18 @@ program
   .command("check")
   .description("Check KB consistency and integrity")
   .option("--fix", "Suggest fixes for violations")
+  .option(
+    "--kb-path <dir>",
+    "Path to KB directory (overrides branch resolution)",
+  )
+  .option("--rules <csv>", "Comma-separated allowlist of rule names to run")
+  .option("--staged", "Run check only against staged changes (experimental)")
+  .option(
+    "--min-links <n>",
+    "Minimum number of links required for symbol coverage",
+    "1",
+  )
+  .option("--dry-run", "Do not modify files; only print what would happen")
   .action(async (options) => {
     await checkCommand(options);
   });

@@ -63,7 +63,7 @@ kibi sync
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
 set -e
-kibi check
+kibi check --staged
 `;
 
 const DEFAULT_CONFIG = {
