@@ -1,23 +1,22 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, mock } from "bun:test";
 import {
   getStagedFiles,
   parseHunksFromDiff,
   parseNameStatusNull,
-} from "../../src/traceability/git-staged";
-import { extractSymbolsFromStagedFile } from "../../src/traceability/symbol-extract";
+} from "../../src/traceability/git-staged.js";
+import { extractSymbolsFromStagedFile } from "../../src/traceability/symbol-extract.js";
 import {
   cleanupTempKb,
   createOverlayFacts,
-  createTempKb,
-} from "../../src/traceability/temp-kb";
+} from "../../src/traceability/temp-kb.js";
 import {
   formatViolations,
   validateStagedSymbols,
-} from "../../src/traceability/validate";
+} from "../../src/traceability/validate.js";
 
 // Helper to reset mocks
 beforeEach(() => {
-  vi.restoreAllMocks();
+  mock.restore();
 });
 
 describe("git-staged utilities", () => {
@@ -40,20 +39,23 @@ describe("git-staged utilities", () => {
   });
 
   it("getStagedFiles calls git and returns staged files (mocked)", () => {
-    // mock runGit by mocking execSync indirectly via importing module not possible here —
-    // instead spy on the runGit through require cache by mocking child_process.execSync
+    // mock execSync via module mocking in bun:test
     const child = require("node:child_process");
-    vi.spyOn(child, "execSync").mockImplementation((cmd: string) => {
+    const origExecSync = child.execSync;
+    child.execSync = (cmd: string) => {
       if (cmd.includes("--name-status")) return "A\tnew.ts\0";
       if (cmd.includes("git diff --cached -U0"))
         return "@@ -0,0 +1,3 @@\n+line\n";
       if (cmd.startsWith("git show")) return "export function foo() {}\n";
       return "";
-    });
-
-    const files = getStagedFiles();
-    // depending on environment execSync mock matching, allow 0 or 1
-    expect([0, 1]).toContain(files.length);
+    };
+    try {
+      const files = getStagedFiles();
+      // depending on environment execSync mock matching, allow 0 or 1
+      expect([0, 1]).toContain(files.length);
+    } finally {
+      child.execSync = origExecSync;
+    }
   });
 });
 
@@ -83,8 +85,8 @@ describe("symbol-extract", () => {
     };
     const syms = extractSymbolsFromStagedFile(staged);
     expect(syms.some((s) => s.name === "keep")).toBe(true);
-    // skip may still be present depending on parser; ensure keep present
-    expect(syms.some((s) => s.name === "skip") || true).toBeTruthy();
+    // skip should not be selected because its declaration does not intersect the hunk
+    expect(syms.some((s) => s.name === "skip")).toBe(false);
   });
 
   it("new file includes all exported decls", () => {
@@ -152,24 +154,7 @@ describe("symbol-extract", () => {
 });
 
 describe("temp-kb and validate", () => {
-  it("createTempKb and cleanupTempKb flow (mocked prolog)", async () => {
-    // create a fake base KB dir
-    const base = __dirname;
-    // mock PrologProcess in module to avoid starting real process
-    // prolog module path relative to test file
-    const prologMod = await import("../../src/prolog.js");
-    // provide a constructor that returns an instance with methods
-    // instead mock the module export via vi.spyOn to return our stub instance
-    vi.spyOn(prologMod as any, "PrologProcess").mockImplementation(() => {
-      return class {
-        async start() {}
-        async query(_q: any) {
-          return { success: true, bindings: {} };
-        }
-        async terminate() {}
-      };
-    });
-
+  it("createOverlayFacts produces prolog facts for symbols", () => {
     // createOverlayFacts should produce prolog lines for symbols
     const facts = createOverlayFacts([
       {
@@ -185,7 +170,24 @@ describe("temp-kb and validate", () => {
       facts.includes("changed_symbol(s1)") ||
         facts.includes("changed_symbol('s1')"),
     ).toBe(true);
-    // cleanupTempKb should be safe to call for an unknown temp dir
+  });
+
+  it("createOverlayFacts emits changed_symbol_req facts for reqLinks", () => {
+    const facts = createOverlayFacts([
+      {
+        id: "s2",
+        name: "fn",
+        kind: "function",
+        location: { file: "f", startLine: 1, endLine: 1 },
+        hunkRanges: [],
+        reqLinks: ["REQ-001"],
+      },
+    ] as any);
+    expect(facts).toContain("REQ-001");
+    expect(facts).toContain("changed_symbol_req");
+  });
+
+  it("cleanupTempKb is safe to call for an unknown temp dir", async () => {
     await cleanupTempKb("/tmp/nonexistent-temp-dir-for-test");
   });
 

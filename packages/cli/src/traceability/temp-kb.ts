@@ -9,6 +9,7 @@ export interface TempKbContext {
   tempDir: string;
   kbPath: string;
   overlayPath: string;
+  prolog: PrologProcess;
 }
 
 const prologByTempDir = new Map<string, PrologProcess>();
@@ -77,6 +78,8 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
   }
 }
 
+export { consultOverlay };
+
 export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   if (!existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
@@ -88,7 +91,6 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   );
   const kbPath = path.join(tempDir, "kb");
   const overlayPath = path.join(tempDir, "changed_symbols.pl");
-  const ctx: TempKbContext = { tempDir, kbPath, overlayPath };
 
   trace(`creating temp KB directory ${tempDir}`);
   await mkdir(tempDir, { recursive: true });
@@ -102,6 +104,9 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 
+  // ctx includes prolog so callers can use it directly
+  const ctx: TempKbContext = { tempDir, kbPath, overlayPath, prolog };
+
   registerCleanupHandlers(tempDir);
 
   const attachResult = await prolog.query(
@@ -114,7 +119,7 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
     );
   }
 
-  await consultOverlay(ctx);
+  // Caller is expected to write overlay facts and then call consultOverlay(ctx).
   trace(`temporary KB ready at ${kbPath}`);
 
   return ctx;
@@ -128,6 +133,13 @@ export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
     lines.push(
       `changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
+
+    // Emit overlay facts for requirement links from code-comment directives.
+    for (const reqId of symbol.reqLinks) {
+      lines.push(
+        `changed_symbol_req(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(reqId)}).`,
+      );
+    }
   }
 
   return lines.join("\n");
