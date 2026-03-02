@@ -82,7 +82,7 @@ export function parseHunksFromDiff(
   }
   // If no hunks found and isNewFile, treat entire file as changed (we'll use a sentinel later)
   if (ranges.length === 0 && isNewFile) {
-    // Represent as a single wide range starting at 1, end unset as -1 to indicate unknown (we'll set later)
+    // Represent as a single wide range starting at 1, using Number.MAX_SAFE_INTEGER as a sentinel end to indicate unknown (we'll set later)
     ranges.push({ start: 1, end: Number.MAX_SAFE_INTEGER });
   }
   return ranges;
@@ -135,18 +135,13 @@ export function getStagedFiles(): StagedFile[] {
     // 4. compute hunks using git diff --cached -U0 -- <path>
     let diffText = "";
     try {
-      // use new path for diff
+      // use new path for diff; quote the path to handle spaces
       diffText = runGit(
         `git diff --cached -U0 -- "${path.replace(/"/g, '\\"')}"`,
       );
     } catch (err: unknown) {
-      // If diff fails (e.g., path has spaces), try without quotes as fallback
-      try {
-        diffText = runGit(`git diff --cached -U0 -- ${path}`);
-      } catch (err2: unknown) {
-        console.debug(`Failed to get diff for ${path}: ${String(err2)}`);
-        diffText = "";
-      }
+      console.debug(`Failed to get diff for ${path}: ${String(err)}`);
+      diffText = "";
     }
 
     // determine if new file: status 'A' or diff contains /dev/null in old file path

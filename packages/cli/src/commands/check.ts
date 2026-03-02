@@ -47,7 +47,7 @@ import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
-import { cleanupTempKb, createOverlayFacts, createTempKb } from "../traceability/temp-kb.js";
+import { cleanupTempKb, consultOverlay, createOverlayFacts, createTempKb } from "../traceability/temp-kb.js";
 import { formatViolations as formatStagedViolations, validateStagedSymbols } from "../traceability/validate.js";
 import { getCurrentBranch } from "./init-helpers.js";
 
@@ -70,9 +70,6 @@ export interface Violation {
 
 export async function checkCommand(options: CheckOptions): Promise<void> {
   try {
-    const prolog = new PrologProcess();
-    await prolog.start();
-
     // Resolve KB path with priority:
     // --kb-path > git branch --show-current > KIBI_BRANCH env > develop > main
     let resolvedKbPath = "";
@@ -97,8 +94,82 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       );
     }
 
-    const kbPath = resolvedKbPath;
-    const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
+    // If --staged mode requested, run staged-symbol traceability gate.
+    // We skip creating the main prolog session entirely in this path.
+    if (options.staged) {
+      const minLinks = options.minLinks ? Number(options.minLinks) : 1;
+      let tempCtx: { tempDir: string; kbPath: string; overlayPath: string; prolog: PrologProcess } | null = null;
+      try {
+        // Get staged files
+        const stagedFiles = getStagedFiles();
+        if (!stagedFiles || stagedFiles.length === 0) {
+          console.log("No staged files found.");
+          process.exit(0);
+        }
+
+        // Extract symbols from staged files
+        const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
+        for (const f of stagedFiles) {
+          try {
+            const symbols = extractSymbolsFromStagedFile(f);
+            if (symbols && symbols.length) {
+              allSymbols.push(...symbols);
+            }
+          } catch (e) {
+            console.error(
+              `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`,
+            );
+          }
+        }
+
+        if (allSymbols.length === 0) {
+          console.log("No exported symbols found in staged files.");
+          process.exit(0);
+        }
+
+        // Create temp KB
+        tempCtx = await createTempKb(resolvedKbPath);
+
+        // Write overlay facts THEN consult so Prolog sees the changed_symbol facts
+        const overlayFacts = createOverlayFacts(allSymbols);
+        const fs = await import("node:fs/promises");
+        await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+        await consultOverlay(tempCtx);
+
+        // Validate staged symbols using the temp KB prolog session
+        const violationsRaw = await validateStagedSymbols({ minLinks, prolog: tempCtx.prolog });
+        const violationsFormatted = formatStagedViolations(violationsRaw);
+
+        if (violationsRaw && violationsRaw.length > 0) {
+          console.log(violationsFormatted);
+          await cleanupTempKb(tempCtx.tempDir);
+          if (options.dryRun) {
+            process.exit(0);
+          }
+          process.exit(1);
+        }
+
+        console.log("✓ No violations found in staged symbols.");
+        await cleanupTempKb(tempCtx.tempDir);
+        process.exit(0);
+      } catch (err) {
+        console.error(
+          `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        if (tempCtx) {
+          try {
+            await cleanupTempKb(tempCtx.tempDir);
+          } catch {}
+        }
+        process.exit(1);
+      }
+    }
+
+    const prolog = new PrologProcess();
+    await prolog.start();
+
+    const kbPathEscaped = resolvedKbPath.replace(/'/g, "''");
+    const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
     if (!attachResult.success) {
       await prolog.terminate();
@@ -127,80 +198,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       if (rulesAllowlist?.has(name) === false) return;
       const res = await fn(prolog, ...args);
       if (res && res.length) violations.push(...res);
-    }
-
-    // If --staged mode requested, run staged-symbol traceability gate
-    if (options.staged) {
-      const minLinks = options.minLinks ? Number(options.minLinks) : 1;
-      let tempCtx: { tempDir: string; kbPath: string; overlayPath: string } | null = null;
-      try {
-        // Get staged files
-        const stagedFiles = getStagedFiles();
-        if (!stagedFiles || stagedFiles.length === 0) {
-          console.log("No staged files found.");
-          process.exit(0);
-        }
-
-        // Extract symbols from staged files
-        const allSymbols: any[] = [];
-        for (const f of stagedFiles) {
-          try {
-            const symbols = extractSymbolsFromStagedFile(f);
-            if (symbols && symbols.length) {
-              allSymbols.push(...symbols);
-            }
-          } catch (e) {
-            console.error(
-              `Error extracting symbols from staged file ${f.path}: ${e instanceof Error ? e.message : String(e)}`,
-            );
-          }
-        }
-
-        if (allSymbols.length === 0) {
-          console.log("No exported symbols found in staged files.");
-          process.exit(0);
-        }
-
-        // Create temp KB and overlay
-        tempCtx = await createTempKb(resolvedKbPath);
-        const overlayFacts = createOverlayFacts(allSymbols);
-        
-        // Write overlay facts to file
-        const fs = await import("node:fs/promises");
-        await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
-        
-        // Get prolog instance from temp-kb (we need to query via prolog)
-        const { prologByTempDir } = await import("../traceability/temp-kb.js") as any;
-        const prolog = prologByTempDir.get(tempCtx.tempDir);
-        
-        if (!prolog) {
-          throw new Error("Failed to get Prolog instance for temp KB");
-        }
-
-        // Validate staged symbols
-        const violationsRaw = await validateStagedSymbols({ minLinks, prolog });
-        const violationsFormatted = formatStagedViolations(violationsRaw);
-
-        if (violationsRaw && violationsRaw.length > 0) {
-          console.log(violationsFormatted);
-          await cleanupTempKb(tempCtx.tempDir);
-          process.exit(1);
-        }
-
-        console.log("✓ No violations found in staged symbols.");
-        await cleanupTempKb(tempCtx.tempDir);
-        process.exit(0);
-      } catch (err) {
-        console.error(
-          `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
-        );
-        if (tempCtx) {
-          try {
-            await cleanupTempKb(tempCtx.tempDir);
-          } catch {}
-        }
-        process.exit(1);
-      }
     }
 
     await runCheck("must-priority-coverage", checkMustPriorityCoverage);
