@@ -9,6 +9,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
+    "kibi-cli": "^0.1.5",
     "kibi-core": "^0.1.5",
     "mcpcat": "^0.1.12",
     "ts-morph": "^23.0.0",
@@ -24,7 +25,7 @@
     "test": "bun test",
     "dev": "bun run bin/kibi-mcp",
     "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "npm run build"
+    "prepack": "npm run build"
   },
   "files": ["dist", "bin"],
   "engines": {
@@ -32,8 +33,7 @@
     "bun": ">=1.0"
   },
   "exports": {
-    ".": "./dist/server.js",
-    "./src/*": "./src/*.ts"
+    ".": "./dist/server.js"
   },
 
   "devDependencies": {
