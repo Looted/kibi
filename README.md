@@ -275,3 +275,64 @@ Placeholder: This is a sample requirement used for documentation.
 - Content-based SHA256 IDs (or explicit `id:` in frontmatter)
 - RDF persistence uses SWI-Prolog `library(semweb/rdf_persistency)`
 - Git hooks automate KB sync on branch checkout/merge
+
+## Staged Symbol Traceability
+
+Staged Symbol Traceability ensures that every new or modified code symbol (function, class, or module) is explicitly linked to at least one requirement before it can be committed. This feature helps maintain end-to-end traceability between code and requirements, making it easy to verify that all code changes are justified and tracked.
+
+### What is it and why does it exist?
+
+This feature enforces a discipline where every code change must reference a requirement (REQ-xxx). It prevents "orphan" code from being merged, ensuring that all new features, bug fixes, and refactors are traceable to a documented need. This is especially valuable for regulated projects, safety-critical systems, or any team that wants to avoid technical debt and improve auditability.
+
+### How to use `kibi check --staged`
+
+Run the following command to check staged (about-to-be-committed) changes for traceability coverage:
+
+```bash
+kibi check --staged
+```
+
+This command scans only the files staged for commit. It reports any new or modified symbols that do not have a requirement link. If violations are found, the commit will be blocked (when run as a pre-commit hook).
+
+#### CLI Flags
+
+- `--staged` – Only check staged files (not the whole repo)
+- `--min-links <N>` – Minimum number of requirement links per symbol (default: 1)
+- `--kb-path <path>` – Path to the KB directory (optional)
+- `--rules <rule1,rule2>` – Comma-separated list of rules to run (optional)
+- `--dry-run` – Show what would be blocked, but do not block commit
+
+### The `implements REQ-xxx` directive syntax
+
+To link a code symbol to a requirement, add a comment directly above or beside the symbol definition:
+
+```typescript
+export function myFunc() { } // implements REQ-001
+```
+
+You can link to multiple requirements by separating them with commas:
+
+```typescript
+export class MyClass { } // implements REQ-001, REQ-002
+```
+
+Supported languages: TypeScript (`.ts`, `.tsx`), JavaScript (`.js`, `.jsx`).
+
+### Configuration via `.kibi/traceability.json` (optional)
+
+You can customize enforcement by creating a `.kibi/traceability.json` file in your repo:
+
+```json
+{
+  "minLinks": 1,
+  "langs": ["ts", "tsx", "js", "jsx"]
+}
+```
+
+- `minLinks`: Minimum number of requirement links per symbol
+- `langs`: File extensions to check
+
+### Integration with git hooks
+
+If you run `kibi init --hooks`, a pre-commit hook is installed. This hook automatically runs `kibi check --staged` before every commit. If any staged code symbols are missing requirement links, the commit will be blocked with a clear error message. To bypass, you must add the appropriate `implements REQ-xxx` directive or use `--dry-run` for testing only.
+
