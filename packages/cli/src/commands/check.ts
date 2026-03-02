@@ -45,8 +45,14 @@
 */
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
+import { getCurrentBranch } from "./init-helpers.js";
 export interface CheckOptions {
   fix?: boolean;
+  kbPath?: string;
+  rules?: string; // comma separated allowlist
+  staged?: boolean;
+  minLinks?: string | number;
+  dryRun?: boolean;
 }
 
 export interface Violation {
@@ -62,7 +68,31 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     const prolog = new PrologProcess();
     await prolog.start();
 
-    const kbPath = path.join(process.cwd(), ".kb/branches/main");
+    // Resolve KB path with priority:
+    // --kb-path > git branch --show-current > KIBI_BRANCH env > develop > main
+    let resolvedKbPath = "";
+    if (options.kbPath) {
+      resolvedKbPath = options.kbPath;
+    } else {
+      const envBranch = process.env.KIBI_BRANCH;
+      let branch = envBranch || undefined;
+      if (!branch) {
+        try {
+          branch = await getCurrentBranch(process.cwd());
+        } catch {
+          branch = undefined;
+        }
+      }
+      if (!branch) branch = envBranch || "develop";
+      // fallback to main if develop isn't present? keep path consistent
+      resolvedKbPath = path.join(
+        process.cwd(),
+        ".kb/branches",
+        branch || "main",
+      );
+    }
+
+    const kbPath = resolvedKbPath;
     const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
 
     if (!attachResult.success) {
@@ -72,14 +102,36 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     }
 
     const violations: Violation[] = [];
-    violations.push(...(await checkMustPriorityCoverage(prolog)));
-    violations.push(...(await checkSymbolCoverage(prolog)));
-    violations.push(...(await checkNoDanglingRefs(prolog)));
-    violations.push(...(await checkNoCycles(prolog)));
+
+    // Parse rules allowlist if provided
+    let rulesAllowlist: Set<string> | null = null;
+    if (options.rules) {
+      const parts = (options.rules as string)
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean) as string[];
+      rulesAllowlist = new Set(parts);
+    }
+
+    // Helper to conditionally run a check by name
+    async function runCheck(
+      name: string,
+      fn: (p: PrologProcess, ...args: any[]) => Promise<Violation[]>,
+      ...args: any[]
+    ) {
+      if (rulesAllowlist?.has(name) === false) return;
+      const res = await (fn as any)(prolog, ...args);
+      if (res && res.length) violations.push(...res);
+    }
+
+    await runCheck("must-priority-coverage", checkMustPriorityCoverage);
+    await runCheck("symbol-coverage", checkSymbolCoverage);
+    await runCheck("no-dangling-refs", checkNoDanglingRefs);
+    await runCheck("no-cycles", checkNoCycles);
     const allEntityIds = await getAllEntityIds(prolog);
-    violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
-    violations.push(...(await checkDeprecatedAdrs(prolog)));
-    violations.push(...(await checkDomainContradictions(prolog)));
+    await runCheck("required-fields", checkRequiredFields, allEntityIds);
+    await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
+    await runCheck("domain-contradictions", checkDomainContradictions);
     await prolog.query("kb_detach");
     await prolog.terminate();
 
@@ -514,7 +566,7 @@ async function checkSymbolCoverage(
   const violations: Violation[] = [];
 
   const uncoveredResult = await prolog.query(
-    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)"
+    "setof(Symbol, symbol_no_req_coverage(Symbol, _), Symbols)",
   );
 
   if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
@@ -542,7 +594,6 @@ async function checkSymbolCoverage(
 
   return violations;
 }
-
 
 function parseTripleRows(raw: string): Array<[string, string, string]> {
   const cleaned = raw.trim();
