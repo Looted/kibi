@@ -656,3 +656,28 @@ coerce_timestamp_atom(Val, Atom) :-
 coerce_timestamp_atom(Val, Atom) :-
     term_string(Val, Str),
     atom_string(Atom, Str).
+
+
+%% Staged symbol traceability predicates
+%% These support the pre-commit traceability gate feature
+
+%% Dynamic declarations for overlay facts
+:- dynamic changed_symbol/1.
+:- dynamic changed_symbol_loc/5.
+
+%% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
+% True if Symbol has fewer than MinLinks requirement connections.
+changed_symbol_missing_req(Symbol, MinLinks, Count) :-
+    changed_symbol(Symbol),
+    findall(Req, transitively_implements(Symbol, Req), Reqs),
+    length(Reqs, Count),
+    Count < MinLinks.
+
+%% changed_symbol_violation(+Symbol, +MinLinks, -Count, -File, -Line, -Col, -Name)
+% Full violation record for a changed symbol missing requirements.
+changed_symbol_violation(Symbol, MinLinks, Count, File, Line, Col, Name) :-
+    changed_symbol_missing_req(Symbol, MinLinks, Count),
+    (   changed_symbol_loc(Symbol, FileRaw, Line, Col, NameRaw)
+    ->  File = FileRaw, Name = NameRaw
+    ;   File = '', Line = 0, Col = 0, Name = ''
+    ).
