@@ -96,19 +96,41 @@ export async function queryCommand(
 
     // Query relationships mode
     if (options.relationships) {
-      const goal = `findall([Type,From,To], kb_relationship(Type, ${options.relationships}, To), Results)`;
+      const fromId = String(options.relationships);
+      const safeFromId = fromId.replace(/'/g, "''");
+
+      // Keep in sync with relationship.schema.json
+      const REL_TYPES = [
+        "depends_on",
+        "specified_by",
+        "verified_by",
+        "validates",
+        "implements",
+        "covered_by",
+        "constrained_by",
+        "constrains",
+        "requires_property",
+        "guards",
+        "publishes",
+        "consumes",
+        "supersedes",
+        "relates_to",
+      ] as const;
+
+      const relTypeList = `[${REL_TYPES.join(",")}]`;
+      const goal = `findall([Type,From,To], (From='${safeFromId}', member(Type, ${relTypeList}), kb_relationship(Type, From, To)), Results)`;
+
       const queryResult = await prolog.query(goal);
 
       if (queryResult.success && queryResult.bindings.Results) {
-        const relationshipsData = parseListOfLists(
-          queryResult.bindings.Results,
-        );
-
-        results = relationshipsData.map((rel) => ({
-          type: rel[0],
-          from: options.relationships,
-          to: rel[1],
-        }));
+        const rows = parseListOfLists(queryResult.bindings.Results);
+        results = rows
+          .filter((r) => r.length >= 3)
+          .map((r) => ({
+            type: parsePrologValue(r[0]),
+            from: parsePrologValue(r[1]),
+            to: parsePrologValue(r[2]),
+          }));
       }
     }
     // Query entities mode
