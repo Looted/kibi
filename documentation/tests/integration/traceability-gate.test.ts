@@ -62,6 +62,17 @@ describe("staged symbol traceability gate", () => {
       cwd: tmpDir,
       stdio: "pipe",
     });
+    // Initialize kibi KB so check --staged can attach to a branch KB
+    try {
+      execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    } catch {
+      // init may fail if git has no commits yet; create an empty commit first
+      execSync("git commit --allow-empty -m 'initial'", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "pipe" });
+    }
   });
 
   afterEach(() => {
@@ -93,9 +104,11 @@ describe("staged symbol traceability gate", () => {
       } catch (e: any) {
         out = e.stdout ? String(e.stdout) : String(e.message ?? e);
       }
-      expect(out.includes("OK") || out.includes("No staged files found")).toBe(
-        true,
-      );
+      expect(
+        out.includes("No violations found") ||
+          out.includes("✓") ||
+          out.includes("No staged files found"),
+      ).toBe(true);
 
       // non-mutation assertions
       const afterSymbols = repoSymbolsHash(hostRepo);
@@ -114,7 +127,7 @@ describe("staged symbol traceability gate", () => {
       const beforeBranches = kbBranchesSnapshot(hostRepo);
 
       const src =
-        "function missingLink() { return 1; }\nmodule.exports = { missingLink };\n";
+        "export function missingLink() { return 1; }\n";
       writeFileSync(path.join(tmpDir, "noimpl.js"), src, "utf8");
       execSync("git add noimpl.js", { cwd: tmpDir, stdio: "pipe" });
 

@@ -664,13 +664,25 @@ coerce_timestamp_atom(Val, Atom) :-
 %% Dynamic declarations for overlay facts
 :- dynamic changed_symbol/1.
 :- dynamic changed_symbol_loc/5.
+:- dynamic changed_symbol_req/2.
 
 %% changed_symbol_missing_req(+Symbol, +MinLinks, -Count)
 % True if Symbol has fewer than MinLinks requirement connections.
+% changed_symbol_req/2 overlay facts (from code-comment directives) are also
+% counted so that `// implements: REQ-001` can satisfy the gate.
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
-    findall(Req, transitively_implements(Symbol, Req), Reqs),
-    length(Reqs, Count),
+    (   setof(Req, transitively_implements(Symbol, Req), KbReqs)
+    ->  true
+    ;   KbReqs = []
+    ),
+    (   setof(Req, changed_symbol_req(Symbol, Req), OverlayReqs)
+    ->  true
+    ;   OverlayReqs = []
+    ),
+    append(KbReqs, OverlayReqs, AllReqs),
+    sort(AllReqs, UniqueReqs),
+    length(UniqueReqs, Count),
     Count < MinLinks.
 
 %% changed_symbol_violation(+Symbol, +MinLinks, -Count, -File, -Line, -Col, -Name)

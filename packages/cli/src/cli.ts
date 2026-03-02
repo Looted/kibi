@@ -104,7 +104,7 @@ program
   .option(
     "--min-links <n>",
     "Minimum number of links required for symbol coverage",
-    "0",
+    "1",
   )
   .option("--dry-run", "Do not modify files; only print what would happen")
   .action(async (options) => {
