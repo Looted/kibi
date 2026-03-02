@@ -9,6 +9,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import relationshipSchema from "../../src/public/schemas/relationship.js";
 
 describe("kibi query", () => {
   const TEST_TIMEOUT_MS = 20000;
@@ -247,6 +248,16 @@ User logs in with OAuth2 provider.
 
       const results = JSON.parse(output);
       expect(Array.isArray(results)).toBe(true);
+
+      if (results.length > 0) {
+        for (const rel of results) {
+          expect(typeof rel.type).toBe("string");
+          expect(typeof rel.from).toBe("string");
+          expect(typeof rel.to).toBe("string");
+          expect(rel.from).toBe(entityWithLinks.id);
+          expect(relationshipSchema.properties.type.enum).toContain(rel.type);
+        }
+      }
     },
     TEST_TIMEOUT_MS,
   );

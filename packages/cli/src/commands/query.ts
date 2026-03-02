@@ -46,6 +46,9 @@
 import * as path from "node:path";
 import Table from "cli-table3";
 import { PrologProcess } from "../prolog.js";
+import relationshipSchema from "../public/schemas/relationship.js";
+
+const REL_TYPES = relationshipSchema.properties.type.enum;
 
 interface QueryOptions {
   id?: string;
@@ -99,38 +102,29 @@ export async function queryCommand(
       const fromId = String(options.relationships);
       const safeFromId = fromId.replace(/'/g, "''");
 
-      // Keep in sync with relationship.schema.json
-      const REL_TYPES = [
-        "depends_on",
-        "specified_by",
-        "verified_by",
-        "validates",
-        "implements",
-        "covered_by",
-        "constrained_by",
-        "constrains",
-        "requires_property",
-        "guards",
-        "publishes",
-        "consumes",
-        "supersedes",
-        "relates_to",
-      ] as const;
-
-      const relTypeList = `[${REL_TYPES.join(",")}]`;
-      const goal = `findall([Type,From,To], (From='${safeFromId}', member(Type, ${relTypeList}), kb_relationship(Type, From, To)), Results)`;
+      // Query all relationship types for the given source ID
+      const goal = `findall([Type,From,To], (From='${safeFromId}', kb_relationship(Type, From, To)), Results)`;
 
       const queryResult = await prolog.query(goal);
 
       if (queryResult.success && queryResult.bindings.Results) {
         const rows = parseListOfLists(queryResult.bindings.Results);
-        results = rows
+        const parsed = rows
           .filter((r) => r.length >= 3)
           .map((r) => ({
             type: parsePrologValue(r[0]),
             from: parsePrologValue(r[1]),
             to: parsePrologValue(r[2]),
           }));
+        results = parsed.filter(
+          (rel) =>
+            rel &&
+            typeof rel.type === "string" &&
+            typeof rel.from === "string" &&
+            typeof rel.to === "string" &&
+            rel.from === fromId &&
+            REL_TYPES.includes(rel.type),
+        );
       }
     }
     // Query entities mode
