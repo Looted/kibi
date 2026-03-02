@@ -4,7 +4,9 @@ import * as path from "node:path";
 import { bench, run } from "mitata";
 
 const BENCH_DIR = path.join("/tmp", ".kibi-bench-tmp");
-const KIBI_BIN = "/home/looted/projects/kibi/packages/cli/src/cli.ts";
+const KIBI_BIN =
+  process.env.KIBI_BIN ??
+  path.resolve(__dirname, "../../../packages/cli/src/cli.ts");
 
 function generateTsFile(i: number): string {
   return `export const value${i} = ${i};\nexport function func${i}(): number { return ${i}; }\n`;

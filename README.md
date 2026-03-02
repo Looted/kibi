@@ -318,9 +318,11 @@ export class MyClass { } // implements REQ-001, REQ-002
 
 Supported languages: TypeScript (`.ts`, `.tsx`), JavaScript (`.js`, `.jsx`).
 
-### Configuration via `.kibi/traceability.json` (optional)
+### Configuration via `.kibi/traceability.json` (not yet implemented)
 
-You can customize enforcement by creating a `.kibi/traceability.json` file in your repo:
+> **Note:** This configuration file is not yet implemented. Use CLI flags (`--min-links`) to customize enforcement.
+
+The following schema is planned for a future release:
 
 ```json
 {

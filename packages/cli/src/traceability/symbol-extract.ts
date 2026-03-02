@@ -43,8 +43,14 @@ function chooseScriptKind(path: string): ScriptKind {
 
 function parseReqDirectives(text: string): string[] {
   // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
+  // Stop at end-of-line and only accept IDs starting with an uppercase letter
+  // to avoid capturing tokens like `export`, `function`, etc.
+  const REQ_ID = "[A-Z][A-Z0-9\\-_]*";
+  const regex = new RegExp(
+    `implements\\s*:?\\s*(${REQ_ID}(?:\\s*,\\s*${REQ_ID})*)\\s*$`,
+    "gim",
+  );
   const reqs = new Set<string>();
-  const regex = /implements\s*:?\s*([A-Z0-9\-_,\s]+)/gi;
   let m: RegExpExecArray | null;
   while ((m = regex.exec(text))) {
     const list = m[1];
