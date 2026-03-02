@@ -11,16 +11,11 @@
   "bin": {
     "kibi": "./bin/kibi"
   },
-  "files": [
-    "dist",
-    "bin",
-    "schema",
-    "src/schemas",
-    "src/public"
-  ],
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepack": "npm run build"
   },
   "exports": {
     ".": {
