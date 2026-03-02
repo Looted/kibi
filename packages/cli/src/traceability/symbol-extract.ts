@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Project, ScriptKind, type SourceFile } from "ts-morph";
-import { extractFromManifest } from "../extractors/manifest";
-import type { HunkRange, StagedFile } from "./git-staged";
+import { extractFromManifest } from "../extractors/manifest.js";
+import type { HunkRange, StagedFile } from "./git-staged.js";
 
 export interface ExtractedSymbol {
   id: string;

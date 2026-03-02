@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { PrologProcess } from "../prolog";
+import { PrologProcess } from "../prolog.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {

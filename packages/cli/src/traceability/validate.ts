@@ -1,4 +1,4 @@
-import type { PrologProcess } from "../prolog";
+import type { PrologProcess } from "../prolog.js";
 
 export interface ValidationOptions {
   minLinks: number;
