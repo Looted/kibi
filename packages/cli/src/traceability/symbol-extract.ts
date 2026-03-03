@@ -247,6 +247,15 @@ export function extractSymbolsFromStagedFile(
     }
   }
 
+  // Filter to only include symbols that intersect with at least one hunk
+  // (unless it's a new file or rename, in which case we include all)
+  const shouldFilterByHunks =
+    stagedFile.status === "M" && stagedFile.hunkRanges.length > 0;
+
+  if (shouldFilterByHunks) {
+    return results.filter((r) => r.hunkRanges.length > 0);
+  }
+
   return results;
 }
 

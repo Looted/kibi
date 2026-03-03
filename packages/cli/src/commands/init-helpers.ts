@@ -44,6 +44,7 @@
     done
 */
 import {
+  chmodSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -172,6 +173,8 @@ ${content}`,
       { mode: 0o755 },
     );
   }
+  // Explicitly ensure hook is executable (mode option can be inconsistent in Docker)
+  chmodSync(hookPath, 0o755);
 }
 
 export function installGitHooks(gitDir: string): void {
