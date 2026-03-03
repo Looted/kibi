@@ -46,7 +46,7 @@ Options:
 
 Examples:
   $0 e2e                                    # Run all E2E tests
-  $0 e2e documentation/tests/e2e/packed/mcp.test.mjs
+  $0 e2e documentation/tests/e2e/packed/mcp.test.ts
   $0 integration                            # Run all integration tests
   $0 integration -f init-sync-check.test.ts
   $0 e2e --parallel 3                       # Run 3 E2E tests in parallel
@@ -185,7 +185,7 @@ else
             if [ -n "$PATTERN" ]; then
                 mapfile -t TEST_FILES < <(find "$REPO_ROOT/documentation/tests/e2e/packed" -name "$PATTERN" -type f 2>/dev/null | sed "s|$REPO_ROOT/||")
             else
-                mapfile -t TEST_FILES < <(find "$REPO_ROOT/documentation/tests/e2e/packed" -name "*.test.mjs" -type f 2>/dev/null | sed "s|$REPO_ROOT/||")
+                mapfile -t TEST_FILES < <(find "$REPO_ROOT/documentation/tests/e2e/packed" -name "*.test.ts" -type f 2>/dev/null | sed "s|$REPO_ROOT/||")
             fi
             ;;
         integration)

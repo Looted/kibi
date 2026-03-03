@@ -1,22 +1,19 @@
-/**
- * E2E Test: CLI Workflows
- *
- * Tests kibi-cli installation and basic commands from npm tarball.
- */
-
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
-} from "./helpers.mjs";
+  run,
+} from "./helpers.js";
 
 describe("CLI E2E: Install and Basic Commands", () => {
-  let tarballs;
-  let sandbox;
+  let tarballs: Tarballs;
+  let sandbox: TestSandbox;
   let hasProlog = false;
 
   before(async () => {
@@ -82,7 +79,10 @@ describe("CLI E2E: Install and Basic Commands", () => {
     const { stdout, exitCode } = await kibi(sandbox, ["init"]);
 
     assert.strictEqual(exitCode, 0, "kibi init should succeed");
-    assert.ok(stdout.includes("✓") || stdout.includes("success"), "Init should show success indicators");
+    assert.ok(
+      stdout.includes("✓") || stdout.includes("success"),
+      "Init should show success indicators",
+    );
 
     console.log("  ✓ Kibi initialized with hooks");
   });
@@ -162,21 +162,20 @@ describe("CLI E2E: Install and Basic Commands", () => {
     // Note: kibi check has a known timeout issue in some environments
     // This test verifies the command runs, even if it times out
     try {
-      const { stdout, exitCode } = await kibi(sandbox, ["check"], {
+      const { exitCode } = await kibi(sandbox, ["check"], {
         timeoutMs: 35000,
       });
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     } catch (err) {
       // Check command may timeout - this is a known issue
       // The important thing is that the package installed correctly
-      console.log(`  ⚠️  Check timed out (known issue): ${err.message}`);
+      const error = err as Error;
+      console.log(`  ⚠️  Check timed out (known issue): ${error.message}`);
     }
   });
 
   it("should have created .kb directory structure", async () => {
     if (!hasProlog) return;
-
-    const { run } = await import("./helpers.mjs");
 
     // Check .kb directory exists
     const { exitCode: kbExists } = await run("test", ["-d", ".kb"], {

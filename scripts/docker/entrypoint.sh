@@ -2,7 +2,7 @@
 set -e
 
 # Kibi Test Runner - Container Entrypoint
-# Handles test environment setup and dispatches to appropriate test suites
+# Handles test environment setup, TypeScript compilation, and dispatches to test suites
 
 echo "🐳 Kibi Docker Test Runner"
 echo "=========================="
@@ -41,6 +41,7 @@ export GIT_CONFIG_SYSTEM=/dev/null
 # Show environment info
 echo "📁 Environment:"
 echo "  HOME: $HOME"
+echo "  PATH: $PATH"
 echo "  XDG_CONFIG_HOME: $XDG_CONFIG_HOME"
 echo "  XDG_DATA_HOME: $XDG_DATA_HOME"
 echo "  XDG_CACHE_HOME: $XDG_CACHE_HOME"
@@ -54,15 +55,49 @@ echo -n "  SWI-Prolog: "
 swipl --version | head -1
 echo -n "  Node.js: "
 node --version
+echo -n "  npm: "
+npm --version
+echo -n "  Bun: "
+bun --version
+echo -n "  Git: "
+git --version | head -1
+echo ""
+echo "🔍 Verifying toolchain:"
+echo -n "  SWI-Prolog: "
+swipl --version | head -1
+echo -n "  Node.js: "
+node --version
 echo -n "  Bun: "
 bun --version
 echo -n "  Git: "
 git --version | head -1
 echo ""
 
+# Compile TypeScript E2E tests
+compile_e2e_tests() {
+    local e2e_dir="/workspace/documentation/tests/e2e/packed"
+    local dist_dir="$e2e_dir/dist"
+    
+    echo "🔨 Compiling TypeScript E2E tests..."
+    
+    # Clean previous compilation
+    rm -rf "$dist_dir"
+    mkdir -p "$dist_dir"
+    
+    # Compile TypeScript
+    # Use npx tsc from the workspace root to ensure we use the project's TypeScript
+    cd /workspace
+    npx tsc -p "$e2e_dir/tsconfig.e2e.json" --outDir "$dist_dir"
+    
+    echo "  ✓ TypeScript compilation complete"
+    echo ""
+}
+
 # Function to run E2E tests
 run_e2e_tests() {
     local test_file="$1"
+    local e2e_dir="/workspace/documentation/tests/e2e/packed"
+    local dist_dir="$e2e_dir/dist"
     
     echo "🧪 Running E2E tests..."
     
@@ -78,12 +113,40 @@ run_e2e_tests() {
         bun run build
     fi
     
+    # Compile TypeScript tests
+    # Compile TypeScript tests
+    compile_e2e_tests
+    
+    # Pre-pack packages to avoid npm execution issues in test environment
+    echo "📦 Pre-packing packages..."
+    mkdir -p /tmp/kibi-tarballs
+    for pkg in core cli mcp; do
+        pkg_dir="/workspace/packages/$pkg"
+        tarball=$(cd "$pkg_dir" && /usr/bin/npm pack 2>/dev/null | tail -1)
+        if [ -n "$tarball" ]; then
+            mv "$pkg_dir/$tarball" "/tmp/kibi-tarballs/"
+            echo "  ✓ Packed $pkg -> $tarball"
+        fi
+    done
+    echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
+    
+    # Enable source maps for better debugging
+    export NODE_OPTIONS="--enable-source-maps"
+    
+    # Pass tarball location to tests via environment
+    export KIBI_TEST_TARBALLS="/tmp/kibi-tarballs"
+    
+    # Enable source maps for better debugging
+    export NODE_OPTIONS="--enable-source-maps"
+    
     if [ -n "$test_file" ]; then
-        echo "  File: $test_file"
-        node --test --test-concurrency=1 "$test_file"
+        # Convert .ts path to .js path in dist/
+        local test_basename=$(basename "$test_file" .ts)
+        echo "  File: $test_file (compiled: $test_basename.js)"
+        node --test --test-concurrency=1 "$dist_dir/$test_basename.js"
     else
         echo "  Running all E2E tests..."
-        node --test --test-concurrency=1 documentation/tests/e2e/packed/*.test.mjs
+        node --test --test-concurrency=1 "$dist_dir"/*.test.js
     fi
 }
 
@@ -140,9 +203,9 @@ case "$SUITE" in
         echo ""
         echo "Examples:"
         echo "  $0 e2e                           # Run all E2E tests"
-        echo "  $0 e2e documentation/tests/e2e/packed/mcp.test.mjs"
+        echo "  $0 e2e cli-workflows.test.ts     # Run specific E2E test"
         echo "  $0 integration                   # Run all integration tests"
-        echo "  $0 integration documentation/tests/integration/mcp-crud.test.ts"
+        echo "  $0 integration mcp-crud.test.ts  # Run specific integration test"
         echo "  $0 unit                          # Run all unit tests"
         exit 1
         ;;

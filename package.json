@@ -7,6 +7,11 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun test",
+    "test:e2e:compile": "tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json",
+    "test:e2e:packed": "npm run test:e2e:compile && NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 documentation/tests/e2e/packed/dist/*.test.js",
+    "test:e2e:docker": "./scripts/docker/test.sh e2e",
+    "test:integration:docker": "./scripts/docker/test.sh integration",
+    "test:docker": "./scripts/docker/test.sh"
     "test:e2e:packed": "node --test --test-concurrency=1 documentation/tests/e2e/packed/*.test.mjs",
     "test:e2e:docker": "./scripts/docker/test.sh e2e",
     "test:integration:docker": "./scripts/docker/test.sh integration",
