@@ -7,6 +7,13 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "test": "bun test",
+    "test:e2e:packed": "node --test --test-concurrency=1 documentation/tests/e2e/packed/*.test.mjs",
+    "test:e2e:docker": "./scripts/docker/test.sh e2e",
+    "test:integration:docker": "./scripts/docker/test.sh integration",
+    "test:docker": "./scripts/docker/test.sh",
+    "pack:all": "npm pack --workspace packages/core && npm pack --workspace packages/cli && npm pack --workspace packages/mcp",
+    "docker:build": "docker compose -f docker/compose.test.yml build",
+    "docker:clean": "docker compose -f docker/compose.test.yml down -v --remove-orphans",
     "check": "biome check .",
     "format": "biome format --write .",
     "pack:drive": "./scripts/pack-to-drive.sh",
