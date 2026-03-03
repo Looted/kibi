@@ -27,42 +27,127 @@ import { fileURLToPath } from "node:url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../../../");
 
+/** Tarball paths for each package */
+export interface Tarballs {
+  core: string;
+  cli: string;
+  mcp: string;
+}
+
+/** Options for running commands */
+export interface RunOptions {
+  cwd: string;
+  env: NodeJS.ProcessEnv;
+  timeoutMs?: number;
+}
+
+/** Result from running a command */
+export interface RunResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+
+/** Options for kibi commands */
+export interface KibiOptions {
+  timeoutMs?: number;
+}
+
+/** Test sandbox with isolated environment */
+export interface TestSandbox {
+  /** Base temp directory */
+  baseDir: string;
+  /** Repository directory (git init here) */
+  repoDir: string;
+  /** npm prefix for global installs */
+  npmPrefix: string;
+  /** npm cache directory */
+  npmCache: string;
+  /** HOME directory for test */
+  homeDir: string;
+  /** Path to kibi binary */
+  kibiBin: string;
+  /** Path to kibi-mcp binary */
+  kibiMcpBin: string;
+  /** Isolated environment variables */
+  env: NodeJS.ProcessEnv;
+
+  /** Install packages from tarballs */
+  install(tarballs: Tarballs): Promise<void>;
+  /** Initialize git repository */
+  initGitRepo(): Promise<void>;
+  /** Cleanup sandbox */
+  cleanup(): Promise<void>;
+}
 
 /**
  * Run npm pack for all packages and return tarball paths
- * @returns {Promise<{core: string, cli: string, mcp: string}>}
+ * In Docker environments, checks for pre-packed tarballs first
  */
-export async function packAll() {
+export async function packAll(): Promise<Tarballs> {
   console.log("📦 Packing packages...");
 
-  const packages = ["core", "cli", "mcp"];
-  const tarballs = {};
+  const packages = ["core", "cli", "mcp"] as const;
+  const tarballs: Partial<Tarballs> = {};
 
+  // Check for pre-packed tarballs (set by Docker entrypoint)
+  const prePackedDir = process.env.KIBI_TEST_TARBALLS;
+  if (prePackedDir && existsSync(prePackedDir)) {
+    console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
+    for (const pkg of packages) {
+      // Find tarball for this package
+      const files = execFileSync("ls", [prePackedDir], { encoding: "utf8" })
+        .trim()
+        .split("\n");
+      const tarballName = files.find(
+        (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
+      );
+      if (tarballName) {
+        tarballs[pkg] = join(prePackedDir, tarballName);
+        console.log(`    ✓ ${pkg}: ${tarballName}`);
+      } else {
+        throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
+      }
+    }
+    return tarballs as Tarballs;
+  }
+
+  // Fallback: pack on-the-fly
   for (const pkg of packages) {
     const pkgDir = join(REPO_ROOT, "packages", pkg);
     console.log(`  Packing packages/${pkg}...`);
 
-    const result = execFileSync("npm", ["pack", "--json"], {
-      cwd: pkgDir,
-      encoding: "utf8",
-      stdio: ["pipe", "pipe", "pipe"],
-    });
+    try {
+      const result = execFileSync("npm", ["pack", "--json"], {
+        cwd: pkgDir,
+        encoding: "utf8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
 
-    const packResult = JSON.parse(result);
-    const filename = packResult[0].filename;
-    tarballs[pkg] = join(pkgDir, filename);
+      interface PackResult {
+        filename: string;
+      }
+      const packResult = JSON.parse(result) as PackResult[];
+      const filename = packResult[0]?.filename;
+      if (!filename) {
+        throw new Error(`Failed to pack package ${pkg}: no filename in output`);
+      }
+      tarballs[pkg] = join(pkgDir, filename);
 
-    console.log(`    → ${filename}`);
+      console.log(`    → ${filename}`);
+    } catch (err) {
+      const error = err as Error;
+      throw new Error(`Failed to pack package ${pkg}: ${error.message}`);
+    }
   }
 
-  return tarballs;
+  return tarballs as Tarballs;
 }
 
 /**
  * Create a completely isolated test sandbox
- * @returns {TestSandbox}
  */
-export function createSandbox() {
+export function createSandbox(): TestSandbox {
   const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-"));
 
   // Create isolated directories
@@ -78,14 +163,14 @@ export function createSandbox() {
   mkdirSync(homeDir, { recursive: true });
 
   // Build isolated environment
-  const env = {
+  const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: homeDir,
     USERPROFILE: homeDir, // Windows
     npm_config_prefix: npmPrefix,
     npm_config_cache: npmCache,
     npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
-    PATH: `${join(npmPrefix, "bin")}:${process.env.PATH}`,
+    PATH: `${join(npmPrefix, "bin")}:/usr/bin:${process.env.PATH ?? ""}`,
     // Prevent git from using global config
     GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
     GIT_CONFIG_SYSTEM: "/dev/null",
@@ -98,7 +183,7 @@ export function createSandbox() {
   };
 
   // Create empty git config
-  writeFileSync(env.GIT_CONFIG_GLOBAL, "", "utf8");
+  writeFileSync(env.GIT_CONFIG_GLOBAL!, "", "utf8");
 
   // Store binary paths for direct execution
   const kibiBin = join(npmPrefix, "bin", "kibi");
@@ -113,18 +198,8 @@ export function createSandbox() {
     kibiBin,
     kibiMcpBin,
     env,
-    baseDir,
-    repoDir,
-    npmPrefix,
-    npmCache,
-    homeDir,
-    env,
 
-    /**
-     * Install packages from tarballs into this sandbox
-     * @param {{core: string, cli: string, mcp: string}} tarballs
-     */
-    async install(tarballs) {
+    async install(tarballs: Tarballs): Promise<void> {
       console.log("📥 Installing packages into sandbox...");
 
       // Install kibi-core first (dependency of cli)
@@ -154,11 +229,7 @@ export function createSandbox() {
       console.log("  ✓ Packages installed");
     },
 
-
-    /**
-     * Initialize a git repository in the sandbox
-     */
-    async initGitRepo() {
+    async initGitRepo(): Promise<void> {
       await run("git", ["init", "-b", "develop"], { cwd: repoDir, env });
       await run("git", ["config", "user.email", "test@example.com"], {
         cwd: repoDir,
@@ -171,10 +242,7 @@ export function createSandbox() {
       console.log("  ✓ Git repo initialized");
     },
 
-    /**
-     * Cleanup sandbox
-     */
-    async cleanup() {
+    async cleanup(): Promise<void> {
       console.log(`🧹 Cleaning up ${baseDir}...`);
       try {
         await run("rm", ["-rf", baseDir], { cwd: "/tmp", env: process.env });
@@ -187,12 +255,12 @@ export function createSandbox() {
 
 /**
  * Run a command with timeout and output capture
- * @param {string} cmd - Command to run
- * @param {string[]} args - Arguments
- * @param {{cwd: string, env: object, timeoutMs?: number}} options
- * @returns {Promise<{stdout: string, stderr: string, exitCode: number}>}
  */
-export function run(cmd, args, options = {}) {
+export function run(
+  cmd: string,
+  args: string[],
+  options: RunOptions,
+): Promise<RunResult> {
   const { cwd, env, timeoutMs = 30000 } = options;
 
   return new Promise((resolve, reject) => {
@@ -215,20 +283,20 @@ export function run(cmd, args, options = {}) {
       setTimeout(() => child.kill("SIGKILL"), 5000);
     }, timeoutMs);
 
-    child.stdout?.on("data", (data) => {
+    child.stdout?.on("data", (data: Buffer) => {
       stdout += data.toString();
     });
 
-    child.stderr?.on("data", (data) => {
+    child.stderr?.on("data", (data: Buffer) => {
       stderr += data.toString();
     });
 
-    child.on("error", (err) => {
+    child.on("error", (err: Error) => {
       clearTimeout(timeout);
       reject(err);
     });
 
-    child.on("close", (exitCode) => {
+    child.on("close", (exitCode: number | null) => {
       clearTimeout(timeout);
 
       if (killed) {
@@ -247,11 +315,12 @@ export function run(cmd, args, options = {}) {
 
 /**
  * Run kibi command in sandbox
- * @param {TestSandbox} sandbox
- * @param {string[]} args
- * @param {{timeoutMs?: number}} options
  */
-export async function kibi(sandbox, args, options = {}) {
+export async function kibi(
+  sandbox: TestSandbox,
+  args: string[],
+  options: KibiOptions = {},
+): Promise<RunResult> {
   // Use node to execute the bin file directly (bypass shebang permission issues in Docker)
   return run("node", [sandbox.kibiBin, ...args], {
     cwd: sandbox.repoDir,
@@ -262,11 +331,12 @@ export async function kibi(sandbox, args, options = {}) {
 
 /**
  * Run kibi-mcp command in sandbox
- * @param {TestSandbox} sandbox
- * @param {string[]} args
- * @param {{timeoutMs?: number}} options
  */
-export async function kibiMcp(sandbox, args, options = {}) {
+export async function kibiMcp(
+  sandbox: TestSandbox,
+  args: string[],
+  options: KibiOptions = {},
+): Promise<RunResult> {
   // Use node to execute the bin file directly (bypass shebang permission issues in Docker)
   return run("node", [sandbox.kibiMcpBin, ...args], {
     cwd: sandbox.repoDir,
@@ -275,24 +345,29 @@ export async function kibiMcp(sandbox, args, options = {}) {
   });
 }
 
+/** Frontmatter data for markdown files */
+export interface Frontmatter {
+  [key: string]: string | string[] | undefined;
+}
+
 /**
  * Create a test markdown file with frontmatter
- * @param {TestSandbox} sandbox
- * @param {string} relativePath - Path relative to repo root (e.g., "requirements/req1.md")
- * @param {object} frontmatter
- * @param {string} content
  */
 export function createMarkdownFile(
-  sandbox,
-  relativePath,
-  frontmatter,
-  content,
-) {
+  sandbox: TestSandbox,
+  relativePath: string,
+  frontmatter: Frontmatter,
+  content: string,
+): void {
   const fullPath = join(sandbox.repoDir, relativePath);
   mkdirSync(join(fullPath, ".."), { recursive: true });
 
   const fmLines = Object.entries(frontmatter)
-    .map(([k, v]) => `${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : v}`)
+    .map(([k, v]) => {
+      if (v === undefined) return "";
+      return `${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : v}`;
+    })
+    .filter(Boolean)
     .join("\n");
 
   const fileContent = `---
@@ -308,32 +383,31 @@ ${content}
 
 /**
  * Assert that a file exists and is executable
- * @param {string} filePath
  */
-export function assertExecutable(filePath) {
+export function assertExecutable(filePath: string): void {
   try {
     // Check file exists
-    const stats = execFileSync("stat", ["-f", "%Lp", filePath], {
+    const stats = execFileSync("stat", ["-c", "%a", filePath], {
       encoding: "utf8",
     }).trim();
     const mode = Number.parseInt(stats, 8);
-    const isExecutable = (mode & constants.S_IXUSR) !== 0;
+    const isExecutable = (mode & 0o111) !== 0;
 
     if (!isExecutable) {
       throw new Error(`File ${filePath} is not executable (mode: ${stats})`);
     }
   } catch (err) {
+    const error = err as Error;
     throw new Error(
-      `Failed to check executable status of ${filePath}: ${err.message}`,
+      `Failed to check executable status of ${filePath}: ${error.message}`,
     );
   }
 }
 
 /**
  * Check if Prolog is available in environment
- * @returns {boolean}
  */
-export function checkPrologAvailable() {
+export function checkPrologAvailable(): boolean {
   try {
     execFileSync("swipl", ["--version"], { stdio: "pipe" });
     return true;

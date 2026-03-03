@@ -1,24 +1,45 @@
-/**
- * E2E Test: MCP Server Operations
- *
- * Tests kibi-mcp installation and JSON-RPC operations via stdio.
- */
-
 import assert from "node:assert";
 import { spawn } from "node:child_process";
+import type { ChildProcess } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
-} from "./helpers.mjs";
+} from "./helpers.js";
+
+/** JSON-RPC request structure */
+interface JsonRpcRequest {
+  jsonrpc: "2.0";
+  id: number;
+  method: string;
+  params?: Record<string, unknown>;
+}
+
+/** JSON-RPC response structure */
+interface JsonRpcResponse {
+  jsonrpc: "2.0";
+  id: number;
+  result?: {
+    protocolVersion?: string;
+    serverInfo?: { name: string };
+    tools?: Array<{ name: string }>;
+    content?: Array<{ type: string; text: string }>;
+  };
+  error?: {
+    code: number;
+    message: string;
+  };
+}
 
 describe("MCP E2E: Server Operations", () => {
-  let tarballs;
-  let sandbox;
+  let tarballs: Tarballs;
+  let sandbox: TestSandbox;
   let hasProlog = false;
 
   before(async () => {
@@ -88,7 +109,7 @@ describe("MCP E2E: Server Operations", () => {
     }, 10000);
 
     return new Promise((resolve, reject) => {
-      mcpProcess.stdout.on("data", (data) => {
+      mcpProcess.stdout?.on("data", (data: Buffer) => {
         responseData += data.toString();
 
         // Check for JSON-RPC response
@@ -96,7 +117,7 @@ describe("MCP E2E: Server Operations", () => {
           const lines = responseData.trim().split("\n");
           for (const line of lines) {
             if (line.trim()) {
-              const msg = JSON.parse(line);
+              const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 1 && msg.result?.protocolVersion) {
                 responseReceived = true;
                 clearTimeout(timeout);
@@ -126,7 +147,7 @@ describe("MCP E2E: Server Operations", () => {
         }
       });
 
-      mcpProcess.on("error", (err) => {
+      mcpProcess.on("error", (err: Error) => {
         clearTimeout(timeout);
         reject(err);
       });
@@ -139,7 +160,7 @@ describe("MCP E2E: Server Operations", () => {
       });
 
       // Send initialize request
-      const initRequest = {
+      const initRequest: JsonRpcRequest = {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
@@ -150,7 +171,7 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
     });
   });
 
@@ -171,14 +192,14 @@ describe("MCP E2E: Server Operations", () => {
     }, 10000);
 
     return new Promise((resolve, reject) => {
-      mcpProcess.stdout.on("data", (data) => {
+      mcpProcess.stdout?.on("data", (data: Buffer) => {
         responseData += data.toString();
 
         try {
           const lines = responseData.trim().split("\n");
           for (const line of lines) {
             if (line.trim()) {
-              const msg = JSON.parse(line);
+              const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 2 && msg.result?.tools) {
                 responseReceived = true;
                 clearTimeout(timeout);
@@ -215,7 +236,7 @@ describe("MCP E2E: Server Operations", () => {
       });
 
       // Initialize first
-      const initRequest = {
+      const initRequest: JsonRpcRequest = {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
@@ -227,15 +248,15 @@ describe("MCP E2E: Server Operations", () => {
       };
 
       // Then list tools
-      const toolsRequest = {
+      const toolsRequest: JsonRpcRequest = {
         jsonrpc: "2.0",
         id: 2,
         method: "tools/list",
       };
 
-      mcpProcess.stdin.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
       setTimeout(() => {
-        mcpProcess.stdin.write(JSON.stringify(toolsRequest) + "\n");
+        mcpProcess.stdin?.write(JSON.stringify(toolsRequest) + "\n");
       }, 500);
     });
   });
@@ -257,14 +278,14 @@ describe("MCP E2E: Server Operations", () => {
     }, 15000);
 
     return new Promise((resolve, reject) => {
-      mcpProcess.stdout.on("data", (data) => {
+      mcpProcess.stdout?.on("data", (data: Buffer) => {
         responseData += data.toString();
 
         try {
           const lines = responseData.trim().split("\n");
           for (const line of lines) {
             if (line.trim()) {
-              const msg = JSON.parse(line);
+              const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 3 && msg.result?.content) {
                 responseReceived = true;
                 clearTimeout(timeout);
@@ -300,7 +321,7 @@ describe("MCP E2E: Server Operations", () => {
       });
 
       // Initialize
-      const initRequest = {
+      const initRequest: JsonRpcRequest = {
         jsonrpc: "2.0",
         id: 1,
         method: "initialize",
@@ -312,7 +333,7 @@ describe("MCP E2E: Server Operations", () => {
       };
 
       // Call kb_query
-      const queryRequest = {
+      const queryRequest: JsonRpcRequest = {
         jsonrpc: "2.0",
         id: 3,
         method: "tools/call",
@@ -324,9 +345,9 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
       setTimeout(() => {
-        mcpProcess.stdin.write(JSON.stringify(queryRequest) + "\n");
+        mcpProcess.stdin?.write(JSON.stringify(queryRequest) + "\n");
       }, 1000);
     });
   });
@@ -334,7 +355,7 @@ describe("MCP E2E: Server Operations", () => {
   it("should handle graceful shutdown", async () => {
     if (!hasProlog) return;
 
-    const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
+    const mcpProcess: ChildProcess = spawn("node", [sandbox.kibiMcpBin], {
       cwd: sandbox.repoDir,
       env: sandbox.env,
       stdio: ["pipe", "pipe", "pipe"],

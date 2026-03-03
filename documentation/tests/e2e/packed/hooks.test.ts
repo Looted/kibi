@@ -1,26 +1,21 @@
-/**
- * E2E Test: Git Hook Execution
- *
- * Tests that kibi init installs working git hooks
- * and that those hooks execute kibi commands correctly.
- */
-
 import assert from "node:assert";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
-} from "./helpers.mjs";
+} from "./helpers.js";
 
 describe("CLI E2E: Git Hook Execution", () => {
-  let tarballs;
-  let sandbox;
+  let tarballs: Tarballs;
+  let sandbox: TestSandbox;
   let hasProlog = false;
 
   before(async () => {
@@ -89,7 +84,10 @@ describe("CLI E2E: Git Hook Execution", () => {
 
       // Check if the permissions contain 'x' (executable)
       const isExecutable = statExit === 0 && statOutput.trim().includes("x");
-      assert.ok(isExecutable, `Hook ${hook} should be executable (perms: ${statOutput?.trim()})`);
+      assert.ok(
+        isExecutable,
+        `Hook ${hook} should be executable (perms: ${statOutput?.trim()})`,
+      );
     }
 
     console.log("  ✓ All hooks are executable");
@@ -147,7 +145,7 @@ describe("CLI E2E: Git Hook Execution", () => {
     await kibi(sandbox, ["sync"]);
 
     // Create and checkout a new branch
-    const { stdout, exitCode } = await run(
+    const { exitCode } = await run(
       "git",
       ["checkout", "-b", "feature/test-hook"],
       { cwd: sandbox.repoDir, env: sandbox.env },
