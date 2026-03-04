@@ -29,14 +29,14 @@ describe("E2E: Init-Sync-Check Workflow", () => {
     tarballs = await packAll();
   });
 
-  beforeEach(async () => {
+  before(async () => {
     if (!hasProlog) return;
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
   });
 
-  afterEach(async () => {
+  after(async () => {
     if (sandbox) {
       await sandbox.cleanup();
     }
