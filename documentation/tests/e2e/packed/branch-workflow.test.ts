@@ -31,7 +31,7 @@ describe("E2E: Branch KB Workflow", () => {
     tarballs = await packAll();
   });
 
-  beforeEach(async () => {
+  before(async () => {
     if (!hasProlog) return;
     sandbox = createSandbox();
     await sandbox.install(tarballs);
@@ -55,7 +55,7 @@ describe("E2E: Branch KB Workflow", () => {
     }
   });
 
-  afterEach(async () => {
+  after(async () => {
     if (sandbox) {
       await sandbox.cleanup();
     }
