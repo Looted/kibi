@@ -122,7 +122,7 @@ status: draft
         "feature KB should exist",
       );
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it.skip(
@@ -199,7 +199,7 @@ status: draft
       assert.ok(developQueryAfter.includes("develop-only"));
       assert.ok(!developQueryAfter.includes("feature-only"));
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it.skip(
@@ -266,7 +266,7 @@ status: approved
       assert.ok(developQuery.includes("Version 1"));
       assert.ok(!developQuery.includes("Version 2"));
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it(
@@ -318,7 +318,7 @@ status: draft
         "Branch KB should be created after sync",
       );
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it.skip(
@@ -380,7 +380,7 @@ status: approved
         "Develop should still have shared",
       );
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it(
@@ -469,7 +469,7 @@ status: draft
         "feature KB should still exist",
       );
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it(
@@ -535,6 +535,6 @@ status: draft
       assert.ok(orphanQuery.includes("orphan"));
       assert.ok(!orphanQuery.includes("Develop"));
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 });
