@@ -3,7 +3,7 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
-import { after, before, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
@@ -63,6 +63,11 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
     }
 
     tarballs = await packAll();
+  });
+
+  beforeEach(async () => {
+    if (!hasProlog) return;
+
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
@@ -80,7 +85,7 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
     }
   });
 
-  after(async () => {
+  afterEach(async () => {
     if (sandbox) {
       await sandbox.cleanup();
     }
@@ -89,7 +94,7 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
   it("should pass with implements directive", async () => {
     if (!hasProlog) return;
 
-    // snapshot host repo artifacts (the actual kibi repo)
+    // snapshot host repo artifacts
     const hostRepo = process.cwd();
     const beforeSymbols = repoSymbolsHash(hostRepo);
     const beforeBranches = kbBranchesSnapshot(hostRepo);
@@ -98,13 +103,8 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
     const src =
       "// implements: REQ-001\nexport function hello() { return 'ok'; }\n";
 
-    const filePath = join(sandbox.repoDir, "file.js");
-    await run("tee", [filePath], {
-      cwd: sandbox.repoDir,
-      env: sandbox.env,
-    });
-    // Write file using node fs (can't use tee easily with spawn)
     const fs = await import("node:fs");
+    const filePath = join(sandbox.repoDir, "file.js");
     fs.writeFileSync(filePath, src, "utf8");
 
     await run("git", ["add", "file.js"], {
@@ -156,8 +156,8 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
 
     const src = "export function missingLink() { return 1; }\n";
 
-    const filePath = join(sandbox.repoDir, "noimpl.js");
     const fs = await import("node:fs");
+    const filePath = join(sandbox.repoDir, "noimpl.js");
     fs.writeFileSync(filePath, src, "utf8");
 
     await run("git", ["add", "noimpl.js"], {
@@ -174,9 +174,9 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
       stdout = result.stdout;
       code = result.exitCode;
     } catch (e) {
+      code = 1;
       const err = e as Error;
       stdout = err.message;
-      code = 1;
     }
 
     const okFailure =

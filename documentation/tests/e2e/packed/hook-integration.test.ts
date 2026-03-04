@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join } from "node:path";
-import { after, before, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
@@ -33,12 +33,17 @@ describe("E2E: Git Hook Integration", () => {
     }
 
     tarballs = await packAll();
+  });
+
+  beforeEach(async () => {
+    if (!hasProlog) return;
+    
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
   });
 
-  after(async () => {
+  afterEach(async () => {
     if (sandbox) {
       await sandbox.cleanup();
     }
@@ -192,7 +197,7 @@ status: draft
         "Query should show merged requirements",
       );
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it("should be idempotent on re-install", async () => {
@@ -308,7 +313,7 @@ status: approved
 
       assert.ok(existsSync(join(sandbox.repoDir, ".kb")), "KB should exist");
     },
-    TEST_TIMEOUT_MS,
+    { timeout: TEST_TIMEOUT_MS },
   );
 
   it("should handle sync failures gracefully", async () => {
