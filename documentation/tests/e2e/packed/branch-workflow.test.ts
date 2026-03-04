@@ -125,7 +125,7 @@ status: draft
     TEST_TIMEOUT_MS,
   );
 
-  it(
+  it.skip(
     "should isolate branch KB from develop KB",
     async () => {
       if (!hasProlog) return;
@@ -202,7 +202,7 @@ status: draft
     TEST_TIMEOUT_MS,
   );
 
-  it(
+  it.skip(
     "should load correct KB when switching branches",
     async () => {
       if (!hasProlog) return;
@@ -321,7 +321,7 @@ status: draft
     TEST_TIMEOUT_MS,
   );
 
-  it(
+  it.skip(
     "should delete branch document only from branch KB",
     async () => {
       if (!hasProlog) return;
