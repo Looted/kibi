@@ -243,86 +243,6 @@ export function createSandbox(): TestSandbox {
       // This avoids permission issues when npm installs as root in Docker
       console.log("  ✓ Packages installed");
     },
-  const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-"));
-
-  // Create isolated directories
-  const repoDir = join(baseDir, "repo");
-  const npmPrefix = join(baseDir, "npm-prefix");
-  const npmCache = join(baseDir, "npm-cache");
-  const homeDir = join(baseDir, "home");
-
-  mkdirSync(repoDir, { recursive: true });
-  mkdirSync(join(npmPrefix, "bin"), { recursive: true });
-  mkdirSync(join(npmPrefix, "lib"), { recursive: true });
-  mkdirSync(npmCache, { recursive: true });
-  mkdirSync(homeDir, { recursive: true });
-
-  // Build isolated environment
-  const env: NodeJS.ProcessEnv = {
-    ...process.env,
-    HOME: homeDir,
-    USERPROFILE: homeDir, // Windows
-    npm_config_prefix: npmPrefix,
-    npm_config_cache: npmCache,
-    npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
-    PATH: `${join(npmPrefix, "bin")}:/usr/bin:${process.env.PATH ?? ""}`,
-    // Prevent git from using global config
-    GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
-    GIT_CONFIG_SYSTEM: "/dev/null",
-    // Prevent Prolog from using user config
-    XDG_CONFIG_HOME: join(baseDir, "config"),
-    XDG_CACHE_HOME: join(baseDir, "cache"),
-    XDG_DATA_HOME: join(baseDir, "data"),
-    // Ensure NODE_ENV is production-like for tests
-    NODE_ENV: "production",
-  };
-
-  // Create empty git config
-  writeFileSync(env.GIT_CONFIG_GLOBAL!, "", "utf8");
-
-  // Store binary paths for direct execution
-  const kibiBin = join(npmPrefix, "bin", "kibi");
-  const kibiMcpBin = join(npmPrefix, "bin", "kibi-mcp");
-
-  return {
-    baseDir,
-    repoDir,
-    npmPrefix,
-    npmCache,
-    homeDir,
-    kibiBin,
-    kibiMcpBin,
-    env,
-
-    async install(tarballs: Tarballs): Promise<void> {
-      console.log("📥 Installing packages into sandbox...");
-
-      // Install kibi-core first (dependency of cli)
-      await run(
-        "npm",
-        ["install", "-g", "--prefix", npmPrefix, tarballs.core],
-        {
-          cwd: baseDir,
-          env,
-        },
-      );
-
-      // Install kibi-cli
-      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.cli], {
-        cwd: baseDir,
-        env,
-      });
-
-      // Install kibi-mcp
-      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.mcp], {
-        cwd: baseDir,
-        env,
-      });
-
-      // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
-      // This avoids permission issues when npm installs as root in Docker
-      console.log("  ✓ Packages installed");
-    },
 
     async initGitRepo(): Promise<void> {
       await run("git", ["init", "-b", "develop"], { cwd: repoDir, env });
@@ -346,6 +266,10 @@ export function createSandbox(): TestSandbox {
       }
     },
   };
+}
+
+/**
+
 }
 
 /**
