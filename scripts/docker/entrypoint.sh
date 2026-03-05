@@ -100,7 +100,23 @@ run_e2e_tests() {
     
     echo "🧪 Running E2E tests..."
     
-    # Ensure dependencies are installed (for dev bind-mount workflow)
+    # Check if we're using baked assets (CI image) or need to build (dev bind-mount)
+    if [ -n "$KIBI_E2E_PREFIX" ] && [ -f "$KIBI_E2E_PREFIX/bin/kibi" ]; then
+        echo "✅ Using baked kibi installation from $KIBI_E2E_PREFIX"
+        echo "   (Skipping bun install, build, and npm pack)"
+    else
+        # Dev bind-mount workflow: ensure dependencies are installed
+        if [ ! -d "/workspace/node_modules" ] || [ -z "$(ls -A /workspace/node_modules 2>/dev/null)" ]; then
+            echo "📦 Installing dependencies..."
+            bun install
+        fi
+        
+        # Build packages if needed
+        if [ ! -f "/workspace/packages/cli/dist/cli.js" ]; then
+            echo "🔨 Building packages..."
+            bun run build
+        fi
+    fi
     if [ ! -d "/workspace/node_modules" ] || [ -z "$(ls -A /workspace/node_modules 2>/dev/null)" ]; then
         echo "📦 Installing dependencies..."
         bun install
@@ -116,7 +132,24 @@ run_e2e_tests() {
     # Compile TypeScript tests
     compile_e2e_tests
     
-    # Pre-pack packages to avoid npm execution issues in test environment
+    # Use baked tarballs if available, otherwise pack them
+    if [ -n "$KIBI_TEST_TARBALLS" ] && [ -d "$KIBI_TEST_TARBALLS" ] && [ -n "$(ls -A $KIBI_TEST_TARBALLS/*.tgz 2>/dev/null)" ]; then
+        echo "✅ Using baked tarballs from $KIBI_TEST_TARBALLS"
+    else
+        # Pre-pack packages to avoid npm execution issues in test environment
+        echo "📦 Pre-packing packages..."
+        mkdir -p /tmp/kibi-tarballs
+        for pkg in core cli mcp; do
+            pkg_dir="/workspace/packages/$pkg"
+            tarball=$(cd "$pkg_dir" && /usr/bin/npm pack 2>/dev/null | tail -1)
+            if [ -n "$tarball" ]; then
+                mv "$pkg_dir/$tarball" "/tmp/kibi-tarballs/"
+                echo "  ✓ Packed $pkg -> $tarball"
+            fi
+        done
+        echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
+        export KIBI_TEST_TARBALLS="/tmp/kibi-tarballs"
+    fi
     echo "📦 Pre-packing packages..."
     mkdir -p /tmp/kibi-tarballs
     for pkg in core cli mcp; do
@@ -130,6 +163,7 @@ run_e2e_tests() {
     echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
     
     # Enable source maps for better debugging
+    export NODE_OPTIONS="--enable-source-maps"
     export NODE_OPTIONS="--enable-source-maps"
     
     # Pass tarball location to tests via environment
