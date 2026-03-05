@@ -195,12 +195,12 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     const firstSync = await kibi(sandbox, ["sync"]);
     const firstMatch = firstSync.stdout.match(/Imported (\d+) entities/);
-    const firstCount = firstMatch ? Number.parseInt(firstMatch[1]) : 0;
+    const firstCount = firstMatch?.[1] ? Number.parseInt(firstMatch[1]) : 0;
     assert.ok(firstCount > 0, "First sync should import entities");
 
     const secondSync = await kibi(sandbox, ["sync"]);
     const secondMatch = secondSync.stdout.match(/Imported (\d+) entities/);
-    const secondCount = secondMatch ? Number.parseInt(secondMatch[1]) : 0;
+    const secondCount = secondMatch?.[1] ? Number.parseInt(secondMatch[1]) : 0;
 
     assert.strictEqual(
       secondCount,

@@ -145,6 +145,7 @@ describe("E2E: MCP Server CRUD Operations", () => {
 
   it(
     "should query existing entities",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -173,13 +174,28 @@ describe("E2E: MCP Server CRUD Operations", () => {
         content: Array<{ type: string; text: string }>;
       };
       assert.ok(result.content, "Should have content");
-      assert.ok(result.content[0].text.includes("req1"), "Should contain req1");
+      assert.ok(
+        result.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(
+        result.content[0]?.text.includes("req1"),
+        "Should contain req1",
+      );
+      assert.ok(
+        result.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(
+        result.content[0]?.text.includes("req1"),
+        "Should contain req1",
+      );
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should filter queries by type",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -205,48 +221,49 @@ describe("E2E: MCP Server CRUD Operations", () => {
         content: Array<{ type: string; text: string }>;
       };
       assert.ok(
-        result.content[0].text.includes("No entities") ||
-          result.content[0].text.includes("[]"),
+        result.content && result.content.length > 0,
+        "Should have at least one content item",
+      );
+      const contentText = result.content?.[0]?.text;
+      assert.ok(
+        contentText?.includes("No entities") || contentText?.includes("[]"),
         "Should return empty for scenario type",
       );
     },
-    TEST_TIMEOUT_MS,
   );
 
-  it(
-    "should filter queries by ID",
-    async () => {
-      if (!hasProlog) return;
+  it("should filter queries by ID", { timeout: TEST_TIMEOUT_MS }, async () => {
+    if (!hasProlog) return;
 
-      const response = await sendJsonRpc(
-        sandbox.kibiMcpBin,
-        sandbox.repoDir,
-        sandbox.env,
-        {
-          jsonrpc: "2.0",
-          id: 3,
-          method: "tools/call",
-          params: {
-            name: "kb_query",
-            arguments: {
-              id: "req1",
-            },
+    const response = await sendJsonRpc(
+      sandbox.kibiMcpBin,
+      sandbox.repoDir,
+      sandbox.env,
+      {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: {
+            id: "req1",
           },
         },
-      );
+      },
+    );
 
-      assert.ok(response.result);
-      const result = response.result as {
-        content: Array<{ type: string; text: string }>;
-      };
-      assert.ok(result.content[0].text.includes("req1"));
-      assert.ok(result.content[0].text.includes("Initial Requirement"));
-    },
-    TEST_TIMEOUT_MS,
-  );
+    assert.ok(response.result);
+    const result = response.result as {
+      content: Array<{ type: string; text: string }>;
+    };
+    const contentText = result.content?.[0]?.text;
+    assert.ok(contentText?.includes("req1"));
+    assert.ok(contentText?.includes("Initial Requirement"));
+  });
 
   it(
     "should filter queries by tags",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -271,13 +288,17 @@ describe("E2E: MCP Server CRUD Operations", () => {
       const result = response.result as {
         content: Array<{ type: string; text: string }>;
       };
-      assert.ok(result.content[0].text.includes("req1"));
+      assert.ok(
+        result.content && result.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(result.content?.[0]?.text.includes("req1"));
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should create new entity via kb_upsert",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -309,7 +330,11 @@ describe("E2E: MCP Server CRUD Operations", () => {
       const result = response.result as {
         content: Array<{ type: string; text: string }>;
       };
-      assert.ok(result.content[0].text.includes("req-new"));
+      assert.ok(
+        result.content && result.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(result.content?.[0]?.text.includes("req-new"));
 
       // Verify it was created
       const queryResponse = await sendJsonRpc(
@@ -332,14 +357,23 @@ describe("E2E: MCP Server CRUD Operations", () => {
       const queryResult = queryResponse.result as {
         content: Array<{ type: string; text: string }>;
       };
-      assert.ok(queryResult.content[0].text.includes("req-new"));
-      assert.ok(queryResult.content[0].text.includes("New Requirement"));
+      assert.ok(
+        queryResult.content && queryResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(
+        queryResult.content && queryResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(queryResult.content?.[0]?.text.includes("req-new"));
+      assert.ok(queryResult.content?.[0]?.text.includes("New Requirement"));
+      assert.ok(queryResult.content?.[0]?.text.includes("New Requirement"));
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should update existing entity via kb_upsert",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -389,14 +423,22 @@ describe("E2E: MCP Server CRUD Operations", () => {
       const queryResult = queryResponse.result as {
         content: Array<{ type: string; text: string }>;
       };
-      assert.ok(queryResult.content[0].text.includes("Updated Title"));
-      assert.ok(queryResult.content[0].text.includes("approved"));
+      assert.ok(
+        queryResult.content && queryResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(
+        queryResult.content && queryResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(queryResult.content?.[0]?.text.includes("Updated Title"));
+      assert.ok(queryResult.content?.[0]?.text.includes("approved"));
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should remove entity via kb_delete",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -421,7 +463,15 @@ describe("E2E: MCP Server CRUD Operations", () => {
       const deleteResult = deleteResponse.result as {
         content: Array<{ type: string; text: string }>;
       };
-      assert.ok(deleteResult.content[0].text.includes("Deleted"));
+      assert.ok(
+        deleteResult.content && deleteResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(
+        deleteResult.content && deleteResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      assert.ok(deleteResult.content?.[0]?.text.includes("Deleted"));
 
       const queryResponse = await sendJsonRpc(
         sandbox.kibiMcpBin,
@@ -444,15 +494,20 @@ describe("E2E: MCP Server CRUD Operations", () => {
         content: Array<{ type: string; text: string }>;
       };
       assert.ok(
-        queryResult.content[0].text.includes("No entities") ||
-          queryResult.content[0].text.includes("[]"),
+        queryResult.content && queryResult.content.length > 0,
+        "Should have at least one content item",
+      );
+      const queryText = queryResult.content?.[0]?.text;
+      assert.ok(
+        queryText &&
+          (queryText.includes("No entities") || queryText.includes("[]")),
       );
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should handle deleting non-existent entity",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -475,11 +530,11 @@ describe("E2E: MCP Server CRUD Operations", () => {
 
       assert.ok(response.result);
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should validate KB via kb_check",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -504,15 +559,14 @@ describe("E2E: MCP Server CRUD Operations", () => {
       };
       assert.ok(result.content);
       assert.ok(result.content.length > 0);
-      assert.ok(
-        /(\d+ violations|No violations found)/.test(result.content[0].text),
-      );
+      const violationsText = result.content?.[0]?.text ?? "";
+      assert.ok(/(\d+ violations|No violations found)/.test(violationsText));
     },
-    TEST_TIMEOUT_MS,
   );
 
   it(
     "should return error for invalid method",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -531,6 +585,5 @@ describe("E2E: MCP Server CRUD Operations", () => {
       assert.ok(response.error);
       assert.strictEqual(response.error?.code, -32601);
     },
-    TEST_TIMEOUT_MS,
   );
 });
