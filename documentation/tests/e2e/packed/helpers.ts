@@ -147,7 +147,102 @@ export async function packAll(): Promise<Tarballs> {
 /**
  * Create a completely isolated test sandbox
  */
+/**
+ * Create a completely isolated test sandbox
+ * Uses baked kibi installation if KIBI_E2E_PREFIX is set, otherwise installs from tarballs
+ */
 export function createSandbox(): TestSandbox {
+  const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-"));
+
+  // Check if we're using a baked installation (CI image)
+  const bakedPrefix = process.env.KIBI_E2E_PREFIX;
+  const useBakedPrefix = bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+
+  // Create isolated directories
+  const repoDir = join(baseDir, "repo");
+  const npmPrefix = useBakedPrefix ? bakedPrefix! : join(baseDir, "npm-prefix");
+  const npmCache = join(baseDir, "npm-cache");
+  const homeDir = join(baseDir, "home");
+
+  mkdirSync(repoDir, { recursive: true });
+  if (!useBakedPrefix) {
+    mkdirSync(join(npmPrefix, "bin"), { recursive: true });
+    mkdirSync(join(npmPrefix, "lib"), { recursive: true });
+  }
+  mkdirSync(npmCache, { recursive: true });
+  mkdirSync(homeDir, { recursive: true });
+
+  // Build isolated environment
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    HOME: homeDir,
+    USERPROFILE: homeDir, // Windows
+    npm_config_prefix: npmPrefix,
+    npm_config_cache: npmCache,
+    npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
+    PATH: `${join(npmPrefix, "bin")}:/usr/bin:${process.env.PATH ?? ""}`,
+    // Prevent git from using global config
+    GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
+    GIT_CONFIG_SYSTEM: "/dev/null",
+    // Prevent Prolog from using user config
+    XDG_CONFIG_HOME: join(baseDir, "config"),
+    XDG_CACHE_HOME: join(baseDir, "cache"),
+    XDG_DATA_HOME: join(baseDir, "data"),
+    // Ensure NODE_ENV is production-like for tests
+    NODE_ENV: "production",
+  };
+
+  // Create empty git config
+  writeFileSync(env.GIT_CONFIG_GLOBAL!, "", "utf8");
+
+  // Store binary paths for direct execution
+  const kibiBin = join(npmPrefix, "bin", "kibi");
+  const kibiMcpBin = join(npmPrefix, "bin", "kibi-mcp");
+
+  return {
+    baseDir,
+    repoDir,
+    npmPrefix,
+    npmCache,
+    homeDir,
+    kibiBin,
+    kibiMcpBin,
+    env,
+
+    async install(tarballs: Tarballs): Promise<void> {
+      if (useBakedPrefix) {
+        console.log("📦 Using baked kibi installation (skipping npm install)");
+        return;
+      }
+
+      console.log("📥 Installing packages into sandbox...");
+
+      // Install kibi-core first (dependency of cli)
+      await run(
+        "npm",
+        ["install", "-g", "--prefix", npmPrefix, tarballs.core],
+        {
+          cwd: baseDir,
+          env,
+        },
+      );
+
+      // Install kibi-cli
+      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.cli], {
+        cwd: baseDir,
+        env,
+      });
+
+      // Install kibi-mcp
+      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.mcp], {
+        cwd: baseDir,
+        env,
+      });
+
+      // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
+      // This avoids permission issues when npm installs as root in Docker
+      console.log("  ✓ Packages installed");
+    },
   const baseDir = mkdtempSync(join(tmpdir(), "kibi-e2e-"));
 
   // Create isolated directories

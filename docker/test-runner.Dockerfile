@@ -55,6 +55,25 @@ RUN bun install \
     && bun run build:cli \
     && bun run build:mcp
 
+# Bake pre-packed tarballs into the image (eliminates npm pack at runtime)
+RUN mkdir -p /opt/kibi-tarballs \
+    && for pkg in core cli mcp; do \
+        (cd /workspace/packages/$pkg && /usr/bin/npm pack --pack-destination /opt/kibi-tarballs); \
+    done
+
+# Pre-install packages into an image-owned prefix (eliminates per-test npm install)
+RUN npm install -g --prefix /opt/kibi-e2e-prefix /opt/kibi-tarballs/*.tgz \
+    && chmod -R a-w /opt/kibi-e2e-prefix
+
+# Set environment variables for test harness to use baked assets
+ENV KIBI_TEST_TARBALLS=/opt/kibi-tarballs
+ENV KIBI_E2E_PREFIX=/opt/kibi-e2e-prefix
+ENV PATH="/opt/kibi-e2e-prefix/bin:${PATH}"
+
+RUN bun install \
+    && bun run build:cli \
+    && bun run build:mcp
+
 # Pre-verify the build
 RUN swipl --version && echo "---" && node --version && echo "---" && bun --version
 
