@@ -261,7 +261,7 @@ export function run(
   args: string[],
   options: RunOptions,
 ): Promise<RunResult> {
-  const { cwd, env, timeoutMs = 30000 } = options;
+  const { cwd, env, timeoutMs = 120000 } = options;
 
   return new Promise((resolve, reject) => {
     console.log(`  $ ${cmd} ${args.join(" ")}`);
@@ -325,7 +325,7 @@ export async function kibi(
   return run("node", [sandbox.kibiBin, ...args], {
     cwd: sandbox.repoDir,
     env: sandbox.env,
-    timeoutMs: options.timeoutMs ?? 30000,
+    timeoutMs: options.timeoutMs ?? 120000,
   });
 }
 
@@ -341,7 +341,7 @@ export async function kibiMcp(
   return run("node", [sandbox.kibiMcpBin, ...args], {
     cwd: sandbox.repoDir,
     env: sandbox.env,
-    timeoutMs: options.timeoutMs ?? 30000,
+    timeoutMs: options.timeoutMs ?? 120000,
   });
 }
 

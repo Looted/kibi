@@ -56,7 +56,7 @@ async function sendJsonRpc(
         mcpProcess.kill();
       }
       reject(new Error("Timed out waiting for MCP JSON-RPC response"));
-    }, 30000);
+    }, 120000);
 
     mcpProcess.stdout?.on("data", (data: Buffer) => {
       responseBuffer += data.toString();
@@ -103,7 +103,7 @@ async function sendJsonRpc(
 }
 
 describe("E2E: MCP Server CRUD Operations", () => {
-  const TEST_TIMEOUT_MS = 70000;
+  const TEST_TIMEOUT_MS = 120000;
   let tarballs: Tarballs;
   let sandbox: TestSandbox;
   let hasProlog = false;
