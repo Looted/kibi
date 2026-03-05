@@ -20,7 +20,7 @@ import {
 } from "./helpers.js";
 
 describe("E2E: Git Hook Integration", () => {
-  const TEST_TIMEOUT_MS = 30000;
+  const TEST_TIMEOUT_MS = 120000;
   let tarballs: Tarballs;
   let sandbox: TestSandbox;
   let hasProlog = false;

@@ -385,7 +385,7 @@ async function ensureProlog(): Promise<PrologProcess> {
 
   debugLog("[KIBI-MCP] Initializing Prolog process...");
 
-  prologProcess = new PrologProcess({ timeout: 30000 });
+  prologProcess = new PrologProcess({ timeout: 120000 });
   await prologProcess.start();
 
   const workspaceRoot = resolveWorkspaceRoot();

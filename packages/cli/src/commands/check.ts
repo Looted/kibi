@@ -165,7 +165,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       }
     }
 
-    const prolog = new PrologProcess();
+    const prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
     const kbPathEscaped = resolvedKbPath.replace(/'/g, "''");

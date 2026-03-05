@@ -100,7 +100,7 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
 
   await writeFile(overlayPath, "", "utf8");
 
-  const prolog = new PrologProcess();
+  const prolog = new PrologProcess({ timeout: 120000 });
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 

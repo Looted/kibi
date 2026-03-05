@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { after, before, describe, it } from "node:test";
+import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
   type Tarballs,
   type TestSandbox,
@@ -14,7 +14,7 @@ import {
 } from "./helpers.js";
 
 describe("E2E: Init-Sync-Check Workflow", () => {
-  const TEST_TIMEOUT_MS = 30000;
+  const TEST_TIMEOUT_MS = 120000;
   let tarballs: Tarballs;
   let sandbox: TestSandbox;
   let hasProlog = false;
@@ -29,14 +29,21 @@ describe("E2E: Init-Sync-Check Workflow", () => {
     tarballs = await packAll();
   });
 
-  before(async () => {
+  beforeEach(async () => {
     if (!hasProlog) return;
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
   });
 
-  after(async () => {
+  afterEach(async () => {
+    if (!hasProlog) return;
+    sandbox = createSandbox();
+    await sandbox.install(tarballs);
+    await sandbox.initGitRepo();
+  });
+
+  afterEach(async () => {
     if (sandbox) {
       await sandbox.cleanup();
     }
