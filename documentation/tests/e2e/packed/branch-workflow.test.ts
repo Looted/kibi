@@ -29,10 +29,7 @@ describe("E2E: Branch KB Workflow", () => {
     }
 
     tarballs = await packAll();
-  });
 
-  before(async () => {
-    if (!hasProlog) return;
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
@@ -63,6 +60,7 @@ describe("E2E: Branch KB Workflow", () => {
 
   it(
     "should create separate KB for each branch",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -122,22 +120,19 @@ status: draft
         "feature KB should exist",
       );
     },
-    { timeout: TEST_TIMEOUT_MS },
   );
 
-  it.skip(
-    "should isolate branch KB from develop KB",
-    async () => {
-      if (!hasProlog) return;
+  it.skip("should isolate branch KB from develop KB", async () => {
+    if (!hasProlog) return;
 
-      await kibi(sandbox, ["init", "--no-hooks"]);
+    await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
-      mkdirSync(reqDir, { recursive: true });
+    const reqDir = join(sandbox.repoDir, "requirements");
+    mkdirSync(reqDir, { recursive: true });
 
-      writeFileSync(
-        join(reqDir, "develop-only.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "develop-only.md"),
+      `---
 title: Develop Only
 type: req
 status: approved
@@ -145,30 +140,30 @@ status: approved
 
 # Develop Only
 `,
-      );
+    );
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "develop commit"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["add", "."], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    await run("git", ["commit", "--no-verify", "-m", "develop commit"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(developQuery.includes("develop-only"));
+    const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(developQuery.includes("develop-only"));
 
-      await run("git", ["checkout", "-b", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "-b", "feature"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      writeFileSync(
-        join(reqDir, "feature-only.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "feature-only.md"),
+      `---
 title: Feature Only
 type: req
 status: draft
@@ -176,45 +171,38 @@ status: draft
 
 # Feature Only
 `,
-      );
+    );
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
-      // Should show both since they're both on this branch now
-      assert.ok(
-        featureQuery.includes("feature-only") ||
-          featureQuery.includes("develop-only"),
-      );
+    const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
+    // Should show both since they're both on this branch now
+    assert.ok(
+      featureQuery.includes("feature-only") ||
+        featureQuery.includes("develop-only"),
+    );
 
-      await run("git", ["checkout", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "develop"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      const { stdout: developQueryAfter } = await kibi(sandbox, [
-        "query",
-        "req",
-      ]);
-      assert.ok(developQueryAfter.includes("develop-only"));
-      assert.ok(!developQueryAfter.includes("feature-only"));
-    },
-    { timeout: TEST_TIMEOUT_MS },
-  );
+    const { stdout: developQueryAfter } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(developQueryAfter.includes("develop-only"));
+    assert.ok(!developQueryAfter.includes("feature-only"));
+  });
 
-  it.skip(
-    "should load correct KB when switching branches",
-    async () => {
-      if (!hasProlog) return;
+  it.skip("should load correct KB when switching branches", async () => {
+    if (!hasProlog) return;
 
-      await kibi(sandbox, ["init", "--no-hooks"]);
+    await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
-      mkdirSync(reqDir, { recursive: true });
+    const reqDir = join(sandbox.repoDir, "requirements");
+    mkdirSync(reqDir, { recursive: true });
 
-      writeFileSync(
-        join(reqDir, "req1.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "req1.md"),
+      `---
 title: Version 1
 type: req
 status: approved
@@ -222,27 +210,27 @@ status: approved
 
 # V1
 `,
-      );
+    );
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "v1"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["add", "."], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    await run("git", ["commit", "--no-verify", "-m", "v1"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      await run("git", ["checkout", "-b", "v2"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "-b", "v2"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      writeFileSync(
-        join(reqDir, "req1.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "req1.md"),
+      `---
 title: Version 2
 type: req
 status: approved
@@ -250,27 +238,26 @@ status: approved
 
 # V2
 `,
-      );
+    );
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      const { stdout: v2Query } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(v2Query.includes("Version 2"));
+    const { stdout: v2Query } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(v2Query.includes("Version 2"));
 
-      await run("git", ["checkout", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "develop"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(developQuery.includes("Version 1"));
-      assert.ok(!developQuery.includes("Version 2"));
-    },
-    { timeout: TEST_TIMEOUT_MS },
-  );
+    const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(developQuery.includes("Version 1"));
+    assert.ok(!developQuery.includes("Version 2"));
+  });
 
   it(
     "should create branch KB on first sync",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -318,22 +305,19 @@ status: draft
         "Branch KB should be created after sync",
       );
     },
-    { timeout: TEST_TIMEOUT_MS },
   );
 
-  it.skip(
-    "should delete branch document only from branch KB",
-    async () => {
-      if (!hasProlog) return;
+  it.skip("should delete branch document only from branch KB", async () => {
+    if (!hasProlog) return;
 
-      await kibi(sandbox, ["init", "--no-hooks"]);
+    await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
-      mkdirSync(reqDir, { recursive: true });
+    const reqDir = join(sandbox.repoDir, "requirements");
+    mkdirSync(reqDir, { recursive: true });
 
-      writeFileSync(
-        join(reqDir, "shared.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "shared.md"),
+      `---
 title: Shared Requirement
 type: req
 status: approved
@@ -341,50 +325,49 @@ status: approved
 
 # Shared
 `,
-      );
+    );
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "add shared"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["add", "."], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    await run("git", ["commit", "--no-verify", "-m", "add shared"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      await run("git", ["checkout", "-b", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "-b", "feature"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      rmSync(join(reqDir, "shared.md"));
+    rmSync(join(reqDir, "shared.md"));
 
-      await kibi(sandbox, ["sync"]);
+    await kibi(sandbox, ["sync"]);
 
-      const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(
-        featureQuery.includes("No entities") || featureQuery.includes("[]"),
-        "Feature branch should have no requirements",
-      );
+    const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(
+      featureQuery.includes("No entities") || featureQuery.includes("[]"),
+      "Feature branch should have no requirements",
+    );
 
-      await run("git", ["checkout", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "develop"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(
-        developQuery.includes("shared"),
-        "Develop should still have shared",
-      );
-    },
-    { timeout: TEST_TIMEOUT_MS },
-  );
+    const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(
+      developQuery.includes("shared"),
+      "Develop should still have shared",
+    );
+  });
 
   it(
     "should preserve both KBs after merge",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -469,11 +452,11 @@ status: draft
         "feature KB should still exist",
       );
     },
-    { timeout: TEST_TIMEOUT_MS },
   );
 
   it(
     "should orphan branch creates independent KB",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -535,6 +518,5 @@ status: draft
       assert.ok(orphanQuery.includes("orphan"));
       assert.ok(!orphanQuery.includes("Develop"));
     },
-    { timeout: TEST_TIMEOUT_MS },
   );
 });

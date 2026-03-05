@@ -37,7 +37,7 @@ describe("E2E: Git Hook Integration", () => {
 
   beforeEach(async () => {
     if (!hasProlog) return;
-    
+
     sandbox = createSandbox();
     await sandbox.install(tarballs);
     await sandbox.initGitRepo();
@@ -124,19 +124,17 @@ status: approved
     );
   });
 
-  it(
-    "should sync KB after merge",
-    async () => {
-      if (!hasProlog) return;
+  it("should sync KB after merge", { timeout: TEST_TIMEOUT_MS }, async () => {
+    if (!hasProlog) return;
 
-      await kibi(sandbox, ["init"]);
+    await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
-      mkdirSync(reqDir, { recursive: true });
+    const reqDir = join(sandbox.repoDir, "requirements");
+    mkdirSync(reqDir, { recursive: true });
 
-      writeFileSync(
-        join(reqDir, "develop.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "develop.md"),
+      `---
 title: Develop
 type: req
 status: approved
@@ -144,25 +142,25 @@ status: approved
 
 # Develop
 `,
-      );
+    );
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["add", "."], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    await run("git", ["commit", "--no-verify", "-m", "develop"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      await run("git", ["checkout", "-b", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "-b", "feature"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      writeFileSync(
-        join(reqDir, "feature.md"),
-        `---
+    writeFileSync(
+      join(reqDir, "feature.md"),
+      `---
 title: Feature
 type: req
 status: draft
@@ -170,35 +168,33 @@ status: draft
 
 # Feature
 `,
-      );
+    );
 
-      await run("git", ["add", "."], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await run("git", ["commit", "--no-verify", "-m", "feature"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["add", "."], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
+    await run("git", ["commit", "--no-verify", "-m", "feature"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      await run("git", ["checkout", "develop"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["checkout", "develop"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      await run("git", ["merge", "feature", "--no-edit"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
+    await run("git", ["merge", "feature", "--no-edit"], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+    });
 
-      const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
-      assert.ok(
-        developQuery.includes("Develop") || developQuery.includes("Feature"),
-        "Query should show merged requirements",
-      );
-    },
-    { timeout: TEST_TIMEOUT_MS },
-  );
+    const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
+    assert.ok(
+      developQuery.includes("Develop") || developQuery.includes("Feature"),
+      "Query should show merged requirements",
+    );
+  });
 
   it("should be idempotent on re-install", async () => {
     if (!hasProlog) return;
@@ -259,6 +255,7 @@ echo "Existing hook"
 
   it(
     "should work with detached HEAD",
+    { timeout: TEST_TIMEOUT_MS },
     async () => {
       if (!hasProlog) return;
 
@@ -313,10 +310,9 @@ status: approved
 
       assert.ok(existsSync(join(sandbox.repoDir, ".kb")), "KB should exist");
     },
-    { timeout: TEST_TIMEOUT_MS },
   );
 
-  it("should handle sync failures gracefully", async () => {
+  it("should handle sync failures gracefully", { timeout: 20000 }, async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init"]);
@@ -349,5 +345,5 @@ Missing type field
       existsSync(join(sandbox.repoDir, ".kb")),
       "KB should still exist",
     );
-  }, 20000);
+  });
 });
