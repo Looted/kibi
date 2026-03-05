@@ -24,6 +24,11 @@ CLEAN=false
 VERBOSE=false
 CI_MODE=false
 
+# Set default TEST_RUN_ID to suppress Docker Compose warnings
+export TEST_RUN_ID="${TEST_RUN_ID:-default}"
+
+# Help message
+
 # Help message
 show_help() {
     cat << EOF
