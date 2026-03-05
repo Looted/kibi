@@ -50,6 +50,7 @@ import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js"
 import { cleanupTempKb, consultOverlay, createOverlayFacts, createTempKb } from "../traceability/temp-kb.js";
 import { formatViolations as formatStagedViolations, validateStagedSymbols } from "../traceability/validate.js";
 import { getCurrentBranch } from "./init-helpers.js";
+import { runAggregatedChecks } from "./aggregated-checks.js";
 
 export interface CheckOptions {
   fix?: boolean;
@@ -199,7 +200,37 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       const res = await fn(prolog, ...args);
       if (res && res.length) violations.push(...res);
     }
+    // Use aggregated checks (single Prolog call) when possible for better performance
+    // This is significantly faster in Bun/Docker environments where one-shot mode
+    // spawns a new Prolog process for each query
+    const supportedRules = [
+      'must-priority-coverage',
+      'symbol-coverage',
+      'no-dangling-refs',
+      'no-cycles',
+      'required-fields',
+      'deprecated-adr-no-successor',
+      'domain-contradictions',
+    ];
 
+    const canUseAggregated = !rulesAllowlist ||
+      Array.from(rulesAllowlist).every(r => supportedRules.includes(r));
+
+    if (canUseAggregated) {
+      // Fast path: single Prolog call returning all violations
+      const aggregatedViolations = await runAggregatedChecks(prolog, rulesAllowlist);
+      violations.push(...aggregatedViolations);
+    } else {
+      // Legacy path: individual checks for backward compatibility
+      await runCheck("must-priority-coverage", checkMustPriorityCoverage);
+      await runCheck("symbol-coverage", checkSymbolCoverage);
+      await runCheck("no-dangling-refs", checkNoDanglingRefs);
+      await runCheck("no-cycles", checkNoCycles);
+      const allEntityIds = await getAllEntityIds(prolog);
+      await runCheck("required-fields", checkRequiredFields as any, allEntityIds);
+      await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
+      await runCheck("domain-contradictions", checkDomainContradictions);
+    }
     await runCheck("must-priority-coverage", checkMustPriorityCoverage);
     await runCheck("symbol-coverage", checkSymbolCoverage);
     await runCheck("no-dangling-refs", checkNoDanglingRefs);
