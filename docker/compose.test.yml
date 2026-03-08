@@ -18,15 +18,15 @@ services:
     environment:
       # Test isolation - each run gets unique paths
       - TEST_RUN_ID=${TEST_RUN_ID:-default}
-      - HOME=/tmp/kibi-home/${TEST_RUN_ID}
-      - XDG_CONFIG_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/config
-      - XDG_DATA_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/data
-      - XDG_CACHE_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/cache
-      - TMPDIR=/tmp/kibi-tmp/${TEST_RUN_ID}
+      - HOME=/workspace/.tmp/${TEST_RUN_ID}/home
+      - XDG_CONFIG_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/config
+      - XDG_DATA_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/data
+      - XDG_CACHE_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/cache
+      - TMPDIR=/workspace/.tmp/${TEST_RUN_ID}/tmp
       # Additional isolation
       - GIT_CONFIG_GLOBAL=/dev/null
       - GIT_CONFIG_SYSTEM=/dev/null
-      - npm_config_cache=/tmp/kibi-npm/${TEST_RUN_ID}
+      - npm_config_cache=/workspace/.tmp/${TEST_RUN_ID}/npm-cache
     tmpfs:
       # Use tmpfs for temp directories for speed and cleanliness
       - /tmp
@@ -43,11 +43,11 @@ services:
     working_dir: /workspace
     environment:
       - TEST_RUN_ID=${TEST_RUN_ID:-ci}
-      - HOME=/tmp/kibi-home/${TEST_RUN_ID}
-      - XDG_CONFIG_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/config
-      - XDG_DATA_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/data
-      - XDG_CACHE_HOME=/tmp/kibi-xdg/${TEST_RUN_ID}/cache
-      - TMPDIR=/tmp/kibi-tmp/${TEST_RUN_ID}
+      - HOME=/workspace/.tmp/${TEST_RUN_ID}/home
+      - XDG_CONFIG_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/config
+      - XDG_DATA_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/data
+      - XDG_CACHE_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/cache
+      - TMPDIR=/workspace/.tmp/${TEST_RUN_ID}/tmp
       - GIT_CONFIG_GLOBAL=/dev/null
       - GIT_CONFIG_SYSTEM=/dev/null
     tmpfs:

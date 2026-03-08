@@ -107,6 +107,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# Set E2E_LOG_LEVEL based on VERBOSE flag
+if [ "$VERBOSE" = true ]; then
+    export E2E_LOG_LEVEL="debug"
+else
+    export E2E_LOG_LEVEL="standard"
+fi
+
 # Validate suite
 if [ -z "$SUITE" ]; then
     echo -e "${RED}❌ Error: Test suite required (e2e, integration, or unit)${NC}"
@@ -154,7 +161,7 @@ run_test_file() {
     log "Running: $file (ID: $run_id)"
     
     # Create unique environment for this run
-    local env_vars="-e TEST_RUN_ID=$run_id"
+    local env_vars="-e TEST_RUN_ID=$run_id -e E2E_LOG_LEVEL=${E2E_LOG_LEVEL:-standard}"
     
     # Run the test
     if docker compose -f "$COMPOSE_FILE" run --rm \
