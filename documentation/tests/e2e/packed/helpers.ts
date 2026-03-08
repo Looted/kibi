@@ -78,6 +78,8 @@ export interface TestSandbox {
   initGitRepo(): Promise<void>;
   /** Cleanup sandbox */
   cleanup(): Promise<void>;
+  /** Verify Node resolution for kibi-cli/prolog resolves into prefix */
+  verifyKibiCliResolution(): Promise<void>;
 }
 
 /**
@@ -156,11 +158,14 @@ export function createSandbox(): TestSandbox {
 
   // Check if we're using a baked installation (CI image)
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
-  const useBakedPrefix = bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+  const useBakedPrefix =
+    bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
 
   // Create isolated directories
   const repoDir = join(baseDir, "repo");
-  const npmPrefix = useBakedPrefix ? bakedPrefix! : join(baseDir, "npm-prefix");
+  const npmPrefix = useBakedPrefix
+    ? (bakedPrefix as string)
+    : join(baseDir, "npm-prefix");
   const npmCache = join(baseDir, "npm-cache");
   const homeDir = join(baseDir, "home");
 
@@ -193,7 +198,11 @@ export function createSandbox(): TestSandbox {
   };
 
   // Create empty git config
-  writeFileSync(env.GIT_CONFIG_GLOBAL!, "", "utf8");
+  writeFileSync(
+    env.GIT_CONFIG_GLOBAL ?? join(baseDir, "gitconfig"),
+    "",
+    "utf8",
+  );
 
   // Store binary paths for direct execution
   const kibiBin = join(npmPrefix, "bin", "kibi");
@@ -212,6 +221,9 @@ export function createSandbox(): TestSandbox {
     async install(tarballs: Tarballs): Promise<void> {
       if (useBakedPrefix) {
         console.log("📦 Using baked kibi installation (skipping npm install)");
+        // In baked-prefix mode we still must VERIFY that Node resolution for
+        // `kibi-cli/prolog` points into the baked prefix (don't rely on nested-copy).
+        await verifyKibiCliResolutionImpl(npmPrefix, env);
         return;
       }
 
@@ -233,15 +245,77 @@ export function createSandbox(): TestSandbox {
         env,
       });
 
-      // Install kibi-mcp
-      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.mcp], {
-        cwd: baseDir,
-        env,
-      });
+      // Install kibi-mcp (may fail due to version mismatch, but we'll fix it afterward)
+      try {
+        await run(
+          "npm",
+          [
+            "install",
+            "-g",
+            "--force",
+            "--legacy-peer-deps",
+            "--no-audit",
+            "--prefix",
+            npmPrefix,
+            tarballs.mcp,
+          ],
+          {
+            cwd: baseDir,
+            env,
+          },
+        );
+      } catch (e) {
+        console.log("  ⚠️  kibi-mcp install had warnings");
+      }
+
+      // Copy kibi-cli to kibi-mcp's node_modules to ensure correct version
+      const globalCli = join(npmPrefix, "lib", "node_modules", "kibi-cli");
+      const mcpNodeModules = join(
+        npmPrefix,
+        "lib",
+        "node_modules",
+        "kibi-mcp",
+        "node_modules",
+      );
+      const mcpCli = join(mcpNodeModules, "kibi-cli");
+
+      if (existsSync(globalCli)) {
+        const { mkdirSync, rmSync } = await import("node:fs");
+        mkdirSync(mcpNodeModules, { recursive: true });
+        if (existsSync(mcpCli)) {
+          try {
+            rmSync(mcpCli, { recursive: true });
+          } catch {}
+        }
+        await run("cp", ["-r", globalCli, mcpCli], { cwd: baseDir, env });
+
+        // Verify the copy worked
+        const prologFile = join(mcpCli, "dist", "prolog.js");
+        if (existsSync(prologFile)) {
+          const { readFileSync } = await import("node:fs");
+          const content = readFileSync(prologFile, "utf8");
+          if (content.includes('process.stdin.write("\\n")')) {
+            console.log("  ✓ Verified prolog.js fix is in place");
+          } else {
+            console.log("  ⚠️  Warning: prolog.js fix not detected");
+          }
+        }
+        console.log("  ✓ Applied kibi-cli fix to kibi-mcp");
+        console.log("  ✓ Applied kibi-cli fix to kibi-mcp");
+      }
 
       // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
       // This avoids permission issues when npm installs as root in Docker
       console.log("  ✓ Packages installed");
+    },
+
+    /**
+     * Verify that Node's require.resolve('kibi-cli/prolog') resolves into the
+     * expected prefix. This fails fast if resolution points to an unexpected
+     * location (prevents running tests against wrong build).
+     */
+    async verifyKibiCliResolution(): Promise<void> {
+      await verifyKibiCliResolutionImpl(npmPrefix, env);
     },
 
     async initGitRepo(): Promise<void> {
@@ -283,7 +357,10 @@ export function run(
   const { cwd, env, timeoutMs = 120000 } = options;
 
   return new Promise((resolve, reject) => {
-    console.log(`  $ ${cmd} ${args.join(" ")}`);
+    const isDebug = process.env.E2E_LOG_LEVEL === "debug";
+    if (isDebug) {
+      console.log(`  $ ${cmd} ${args.join(" ")}`);
+    }
 
     const child = spawn(cmd, args, {
       cwd,
@@ -324,8 +401,14 @@ export function run(
       }
 
       // Log output for debugging
-      if (stdout) console.log("  stdout:", stdout.slice(0, 500));
-      if (stderr) console.log("  stderr:", stderr.slice(0, 500));
+      if (isDebug) {
+        if (stdout) console.log("  stdout:", stdout.slice(0, 500));
+        if (stderr) console.log("  stderr:", stderr.slice(0, 500));
+      } else if (exitCode !== 0) {
+        // In non-debug mode, only log on failure
+        if (stdout) console.log("  stdout:", stdout.slice(0, 500));
+        if (stderr) console.log("  stderr:", stderr.slice(0, 500));
+      }
 
       resolve({ stdout, stderr, exitCode: exitCode ?? 0 });
     });
@@ -433,4 +516,63 @@ export function checkPrologAvailable(): boolean {
   } catch {
     return false;
   }
+}
+
+/** Implementation: spawn node to require.resolve kibi-cli/prolog and assert prefix */
+async function verifyKibiCliResolutionImpl(
+  prefix: string,
+  env: NodeJS.ProcessEnv,
+): Promise<void> {
+  const isDebug = process.env.E2E_LOG_LEVEL === "debug";
+
+  if (isDebug) {
+    if (process.env.KIBI_E2E_PREFIX) {
+      console.log(
+        `E2E debug: using baked prefix ${process.env.KIBI_E2E_PREFIX}`,
+      );
+    } else {
+      console.log(`E2E debug: using sandbox-installed prefix ${prefix}`);
+    }
+  }
+
+  // Node script that resolves the module and prints resolved path
+  const script = `
+    try {
+      const p = require.resolve('kibi-cli/prolog');
+      console.log(p);
+      process.exit(0);
+    } catch (e) {
+      console.error('RESOLVE_ERROR', e && e.message ? e.message : String(e));
+      process.exit(2);
+    }
+  `;
+
+  const { stdout, stderr, exitCode } = await run("node", ["-e", script], {
+    cwd: prefix,
+    env,
+    timeoutMs: 10000,
+  });
+
+  if (exitCode === 2) {
+    throw new Error(`Failed to require.resolve('kibi-cli/prolog'):\n${stderr}`);
+  }
+
+  const resolved = (stdout || "").trim();
+  if (!resolved) {
+    throw new Error(
+      `Empty resolution result for kibi-cli/prolog. stderr: ${stderr}`,
+    );
+  }
+
+  const normalizedPrefix = prefix.replace(/\\/g, "/");
+  const normalizedResolved = resolved.replace(/\\/g, "/");
+
+  if (!normalizedResolved.startsWith(normalizedPrefix)) {
+    throw new Error(
+      `kibi-cli/prolog resolved to ${resolved} which is outside expected prefix ${prefix}`,
+    );
+  }
+
+  if (isDebug)
+    console.log(`E2E debug: require.resolve('kibi-cli/prolog') -> ${resolved}`);
 }

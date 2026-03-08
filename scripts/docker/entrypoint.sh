@@ -38,40 +38,34 @@ chmod -R 755 "$npm_config_cache" 2>/dev/null || true
 export GIT_CONFIG_GLOBAL=/dev/null
 export GIT_CONFIG_SYSTEM=/dev/null
 
-# Show environment info
-echo "📁 Environment:"
-echo "  HOME: $HOME"
-echo "  PATH: $PATH"
-echo "  XDG_CONFIG_HOME: $XDG_CONFIG_HOME"
-echo "  XDG_DATA_HOME: $XDG_DATA_HOME"
-echo "  XDG_CACHE_HOME: $XDG_CACHE_HOME"
-echo "  TMPDIR: $TMPDIR"
-echo "  npm_config_cache: $npm_config_cache"
-echo ""
+# Show environment info (verbose)
+if [ "${E2E_LOG_LEVEL}" = "debug" ]; then
+    echo "📁 Environment:"
+    echo "  HOME: $HOME"
+    echo "  PATH: $PATH"
+    echo "  XDG_CONFIG_HOME: $XDG_CONFIG_HOME"
+    echo "  XDG_DATA_HOME: $XDG_DATA_HOME"
+    echo "  XDG_CACHE_HOME: $XDG_CACHE_HOME"
+    echo "  TMPDIR: $TMPDIR"
+    echo "  npm_config_cache: $npm_config_cache"
+    echo ""
+fi
 
-# Verify tools are available
-echo "🔍 Verifying toolchain:"
-echo -n "  SWI-Prolog: "
-swipl --version | head -1
-echo -n "  Node.js: "
-node --version
-echo -n "  npm: "
-npm --version
-echo -n "  Bun: "
-bun --version
-echo -n "  Git: "
-git --version | head -1
-echo ""
-echo "🔍 Verifying toolchain:"
-echo -n "  SWI-Prolog: "
-swipl --version | head -1
-echo -n "  Node.js: "
-node --version
-echo -n "  Bun: "
-bun --version
-echo -n "  Git: "
-git --version | head -1
-echo ""
+# Verify tools are available (verbose)
+if [ "${E2E_LOG_LEVEL}" = "debug" ]; then
+    echo "🔍 Verifying toolchain:"
+    echo -n "  SWI-Prolog: "
+    swipl --version | head -1
+    echo -n "  Node.js: "
+    node --version
+    echo -n "  npm: "
+    npm --version
+    echo -n "  Bun: "
+    bun --version
+    echo -n "  Git: "
+    git --version | head -1
+    echo ""
+fi
 
 # Compile TypeScript E2E tests
 compile_e2e_tests() {
@@ -117,16 +111,6 @@ run_e2e_tests() {
             bun run build
         fi
     fi
-    if [ ! -d "/workspace/node_modules" ] || [ -z "$(ls -A /workspace/node_modules 2>/dev/null)" ]; then
-        echo "📦 Installing dependencies..."
-        bun install
-    fi
-    
-    # Build packages if needed (required for npm pack)
-    if [ ! -f "/workspace/packages/cli/dist/cli.js" ]; then
-        echo "🔨 Building packages..."
-        bun run build
-    fi
     
     # Compile TypeScript tests
     # Compile TypeScript tests
@@ -150,28 +134,11 @@ run_e2e_tests() {
         echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
         export KIBI_TEST_TARBALLS="/tmp/kibi-tarballs"
     fi
-    echo "📦 Pre-packing packages..."
-    mkdir -p /tmp/kibi-tarballs
-    for pkg in core cli mcp; do
-        pkg_dir="/workspace/packages/$pkg"
-        tarball=$(cd "$pkg_dir" && /usr/bin/npm pack 2>/dev/null | tail -1)
-        if [ -n "$tarball" ]; then
-            mv "$pkg_dir/$tarball" "/tmp/kibi-tarballs/"
-            echo "  ✓ Packed $pkg -> $tarball"
-        fi
-    done
-    echo "  ✓ All packages pre-packed in /tmp/kibi-tarballs/"
     
     # Enable source maps for better debugging
-    export NODE_OPTIONS="--enable-source-maps"
     export NODE_OPTIONS="--enable-source-maps"
     
     # Pass tarball location to tests via environment
-    export KIBI_TEST_TARBALLS="/tmp/kibi-tarballs"
-    
-    # Enable source maps for better debugging
-    export NODE_OPTIONS="--enable-source-maps"
-    
     if [ -n "$test_file" ]; then
         # Convert .ts path to .js path in dist/
         local test_basename=$(basename "$test_file" .ts)
