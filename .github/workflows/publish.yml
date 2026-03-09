@@ -118,9 +118,7 @@ jobs:
           cd ../mcp && npm pack
       - name: Tarball content verification
         run: |
-          node --test documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
-        env:
-          NODE_OPTIONS: "--loader ts-node/esm"
+          bun test documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
         timeout-minutes: 5
       - name: Strict install smoke test
         run: |
@@ -177,8 +175,3 @@ jobs:
           done <<< "$to_publish"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Summary
-        if: needs.build-and-check.outputs.to_publish == ''
-        run: |
-          echo "No packages need to be published. All versions are already on npm."
