@@ -9,9 +9,15 @@
   },
   "main": "./dist/cli.js",
   "bin": {
-    "kibi": "./bin/kibi"
+    "kibi": "bin/kibi"
   },
-  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
+  "files": [
+    "dist",
+    "bin",
+    "schema",
+    "src/schemas",
+    "src/public"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepack": "npm run build"
@@ -49,7 +55,6 @@
     "kibi-core": "^0.1.5",
     "ts-morph": "^23.0.0"
   },
-
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "repository": {
