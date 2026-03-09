@@ -42,35 +42,38 @@ describe("MCP E2E: Server Operations", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping MCP tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping MCP tests");
+        return;
+      }
 
-    tarballs = await packAll();
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
+      tarballs = await packAll();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
 
-    // Initialize kibi and create some test data
-    await kibi(sandbox, ["init"]);
+      // Initialize kibi and create some test data
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/REQ-MCP-001.md",
-      {
-        id: "REQ-MCP-001",
-        title: "MCP Test Requirement",
-        status: "open",
-        tags: ["mcp", "test"],
-      },
-      "A requirement for testing MCP operations.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/REQ-MCP-001.md",
+        {
+          id: "REQ-MCP-001",
+          title: "MCP Test Requirement",
+          status: "open",
+          tags: ["mcp", "test"],
+        },
+        "A requirement for testing MCP operations.",
+      );
 
-    await kibi(sandbox, ["sync"]);
-  });
+      await kibi(sandbox, ["sync"]);
+    },
+    { timeout: 120000 },
+  );
 
   after(async () => {
     if (sandbox) {
@@ -171,7 +174,7 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
     });
   });
 
@@ -254,9 +257,9 @@ describe("MCP E2E: Server Operations", () => {
         method: "tools/list",
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
       setTimeout(() => {
-        mcpProcess.stdin?.write(JSON.stringify(toolsRequest) + "\n");
+        mcpProcess.stdin?.write(`${JSON.stringify(toolsRequest)}\n`);
       }, 500);
     });
   });
@@ -345,9 +348,9 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
       setTimeout(() => {
-        mcpProcess.stdin?.write(JSON.stringify(queryRequest) + "\n");
+        mcpProcess.stdin?.write(`${JSON.stringify(queryRequest)}\n`);
       }, 1000);
     });
   });

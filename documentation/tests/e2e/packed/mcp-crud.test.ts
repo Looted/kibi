@@ -108,34 +108,37 @@ describe("E2E: MCP Server CRUD Operations", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping MCP CRUD tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping MCP CRUD tests");
+        return;
+      }
 
-    tarballs = await packAll();
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
-    await kibi(sandbox, ["init"]);
+      tarballs = await packAll();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/req1.md",
-      {
-        id: "req1",
-        title: "Initial Requirement",
-        type: "req",
-        status: "draft",
-        tags: ["test"],
-      },
-      "Test requirement for MCP operations.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/req1.md",
+        {
+          id: "req1",
+          title: "Initial Requirement",
+          type: "req",
+          status: "draft",
+          tags: ["test"],
+        },
+        "Test requirement for MCP operations.",
+      );
 
-    await kibi(sandbox, ["sync"]);
-  });
+      await kibi(sandbox, ["sync"]);
+    },
+    { timeout: 120000 },
+  );
 
   after(async () => {
     if (sandbox) {

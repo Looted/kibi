@@ -16,26 +16,29 @@ describe("CLI E2E: Install and Basic Commands", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    // Check prerequisites
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping E2E tests");
-      return;
-    }
+  before(
+    async () => {
+      // Check prerequisites
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping E2E tests");
+        return;
+      }
 
-    // Pack all packages
-    tarballs = await packAll();
+      // Pack all packages
+      tarballs = await packAll();
 
-    // Create isolated sandbox
-    sandbox = createSandbox();
+      // Create isolated sandbox
+      sandbox = createSandbox();
 
-    // Install packages
-    await sandbox.install(tarballs);
+      // Install packages
+      await sandbox.install(tarballs);
 
-    // Initialize git repo
-    await sandbox.initGitRepo();
-  });
+      // Initialize git repo
+      await sandbox.initGitRepo();
+    },
+    { timeout: 120000 },
+  );
 
   after(async () => {
     if (sandbox) {
@@ -169,7 +172,7 @@ describe("CLI E2E: Install and Basic Commands", () => {
     const output = stdout + stderr;
     assert.ok(
       exitCode === 0 || exitCode === 1,
-      `check should complete with exit code 0 or 1, got ${exitCode}. Output: ${output}`
+      `check should complete with exit code 0 or 1, got ${exitCode}. Output: ${output}`,
     );
 
     // Should produce output (either success message or violations)
@@ -178,7 +181,7 @@ describe("CLI E2E: Install and Basic Commands", () => {
     if (exitCode === 0) {
       assert.ok(
         output.includes("No violations") || output.includes("✓"),
-        "Successful check should indicate no violations"
+        "Successful check should indicate no violations",
       );
     }
 

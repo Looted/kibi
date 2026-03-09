@@ -25,15 +25,18 @@ describe("E2E: Git Hook Integration", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping hook tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping hook tests");
+        return;
+      }
 
-    tarballs = await packAll();
-  });
+      tarballs = await packAll();
+    },
+    { timeout: 120000 },
+  );
 
   beforeEach(async () => {
     if (!hasProlog) return;

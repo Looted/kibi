@@ -41,7 +41,7 @@ function kbBranchesSnapshot(repoRoot: string): string[] {
         out.push(...walk(full, base));
       } else {
         const contents = readFileSync(full);
-        out.push(rel + ":" + sha256Hex(contents));
+        out.push(`${rel}:${sha256Hex(contents)}`);
       }
     }
     return out;
@@ -55,15 +55,20 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping traceability tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn(
+          "⚠️  SWI-Prolog not available, skipping traceability tests",
+        );
+        return;
+      }
 
-    tarballs = await packAll();
-  });
+      tarballs = await packAll();
+    },
+    { timeout: 120000 },
+  );
 
   beforeEach(async () => {
     if (!hasProlog) return;
