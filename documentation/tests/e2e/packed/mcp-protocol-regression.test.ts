@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import { type TestSandbox, createSandbox, packAll } from "./helpers.js";
+import { createSandbox, packAll, type TestSandbox } from "./helpers.js";
 
 interface JsonRpcRes {
   id?: number;
@@ -50,9 +50,12 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
     { timeout: 120000 },
   );
 
-  after(async () => {
-    if (sandbox) await sandbox.cleanup();
-  });
+  after(
+    async () => {
+      if (sandbox) await sandbox.cleanup();
+    },
+    { timeout: 120000 },
+  );
 
   it("should return -32700 for malformed JSON and stay alive", async () => {
     const proc = spawn("node", [sandbox.kibiMcpBin], {

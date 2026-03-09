@@ -1,15 +1,15 @@
 import assert from "node:assert";
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 /** JSON-RPC request structure */
@@ -140,11 +140,14 @@ describe("E2E: MCP Server CRUD Operations", () => {
     { timeout: 120000 },
   );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it(
     "should query existing entities",

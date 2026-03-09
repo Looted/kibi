@@ -3,14 +3,14 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 describe("E2E: Init-Sync-Check Workflow", () => {
@@ -32,18 +32,24 @@ describe("E2E: Init-Sync-Check Workflow", () => {
     { timeout: 120000 },
   );
 
-  beforeEach(async () => {
-    if (!hasProlog) return;
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
-  });
+  beforeEach(
+    async () => {
+      if (!hasProlog) return;
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
+    },
+    { timeout: 120000 },
+  );
 
-  afterEach(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  afterEach(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should init creates .kb structure", async () => {
     if (!hasProlog) return;

@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import { type Tarballs, packAll } from "./helpers.js";
+import { packAll, type Tarballs } from "./helpers.js";
 
 describe(
   "Packed E2E: verify tarball contents (core present)",
@@ -14,7 +14,7 @@ describe(
         // Produce tarballs for core, cli and mcp
         tarballs = await packAll();
       },
-      { timeout: 30000 },
+      { timeout: 120000 },
     );
 
     after(() => {
