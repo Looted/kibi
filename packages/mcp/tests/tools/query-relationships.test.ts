@@ -4,7 +4,6 @@ import os from "node:os";
 import path from "node:path";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbQueryRelationships } from "../../src/tools/query-relationships.js";
-import { handleKbUpsert } from "../../src/tools/upsert.js";
 
 describe("MCP kb_query_relationships Tool Handler", () => {
   let prolog: PrologProcess;
@@ -25,57 +24,23 @@ describe("MCP kb_query_relationships Tool Handler", () => {
     const attachResult = await prolog.query(`kb_attach('${testKbPath}')`);
     expect(attachResult.success).toBe(true);
 
-    // Seed: one req, one symbol that implements it, one test that the symbol is covered_by
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-rels-001",
-      properties: {
-        title: "Test requirement",
-        status: "active",
-        source: "/test/req.md",
-        type: "req",
-      },
-    });
+    const seedGoals = [
+      `kb_assert_entity(req, [id='REQ-rels-001', title="Test requirement", status=open, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="/test/req.md"])`,
+      `kb_assert_entity(symbol, [id='SYM-rels-001', title="testFunction", status=active, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="/test/src/main.ts"])`,
+      `kb_assert_entity(test, [id='TEST-rels-001', title="testFunction unit test", status=passing, created_at="2026-01-01T00:00:00Z", updated_at="2026-01-01T00:00:00Z", source="/test/tests/main.test.ts"])`,
+      `kb_assert_relationship(implements, 'SYM-rels-001', 'REQ-rels-001', [])`,
+      `kb_assert_relationship(covered_by, 'SYM-rels-001', 'TEST-rels-001', [])`,
+      "kb_save",
+    ];
 
-    await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "SYM-rels-001",
-      properties: {
-        title: "testFunction",
-        status: "active",
-        source: "/test/src/main.ts",
-        type: "symbol",
-      },
-      relationships: [
-        { type: "implements", from: "SYM-rels-001", to: "REQ-rels-001" },
-      ],
-    });
-
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-rels-001",
-      properties: {
-        title: "testFunction unit test",
-        status: "active",
-        source: "/test/tests/main.test.ts",
-        type: "test",
-      },
-    });
-
-    await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "SYM-rels-001",
-      properties: {
-        title: "testFunction",
-        status: "active",
-        source: "/test/src/main.ts",
-        type: "symbol",
-      },
-      relationships: [
-        { type: "implements", from: "SYM-rels-001", to: "REQ-rels-001" },
-        { type: "covered_by", from: "SYM-rels-001", to: "TEST-rels-001" },
-      ],
-    });
+    for (const goal of seedGoals) {
+      const result = await prolog.query(goal);
+      if (!result.success) {
+        throw new Error(
+          `Seeding failed for goal: ${goal}; error: ${result.error ?? "unknown"}`,
+        );
+      }
+    }
   });
 
   afterAll(async () => {

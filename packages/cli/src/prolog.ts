@@ -53,7 +53,7 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 
-function resolveKbPlPath(): string {
+export function resolveKbPlPath(): string {
   const overrideKbPath = process.env.KIBI_KB_PL_PATH;
   if (overrideKbPath && existsSync(overrideKbPath)) {
     return overrideKbPath;
@@ -157,8 +157,36 @@ export class PrologProcess {
   }
 
   private async waitForReady(): Promise<void> {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Wait for Prolog to initialize and detect startup failures explicitly.
+    const start = Date.now();
+    const maxStartWait = 2000; // ms
 
+    while (Date.now() - start < maxStartWait) {
+      // If process exited or was killed, surface the error buffer.
+      if (!this.process || this.process.killed) {
+        throw new Error(
+          `Prolog process terminated unexpectedly during startup: ${this.translateError(this.errorBuffer)}`,
+        );
+      }
+
+      // If stderr contains an ERROR, fail fast with translated message.
+      if (this.errorBuffer.includes("ERROR")) {
+        throw new Error(
+          `Failed to load kb module: ${this.translateError(this.errorBuffer)}`,
+        );
+      }
+
+      // If stdout or stderr shows any output, assume ready.
+      if (this.outputBuffer.length > 0 || this.errorBuffer.length > 0) {
+        break;
+      }
+
+      // brief pause
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    // Final sanity check
     if (this.errorBuffer.includes("ERROR")) {
       throw new Error(
         `Failed to load kb module: ${this.translateError(this.errorBuffer)}`,
@@ -207,14 +235,34 @@ export class PrologProcess {
     this.process.stdin.write(`${goal}.
 `);
 
+    const debug = !!process.env.KIBI_PROLOG_DEBUG;
+    const normalizedGoal = isSingleGoal
+      ? this.normalizeGoal(goal as string)
+      : undefined;
+    const start = Date.now();
+    if (debug && normalizedGoal)
+      console.error(`[prolog debug] start query: ${normalizedGoal}`);
+
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
-        reject(new Error("Query timeout after 30s"));
+        const msg = `Query timeout after ${this.timeout / 1000}s`;
+        if (debug) {
+          const tailOut = this.outputBuffer.slice(-2048);
+          const tailErr = this.errorBuffer.slice(-2048);
+          console.error(`[prolog debug] timeout: ${msg}`);
+          console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
+          console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
+        }
+        reject(new Error(msg));
       }, this.timeout);
 
       const checkResult = () => {
         if (this.errorBuffer.length > 0 && this.errorBuffer.includes("ERROR")) {
           clearTimeout(timeoutId);
+          if (debug && normalizedGoal)
+            console.error(
+              `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
+            );
           resolve({
             success: false,
             bindings: {},
@@ -222,7 +270,9 @@ export class PrologProcess {
           });
         } else if (
           this.outputBuffer.includes("true.") ||
-          this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m)
+          this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m) ||
+          // Match multi-line output ending with ] (Prolog list/term output without trailing period)
+          this.outputBuffer.match(/\]\s*$/m)
         ) {
           clearTimeout(timeoutId);
           const result = {
@@ -232,12 +282,25 @@ export class PrologProcess {
           if (cacheable) {
             this.cache.set(goalKey, result);
           }
+          if (debug && normalizedGoal) {
+            console.error(
+              `[prolog debug] query success: ${normalizedGoal} elapsed=${(Date.now() - start) / 1000}s`,
+            );
+          }
           resolve(result);
+          // Send newline to exit Prolog's interactive prompt
+          if (this.process?.stdin) {
+            this.process.stdin.write("\n");
+          }
         } else if (
           this.outputBuffer.includes("false.") ||
           this.outputBuffer.includes("fail.")
         ) {
           clearTimeout(timeoutId);
+          if (debug && normalizedGoal)
+            console.error(
+              `[prolog debug] query failed (false): ${normalizedGoal}`,
+            );
           resolve({
             success: false,
             bindings: {},
@@ -340,7 +403,7 @@ export class PrologProcess {
         // Bun/Node differ here; keep a conservative timeout detection.
         result.error.message.includes("ETIMEDOUT"))
     ) {
-      throw new Error("Query timeout after 30s");
+      throw new Error(`Query timeout after ${this.timeout / 1000}s`);
     }
 
     const stdout = result.stdout ?? "";
@@ -408,7 +471,7 @@ export class PrologProcess {
       return "Invalid query syntax";
     }
     if (errorText.includes("timeout_error")) {
-      return "Operation exceeded 30s timeout";
+      return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
 
     const simpleError = errorText
@@ -455,3 +518,4 @@ export class PrologProcess {
     }
   }
 }
+// FIX_VERSION_2024_03_06

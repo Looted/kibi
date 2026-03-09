@@ -44,6 +44,7 @@
     done
 */
 import {
+  chmodSync,
   copyFileSync,
   existsSync,
   mkdirSync,
@@ -63,7 +64,7 @@ kibi sync
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
 set -e
-kibi check
+kibi check --staged
 `;
 
 const DEFAULT_CONFIG = {
@@ -172,6 +173,8 @@ ${content}`,
       { mode: 0o755 },
     );
   }
+  // Explicitly ensure hook is executable (mode option can be inconsistent in Docker)
+  chmodSync(hookPath, 0o755);
 }
 
 export function installGitHooks(gitDir: string): void {

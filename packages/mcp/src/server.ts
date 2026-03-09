@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { createRequire } from "node:module";
 /*
  How to apply this header to source files (examples)
 
@@ -77,15 +78,15 @@ import {
   handleKbQueryRelationships,
 } from "./tools/query-relationships.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
-import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
-import {
-  type SymbolsRefreshArgs,
-  handleKbSymbolsRefresh,
-} from "./tools/symbols.js";
 import {
   type SuggestSharedFactsArgs,
   handleSuggestSharedFacts,
 } from "./tools/suggest-shared-facts.js";
+import {
+  type SymbolsRefreshArgs,
+  handleKbSymbolsRefresh,
+} from "./tools/symbols.js";
+import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 
 interface DocResource {
@@ -385,8 +386,52 @@ async function ensureProlog(): Promise<PrologProcess> {
 
   debugLog("[KIBI-MCP] Initializing Prolog process...");
 
-  prologProcess = new PrologProcess({ timeout: 30000 });
+  prologProcess = new PrologProcess({ timeout: 120000 });
   await prologProcess.start();
+
+  // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
+  // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
+  if (process.env.KIBI_MCP_DEBUG) {
+    try {
+      const req = createRequire(import.meta.url);
+      try {
+        const resolved = req.resolve("kibi-cli/prolog");
+        debugLog(
+          `[KIBI-MCP] require.resolve('kibi-cli/prolog') -> ${resolved}`,
+        );
+      } catch (resolveErr) {
+        debugLog(
+          "[KIBI-MCP] require.resolve('kibi-cli/prolog') failed:",
+          (resolveErr as Error).message,
+        );
+      }
+
+      // Try to read package.json for kibi-cli to get version. This may fail if
+      // the package uses exports blocking package.json access — log explicit failure.
+      try {
+        // prefer direct package.json require; createRequire makes this ESM-friendly
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const pkg = req("kibi-cli/package.json");
+        if (pkg && typeof pkg.version === "string") {
+          debugLog(`[KIBI-MCP] kibi-cli version: ${pkg.version}`);
+        } else {
+          debugLog(
+            "[KIBI-MCP] kibi-cli package.json read but no version field",
+          );
+        }
+      } catch (pkgErr) {
+        debugLog(
+          "[KIBI-MCP] Failed to read kibi-cli package.json (exports may restrict access):",
+          (pkgErr as Error).message,
+        );
+      }
+    } catch (err) {
+      debugLog(
+        "[KIBI-MCP] Failed to create require() for debug lookup:",
+        (err as Error).message,
+      );
+    }
+  }
 
   const workspaceRoot = resolveWorkspaceRoot();
   let branch = process.env.KIBI_BRANCH || "develop";
@@ -856,7 +901,10 @@ export async function startServer(): Promise<void> {
     toolDef("analyze_shared_facts").inputSchema,
     async (args) => {
       const prolog = await ensureProlog();
-      return handleSuggestSharedFacts(prolog, args as unknown as SuggestSharedFactsArgs);
+      return handleSuggestSharedFacts(
+        prolog,
+        args as unknown as SuggestSharedFactsArgs,
+      );
     },
   );
   const transport = new StdioServerTransport();
