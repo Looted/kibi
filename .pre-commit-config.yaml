@@ -1,0 +1,10 @@
+repos:
+  - repo: local
+    hooks:
+      - id: kibi-traceability
+        name: Kibi Staged Traceability Check
+        entry: scripts/traceability-check.sh
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]

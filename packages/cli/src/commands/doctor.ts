@@ -310,12 +310,39 @@ function checkPreCommitHook(): {
     const preCommitStats = statSync(preCommitPath);
     const preCommitExecutable = (preCommitStats.mode & 0o111) !== 0;
 
-    if (preCommitExecutable) {
+    // Read hook content to determine whether it's using the new staged check
+    const content = readFileSync(preCommitPath, "utf-8");
+
+    const usesKibi = content.includes("kibi check");
+    const usesStaged = content.includes("kibi check --staged");
+
+    if (!usesKibi) {
+      // Fail if hook doesn't invoke kibi at all
       return {
-        passed: true,
-        message: "Installed and executable",
+        passed: false,
+        message: "pre-commit hook installed but does not invoke kibi",
+        remediation: "Run: kibi init --hooks to install recommended hooks",
       };
     }
+
+    if (preCommitExecutable) {
+      if (usesStaged) {
+        return {
+          passed: true,
+          message: "Installed and executable (uses 'kibi check --staged')",
+        };
+      }
+
+      // Warn but pass if using legacy kibi check without --staged
+      return {
+        passed: true,
+        message:
+          "Installed and executable (uses legacy 'kibi check' — consider running 'kibi init' to update hooks to use '--staged')",
+        remediation:
+          "Run: kibi init --hooks to update git hooks to the latest template",
+      };
+    }
+
     return {
       passed: false,
       message: "Installed but not executable",
@@ -324,7 +351,8 @@ function checkPreCommitHook(): {
   } catch (error) {
     return {
       passed: false,
-      message: "Unable to check hook permissions",
+      message: "Unable to check hook permissions or read content",
+      remediation: "Run: kibi init --hooks",
     };
   }
 }

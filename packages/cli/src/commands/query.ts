@@ -65,7 +65,7 @@ export async function queryCommand(
   options: QueryOptions,
 ): Promise<void> {
   try {
-    const prolog = new PrologProcess();
+    const prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
     await prolog.query(

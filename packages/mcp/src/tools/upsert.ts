@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import Ajv from "ajv";
 /*
  How to apply this header to source files (examples)
 
@@ -46,8 +47,10 @@
 import type { PrologProcess } from "kibi-cli/prolog";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
-import Ajv from "ajv";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
+function escapeAtom(value: string): string {
+  return value.replace(/'/g, "\\'");
+}
 
 export interface UpsertArgs {
   /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
@@ -146,7 +149,7 @@ export async function handleKbUpsert(
       const type = entity.type as string;
 
       // Check if entity exists
-      const checkGoal = `kb_entity('${id}', _, _)`;
+      const checkGoal = `once(kb_entity('${escapeAtom(id)}', _, _))`;
       const checkResult = await prolog.query(checkGoal);
 
       const isUpdate = checkResult.success;
@@ -156,9 +159,7 @@ export async function handleKbUpsert(
 
       // Assert entity (upsert)
       if (isUpdate) {
-        // Delete old version, then insert new
-        const retractGoal = `kb_retract_entity('${id}')`;
-        await prolog.query(retractGoal);
+        // Update counter only. kb_assert_entity implements upsert semantics in Prolog.
         updated++;
       } else {
         created++;
@@ -183,7 +184,7 @@ export async function handleKbUpsert(
       // Build metadata
       const metadata = buildRelationshipMetadata(rel);
 
-      const relGoal = `kb_assert_relationship(${relType}, '${from}', '${to}', ${metadata})`;
+      const relGoal = `kb_assert_relationship(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`;
       const relResult = await prolog.query(relGoal);
 
       if (!relResult.success) {
