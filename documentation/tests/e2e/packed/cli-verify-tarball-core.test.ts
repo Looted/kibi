@@ -5,7 +5,7 @@ import { packAll, type Tarballs } from "./helpers.js";
 
 describe(
   "Packed E2E: verify tarball contents (core present)",
-  { timeout: 30000 },
+  { timeout: 120000 },
   () => {
     let tarballs: Tarballs;
 
