@@ -19,7 +19,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before(async () => {
+  before({ timeout: 120000 }, async () => {
     hasProlog = checkPrologAvailable();
     if (!hasProlog) {
       console.warn("⚠️  SWI-Prolog not available, skipping workflow tests");

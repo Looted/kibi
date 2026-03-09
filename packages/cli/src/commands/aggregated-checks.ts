@@ -1,4 +1,5 @@
-import type { PrologProcess } from "../prolog.js";
+import path from "node:path";
+import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
 import type { Violation } from "./check.js";
 
 /**
@@ -38,8 +39,9 @@ export async function runAggregatedChecks(
     return violations;
   }
 
-  // Use check_all_json which returns JSON as a string binding
-  const query = `use_module('src/checks.pl'), use_module(library(http/json)), checks:check_all_json(JsonString)`;
+  const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
+  const checksPlPathEscaped = checksPlPath.replace(/'/g, "''");
+  const query = `(use_module('${checksPlPathEscaped}'), call(checks:check_all_json(JsonString)))`;
 
   try {
     const result = await prolog.query(query);

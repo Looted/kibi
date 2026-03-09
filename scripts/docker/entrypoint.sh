@@ -70,7 +70,7 @@ fi
 # Compile TypeScript E2E tests
 compile_e2e_tests() {
     local e2e_dir="/workspace/documentation/tests/e2e/packed"
-    local dist_dir="$e2e_dir/dist"
+    local dist_dir="${TMPDIR:-/tmp}/kibi-e2e-packed-${TEST_RUN_ID}"
     
     echo "🔨 Compiling TypeScript E2E tests..."
     
@@ -90,7 +90,7 @@ compile_e2e_tests() {
 run_e2e_tests() {
     local test_file="$1"
     local e2e_dir="/workspace/documentation/tests/e2e/packed"
-    local dist_dir="$e2e_dir/dist"
+    local dist_dir="${TMPDIR:-/tmp}/kibi-e2e-packed-${TEST_RUN_ID}"
     
     echo "🧪 Running E2E tests..."
     
