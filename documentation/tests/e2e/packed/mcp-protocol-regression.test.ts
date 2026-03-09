@@ -21,16 +21,20 @@ function sendRaw(
       if (idx !== -1) {
         const line = buf.slice(0, idx).trim();
         proc.stdout.off("data", onData);
+        clearTimeout(timer);
         resolve(line);
       }
     };
 
     proc.stdout.on("data", onData);
     proc.stdin.write(`${payload}\n`, (err) => {
-      if (err) reject(err);
+      if (err) {
+        clearTimeout(timer);
+        reject(err);
+      }
     });
 
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       proc.stdout.off("data", onData);
       reject(new Error("timeout waiting for response"));
     }, 10000);
