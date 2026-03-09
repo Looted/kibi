@@ -6,11 +6,10 @@
   "author": "Piotr Franczyk",
   "workspaces": ["packages/*"],
   "scripts": {
-    "test": "npm run test:e2e:compile && bun test packages documentation/tests/e2e/packed/*.ts",
+    "test": "rm -rf /tmp/kibi-e2e-packed-compiled && tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true; bun test packages documentation/tests/e2e/packed/*.ts",
     "test:unit": "bun test packages/",
     "test:e2e": "./scripts/docker/test.sh e2e",
-    "test:e2e:compile": "rm -rf /tmp/kibi-e2e-packed-compiled && tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true",
-    "test:e2e:local": "npm run test:e2e:compile && NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/*.test.js",
+    "test:e2e:local": "rm -rf /tmp/kibi-e2e-packed-compiled && tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true; NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/*.test.js",
     "test:docker": "./scripts/docker/test.sh",
     "docker:build": "docker compose -f docker/compose.test.yml build",
     "docker:clean": "docker compose -f docker/compose.test.yml down -v --remove-orphans",

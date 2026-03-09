@@ -36,7 +36,7 @@ bun test packages/mcp/             # MCP tests only
 
 **Integration Tests**
 ```bash
-bun test tests/integration/        # All integration tests
+bash ./scripts/run-integration-tests.sh
 ```
 
 **Prolog Tests (plunit)**

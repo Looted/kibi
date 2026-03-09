@@ -174,7 +174,7 @@ run_integration_tests() {
         bun test "$test_file"
     else
         echo "  Running all integration tests..."
-        bun test documentation/tests/integration/
+        bash /workspace/scripts/run-integration-tests.sh
     fi
 }
 
