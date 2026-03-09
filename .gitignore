@@ -37,6 +37,7 @@ desktop.ini
 # --- Test artifacts ---
 coverage/
 *.lcov
+documentation/tests/e2e/packed/.compiled/
 
 # --- Bun ---
 .bun/

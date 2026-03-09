@@ -1,0 +1,4 @@
+{
+  "minLinks": 1,
+  "langs": ["ts", "tsx", "js", "jsx"]
+}

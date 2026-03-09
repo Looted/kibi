@@ -1,0 +1,60 @@
+# Docker Compose for Kibi Test Runner
+# Usage: docker compose -f docker/compose.test.yml run --rm test [suite] [file]
+
+services:
+  test:
+    build:
+      context: ..
+      dockerfile: docker/test-runner.Dockerfile
+      target: dev
+    working_dir: /workspace
+    volumes:
+      # Bind mount repo for development
+      - ../:/workspace
+      # Named volume for node_modules to avoid host permission issues
+      - kibi_node_modules:/workspace/node_modules
+      # Named volume for bun cache
+      - kibi_bun_cache:/root/.bun/install/cache
+    environment:
+      # Test isolation - each run gets unique paths
+      - TEST_RUN_ID=${TEST_RUN_ID:-default}
+      - HOME=/workspace/.tmp/${TEST_RUN_ID}/home
+      - XDG_CONFIG_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/config
+      - XDG_DATA_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/data
+      - XDG_CACHE_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/cache
+      - TMPDIR=/workspace/.tmp/${TEST_RUN_ID}/tmp
+      # Additional isolation
+      - GIT_CONFIG_GLOBAL=/dev/null
+      - GIT_CONFIG_SYSTEM=/dev/null
+      - npm_config_cache=/workspace/.tmp/${TEST_RUN_ID}/npm-cache
+    tmpfs:
+      # Use tmpfs for temp directories for speed and cleanliness
+      - /tmp
+    entrypoint: ["/workspace/scripts/docker/entrypoint.sh"]
+    # Run as root for bind-mount, entrypoint will handle permissions
+    user: root
+
+  # Service for running tests in CI mode (copy-in, not bind-mount)
+  test-ci:
+    build:
+      context: ..
+      dockerfile: docker/test-runner.Dockerfile
+      target: ci
+    working_dir: /workspace
+    environment:
+      - TEST_RUN_ID=${TEST_RUN_ID:-ci}
+      - HOME=/workspace/.tmp/${TEST_RUN_ID}/home
+      - XDG_CONFIG_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/config
+      - XDG_DATA_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/data
+      - XDG_CACHE_HOME=/workspace/.tmp/${TEST_RUN_ID}/xdg/cache
+      - TMPDIR=/workspace/.tmp/${TEST_RUN_ID}/tmp
+      - GIT_CONFIG_GLOBAL=/dev/null
+      - GIT_CONFIG_SYSTEM=/dev/null
+    tmpfs:
+      - /tmp
+    entrypoint: ["/workspace/scripts/docker/entrypoint.sh"]
+    user: kibi
+
+volumes:
+  kibi_node_modules:
+  kibi_bun_cache:

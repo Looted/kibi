@@ -382,7 +382,7 @@ export async function syncCommand(
     }
 
     // Connect to KB
-    const prolog = new PrologProcess();
+    const prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
     const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);

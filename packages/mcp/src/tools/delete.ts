@@ -44,6 +44,9 @@
     done
 */
 import type { PrologProcess } from "kibi-cli/prolog";
+function escapeAtom(value: string): string {
+  return value.replace(/'/g, "\\'");
+}
 
 export interface DeleteArgs {
   ids: string[];
@@ -79,7 +82,7 @@ export async function handleKbDelete(
   try {
     for (const id of ids) {
       // Check if entity exists
-      const checkGoal = `kb_entity('${id}', _, _)`;
+      const checkGoal = `once(kb_entity('${escapeAtom(id)}', _, _))`;
       const checkResult = await prolog.query(checkGoal);
 
       if (!checkResult.success) {
