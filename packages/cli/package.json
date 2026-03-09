@@ -59,6 +59,6 @@
   "author": "Piotr Franczyk",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Looted/kibi.git"
+    "url": "https://github.com/Looted/kibi.git"
   }
 }
