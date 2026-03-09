@@ -122,7 +122,7 @@ status: draft
     },
   );
 
-  it.skip("should isolate branch KB from develop KB", async () => {
+  it("should isolate branch KB from develop KB", { timeout: TEST_TIMEOUT_MS }, async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init", "--no-hooks"]);
@@ -192,7 +192,7 @@ status: draft
     assert.ok(!developQueryAfter.includes("feature-only"));
   });
 
-  it.skip("should load correct KB when switching branches", async () => {
+  it("should load correct KB when switching branches", { timeout: TEST_TIMEOUT_MS }, async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init", "--no-hooks"]);
@@ -307,7 +307,7 @@ status: draft
     },
   );
 
-  it.skip("should delete branch document only from branch KB", async () => {
+  it("should delete branch document only from branch KB", { timeout: TEST_TIMEOUT_MS }, async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init", "--no-hooks"]);

@@ -217,7 +217,12 @@ export function createSandbox(): TestSandbox {
     XDG_DATA_HOME: join(baseDir, "data"),
     // Ensure NODE_ENV is production-like for tests
     NODE_ENV: "production",
+    // Ensure NODE_ENV is production-like for tests
+    NODE_ENV: "production",
   };
+
+  // Strict consumer mode flag (default) vs patched compatibility mode
+  const KIBI_E2E_ALLOW_PATCHED = process.env.KIBI_E2E_ALLOW_PATCHED_INSTALL === '1';
 
   // Create empty git config
   writeFileSync(
@@ -252,6 +257,20 @@ export function createSandbox(): TestSandbox {
       console.log("📥 Installing packages into sandbox...");
 
       // Install kibi-core first (dependency of cli)
+      if (KIBI_E2E_ALLOW_PATCHED) {
+        // Patched/install compatibility mode: pre-install core to mask packaging defects
+        await run(
+          npmBinary,
+          ["install", "-g", "--prefix", npmPrefix, tarballs.core],
+          {
+            cwd: baseDir,
+            env,
+          },
+        );
+      } else {
+        // Strict consumer mode (default): do NOT pre-install kibi-core. Let npm resolve naturally.
+        console.log('  ℹ️  Strict consumer mode: skipping pre-install of kibi-core');
+      }
       await run(
         npmBinary,
         ["install", "-g", "--prefix", npmPrefix, tarballs.core],
@@ -305,6 +324,45 @@ export function createSandbox(): TestSandbox {
       );
       const mcpCli = join(mcpNodeModules, "kibi-cli");
 
+      if (KIBI_E2E_ALLOW_PATCHED) {
+        // Patched/install compatibility mode: copy global cli into mcp internals
+        if (existsSync(globalCli)) {
+          const { mkdirSync, rmSync } = await import("node:fs");
+          mkdirSync(mcpNodeModules, { recursive: true });
+          if (existsSync(mcpCli)) {
+            try {
+              rmSync(mcpCli, { recursive: true });
+            } catch {}
+          }
+          await run("cp", ["-r", globalCli, mcpCli], { cwd: baseDir, env });
+
+          // Verify the copy worked
+          const prologFile = join(mcpCli, "dist", "prolog.js");
+          if (existsSync(prologFile)) {
+            const { readFileSync } = await import("node:fs");
+            const content = readFileSync(prologFile, "utf8");
+            if (content.includes('process.stdin.write("\\n")')) {
+              console.log("  ✓ Verified prolog.js fix is in place");
+            } else {
+              console.log("  ⚠️  Warning: prolog.js fix not detected");
+            }
+          }
+          console.log("  ✓ Applied kibi-cli fix to kibi-mcp");
+        }
+      } else {
+        // Strict consumer mode: do NOT copy kibi-cli into kibi-mcp internals
+        console.log('  ℹ️  Strict consumer mode: skipping nested-copy of kibi-cli into kibi-mcp');
+      }
+      const globalCli = join(npmPrefix, "lib", "node_modules", "kibi-cli");
+      const mcpNodeModules = join(
+        npmPrefix,
+        "lib",
+        "node_modules",
+        "kibi-mcp",
+        "node_modules",
+      );
+      const mcpCli = join(mcpNodeModules, "kibi-cli");
+
       if (existsSync(globalCli)) {
         const { mkdirSync, rmSync } = await import("node:fs");
         mkdirSync(mcpNodeModules, { recursive: true });
@@ -332,7 +390,20 @@ export function createSandbox(): TestSandbox {
 
       // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
       // This avoids permission issues when npm installs as root in Docker
+      // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
+      // This avoids permission issues when npm installs as root in Docker
       console.log("  ✓ Packages installed");
+
+      // Strict mode: verify installation did not apply patched artifacts
+      if (!KIBI_E2E_ALLOW_PATCHED) {
+        try {
+          await verifyStrictInstallImpl(npmPrefix, env);
+          console.log("  ✓ Strict install verification passed");
+        } catch (e) {
+          console.log("  ✖ Strict install verification failed:", (e as Error).message);
+          throw e;
+        }
+      }
     },
 
     /**
@@ -601,4 +672,44 @@ async function verifyKibiCliResolutionImpl(
 
   if (isDebug)
     console.log(`E2E debug: require.resolve('kibi-cli/prolog') -> ${resolved}`);
+}
+
+  if (isDebug)
+    console.log(`E2E debug: require.resolve('kibi-cli/prolog') -> ${resolved}`);
+}
+
+/** Strict-mode verification helper: asserts no patched-install artifacts exist */
+async function verifyStrictInstallImpl(
+  prefix: string,
+  env: NodeJS.ProcessEnv,
+): Promise<void> {
+  // Ensure that kibi-cli was not nested-copied into kibi-mcp internals
+  const nestedCli = join(prefix, 'lib', 'node_modules', 'kibi-mcp', 'node_modules', 'kibi-cli');
+  if (existsSync(nestedCli)) {
+    // Log package tree for diagnosis
+    try {
+      const { stdout } = await run('npm', ['ls', '--prefix', prefix, '--json'], { cwd: prefix, env, timeoutMs: 20000 });
+      console.log('E2E: npm ls --json output:\n', stdout);
+    } catch (e) {
+      console.log('E2E: failed to run npm ls for diagnosis');
+    }
+    throw new Error(`verifyStrictInstall: detected nested-patched kibi-cli at ${nestedCli}`);
+  }
+
+  // Ensure require.resolve('kibi-cli/prolog') resolves inside prefix
+  try {
+    await verifyKibiCliResolutionImpl(prefix, env);
+  } catch (e) {
+    // On failure, dump npm ls for diagnosis
+    try {
+      const { stdout } = await run('npm', ['ls', '--prefix', prefix, '--json'], { cwd: prefix, env, timeoutMs: 20000 });
+      console.log('E2E: npm ls --json output:\n', stdout);
+    } catch {}
+    throw e;
+  }
+}
+
+/** Verify strict consumer install: no patched artifacts, correct resolution */
+export async function verifyStrictInstall(sandbox: TestSandbox): Promise<void> {
+  await verifyStrictInstallImpl(sandbox.npmPrefix, sandbox.env);
 }

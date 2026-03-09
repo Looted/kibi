@@ -15,27 +15,22 @@ on:
         default: false
         type: boolean
 jobs:
-  publish:
+  build-and-check:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    outputs:
+      to_publish: ${{ steps.check-packages.outputs.to_publish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Install SWI-Prolog
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v1
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-
       - name: Verify npm auth and tooling
         run: |
           node --version
@@ -43,25 +38,19 @@ jobs:
           npm whoami
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Install dependencies
         run: bun install
-
       - name: Build CLI package
         run: bun run build:cli
-
       - name: Build MCP package
         run: bun run build:mcp
       - name: Run tests
         run: bun test
-
       - name: Determine packages to publish
         id: check-packages
         run: |
-          # Initialize the output variable
           to_publish=""
           
-          # Function to compare versions
           check_package() {
             local pkg_name="$1"
             local pkg_dir="$2"
@@ -69,7 +58,6 @@ jobs:
             
             echo "Checking ${pkg_name} local version: ${version}"
             
-            # Check npm registry
             if npm view ${pkg_name}@${version} version > /dev/null 2>&1; then
               echo "${pkg_name}@${version} already exists on npm"
               return 0
@@ -79,12 +67,11 @@ jobs:
               return 0
             fi
           }
-
-          # If packages input is provided, only check those
+          
           if [ -n "${{ inputs.packages }}" ]; then
             IFS=',' read -ra PACKAGES <<< "${{ inputs.packages }}"
             for pkg in "${PACKAGES[@]}"; do
-              pkg=$(echo $pkg | xargs)  # trim whitespace
+              pkg=$(echo $pkg | xargs)
               case $pkg in
                 core) check_package "kibi-core" "core" ;;
                 cli) check_package "kibi-cli" "cli" ;;
@@ -94,44 +81,104 @@ jobs:
               esac
             done
           else
-            # Auto-detect: check all packages
             check_package "kibi-core" "core"
             check_package "kibi-cli" "cli"
             check_package "kibi-mcp" "mcp"
           fi
           
-          # Output the list using heredoc syntax for multiline
           echo "to_publish<<EOF" >> $GITHUB_OUTPUT
           echo -n "$to_publish" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Publish (Dry Run)
-        if: ${{ inputs.dry-run == true && steps.check-packages.outputs.to_publish != '' }}
+  release-gate:
+    runs-on: ubuntu-latest
+    needs: build-and-check
+    if: ${{ needs.build-and-check.outputs.to_publish != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install SWI-Prolog
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install dependencies
+        run: bun install
+      - name: Build packages
         run: |
-          while IFS= read -r output; do
-            [ -z "$output" ] && continue
-            pkg_dir="${output%=*}"
-            pkg_name="${output#*=}"
-            echo "Dry run publishing ${pkg_name}..."
-            cd packages/${pkg_dir} && npm publish --provenance --access public --dry-run && cd ../..
-          done <<< "${{ steps.check-packages.outputs.to_publish }}"
+          bun run build:cli
+          bun run build:mcp
+      - name: Pack packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+      - name: Tarball content verification
+        run: |
+          node --test documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Publish
-        if: ${{ inputs.dry-run != true && steps.check-packages.outputs.to_publish != '' }}
+          NODE_OPTIONS: "--loader ts-node/esm"
+        timeout-minutes: 5
+      - name: Strict install smoke test
         run: |
+          mkdir -p /tmp/kibi-smoke-test
+          cd /tmp/kibi-smoke-test
+          npm init -y
+          npm install ${{ github.workspace }}/packages/core/kibi-core-*.tgz
+          npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
+          npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
+          ./node_modules/.bin/kibi --version
+          ./node_modules/.bin/kibi init --no-hooks
+          ./node_modules/.bin/kibi query req
+        env:
+          KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
+        timeout-minutes: 5
+      - name: MCP server smoke test
+        run: |
+          cd /tmp/kibi-smoke-test
+          timeout 10s ./node_modules/.bin/kibi-mcp < /dev/null || true
+        timeout-minutes: 2
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: [build-and-check, release-gate]
+    if: ${{ needs.build-and-check.outputs.to_publish != '' && inputs.dry-run != true }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: bun install
+      - name: Build packages
+        run: |
+          bun run build:cli
+          bun run build:mcp
+      - name: Publish packages
+        run: |
+          to_publish="${{ needs.build-and-check.outputs.to_publish }}"
           while IFS= read -r output; do
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
             pkg_name="${output#*=}"
             echo "Publishing ${pkg_name}..."
             cd packages/${pkg_dir} && npm publish --provenance --access public && cd ../..
-          done <<< "${{ steps.check-packages.outputs.to_publish }}"
+          done <<< "$to_publish"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Summary
-        if: steps.check-packages.outputs.to_publish == ''
+        if: needs.build-and-check.outputs.to_publish == ''
         run: |
           echo "No packages need to be published. All versions are already on npm."
