@@ -169,7 +169,7 @@ dangling_ref_violation(Type, violation(
 )) :-
     kb_relationship(Type, FromId, ToId),
     kb_entity(FromId, _, _),  % From exists
-    \+ kb_entity(ToId, _),   % To doesn't exist
+    \+ kb_entity(ToId, _, _),   % To doesn't exist
     format(string(Description), "Relationship references non-existent entity: ~w", [ToId]).
 
 %% check_no_cycles(-Violations)

@@ -86,7 +86,6 @@ test("timeout message reports configured timeout (100ms) not hardcoded 30s", asy
   const prolog = new PrologProcess({ timeout: 100 });
   try {
     await prolog.start();
-    await prolog.query(`kb_attach('${tempKbDir}')`);
 
     // Run a goal that will block: repeat, fail to loop
     let threw = false;

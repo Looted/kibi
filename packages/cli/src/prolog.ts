@@ -53,7 +53,7 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 
-function resolveKbPlPath(): string {
+export function resolveKbPlPath(): string {
   const overrideKbPath = process.env.KIBI_KB_PL_PATH;
   if (overrideKbPath && existsSync(overrideKbPath)) {
     return overrideKbPath;

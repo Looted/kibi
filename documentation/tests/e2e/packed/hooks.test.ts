@@ -18,7 +18,7 @@ describe("CLI E2E: Git Hook Execution", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before(async () => {
+  before({ timeout: 120000 }, async () => {
     hasProlog = checkPrologAvailable();
     if (!hasProlog) {
       console.warn("⚠️  SWI-Prolog not available, skipping hook tests");

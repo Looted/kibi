@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import {
   existsSync,
@@ -15,12 +15,12 @@ describe("kibi query", () => {
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
-  beforeEach(() => {
+  beforeAll(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-query-"));
 
     // Initialize KB structure
     execSync("git init", { cwd: tmpDir, stdio: "pipe" });
-    execSync(`bun ${kibiBin} init`, {
+    execSync(`node ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
@@ -115,13 +115,13 @@ User logs in with OAuth2 provider.
     );
 
     // Sync the fixtures into KB
-    execSync(`bun ${kibiBin} sync`, {
+    execSync(`node ${kibiBin} sync`, {
       cwd: tmpDir,
       stdio: "pipe",
     });
   });
 
-  afterEach(() => {
+  afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {
       rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -130,7 +130,7 @@ User logs in with OAuth2 provider.
   test(
     "queries all entities of a type",
     () => {
-      const output = execSync(`bun ${kibiBin} query req --format json`, {
+      const output = execSync(`node ${kibiBin} query req --format json`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -153,7 +153,7 @@ User logs in with OAuth2 provider.
   test(
     "accepts fact as a valid entity type",
     () => {
-      const output = execSync(`bun ${kibiBin} query fact --format json`, {
+      const output = execSync(`node ${kibiBin} query fact --format json`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -167,7 +167,7 @@ User logs in with OAuth2 provider.
   test(
     "queries specific entity by ID",
     () => {
-      const allOutput = execSync(`bun ${kibiBin} query req --format json`, {
+      const allOutput = execSync(`node ${kibiBin} query req --format json`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -182,7 +182,7 @@ User logs in with OAuth2 provider.
       const targetId = allResults[0].id;
 
       const output = execSync(
-        `bun ${kibiBin} query req --id ${targetId} --format json`,
+        `node ${kibiBin} query req --id ${targetId} --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -202,7 +202,7 @@ User logs in with OAuth2 provider.
     "filters entities by tag",
     () => {
       const output = execSync(
-        `bun ${kibiBin} query req --tag auth --format json`,
+        `node ${kibiBin} query req --tag auth --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -222,7 +222,7 @@ User logs in with OAuth2 provider.
   test(
     "queries relationships from entity",
     () => {
-      const allOutput = execSync(`bun ${kibiBin} query req --format json`, {
+      const allOutput = execSync(`node ${kibiBin} query req --format json`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -238,7 +238,7 @@ User logs in with OAuth2 provider.
       }
 
       const output = execSync(
-        `bun ${kibiBin} query --relationships ${entityWithLinks.id} --format json`,
+        `node ${kibiBin} query --relationships ${entityWithLinks.id} --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -254,7 +254,7 @@ User logs in with OAuth2 provider.
   test(
     "outputs table format",
     () => {
-      const output = execSync(`bun ${kibiBin} query req --format table`, {
+      const output = execSync(`node ${kibiBin} query req --format table`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -277,7 +277,7 @@ User logs in with OAuth2 provider.
     "handles empty results gracefully",
     () => {
       const output = execSync(
-        `bun ${kibiBin} query req --tag nonexistent_tag_xyz --format json`,
+        `node ${kibiBin} query req --tag nonexistent_tag_xyz --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -295,7 +295,7 @@ User logs in with OAuth2 provider.
     "rejects invalid entity type",
     () => {
       try {
-        execSync(`bun ${kibiBin} query invalid_type`, {
+        execSync(`node ${kibiBin} query invalid_type`, {
           cwd: tmpDir,
           encoding: "utf8",
         });
@@ -316,7 +316,7 @@ User logs in with OAuth2 provider.
     "handles empty table output gracefully",
     () => {
       const output = execSync(
-        `bun ${kibiBin} query req --tag nonexistent_tag_xyz --format table`,
+        `node ${kibiBin} query req --tag nonexistent_tag_xyz --format table`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -331,7 +331,7 @@ User logs in with OAuth2 provider.
   test(
     "applies pagination with limit and offset",
     () => {
-      const allOutput = execSync(`bun ${kibiBin} query req --format json`, {
+      const allOutput = execSync(`node ${kibiBin} query req --format json`, {
         cwd: tmpDir,
         encoding: "utf8",
       });
@@ -343,7 +343,7 @@ User logs in with OAuth2 provider.
       }
 
       const limitOutput = execSync(
-        `bun ${kibiBin} query req --limit 1 --format json`,
+        `node ${kibiBin} query req --limit 1 --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",
@@ -360,7 +360,7 @@ User logs in with OAuth2 provider.
     "filters entities by source path",
     () => {
       const output = execSync(
-        `bun ${kibiBin} query --source src/features/feature.ts --format json`,
+        `node ${kibiBin} query --source src/features/feature.ts --format json`,
         {
           cwd: tmpDir,
           encoding: "utf8",

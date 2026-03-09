@@ -10,7 +10,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 /**
@@ -26,6 +26,24 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const REPO_ROOT = resolve(__dirname, "../../../../");
+
+function resolveNpmBinary(): string {
+  const npmExecPath = process.env.npm_execpath;
+  if (npmExecPath && existsSync(npmExecPath)) {
+    return npmExecPath;
+  }
+
+  try {
+    const npmPath = execFileSync("which", ["npm"], { encoding: "utf8" }).trim();
+    if (npmPath) {
+      return npmPath;
+    }
+  } catch {
+    return "npm";
+  }
+
+  return "npm";
+}
 
 /** Tarball paths for each package */
 export interface Tarballs {
@@ -91,6 +109,7 @@ export async function packAll(): Promise<Tarballs> {
 
   const packages = ["core", "cli", "mcp"] as const;
   const tarballs: Partial<Tarballs> = {};
+  const npmBinary = resolveNpmBinary();
 
   // Check for pre-packed tarballs (set by Docker entrypoint)
   const prePackedDir = process.env.KIBI_TEST_TARBALLS;
@@ -120,7 +139,7 @@ export async function packAll(): Promise<Tarballs> {
     console.log(`  Packing packages/${pkg}...`);
 
     try {
-      const result = execFileSync("npm", ["pack", "--json"], {
+      const result = execFileSync(npmBinary, ["pack", "--json"], {
         cwd: pkgDir,
         encoding: "utf8",
         stdio: ["pipe", "pipe", "pipe"],
@@ -178,6 +197,9 @@ export function createSandbox(): TestSandbox {
   mkdirSync(homeDir, { recursive: true });
 
   // Build isolated environment
+  // Include npm directory in PATH for E2E tests
+  const npmBinary = resolveNpmBinary();
+  const npmDir = dirname(npmBinary);
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: homeDir,
@@ -185,7 +207,7 @@ export function createSandbox(): TestSandbox {
     npm_config_prefix: npmPrefix,
     npm_config_cache: npmCache,
     npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
-    PATH: `${join(npmPrefix, "bin")}:/usr/bin:${process.env.PATH ?? ""}`,
+    PATH: `${join(npmPrefix, "bin")}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
     // Prevent git from using global config
     GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
     GIT_CONFIG_SYSTEM: "/dev/null",
@@ -231,7 +253,7 @@ export function createSandbox(): TestSandbox {
 
       // Install kibi-core first (dependency of cli)
       await run(
-        "npm",
+        npmBinary,
         ["install", "-g", "--prefix", npmPrefix, tarballs.core],
         {
           cwd: baseDir,
@@ -240,15 +262,19 @@ export function createSandbox(): TestSandbox {
       );
 
       // Install kibi-cli
-      await run("npm", ["install", "-g", "--prefix", npmPrefix, tarballs.cli], {
-        cwd: baseDir,
-        env,
-      });
+      await run(
+        npmBinary,
+        ["install", "-g", "--prefix", npmPrefix, tarballs.cli],
+        {
+          cwd: baseDir,
+          env,
+        },
+      );
 
       // Install kibi-mcp (may fail due to version mismatch, but we'll fix it afterward)
       try {
         await run(
-          "npm",
+          npmBinary,
           [
             "install",
             "-g",

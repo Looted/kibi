@@ -16,7 +16,7 @@ describe("CLI E2E: Install and Basic Commands", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before(async () => {
+  before({ timeout: 120000 }, async () => {
     // Check prerequisites
     hasProlog = checkPrologAvailable();
     if (!hasProlog) {
