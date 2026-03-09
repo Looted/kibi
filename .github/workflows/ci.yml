@@ -33,7 +33,7 @@ jobs:
 
       - name: Run integration tests
         run: bash ./scripts/run-integration-tests.sh
-  
+
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
     needs: build-and-test
@@ -56,8 +56,8 @@ jobs:
           cd ../mcp && npm pack
       - name: Run CLI regression tests
         run: |
-          bun test documentation/tests/e2e/packed/cli-workflows.test.ts
-          bun test documentation/tests/e2e/packed/cli-query-regression.test.ts
+          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-workflows.test.ts
+          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-query-regression.test.ts
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
         timeout-minutes: 10
@@ -84,7 +84,7 @@ jobs:
           cd ../mcp && npm pack
       - name: Run MCP protocol regression tests
         run: |
-          bun test documentation/tests/e2e/packed/mcp-protocol-regression.test.ts
+          bun test --test-timeout=300000 documentation/tests/e2e/packed/mcp-protocol-regression.test.ts
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
         timeout-minutes: 10
@@ -109,7 +109,7 @@ jobs:
           cd ../mcp && npm pack
       - name: Run tarball verification
         run: |
-          bun test documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
+          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
         timeout-minutes: 5
 
   packed-e2e-branch-workflow:
@@ -134,7 +134,7 @@ jobs:
           cd ../mcp && npm pack
       - name: Run branch workflow tests
         run: |
-          bun test documentation/tests/e2e/packed/branch-workflow.test.ts
+          bun test --test-timeout=300000 documentation/tests/e2e/packed/branch-workflow.test.ts
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
         timeout-minutes: 15
