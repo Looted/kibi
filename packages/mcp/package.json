@@ -19,7 +19,7 @@
   "description": "Model Context Protocol server for Kibi knowledge base",
   "main": "./dist/server.js",
   "bin": {
-    "kibi-mcp": "./bin/kibi-mcp"
+    "kibi-mcp": "bin/kibi-mcp"
   },
   "scripts": {
     "test": "bun test",
@@ -27,7 +27,10 @@
     "build": "tsc -p tsconfig.json",
     "prepack": "npm run build"
   },
-  "files": ["dist", "bin"],
+  "files": [
+    "dist",
+    "bin"
+  ],
   "engines": {
     "node": ">=18",
     "bun": ">=1.0"
@@ -35,7 +38,6 @@
   "exports": {
     ".": "./dist/server.js"
   },
-
   "devDependencies": {
     "@types/bun": "latest",
     "@types/node": "latest"
