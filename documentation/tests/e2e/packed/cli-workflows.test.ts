@@ -1,14 +1,14 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 describe("CLI E2E: Install and Basic Commands", () => {
@@ -40,11 +40,14 @@ describe("CLI E2E: Install and Basic Commands", () => {
     { timeout: 120000 },
   );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should install kibi-cli and show version", async () => {
     if (!hasProlog) return;

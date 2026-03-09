@@ -1,12 +1,12 @@
 import assert from "node:assert";
 import { before, beforeEach, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 describe(
@@ -28,10 +28,13 @@ describe(
       { timeout: 120000 },
     );
 
-    beforeEach(async () => {
-      // Ensure a clean repo state before each test - remove .kb if present
-      // We call kibi init in tests where needed
-    });
+    beforeEach(
+      async () => {
+        // Ensure a clean repo state before each test - remove .kb if present
+        // We call kibi init in tests where needed
+      },
+      { timeout: 120000 },
+    );
 
     it(
       "should return entities when KB has data",

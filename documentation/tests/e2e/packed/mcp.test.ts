@@ -1,16 +1,16 @@
 import assert from "node:assert";
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 /** JSON-RPC request structure */
@@ -75,11 +75,14 @@ describe("MCP E2E: Server Operations", () => {
     { timeout: 120000 },
   );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should have kibi-mcp binary available", async () => {
     if (!hasProlog) return;

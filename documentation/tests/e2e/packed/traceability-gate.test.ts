@@ -1,17 +1,17 @@
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
-  type Tarballs,
-  type TestSandbox,
   checkPrologAvailable,
   createSandbox,
   kibi,
   packAll,
   run,
+  type Tarballs,
+  type TestSandbox,
 } from "./helpers.js";
 
 function sha256Hex(contents: string | Buffer): string {
@@ -70,31 +70,37 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
     { timeout: 120000 },
   );
 
-  beforeEach(async () => {
-    if (!hasProlog) return;
+  beforeEach(
+    async () => {
+      if (!hasProlog) return;
 
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
 
-    // Initialize kibi KB so check --staged can attach to a branch KB
-    try {
-      await kibi(sandbox, ["init"]);
-    } catch {
-      // init may fail if git has no commits yet; create an empty commit first
-      await run("git", ["commit", "--allow-empty", "-m", "initial"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await kibi(sandbox, ["init"]);
-    }
-  });
+      // Initialize kibi KB so check --staged can attach to a branch KB
+      try {
+        await kibi(sandbox, ["init"]);
+      } catch {
+        // init may fail if git has no commits yet; create an empty commit first
+        await run("git", ["commit", "--allow-empty", "-m", "initial"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await kibi(sandbox, ["init"]);
+      }
+    },
+    { timeout: 120000 },
+  );
 
-  afterEach(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  afterEach(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should pass with implements directive", async () => {
     if (!hasProlog) return;
