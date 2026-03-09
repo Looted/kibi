@@ -19,24 +19,20 @@ describe("E2E: Init-Sync-Check Workflow", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping workflow tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping workflow tests");
+        return;
+      }
 
-    tarballs = await packAll();
-  });
+      tarballs = await packAll();
+    },
+    { timeout: 120000 },
+  );
 
   beforeEach(async () => {
-    if (!hasProlog) return;
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
-  });
-
-  afterEach(async () => {
     if (!hasProlog) return;
     sandbox = createSandbox();
     await sandbox.install(tarballs);
