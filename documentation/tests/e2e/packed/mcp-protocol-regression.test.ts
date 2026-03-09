@@ -1,12 +1,7 @@
 import assert from "node:assert";
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import {
-  checkPrologAvailable,
-  createSandbox,
-  packAll,
-  type TestSandbox,
-} from "./helpers.js";
+import { createSandbox, packAll, type TestSandbox } from "./helpers.js";
 
 interface JsonRpcRes {
   id?: number;
@@ -48,16 +43,9 @@ function sendRaw(
 
 describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
   let sandbox: TestSandbox;
-  let hasProlog = false;
 
   before(
     async () => {
-      hasProlog = checkPrologAvailable();
-      if (!hasProlog) {
-        console.warn(
-          "⚠️  SWI-Prolog not available, skipping Prolog-dependent MCP tests",
-        );
-      }
       const tarballs = await packAll();
       sandbox = createSandbox();
       await sandbox.install(tarballs);
@@ -143,8 +131,6 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
   });
 
   it("should support initialize -> tools/list -> tools/call kb_query flow", async () => {
-    if (!hasProlog) return;
-
     const proc = spawn("node", [sandbox.kibiMcpBin], {
       cwd: sandbox.repoDir,
       env: sandbox.env,
