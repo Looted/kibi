@@ -27,8 +27,8 @@ describe("kibi sync", () => {
     });
 
     // Create test fixtures
-    const reqDir = path.join(tmpDir, "requirements");
-    const scenarioDir = path.join(tmpDir, "scenarios");
+    const reqDir = path.join(tmpDir, "documentation/requirements");
+    const scenarioDir = path.join(tmpDir, "documentation/scenarios");
 
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
@@ -69,8 +69,10 @@ User logs in with OAuth2 provider.
     );
 
     // Symbol manifest
+    const docDir = path.join(tmpDir, "documentation");
+    mkdirSync(docDir, { recursive: true });
     writeFileSync(
-      path.join(tmpDir, "symbols.yaml"),
+      path.join(docDir, "symbols.yaml"),
       `symbols:
   - title: authenticate()
     status: implemented
@@ -163,7 +165,9 @@ User logs in with OAuth2 provider.
       expect(cache.hashes["documentation/scenarios/scenario1.md"]).toMatch(
         /^[a-f0-9]{64}$/,
       );
-      expect(cache.hashes["symbols.yaml"]).toMatch(/^[a-f0-9]{64}$/);
+      expect(cache.hashes["documentation/symbols.yaml"]).toMatch(
+        /^[a-f0-9]{64}$/,
+      );
       expect(typeof cache.seenAt["documentation/requirements/req1.md"]).toBe(
         "string",
       );
@@ -180,7 +184,7 @@ User logs in with OAuth2 provider.
       });
 
       writeFileSync(
-        path.join(tmpDir, "requirements", "req1.md"),
+        path.join(tmpDir, "documentation/requirements", "req1.md"),
         `---
 title: User Authentication Updated
 type: req
@@ -310,8 +314,10 @@ System must support OAuth2 authentication with session renewal.
     test(
       "validate-only returns non-zero on errors",
       async () => {
+        const invalidDir = path.join(tmpDir, "documentation/requirements");
+        mkdirSync(invalidDir, { recursive: true });
         writeFileSync(
-          path.join(tmpDir, "requirements", "invalid.md"),
+          path.join(invalidDir, "invalid.md"),
           `---
 invalid: yaml: [
 ---
@@ -325,9 +331,13 @@ invalid: yaml: [
             stdio: "pipe",
           });
           throw new Error("Should have failed");
-        } catch (error: any) {
-          expect(error.status).toBe(1);
-          const stderr = error.stderr.toString();
+        } catch (error: unknown) {
+          const execError = error as {
+            status?: number;
+            stderr?: { toString(): string };
+          };
+          expect(execError.status).toBe(1);
+          const stderr = execError.stderr?.toString() ?? "";
           expect(stderr).toContain("invalid.md");
           expect(stderr).toContain("FAILED");
         }
