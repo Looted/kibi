@@ -58,6 +58,67 @@ export interface BranchEnsureOptions {
   from?: string;
 }
 
+function resolveExplicitFromBranch(fromBranch: string): string | null {
+  if (!isValidBranchName(fromBranch)) {
+    console.warn(
+      `Warning: invalid branch name provided via --from: '${fromBranch}'`,
+    );
+    return null;
+  }
+  const fromPath = path.join(process.cwd(), ".kb/branches", fromBranch);
+  if (fs.existsSync(fromPath)) {
+    return fromBranch;
+  }
+  console.warn(`Warning: --from branch '${fromBranch}' KB does not exist`);
+  return null;
+}
+
+function resolveDefaultSourceBranch(): string | null {
+  const config = loadConfig(process.cwd());
+  const defaultResult = resolveDefaultBranch(process.cwd(), config);
+
+  if ("branch" in defaultResult) {
+    const defaultBranch = defaultResult.branch;
+    const defaultPath = path.join(process.cwd(), ".kb/branches", defaultBranch);
+    if (fs.existsSync(defaultPath)) {
+      return defaultBranch;
+    }
+  } else {
+    console.warn(
+      `Warning: could not resolve default branch: ${defaultResult.error}`,
+    );
+  }
+  return null;
+}
+
+function determineSourceBranch(
+  explicitFromBranch: string | undefined,
+): string | null {
+  if (explicitFromBranch) {
+    const fromResult = resolveExplicitFromBranch(explicitFromBranch);
+    if (fromResult) {
+      return fromResult;
+    }
+  }
+  return resolveDefaultSourceBranch();
+}
+
+function createBranchKbFromSource(
+  sourceBranch: string,
+  targetBranch: string,
+): void {
+  const sourcePath = path.join(process.cwd(), ".kb/branches", sourceBranch);
+  const targetPath = path.join(process.cwd(), ".kb/branches", targetBranch);
+  copyCleanSnapshot(sourcePath, targetPath);
+  console.log(`Created branch KB: ${targetBranch} (from ${sourceBranch})`);
+}
+
+function createEmptyBranchKb(branch: string): void {
+  const kbPath = path.join(process.cwd(), ".kb/branches", branch);
+  fs.mkdirSync(kbPath, { recursive: true });
+  console.log(`Created branch KB: ${branch} (empty schema)`);
+}
+
 export async function branchEnsureCommand(
   options?: BranchEnsureOptions,
 ): Promise<void> {
@@ -71,67 +132,16 @@ export async function branchEnsureCommand(
   const currentBranch = branchResult.branch;
   const kbPath = path.join(process.cwd(), ".kb/branches", currentBranch);
 
-  // Branch KB already exists - nothing to do
   if (fs.existsSync(kbPath)) {
     console.log(`Branch KB already exists: ${currentBranch}`);
     return;
   }
 
-  // Determine source branch using fallback order:
-  // 1. --from if provided and valid
-  // 2. Resolved default branch
-  // 3. Empty schema (no source)
-  let sourceBranch: string | null = null;
-
-  // 1. Try --from if provided
-  if (options?.from) {
-    if (!isValidBranchName(options.from)) {
-      console.warn(
-        `Warning: invalid branch name provided via --from: '${options.from}'`,
-      );
-    } else {
-      const fromPath = path.join(process.cwd(), ".kb/branches", options.from);
-      if (fs.existsSync(fromPath)) {
-        sourceBranch = options.from;
-      } else {
-        console.warn(
-          `Warning: --from branch '${options.from}' KB does not exist`,
-        );
-      }
-    }
-  }
-
-  // 2. Fall back to resolved default branch
-  if (!sourceBranch) {
-    const config = loadConfig(process.cwd());
-    const defaultResult = resolveDefaultBranch(process.cwd(), config);
-
-    if ("branch" in defaultResult) {
-      const defaultBranch = defaultResult.branch;
-      const defaultPath = path.join(
-        process.cwd(),
-        ".kb/branches",
-        defaultBranch,
-      );
-      if (fs.existsSync(defaultPath)) {
-        sourceBranch = defaultBranch;
-      }
-    } else {
-      console.warn(
-        `Warning: could not resolve default branch: ${defaultResult.error}`,
-      );
-    }
-  }
-
-  // 3. Create branch KB (from source or empty)
+  const sourceBranch = determineSourceBranch(options?.from);
   if (sourceBranch) {
-    const sourcePath = path.join(process.cwd(), ".kb/branches", sourceBranch);
-    copyCleanSnapshot(sourcePath, kbPath);
-    console.log(`Created branch KB: ${currentBranch} (from ${sourceBranch})`);
+    createBranchKbFromSource(sourceBranch, currentBranch);
   } else {
-    // Initialize empty schema
-    fs.mkdirSync(kbPath, { recursive: true });
-    console.log(`Created branch KB: ${currentBranch} (empty schema)`);
+    createEmptyBranchKb(currentBranch);
   }
 }
 

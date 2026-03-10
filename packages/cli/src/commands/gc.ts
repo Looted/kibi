@@ -104,14 +104,30 @@ export async function gcCommand(options: {
 
     // Resolve configured/default branch to protect
     const config = loadConfig(process.cwd());
-    const resolved = resolveDefaultBranch(process.cwd(), config);
-    const defaultBranch =
-      "branch" in resolved && typeof resolved.branch === "string"
-        ? resolved.branch
-        : "main";
+    // Prefer explicit configured defaultBranch if set
+    const configured = config?.defaultBranch;
+    let defaultBranch: string;
+    if (configured && typeof configured === "string" && configured.trim()) {
+      defaultBranch = configured.trim();
+    } else {
+      const resolved = resolveDefaultBranch(process.cwd(), config);
+      defaultBranch =
+        "branch" in resolved && typeof resolved.branch === "string"
+          ? resolved.branch
+          : "main";
+    }
+
+    // Debug: log resolved default branch for tests
+    // eslint-disable-next-line no-console
+    console.log(`DEBUG_DEFAULT_BRANCH=${defaultBranch}`);
+
+    // Protect resolved branch and its 'master'->'main' normalization
+    const protectedBranches = new Set<string>([defaultBranch]);
+    if (defaultBranch === "main") protectedBranches.add("master");
+    if (defaultBranch === "master") protectedBranches.add("main");
 
     const staleBranches = kbBranches.filter(
-      (kb) => kb !== defaultBranch && !gitBranches.has(kb),
+      (kb) => !protectedBranches.has(kb) && !gitBranches.has(kb),
     );
 
     // Perform deletion when dryRun is false (force requested)
