@@ -27,6 +27,9 @@ describe("Git hooks", () => {
     expect((stats.mode & 0o111) !== 0).toBe(true);
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi sync");
+    // Should gate on branch_flag and attempt to resolve old branch
+    expect(content).toMatch(/branch_flag is 1 for branch checkout/);
+    expect(content).toMatch(/git name-rev --name-only \"\$old_ref\"/);
   });
 
   it("should install post-merge hook and make it executable", () => {

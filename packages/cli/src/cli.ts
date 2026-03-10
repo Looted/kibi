@@ -73,6 +73,10 @@ program
   .command("sync")
   .description("Sync entities from documents")
   .option("--validate-only", "Perform validation without mutations")
+  .option(
+    "--rebuild",
+    "Rebuild branch snapshot from scratch (discards current KB)",
+  )
   .action(async (options) => {
     await syncCommand(options);
   });
@@ -132,9 +136,10 @@ program
   .command("branch")
   .description("Manage branch KBs")
   .argument("<action>", "Action: ensure")
-  .action(async (action) => {
+  .option("--from <branch>", "Source branch to copy KB from")
+  .action(async (action, options) => {
     if (action === "ensure") {
-      await branchEnsureCommand();
+      await branchEnsureCommand(options);
     }
   });
 

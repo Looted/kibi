@@ -52,7 +52,7 @@ describe("CLI E2E: Git Hook Execution", () => {
 
     // Check hook files exist
     const hooksDir = join(sandbox.repoDir, ".git", "hooks");
-    const hooks = ["pre-commit", "post-checkout", "post-merge"];
+    const hooks = ["pre-commit", "post-checkout", "post-merge", "post-rewrite"];
 
     for (const hook of hooks) {
       const hookPath = join(hooksDir, hook);
@@ -73,7 +73,7 @@ describe("CLI E2E: Git Hook Execution", () => {
 
     // Check hooks are executable
     const hooksDir = join(sandbox.repoDir, ".git", "hooks");
-    const hooks = ["pre-commit", "post-checkout", "post-merge"];
+    const hooks = ["pre-commit", "post-checkout", "post-merge", "post-rewrite"];
 
     for (const hook of hooks) {
       const hookPath = join(hooksDir, hook);

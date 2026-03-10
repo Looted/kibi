@@ -19,8 +19,14 @@ describe("kibi sync", () => {
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-sync-"));
 
-    // Initialize KB structure
+    // Initialize git repo and create initial commit (required per ADR-012)
     execSync("git init", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git checkout -b main", { cwd: tmpDir, stdio: "pipe" });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+
+    // Initialize KB structure
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "pipe",

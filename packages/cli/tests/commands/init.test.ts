@@ -27,18 +27,10 @@ describe("kibi init", () => {
 
   test("creates .kb directory structure", () => {
     execSync("git init", { cwd: tmpDir });
-    // Explicitly rename master to develop to match the expected default
-    try {
-      const branch = execSync("git branch --show-current", {
-        cwd: tmpDir,
-        encoding: "utf8",
-      }).trim();
-      if (branch === "master") {
-        execSync("git branch -m master develop", { cwd: tmpDir });
-      }
-    } catch {
-      // ignore
-    }
+    // Create initial commit so branch exists (required per ADR-012)
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
 
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
@@ -49,7 +41,8 @@ describe("kibi init", () => {
     expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
     expect(existsSync(path.join(tmpDir, ".kb/branches"))).toBe(true);
-    expect(existsSync(path.join(tmpDir, ".kb/branches/develop"))).toBe(true);
+    // After normalization, master branch becomes main
+    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
   }, 30000);
 
   test("copies schema files to .kb/schema/", () => {
@@ -90,6 +83,10 @@ describe("kibi init", () => {
   });
 
   test("does not fail if .kb already exists", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
     mkdirSync(path.join(tmpDir, ".kb"));
 
     const out = execSync(`bun ${kibiBin} init`, {
@@ -104,6 +101,9 @@ describe("kibi init", () => {
 
   test("installs git hooks by default", () => {
     execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -124,6 +124,9 @@ describe("kibi init", () => {
 
   test("does not install hooks when --no-hooks is used", () => {
     execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init --no-hooks`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -140,6 +143,9 @@ describe("kibi init", () => {
 
   test("installs pre-commit hook by default", () => {
     execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
       stdio: "inherit",
@@ -158,6 +164,9 @@ describe("kibi init", () => {
 
   test("exits with code 0 on success", () => {
     execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
 
     const result = execSync(`bun ${kibiBin} init`, {
       cwd: tmpDir,
@@ -168,6 +177,10 @@ describe("kibi init", () => {
   });
 
   test("prints helpful message if .kb/ already exists", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
     mkdirSync(path.join(tmpDir, ".kb"));
 
     const out = execSync(`bun ${kibiBin} init`, {

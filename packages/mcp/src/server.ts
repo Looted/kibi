@@ -50,6 +50,12 @@ import process from "node:process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { PrologProcess } from "kibi-cli/prolog";
+import {
+  copyCleanSnapshot,
+  getBranchDiagnostic,
+  isValidBranchName,
+  resolveActiveBranch,
+} from "kibi-cli/public/branch-resolver";
 import { z } from "zod";
 import { loadDefaultEnvFile } from "./env.js";
 import { attachMcpcat } from "./mcpcat.js";
@@ -278,26 +284,8 @@ let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
 
-function isSafeBranchName(name: string): boolean {
-  if (!name || name.length > 255) return false;
-  if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
-    return false;
-  }
-  if (!/^[a-zA-Z0-9._\-/]+$/.test(name)) return false;
-  if (
-    name.includes("//") ||
-    name.endsWith("/") ||
-    name.endsWith(".") ||
-    name.includes("\\")
-  ) {
-    return false;
-  }
-
-  return true;
-}
-
 function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
-  if (!isSafeBranchName(branch)) {
+  if (!isValidBranchName(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
 
@@ -318,9 +306,8 @@ function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
     );
   }
 
-  fs.cpSync(resolveKbPath(workspaceRoot, templateBranch), branchPath, {
-    recursive: true,
-  });
+  // Use clean snapshot copy that excludes volatile artifacts
+  copyCleanSnapshot(resolveKbPath(workspaceRoot, templateBranch), branchPath);
 }
 
 function debugLog(...args: Parameters<typeof console.error>): void {
@@ -381,10 +368,72 @@ async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
 }
 
 async function ensureProlog(): Promise<PrologProcess> {
+  const workspaceRoot = resolveWorkspaceRoot();
+
+  // Determine target branch: respect KIBI_BRANCH override or resolve from git
+  const envBranch = process.env.KIBI_BRANCH?.trim();
+  let targetBranch: string;
+
+  if (envBranch) {
+    // KIBI_BRANCH override is set - use it without re-resolving from git
+    if (!isValidBranchName(envBranch)) {
+      throw new Error(`Invalid branch name from KIBI_BRANCH: '${envBranch}'`);
+    }
+    targetBranch = envBranch;
+  } else {
+    // No override - resolve active branch from git (may change between requests)
+    const branchResult = resolveActiveBranch(workspaceRoot);
+
+    if ("error" in branchResult) {
+      const diagnostic = getBranchDiagnostic(undefined, branchResult.error);
+      console.error(`[KIBI-MCP] ${diagnostic}`);
+      throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
+    }
+
+    targetBranch = branchResult.branch;
+  }
+
+  // Check if we need to switch branches
   if (isInitialized && prologProcess?.isRunning()) {
+    if (targetBranch === activeBranchName) {
+      // Still on the same branch - return existing connection
+      return prologProcess;
+    }
+
+    // Branch changed - need to detach and re-attach
+    debugLog(
+      `[KIBI-MCP] Branch changed: ${activeBranchName} -> ${targetBranch}`,
+    );
+
+    // Detach from old KB
+    const detachResult = await prologProcess.query("kb_detach");
+    if (!detachResult.success) {
+      debugLog(
+        `[KIBI-MCP] Warning: failed to detach from old KB: ${detachResult.error || "Unknown error"}`,
+      );
+      // Continue anyway - we'll try to attach to the new KB
+    }
+
+    // Ensure new branch KB exists
+    ensureBranchKbExists(workspaceRoot, targetBranch);
+    const newKbPath = resolveKbPath(workspaceRoot, targetBranch);
+
+    // Attach to new branch KB
+    const attachResult = await prologProcess.query(`kb_attach('${newKbPath}')`);
+    if (!attachResult.success) {
+      throw new Error(
+        `Failed to attach to new branch KB: ${attachResult.error || "Unknown error"}`,
+      );
+    }
+
+    activeBranchName = targetBranch;
+    debugLog(`[KIBI-MCP] Re-attached to branch: ${targetBranch}`);
+    debugLog(`[KIBI-MCP] KB path: ${newKbPath}`);
+
     return prologProcess;
   }
 
+  // First initialization
   debugLog("[KIBI-MCP] Initializing Prolog process...");
 
   prologProcess = new PrologProcess({ timeout: 120000 });
@@ -434,38 +483,15 @@ async function ensureProlog(): Promise<PrologProcess> {
     }
   }
 
-  const workspaceRoot = resolveWorkspaceRoot();
-  let branch = process.env.KIBI_BRANCH || "develop";
-  let gitBranch: string | undefined;
-
-  if (!process.env.KIBI_BRANCH) {
-    try {
-      const { execSync } = await import("node:child_process");
-      const detected = execSync("git branch --show-current", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 3000,
-      }).trim();
-      if (detected) {
-        gitBranch = detected === "master" ? "develop" : detected;
-        branch = gitBranch;
-      }
-    } catch {
-      // fall back to develop
-    }
-  }
-
   debugLog("[KIBI-MCP] Branch selection:");
   debugLog(
     `[KIBI-MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
   );
-  debugLog(`[KIBI-MCP]   Git branch: ${gitBranch || "n/a"}`);
-  debugLog(`[KIBI-MCP]   Attached to: ${branch}`);
-  debugLog("[KIBI-MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
+  debugLog(`[KIBI-MCP]   Resolved branch: ${targetBranch}`);
 
-  activeBranchName = branch;
-  ensureBranchKbExists(workspaceRoot, branch);
-  const kbPath = resolveKbPath(workspaceRoot, branch);
+  activeBranchName = targetBranch;
+  ensureBranchKbExists(workspaceRoot, targetBranch);
+  const kbPath = resolveKbPath(workspaceRoot, targetBranch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
   if (!attachResult.success) {

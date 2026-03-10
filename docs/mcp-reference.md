@@ -64,6 +64,8 @@ Validation report with any violations found and suggested fixes.
 
 - The server attaches to the active git branch automatically at startup.
 - If the active branch KB does not exist, the server attempts to create it from an existing template branch KB (`develop` first, then `main`).
+- Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
+- You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
 - Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
 
 ## Recommended Agent Workflow

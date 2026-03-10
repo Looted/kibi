@@ -59,11 +59,36 @@ interface Violation {
   source?: string;
 }
 
+interface Diagnostic {
+  category: string;
+  severity: "error" | "warning";
+  message: string;
+  file?: string;
+  suggestion?: string;
+}
+
+function formatDiagnosticsForMcp(diagnostics: Diagnostic[]) {
+  return diagnostics.map((d) => ({
+    category: d.category,
+    severity: d.severity,
+    message: d.message,
+    file: d.file,
+    suggestion: d.suggestion,
+  }));
+}
+
 export interface CheckResult {
   content: Array<{ type: string; text: string }>;
   structuredContent?: {
     violations: Violation[];
     count: number;
+    diagnostics: Array<{
+      category: string;
+      severity: string;
+      message: string;
+      file?: string;
+      suggestion?: string;
+    }>;
   };
 }
 
@@ -112,7 +137,14 @@ export async function handleKbCheck(
       violations.push(...(await checkSymbolCoverage(prolog)));
     }
 
-    // Return MCP structured response
+    const diagnostics: Diagnostic[] = violations.map((v) => ({
+      category: "SYNC_ERROR",
+      severity: "error",
+      message: v.description,
+      file: v.source,
+      suggestion: v.suggestion,
+    }));
+
     const summary =
       violations.length === 0
         ? "No violations found"
@@ -128,6 +160,7 @@ export async function handleKbCheck(
       structuredContent: {
         violations,
         count: violations.length,
+        diagnostics: formatDiagnosticsForMcp(diagnostics),
       },
     };
   } catch (error) {
@@ -456,4 +489,3 @@ async function checkSymbolCoverage(
 
   return violations;
 }
-

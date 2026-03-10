@@ -63,6 +63,27 @@ describe("kibi gc", () => {
     expect(fs.existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
   });
 
+  test("configured default branch is preserved even if not a git branch", () => {
+    // create config with defaultBranch: trunk
+    const config = { paths: {}, defaultBranch: "trunk" };
+    fs.writeFileSync(
+      path.join(tmpDir, ".kb/config.json"),
+      JSON.stringify(config),
+    );
+
+    // create trunk KB and another stale branch
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/trunk"));
+    fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch-2"));
+
+    const res = runArgs(["gc", "--force"], tmpDir);
+
+    // trunk should remain, old-branch-2 should be deleted
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(true);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch-2"))).toBe(
+      false,
+    );
+  });
+
   test("no stale branches reports zero", () => {
     fs.rmSync(path.join(tmpDir, ".kb/branches/old-branch"), {
       recursive: true,

@@ -50,10 +50,23 @@ describe("init-helpers", () => {
     }
   });
 
-  test("getCurrentBranch defaults to develop if git fails", async () => {
+  test("getCurrentBranch throws error if git fails and KIBI_BRANCH not set", async () => {
     // No git init here
-    const branch = await getCurrentBranch(tmpDir);
-    expect(branch).toBe("develop");
+    await expect(getCurrentBranch(tmpDir)).rejects.toThrow(
+      "Failed to resolve active branch",
+    );
+  });
+
+  test("getCurrentBranch uses KIBI_BRANCH when git fails", async () => {
+    // No git init here
+    const originalBranch = process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = "custom-branch";
+    try {
+      const branch = await getCurrentBranch(tmpDir);
+      expect(branch).toBe("custom-branch");
+    } finally {
+      process.env.KIBI_BRANCH = originalBranch;
+    }
   });
 
   test("createKbDirectoryStructure creates expected directories", () => {
