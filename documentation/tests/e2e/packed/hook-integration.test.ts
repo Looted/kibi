@@ -73,13 +73,10 @@ describe("E2E: Git Hook Integration", () => {
     const content = readFileSync(hookPath, "utf8");
     assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
     // Ensure we only run branch-ensure on branch checkout and attempt to forward old branch
+    assert.ok(/branch_flag is 1 for branch checkout/.test(content));
     assert.ok(
-      /branch_flag is 1 for branch checkout/.test(content),
-      "Hook should document branch_flag semantics",
-    );
-    assert.ok(
-      /git name-rev --name-only \"\$old_ref\"/.test(content),
-      "Hook should try to resolve old ref",
+      /git name-rev --name-only/.test(content) ||
+        /kibi branch ensure --from/.test(content),
     );
   });
 

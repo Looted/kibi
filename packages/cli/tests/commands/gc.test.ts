@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { gcCommand } from "../../src/commands/gc";
 
 const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
@@ -75,13 +76,25 @@ describe("kibi gc", () => {
     fs.mkdirSync(path.join(tmpDir, ".kb/branches/trunk"));
     fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch-2"));
 
-    const res = runArgs(["gc", "--force"], tmpDir);
-
-    // trunk should remain, old-branch-2 should be deleted
-    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(true);
-    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch-2"))).toBe(
-      false,
-    );
+    // run gcCommand directly with cwd set to tmpDir
+    const prevCwd = process.cwd();
+    try {
+      process.chdir(tmpDir);
+      // call the command implementation directly
+      // force:true will perform deletion
+      // gcCommand uses process.cwd() internally
+      // await the promise
+      return gcCommand({ force: true }).then(() => {
+        expect(fs.existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(
+          true,
+        );
+        expect(
+          fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch-2")),
+        ).toBe(false);
+      });
+    } finally {
+      process.chdir(prevCwd);
+    }
   });
 
   test("no stale branches reports zero", () => {
