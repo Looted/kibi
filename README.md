@@ -244,7 +244,7 @@ title: Sample requirement
 status: open
 created_at: 2026-02-20T10:00:00Z
 updated_at: 2026-02-20T10:00:00Z
-source: requirements/REQ-001
+source: documentation/requirements/REQ-001
 tags:
   - sample
 ---

@@ -157,10 +157,16 @@ User logs in with OAuth2 provider.
 
       expect(cache.version).toBe(1);
       expect(Object.keys(cache.hashes).length).toBeGreaterThanOrEqual(3);
-      expect(cache.hashes["requirements/req1.md"]).toMatch(/^[a-f0-9]{64}$/);
-      expect(cache.hashes["scenarios/scenario1.md"]).toMatch(/^[a-f0-9]{64}$/);
+      expect(cache.hashes["documentation/requirements/req1.md"]).toMatch(
+        /^[a-f0-9]{64}$/,
+      );
+      expect(cache.hashes["documentation/scenarios/scenario1.md"]).toMatch(
+        /^[a-f0-9]{64}$/,
+      );
       expect(cache.hashes["symbols.yaml"]).toMatch(/^[a-f0-9]{64}$/);
-      expect(typeof cache.seenAt["requirements/req1.md"]).toBe("string");
+      expect(typeof cache.seenAt["documentation/requirements/req1.md"]).toBe(
+        "string",
+      );
     },
     TEST_TIMEOUT_MS,
   );
