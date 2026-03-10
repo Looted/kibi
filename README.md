@@ -123,22 +123,21 @@ Kibi exposes an MCP server for agent integration via stdio (JSON-RPC).
 
 ### Tools
 
-- `kb_query`: Query entities by type, ID, tags, relationships
+- `kb_query`: Query entities by type, ID, tags, and source file
 - `kb_upsert`: Insert or update entities
 - `kb_delete`: Delete entities by ID
 - `kb_check`: Validate KB integrity
-- `kb_query_relationships`: Query relationships between entities
-- `kb_branch_ensure`: Ensure branch KB exists (copy-from-main)
-- `kb_branch_gc`: Garbage collect merged branch KBs
 
-Each tool accepts `branch` parameter for branch-aware operations.
+Branch KB preparation happens automatically when the MCP server attaches to the
+active workspace branch. Branch garbage collection remains a CLI workflow via
+`kibi gc` or repository automation hooks.
 
 ### Configuration
 
 - Transport: stdio (JSON-RPC, newline-delimited)
 - No embedded newlines in messages
 - Server writes only valid MCP messages to stdout
-- Branch-aware: every tool call accepts `branch` parameter
+- Branch-aware: the server attaches to the active git branch on startup
 
 See [docs/mcp-reference.md](docs/mcp-reference.md) for detailed MCP server documentation.
 ## Project Structure
@@ -337,4 +336,3 @@ The following schema is planned for a future release:
 ### Integration with git hooks
 
 If you run `kibi init --hooks`, a pre-commit hook is installed. This hook automatically runs `kibi check --staged` before every commit. If any staged code symbols are missing requirement links, the commit will be blocked with a clear error message. To bypass, you must add the appropriate `implements REQ-xxx` directive or use `--dry-run` for testing only.
-

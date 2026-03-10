@@ -328,7 +328,7 @@ export function activate(context: vscode.ExtensionContext) {
             };
           }
           const mcpResult = await vscode.commands.executeCommand<McpResult>(
-            "kibi-mcp.kbcontext",
+            "kibi-mcp.kb_query",
             { sourceFile: relativePath },
           );
 

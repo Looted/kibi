@@ -2,7 +2,7 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"

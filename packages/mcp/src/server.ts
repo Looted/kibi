@@ -16,7 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import fs from "node:fs";
 import { createRequire } from "node:module";
+import path from "node:path";
 /*
  How to apply this header to source files (examples)
 
@@ -52,40 +54,9 @@ import { z } from "zod";
 import { loadDefaultEnvFile } from "./env.js";
 import { attachMcpcat } from "./mcpcat.js";
 import { TOOLS } from "./tools-config.js";
-import {
-  type BranchEnsureArgs,
-  type BranchGcArgs,
-  handleKbBranchEnsure,
-  handleKbBranchGc,
-} from "./tools/branch.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
-import { type ContextArgs, handleKbContext } from "./tools/context.js";
-import {
-  type CoverageReportArgs,
-  handleKbCoverageReport,
-} from "./tools/coverage-report.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
-import { type DeriveArgs, handleKbDerive } from "./tools/derive.js";
-import { type ImpactArgs, handleKbImpact } from "./tools/impact.js";
-import {
-  type ListEntityTypesResult,
-  type ListRelationshipTypesResult,
-  handleKbListEntityTypes,
-  handleKbListRelationshipTypes,
-} from "./tools/list-types.js";
-import {
-  type QueryRelationshipsArgs,
-  handleKbQueryRelationships,
-} from "./tools/query-relationships.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
-import {
-  type SuggestSharedFactsArgs,
-  handleSuggestSharedFacts,
-} from "./tools/suggest-shared-facts.js";
-import {
-  type SymbolsRefreshArgs,
-  handleKbSymbolsRefresh,
-} from "./tools/symbols.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
 
@@ -128,9 +99,9 @@ const PROMPTS = [
       "",
       "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
       "- Reuse canonical fact IDs across requirements; shared constrained facts make contradictions detectable.",
-      "- Use read tools first (`kb_query`, `kb_query_relationships`, `kbcontext`) to establish context.",
-      "- Use mutation tools (`kb_upsert`, `kb_delete`, branch tools) only after you can justify the change.",
-      "- Use inference tools (`kb_derive`, `kb_impact`, `kb_coverage_report`) for deterministic analysis.",
+      "- Use `kb_query` first to confirm current state before any mutation.",
+      "- Use `kb_upsert` and `kb_delete` only for intentional, traceable KB changes.",
+      "- Run `kb_check` after meaningful mutations to catch integrity issues early.",
       "- Prefer explicit IDs and enum values to avoid invalid parameters.",
       "- Assume every write can affect downstream traceability queries.",
     ].join("\n"),
@@ -144,15 +115,13 @@ const PROMPTS = [
       "",
       "Follow this sequence for reliable operation:",
       "",
-      "1. **Discover**: Call `kb_list_entity_types`/`kb_list_relationship_types` if you are unsure about allowed values.",
-      "2. **Inspect**: Call `kb_query` or `kbcontext` to confirm current state before any mutation.",
-      "3. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property`.",
-      "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
-      "5. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
-      "6. **Verify integrity**: Call `kb_check` after mutations.",
-      "7. **Assess impact**: Call `kb_impact`, `kb_derive`, or `kb_coverage_report` as needed.",
+      "1. **Inspect**: Call `kb_query` to confirm current state before any mutation.",
+      "2. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property`.",
+      "3. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first.",
+      "4. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
+      "5. **Verify integrity**: Call `kb_check` after mutations.",
       "",
-      "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, or relationship type).",
+      "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, limit, or offset).",
     ].join("\n"),
   },
   {
@@ -165,10 +134,8 @@ const PROMPTS = [
       "",
       "- `kb_upsert` validates entity and relationship payloads against JSON Schema.",
       "- `kb_delete` blocks deletion when dependents still reference the entity.",
-      "- `kb_branch_gc` may permanently remove stale branch KB directories when `dry_run` is `false`.",
       "- Relationship and rule names are strict enums; unknown values fail validation.",
-      "- Branch names are sanitized; path traversal patterns are rejected.",
-      "- `kb_symbols_refresh` can rewrite the symbols manifest unless `dryRun` is enabled.",
+      "- Branch KB setup is automatic at server startup; lifecycle maintenance stays outside the public MCP tool surface.",
     ].join("\n"),
   },
 ];
@@ -181,9 +148,8 @@ function registerDocResources(): DocResource[] {
     "",
     "Scope:",
     "- Entity CRUD-like operations for KB records",
-    "- Relationship inspection",
-    "- Validation and branch KB maintenance",
-    "- Deterministic inference for traceability and impact analysis",
+    "- Validation of KB integrity after changes",
+    "- Automatic branch-local attachment for the active workspace",
     "",
     "Use this server when you need branch-local, machine-readable project memory.",
   ].join("\n");
@@ -195,7 +161,7 @@ function registerDocResources(): DocResource[] {
     "",
     "- `-32602 INVALID_PARAMS`: Tool arguments are missing/invalid. Recover by checking enum values and required fields.",
     "- `-32601 METHOD_NOT_FOUND`: Unknown MCP method. Recover by using supported methods (`tools/*`, `prompts/*`, `resources/*`).",
-    "- `-32000 PROLOG_QUERY_FAILED`: Prolog query failed. Recover by validating IDs, rule names, and relationship types.",
+    "- `-32000 PROLOG_QUERY_FAILED`: Prolog query failed. Recover by validating IDs, rule names, and branch KB availability.",
     "- `VALIDATION_ERROR` message: `kb_upsert` payload failed schema checks. Recover by fixing required fields and enum values.",
     "- Delete blocked by dependents: `kb_delete` detected incoming references. Recover by removing/rewiring relationships first.",
     "- Empty results: filters may be too strict. Recover by loosening type/id/tags/source filters and retrying.",
@@ -210,20 +176,10 @@ function registerDocResources(): DocResource[] {
     "3. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
     '4. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }`',
     "",
-    "## Discover requirement coverage gaps",
-    '1. `kb_query` with `{ "type": "req", "limit": 20 }`',
-    '2. `kb_coverage_report` with `{ "type": "req" }`',
-    '3. `kb_derive` with `{ "rule": "coverage_gap" }`',
-    "",
     "## Add a requirement and link it to a test",
     "1. `kb_query` for existing IDs to avoid collisions",
     "2. `kb_upsert` with entity payload and `relationships` containing `verified_by`",
     '3. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }`',
-    "",
-    "## Safe cleanup of stale branch KBs",
-    '1. `kb_branch_gc` with `{ "dry_run": true }`',
-    "2. Review `structuredContent.stale`",
-    '3. `kb_branch_gc` with `{ "dry_run": false }` only when deletion is intended',
   ].join("\n");
 
   return [
@@ -321,6 +277,51 @@ let activeBranchName = "develop";
 let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
+
+function isSafeBranchName(name: string): boolean {
+  if (!name || name.length > 255) return false;
+  if (name.includes("..") || path.isAbsolute(name) || name.startsWith("/")) {
+    return false;
+  }
+  if (!/^[a-zA-Z0-9._\-/]+$/.test(name)) return false;
+  if (
+    name.includes("//") ||
+    name.endsWith("/") ||
+    name.endsWith(".") ||
+    name.includes("\\")
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
+  if (!isSafeBranchName(branch)) {
+    throw new Error(`Invalid branch name: ${branch}`);
+  }
+
+  const branchPath = resolveKbPath(workspaceRoot, branch);
+  if (fs.existsSync(branchPath)) {
+    return;
+  }
+
+  const templateBranch = ["develop", "main"].find(
+    (candidate) =>
+      candidate !== branch &&
+      fs.existsSync(resolveKbPath(workspaceRoot, candidate)),
+  );
+
+  if (!templateBranch) {
+    throw new Error(
+      `No template branch KB found for '${branch}'. Expected '.kb/branches/develop' or '.kb/branches/main'.`,
+    );
+  }
+
+  fs.cpSync(resolveKbPath(workspaceRoot, templateBranch), branchPath, {
+    recursive: true,
+  });
+}
 
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
@@ -463,6 +464,7 @@ async function ensureProlog(): Promise<PrologProcess> {
   debugLog("[KIBI-MCP] To change branch: set KIBI_BRANCH=<branch> and restart");
 
   activeBranchName = branch;
+  ensureBranchKbExists(workspaceRoot, branch);
   const kbPath = resolveKbPath(workspaceRoot, branch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
@@ -692,7 +694,7 @@ function addTool(
 export async function startServer(): Promise<void> {
   loadDefaultEnvFile();
 
-  const server = new McpServer({ name: "kibi-mcp", version: "0.1.0" });
+  const server = new McpServer({ name: "kibi-mcp", version: "0.2.0" });
 
   attachMcpcat(server);
 
@@ -771,140 +773,6 @@ export async function startServer(): Promise<void> {
     async (args) => {
       const prolog = await ensureProlog();
       return handleKbCheck(prolog, args as CheckArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_branch_ensure",
-    toolDef("kb_branch_ensure").description,
-    toolDef("kb_branch_ensure").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbBranchEnsure(prolog, args as unknown as BranchEnsureArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_branch_gc",
-    toolDef("kb_branch_gc").description,
-    toolDef("kb_branch_gc").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbBranchGc(prolog, args as BranchGcArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_query_relationships",
-    toolDef("kb_query_relationships").description,
-    toolDef("kb_query_relationships").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbQueryRelationships(prolog, args as QueryRelationshipsArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_derive",
-    toolDef("kb_derive").description,
-    toolDef("kb_derive").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbDerive(prolog, args as unknown as DeriveArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_impact",
-    toolDef("kb_impact").description,
-    toolDef("kb_impact").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbImpact(prolog, args as unknown as ImpactArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_coverage_report",
-    toolDef("kb_coverage_report").description,
-    toolDef("kb_coverage_report").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbCoverageReport(prolog, args as CoverageReportArgs);
-    },
-  );
-
-  addTool(
-    server,
-    "kb_symbols_refresh",
-    toolDef("kb_symbols_refresh").description,
-    toolDef("kb_symbols_refresh").inputSchema,
-    async (args) => handleKbSymbolsRefresh(args as SymbolsRefreshArgs),
-  );
-
-  addTool(
-    server,
-    "kb_list_entity_types",
-    toolDef("kb_list_entity_types").description,
-    toolDef("kb_list_entity_types").inputSchema,
-    handleKbListEntityTypes,
-  );
-
-  addTool(
-    server,
-    "kb_list_relationship_types",
-    toolDef("kb_list_relationship_types").description,
-    toolDef("kb_list_relationship_types").inputSchema,
-    handleKbListRelationshipTypes,
-  );
-
-  addTool(
-    server,
-    "kbcontext",
-    toolDef("kbcontext").description,
-    toolDef("kbcontext").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbContext(
-        prolog,
-        args as unknown as ContextArgs,
-        activeBranchName,
-      );
-    },
-  );
-
-  addTool(
-    server,
-    "get_help",
-    toolDef("get_help").description,
-    toolDef("get_help").inputSchema,
-    async (args) => {
-      const topic = typeof args?.topic === "string" ? args.topic : undefined;
-      const text = getHelpText(topic);
-      return {
-        content: [{ type: "text" as const, text }],
-        structuredContent: { topic: topic ?? "overview" },
-      };
-    },
-  );
-
-  addTool(
-    server,
-    "analyze_shared_facts",
-    toolDef("analyze_shared_facts").description,
-    toolDef("analyze_shared_facts").inputSchema,
-    async (args) => {
-      const prolog = await ensureProlog();
-      return handleSuggestSharedFacts(
-        prolog,
-        args as unknown as SuggestSharedFactsArgs,
-      );
     },
   );
   const transport = new StdioServerTransport();

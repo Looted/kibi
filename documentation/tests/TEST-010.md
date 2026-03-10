@@ -1,6 +1,6 @@
 ---
 id: TEST-010
-title: Inference MCP tools return deterministic impact and coverage outputs
+title: Non-core inference tools are not advertised through the public MCP surface
 status: active
 created_at: 2026-02-20T08:10:00.000Z
 updated_at: 2026-02-20T08:10:00.000Z
@@ -16,8 +16,7 @@ links:
 ---
 
 Validation steps:
-1. Seed a KB with requirements, tests, symbols, and ADR constraints.
-2. Run `kb_derive` for each Phase 1 rule and verify row structure and ordering.
-3. Run `kb_impact` for a changed requirement and verify typed impacted entities.
-4. Run `kb_coverage_report` with and without type filter and verify aggregate fields.
-5. Confirm outputs are machine-parseable and deterministic for repeated calls.
+1. Start `kibi-mcp` and call `tools/list`.
+2. Verify only `kb_query`, `kb_upsert`, `kb_delete`, and `kb_check` are advertised.
+3. Attempt `tools/call` for a removed non-core inference tool name.
+4. Verify the call is rejected with an unknown-tool style error.

@@ -222,9 +222,13 @@ describe("MCP E2E: Server Operations", () => {
                 clearTimeout(timeout);
                 void stopProcess(mcpProcess).finally(() => {
                   assert.ok(Array.isArray(tools), "Tools should be an array");
-                  assert.ok(tools.length > 0, "Should have at least one tool");
-
                   const toolNames = tools.map((t) => t.name);
+                  assert.deepStrictEqual(toolNames, [
+                    "kb_query",
+                    "kb_upsert",
+                    "kb_delete",
+                    "kb_check",
+                  ]);
                   console.log("  ✓ Available tools:", toolNames.join(", "));
 
                   resolve();

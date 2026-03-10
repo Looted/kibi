@@ -100,8 +100,9 @@ export async function gcCommand(options: {
       .filter((d) => d.isDirectory())
       .map((d) => d.name);
 
+    const protectedBranches = new Set(["main", "develop"]);
     const staleBranches = kbBranches.filter(
-      (kb) => kb !== "main" && !gitBranches.has(kb),
+      (kb) => !protectedBranches.has(kb) && !gitBranches.has(kb),
     );
 
     // Perform deletion when dryRun is false (force requested)

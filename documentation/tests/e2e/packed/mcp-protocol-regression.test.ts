@@ -175,6 +175,10 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
     assert.strictEqual(listLine.id, 101);
     const tools = (listLine.result as { tools?: unknown[] } | undefined)?.tools;
     assert.ok(Array.isArray(tools));
+    assert.deepStrictEqual(
+      (tools as Array<{ name: string }>).map((tool) => tool.name),
+      ["kb_query", "kb_upsert", "kb_delete", "kb_check"],
+    );
 
     const callLine = JSON.parse(
       await sendRaw(proc, JSON.stringify(call)),
@@ -184,6 +188,46 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       !callLine.error,
       "tools/call should succeed or return structured result",
     );
+
+    await stopProcess(proc);
+  });
+
+  it("should reject removed tools after initialization", async () => {
+    const proc = spawn("node", [sandbox.kibiMcpBin], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await new Promise((r) => setTimeout(r, 500));
+
+    const init = {
+      jsonrpc: "2.0",
+      id: 200,
+      method: "initialize",
+      params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+    };
+    const removedCall = {
+      jsonrpc: "2.0",
+      id: 201,
+      method: "tools/call",
+      params: { name: "kb_branch_gc", arguments: { dry_run: true } },
+    };
+
+    const initLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(init)),
+    ) as JsonRpcRes;
+    assert.strictEqual(initLine.id, 200);
+
+    const removedLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(removedCall)),
+    ) as JsonRpcRes;
+    assert.strictEqual(removedLine.id, 201);
+    // MCP SDK returns tool errors in result with isError flag, not as top-level error
+    assert.ok(removedLine.result?.isError, "Expected isError flag in result");
+    const content = removedLine.result?.content as
+      | Array<{ text: string }>
+      | undefined;
+    assert.match(content?.[0]?.text ?? "", /not found/i);
 
     await stopProcess(proc);
   });

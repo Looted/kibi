@@ -1,7 +1,0 @@
-bun test v1.3.6 (d530ed99)
-Error: Invalid type 'invalid_type'. Valid types: req, scenario, test, adr, flag, event, symbol
-
- 9 pass
- 0 fail
- 15 expect() calls
-Ran 9 tests across 1 file. [20.72s]

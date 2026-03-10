@@ -97,7 +97,7 @@ Or edit `settings.json` directly:
 
 ## MCP Integration
 
-This extension includes MCP (Model Context Protocol) server integration for AI assistant interaction with your knowledge base. The MCP server path is configurable (see Configuration section above) and defaults to auto-detection from your system PATH.
+This extension includes MCP (Model Context Protocol) server integration for AI assistant interaction with your knowledge base. The extension relies on the public four-tool MCP surface and uses `kb_query` for source-linked context lookups.
 
 ## Current Limitations (v0.1)
 
