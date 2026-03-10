@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import { createSandbox, packAll, type TestSandbox } from "./helpers.js";
+import { type TestSandbox, createSandbox, packAll } from "./helpers.js";
 
 interface JsonRpcRes {
   id?: number;
@@ -38,6 +38,18 @@ function sendRaw(
       proc.stdout.off("data", onData);
       reject(new Error("timeout waiting for response"));
     }, 10000);
+  });
+}
+
+function stopProcess(proc: ChildProcessWithoutNullStreams): Promise<void> {
+  return new Promise((resolve) => {
+    if (proc.exitCode !== null || proc.killed) {
+      resolve();
+      return;
+    }
+    proc.once("close", () => resolve());
+    proc.kill();
+    setTimeout(resolve, 2000);
   });
 }
 
@@ -82,7 +94,7 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
     const initLine = await sendRaw(proc, JSON.stringify(init));
     const initMsg = JSON.parse(initLine) as JsonRpcRes;
     assert.strictEqual(initMsg.id, 1);
-    proc.kill();
+    await stopProcess(proc);
   });
 
   it("should return -32600 for invalid JSON-RPC shape and stay alive", async () => {
@@ -107,7 +119,7 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       await sendRaw(proc, JSON.stringify(init)),
     ) as JsonRpcRes;
     assert.strictEqual(initLine.id, 2);
-    proc.kill();
+    await stopProcess(proc);
   });
 
   it("should return -32601 for direct legacy method call kb_query", async () => {
@@ -127,7 +139,7 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
     const respLine = await sendRaw(proc, JSON.stringify(direct));
     const parsed = JSON.parse(respLine) as JsonRpcRes;
     assert.strictEqual(parsed.error?.code, -32601);
-    proc.kill();
+    await stopProcess(proc);
   });
 
   it("should support initialize -> tools/list -> tools/call kb_query flow", async () => {
@@ -173,6 +185,6 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       "tools/call should succeed or return structured result",
     );
 
-    proc.kill();
+    await stopProcess(proc);
   });
 });

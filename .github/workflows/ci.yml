@@ -56,8 +56,10 @@ jobs:
           cd ../mcp && npm pack
       - name: Run CLI regression tests
         run: |
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-workflows.test.ts
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-query-regression.test.ts
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-workflows.test.js
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-query-regression.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -85,7 +87,9 @@ jobs:
           cd ../mcp && npm pack
       - name: Run MCP protocol regression tests
         run: |
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/mcp-protocol-regression.test.ts
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -111,7 +115,9 @@ jobs:
           cd ../mcp && npm pack
       - name: Run tarball verification
         run: |
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
@@ -138,7 +144,9 @@ jobs:
           cd ../mcp && npm pack
       - name: Run branch workflow tests
         run: |
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/branch-workflow.test.ts
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/branch-workflow.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages

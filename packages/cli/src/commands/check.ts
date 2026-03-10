@@ -47,10 +47,18 @@ import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
-import { cleanupTempKb, consultOverlay, createOverlayFacts, createTempKb } from "../traceability/temp-kb.js";
-import { formatViolations as formatStagedViolations, validateStagedSymbols } from "../traceability/validate.js";
-import { getCurrentBranch } from "./init-helpers.js";
+import {
+  cleanupTempKb,
+  consultOverlay,
+  createOverlayFacts,
+  createTempKb,
+} from "../traceability/temp-kb.js";
+import {
+  formatViolations as formatStagedViolations,
+  validateStagedSymbols,
+} from "../traceability/validate.js";
 import { runAggregatedChecks } from "./aggregated-checks.js";
+import { getCurrentBranch } from "./init-helpers.js";
 
 export interface CheckOptions {
   fix?: boolean;
@@ -99,7 +107,12 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     // We skip creating the main prolog session entirely in this path.
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
-      let tempCtx: { tempDir: string; kbPath: string; overlayPath: string; prolog: PrologProcess } | null = null;
+      let tempCtx: {
+        tempDir: string;
+        kbPath: string;
+        overlayPath: string;
+        prolog: PrologProcess;
+      } | null = null;
       try {
         // Get staged files
         const stagedFiles = getStagedFiles();
@@ -138,7 +151,10 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         await consultOverlay(tempCtx);
 
         // Validate staged symbols using the temp KB prolog session
-        const violationsRaw = await validateStagedSymbols({ minLinks, prolog: tempCtx.prolog });
+        const violationsRaw = await validateStagedSymbols({
+          minLinks,
+          prolog: tempCtx.prolog,
+        });
         const violationsFormatted = formatStagedViolations(violationsRaw);
 
         if (violationsRaw && violationsRaw.length > 0) {
@@ -204,21 +220,25 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     // This is significantly faster in Bun/Docker environments where one-shot mode
     // spawns a new Prolog process for each query
     const supportedRules = [
-      'must-priority-coverage',
-      'symbol-coverage',
-      'no-dangling-refs',
-      'no-cycles',
-      'required-fields',
-      'deprecated-adr-no-successor',
-      'domain-contradictions',
+      "must-priority-coverage",
+      "symbol-coverage",
+      "no-dangling-refs",
+      "no-cycles",
+      "required-fields",
+      "deprecated-adr-no-successor",
+      "domain-contradictions",
     ];
 
-    const canUseAggregated = !rulesAllowlist ||
-      Array.from(rulesAllowlist).every(r => supportedRules.includes(r));
+    const canUseAggregated =
+      !rulesAllowlist ||
+      Array.from(rulesAllowlist).every((r) => supportedRules.includes(r));
 
     if (canUseAggregated) {
       // Fast path: single Prolog call returning all violations
-      const aggregatedViolations = await runAggregatedChecks(prolog, rulesAllowlist);
+      const aggregatedViolations = await runAggregatedChecks(
+        prolog,
+        rulesAllowlist,
+      );
       violations.push(...aggregatedViolations);
     } else {
       // Legacy path: individual checks for backward compatibility
@@ -227,18 +247,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       await runCheck("no-dangling-refs", checkNoDanglingRefs);
       await runCheck("no-cycles", checkNoCycles);
       const allEntityIds = await getAllEntityIds(prolog);
-      await runCheck("required-fields", checkRequiredFields as any, allEntityIds);
+      await runCheck(
+        "required-fields",
+        checkRequiredFields as any,
+        allEntityIds,
+      );
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
     }
-    await runCheck("must-priority-coverage", checkMustPriorityCoverage);
-    await runCheck("symbol-coverage", checkSymbolCoverage);
-    await runCheck("no-dangling-refs", checkNoDanglingRefs);
-    await runCheck("no-cycles", checkNoCycles);
-    const allEntityIds = await getAllEntityIds(prolog);
-    await runCheck("required-fields", checkRequiredFields as any, allEntityIds);
-    await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
-    await runCheck("domain-contradictions", checkDomainContradictions);
     await prolog.query("kb_detach");
     await prolog.terminate();
 

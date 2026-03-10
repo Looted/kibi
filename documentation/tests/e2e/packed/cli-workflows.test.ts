@@ -1,14 +1,14 @@
 import assert from "node:assert";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
-  type Tarballs,
-  type TestSandbox,
 } from "./helpers.js";
 
 describe("CLI E2E: Install and Basic Commands", () => {

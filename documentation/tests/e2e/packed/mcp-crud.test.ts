@@ -3,13 +3,13 @@ import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
-  type Tarballs,
-  type TestSandbox,
 } from "./helpers.js";
 
 /** JSON-RPC request structure */
@@ -51,11 +51,20 @@ async function sendJsonRpc(
     });
 
     let responseBuffer = "";
-    const timeout = setTimeout(() => {
-      if (!mcpProcess.killed) {
+    const stop = () =>
+      new Promise<void>((resolveStop) => {
+        if (mcpProcess.exitCode !== null || mcpProcess.killed) {
+          resolveStop();
+          return;
+        }
+        mcpProcess.once("close", () => resolveStop());
         mcpProcess.kill();
-      }
-      reject(new Error("Timed out waiting for MCP JSON-RPC response"));
+        setTimeout(() => resolveStop(), 2000);
+      });
+    const timeout = setTimeout(() => {
+      void stop().finally(() => {
+        reject(new Error("Timed out waiting for MCP JSON-RPC response"));
+      });
     }, 120000);
 
     mcpProcess.stdout?.on("data", (data: Buffer) => {
@@ -70,10 +79,9 @@ async function sendJsonRpc(
           const response = JSON.parse(trimmed) as JsonRpcResponse;
           if (response.id === request.id) {
             clearTimeout(timeout);
-            if (!mcpProcess.killed) {
-              mcpProcess.kill();
-            }
-            resolve(response);
+            void stop().finally(() => {
+              resolve(response);
+            });
             return;
           }
         } catch {}
@@ -90,7 +98,7 @@ async function sendJsonRpc(
     });
 
     mcpProcess.on("exit", (code: number | null) => {
-      if (code !== 0 && code !== null) {
+      if (code !== 0 && code !== null && !mcpProcess.killed) {
         clearTimeout(timeout);
         reject(new Error(`MCP process exited with code ${code}`));
       }
