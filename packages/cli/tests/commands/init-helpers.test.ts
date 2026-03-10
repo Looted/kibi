@@ -75,7 +75,7 @@ describe("init-helpers", () => {
     expect(existsSync(configPath)).toBe(true);
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
     expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements");
+    expect(config.paths.requirements).toBe("documentation/requirements");
   });
 
   test("updateGitIgnore adds .kb/", () => {

@@ -75,8 +75,8 @@ describe("E2E: Init-Sync-Check Workflow", () => {
       readFileSync(join(sandbox.repoDir, ".kb/config.json"), "utf8"),
     );
     assert.ok(config.paths);
-    assert.strictEqual(config.paths.requirements, "requirements");
-    assert.strictEqual(config.paths.scenarios, "scenarios");
+    assert.strictEqual(config.paths.requirements, "documentation/requirements");
+    assert.strictEqual(config.paths.scenarios, "documentation/scenarios");
   });
 
   it("should sync imports entities from documents", async () => {
