@@ -74,6 +74,32 @@ function getSharedPrefixPath(): string {
   return sharedPrefixPath;
 }
 
+function findPrePackedTarball(
+  prePackedDir: string,
+  pkg: (typeof packagesForPack)[number],
+): string | null {
+  const candidateDirs = [prePackedDir, join(prePackedDir, pkg)];
+
+  for (const dir of candidateDirs) {
+    if (!existsSync(dir)) {
+      continue;
+    }
+
+    const match = execFileSync("ls", [dir], { encoding: "utf8" })
+      .trim()
+      .split("\n")
+      .find((f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"));
+
+    if (match) {
+      return join(dir, match);
+    }
+  }
+
+  return null;
+}
+
+const packagesForPack = ["core", "cli", "mcp"] as const;
+
 async function bootstrapSharedInstall(): Promise<void> {
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
   const useBakedPrefix =
@@ -206,15 +232,10 @@ export async function packAll(): Promise<Tarballs> {
     if (prePackedDir && existsSync(prePackedDir)) {
       console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
       for (const pkg of packages) {
-        const files = execFileSync("ls", [prePackedDir], { encoding: "utf8" })
-          .trim()
-          .split("\n");
-        const tarballName = files.find(
-          (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
-        );
-        if (tarballName) {
-          tarballs[pkg] = join(prePackedDir, tarballName);
-          console.log(`    ✓ ${pkg}: ${tarballName}`);
+        const tarballPath = findPrePackedTarball(prePackedDir, pkg);
+        if (tarballPath) {
+          tarballs[pkg] = tarballPath;
+          console.log(`    ✓ ${pkg}: ${basename(tarballPath)}`);
         } else {
           throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
         }
