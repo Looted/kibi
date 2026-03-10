@@ -52,17 +52,25 @@ export async function branchEnsureCommand(): Promise<void> {
     encoding: "utf-8",
   }).trim();
   const kbPath = path.join(process.cwd(), ".kb/branches", branch);
-  const mainPath = path.join(process.cwd(), ".kb/branches/main");
+  const templateCandidates = ["develop", "main"];
+  const templateBranch = templateCandidates.find((candidate) =>
+    fs.existsSync(path.join(process.cwd(), ".kb/branches", candidate)),
+  );
 
-  if (!fs.existsSync(mainPath)) {
+  if (!templateBranch) {
     console.warn(
-      "Warning: main branch KB does not exist, skipping branch ensure",
+      "Warning: no template branch KB exists, skipping branch ensure",
     );
     return;
   }
 
   if (!fs.existsSync(kbPath)) {
-    fs.cpSync(mainPath, kbPath, { recursive: true });
+    const templatePath = path.join(
+      process.cwd(),
+      ".kb/branches",
+      templateBranch,
+    );
+    fs.cpSync(templatePath, kbPath, { recursive: true });
     console.log(`Created branch KB: ${branch}`);
   } else {
     console.log(`Branch KB already exists: ${branch}`);

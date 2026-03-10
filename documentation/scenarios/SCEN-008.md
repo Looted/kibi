@@ -1,6 +1,6 @@
 ---
 id: SCEN-008
-title: Agent derives impact and coverage from a requirement change
+title: Agent uses the core MCP surface while inference remains internal
 status: active
 created_at: 2026-02-20T08:10:00.000Z
 updated_at: 2026-02-20T08:10:00.000Z
@@ -15,8 +15,7 @@ links:
 ---
 
 Steps:
-1. Agent calls `kb_impact` with a changed requirement ID.
-2. Kibi returns impacted entities with stable ordering and explicit types.
-3. Agent calls `kb_coverage_report` to inspect requirement/symbol gaps.
-4. If needed, agent calls `kb_derive` for specific predicates (e.g. `coverage_gap`).
-5. Agent uses deterministic structured results to plan code and test updates.
+1. Agent calls `kb_query` to inspect the changed requirement and nearby entities.
+2. Agent uses `kb_upsert` and `kb_delete` only for deliberate KB changes.
+3. Agent runs `kb_check` to validate the resulting KB state.
+4. Any deeper inference or impact analysis runs outside the public MCP tool surface.

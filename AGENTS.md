@@ -74,13 +74,10 @@ kibi query adr --format json
 ### MCP Tool Queries
 
 Available MCP tools:
-- `kb_query` - Query entities by type, ID, tags, relationships
-- `kb_query_relationships` - Query relationships between entities
+- `kb_query` - Query entities by type, ID, tags, and source file
 - `kb_upsert` - Insert or update entities
 - `kb_delete` - Delete entities by ID
 - `kb_check` - Validate KB integrity
-- `kb_branch_ensure` - Ensure branch KB exists
-- `kb_branch_gc` - Garbage collect merged branch KBs
 
 ---
 
