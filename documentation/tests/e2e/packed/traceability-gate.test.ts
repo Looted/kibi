@@ -41,7 +41,7 @@ function kbBranchesSnapshot(repoRoot: string): string[] {
         out.push(...walk(full, base));
       } else {
         const contents = readFileSync(full);
-        out.push(rel + ":" + sha256Hex(contents));
+        out.push(`${rel}:${sha256Hex(contents)}`);
       }
     }
     return out;
@@ -55,41 +55,52 @@ describe("E2E: Staged Symbol Traceability Gate", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping traceability tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn(
+          "⚠️  SWI-Prolog not available, skipping traceability tests",
+        );
+        return;
+      }
 
-    tarballs = await packAll();
-  });
+      tarballs = await packAll();
+    },
+    { timeout: 120000 },
+  );
 
-  beforeEach(async () => {
-    if (!hasProlog) return;
+  beforeEach(
+    async () => {
+      if (!hasProlog) return;
 
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
 
-    // Initialize kibi KB so check --staged can attach to a branch KB
-    try {
-      await kibi(sandbox, ["init"]);
-    } catch {
-      // init may fail if git has no commits yet; create an empty commit first
-      await run("git", ["commit", "--allow-empty", "-m", "initial"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
-      });
-      await kibi(sandbox, ["init"]);
-    }
-  });
+      // Initialize kibi KB so check --staged can attach to a branch KB
+      try {
+        await kibi(sandbox, ["init"]);
+      } catch {
+        // init may fail if git has no commits yet; create an empty commit first
+        await run("git", ["commit", "--allow-empty", "-m", "initial"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await kibi(sandbox, ["init"]);
+      }
+    },
+    { timeout: 120000 },
+  );
 
-  afterEach(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  afterEach(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should pass with implements directive", async () => {
     if (!hasProlog) return;

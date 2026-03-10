@@ -16,32 +16,38 @@ describe("CLI E2E: Install and Basic Commands", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    // Check prerequisites
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping E2E tests");
-      return;
-    }
+  before(
+    async () => {
+      // Check prerequisites
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping E2E tests");
+        return;
+      }
 
-    // Pack all packages
-    tarballs = await packAll();
+      // Pack all packages
+      tarballs = await packAll();
 
-    // Create isolated sandbox
-    sandbox = createSandbox();
+      // Create isolated sandbox
+      sandbox = createSandbox();
 
-    // Install packages
-    await sandbox.install(tarballs);
+      // Install packages
+      await sandbox.install(tarballs);
 
-    // Initialize git repo
-    await sandbox.initGitRepo();
-  });
+      // Initialize git repo
+      await sandbox.initGitRepo();
+    },
+    { timeout: 120000 },
+  );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should install kibi-cli and show version", async () => {
     if (!hasProlog) return;
@@ -156,22 +162,33 @@ describe("CLI E2E: Install and Basic Commands", () => {
     console.log("  ✓ Query returned entities");
   });
 
-  it("should run kibi check after sync (may timeout - known issue)", async () => {
+  it("should run kibi check after sync", async () => {
     if (!hasProlog) return;
 
-    // Note: kibi check has a known timeout issue in some environments
-    // This test verifies the command runs, even if it times out
-    try {
-      const { exitCode } = await kibi(sandbox, ["check"], {
-        timeoutMs: 35000,
-      });
-      console.log(`  ✓ Check completed (exit code: ${exitCode})`);
-    } catch (err) {
-      // Check command may timeout - this is a known issue
-      // The important thing is that the package installed correctly
-      const error = err as Error;
-      console.log(`  ⚠️  Check timed out (known issue): ${error.message}`);
+    // Run check with extended timeout - should complete successfully
+    const { stdout, stderr, exitCode } = await kibi(sandbox, ["check"], {
+      timeoutMs: 60000,
+    });
+
+    // Check should pass (exit code 0) or report violations (exit code 1)
+    // Either is acceptable - we just need it to complete without timeout
+    const output = stdout + stderr;
+    assert.ok(
+      exitCode === 0 || exitCode === 1,
+      `check should complete with exit code 0 or 1, got ${exitCode}. Output: ${output}`,
+    );
+
+    // Should produce output (either success message or violations)
+    assert.ok(output.length > 0, "check should produce output");
+
+    if (exitCode === 0) {
+      assert.ok(
+        output.includes("No violations") || output.includes("✓"),
+        "Successful check should indicate no violations",
+      );
     }
+
+    console.log(`  ✓ Check completed (exit code: ${exitCode})`);
   });
 
   it("should have created .kb directory structure", async () => {
