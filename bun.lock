@@ -15,7 +15,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "0.1.6",
+      "version": "0.1.7",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -26,17 +26,17 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.1.5",
+        "kibi-core": "^0.1.6",
         "ts-morph": "^23.0.0",
       },
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.1.5",
+      "version": "0.1.6",
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "0.1.5",
+      "version": "0.1.6",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -48,8 +48,8 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.1.5",
-        "kibi-core": "^0.1.5",
+        "kibi-cli": "^0.1.7",
+        "kibi-core": "^0.1.6",
         "mcpcat": "^0.1.12",
         "ts-morph": "^23.0.0",
         "zod": "^4.3.6",
