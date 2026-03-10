@@ -83,6 +83,7 @@ import {
   copyCleanSnapshot,
   getBranchDiagnostic,
   resolveActiveBranch,
+  resolveDefaultBranch,
 } from "../utils/branch-resolver.js";
 import { loadSyncConfig } from "../utils/config.js";
 
@@ -386,6 +387,13 @@ export async function syncCommand(
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
 
+    if (process.env.KIBI_DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] sourceFiles:", sourceFiles);
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] syncCache.hashes:", syncCache.hashes);
+    }
+
     for (const file of sourceFiles) {
       try {
         const key = toCacheKey(file);
@@ -399,7 +407,16 @@ export async function syncCommand(
         nextHashes[key] = hash;
         nextSeenAt[key] = nowIso;
 
-        if (expired || syncCache.hashes[key] !== hash || validateOnly) {
+        const isChanged =
+          expired || syncCache.hashes[key] !== hash || validateOnly;
+        if (process.env.KIBI_DEBUG) {
+          // eslint-disable-next-line no-console
+          console.log(
+            `[kibi-debug] ${key}: cached=${syncCache.hashes[key]}, current=${hash}, changed=${isChanged}`,
+          );
+        }
+
+        if (isChanged) {
           if (markdownFiles.includes(file)) {
             changedMarkdownFiles.push(file);
           } else {
@@ -410,6 +427,11 @@ export async function syncCommand(
         const message = error instanceof Error ? error.message : String(error);
         console.warn(`Warning: Failed to hash ${file}: ${message}`);
       }
+    }
+
+    if (process.env.KIBI_DEBUG) {
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] changedMarkdownFiles:", changedMarkdownFiles);
     }
 
     const results: ExtractionResult[] = [];
@@ -529,32 +551,24 @@ export async function syncCommand(
 
     try {
       if (!rebuild) {
-        const mainPath = path.join(process.cwd(), ".kb/branches/main");
+        const config = loadSyncConfig(process.cwd());
+        const defaultBranchResult = resolveDefaultBranch(process.cwd(), config);
+        const defaultBranch =
+          "branch" in defaultBranchResult ? defaultBranchResult.branch : "main";
+        const defaultBranchPath = path.join(
+          process.cwd(),
+          `.kb/branches/${defaultBranch}`,
+        );
+
         const sourcePath = existsSync(livePath)
           ? livePath
-          : existsSync(mainPath) && currentBranch !== "main"
-            ? mainPath
+          : existsSync(defaultBranchPath) && currentBranch !== defaultBranch
+            ? defaultBranchPath
             : null;
 
         if (sourcePath) {
-          const hasCommits = (() => {
-            try {
-              const { execSync } = require("node:child_process");
-              execSync("git rev-parse HEAD", {
-                cwd: process.cwd(),
-                stdio: "pipe",
-              });
-              return true;
-            } catch {
-              return false;
-            }
-          })();
-          if (hasCommits) {
-            copyCleanSnapshot(sourcePath, stagingPath);
-            copySyncCache(sourcePath, stagingPath);
-          } else {
-            await copySchemaToStaging(stagingPath);
-          }
+          copyCleanSnapshot(sourcePath, stagingPath);
+          copySyncCache(sourcePath, stagingPath);
         } else {
           await copySchemaToStaging(stagingPath);
         }
