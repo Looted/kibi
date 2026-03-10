@@ -317,8 +317,10 @@ source: tests/TEST-VERIFIED-001.md
   test(
     "reports each uncovered symbol once",
     async () => {
+      const symbolsDir = path.join(tmpDir, "documentation");
+      mkdirSync(symbolsDir, { recursive: true });
       writeFileSync(
-        path.join(tmpDir, "symbols.yaml"),
+        path.join(symbolsDir, "symbols.yaml"),
         `symbols:
   - id: symbol-uncovered-001
     title: Uncovered Symbol 1
@@ -387,7 +389,7 @@ links:
   test(
     "detects dangling reference",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -424,7 +426,7 @@ links:
   test(
     "detects cycle in depends_on",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -500,7 +502,7 @@ links:
   test(
     "detects missing required field",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -532,7 +534,7 @@ owner: alice
   test(
     "suggests fixes with --fix flag",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 

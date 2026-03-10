@@ -95,7 +95,7 @@ describe("E2E: Git Hook Integration", () => {
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(
@@ -138,7 +138,7 @@ status: approved
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(
@@ -270,7 +270,7 @@ echo "Existing hook"
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -326,7 +326,7 @@ status: approved
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(

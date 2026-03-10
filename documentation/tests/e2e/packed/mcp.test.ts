@@ -72,7 +72,7 @@ describe("MCP E2E: Server Operations", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/REQ-MCP-001.md",
+        "documentation/requirements/REQ-MCP-001.md",
         {
           id: "REQ-MCP-001",
           title: "MCP Test Requirement",
@@ -312,6 +312,11 @@ describe("MCP E2E: Server Operations", () => {
                   );
 
                   const text = content.map((c) => c.text).join("");
+                  assert.ok(
+                    text.includes("REQ-MCP-001") ||
+                      text.includes("MCP Test Requirement"),
+                    "Query should return the test requirement",
+                  );
                   assert.ok(
                     text.includes("REQ-MCP-001") ||
                       text.includes("MCP Test Requirement"),

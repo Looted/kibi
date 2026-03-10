@@ -132,7 +132,7 @@ describe("E2E: MCP Server CRUD Operations", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/req1.md",
+        "documentation/requirements/req1.md",
         {
           id: "req1",
           title: "Initial Requirement",
