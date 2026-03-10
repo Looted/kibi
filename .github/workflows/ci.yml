@@ -29,7 +29,125 @@ jobs:
         run: bun run build:mcp
 
       - name: Run unit tests
-        run: bun test
+        run: bun test --test-timeout=300000 --exclude="documentation/tests/e2e/packed/**"
 
       - name: Run integration tests
         run: bash ./scripts/run-integration-tests.sh
+
+  packed-e2e-cli-regression:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install SWI-Prolog
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Build packages
+        run: |
+          bun install
+          bun run build:cli
+          bun run build:mcp
+      - name: Pack packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+      - name: Run CLI regression tests
+        run: |
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-workflows.test.js
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-query-regression.test.js
+        env:
+          KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 10
+
+  packed-e2e-mcp-regression:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install SWI-Prolog
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Build packages
+        run: |
+          bun install
+          bun run build:cli
+          bun run build:mcp
+      - name: Pack packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+      - name: Run MCP protocol regression tests
+        run: |
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js
+        env:
+          KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 10
+
+  packed-e2e-tarball-verify:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Build packages
+        run: |
+          bun install
+          bun run build:cli
+          bun run build:mcp
+      - name: Pack packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+      - name: Run tarball verification
+        run: |
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js
+        env:
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 5
+
+  packed-e2e-branch-workflow:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install SWI-Prolog
+        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+      - name: Build packages
+        run: |
+          bun install
+          bun run build:cli
+          bun run build:mcp
+      - name: Pack packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+      - name: Run branch workflow tests
+        run: |
+          rm -rf /tmp/kibi-e2e-packed-compiled
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/branch-workflow.test.js
+        env:
+          KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 15

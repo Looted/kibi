@@ -243,6 +243,148 @@ links:
   );
 
   test(
+    "passes must-priority coverage with verified_by relationship",
+    async () => {
+      const reqDir = path.join(tmpDir, "requirements");
+      const scenarioDir = path.join(tmpDir, "scenarios");
+      const testDir = path.join(tmpDir, "tests");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(scenarioDir, { recursive: true });
+      mkdirSync(testDir, { recursive: true });
+
+      writeFileSync(
+        path.join(reqDir, "REQ-VERIFIED-001.md"),
+        `---
+id: REQ-VERIFIED-001
+title: Verified Requirement
+status: active
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: requirements/REQ-VERIFIED-001.md
+links:
+  - type: specified_by
+    target: SCEN-VERIFIED-001
+  - type: verified_by
+    target: TEST-VERIFIED-001
+---
+
+# Verified Requirement
+`,
+      );
+
+      writeFileSync(
+        path.join(scenarioDir, "SCEN-VERIFIED-001.md"),
+        `---
+id: SCEN-VERIFIED-001
+title: Verified Scenario
+status: active
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: scenarios/SCEN-VERIFIED-001.md
+---
+
+# Verified Scenario
+`,
+      );
+
+      writeFileSync(
+        path.join(testDir, "TEST-VERIFIED-001.md"),
+        `---
+id: TEST-VERIFIED-001
+title: Verified Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: tests/TEST-VERIFIED-001.md
+---
+
+# Verified Test
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
+      expect(status).toBe(0);
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "reports each uncovered symbol once",
+    async () => {
+      writeFileSync(
+        path.join(tmpDir, "symbols.yaml"),
+        `symbols:
+  - id: symbol-uncovered-001
+    title: Uncovered Symbol 1
+    status: implemented
+  - id: symbol-uncovered-002
+    title: Uncovered Symbol 2
+    status: implemented
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "symbol-coverage"],
+        tmpDir,
+      );
+      expect(status).toBe(1);
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("Found 2 violation(s):");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "detects self dependency cycle",
+    async () => {
+      const reqDir = path.join(tmpDir, "requirements");
+
+      mkdirSync(reqDir, { recursive: true });
+
+      writeFileSync(
+        path.join(reqDir, "REQ-SELF-CYCLE.md"),
+        `---
+id: REQ-SELF-CYCLE
+title: Self Cycle
+status: active
+priority: should
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: requirements/REQ-SELF-CYCLE.md
+links:
+  - type: depends_on
+    target: REQ-SELF-CYCLE
+---
+
+# Self Cycle
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "no-cycles"],
+        tmpDir,
+      );
+      expect(status).toBe(1);
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("no-cycles");
+      expect(output).toContain("Circular dependency detected");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "detects dangling reference",
     async () => {
       const reqDir = path.join(tmpDir, "requirements");

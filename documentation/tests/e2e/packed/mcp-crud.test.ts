@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -51,11 +51,20 @@ async function sendJsonRpc(
     });
 
     let responseBuffer = "";
-    const timeout = setTimeout(() => {
-      if (!mcpProcess.killed) {
+    const stop = () =>
+      new Promise<void>((resolveStop) => {
+        if (mcpProcess.exitCode !== null || mcpProcess.killed) {
+          resolveStop();
+          return;
+        }
+        mcpProcess.once("close", () => resolveStop());
         mcpProcess.kill();
-      }
-      reject(new Error("Timed out waiting for MCP JSON-RPC response"));
+        setTimeout(() => resolveStop(), 2000);
+      });
+    const timeout = setTimeout(() => {
+      void stop().finally(() => {
+        reject(new Error("Timed out waiting for MCP JSON-RPC response"));
+      });
     }, 120000);
 
     mcpProcess.stdout?.on("data", (data: Buffer) => {
@@ -70,10 +79,9 @@ async function sendJsonRpc(
           const response = JSON.parse(trimmed) as JsonRpcResponse;
           if (response.id === request.id) {
             clearTimeout(timeout);
-            if (!mcpProcess.killed) {
-              mcpProcess.kill();
-            }
-            resolve(response);
+            void stop().finally(() => {
+              resolve(response);
+            });
             return;
           }
         } catch {}
@@ -90,7 +98,7 @@ async function sendJsonRpc(
     });
 
     mcpProcess.on("exit", (code: number | null) => {
-      if (code !== 0 && code !== null) {
+      if (code !== 0 && code !== null && !mcpProcess.killed) {
         clearTimeout(timeout);
         reject(new Error(`MCP process exited with code ${code}`));
       }
@@ -108,40 +116,46 @@ describe("E2E: MCP Server CRUD Operations", () => {
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping MCP CRUD tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping MCP CRUD tests");
+        return;
+      }
 
-    tarballs = await packAll();
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
-    await kibi(sandbox, ["init"]);
+      tarballs = await packAll();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/req1.md",
-      {
-        id: "req1",
-        title: "Initial Requirement",
-        type: "req",
-        status: "draft",
-        tags: ["test"],
-      },
-      "Test requirement for MCP operations.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/req1.md",
+        {
+          id: "req1",
+          title: "Initial Requirement",
+          type: "req",
+          status: "draft",
+          tags: ["test"],
+        },
+        "Test requirement for MCP operations.",
+      );
 
-    await kibi(sandbox, ["sync"]);
-  });
+      await kibi(sandbox, ["sync"]);
+    },
+    { timeout: 120000 },
+  );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it(
     "should query existing entities",

@@ -1,6 +1,6 @@
 import assert from "node:assert";
-import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -37,46 +37,64 @@ interface JsonRpcResponse {
   };
 }
 
+function stopProcess(mcpProcess: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    if (mcpProcess.exitCode !== null || mcpProcess.killed) {
+      resolve();
+      return;
+    }
+    mcpProcess.once("close", () => resolve());
+    mcpProcess.kill();
+    setTimeout(resolve, 2000);
+  });
+}
+
 describe("MCP E2E: Server Operations", () => {
   let tarballs: Tarballs;
   let sandbox: TestSandbox;
   let hasProlog = false;
 
-  before({ timeout: 120000 }, async () => {
-    hasProlog = checkPrologAvailable();
-    if (!hasProlog) {
-      console.warn("⚠️  SWI-Prolog not available, skipping MCP tests");
-      return;
-    }
+  before(
+    async () => {
+      hasProlog = checkPrologAvailable();
+      if (!hasProlog) {
+        console.warn("⚠️  SWI-Prolog not available, skipping MCP tests");
+        return;
+      }
 
-    tarballs = await packAll();
-    sandbox = createSandbox();
-    await sandbox.install(tarballs);
-    await sandbox.initGitRepo();
+      tarballs = await packAll();
+      sandbox = createSandbox();
+      await sandbox.install(tarballs);
+      await sandbox.initGitRepo();
 
-    // Initialize kibi and create some test data
-    await kibi(sandbox, ["init"]);
+      // Initialize kibi and create some test data
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/REQ-MCP-001.md",
-      {
-        id: "REQ-MCP-001",
-        title: "MCP Test Requirement",
-        status: "open",
-        tags: ["mcp", "test"],
-      },
-      "A requirement for testing MCP operations.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/REQ-MCP-001.md",
+        {
+          id: "REQ-MCP-001",
+          title: "MCP Test Requirement",
+          status: "open",
+          tags: ["mcp", "test"],
+        },
+        "A requirement for testing MCP operations.",
+      );
 
-    await kibi(sandbox, ["sync"]);
-  });
+      await kibi(sandbox, ["sync"]);
+    },
+    { timeout: 120000 },
+  );
 
-  after(async () => {
-    if (sandbox) {
-      await sandbox.cleanup();
-    }
-  });
+  after(
+    async () => {
+      if (sandbox) {
+        await sandbox.cleanup();
+      }
+    },
+    { timeout: 120000 },
+  );
 
   it("should have kibi-mcp binary available", async () => {
     if (!hasProlog) return;
@@ -119,25 +137,23 @@ describe("MCP E2E: Server Operations", () => {
             if (line.trim()) {
               const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 1 && msg.result?.protocolVersion) {
+                const result = msg.result;
                 responseReceived = true;
                 clearTimeout(timeout);
-                mcpProcess.kill();
+                void stopProcess(mcpProcess).finally(() => {
+                  assert.strictEqual(
+                    msg.jsonrpc,
+                    "2.0",
+                    "Should be JSON-RPC 2.0",
+                  );
+                  assert.ok(result.serverInfo?.name, "Should have server info");
 
-                assert.strictEqual(
-                  msg.jsonrpc,
-                  "2.0",
-                  "Should be JSON-RPC 2.0",
-                );
-                assert.ok(
-                  msg.result.serverInfo?.name,
-                  "Should have server info",
-                );
-
-                console.log(
-                  "  ✓ MCP server initialized:",
-                  msg.result.serverInfo.name,
-                );
-                resolve();
+                  console.log(
+                    "  ✓ MCP server initialized:",
+                    result.serverInfo?.name,
+                  );
+                  resolve();
+                });
                 return;
               }
             }
@@ -171,7 +187,7 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
     });
   });
 
@@ -201,23 +217,18 @@ describe("MCP E2E: Server Operations", () => {
             if (line.trim()) {
               const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 2 && msg.result?.tools) {
+                const tools = msg.result.tools;
                 responseReceived = true;
                 clearTimeout(timeout);
-                mcpProcess.kill();
+                void stopProcess(mcpProcess).finally(() => {
+                  assert.ok(Array.isArray(tools), "Tools should be an array");
+                  assert.ok(tools.length > 0, "Should have at least one tool");
 
-                assert.ok(
-                  Array.isArray(msg.result.tools),
-                  "Tools should be an array",
-                );
-                assert.ok(
-                  msg.result.tools.length > 0,
-                  "Should have at least one tool",
-                );
+                  const toolNames = tools.map((t) => t.name);
+                  console.log("  ✓ Available tools:", toolNames.join(", "));
 
-                const toolNames = msg.result.tools.map((t) => t.name);
-                console.log("  ✓ Available tools:", toolNames.join(", "));
-
-                resolve();
+                  resolve();
+                });
                 return;
               }
             }
@@ -254,9 +265,9 @@ describe("MCP E2E: Server Operations", () => {
         method: "tools/list",
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
       setTimeout(() => {
-        mcpProcess.stdin?.write(JSON.stringify(toolsRequest) + "\n");
+        mcpProcess.stdin?.write(`${JSON.stringify(toolsRequest)}\n`);
       }, 500);
     });
   });
@@ -287,22 +298,25 @@ describe("MCP E2E: Server Operations", () => {
             if (line.trim()) {
               const msg = JSON.parse(line) as JsonRpcResponse;
               if (msg.id === 3 && msg.result?.content) {
+                const content = msg.result.content;
                 responseReceived = true;
                 clearTimeout(timeout);
-                mcpProcess.kill();
+                void stopProcess(mcpProcess).finally(() => {
+                  assert.ok(
+                    Array.isArray(content),
+                    "Content should be an array",
+                  );
 
-                const content = msg.result.content;
-                assert.ok(Array.isArray(content), "Content should be an array");
+                  const text = content.map((c) => c.text).join("");
+                  assert.ok(
+                    text.includes("REQ-MCP-001") ||
+                      text.includes("MCP Test Requirement"),
+                    "Query should return the test requirement",
+                  );
 
-                const text = content.map((c) => c.text).join("");
-                assert.ok(
-                  text.includes("REQ-MCP-001") ||
-                    text.includes("MCP Test Requirement"),
-                  "Query should return the test requirement",
-                );
-
-                console.log("  ✓ kb_query returned entities");
-                resolve();
+                  console.log("  ✓ kb_query returned entities");
+                  resolve();
+                });
                 return;
               }
             }
@@ -345,9 +359,9 @@ describe("MCP E2E: Server Operations", () => {
         },
       };
 
-      mcpProcess.stdin?.write(JSON.stringify(initRequest) + "\n");
+      mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
       setTimeout(() => {
-        mcpProcess.stdin?.write(JSON.stringify(queryRequest) + "\n");
+        mcpProcess.stdin?.write(`${JSON.stringify(queryRequest)}\n`);
       }, 1000);
     });
   });
@@ -365,13 +379,7 @@ describe("MCP E2E: Server Operations", () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // Kill it
-    mcpProcess.kill("SIGTERM");
-
-    // Wait for exit
-    await new Promise((resolve) => {
-      mcpProcess.on("close", resolve);
-      setTimeout(resolve, 2000); // Timeout fallback
-    });
+    await stopProcess(mcpProcess);
 
     console.log("  ✓ MCP server shutdown gracefully");
   });
