@@ -4,7 +4,7 @@ title: Test suite has flaky integration tests
 status: active
 created_at: 2026-02-25T16:30:00Z
 updated_at: 2026-02-25T16:30:00Z
-source: bun test output and analysis
+source: documentation/facts/FACT-011.md
 tags:
   - testing
   - flakiness
