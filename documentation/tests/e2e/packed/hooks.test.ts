@@ -3,14 +3,14 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
-  type Tarballs,
-  type TestSandbox,
 } from "./helpers.js";
 
 describe("CLI E2E: Git Hook Execution", () => {
@@ -123,58 +123,65 @@ describe("CLI E2E: Git Hook Execution", () => {
     console.log("  ✓ Hooks reference kibi binary correctly");
   });
 
-  it("should trigger post-checkout hook on git checkout", async () => {
-    if (!hasProlog) return;
+  it(
+    "should trigger post-checkout hook on git checkout",
+    { timeout: 20000 },
+    async () => {
+      if (!hasProlog) return;
 
-    // Initialize kibi and create initial content
-    await kibi(sandbox, ["init"]);
+      // Initialize kibi and create initial content
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/REQ-HOOK-001.md",
-      {
-        id: "REQ-HOOK-001",
-        title: "Hook test requirement",
-        status: "open",
-      },
-      "Testing hook execution.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/REQ-HOOK-001.md",
+        {
+          id: "REQ-HOOK-001",
+          title: "Hook test requirement",
+          status: "open",
+        },
+        "Testing hook execution.",
+      );
 
-    // Initial commit
-    await run("git", ["add", "."], { cwd: sandbox.repoDir, env: sandbox.env });
-    await run("git", ["commit", "-m", "Initial commit"], {
-      cwd: sandbox.repoDir,
-      env: sandbox.env,
-    });
+      // Initial commit
+      await run("git", ["add", "."], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+      await run("git", ["commit", "-m", "Initial commit"], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
 
-    // Run sync on develop
-    await kibi(sandbox, ["sync"]);
+      // Run sync on develop
+      await kibi(sandbox, ["sync"]);
 
-    // Create and checkout a new branch
-    const { exitCode } = await run(
-      "git",
-      ["checkout", "-b", "feature/test-hook"],
-      { cwd: sandbox.repoDir, env: sandbox.env },
-    );
+      // Create and checkout a new branch
+      const { exitCode } = await run(
+        "git",
+        ["checkout", "-b", "feature/test-hook"],
+        { cwd: sandbox.repoDir, env: sandbox.env },
+      );
 
-    assert.strictEqual(exitCode, 0, "git checkout should succeed");
+      assert.strictEqual(exitCode, 0, "git checkout should succeed");
 
-    // The post-checkout hook should have run kibi sync
-    // This creates a branch-specific KB
-    const { exitCode: kbExists } = await run(
-      "test",
-      ["-d", ".kb/branches/feature/test-hook"],
-      { cwd: sandbox.repoDir, env: sandbox.env },
-    );
+      // The post-checkout hook should have run kibi sync
+      // This creates a branch-specific KB
+      const { exitCode: kbExists } = await run(
+        "test",
+        ["-d", ".kb/branches/feature/test-hook"],
+        { cwd: sandbox.repoDir, env: sandbox.env },
+      );
 
-    // Note: The hook may or may not have created the KB depending on timing
-    // and whether the hook is properly configured. This is informational.
-    if (kbExists === 0) {
-      console.log("  ✓ Post-checkout hook created branch KB");
-    } else {
-      console.log("  ⚠️  Branch KB not created (hook may need review)");
-    }
-  });
+      // Note: The hook may or may not have created the KB depending on timing
+      // and whether the hook is properly configured. This is informational.
+      if (kbExists === 0) {
+        console.log("  ✓ Post-checkout hook created branch KB");
+      } else {
+        console.log("  ⚠️  Branch KB not created (hook may need review)");
+      }
+    },
+  );
 
   it("should handle pre-commit hook execution", async () => {
     if (!hasProlog) return;

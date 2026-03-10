@@ -5,6 +5,7 @@
 
 :- module(checks, [
     check_all/1,                    % Returns all violations as a dict
+    check_all_json/1,               % Returns all violations as JSON string
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
     check_no_dangling_refs/1,       % Returns list of dangling ref violations
@@ -57,81 +58,45 @@ check_all(ViolationsDict) :-
 check_must_priority_coverage(Violations) :-
     findall(
         Violation,
-        must_priority_violation(Violation),
+        coverage_gap_violation(Violation),
         Violations
     ).
 
-must_priority_violation(violation(
-    must_priority_coverage,
+coverage_gap_violation(violation(
+    'must-priority-coverage',
     ReqId,
     Description,
     Suggestion,
     Source
 )) :-
-    kb_entity(ReqId, req, Props),
-    memberchk(priority=Priority, Props),
-    is_must_priority(Priority),
-    
-    % Check for scenario coverage
-    (   kb_relationship(specified_by, ReqId, _ScenarioId)
-    ->  HasScenario = true
-    ;   HasScenario = false
-    ),
-    
-    % Check for test coverage
-    (   kb_relationship(validates, _TestId, ReqId)
-    ->  HasTest = true
-    ;   HasTest = false
-    ),
-    
-    % Report if missing either
-    (   HasScenario = false ; HasTest = false ),
-    
-    % Build description
-    build_must_priority_desc(HasScenario, HasTest, Description),
-    
-    % Build suggestion
-    build_must_priority_suggestion(HasScenario, HasTest, Suggestion),
-    
-    % Get source
-    (   memberchk(source=Source, Props)
-    ->  true
-    ;   Source = ""
-    ).
+    coverage_gap(ReqId, Reason),
+    coverage_gap_desc(Reason, Description),
+    coverage_gap_suggestion(Reason, Suggestion),
+    violation_source(ReqId, req, Source).
 
-is_must_priority(Priority) :-
-    (   Priority = ^^("must", _)
-    ;   Priority = "must"
-    ;   Priority = 'must'
-    ;   atom(Priority),
-        atom_string(Priority, PS),
-        sub_string(PS, _, 4, 0, "must")
-    ), !.
+coverage_gap_desc(missing_test, "Must-priority requirement lacks test coverage").
+coverage_gap_desc(missing_scenario, "Must-priority requirement lacks scenario coverage").
+coverage_gap_desc(missing_scenario_and_test, "Must-priority requirement lacks scenario and test coverage").
 
-build_must_priority_desc(true, false, "Must-priority requirement lacks test coverage").
-build_must_priority_desc(false, true, "Must-priority requirement lacks scenario coverage").
-build_must_priority_desc(false, false, "Must-priority requirement lacks scenario and test coverage").
-
-build_must_priority_suggestion(true, false, "Create test that validates this requirement").
-build_must_priority_suggestion(false, true, "Create scenario that specifies this requirement").
-build_must_priority_suggestion(false, false, "Create scenario that specifies and test that validates this requirement").
+coverage_gap_suggestion(missing_test, "Create test that validates this requirement").
+coverage_gap_suggestion(missing_scenario, "Create scenario that specifies this requirement").
+coverage_gap_suggestion(missing_scenario_and_test, "Create scenario that specifies and test that validates this requirement").
 
 %% check_symbol_coverage(-Violations)
 % Finds all symbols not traceable to any functional requirement.
 check_symbol_coverage(Violations) :-
-    findall(
-        Violation,
-        (   symbol_no_req_coverage(SymbolId, _)
-        ;   symbol_no_req_coverage_simple(SymbolId)
-        ),
-        Violations
-    ).
+    findall(SymbolId, symbol_no_req_coverage(SymbolId, _), SymbolIds0),
+    sort(SymbolIds0, SymbolIds),
+    maplist(symbol_coverage_violation, SymbolIds, Violations).
 
-% Fallback for when the main predicate isn't available
-symbol_no_req_coverage_simple(SymbolId) :-
-    kb_entity(SymbolId, symbol, _),
-    \+ (kb_relationship(implements, SymbolId, ReqId),
-        kb_entity(ReqId, req, _)).
+symbol_coverage_violation(SymbolId, violation(
+    'symbol-coverage',
+    SymbolId,
+    "Code symbol is not traceable to any functional requirement.",
+    "Update symbols.yaml to link this symbol to a related requirement.",
+    Source
+)) :-
+    violation_source(SymbolId, symbol, Source).
 
 %% check_no_dangling_refs(-Violations)
 % Finds all relationships referencing non-existent entities.
@@ -150,7 +115,7 @@ check_dangling_refs_for_types([Type|Rest], Acc, Violations) :-
     check_dangling_refs_for_types(Rest, NewAcc, Violations).
 
 dangling_ref_violation(Type, violation(
-    no_dangling_refs,
+    'no-dangling-refs',
     FromId,
     Description,
     "Remove relationship or create missing entity",
@@ -161,7 +126,7 @@ dangling_ref_violation(Type, violation(
     format(string(Description), "Relationship references non-existent entity: ~w", [FromId]).
 
 dangling_ref_violation(Type, violation(
-    no_dangling_refs,
+    'no-dangling-refs',
     ToId,
     Description,
     "Remove relationship or create missing entity",
@@ -176,41 +141,46 @@ dangling_ref_violation(Type, violation(
 % Finds circular dependencies in the depends_on graph.
 check_no_cycles(Violations) :-
     % Build adjacency list from depends_on relationships
-    findall(From-To, kb_relationship(depends_on, From, To), Edges),
-    
-    % Find all cycles using DFS
+    findall(From-To, kb_relationship(depends_on, From, To), EdgePairs0),
+    sort(EdgePairs0, Edges),
+    cycle_start_nodes(Edges, Starts),
+
+    % Find at most one representative cycle per start node.
     findall(
         Cycle,
-        find_cycle(Edges, Cycle),
+        (   member(Start, Starts),
+            once(find_cycle_from_start(Edges, Start, Cycle))
+        ),
         Cycles
     ),
-    
+
     % Convert cycles to violations (only report first occurrence of each cycle)
     cycles_to_violations(Cycles, [], Violations).
 
-find_cycle(Edges, Cycle) :-
-    member(Start-_, Edges),
-    dfs_cycle(Edges, Start, [Start], [], Cycle).
+cycle_start_nodes(Edges, Starts) :-
+    findall(Start, member(Start-_, Edges), Starts0),
+    sort(Starts0, Starts).
 
-dfs_cycle(_Edges, Node, Path, _, Cycle) :-
-    length(Path, Len),
-    Len > 1,
-    Path = [Start|_],
-    Node = Start,
-    reverse(Path, Cycle),
+find_cycle_from_start(Edges, Start, [Start, Start]) :-
+    memberchk(Start-Start, Edges),
     !.
+find_cycle_from_start(Edges, Start, Cycle) :-
+    dfs_cycle(Edges, Start, Start, [Start], Cycle).
 
-dfs_cycle(Edges, Node, Path, Visited, Cycle) :-
-    \+ member(Node, Visited),
-    member(Node-Next, Edges),
-    \+ member(Next, Path),  % Avoid immediate backtracking
-    dfs_cycle(Edges, Next, [Node|Path], [Node|Visited], Cycle).
+dfs_cycle(Edges, Start, Current, Path, Cycle) :-
+    member(Current-Next, Edges),
+    (   Next = Start
+    ->  length(Path, Len),
+        Len > 1,
+        reverse([Start|Path], Cycle)
+    ;   \+ memberchk(Next, Path),
+        dfs_cycle(Edges, Start, Next, [Next|Path], Cycle)
+    ).
 
 cycles_to_violations([], _, []).
 cycles_to_violations([Cycle|Rest], Seen, [Violation|Violations]) :-
-    % Normalize cycle for comparison (rotate to smallest element)
     normalize_cycle(Cycle, Normalized),
-    \+ member(Normalized, Seen),
+    \+ memberchk(Normalized, Seen),
     !,
     cycle_to_violation(Cycle, Violation),
     cycles_to_violations(Rest, [Normalized|Seen], Violations).
@@ -218,21 +188,10 @@ cycles_to_violations([_|Rest], Seen, Violations) :-
     cycles_to_violations(Rest, Seen, Violations).
 
 normalize_cycle(Cycle, Normalized) :-
-    Cycle = [First|_],
-    find_smallest_rotation(Cycle, First, 0, 0, _, Rotated),
-    sort(Rotated, Normalized).
-
-find_smallest_rotation([X], _, _, BestIdx, BestIdx, _) :- !.
-find_smallest_rotation([_|Rest], CurrentBest, CurrentIdx, BestIdx, FinalIdx, _) :-
-    NextIdx is CurrentIdx + 1,
-    (   Rest @< [CurrentBest|Rest]
-    ->  Rest = [NewBest|_],
-        find_smallest_rotation(Rest, NewBest, NextIdx, NextIdx, FinalIdx, _)
-    ;   find_smallest_rotation(Rest, CurrentBest, NextIdx, BestIdx, FinalIdx, _)
-    ).
+    sort(Cycle, Normalized).
 
 cycle_to_violation(Cycle, violation(
-    no_cycles,
+    'no-cycles',
     FirstId,
     Description,
     "Break cycle by removing one of the depends_on relationships",
@@ -245,8 +204,9 @@ cycle_to_violation(Cycle, violation(
         Name,
         (   member(Id, Cycle),
             (   kb_entity(Id, _, Props),
-                memberchk(source=SourcePath, Props)
-            ->  file_base_name(SourcePath, Name)
+                memberchk(source=SourcePath0, Props)
+            ->  normalize_term_atom(SourcePath0, SourcePath),
+                file_base_name(SourcePath, Name)
             ;   Name = Id
             )
         ),
@@ -259,8 +219,8 @@ cycle_to_violation(Cycle, violation(
     
     % Get source of first entity
     (   kb_entity(FirstId, _, Props),
-        memberchk(source=Source, Props)
-    ->  true
+        memberchk(source=Source0, Props)
+    ->  normalize_term_atom(Source0, Source)
     ;   Source = ""
     ).
 
@@ -275,7 +235,7 @@ check_required_fields(Violations) :-
     ).
 
 missing_required_field(Required, violation(
-    required_fields,
+    'required-fields',
     EntityId,
     Description,
     Suggestion,
@@ -303,7 +263,7 @@ check_deprecated_adrs(Violations) :-
     ).
 
 deprecated_adr_violation(violation(
-    deprecated_adr_no_successor,
+    'deprecated-adr-no-successor',
     AdrId,
     Description,
     Suggestion,
@@ -326,7 +286,7 @@ deprecated_adr_violation(violation(
 check_domain_contradictions(Violations) :-
     findall(
         violation(
-            domain_contradictions,
+            'domain-contradictions',
             EntityId,
             Description,
             "Supersede one requirement or align both to the same required property",
@@ -357,9 +317,68 @@ run_checks_json :-
 % Alternative: return JSON as a string binding instead of writing to stdout
 check_all_json(JsonString) :-
     check_all(ViolationsDict),
+    violations_dict_to_json(ViolationsDict, JsonDict),
     with_output_to_string(
-        json_write_dict(current_output, ViolationsDict, [width(0)]),
+        json_write_dict(current_output, JsonDict, [width(0)]),
         JsonString
+    ).
+
+%% violations_dict_to_json(+ViolationsDict, -JsonDict)
+% Converts a dict of violation/5 term lists to a dict of JSON-compatible dicts.
+violations_dict_to_json(Dict, JsonDict) :-
+    dict_pairs(Dict, Tag, Pairs),
+    pairs_to_json_pairs(Pairs, JsonPairs),
+    dict_pairs(JsonDict, Tag, JsonPairs).
+
+%% pairs_to_json_pairs(+Pairs, -JsonPairs)
+% Converts a list of Key-Violations pairs to Key-JsonViolations pairs.
+pairs_to_json_pairs([], []).
+pairs_to_json_pairs([Key-Violations|Rest], [Key-JsonViolations|JsonRest]) :-
+    maplist(violation_to_json, Violations, JsonViolations),
+    pairs_to_json_pairs(Rest, JsonRest).
+
+%% violation_to_json(+Violation, -JsonDict)
+% Converts a violation(Rule, EntityId, Description, Suggestion, Source) term
+% to a JSON-compatible dict.
+violation_to_json(Violation, JsonDict) :-
+    violation_term_to_dict(Violation, JsonDict).
+
+violation_term_to_dict(violation(Rule, EntityId, Description, Suggestion, Source), JsonDict) :-
+    violation_text(Rule, RuleText),
+    violation_id_text(EntityId, EntityIdText),
+    violation_text(Description, DescriptionText),
+    violation_text(Suggestion, SuggestionText),
+    violation_id_text(Source, SourceText),
+    JsonDict = _{rule: RuleText, entityId: EntityIdText, description: DescriptionText,
+                 suggestion: SuggestionText, source: SourceText}.
+
+violation_text(Val, Text) :-
+    nonvar(Val),
+    Val =.. ['^^', Inner, _Type],
+    !,
+    violation_text(Inner, Text).
+violation_text(literal(type(_, Val)), Text) :-
+    !,
+    violation_text(Val, Text).
+violation_text(Val, Val) :-
+    string(Val),
+    !.
+violation_text(Val, Text) :-
+    atom(Val),
+    !,
+    atom_string(Val, Text).
+violation_text(Val, Text) :-
+    term_string(Val, Text).
+
+violation_id_text(Val, Text) :-
+    normalize_term_atom(Val, Atom),
+    atom_string(Atom, Text).
+
+violation_source(EntityId, Type, Source) :-
+    (   kb_entity(EntityId, Type, Props),
+        memberchk(source=Source0, Props)
+    ->  normalize_term_atom(Source0, Source)
+    ;   Source = ""
     ).
 
 % Helper: capture output to string
@@ -367,12 +386,10 @@ with_output_to_string(Goal, String) :-
     with_output_to(codes(Codes), Goal),
     string_codes(String, Codes).
 
-% Helper: file_base_name equivalent
 file_base_name(Path, Base) :-
-    atom_chars(Path, Chars),
-    reverse(Chars, Rev),
-    (   append(BaseRev, ['/'|_], Rev)
-    ->  reverse(BaseRev, BaseChars),
-        atom_chars(Base, BaseChars)
-    ;   Base = Path
+    normalize_term_atom(Path, PathAtom),
+    (   sub_atom(PathAtom, _, _, _, '/')
+    ->  split_string(PathAtom, '/', '', Parts),
+        last(Parts, Base)
+    ;   Base = PathAtom
     ).

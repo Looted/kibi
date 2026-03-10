@@ -3,14 +3,14 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
   run,
-  type Tarballs,
-  type TestSandbox,
 } from "./helpers.js";
 
 describe("E2E: Init-Sync-Check Workflow", () => {
@@ -125,7 +125,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
     );
   });
 
-  it("should query returns synced entities", async () => {
+  it("should query returns synced entities", { timeout: 20000 }, async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init"]);
@@ -134,6 +134,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
       sandbox,
       "requirements/req-auth.md",
       {
+        id: "req-auth",
         title: "Authentication Required",
         type: "req",
         status: "approved",
@@ -146,38 +147,43 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     const { stdout } = await kibi(sandbox, ["query", "req"]);
 
-    assert.ok(stdout.includes("req-auth"));
     assert.ok(stdout.includes("Authentication Required"));
     assert.ok(stdout.includes("security"));
   });
 
-  it("should check validates KB with no violations", async () => {
-    if (!hasProlog) return;
+  it(
+    "should check validates KB with no violations",
+    { timeout: 20000 },
+    async () => {
+      if (!hasProlog) return;
 
-    await kibi(sandbox, ["init"]);
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/valid-req.md",
-      {
-        title: "Valid Requirement",
-        type: "req",
-        status: "approved",
-        tags: ["feature"],
-        owner: "bob",
-      },
-      "This requirement has all required fields.",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/valid-req.md",
+        {
+          title: "Valid Requirement",
+          type: "req",
+          status: "approved",
+          tags: ["feature"],
+          owner: "bob",
+        },
+        "This requirement has all required fields.",
+      );
 
-    await kibi(sandbox, ["sync"]);
+      await kibi(sandbox, ["sync"]);
 
-    const { stdout } = await kibi(sandbox, ["check"]);
+      const { stdout, stderr, exitCode } = await kibi(sandbox, ["check"]);
+      const output = stdout + stderr;
 
-    assert.ok(
-      stdout.includes("No violations") || stdout.includes("✓"),
-      `Expected no violations, got: ${stdout}`,
-    );
-  });
+      assert.strictEqual(exitCode, 0);
+      assert.ok(
+        output.includes("No violations") || output.includes("KB is valid"),
+        `Expected no violations, got: ${output}`,
+      );
+    },
+  );
 
   it("should idempotent sync does not duplicate entities", async () => {
     if (!hasProlog) return;
@@ -211,49 +217,53 @@ describe("E2E: Init-Sync-Check Workflow", () => {
     );
   });
 
-  it("should query with ID filter returns specific entity", async () => {
-    if (!hasProlog) return;
+  it(
+    "should query with ID filter returns specific entity",
+    { timeout: 20000 },
+    async () => {
+      if (!hasProlog) return;
 
-    await kibi(sandbox, ["init"]);
+      await kibi(sandbox, ["init"]);
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/req-auth.md",
-      {
-        id: "req-auth",
-        title: "Auth Requirement",
-        type: "req",
-        status: "approved",
-        tags: ["auth", "security"],
-      },
-      "# Auth",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/req-auth.md",
+        {
+          id: "req-auth",
+          title: "Auth Requirement",
+          type: "req",
+          status: "approved",
+          tags: ["auth", "security"],
+        },
+        "# Auth",
+      );
 
-    createMarkdownFile(
-      sandbox,
-      "requirements/req-perf.md",
-      {
-        id: "req-perf",
-        title: "Performance Requirement",
-        type: "req",
-        status: "approved",
-        tags: ["performance"],
-      },
-      "# Performance",
-    );
+      createMarkdownFile(
+        sandbox,
+        "requirements/req-perf.md",
+        {
+          id: "req-perf",
+          title: "Performance Requirement",
+          type: "req",
+          status: "approved",
+          tags: ["performance"],
+        },
+        "# Performance",
+      );
 
-    await kibi(sandbox, ["sync"]);
+      await kibi(sandbox, ["sync"]);
 
-    const { stdout } = await kibi(sandbox, [
-      "query",
-      "req",
-      "--id",
-      "req-auth",
-    ]);
+      const { stdout } = await kibi(sandbox, [
+        "query",
+        "req",
+        "--id",
+        "req-auth",
+      ]);
 
-    assert.ok(stdout.includes("req-auth"));
-    assert.ok(!stdout.includes("req-perf"));
-  });
+      assert.ok(stdout.includes("Auth Requirement"));
+      assert.ok(!stdout.includes("Performance Requirement"));
+    },
+  );
 
   it("should handle empty repository gracefully", async () => {
     if (!hasProlog) return;

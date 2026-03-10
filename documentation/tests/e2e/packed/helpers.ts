@@ -25,6 +25,11 @@ import { basename, dirname, join, resolve } from "node:path";
 
 const REPO_ROOT = resolve(process.cwd());
 
+let cachedTarballsPromise: Promise<Tarballs> | null = null;
+let sharedPrefixPath: string | null = null;
+let sharedInstallKey: string | null = null;
+let sharedInstallPromise: Promise<void> | null = null;
+
 function resolveNpmBinary(): string {
   const npmExecPath = process.env.npm_execpath;
   if (
@@ -43,6 +48,87 @@ function resolveNpmBinary(): string {
   } catch {}
 
   return "npm";
+}
+
+function resolveGitBinary(): string {
+  try {
+    const gitPath = execFileSync("which", ["git"], { encoding: "utf8" }).trim();
+    if (gitPath) {
+      return gitPath;
+    }
+  } catch {}
+
+  return "git";
+}
+
+function getSharedPrefixPath(): string {
+  if (!sharedPrefixPath) {
+    sharedPrefixPath = mkdtempSync(join(tmpdir(), "kibi-e2e-prefix-"));
+    writeFileSync(
+      join(sharedPrefixPath, "package.json"),
+      JSON.stringify({ name: "kibi-packed-e2e", private: true }, null, 2),
+      "utf8",
+    );
+  }
+
+  return sharedPrefixPath;
+}
+
+async function bootstrapSharedInstall(): Promise<void> {
+  const bakedPrefix = process.env.KIBI_E2E_PREFIX;
+  const useBakedPrefix =
+    bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+
+  if (useBakedPrefix) {
+    return;
+  }
+
+  const tarballs = await packAll();
+  const npmPrefix = getSharedPrefixPath();
+  const npmBinary = resolveNpmBinary();
+  const npmDir = dirname(npmBinary);
+  const gitDir = dirname(resolveGitBinary());
+  const homeDir = mkdtempSync(join(tmpdir(), "kibi-e2e-home-"));
+  const cacheDir = mkdtempSync(join(tmpdir(), "kibi-e2e-cache-"));
+  const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    HOME: homeDir,
+    USERPROFILE: homeDir,
+    npm_config_cache: cacheDir,
+    npm_config_userconfig: join(npmPrefix, "npmrc"),
+    PATH: `${join(npmPrefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
+    NODE_ENV: "production",
+  };
+
+  if (sharedInstallKey === installKey && sharedInstallPromise) {
+    await sharedInstallPromise;
+    return;
+  }
+
+  sharedInstallKey = installKey;
+  sharedInstallPromise = (async () => {
+    console.log("📥 Bootstrapping shared packed test installation...");
+    await run(
+      npmBinary,
+      [
+        "install",
+        "--legacy-peer-deps",
+        "--no-audit",
+        tarballs.core,
+        tarballs.cli,
+        tarballs.mcp,
+      ],
+      {
+        cwd: npmPrefix,
+        env,
+        timeoutMs: 300000,
+      },
+    );
+    await verifyKibiCliResolutionImpl(npmPrefix, env);
+  })();
+
+  await sharedInstallPromise;
 }
 
 /** Tarball paths for each package */
@@ -105,74 +191,84 @@ export interface TestSandbox {
  * In Docker environments, checks for pre-packed tarballs first
  */
 export async function packAll(): Promise<Tarballs> {
-  console.log("📦 Packing packages...");
+  if (cachedTarballsPromise) {
+    return cachedTarballsPromise;
+  }
 
-  const packages = ["core", "cli", "mcp"] as const;
-  const tarballs: Partial<Tarballs> = {};
-  const npmBinary = resolveNpmBinary();
+  cachedTarballsPromise = (async () => {
+    console.log("📦 Packing packages...");
 
-  // Check for pre-packed tarballs (set by Docker entrypoint)
-  const prePackedDir = process.env.KIBI_TEST_TARBALLS;
-  if (prePackedDir && existsSync(prePackedDir)) {
-    console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
+    const packages = ["core", "cli", "mcp"] as const;
+    const tarballs: Partial<Tarballs> = {};
+    const npmBinary = resolveNpmBinary();
+
+    const prePackedDir = process.env.KIBI_TEST_TARBALLS;
+    if (prePackedDir && existsSync(prePackedDir)) {
+      console.log(`  Using pre-packed tarballs from ${prePackedDir}`);
+      for (const pkg of packages) {
+        const files = execFileSync("ls", [prePackedDir], { encoding: "utf8" })
+          .trim()
+          .split("\n");
+        const tarballName = files.find(
+          (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
+        );
+        if (tarballName) {
+          tarballs[pkg] = join(prePackedDir, tarballName);
+          console.log(`    ✓ ${pkg}: ${tarballName}`);
+        } else {
+          throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
+        }
+      }
+
+      return tarballs as Tarballs;
+    }
+
     for (const pkg of packages) {
-      // Find tarball for this package
-      const files = execFileSync("ls", [prePackedDir], { encoding: "utf8" })
-        .trim()
-        .split("\n");
-      const tarballName = files.find(
-        (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
-      );
-      if (tarballName) {
-        tarballs[pkg] = join(prePackedDir, tarballName);
-        console.log(`    ✓ ${pkg}: ${tarballName}`);
-      } else {
-        throw new Error(`Pre-packed tarball not found for package: ${pkg}`);
+      const pkgDir = join(REPO_ROOT, "packages", pkg);
+      console.log(`  Packing packages/${pkg}...`);
+
+      try {
+        const npmCommand = npmBinary === "npm" ? "npm" : `\"${npmBinary}\"`;
+        const result = execFileSync(
+          "/bin/bash",
+          ["-lc", `${npmCommand} pack --json --ignore-scripts`],
+          {
+            cwd: pkgDir,
+            encoding: "utf8",
+            stdio: ["pipe", "pipe", "pipe"],
+          },
+        );
+
+        interface PackResult {
+          filename: string;
+        }
+        const packResult = JSON.parse(result) as PackResult[];
+        const filename = packResult[0]?.filename;
+        if (!filename) {
+          throw new Error(
+            `Failed to pack package ${pkg}: no filename in output`,
+          );
+        }
+        tarballs[pkg] = join(pkgDir, filename);
+
+        console.log(`    → ${filename}`);
+      } catch (err) {
+        const error = err as Error;
+        throw new Error(`Failed to pack package ${pkg}: ${error.message}`);
       }
     }
+
     return tarballs as Tarballs;
+  })();
+
+  try {
+    return await cachedTarballsPromise;
+  } catch (error) {
+    cachedTarballsPromise = null;
+    throw error;
   }
-
-  // Fallback: pack on-the-fly
-  for (const pkg of packages) {
-    const pkgDir = join(REPO_ROOT, "packages", pkg);
-    console.log(`  Packing packages/${pkg}...`);
-
-    try {
-      const npmCommand = npmBinary === "npm" ? "npm" : `\"${npmBinary}\"`;
-      const result = execFileSync(
-        "/bin/bash",
-        ["-lc", `${npmCommand} pack --json`],
-        {
-          cwd: pkgDir,
-          encoding: "utf8",
-          stdio: ["pipe", "pipe", "pipe"],
-        },
-      );
-
-      interface PackResult {
-        filename: string;
-      }
-      const packResult = JSON.parse(result) as PackResult[];
-      const filename = packResult[0]?.filename;
-      if (!filename) {
-        throw new Error(`Failed to pack package ${pkg}: no filename in output`);
-      }
-      tarballs[pkg] = join(pkgDir, filename);
-
-      console.log(`    → ${filename}`);
-    } catch (err) {
-      const error = err as Error;
-      throw new Error(`Failed to pack package ${pkg}: ${error.message}`);
-    }
-  }
-
-  return tarballs as Tarballs;
 }
 
-/**
- * Create a completely isolated test sandbox
- */
 /**
  * Create a completely isolated test sandbox
  * Uses baked kibi installation if KIBI_E2E_PREFIX is set, otherwise installs from tarballs
@@ -184,20 +280,18 @@ export function createSandbox(): TestSandbox {
   const bakedPrefix = process.env.KIBI_E2E_PREFIX;
   const useBakedPrefix =
     bakedPrefix && existsSync(join(bakedPrefix, "bin", "kibi"));
+  const gitBinary = resolveGitBinary();
+  const gitDir = dirname(gitBinary);
 
   // Create isolated directories
   const repoDir = join(baseDir, "repo");
   const npmPrefix = useBakedPrefix
     ? (bakedPrefix as string)
-    : join(baseDir, "npm-prefix");
+    : getSharedPrefixPath();
   const npmCache = join(baseDir, "npm-cache");
   const homeDir = join(baseDir, "home");
 
   mkdirSync(repoDir, { recursive: true });
-  if (!useBakedPrefix) {
-    mkdirSync(join(npmPrefix, "bin"), { recursive: true });
-    mkdirSync(join(npmPrefix, "lib"), { recursive: true });
-  }
   mkdirSync(npmCache, { recursive: true });
   mkdirSync(homeDir, { recursive: true });
 
@@ -212,7 +306,7 @@ export function createSandbox(): TestSandbox {
     npm_config_prefix: npmPrefix,
     npm_config_cache: npmCache,
     npm_config_userconfig: join(baseDir, "npmrc"), // Empty config
-    PATH: `${join(npmPrefix, "bin")}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
+    PATH: `${join(npmPrefix, "node_modules", ".bin")}:${gitDir}:${npmDir}:/usr/bin:${process.env.PATH ?? ""}`,
     // Prevent git from using global config
     GIT_CONFIG_GLOBAL: join(baseDir, "gitconfig"),
     GIT_CONFIG_SYSTEM: "/dev/null",
@@ -232,8 +326,8 @@ export function createSandbox(): TestSandbox {
   );
 
   // Store binary paths for direct execution
-  const kibiBin = join(npmPrefix, "bin", "kibi");
-  const kibiMcpBin = join(npmPrefix, "bin", "kibi-mcp");
+  const kibiBin = join(npmPrefix, "node_modules", ".bin", "kibi");
+  const kibiMcpBin = join(npmPrefix, "node_modules", ".bin", "kibi-mcp");
 
   return {
     baseDir,
@@ -248,96 +342,47 @@ export function createSandbox(): TestSandbox {
     async install(tarballs: Tarballs): Promise<void> {
       if (useBakedPrefix) {
         console.log("📦 Using baked kibi installation (skipping npm install)");
-        // In baked-prefix mode we still must VERIFY that Node resolution for
-        // `kibi-cli/prolog` points into the baked prefix (don't rely on nested-copy).
         await verifyKibiCliResolutionImpl(npmPrefix, env);
         return;
       }
 
-      console.log("📥 Installing packages into sandbox...");
+      const installKey = [tarballs.core, tarballs.cli, tarballs.mcp].join("|");
 
-      // Install kibi-core first (dependency of cli)
-      await run(
-        npmBinary,
-        ["install", "-g", "--prefix", npmPrefix, tarballs.core],
-        {
-          cwd: baseDir,
-          env,
-        },
-      );
+      if (sharedInstallKey === installKey && sharedInstallPromise) {
+        await sharedInstallPromise;
+        return;
+      }
 
-      // Install kibi-cli
-      await run(
-        npmBinary,
-        ["install", "-g", "--prefix", npmPrefix, tarballs.cli],
-        {
-          cwd: baseDir,
-          env,
-        },
-      );
-
-      // Install kibi-mcp (may fail due to version mismatch, but we'll fix it afterward)
-      try {
+      sharedInstallKey = installKey;
+      sharedInstallPromise = (async () => {
+        console.log("📥 Installing packages into shared sandbox...");
         await run(
           npmBinary,
           [
             "install",
-            "-g",
-            "--force",
             "--legacy-peer-deps",
             "--no-audit",
-            "--prefix",
-            npmPrefix,
+            tarballs.core,
+            tarballs.cli,
             tarballs.mcp,
           ],
           {
-            cwd: baseDir,
+            cwd: npmPrefix,
             env,
+            timeoutMs: 300000,
           },
         );
-      } catch (e) {
-        console.log("  ⚠️  kibi-mcp install had warnings");
+        await verifyKibiCliResolutionImpl(npmPrefix, env);
+        console.log("  ✓ Packages installed");
+      })();
+
+      try {
+        await sharedInstallPromise;
+      } catch (error) {
+        sharedInstallKey = null;
+        sharedInstallPromise = null;
+        throw error;
       }
-
-      // Copy kibi-cli to kibi-mcp's node_modules to ensure correct version
-      const globalCli = join(npmPrefix, "lib", "node_modules", "kibi-cli");
-      const mcpNodeModules = join(
-        npmPrefix,
-        "lib",
-        "node_modules",
-        "kibi-mcp",
-        "node_modules",
-      );
-      const mcpCli = join(mcpNodeModules, "kibi-cli");
-
-      if (existsSync(globalCli)) {
-        const { mkdirSync, rmSync } = await import("node:fs");
-        mkdirSync(mcpNodeModules, { recursive: true });
-        if (existsSync(mcpCli)) {
-          try {
-            rmSync(mcpCli, { recursive: true });
-          } catch {}
-        }
-        await run("cp", ["-r", globalCli, mcpCli], { cwd: baseDir, env });
-
-        // Verify the copy worked
-        const prologFile = join(mcpCli, "dist", "prolog.js");
-        if (existsSync(prologFile)) {
-          const { readFileSync } = await import("node:fs");
-          const content = readFileSync(prologFile, "utf8");
-          if (content.includes('process.stdin.write("\\n")')) {
-            console.log("  ✓ Verified prolog.js fix is in place");
-          } else {
-            console.log("  ⚠️  Warning: prolog.js fix not detected");
-          }
-        }
-        console.log("  ✓ Applied kibi-cli fix to kibi-mcp");
-        console.log("  ✓ Applied kibi-cli fix to kibi-mcp");
-      }
-
-      // Note: We use `node <bin>` to execute instead of relying on shebang/permissions
-      // This avoids permission issues when npm installs as root in Docker
-      console.log("  ✓ Packages installed");
     },
 
     /**
@@ -350,12 +395,12 @@ export function createSandbox(): TestSandbox {
     },
 
     async initGitRepo(): Promise<void> {
-      await run("git", ["init", "-b", "develop"], { cwd: repoDir, env });
-      await run("git", ["config", "user.email", "test@example.com"], {
+      await run(gitBinary, ["init", "-b", "develop"], { cwd: repoDir, env });
+      await run(gitBinary, ["config", "user.email", "test@example.com"], {
         cwd: repoDir,
         env,
       });
-      await run("git", ["config", "user.name", "Test User"], {
+      await run(gitBinary, ["config", "user.name", "Test User"], {
         cwd: repoDir,
         env,
       });
@@ -371,10 +416,6 @@ export function createSandbox(): TestSandbox {
       }
     },
   };
-}
-
-/**
-
 }
 
 /**
@@ -607,3 +648,5 @@ async function verifyKibiCliResolutionImpl(
   if (isDebug)
     console.log(`E2E debug: require.resolve('kibi-cli/prolog') -> ${resolved}`);
 }
+
+await bootstrapSharedInstall();

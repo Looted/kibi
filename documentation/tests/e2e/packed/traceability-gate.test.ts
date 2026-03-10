@@ -1,17 +1,17 @@
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
+  type Tarballs,
+  type TestSandbox,
   checkPrologAvailable,
   createSandbox,
   kibi,
   packAll,
   run,
-  type Tarballs,
-  type TestSandbox,
 } from "./helpers.js";
 
 function sha256Hex(contents: string | Buffer): string {
