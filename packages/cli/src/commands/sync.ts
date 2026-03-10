@@ -43,24 +43,48 @@
       fi
     done
 */
+import { execSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import * as fs from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import { extractFromManifest } from "../extractors/manifest.js";
 import {
-  type ExtractionResult,
   type ExtractedRelationship,
+  type ExtractionResult,
+  FrontmatterError,
   extractFromMarkdown,
 } from "../extractors/markdown.js";
 
+import { copyFileSync } from "node:fs";
+import {
+  type Diagnostic,
+  type SyncSummary,
+  branchErrorToDiagnostic,
+  createDocsNotIndexedDiagnostic,
+  createInvalidAuthoringDiagnostic,
+  createKbMissingDiagnostic,
+  formatSyncSummary,
+} from "../diagnostics.js";
 import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../extractors/symbols-coordinator.js";
 import { PrologProcess } from "../prolog.js";
+import {
+  copyCleanSnapshot,
+  getBranchDiagnostic,
+  resolveActiveBranch,
+} from "../utils/branch-resolver.js";
+import { loadSyncConfig } from "../utils/config.js";
 
 export class SyncError extends Error {
   constructor(message: string) {
@@ -160,27 +184,142 @@ function writeSyncCache(cachePath: string, cache: SyncCache): void {
   );
 }
 
+function copySyncCache(livePath: string, stagingPath: string): void {
+  const liveCachePath = path.join(livePath, "sync-cache.json");
+  const stagingCachePath = path.join(stagingPath, "sync-cache.json");
+
+  if (existsSync(liveCachePath)) {
+    const cacheContent = readFileSync(liveCachePath, "utf8");
+    writeFileSync(stagingCachePath, cacheContent, "utf8");
+  }
+}
+
+async function copySchemaToStaging(stagingPath: string): Promise<void> {
+  const possibleSchemaPaths = [
+    path.resolve(process.cwd(), "node_modules", "kibi-cli", "schema"),
+    path.resolve(process.cwd(), "..", "..", "schema"),
+    path.resolve(import.meta.dirname || __dirname, "..", "..", "schema"),
+    path.resolve(process.cwd(), "packages", "cli", "schema"),
+  ];
+
+  let schemaSourceDir: string | null = null;
+  for (const p of possibleSchemaPaths) {
+    if (existsSync(p)) {
+      schemaSourceDir = p;
+      break;
+    }
+  }
+
+  if (!schemaSourceDir) {
+    return;
+  }
+
+  const schemaFiles = await fg("*.pl", {
+    cwd: schemaSourceDir,
+    absolute: false,
+  });
+
+  const schemaDestDir = path.join(stagingPath, "schema");
+  if (!existsSync(schemaDestDir)) {
+    mkdirSync(schemaDestDir, { recursive: true });
+  }
+
+  for (const file of schemaFiles) {
+    const sourcePath = path.join(schemaSourceDir, file);
+    const destPath = path.join(schemaDestDir, file);
+    copyFileSync(sourcePath, destPath);
+  }
+}
+
+async function validateStagingKB(stagingPath: string): Promise<boolean> {
+  const prolog = new PrologProcess({ timeout: 60000 });
+  await prolog.start();
+
+  try {
+    const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
+    if (!attachResult.success) {
+      console.error(`Failed to attach to staging KB: ${attachResult.error}`);
+      return false;
+    }
+
+    await prolog.query("kb_detach");
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`Validation error: ${message}`);
+    return false;
+  } finally {
+    await prolog.terminate();
+  }
+}
+
+function atomicPublish(stagingPath: string, livePath: string): void {
+  const liveParent = path.dirname(livePath);
+  if (!existsSync(liveParent)) {
+    mkdirSync(liveParent, { recursive: true });
+  }
+
+  if (existsSync(livePath)) {
+    const tempPath = `${livePath}.old.${Date.now()}`;
+    renameSync(livePath, tempPath);
+    renameSync(stagingPath, livePath);
+    rmSync(tempPath, { recursive: true, force: true });
+  } else {
+    renameSync(stagingPath, livePath);
+  }
+}
+
+function cleanupStaging(stagingPath: string): void {
+  if (existsSync(stagingPath)) {
+    rmSync(stagingPath, { recursive: true, force: true });
+  }
+}
+
 export async function syncCommand(
   options: {
     validateOnly?: boolean;
+    rebuild?: boolean;
   } = {},
-): Promise<void> {
+): Promise<SyncSummary> {
   const validateOnly = options.validateOnly ?? false;
-  try {
-    // Detect current branch early (needed for cache and KB paths)
-    let currentBranch = "main";
+  const rebuild = options.rebuild ?? false;
+  const startTime = Date.now();
+  const diagnostics: Diagnostic[] = [];
+  const entityCounts: Record<string, number> = {};
+  const relationshipCount = 0;
+  let published = false;
+  let currentBranch: string | undefined;
+
+  const getCurrentCommit = (): string | undefined => {
     try {
-      const { execSync } = await import("node:child_process");
-      const branch = execSync("git branch --show-current", {
+      return execSync("git rev-parse HEAD", {
         cwd: process.cwd(),
         encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
       }).trim();
-      if (branch && branch !== "master") {
-        currentBranch = branch;
-      }
     } catch {
-      currentBranch = "main";
+      return undefined;
     }
+  };
+
+  try {
+    const branchResult = resolveActiveBranch(process.cwd());
+
+    if ("error" in branchResult) {
+      const diagnostic = branchErrorToDiagnostic(
+        branchResult.code,
+        branchResult.error,
+      );
+      diagnostics.push(diagnostic);
+      console.error(getBranchDiagnostic(undefined, branchResult.error));
+      throw new SyncError(
+        `Failed to resolve active branch: ${branchResult.error}`,
+      );
+    }
+
+    currentBranch = branchResult.branch;
+
     if (process.env.KIBI_DEBUG) {
       try {
         // eslint-disable-next-line no-console
@@ -188,39 +327,8 @@ export async function syncCommand(
       } catch {}
     }
 
-    // Load config (fall back to defaults if missing)
-    const DEFAULT_CONFIG = {
-      paths: {
-        requirements: "requirements/**/*.md",
-        scenarios: "scenarios/**/*.md",
-        tests: "tests/**/*.md",
-        adr: "adr/**/*.md",
-        flags: "flags/**/*.md",
-        events: "events/**/*.md",
-        facts: "facts/**/*.md",
-        symbols: "symbols.yaml",
-      },
-    };
-
-    type SyncConfig = {
-      paths: Record<string, string>;
-    };
-
-    const configPath = path.join(process.cwd(), ".kb/config.json");
-    let config: SyncConfig;
-    try {
-      const parsed = JSON.parse(
-        readFileSync(configPath, "utf8"),
-      ) as Partial<SyncConfig>;
-      config = {
-        paths: {
-          ...DEFAULT_CONFIG.paths,
-          ...(parsed.paths ?? {}),
-        },
-      };
-    } catch {
-      config = DEFAULT_CONFIG;
-    }
+    // Load config using shared loader
+    const config = loadSyncConfig(process.cwd());
     const paths = config.paths;
 
     // Discover files - construct glob patterns from directory paths
@@ -256,10 +364,12 @@ export async function syncCommand(
       } catch {}
     }
 
-    const manifestFiles = await fg(paths.symbols, {
-      cwd: process.cwd(),
-      absolute: true,
-    });
+    const manifestFiles = paths.symbols
+      ? await fg(paths.symbols, {
+          cwd: process.cwd(),
+          absolute: true,
+        })
+      : [];
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
     // Use branch-specific cache to handle branch isolation correctly
@@ -311,6 +421,25 @@ export async function syncCommand(
         results.push(extractFromMarkdown(file));
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+
+        // Handle INVALID_AUTHORING diagnostics for embedded entities
+        if (
+          error instanceof FrontmatterError &&
+          error.classification === "Embedded Entity Violation"
+        ) {
+          const embeddedTypes =
+            message.includes("scenario") && message.includes("test")
+              ? ["scenario", "test"]
+              : message.includes("scenario")
+                ? ["scenario"]
+                : message.includes("test")
+                  ? ["test"]
+                  : ["entity"];
+          diagnostics.push(
+            createInvalidAuthoringDiagnostic(file, embeddedTypes),
+          );
+        }
+
         if (validateOnly) {
           errors.push({ file, message });
         } else {
@@ -359,7 +488,7 @@ export async function syncCommand(
       }
     }
 
-    if (results.length === 0) {
+    if (results.length === 0 && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
 
@@ -377,210 +506,303 @@ export async function syncCommand(
         seenAt: evictedSeenAt,
       });
 
-      console.log("✓ Imported 0 entities, 0 relationships");
+      console.log("✓ Imported 0 entities, 0 relationships (no changes)");
       process.exit(0);
     }
 
-    // Connect to KB
-    const prolog = new PrologProcess({ timeout: 120000 });
-    await prolog.start();
+    const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
 
-    const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
-    const mainPath = path.join(process.cwd(), ".kb/branches/main");
+    // Check if KB exists (for diagnostic purposes)
+    const kbExists = existsSync(livePath);
+    if (!kbExists && !rebuild) {
+      diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
+    }
 
-    // If branch KB doesn't exist but main does, copy from main (copy-on-write)
-    // Skip for orphan branches (branches with no commits yet)
-    if (!existsSync(kbPath) && existsSync(mainPath)) {
-      const hasCommits = (() => {
-        try {
-          const { execSync } = require("node:child_process");
-          execSync("git rev-parse HEAD", { cwd: process.cwd(), stdio: "pipe" });
-          return true;
-        } catch {
-          return false;
-        }
-      })();
-      if (hasCommits) {
-        fs.cpSync(mainPath, kbPath, { recursive: true });
-        // Remove copied sync cache to avoid cross-branch cache pollution
-        try {
-          const copiedCache = path.join(kbPath, "sync-cache.json");
-          if (existsSync(copiedCache)) {
-            fs.rmSync(copiedCache);
+    const stagingPath = path.join(
+      process.cwd(),
+      `.kb/branches/${currentBranch}.staging`,
+    );
+
+    cleanupStaging(stagingPath);
+
+    mkdirSync(stagingPath, { recursive: true });
+
+    try {
+      if (!rebuild) {
+        const mainPath = path.join(process.cwd(), ".kb/branches/main");
+        const sourcePath = existsSync(livePath)
+          ? livePath
+          : existsSync(mainPath) && currentBranch !== "main"
+            ? mainPath
+            : null;
+
+        if (sourcePath) {
+          const hasCommits = (() => {
+            try {
+              const { execSync } = require("node:child_process");
+              execSync("git rev-parse HEAD", {
+                cwd: process.cwd(),
+                stdio: "pipe",
+              });
+              return true;
+            } catch {
+              return false;
+            }
+          })();
+          if (hasCommits) {
+            copyCleanSnapshot(sourcePath, stagingPath);
+            copySyncCache(sourcePath, stagingPath);
+          } else {
+            await copySchemaToStaging(stagingPath);
           }
-        } catch {
-          // ignore errors cleaning up cache
+        } else {
+          await copySchemaToStaging(stagingPath);
         }
+      } else {
+        await copySchemaToStaging(stagingPath);
       }
-    }
 
-    const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
+      const prolog = new PrologProcess({ timeout: 120000 });
+      await prolog.start();
 
-    if (!attachResult.success) {
-      await prolog.terminate();
-      throw new SyncError(
-        `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
-      );
-    }
+      const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
 
-    // Upsert entities
-    let entityCount = 0;
-    let kbModified = false;
-    const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-    const prologAtom = (value: string): string =>
-      simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
-    for (const { entity } of results) {
-      try {
-        const props = [
-          `id='${entity.id}'`,
-          `title="${entity.title.replace(/"/g, '\\"')}"`,
-          `status=${prologAtom(entity.status)}`,
-          `created_at="${entity.created_at}"`,
-          `updated_at="${entity.updated_at}"`,
-          `source="${entity.source.replace(/"/g, '\\"')}"`,
-        ];
-
-        if (entity.tags && entity.tags.length > 0) {
-          const tagsList = entity.tags.map(prologAtom).join(",");
-          props.push(`tags=[${tagsList}]`);
-        }
-        if (entity.owner) props.push(`owner=${prologAtom(entity.owner)}`);
-        if (entity.priority)
-          props.push(`priority=${prologAtom(entity.priority)}`);
-        if (entity.severity)
-          props.push(`severity=${prologAtom(entity.severity)}`);
-        if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
-
-        const propsList = `[${props.join(", ")}]`;
-        const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
-        const result = await prolog.query(goal);
-        if (result.success) {
-          entityCount++;
-          kbModified = true;
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `Warning: Failed to upsert entity ${entity.id}: ${message}`,
+      if (!attachResult.success) {
+        await prolog.terminate();
+        throw new SyncError(
+          `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
         );
       }
-    }
 
-    // Build ID lookup map: filename -> entity ID
-    const idLookup = new Map<string, string>();
-    for (const { entity } of results) {
-      const filename = path.basename(entity.source, ".md");
-      idLookup.set(filename, entity.id);
-      idLookup.set(entity.id, entity.id);
-    }
+      let entityCount = 0;
+      let kbModified = false;
 
-    // Assert relationships - two-pass approach to handle targets that don't exist yet
-    let relCount = 0;
-    const failedRelationships: Array<{ rel: ExtractedRelationship; fromId: string; toId: string; error: string }> = [];
-    
-    // First pass: try all relationships
-    for (const { relationships } of results) {
-      for (const rel of relationships) {
+      // Track entity counts by type
+      for (const { entity } of results) {
+        entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
+      }
+      const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+      const prologAtom = (value: string): string =>
+        simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
+
+      for (const { entity } of results) {
         try {
-          const fromId = idLookup.get(rel.from) || rel.from;
-          const toId = idLookup.get(rel.to) || rel.to;
+          const props = [
+            `id='${entity.id}'`,
+            `title="${entity.title.replace(/"/g, '\\"')}"`,
+            `status=${prologAtom(entity.status)}`,
+            `created_at="${entity.created_at}"`,
+            `updated_at="${entity.updated_at}"`,
+            `source="${entity.source.replace(/"/g, '\\"')}"`,
+          ];
 
-          const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+          if (entity.tags && entity.tags.length > 0) {
+            const tagsList = entity.tags.map(prologAtom).join(",");
+            props.push(`tags=[${tagsList}]`);
+          }
+          if (entity.owner) props.push(`owner=${prologAtom(entity.owner)}`);
+          if (entity.priority)
+            props.push(`priority=${prologAtom(entity.priority)}`);
+          if (entity.severity)
+            props.push(`severity=${prologAtom(entity.severity)}`);
+          if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
+
+          const propsList = `[${props.join(", ")}]`;
+          const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
           const result = await prolog.query(goal);
           if (result.success) {
-            relCount++;
+            entityCount++;
             kbModified = true;
-          } else {
-            failedRelationships.push({ rel, fromId, toId, error: result.error || "Unknown error" });
           }
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          const fromId = idLookup.get(rel.from) || rel.from;
-          const toId = idLookup.get(rel.to) || rel.to;
-          failedRelationships.push({ rel, fromId, toId, error: message });
+          const message =
+            error instanceof Error ? error.message : String(error);
+          console.warn(
+            `Warning: Failed to upsert entity ${entity.id}: ${message}`,
+          );
         }
       }
-    }
-    
-    // Second pass: retry failed relationships (targets may have been created in first pass)
-    const retryCount = 3;
-    for (let pass = 0; pass < retryCount && failedRelationships.length > 0; pass++) {
-      const remainingFailed: typeof failedRelationships = [];
-      
-      for (const { rel, fromId, toId, error } of failedRelationships) {
-        try {
-          const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
-          const result = await prolog.query(goal);
-          if (result.success) {
-            relCount++;
-            kbModified = true;
-          } else {
-            remainingFailed.push({ rel, fromId, toId, error: result.error || "Unknown error" });
+
+      const idLookup = new Map<string, string>();
+      for (const { entity } of results) {
+        const filename = path.basename(entity.source, ".md");
+        idLookup.set(filename, entity.id);
+        idLookup.set(entity.id, entity.id);
+      }
+
+      let relCount = 0;
+      const failedRelationships: Array<{
+        rel: ExtractedRelationship;
+        fromId: string;
+        toId: string;
+        error: string;
+      }> = [];
+
+      for (const { relationships } of results) {
+        for (const rel of relationships) {
+          try {
+            const fromId = idLookup.get(rel.from) || rel.from;
+            const toId = idLookup.get(rel.to) || rel.to;
+
+            const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+            const result = await prolog.query(goal);
+            if (result.success) {
+              relCount++;
+              kbModified = true;
+            } else {
+              failedRelationships.push({
+                rel,
+                fromId,
+                toId,
+                error: result.error || "Unknown error",
+              });
+            }
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : String(error);
+            const fromId = idLookup.get(rel.from) || rel.from;
+            const toId = idLookup.get(rel.to) || rel.to;
+            failedRelationships.push({ rel, fromId, toId, error: message });
           }
-        } catch (err) {
-          const message = err instanceof Error ? err.message : String(err);
-          remainingFailed.push({ rel, fromId, toId, error: message });
         }
       }
-      
-      failedRelationships.length = 0;
-      failedRelationships.push(...remainingFailed);
-    }
-    
-    // Report remaining failed relationships after all passes
-    if (failedRelationships.length > 0) {
-      console.warn(`\nWarning: ${failedRelationships.length} relationship(s) failed to sync:`);
-      const seen = new Set<string>();
-      for (const { rel, fromId, toId, error } of failedRelationships) {
-        const key = `${rel.type}:${fromId}->${toId}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          console.warn(`  - ${rel.type}: ${fromId} -> ${toId}`);
-          console.warn(`    Error: ${error}`);
+
+      const retryCount = 3;
+      for (
+        let pass = 0;
+        pass < retryCount && failedRelationships.length > 0;
+        pass++
+      ) {
+        const remainingFailed: typeof failedRelationships = [];
+
+        for (const { rel, fromId, toId } of failedRelationships) {
+          try {
+            const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+            const result = await prolog.query(goal);
+            if (result.success) {
+              relCount++;
+              kbModified = true;
+            } else {
+              remainingFailed.push({
+                rel,
+                fromId,
+                toId,
+                error: result.error || "Unknown error",
+              });
+            }
+          } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            remainingFailed.push({ rel, fromId, toId, error: message });
+          }
         }
+
+        failedRelationships.length = 0;
+        failedRelationships.push(...remainingFailed);
       }
-      console.warn("\nTip: Ensure target entities exist before creating relationships.");
-    }
 
-    if (kbModified) {
-      prolog.invalidateCache();
-    }
-
-    // Save KB and detach
-    await prolog.query("kb_save");
-    await prolog.query("kb_detach");
-    await prolog.terminate();
-
-    const evictedHashes: Record<string, string> = {};
-    const evictedSeenAt: Record<string, string> = {};
-
-    for (const [key, hash] of Object.entries(nextHashes)) {
-      if (failedCacheKeys.has(key)) {
-        continue;
+      if (failedRelationships.length > 0) {
+        console.warn(
+          `\nWarning: ${failedRelationships.length} relationship(s) failed to sync:`,
+        );
+        const seen = new Set<string>();
+        for (const { rel, fromId, toId, error } of failedRelationships) {
+          const key = `${rel.type}:${fromId}->${toId}`;
+          if (!seen.has(key)) {
+            seen.add(key);
+            console.warn(`  - ${rel.type}: ${fromId} -> ${toId}`);
+            console.warn(`    Error: ${error}`);
+          }
+        }
+        console.warn(
+          "\nTip: Ensure target entities exist before creating relationships.",
+        );
       }
-      evictedHashes[key] = hash;
-      evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+
+      if (kbModified) {
+        prolog.invalidateCache();
+      }
+
+      await prolog.query("kb_save");
+      await prolog.query("kb_detach");
+      await prolog.terminate();
+
+      atomicPublish(stagingPath, livePath);
+
+      const evictedHashes: Record<string, string> = {};
+      const evictedSeenAt: Record<string, string> = {};
+
+      for (const [key, hash] of Object.entries(nextHashes)) {
+        if (failedCacheKeys.has(key)) {
+          continue;
+        }
+        evictedHashes[key] = hash;
+        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+      }
+
+      const liveCachePath = path.join(livePath, "sync-cache.json");
+      writeSyncCache(liveCachePath, {
+        version: SYNC_CACHE_VERSION,
+        hashes: evictedHashes,
+        seenAt: evictedSeenAt,
+      });
+
+      published = true;
+
+      if (markdownFiles.length > 0 && entityCount < markdownFiles.length) {
+        diagnostics.push(
+          createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
+        );
+      }
+
+      console.log(
+        `✓ Imported ${entityCount} entities, ${relCount} relationships`,
+      );
+
+      const commit = getCurrentCommit();
+      const summary: SyncSummary = {
+        branch: currentBranch,
+        commit,
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        relationshipCount: relCount,
+        success: true,
+        published,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+      };
+
+      console.log(formatSyncSummary(summary));
+      return summary;
+    } catch (error) {
+      cleanupStaging(stagingPath);
+      throw error;
     }
-
-    writeSyncCache(cachePath, {
-      version: SYNC_CACHE_VERSION,
-      hashes: evictedHashes,
-      seenAt: evictedSeenAt,
-    });
-
-    console.log(
-      `✓ Imported ${entityCount} entities, ${relCount} relationships`,
-    );
-    process.exit(0);
   } catch (error) {
-    if (error instanceof SyncError) {
-      console.error(`Error: ${error.message}`);
-    } else if (error instanceof Error) {
-      console.error(`Error: ${error.message}`);
-    } else {
-      console.error(`Error: ${String(error)}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(`Error: ${errorMessage}`);
+
+    // Return failure summary
+    const commit = getCurrentCommit();
+    const summary: SyncSummary = {
+      branch: currentBranch || "unknown",
+      commit,
+      timestamp: new Date().toISOString(),
+      entityCounts,
+      relationshipCount,
+      success: false,
+      published: false,
+      failures: diagnostics,
+      durationMs: Date.now() - startTime,
+    };
+
+    if (diagnostics.length > 0) {
+      console.log("\nDiagnostics:");
+      for (const d of diagnostics) {
+        console.log(`  [${d.category}] ${d.severity}: ${d.message}`);
+      }
     }
-    process.exit(1);
+
+    throw error;
   }
 }
 
