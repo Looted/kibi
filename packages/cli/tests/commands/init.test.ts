@@ -79,14 +79,14 @@ describe("kibi init", () => {
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
 
     expect(config.paths).toBeDefined();
-    expect(config.paths.requirements).toBe("requirements");
-    expect(config.paths.scenarios).toBe("scenarios");
-    expect(config.paths.tests).toBe("tests");
-    expect(config.paths.adr).toBe("adr");
-    expect(config.paths.flags).toBe("flags");
-    expect(config.paths.events).toBe("events");
-    expect(config.paths.facts).toBe("facts");
-    expect(config.paths.symbols).toBe("symbols.yaml");
+    expect(config.paths.requirements).toBe("documentation/requirements");
+    expect(config.paths.scenarios).toBe("documentation/scenarios");
+    expect(config.paths.tests).toBe("documentation/tests");
+    expect(config.paths.adr).toBe("documentation/adr");
+    expect(config.paths.flags).toBe("documentation/flags");
+    expect(config.paths.events).toBe("documentation/events");
+    expect(config.paths.facts).toBe("documentation/facts");
+    expect(config.paths.symbols).toBe("documentation/symbols.yaml");
   });
 
   test("does not fail if .kb already exists", () => {

@@ -69,14 +69,14 @@ kibi check --staged
 
 const DEFAULT_CONFIG = {
   paths: {
-    requirements: "requirements",
-    scenarios: "scenarios",
-    tests: "tests",
-    adr: "adr",
-    flags: "flags",
-    events: "events",
-    facts: "facts",
-    symbols: "symbols.yaml",
+    requirements: "documentation/requirements",
+    scenarios: "documentation/scenarios",
+    tests: "documentation/tests",
+    adr: "documentation/adr",
+    flags: "documentation/flags",
+    events: "documentation/events",
+    facts: "documentation/facts",
+    symbols: "documentation/symbols.yaml",
   },
 };
 
