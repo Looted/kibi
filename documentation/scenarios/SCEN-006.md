@@ -17,4 +17,4 @@ Steps:
 2. Developer runs `kibi gc`
 3. kibi lists all local git branches and compares against `.kb/branches/` directories
 4. Stale `feature/old` store is deleted
-5. Output confirms removal; `main` store is never touched
+5. Output confirms removal; the default branch KB store (typically `main` unless configured otherwise) is never touched
