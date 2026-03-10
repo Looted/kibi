@@ -4,7 +4,7 @@ title: KB sync now uses two-pass relationship assertion
 status: active
 created_at: 2026-02-25T14:30:00Z
 updated_at: 2026-02-25T14:30:00Z
-source: packages/cli/src/commands/sync.ts
+source: documentation/facts/FACT-007.md
 tags:
   - kb-sync
   - improvement

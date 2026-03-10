@@ -4,7 +4,7 @@ title: npm packages published as kibi-cli and kibi-mcp
 status: active
 created_at: 2026-02-25T15:50:00Z
 updated_at: 2026-02-25T15:50:00Z
-source: packages/cli/package.json, packages/mcp/package.json
+source: documentation/facts/FACT-008.md
 tags:
   - deployment
   - npm
