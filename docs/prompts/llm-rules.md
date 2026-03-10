@@ -10,8 +10,55 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 2. **Start with `kb_query`.** Read current requirements, ADRs, tests, symbols, or source-linked entities before making assumptions.
 3. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 4. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
-5. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
-6. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
+5. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
+6. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
+7. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
+
+### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
+
+**Valid Example (Golden Path):**
+
+```yaml
+# documentation/requirements/REQ-001.md
+---
+id: REQ-001
+title: User authentication
+status: open
+links:
+  - SCEN-001
+  - TEST-001
+---
+
+# documentation/scenarios/SCEN-001.md
+---
+id: SCEN-001
+title: Login with valid credentials
+status: active
+---
+
+# documentation/tests/TEST-001.md
+---
+id: TEST-001
+title: Verify login flow
+status: passing
+---
+```
+
+**Invalid Example (Prohibited):**
+
+```yaml
+# WRONG - embedded scenario
+---
+id: REQ-001
+title: User authentication
+scenarios:
+  - given: user is on login page
+    when: they enter valid credentials
+    then: they are logged in
+---
+```
+
+> **Rule:** Do NOT embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using the `links` field and relationship rows.
 
 ## Public MCP Surface
 

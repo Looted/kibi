@@ -43,37 +43,95 @@
       fi
     done
 */
-import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  copyCleanSnapshot,
+  getBranchDiagnostic,
+  isValidBranchName,
+  resolveActiveBranch,
+  resolveDefaultBranch,
+} from "../utils/branch-resolver.js";
+import { loadConfig } from "../utils/config.js";
 
-export async function branchEnsureCommand(): Promise<void> {
-  const branch = execSync("git branch --show-current", {
-    encoding: "utf-8",
-  }).trim();
-  const kbPath = path.join(process.cwd(), ".kb/branches", branch);
-  const templateCandidates = ["develop", "main"];
-  const templateBranch = templateCandidates.find((candidate) =>
-    fs.existsSync(path.join(process.cwd(), ".kb/branches", candidate)),
-  );
+export interface BranchEnsureOptions {
+  from?: string;
+}
 
-  if (!templateBranch) {
-    console.warn(
-      "Warning: no template branch KB exists, skipping branch ensure",
-    );
+export async function branchEnsureCommand(
+  options?: BranchEnsureOptions,
+): Promise<void> {
+  const branchResult = resolveActiveBranch(process.cwd());
+
+  if ("error" in branchResult) {
+    console.error(getBranchDiagnostic(undefined, branchResult.error));
+    throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
+  }
+
+  const currentBranch = branchResult.branch;
+  const kbPath = path.join(process.cwd(), ".kb/branches", currentBranch);
+
+  // Branch KB already exists - nothing to do
+  if (fs.existsSync(kbPath)) {
+    console.log(`Branch KB already exists: ${currentBranch}`);
     return;
   }
 
-  if (!fs.existsSync(kbPath)) {
-    const templatePath = path.join(
-      process.cwd(),
-      ".kb/branches",
-      templateBranch,
-    );
-    fs.cpSync(templatePath, kbPath, { recursive: true });
-    console.log(`Created branch KB: ${branch}`);
+  // Determine source branch using fallback order:
+  // 1. --from if provided and valid
+  // 2. Resolved default branch
+  // 3. Empty schema (no source)
+  let sourceBranch: string | null = null;
+
+  // 1. Try --from if provided
+  if (options?.from) {
+    if (!isValidBranchName(options.from)) {
+      console.warn(
+        `Warning: invalid branch name provided via --from: '${options.from}'`,
+      );
+    } else {
+      const fromPath = path.join(process.cwd(), ".kb/branches", options.from);
+      if (fs.existsSync(fromPath)) {
+        sourceBranch = options.from;
+      } else {
+        console.warn(
+          `Warning: --from branch '${options.from}' KB does not exist`,
+        );
+      }
+    }
+  }
+
+  // 2. Fall back to resolved default branch
+  if (!sourceBranch) {
+    const config = loadConfig(process.cwd());
+    const defaultResult = resolveDefaultBranch(process.cwd(), config);
+
+    if ("branch" in defaultResult) {
+      const defaultBranch = defaultResult.branch;
+      const defaultPath = path.join(
+        process.cwd(),
+        ".kb/branches",
+        defaultBranch,
+      );
+      if (fs.existsSync(defaultPath)) {
+        sourceBranch = defaultBranch;
+      }
+    } else {
+      console.warn(
+        `Warning: could not resolve default branch: ${defaultResult.error}`,
+      );
+    }
+  }
+
+  // 3. Create branch KB (from source or empty)
+  if (sourceBranch) {
+    const sourcePath = path.join(process.cwd(), ".kb/branches", sourceBranch);
+    copyCleanSnapshot(sourcePath, kbPath);
+    console.log(`Created branch KB: ${currentBranch} (from ${sourceBranch})`);
   } else {
-    console.log(`Branch KB already exists: ${branch}`);
+    // Initialize empty schema
+    fs.mkdirSync(kbPath, { recursive: true });
+    console.log(`Created branch KB: ${currentBranch} (empty schema)`);
   }
 }
 

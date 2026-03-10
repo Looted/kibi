@@ -107,6 +107,51 @@ export class FrontmatterError extends Error {
   }
 }
 
+export function detectEmbeddedEntities(
+  data: Record<string, unknown>,
+  entityType: string,
+): string[] {
+  if (entityType !== "req") {
+    return [];
+  }
+
+  const detected: string[] = [];
+
+  const scenarioFields = ["scenarios", "given", "when", "then", "steps"];
+  for (const field of scenarioFields) {
+    if (field in data) {
+      const value = data[field];
+      if (
+        Array.isArray(value) ||
+        (typeof value === "object" && value !== null)
+      ) {
+        if (!detected.includes("scenario")) {
+          detected.push("scenario");
+        }
+        break;
+      }
+    }
+  }
+
+  const testFields = ["tests", "testCases", "assertions", "testSteps"];
+  for (const field of testFields) {
+    if (field in data) {
+      const value = data[field];
+      if (
+        Array.isArray(value) ||
+        (typeof value === "object" && value !== null)
+      ) {
+        if (!detected.includes("test")) {
+          detected.push("test");
+        }
+        break;
+      }
+    }
+  }
+
+  return detected;
+}
+
 export function extractFromMarkdown(filePath: string): ExtractionResult {
   let content: string;
   try {
@@ -150,6 +195,19 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         classification: "Missing Field",
         hint: "Add a 'title: ...' field to the YAML frontmatter.",
       });
+    }
+
+    const embeddedEntities = detectEmbeddedEntities(data, type);
+    if (embeddedEntities.length > 0) {
+      const entityTypes = embeddedEntities.join(" and ");
+      throw new FrontmatterError(
+        `Invalid embedded entity: requirement contains ${entityTypes} fields`,
+        filePath,
+        {
+          classification: "Embedded Entity Violation",
+          hint: `Move ${entityTypes} to separate entity files and link them using 'links' with relationship types like 'specified_by' or 'verified_by'.`,
+        },
+      );
     }
 
     const id = data.id || generateId(filePath, data.title);

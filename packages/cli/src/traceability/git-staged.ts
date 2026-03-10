@@ -21,7 +21,7 @@ function runGit(cmd: string): string {
   } catch (err: unknown) {
     // wrap common errors
     const e = err as { message?: unknown } | undefined;
-    const message = e && e.message ? String(e.message) : String(err);
+    const message = e?.message ? String(e.message) : String(err);
     throw new Error(`git command failed: ${cmd} -> ${message}`);
   }
 }
@@ -53,9 +53,19 @@ const SUPPORTED_EXT = new Set([
   ".cjs",
 ]);
 
+const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
+
 function hasSupportedExt(p: string): boolean {
   for (const ext of SUPPORTED_EXT) {
     if (p.endsWith(ext)) return true;
+  }
+  return false;
+}
+
+function isEntityMarkdown(p: string): boolean {
+  if (!p.endsWith(".md")) return false;
+  for (const dir of ENTITY_MARKDOWN_DIRS) {
+    if (p.includes(dir)) return true;
   }
   return false;
 }
@@ -127,7 +137,7 @@ export function getStagedFiles(): StagedFile[] {
       }
     }
 
-    if (!hasSupportedExt(path)) {
+    if (!hasSupportedExt(path) && !isEntityMarkdown(path)) {
       console.debug(`Skipping unsupported extension: ${path}`);
       continue;
     }
@@ -155,7 +165,7 @@ export function getStagedFiles(): StagedFile[] {
     } catch (err: unknown) {
       // binary or deleted in index
       const e = err as { message?: unknown } | undefined;
-      const em = e && e.message ? String(e.message) : String(err);
+      const em = e?.message ? String(e.message) : String(err);
       console.debug(
         `Skipping binary/deleted or unreadable staged file ${path}: ${em}`,
       );

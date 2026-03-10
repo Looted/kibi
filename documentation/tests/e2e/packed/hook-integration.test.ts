@@ -72,6 +72,15 @@ describe("E2E: Git Hook Integration", () => {
 
     const content = readFileSync(hookPath, "utf8");
     assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+    // Ensure we only run branch-ensure on branch checkout and attempt to forward old branch
+    assert.ok(
+      /branch_flag is 1 for branch checkout/.test(content),
+      "Hook should document branch_flag semantics",
+    );
+    assert.ok(
+      /git name-rev --name-only \"\$old_ref\"/.test(content),
+      "Hook should try to resolve old ref",
+    );
   });
 
   it("should install post-merge hook by default", async () => {
@@ -81,6 +90,22 @@ describe("E2E: Git Hook Integration", () => {
 
     const hookPath = join(sandbox.repoDir, ".git/hooks/post-merge");
     assert.ok(existsSync(hookPath), "post-merge hook should exist");
+
+    const stats = statSync(hookPath);
+    const isExecutable = (stats.mode & 0o111) !== 0;
+    assert.ok(isExecutable, "Hook should be executable");
+
+    const content = readFileSync(hookPath, "utf8");
+    assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+  });
+
+  it("should install post-rewrite hook by default", async () => {
+    if (!hasProlog) return;
+
+    await kibi(sandbox, ["init"]);
+
+    const hookPath = join(sandbox.repoDir, ".git/hooks/post-rewrite");
+    assert.ok(existsSync(hookPath), "post-rewrite hook should exist");
 
     const stats = statSync(hookPath);
     const isExecutable = (stats.mode & 0o111) !== 0;
@@ -259,6 +284,10 @@ echo "Existing hook"
     assert.ok(
       !existsSync(join(sandbox.repoDir, ".git/hooks/post-merge")),
       "post-merge hook should not exist",
+    );
+    assert.ok(
+      !existsSync(join(sandbox.repoDir, ".git/hooks/post-rewrite")),
+      "post-rewrite hook should not exist",
     );
   });
 

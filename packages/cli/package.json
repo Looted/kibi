@@ -36,6 +36,18 @@
     "./schemas/relationship": {
       "types": "./dist/public/schemas/relationship.d.ts",
       "default": "./dist/public/schemas/relationship.js"
+    },
+    "./utils/branch-resolver": {
+      "types": "./dist/public/branch-resolver.d.ts",
+      "default": "./dist/public/branch-resolver.js"
+    },
+    "./public/branch-resolver": {
+      "types": "./dist/public/branch-resolver.d.ts",
+      "default": "./dist/public/branch-resolver.js"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.ts",
+      "default": "./dist/diagnostics.js"
     }
   },
   "types": "./dist/cli.d.ts",

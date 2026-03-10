@@ -46,6 +46,7 @@
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
+import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import {
   cleanupTempKb,
@@ -121,9 +122,32 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           process.exit(0);
         }
 
-        // Extract symbols from staged files
+        const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
+        const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
+
+        const markdownErrors: string[] = [];
+        for (const f of markdownFiles) {
+          const result = validateStagedMarkdown(f.path, f.content || "");
+          for (const err of result.errors) {
+            markdownErrors.push(err.toString());
+          }
+        }
+
+        if (markdownErrors.length > 0) {
+          console.log(
+            "Found embedded entity violations in staged markdown files:",
+          );
+          for (const err of markdownErrors) {
+            console.log(err);
+            console.log();
+          }
+          if (options.dryRun) {
+            process.exit(0);
+          }
+          process.exit(1);
+        }
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
-        for (const f of stagedFiles) {
+        for (const f of codeFiles) {
           try {
             const symbols = extractSymbolsFromStagedFile(f);
             if (symbols && symbols.length) {
@@ -136,8 +160,15 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           }
         }
 
+        if (allSymbols.length === 0 && markdownFiles.length === 0) {
+          console.log(
+            "No exported symbols or markdown entities found in staged files.",
+          );
+          process.exit(0);
+        }
+
         if (allSymbols.length === 0) {
-          console.log("No exported symbols found in staged files.");
+          console.log("✓ No violations found in staged files.");
           process.exit(0);
         }
 

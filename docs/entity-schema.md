@@ -56,23 +56,81 @@ Kibi supports eight entity types:
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | must, should, could                              |
 | severity     | No       | string         | Severity level                                   |
-| links[]      | No       | array[string]  | URLs                                             |
+| links[]      | No       | array[string]  | URLs or entity IDs (for relationships)           |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
 
-**Example:**
+**Canonical Example: REQ + SCEN + TEST (Golden Path)**
+
 ```yaml
+# documentation/requirements/REQ-001.md
 ---
 id: REQ-001
-title: Sample requirement REQ-001
+title: User authentication
 status: open
-created_at: 2026-02-17T13:00:00Z
-updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/requirements/REQ-001
-tags:
-  - sample
-owner: product-team
-priority: medium
-links: []
+created_at: 2026-03-10T10:00:00Z
+updated_at: 2026-03-10T10:00:00Z
+source: documentation/requirements/REQ-001.md
+links:
+  - SCEN-001
+  - TEST-001
+---
+
+# documentation/scenarios/SCEN-001.md
+---
+id: SCEN-001
+title: Login with valid credentials
+status: active
+created_at: 2026-03-10T10:01:00Z
+updated_at: 2026-03-10T10:01:00Z
+source: documentation/scenarios/SCEN-001.md
+---
+
+# documentation/tests/TEST-001.md
+---
+id: TEST-001
+title: Verify login flow
+status: passing
+created_at: 2026-03-10T10:02:00Z
+updated_at: 2026-03-10T10:02:00Z
+source: documentation/tests/TEST-001.md
+---
+```
+
+**Relationship Rows Example:**
+
+```yaml
+# Relationship: REQ-001 specified_by SCEN-001
+relationship:
+  type: specified_by
+  source: REQ-001
+  target: SCEN-001
+  created_at: 2026-03-10T10:03:00Z
+  created_by: analyst
+  source: documentation/requirements/REQ-001.md
+---
+# Relationship: REQ-001 verified_by TEST-001
+relationship:
+  type: verified_by
+  source: REQ-001
+  target: TEST-001
+  created_at: 2026-03-10T10:04:00Z
+  created_by: qa
+  source: documentation/requirements/REQ-001.md
+```
+
+> **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
+
+**Invalid Example (Prohibited):**
+
+```yaml
+# WRONG - embedded scenario
+---
+id: REQ-001
+title: User authentication
+scenarios:
+  - given: user is on login page
+    when: they enter valid credentials
+    then: they are logged in
 ---
 ```
 

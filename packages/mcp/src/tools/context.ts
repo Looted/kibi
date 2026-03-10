@@ -76,16 +76,11 @@ export async function handleKbContext(
 ): Promise<ContextResult> {
   const { sourceFile, branch } = args;
 
-  if (branch && activeBranch && branch !== activeBranch) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Error: branch parameter is not supported server-side; set KIBI_BRANCH at startup or restart server on the desired branch. (Requested: ${branch}, Active: ${activeBranch})`,
-        },
-      ],
-    };
-  }
+  // Branch changes are now handled automatically by the server.
+  // The branch parameter is ignored since the server re-resolves the active
+  // branch on each request and re-attaches to the correct KB transparently.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _unusedBranchCheck = branch && activeBranch && branch !== activeBranch;
 
   try {
     const safeSource = sourceFile.replace(/'/g, "\\'");

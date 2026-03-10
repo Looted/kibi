@@ -46,6 +46,8 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { resolveDefaultBranch } from "../utils/branch-resolver.js";
+import { loadConfig } from "../utils/config.js";
 
 export async function gcCommand(options: {
   dryRun?: boolean;
@@ -100,9 +102,16 @@ export async function gcCommand(options: {
       .filter((d) => d.isDirectory())
       .map((d) => d.name);
 
-    const protectedBranches = new Set(["main", "develop"]);
+    // Resolve configured/default branch to protect
+    const config = loadConfig(process.cwd());
+    const resolved = resolveDefaultBranch(process.cwd(), config);
+    const defaultBranch =
+      "branch" in resolved && typeof resolved.branch === "string"
+        ? resolved.branch
+        : "main";
+
     const staleBranches = kbBranches.filter(
-      (kb) => !protectedBranches.has(kb) && !gitBranches.has(kb),
+      (kb) => kb !== defaultBranch && !gitBranches.has(kb),
     );
 
     // Perform deletion when dryRun is false (force requested)
