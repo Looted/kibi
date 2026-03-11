@@ -3,7 +3,10 @@
     "kibi": {
       "type": "stdio",
       "command": "bun",
-      "args": ["${workspaceFolder}/packages/mcp/bin/kibi-mcp"],
+      "args": [
+        "${workspaceFolder}/packages/mcp/bin/kibi-mcp",
+        "--diagnostic-mode"
+      ],
       "env": {
         "KB_PATH": "${workspaceFolder}/.kb"
       }

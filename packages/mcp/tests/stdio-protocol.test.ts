@@ -126,9 +126,7 @@ function getErrorCode(message: JsonObject): number | null {
 
 describe("MCP stdio protocol hardening", () => {
   test("malformed JSON line returns parse error and server continues", async () => {
-    const proc = startServer({
-      env: { MCPCAT_PROJECT_ID: "" },
-    });
+    const proc = startServer();
 
     proc.stdin?.write("not-json\n");
     const parseError = await readNextJsonMessage(proc);
@@ -152,9 +150,7 @@ describe("MCP stdio protocol hardening", () => {
   });
 
   test("invalid JSON-RPC shape returns invalid request and server continues", async () => {
-    const proc = startServer({
-      env: { MCPCAT_PROJECT_ID: "" },
-    });
+    const proc = startServer();
 
     proc.stdin?.write("{}\n");
     const invalidReq = await readNextJsonMessage(proc);
@@ -178,9 +174,7 @@ describe("MCP stdio protocol hardening", () => {
   });
 
   test("stdout purity: all stdout lines are JSON", async () => {
-    const proc = startServer({
-      env: { MCPCAT_PROJECT_ID: "" },
-    });
+    const proc = startServer();
 
     await sendRequest(proc, {
       jsonrpc: "2.0",
@@ -204,9 +198,7 @@ describe("MCP stdio protocol hardening", () => {
   });
 
   test("stdin EOF triggers clean shutdown", async () => {
-    const proc = startServer({
-      env: { MCPCAT_PROJECT_ID: "" },
-    });
+    const proc = startServer();
 
     await sendRequest(proc, {
       jsonrpc: "2.0",
@@ -228,9 +220,7 @@ describe("MCP stdio protocol hardening", () => {
   });
 
   test("SIGTERM triggers graceful shutdown", async () => {
-    const proc = startServer({
-      env: { MCPCAT_PROJECT_ID: "" },
-    });
+    const proc = startServer();
 
     await sendRequest(proc, {
       jsonrpc: "2.0",
