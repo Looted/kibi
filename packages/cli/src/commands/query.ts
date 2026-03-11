@@ -78,9 +78,20 @@ export async function queryCommand(
     const branchResult = resolveActiveBranch();
 
     if ("error" in branchResult) {
-      // For query command, use "main" as default branch when not in a git repo
-      // This allows querying after init in a non-git directory
-      currentBranch = "main";
+      const isNonGitError =
+        branchResult.code === "NOT_A_GIT_REPO" ||
+        branchResult.code === "GIT_NOT_AVAILABLE";
+
+      if (isNonGitError) {
+        // For query command, use "main" as default branch when git is not available
+        // or the current directory is not a git repository. This allows querying
+        // after init in a non-git directory.
+        currentBranch = "main";
+      } else {
+        console.error(`Error: Failed to resolve active branch:\n${branchResult.error}`);
+        await prolog.terminate();
+        process.exit(1);
+      }
     } else {
       currentBranch = branchResult.branch;
     }

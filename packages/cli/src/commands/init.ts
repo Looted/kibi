@@ -46,10 +46,7 @@
 import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  getBranchDiagnostic,
-  resolveActiveBranch,
-} from "../utils/branch-resolver.js";
+import { resolveActiveBranch } from "../utils/branch-resolver.js";
 import {
   copySchemaFiles,
   createConfigFile,
@@ -74,14 +71,22 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const result = resolveActiveBranch();
 
   if ("error" in result) {
-    // For init command, use "main" as default branch when not in a git repo
-    // This allows initialization before git init, which is useful for first-time setup
-    console.warn("Warning: Not in a git repository");
-    console.warn(`Branch resolution failed: ${result.error}`);
-    console.warn(
-      "Using 'main' as default branch. Run 'kibi sync' in a git repo for proper branch-aware behavior.",
-    );
-    currentBranch = "main";
+    const isNonGitError =
+      result.code === "NOT_A_GIT_REPO" || result.code === "GIT_NOT_AVAILABLE";
+
+    if (isNonGitError) {
+      // For init command, use "main" as default branch when not in a git repo.
+      // This allows initialization before git init, which is useful for first-time setup.
+      console.warn("Warning: Not in a git repository");
+      console.warn(
+        "Using 'main' as default branch. Run 'kibi sync' in a git repo for proper branch-aware behavior.",
+      );
+      currentBranch = "main";
+    } else {
+      console.error("Error: Failed to resolve the active git branch.");
+      console.error(result.error);
+      process.exit(1);
+    }
   } else {
     currentBranch = result.branch;
   }
