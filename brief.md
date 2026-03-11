@@ -42,10 +42,11 @@ The KB MUST provide built-in validation rules (invokable by tool) such as:
 - “No `symbol` is linked to `req` IDs that do not exist.”
 
 ## 3) Storage, branching, and automation
-### 3.1 Per-branch KB (copy-from-main)
+### 3.1 Per-branch KB (copy-from-default-branch)
 The KB MUST be stored per git branch.
-On first use of a branch, if its KB does not exist, it MUST be created by copying the `main` KB snapshot (“copy-from-main” semantics).
-After creation, branch KBs MUST evolve independently (no implicit ongoing sync from `main`).
+On first use of a branch, if its KB does not exist, it MUST be created by copying the resolved default branch KB snapshot ("copy-from-default-branch" semantics).
+The default branch is determined in this order: (1) `.kb/config.json` `defaultBranch` if set, (2) `origin/HEAD` if available, (3) falls back to `main` only if neither is set.
+After creation, branch KBs MUST evolve independently (no implicit ongoing sync from the default branch).
 
 ### 3.2 Persistence (reliable, auditable)
 The KB MUST provide durable persistence suitable for long-term project memory.
@@ -62,7 +63,7 @@ The system MUST support `post-checkout` automation, which receives three paramet
 The system SHOULD support `post-merge` automation, which runs after `git merge` (including the merge performed by `git pull`) and receives a parameter indicating squash/non-squash. [academy.recforge](https://academy.recforge.com/course/prolog-language-a-comprehensive-guide-252/level-7-project-development-in-prolog/implementing-your-project-in-prolog)
 
 Hook responsibilities (v0):
-- On `post-checkout` with branch switch flag, ensure branch KB exists (copy-from-main if missing), then run a fast sync/update.
+- On `post-checkout` with branch switch flag, ensure branch KB exists (copy-from-default-branch if missing, using the resolver order above), then run a fast sync/update.
 - On `post-merge`, run sync/update.
 - Provide `kb gc` command that deletes KB directories for branches that no longer exist locally (best-effort cleanup; v0 does not rely on a “branch deleted” hook).
 
@@ -77,10 +78,7 @@ The MCP server MUST expose tools that cover these operations without requiring a
 - `kb.upsert`: create/update entities and edges via a validated “changeset” payload.
 - `kb.delete`: remove entities/edges (restricted; see safety).
 - `kb.check`: run built-in consistency rules and return violations.
-- `kb.branch.ensure`: ensure branch KB exists (copy-from-main if missing).
-- `kb.branch.gc`: list/delete stale branch KBs.
-
-The MCP server MUST be branch-aware: every tool call MUST accept `branch` explicitly or default to the caller’s current git branch.
+The MCP server is branch-aware: the server automatically resolves the active git branch on each request and attaches to the correct branch KB transparently. Branch management (ensure/gc) is handled via the CLI, not the MCP tool surface.
 
 ### 4.3 CLI (v0)
 A CLI MUST be provided with at least:

@@ -53,50 +53,72 @@ import {
 } from "node:fs";
 import * as path from "node:path";
 import fg from "fast-glob";
+import {
+  getBranchDiagnostic,
+  resolveActiveBranch,
+} from "../utils/branch-resolver.js";
+import { DEFAULT_CONFIG } from "../utils/config.js";
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
-kibi sync
+# post-checkout hook for kibi
+# Parameters: old_ref new_ref branch_flag
+# branch_flag is 1 for branch checkout, 0 for file checkout
+
+old_ref=$1
+new_ref=$2
+branch_flag=$3
+
+if [ "$branch_flag" = "1" ]; then
+  # Try to resolve the branch we just left (strip decorations like ^ and ~)
+  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/\^.*//')
+
+  # Basic validation: non-empty and does not contain ~ or ^
+  if [ -n "$old_branch" ] && echo "$old_branch" | grep -qv '[~^]'; then
+    kibi branch ensure --from "$old_branch" && kibi sync
+  else
+    kibi branch ensure && kibi sync
+  fi
+fi
 `;
 
 const POST_MERGE_HOOK = `#!/bin/sh
+# post-merge hook for kibi
+# Parameter: squash_flag (not used)
+
 kibi sync
 `;
 
+const POST_REWRITE_HOOK = `#!/bin/sh
+# post-rewrite hook for kibi
+# Triggered after git rebase, git commit --amend, etc.
+# Parameter: rewrite_type (rebase or amend)
+
+rewrite_type=$1
+
+if [ "$rewrite_type" = "rebase" ]; then
+  kibi sync
+fi
+`;
+
 const PRE_COMMIT_HOOK = `#!/bin/sh
+# pre-commit hook for kibi
+# Blocks commits if kibi check finds violations
+
 set -e
 kibi check --staged
 `;
 
-const DEFAULT_CONFIG = {
-  paths: {
-    requirements: "requirements",
-    scenarios: "scenarios",
-    tests: "tests",
-    adr: "adr",
-    flags: "flags",
-    events: "events",
-    facts: "facts",
-    symbols: "symbols.yaml",
-  },
-};
-
 export async function getCurrentBranch(
   cwd: string = process.cwd(),
 ): Promise<string> {
-  let currentBranch = "develop";
-  try {
-    const { execSync } = await import("node:child_process");
-    const branch = execSync("git branch --show-current", {
-      cwd,
-      encoding: "utf8",
-    }).trim();
-    if (branch && branch !== "master") {
-      currentBranch = branch;
-    }
-  } catch {
-    currentBranch = "develop";
+  const result = resolveActiveBranch(cwd);
+
+  if ("error" in result) {
+    console.error(getBranchDiagnostic(undefined, result.error));
+    throw new Error(`Failed to resolve active branch: ${result.error}`);
   }
-  return currentBranch;
+
+  return result.branch;
 }
 
 export function createKbDirectoryStructure(
@@ -183,11 +205,15 @@ export function installGitHooks(gitDir: string): void {
 
   const postCheckoutPath = path.join(hooksDir, "post-checkout");
   const postMergePath = path.join(hooksDir, "post-merge");
+  const postRewritePath = path.join(hooksDir, "post-rewrite");
   const preCommitPath = path.join(hooksDir, "pre-commit");
 
   installHook(postCheckoutPath, POST_CHECKOUT_HOOK.replace("#!/bin/sh\n", ""));
   installHook(postMergePath, POST_MERGE_HOOK.replace("#!/bin/sh\n", ""));
+  installHook(postRewritePath, POST_REWRITE_HOOK.replace("#!/bin/sh\n", ""));
   installHook(preCommitPath, PRE_COMMIT_HOOK.replace("#!/bin/sh\n", ""));
 
-  console.log("✓ Installed git hooks (pre-commit, post-checkout, post-merge)");
+  console.log(
+    "✓ Installed git hooks (pre-commit, post-checkout, post-merge, post-rewrite)",
+  );
 }

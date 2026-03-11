@@ -14,7 +14,7 @@ links:
 
 Steps:
 1. Developer runs `kibi sync`
-2. kibi globs `requirements/**/*.md`, `scenarios/**/*.md`, etc. per `.kb/config.json`
+2. kibi globs `documentation/requirements/**/*.md`, `documentation/scenarios/**/*.md`, etc. per `.kb/config.json`
 3. YAML frontmatter is extracted from each `.md` file and validated
 4. `symbols.yaml` is parsed for symbol entries
 5. All valid entities are upserted into the Prolog KB

@@ -74,13 +74,10 @@ kibi query adr --format json
 ### MCP Tool Queries
 
 Available MCP tools:
-- `kb_query` - Query entities by type, ID, tags, relationships
-- `kb_query_relationships` - Query relationships between entities
+- `kb_query` - Query entities by type, ID, tags, and source file
 - `kb_upsert` - Insert or update entities
 - `kb_delete` - Delete entities by ID
 - `kb_check` - Validate KB integrity
-- `kb_branch_ensure` - Ensure branch KB exists
-- `kb_branch_gc` - Garbage collect merged branch KBs
 
 ---
 
@@ -115,14 +112,14 @@ This ensures the knowledge base grows with each investigation, making future wor
 
 ### Creating a New Entity
 
-1. Create a Markdown file in the appropriate directory:
-   - Requirements: `requirements/REQ-XXX.md`
-   - Scenarios: `scenarios/SCEN-XXX.md`
-   - Tests: `tests/TEST-XXX.md`
-   - ADRs: `adr/ADR-XXX.md`
-   - Flags: `flags/FLAG-XXX.md`
-   - Events: `events/EVT-XXX.md`
-   - Facts: `facts/FACT-XXX.md`
+1. Create a Markdown file in the appropriate directory (canonical location under documentation/):
+   - Requirements: `documentation/requirements/REQ-XXX.md`
+   - Scenarios: `documentation/scenarios/SCEN-XXX.md`
+   - Tests: `documentation/tests/TEST-XXX.md`
+   - ADRs: `documentation/adr/ADR-XXX.md`
+   - Flags: `documentation/flags/FLAG-XXX.md`
+   - Events: `documentation/events/EVT-XXX.md`
+   - Facts: `documentation/facts/FACT-XXX.md`
 
 2. Include frontmatter with required fields:
    ```yaml

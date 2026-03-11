@@ -52,7 +52,7 @@ describe("CLI E2E: Git Hook Execution", () => {
 
     // Check hook files exist
     const hooksDir = join(sandbox.repoDir, ".git", "hooks");
-    const hooks = ["pre-commit", "post-checkout", "post-merge"];
+    const hooks = ["pre-commit", "post-checkout", "post-merge", "post-rewrite"];
 
     for (const hook of hooks) {
       const hookPath = join(hooksDir, hook);
@@ -73,7 +73,7 @@ describe("CLI E2E: Git Hook Execution", () => {
 
     // Check hooks are executable
     const hooksDir = join(sandbox.repoDir, ".git", "hooks");
-    const hooks = ["pre-commit", "post-checkout", "post-merge"];
+    const hooks = ["pre-commit", "post-checkout", "post-merge", "post-rewrite"];
 
     for (const hook of hooks) {
       const hookPath = join(hooksDir, hook);
@@ -134,7 +134,7 @@ describe("CLI E2E: Git Hook Execution", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/REQ-HOOK-001.md",
+        "documentation/requirements/REQ-HOOK-001.md",
         {
           id: "REQ-HOOK-001",
           title: "Hook test requirement",
@@ -192,7 +192,7 @@ describe("CLI E2E: Git Hook Execution", () => {
     // Create a file to commit
     createMarkdownFile(
       sandbox,
-      "requirements/REQ-PRE-001.md",
+      "documentation/requirements/REQ-PRE-001.md",
       {
         id: "REQ-PRE-001",
         title: "Pre-commit test",

@@ -61,7 +61,8 @@ Kibi maps your project into a standard taxonomy. Entities are extracted from Mar
 
 If you run `kibi init --hooks`, Kibi installs `post-checkout` and `post-merge` hooks.
 
-- On checkout: Kibi runs `kibi branch ensure` (creating a snapshot from `main` if the branch is new) followed by `kibi sync`.
+- On checkout: Kibi runs `kibi branch ensure` (creating a snapshot from the resolved default branch if the branch is new) followed by `kibi sync`.
+  - The default branch is resolved in this order: (1) `.kb/config.json` `defaultBranch` if set, (2) `origin/HEAD` if available, (3) falls back to `main` only if neither is set. This makes the behavior compatible with non-main default branch setups.
 - On merge: Kibi runs `kibi sync` to update the graph based on the latest merged files.
 
 ### Providing LLM Rules
@@ -107,7 +108,7 @@ See [docs/prompts/llm-rules.md](docs/prompts/llm-rules.md) for ready-to-copy sys
 
 ### `kibi branch [--list]`
 - Lists branch KBs
-- Ensures branch KB exists (copy-from-main semantics)
+- Ensures branch KB exists (copy-from-default-branch semantics: resolved as config `defaultBranch` → origin/HEAD → main)
 
 ### `kibi doctor`
 - Verifies environment:
@@ -123,22 +124,21 @@ Kibi exposes an MCP server for agent integration via stdio (JSON-RPC).
 
 ### Tools
 
-- `kb_query`: Query entities by type, ID, tags, relationships
+- `kb_query`: Query entities by type, ID, tags, and source file
 - `kb_upsert`: Insert or update entities
 - `kb_delete`: Delete entities by ID
 - `kb_check`: Validate KB integrity
-- `kb_query_relationships`: Query relationships between entities
-- `kb_branch_ensure`: Ensure branch KB exists (copy-from-main)
-- `kb_branch_gc`: Garbage collect merged branch KBs
 
-Each tool accepts `branch` parameter for branch-aware operations.
+Branch KB preparation happens automatically when the MCP server attaches to the
+active workspace branch. Branch garbage collection remains a CLI workflow via
+`kibi gc` or repository automation hooks.
 
 ### Configuration
 
 - Transport: stdio (JSON-RPC, newline-delimited)
 - No embedded newlines in messages
 - Server writes only valid MCP messages to stdout
-- Branch-aware: every tool call accepts `branch` parameter
+- Branch-aware: the server attaches to the active git branch on startup
 
 See [docs/mcp-reference.md](docs/mcp-reference.md) for detailed MCP server documentation.
 ## Project Structure
@@ -236,21 +236,50 @@ packages/
 | `supersedes`        | adr → adr            | ADR supersedes prior ADR                         |
 | `relates_to`        | any → any            | Generic relationship                             |
 
-## Example Entity
+## Golden Path Example: Separate REQ, SCEN, TEST Entities
 
 ```yaml
+# documentation/requirements/REQ-001.md
 ---
 id: REQ-001
-title: Sample requirement
+title: User authentication
 status: open
-created_at: 2026-02-20T10:00:00Z
-updated_at: 2026-02-20T10:00:00Z
-source: requirements/REQ-001
-tags:
-  - sample
+links:
+  - SCEN-001
+  - TEST-001
 ---
-Placeholder: This is a sample requirement used for documentation.
+
+# documentation/scenarios/SCEN-001.md
+---
+id: SCEN-001
+title: Login with valid credentials
+status: active
+---
+
+# documentation/tests/TEST-001.md
+---
+id: TEST-001
+title: Verify login flow
+status: passing
+---
 ```
+
+> **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
+
+**Invalid Example (Prohibited):**
+
+```yaml
+# WRONG - embedded scenario
+---
+id: REQ-001
+title: User authentication
+scenarios:
+  - given: user is on login page
+    when: they enter valid credentials
+    then: they are logged in
+---
+```
+
 
 ## Troubleshooting & Migrations
 
@@ -271,7 +300,7 @@ Placeholder: This is a sample requirement used for documentation.
 ## Notes
 
 - `.kb/` is repo-local, per-branch
-- KBs are copied from `main` on new branch creation
+- KBs are copied from the resolved default branch on new branch creation (default branch is determined by `.kb/config.json` `defaultBranch`, then `origin/HEAD`, then `main` as fallback)
 - Content-based SHA256 IDs (or explicit `id:` in frontmatter)
 - RDF persistence uses SWI-Prolog `library(semweb/rdf_persistency)`
 - Git hooks automate KB sync on branch checkout/merge
@@ -337,4 +366,3 @@ The following schema is planned for a future release:
 ### Integration with git hooks
 
 If you run `kibi init --hooks`, a pre-commit hook is installed. This hook automatically runs `kibi check --staged` before every commit. If any staged code symbols are missing requirement links, the commit will be blocked with a clear error message. To bypass, you must add the appropriate `implements REQ-xxx` directive or use `--dry-run` for testing only.
-

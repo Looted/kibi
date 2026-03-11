@@ -95,7 +95,7 @@ export const TOOLS = [
             "Optional zero-based pagination offset. Default: 0. Example: 50 to skip first 50 rows.",
         },
       },
-      },
+    },
   },
   {
     name: "kb_upsert",
@@ -232,7 +232,7 @@ export const TOOLS = [
           },
         },
       },
-      },
+    },
   },
   {
     name: "kb_delete",
@@ -249,7 +249,7 @@ export const TOOLS = [
             "Required list of entity IDs to delete. Example: ['REQ-001','TEST-002']. At least one ID is required.",
         },
       },
-      },
+    },
   },
   {
     name: "kb_check",
@@ -260,237 +260,18 @@ export const TOOLS = [
       properties: {
         rules: {
           type: "array",
-          items: { type: "string" },
+          items: {
+            type: "string",
+            enum: [
+              "must-priority-coverage",
+              "no-dangling-refs",
+              "no-cycles",
+              "required-fields",
+              "symbol-coverage",
+            ],
+          },
           description:
             "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields, symbol-coverage. If omitted, server runs all.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_branch_ensure",
-    description:
-      "Ensure a branch KB exists, creating it from develop when missing. Use when targeting non-develop branches. Do not use to switch git branches. Side effects: creates .kb/branches/<branch>.",
-    inputSchema: {
-      type: "object",
-      required: ["branch"],
-      properties: {
-        branch: {
-          type: "string",
-          description:
-            "Required git branch name. Example: 'feature/auth-hardening'. Path traversal patterns are rejected.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_branch_gc",
-    description:
-      "Find or delete stale branch KB directories not present in git. Use for repository hygiene. Do not use if you need historical branch KBs. Side effects: can delete branch KB folders when dry_run is false.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        dry_run: {
-          type: "boolean",
-          default: true,
-          description:
-            "Optional safety flag. true = report only; false = delete stale branch KBs. Default: true.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_query_relationships",
-    description:
-      "Read relationship edges with optional from/to/type filters. Use for traceability traversal. Do not use to create links. No mutation side effects.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        from: {
-          type: "string",
-          description: "Optional source entity ID filter. Example: 'REQ-001'.",
-        },
-        to: {
-          type: "string",
-          description: "Optional target entity ID filter. Example: 'TEST-010'.",
-        },
-        type: {
-          type: "string",
-          enum: [
-            "depends_on",
-            "specified_by",
-            "verified_by",
-            "validates",
-            "implements",
-            "covered_by",
-            "constrained_by",
-            "constrains",
-            "requires_property",
-            "guards",
-            "publishes",
-            "consumes",
-            "supersedes",
-            "relates_to",
-          ],
-          description:
-            "Optional relationship type filter. Allowed enum values only. Example: 'implements'.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_derive",
-    description:
-      "Run deterministic inference predicates and return rows. Use for impact, coverage, and consistency analysis. Do not use for entity CRUD. No mutation side effects.",
-    inputSchema: {
-      type: "object",
-      required: ["rule"],
-      properties: {
-        rule: {
-          type: "string",
-          enum: [
-            "transitively_implements",
-            "transitively_depends",
-            "impacted_by_change",
-            "affected_symbols",
-            "coverage_gap",
-            "untested_symbols",
-            "stale",
-            "orphaned",
-            "conflicting",
-            "deprecated_still_used",
-            "current_adr",
-            "adr_chain",
-            "superseded_by",
-            "domain_contradictions",
-          ],
-          description:
-            "Required inference rule name. Allowed values are the enum options. Example: 'coverage_gap'.",
-        },
-        params: {
-          type: "object",
-          description:
-            "Optional rule-specific parameters. Example: { changed: 'REQ-001' } for impacted_by_change.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_impact",
-    description:
-      "Return entities impacted by a changed entity ID. Use for quick change blast radius checks. Do not use for general querying. No mutation side effects.",
-    inputSchema: {
-      type: "object",
-      required: ["entity"],
-      properties: {
-        entity: {
-          type: "string",
-          description: "Required changed entity ID. Example: 'REQ-001'.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_coverage_report",
-    description:
-      "Compute aggregate traceability coverage for requirements and/or symbols. Use for health snapshots. Do not use for raw entity dumps. No mutation side effects.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        type: {
-          type: "string",
-          enum: ["req", "symbol"],
-          description:
-            "Optional focus scope: 'req' or 'symbol'. Omit to include both.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_symbols_refresh",
-    description:
-      "Refresh generated symbol coordinates in the symbols manifest. Use after refactors that move symbols. Do not use for semantic edits. Side effects: may rewrite symbols.yaml unless dryRun is true.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        dryRun: {
-          type: "boolean",
-          default: false,
-          description:
-            "Optional preview mode. true = report only, false = apply file updates. Default: false.",
-        },
-      },
-      },
-  },
-  {
-    name: "kb_list_entity_types",
-    description:
-      "List supported entity type names. Use when building valid tool arguments. Do not use for entity data retrieval. No mutation side effects.",
-    inputSchema: { type: "object", properties: {} },
-  },
-  {
-    name: "kb_list_relationship_types",
-    description:
-      "List supported relationship type names. Use before asserting or filtering relationships. Do not use for graph traversal. No mutation side effects.",
-    inputSchema: { type: "object", properties: {} },
-  },
-  {
-    name: "kbcontext",
-    description:
-      "Return KB entities linked to a source file plus first-hop relationships. Use for file-centric traceability. Do not use for cross-repo search. No mutation side effects.",
-    inputSchema: {
-      type: "object",
-      required: ["sourceFile"],
-      properties: {
-        sourceFile: {
-          type: "string",
-          description:
-            "Required source path substring. Example: 'src/auth/login.ts'.",
-        },
-        branch: {
-          type: "string",
-          description:
-            "Optional branch hint for clients. Must match the server's active branch or will return an error.",
-        },
-      },
-    },
-  },
-  {
-    name: "get_help",
-    description:
-      "Returns documentation for this MCP server. Call this first if you are unsure how to proceed or which tool to use. Available topics: overview, tools, workflow, constraints, examples, errors.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        topic: {
-          type: "string",
-          enum: [
-            "overview",
-            "tools",
-            "workflow",
-            "constraints",
-            "examples",
-            "errors",
-            "branching",
-          ],
-          description:
-            "Optional documentation section. Omit to return overview. Example: 'workflow'.",
-        },
-      },
-    },
-  },
-  {
-    name: "analyze_shared_facts",
-    description:
-      "Analyze requirements and suggest shared domain facts for extraction. LLMs call this to identify missed semantic opportunities before upserting. Lightweight heuristic: finds overlapping capitalized terms and repeated phrases across requirements.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        min_frequency: {
-          type: "number",
-          default: 2,
-          description:
-            "Minimum frequency threshold for shared concepts. Default: 2. Example: 3 to only show concepts mentioned in 3+ requirements.",
         },
       },
     },
