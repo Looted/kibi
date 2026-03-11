@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import {
   FrontmatterError,
   detectEmbeddedEntities,
@@ -244,6 +244,7 @@ links:
   describe("Embedded Entity Detection", () => {
     test("rejects requirement with embedded scenarios array", () => {
       const tempFile = "/tmp/requirements/test-embedded-scenarios.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
       writeFileSync(
         tempFile,
         `---
@@ -274,6 +275,7 @@ scenarios:
 
     test("rejects requirement with embedded tests array", () => {
       const tempFile = "/tmp/requirements/test-embedded-tests.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
       writeFileSync(
         tempFile,
         `---
@@ -303,6 +305,7 @@ tests:
 
     test("rejects requirement with embedded steps array", () => {
       const tempFile = "/tmp/requirements/test-embedded-steps.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
       writeFileSync(
         tempFile,
         `---
@@ -332,6 +335,7 @@ steps:
 
     test("allows separate scenario files with links", () => {
       const tempFile = "/tmp/scenarios/test-valid-scenario.md";
+      mkdirSync("/tmp/scenarios", { recursive: true });
       writeFileSync(
         tempFile,
         `---
@@ -354,6 +358,7 @@ links:
 
     test("allows separate test files with links", () => {
       const tempFile = "/tmp/tests/test-valid-test.md";
+      mkdirSync("/tmp/tests", { recursive: true });
       writeFileSync(
         tempFile,
         `---
@@ -393,6 +398,22 @@ links:
       };
       const result = detectEmbeddedEntities(data, "req");
       expect(result).toContain("scenario");
+      expect(result).toContain("test");
+    });
+
+    test("detectEmbeddedEntities detects scalar string scenario fields", () => {
+      const result = detectEmbeddedEntities(
+        { given: "user is logged in" },
+        "req",
+      );
+      expect(result).toContain("scenario");
+    });
+
+    test("detectEmbeddedEntities detects scalar string test fields", () => {
+      const result = detectEmbeddedEntities(
+        { tests: "some test description" },
+        "req",
+      );
       expect(result).toContain("test");
     });
   });

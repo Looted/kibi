@@ -122,8 +122,11 @@ export function detectEmbeddedEntities(
     if (field in data) {
       const value = data[field];
       if (
-        Array.isArray(value) ||
-        (typeof value === "object" && value !== null)
+        value !== null &&
+        value !== undefined &&
+        (Array.isArray(value) ||
+          typeof value === "object" ||
+          typeof value === "string")
       ) {
         if (!detected.includes("scenario")) {
           detected.push("scenario");
@@ -138,8 +141,11 @@ export function detectEmbeddedEntities(
     if (field in data) {
       const value = data[field];
       if (
-        Array.isArray(value) ||
-        (typeof value === "object" && value !== null)
+        value !== null &&
+        value !== undefined &&
+        (Array.isArray(value) ||
+          typeof value === "object" ||
+          typeof value === "string")
       ) {
         if (!detected.includes("test")) {
           detected.push("test");

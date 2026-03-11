@@ -47,7 +47,6 @@ import type { PrologProcess } from "kibi-cli/prolog";
 
 export interface ContextArgs {
   sourceFile: string;
-  branch?: string;
 }
 
 export interface ContextResult {
@@ -72,15 +71,8 @@ export interface ContextResult {
 export async function handleKbContext(
   prolog: PrologProcess,
   args: ContextArgs,
-  activeBranch?: string,
 ): Promise<ContextResult> {
-  const { sourceFile, branch } = args;
-
-  // Branch changes are now handled automatically by the server.
-  // The branch parameter is ignored since the server re-resolves the active
-  // branch on each request and re-attaches to the correct KB transparently.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const _unusedBranchCheck = branch && activeBranch && branch !== activeBranch;
+  const { sourceFile } = args;
 
   try {
     const safeSource = sourceFile.replace(/'/g, "\\'");
