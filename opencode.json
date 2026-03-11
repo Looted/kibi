@@ -3,7 +3,12 @@
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["bun", "run", "packages/mcp/bin/kibi-mcp"],
+      "command": [
+        "bun",
+        "run",
+        "packages/mcp/bin/kibi-mcp",
+        "--diagnostic-mode"
+      ],
       "enabled": true
     }
   },

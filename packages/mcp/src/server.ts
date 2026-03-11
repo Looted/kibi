@@ -58,13 +58,86 @@ import {
 } from "kibi-cli/public/branch-resolver";
 import { z } from "zod";
 import { loadDefaultEnvFile } from "./env.js";
-import { attachMcpcat } from "./mcpcat.js";
 import { TOOLS } from "./tools-config.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
+
+const DIAGNOSTIC_MODE_FLAG = "--diagnostic-mode";
+const DIAGNOSTIC_MODE_ENABLED = process.argv.includes(DIAGNOSTIC_MODE_FLAG);
+
+const DIAGNOSTIC_TELEMETRY_SCHEMA = {
+  type: "object",
+  description:
+    "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+  properties: {
+    is_autonomous: {
+      type: "boolean",
+      description:
+        "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+    },
+    reasoning: {
+      type: "string",
+      description:
+        "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+    },
+    confidence_score: {
+      type: "number",
+      description:
+        "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+    },
+    attempt_number: {
+      type: "integer",
+      description:
+        "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+    },
+    missing_context: {
+      type: "string",
+      description:
+        "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+    },
+  },
+} as const;
+
+interface ToolConfig {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+}
+
+function withDiagnosticTelemetrySchema(
+  tools: readonly ToolConfig[],
+): ToolConfig[] {
+  return tools.map((tool) => {
+    const schema =
+      tool.inputSchema && typeof tool.inputSchema === "object"
+        ? (tool.inputSchema as Record<string, unknown>)
+        : {};
+
+    const properties =
+      schema.properties && typeof schema.properties === "object"
+        ? (schema.properties as Record<string, unknown>)
+        : {};
+
+    return {
+      ...tool,
+      inputSchema: {
+        ...schema,
+        properties: {
+          ...properties,
+          _diagnostic_telemetry: DIAGNOSTIC_TELEMETRY_SCHEMA,
+        },
+      },
+    };
+  });
+}
+
+const BASE_TOOLS = TOOLS as unknown as ToolConfig[];
+const ACTIVE_TOOLS = DIAGNOSTIC_MODE_ENABLED
+  ? withDiagnosticTelemetrySchema(BASE_TOOLS)
+  : BASE_TOOLS;
 
 interface DocResource {
   uri: string;
@@ -84,7 +157,7 @@ function renderToolsDoc(): string {
     "| --- | --- | --- |",
   ];
 
-  for (const tool of TOOLS) {
+  for (const tool of ACTIVE_TOOLS) {
     const required = Array.isArray(tool.inputSchema?.required)
       ? tool.inputSchema.required.join(", ")
       : "none";
@@ -283,6 +356,48 @@ let activeBranchName = "develop";
 let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
+
+interface DiagnosticTelemetry {
+  is_autonomous?: boolean;
+  reasoning?: string;
+  confidence_score?: number;
+  attempt_number?: number;
+  missing_context?: string;
+}
+
+interface UsageLogEntry {
+  timestamp: string;
+  tool: string;
+  telemetry: DiagnosticTelemetry | null;
+  business_args: Record<string, unknown>;
+  status: "success" | "error";
+}
+
+let diagnosticUsageLogPath: string | null = null;
+
+function extractToolCallPayload(args: Record<string, unknown>): {
+  businessArgs: Record<string, unknown>;
+  telemetry: DiagnosticTelemetry | null;
+} {
+  const { _diagnostic_telemetry, ...businessArgs } = args;
+  const telemetry =
+    _diagnostic_telemetry && typeof _diagnostic_telemetry === "object"
+      ? (_diagnostic_telemetry as DiagnosticTelemetry)
+      : null;
+  return { businessArgs, telemetry };
+}
+
+function appendUsageLogLine(entry: UsageLogEntry): void {
+  if (!DIAGNOSTIC_MODE_ENABLED || !diagnosticUsageLogPath) {
+    return;
+  }
+
+  const logDir = path.dirname(diagnosticUsageLogPath);
+  fs.mkdirSync(logDir, { recursive: true });
+  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(entry)}\n`, {
+    encoding: "utf8",
+  });
+}
 
 function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
   if (!isValidBranchName(branch)) {
@@ -652,6 +767,9 @@ function addTool(
   handler: ToolHandler,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
+    let telemetry: DiagnosticTelemetry | null = null;
+    let businessArgs: Record<string, unknown> = {};
+
     try {
       // Validate that args is a valid object
       if (typeof args !== "object" || args === null) {
@@ -660,13 +778,21 @@ function addTool(
         );
       }
 
+      if (DIAGNOSTIC_MODE_ENABLED) {
+        const payload = extractToolCallPayload(args);
+        telemetry = payload.telemetry;
+        businessArgs = payload.businessArgs;
+      } else {
+        businessArgs = args;
+      }
+
       // Check if shutting down before processing
       if (isShuttingDown) {
         throw new Error(`Tool ${name} rejected: server is shutting down`);
       }
 
       // Extract or generate requestId from args
-      const requestIdArg = (args as ToolHandlerArgs)._requestId;
+      const requestIdArg = (businessArgs as ToolHandlerArgs)._requestId;
       const requestId =
         typeof requestIdArg === "string"
           ? requestIdArg
@@ -676,18 +802,34 @@ function addTool(
       if (process.env.KIBI_MCP_DEBUG) {
         console.error(
           `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
-          JSON.stringify(args),
+          JSON.stringify(businessArgs),
         );
       }
 
       // Track the handler promise in inFlightRequests Map
-      const handlerPromise = handler(args);
+      const handlerPromise = handler(businessArgs);
       inFlightRequests.set(requestId, handlerPromise);
 
       try {
         // Execute handler
         const result = await handlerPromise;
+        appendUsageLogLine({
+          timestamp: new Date().toISOString(),
+          tool: name,
+          telemetry,
+          business_args: businessArgs,
+          status: "success",
+        });
         return result;
+      } catch (error) {
+        appendUsageLogLine({
+          timestamp: new Date().toISOString(),
+          tool: name,
+          telemetry,
+          business_args: businessArgs,
+          status: "error",
+        });
+        throw error;
       } finally {
         // Always clean up from Map when done (success or failure)
         inFlightRequests.delete(requestId);
@@ -720,9 +862,12 @@ function addTool(
 export async function startServer(): Promise<void> {
   loadDefaultEnvFile();
 
-  const server = new McpServer({ name: "kibi-mcp", version: "0.2.0" });
+  if (DIAGNOSTIC_MODE_ENABLED) {
+    const workspaceRoot = resolveWorkspaceRoot();
+    diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+  }
 
-  attachMcpcat(server);
+  const server = new McpServer({ name: "kibi-mcp", version: "0.2.1" });
 
   for (const prompt of PROMPTS) {
     server.prompt(prompt.name, prompt.description, async () => ({
@@ -753,7 +898,7 @@ export async function startServer(): Promise<void> {
   }
 
   const toolDef = (name: string) => {
-    const t = TOOLS.find((t) => t.name === name);
+    const t = ACTIVE_TOOLS.find((t) => t.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
     return t;
   };
