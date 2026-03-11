@@ -43,29 +43,105 @@
       fi
     done
 */
-import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  copyCleanSnapshot,
+  getBranchDiagnostic,
+  isValidBranchName,
+  resolveActiveBranch,
+  resolveDefaultBranch,
+} from "../utils/branch-resolver.js";
+import { loadConfig } from "../utils/config.js";
 
-export async function branchEnsureCommand(): Promise<void> {
-  const branch = execSync("git branch --show-current", {
-    encoding: "utf-8",
-  }).trim();
-  const kbPath = path.join(process.cwd(), ".kb/branches", branch);
-  const mainPath = path.join(process.cwd(), ".kb/branches/main");
+export interface BranchEnsureOptions {
+  from?: string;
+}
 
-  if (!fs.existsSync(mainPath)) {
+function resolveExplicitFromBranch(fromBranch: string): string | null {
+  if (!isValidBranchName(fromBranch)) {
     console.warn(
-      "Warning: main branch KB does not exist, skipping branch ensure",
+      `Warning: invalid branch name provided via --from: '${fromBranch}'`,
     );
+    return null;
+  }
+  const fromPath = path.join(process.cwd(), ".kb/branches", fromBranch);
+  if (fs.existsSync(fromPath)) {
+    return fromBranch;
+  }
+  console.warn(`Warning: --from branch '${fromBranch}' KB does not exist`);
+  return null;
+}
+
+function resolveDefaultSourceBranch(): string | null {
+  const config = loadConfig(process.cwd());
+  const defaultResult = resolveDefaultBranch(process.cwd(), config);
+
+  if ("branch" in defaultResult) {
+    const defaultBranch = defaultResult.branch;
+    const defaultPath = path.join(process.cwd(), ".kb/branches", defaultBranch);
+    if (fs.existsSync(defaultPath)) {
+      return defaultBranch;
+    }
+  } else {
+    console.warn(
+      `Warning: could not resolve default branch: ${defaultResult.error}`,
+    );
+  }
+  return null;
+}
+
+function determineSourceBranch(
+  explicitFromBranch: string | undefined,
+): string | null {
+  if (explicitFromBranch) {
+    const fromResult = resolveExplicitFromBranch(explicitFromBranch);
+    if (fromResult) {
+      return fromResult;
+    }
+  }
+  return resolveDefaultSourceBranch();
+}
+
+function createBranchKbFromSource(
+  sourceBranch: string,
+  targetBranch: string,
+): void {
+  const sourcePath = path.join(process.cwd(), ".kb/branches", sourceBranch);
+  const targetPath = path.join(process.cwd(), ".kb/branches", targetBranch);
+  copyCleanSnapshot(sourcePath, targetPath);
+  console.log(`Created branch KB: ${targetBranch} (from ${sourceBranch})`);
+}
+
+function createEmptyBranchKb(branch: string): void {
+  const kbPath = path.join(process.cwd(), ".kb/branches", branch);
+  fs.mkdirSync(kbPath, { recursive: true });
+  console.log(`Created branch KB: ${branch} (empty schema)`);
+}
+
+export async function branchEnsureCommand(
+  options?: BranchEnsureOptions,
+): Promise<void> {
+  const branchResult = resolveActiveBranch(process.cwd());
+
+  if ("error" in branchResult) {
+    console.error(getBranchDiagnostic(undefined, branchResult.error));
+    throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
+  }
+
+  const currentBranch = branchResult.branch;
+  const kbPath = path.join(process.cwd(), ".kb/branches", currentBranch);
+
+  if (fs.existsSync(kbPath)) {
+    console.log(`Branch KB already exists: ${currentBranch}`);
     return;
   }
 
-  if (!fs.existsSync(kbPath)) {
-    fs.cpSync(mainPath, kbPath, { recursive: true });
-    console.log(`Created branch KB: ${branch}`);
+  const sourceBranch = determineSourceBranch(options?.from);
+  if (sourceBranch) {
+    createBranchKbFromSource(sourceBranch, currentBranch);
   } else {
-    console.log(`Branch KB already exists: ${branch}`);
+    createEmptyBranchKb(currentBranch);
   }
 }
 

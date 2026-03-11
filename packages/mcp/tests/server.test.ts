@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type ChildProcess, spawn } from "node:child_process";
+import { type ChildProcess, execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -120,7 +120,7 @@ describe("MCP Server", () => {
       "kibi-mcp",
     );
     expect((result.serverInfo as Record<string, unknown>).version).toBe(
-      "0.1.0",
+      "0.2.0",
     );
     expect(result.capabilities).toBeDefined();
 
@@ -175,23 +175,48 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(16);
-    expect(tools[0].name).toBe("kb_query");
-    expect(tools[1].name).toBe("kb_upsert");
-    expect(tools[2].name).toBe("kb_delete");
-    expect(tools[3].name).toBe("kb_check");
-    expect(tools[4].name).toBe("kb_branch_ensure");
-    expect(tools[5].name).toBe("kb_branch_gc");
-    expect(tools[6].name).toBe("kb_query_relationships");
-    expect(tools[7].name).toBe("kb_derive");
-    expect(tools[8].name).toBe("kb_impact");
-    expect(tools[9].name).toBe("kb_coverage_report");
-    expect(tools[10].name).toBe("kb_symbols_refresh");
-    expect(tools[11].name).toBe("kb_list_entity_types");
-    expect(tools[12].name).toBe("kb_list_relationship_types");
-    expect(tools[13].name).toBe("kbcontext");
-    expect(tools[14].name).toBe("get_help");
-    expect(tools[15].name).toBe("analyze_shared_facts");
+    expect(tools.length).toBe(4);
+    expect(tools.map((tool) => tool.name)).toEqual([
+      "kb_query",
+      "kb_upsert",
+      "kb_delete",
+      "kb_check",
+    ]);
+    proc.kill();
+  });
+
+  test("should reject removed MCP tools", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "kb_branch_gc",
+        arguments: { dry_run: true },
+      },
+    });
+
+    // MCP SDK returns tool errors in result with isError flag, not as top-level error
+    const result = response.result as Record<string, unknown> | undefined;
+    expect(result?.isError).toBe(true);
+    const content = result?.content as
+      | Array<{ type: string; text: string }>
+      | undefined;
+    expect(content?.[0]?.text).toMatch(/not found/i);
+
     proc.kill();
   });
 
@@ -220,6 +245,68 @@ describe("MCP Server", () => {
 
     proc.kill();
     fs.rmSync(tempRoot, { recursive: true, force: true });
+  });
+
+  test("should auto-create branch KB for active branch before first tool call", async () => {
+    const tempRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-branch-init-"),
+    );
+
+    execSync("git init", { cwd: tempRoot, stdio: "ignore" });
+    execSync('git config user.email "test@example.com"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    execSync('git config user.name "Kibi Test"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    fs.writeFileSync(path.join(tempRoot, "README.md"), "test\n");
+    execSync("git add README.md", { cwd: tempRoot, stdio: "ignore" });
+    execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
+    execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
+    execSync("git checkout -b feature-auto-ensure", {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+
+    const developKb = path.join(tempRoot, ".kb/branches/develop");
+    fs.mkdirSync(path.join(developKb, "journal"), { recursive: true });
+    fs.writeFileSync(path.join(developKb, "kb.rdf"), "");
+    fs.writeFileSync(path.join(developKb, "kb.rdf.lock"), "");
+
+    const proc = startServer({ cwd: tempRoot });
+
+    try {
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+
+      const response = await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_query",
+          arguments: { type: "req" },
+        },
+      });
+
+      expect(response.error).toBeUndefined();
+      expect(
+        fs.existsSync(path.join(tempRoot, ".kb/branches/feature-auto-ensure")),
+      ).toBe(true);
+    } finally {
+      proc.kill();
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
   });
 
   test("should return error for invalid method", async () => {

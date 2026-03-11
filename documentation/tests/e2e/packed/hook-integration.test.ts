@@ -72,6 +72,12 @@ describe("E2E: Git Hook Integration", () => {
 
     const content = readFileSync(hookPath, "utf8");
     assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+    // Ensure we only run branch-ensure on branch checkout and attempt to forward old branch
+    assert.ok(/branch_flag is 1 for branch checkout/.test(content));
+    assert.ok(
+      /git name-rev --name-only/.test(content) ||
+        /kibi branch ensure --from/.test(content),
+    );
   });
 
   it("should install post-merge hook by default", async () => {
@@ -90,12 +96,28 @@ describe("E2E: Git Hook Integration", () => {
     assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
   });
 
+  it("should install post-rewrite hook by default", async () => {
+    if (!hasProlog) return;
+
+    await kibi(sandbox, ["init"]);
+
+    const hookPath = join(sandbox.repoDir, ".git/hooks/post-rewrite");
+    assert.ok(existsSync(hookPath), "post-rewrite hook should exist");
+
+    const stats = statSync(hookPath);
+    const isExecutable = (stats.mode & 0o111) !== 0;
+    assert.ok(isExecutable, "Hook should be executable");
+
+    const content = readFileSync(hookPath, "utf8");
+    assert.ok(content.includes("kibi sync"), "Hook should contain kibi sync");
+  });
+
   it("should create branch KB on git checkout", async () => {
     if (!hasProlog) return;
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(
@@ -138,7 +160,7 @@ status: approved
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(
@@ -260,6 +282,10 @@ echo "Existing hook"
       !existsSync(join(sandbox.repoDir, ".git/hooks/post-merge")),
       "post-merge hook should not exist",
     );
+    assert.ok(
+      !existsSync(join(sandbox.repoDir, ".git/hooks/post-rewrite")),
+      "post-rewrite hook should not exist",
+    );
   });
 
   it(
@@ -270,7 +296,7 @@ echo "Existing hook"
 
       await kibi(sandbox, ["init"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -326,7 +352,7 @@ status: approved
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
     mkdirSync(reqDir, { recursive: true });
 
     writeFileSync(

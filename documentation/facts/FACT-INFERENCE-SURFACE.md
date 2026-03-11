@@ -8,4 +8,4 @@ source: documentation/facts/FACT-INFERENCE-SURFACE.md
 tags: [inference, mcp]
 ---
 
-The API surface exposes deterministic inference queries over the KB graph.
+Deterministic inference exists over the KB graph, but the public MCP API surface stays limited to the four core CRUD and validation tools.

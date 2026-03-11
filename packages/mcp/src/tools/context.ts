@@ -47,7 +47,6 @@ import type { PrologProcess } from "kibi-cli/prolog";
 
 export interface ContextArgs {
   sourceFile: string;
-  branch?: string;
 }
 
 export interface ContextResult {
@@ -72,20 +71,8 @@ export interface ContextResult {
 export async function handleKbContext(
   prolog: PrologProcess,
   args: ContextArgs,
-  activeBranch?: string,
 ): Promise<ContextResult> {
-  const { sourceFile, branch } = args;
-
-  if (branch && activeBranch && branch !== activeBranch) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Error: branch parameter is not supported server-side; set KIBI_BRANCH at startup or restart server on the desired branch. (Requested: ${branch}, Active: ${activeBranch})`,
-        },
-      ],
-    };
-  }
+  const { sourceFile } = args;
 
   try {
     const safeSource = sourceFile.replace(/'/g, "\\'");

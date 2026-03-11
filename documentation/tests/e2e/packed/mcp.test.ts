@@ -72,7 +72,7 @@ describe("MCP E2E: Server Operations", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/REQ-MCP-001.md",
+        "documentation/requirements/REQ-MCP-001.md",
         {
           id: "REQ-MCP-001",
           title: "MCP Test Requirement",
@@ -222,9 +222,13 @@ describe("MCP E2E: Server Operations", () => {
                 clearTimeout(timeout);
                 void stopProcess(mcpProcess).finally(() => {
                   assert.ok(Array.isArray(tools), "Tools should be an array");
-                  assert.ok(tools.length > 0, "Should have at least one tool");
-
                   const toolNames = tools.map((t) => t.name);
+                  assert.deepStrictEqual(toolNames, [
+                    "kb_query",
+                    "kb_upsert",
+                    "kb_delete",
+                    "kb_check",
+                  ]);
                   console.log("  ✓ Available tools:", toolNames.join(", "));
 
                   resolve();
@@ -308,6 +312,11 @@ describe("MCP E2E: Server Operations", () => {
                   );
 
                   const text = content.map((c) => c.text).join("");
+                  assert.ok(
+                    text.includes("REQ-MCP-001") ||
+                      text.includes("MCP Test Requirement"),
+                    "Query should return the test requirement",
+                  );
                   assert.ok(
                     text.includes("REQ-MCP-001") ||
                       text.includes("MCP Test Requirement"),

@@ -1,7 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { unlinkSync, writeFileSync } from "node:fs";
+import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import {
   FrontmatterError,
+  detectEmbeddedEntities,
   extractFromMarkdown,
   inferTypeFromPath,
 } from "../../src/extractors/markdown";
@@ -238,5 +239,182 @@ links:
     expect(result.relationships[0].to).toBe("ADR-005");
 
     unlinkSync(tempFile);
+  });
+
+  describe("Embedded Entity Detection", () => {
+    test("rejects requirement with embedded scenarios array", () => {
+      const tempFile = "/tmp/requirements/test-embedded-scenarios.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-001
+title: Some requirement
+scenarios:
+  - Given: user is logged in
+    When: they click X
+    Then: Y happens
+---
+# Content
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Embedded Entity Violation");
+        expect(fe.message).toContain("Invalid embedded entity");
+        expect(fe.message).toContain("scenario");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects requirement with embedded tests array", () => {
+      const tempFile = "/tmp/requirements/test-embedded-tests.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-001
+title: Some requirement
+tests:
+  - name: test 1
+    expected: result
+---
+# Content
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Embedded Entity Violation");
+        expect(fe.message).toContain("Invalid embedded entity");
+        expect(fe.message).toContain("test");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects requirement with embedded steps array", () => {
+      const tempFile = "/tmp/requirements/test-embedded-steps.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-001
+title: Some requirement
+steps:
+  - given: user is logged in
+    when: they click X
+    then: Y happens
+---
+# Content
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Embedded Entity Violation");
+        expect(fe.message).toContain("scenario");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("allows separate scenario files with links", () => {
+      const tempFile = "/tmp/scenarios/test-valid-scenario.md";
+      mkdirSync("/tmp/scenarios", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: SCEN-001
+title: Scenario for REQ-001
+links:
+  - REQ-001
+---
+# Content
+`,
+      );
+
+      const result = extractFromMarkdown(tempFile);
+      expect(result.entity.id).toBe("SCEN-001");
+      expect(result.entity.type).toBe("scenario");
+      expect(result.relationships.length).toBeGreaterThan(0);
+
+      unlinkSync(tempFile);
+    });
+
+    test("allows separate test files with links", () => {
+      const tempFile = "/tmp/tests/test-valid-test.md";
+      mkdirSync("/tmp/tests", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: TEST-001
+title: Test for REQ-001
+links:
+  - REQ-001
+---
+# Content
+`,
+      );
+
+      const result = extractFromMarkdown(tempFile);
+      expect(result.entity.id).toBe("TEST-001");
+      expect(result.entity.type).toBe("test");
+      expect(result.relationships.length).toBeGreaterThan(0);
+
+      unlinkSync(tempFile);
+    });
+
+    test("detectEmbeddedEntities returns empty for non-req types", () => {
+      const data = { scenarios: [{ given: "test" }] };
+      const result = detectEmbeddedEntities(data, "scenario");
+      expect(result).toEqual([]);
+    });
+
+    test("detectEmbeddedEntities returns empty when no embedded entities", () => {
+      const data = { title: "Test", status: "open" };
+      const result = detectEmbeddedEntities(data, "req");
+      expect(result).toEqual([]);
+    });
+
+    test("detectEmbeddedEntities detects both scenario and test fields", () => {
+      const data = {
+        scenarios: [{ given: "test" }],
+        tests: [{ name: "test" }],
+      };
+      const result = detectEmbeddedEntities(data, "req");
+      expect(result).toContain("scenario");
+      expect(result).toContain("test");
+    });
+
+    test("detectEmbeddedEntities detects scalar string scenario fields", () => {
+      const result = detectEmbeddedEntities(
+        { given: "user is logged in" },
+        "req",
+      );
+      expect(result).toContain("scenario");
+    });
+
+    test("detectEmbeddedEntities detects scalar string test fields", () => {
+      const result = detectEmbeddedEntities(
+        { tests: "some test description" },
+        "req",
+      );
+      expect(result).toContain("test");
+    });
   });
 });

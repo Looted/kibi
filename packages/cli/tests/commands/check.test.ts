@@ -68,9 +68,9 @@ describe("kibi check", () => {
     "passes on valid KB",
     async () => {
       // Create valid requirement with scenario and test
-      const reqDir = path.join(tmpDir, "requirements");
-      const scenarioDir = path.join(tmpDir, "scenarios");
-      const testDir = path.join(tmpDir, "tests");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const testDir = path.join(tmpDir, "documentation/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -139,8 +139,8 @@ links:
   test(
     "detects must-priority requirement without scenario",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
-      const testDir = path.join(tmpDir, "tests");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const testDir = path.join(tmpDir, "documentation/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(testDir, { recursive: true });
@@ -193,8 +193,8 @@ links:
   test(
     "detects must-priority requirement without test",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
-      const scenarioDir = path.join(tmpDir, "scenarios");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -245,9 +245,9 @@ links:
   test(
     "passes must-priority coverage with verified_by relationship",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
-      const scenarioDir = path.join(tmpDir, "scenarios");
-      const testDir = path.join(tmpDir, "tests");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const testDir = path.join(tmpDir, "documentation/tests");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(scenarioDir, { recursive: true });
@@ -317,8 +317,10 @@ source: tests/TEST-VERIFIED-001.md
   test(
     "reports each uncovered symbol once",
     async () => {
+      const symbolsDir = path.join(tmpDir, "documentation");
+      mkdirSync(symbolsDir, { recursive: true });
       writeFileSync(
-        path.join(tmpDir, "symbols.yaml"),
+        path.join(symbolsDir, "symbols.yaml"),
         `symbols:
   - id: symbol-uncovered-001
     title: Uncovered Symbol 1
@@ -346,7 +348,7 @@ source: tests/TEST-VERIFIED-001.md
   test(
     "detects self dependency cycle",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -387,7 +389,7 @@ links:
   test(
     "detects dangling reference",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -424,7 +426,7 @@ links:
   test(
     "detects cycle in depends_on",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -500,7 +502,7 @@ links:
   test(
     "detects missing required field",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -532,7 +534,7 @@ owner: alice
   test(
     "suggests fixes with --fix flag",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
 
       mkdirSync(reqDir, { recursive: true });
 
@@ -573,7 +575,7 @@ owner: alice
   test(
     "detects deprecated ADR with no successor",
     async () => {
-      const adrDir = path.join(tmpDir, "adr");
+      const adrDir = path.join(tmpDir, "documentation/adr");
 
       mkdirSync(adrDir, { recursive: true });
 
@@ -609,7 +611,7 @@ source: adr/ADR-001.md
   test(
     "passes when deprecated ADR has a supersedes relationship",
     async () => {
-      const adrDir = path.join(tmpDir, "adr");
+      const adrDir = path.join(tmpDir, "documentation/adr");
 
       mkdirSync(adrDir, { recursive: true });
 
@@ -665,8 +667,8 @@ links:
   test(
     "fails when domain contradictions exist",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
-      const factDir = path.join(tmpDir, "facts");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });
@@ -762,8 +764,8 @@ links:
   test(
     "passes when contradiction is superseded",
     async () => {
-      const reqDir = path.join(tmpDir, "requirements");
-      const factDir = path.join(tmpDir, "facts");
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
 
       mkdirSync(reqDir, { recursive: true });
       mkdirSync(factDir, { recursive: true });

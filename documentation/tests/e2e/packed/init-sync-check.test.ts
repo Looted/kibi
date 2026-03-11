@@ -75,8 +75,8 @@ describe("E2E: Init-Sync-Check Workflow", () => {
       readFileSync(join(sandbox.repoDir, ".kb/config.json"), "utf8"),
     );
     assert.ok(config.paths);
-    assert.strictEqual(config.paths.requirements, "requirements");
-    assert.strictEqual(config.paths.scenarios, "scenarios");
+    assert.strictEqual(config.paths.requirements, "documentation/requirements");
+    assert.strictEqual(config.paths.scenarios, "documentation/scenarios");
   });
 
   it("should sync imports entities from documents", async () => {
@@ -84,14 +84,14 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     await kibi(sandbox, ["init"]);
 
-    const reqDir = join(sandbox.repoDir, "requirements");
-    const scenarioDir = join(sandbox.repoDir, "scenarios");
+    const reqDir = join(sandbox.repoDir, "documentation/requirements");
+    const scenarioDir = join(sandbox.repoDir, "documentation/scenarios");
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
 
     createMarkdownFile(
       sandbox,
-      "requirements/req1.md",
+      "documentation/requirements/req1.md",
       {
         title: "User Login",
         type: "req",
@@ -104,7 +104,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     createMarkdownFile(
       sandbox,
-      "scenarios/login.md",
+      "documentation/scenarios/login.md",
       {
         title: "Login Flow",
         type: "scenario",
@@ -132,7 +132,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     createMarkdownFile(
       sandbox,
-      "requirements/req-auth.md",
+      "documentation/requirements/req-auth.md",
       {
         id: "req-auth",
         title: "Authentication Required",
@@ -161,7 +161,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/valid-req.md",
+        "documentation/requirements/valid-req.md",
         {
           title: "Valid Requirement",
           type: "req",
@@ -192,7 +192,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
     createMarkdownFile(
       sandbox,
-      "requirements/req1.md",
+      "documentation/requirements/req1.md",
       {
         title: "Test Requirement",
         type: "req",
@@ -227,7 +227,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/req-auth.md",
+        "documentation/requirements/req-auth.md",
         {
           id: "req-auth",
           title: "Auth Requirement",
@@ -240,7 +240,7 @@ describe("E2E: Init-Sync-Check Workflow", () => {
 
       createMarkdownFile(
         sandbox,
-        "requirements/req-perf.md",
+        "documentation/requirements/req-perf.md",
         {
           id: "req-perf",
           title: "Performance Requirement",

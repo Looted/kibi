@@ -78,6 +78,10 @@ export async function doctorCommand(): Promise<void> {
       name: "pre-commit hook",
       check: checkPreCommitHook,
     },
+    {
+      name: "post-rewrite hook",
+      check: checkPostRewriteHook,
+    },
   ];
 
   console.log("Kibi Environment Diagnostics\n");
@@ -347,6 +351,73 @@ function checkPreCommitHook(): {
       passed: false,
       message: "Installed but not executable",
       remediation: "Run: chmod +x .git/hooks/pre-commit",
+    };
+  } catch (error) {
+    return {
+      passed: false,
+      message: "Unable to check hook permissions or read content",
+      remediation: "Run: kibi init --hooks",
+    };
+  }
+}
+
+function checkPostRewriteHook(): {
+  passed: boolean;
+  message: string;
+  remediation?: string;
+} {
+  const postCheckoutPath = path.join(process.cwd(), ".git/hooks/post-checkout");
+  const postMergePath = path.join(process.cwd(), ".git/hooks/post-merge");
+  const postRewritePath = path.join(process.cwd(), ".git/hooks/post-rewrite");
+
+  const postCheckoutExists = existsSync(postCheckoutPath);
+  const postMergeExists = existsSync(postMergePath);
+
+  if (!postCheckoutExists && !postMergeExists) {
+    return {
+      passed: true,
+      message: "Not installed (optional)",
+    };
+  }
+
+  const postRewriteExists = existsSync(postRewritePath);
+
+  if (!postRewriteExists) {
+    return {
+      passed: false,
+      message: "Not installed",
+      remediation: "Run: kibi init --hooks",
+    };
+  }
+
+  try {
+    const postRewriteStats = statSync(postRewritePath);
+    const postRewriteExecutable = (postRewriteStats.mode & 0o111) !== 0;
+
+    // Read hook content to verify it invokes kibi
+    const content = readFileSync(postRewritePath, "utf-8");
+
+    const usesKibi = content.includes("kibi sync");
+
+    if (!usesKibi) {
+      return {
+        passed: false,
+        message: "post-rewrite hook installed but does not invoke kibi",
+        remediation: "Run: kibi init --hooks to install recommended hooks",
+      };
+    }
+
+    if (postRewriteExecutable) {
+      return {
+        passed: true,
+        message: "Installed and executable",
+      };
+    }
+
+    return {
+      passed: false,
+      message: "Installed but not executable",
+      remediation: "Run: chmod +x .git/hooks/post-rewrite",
     };
   } catch (error) {
     return {

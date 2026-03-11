@@ -62,7 +62,7 @@ describe("E2E: Branch KB Workflow", () => {
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -126,7 +126,7 @@ status: draft
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -203,7 +203,7 @@ status: draft
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -285,7 +285,7 @@ status: approved
         env: sandbox.env,
       });
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -322,7 +322,7 @@ status: draft
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -384,7 +384,7 @@ status: approved
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(
@@ -473,7 +473,7 @@ status: draft
 
       await kibi(sandbox, ["init", "--no-hooks"]);
 
-      const reqDir = join(sandbox.repoDir, "requirements");
+      const reqDir = join(sandbox.repoDir, "documentation/requirements");
       mkdirSync(reqDir, { recursive: true });
 
       writeFileSync(

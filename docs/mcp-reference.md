@@ -2,211 +2,91 @@
 
 The Kibi Model Context Protocol (MCP) server is the primary interface for LLM agents. The server operates over `stdio` and receives JSON-RPC 2.0 requests.
 
-## Core Tools
+## Public Tools
+
+The public MCP surface is intentionally small. Agents can call exactly four tools:
 
 ### `kb_query`
 
-Retrieve entities by `type`, `id`, or `tags`. Supports limit and offset pagination.
+Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.
 
 **Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
 - `type` (optional): Entity type (`req`, `scenario`, `test`, `adr`, `flag`, `event`, `symbol`, `fact`)
 - `id` (optional): Entity ID (exact match)
-- `tag` (optional): Tag for filtering
+- `tags` (optional): Tag list for filtering
+- `sourceFile` (optional): Source-file substring filter
 - `limit` (optional): Maximum number of results
 - `offset` (optional): Number of results to skip
 
 **Returns:**
-Array of entities matching the query criteria.
+Array of matching entities with deterministic ordering.
 
 ### `kb_upsert`
 
-Create or update an entity and simultaneously assert relationships. The LLM should provide the full `properties` map (auto-filling timestamps if omitted).
+Create or update a single entity and optional relationships in one call.
 
 **Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `entity`: Entity object with required fields (`id`, `title`, `status`, `created_at`, `updated_at`, `source`) and optional fields (`tags`, `owner`, `priority`, `severity`, `links`, `text_ref`)
-- `relationships` (optional): Array of relationship objects with `type`, `source`, `target`, `created_at`, `created_by`, `source`
+- `type`: Entity type enum
+- `id`: Entity ID
+- `properties`: Entity fields, including required `title` and `status`
+- `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
 
 **Returns:**
-Confirmation of the upsert operation.
+Confirmation of entity creation/update and relationship creation counts.
 
 ### `kb_delete`
 
-Deletes an entity. This tool prevents deletion if an entity has dependents (referential integrity check).
+Delete one or more entities by ID. Deletion is blocked when dependents still reference the target.
 
 **Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `id`: Entity ID to delete
+- `ids`: Array of entity IDs to delete
 
 **Returns:**
-Confirmation of the delete operation, or error if entity has dependents.
+Confirmation of deletion, or an error describing blocked dependents.
 
 ### `kb_check`
 
-Runs all internal validation rules (`must-priority-coverage`, `no-dangling-refs`, `no-cycles`, `required-fields`). The LLM should always run this after large upserts.
+Run KB validation rules after mutations.
 
 **Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `no-dangling-refs`, `no-cycles`, `required-fields`, `symbol-coverage`)
 
 **Returns:**
-Validation report with any violations found and suggestions for fixing them.
+Validation report with any violations found and suggested fixes.
 
-### `kb_query_relationships`
+## Discoverability
 
-Allows searching specifically for relationships by `from`, `to`, or `type`.
+- MCP clients discover available tools through `tools/list`.
+- Allowed static values are encoded directly in each tool's `inputSchema` enums.
+- There are no separate runtime listing tools for entity or relationship types.
 
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `from` (optional): Source entity ID
-- `to` (optional): Target entity ID
-- `type` (optional): Relationship type
-- `limit` (optional): Maximum number of results
+## Branch Behavior
 
-**Returns:**
-Array of relationships matching the query criteria.
-
-### `kb_branch_ensure`
-
-Ensure a branch KB exists. If the branch is new, creates a snapshot from `main`.
-
-**Parameters:**
-- `branch`: Branch name to ensure
-
-**Returns:**
-Confirmation that the branch KB exists.
-
-### `kb_branch_gc`
-
-Garbage collect branch KBs that have been merged or deleted in git.
-
-**Parameters:**
-- `dry_run` (optional): If true, only list stale branches without deleting
-- `branch` (optional): Specific branch to check
-
-**Returns:**
-List of branches that would be garbage collected, or confirmation of deletion.
-
-## Inference Tools
-
-### `kb_derive`
-
-Generic inference endpoint for running derived predicates.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `rule`: Rule name to run (see supported rules below)
-- `params`: Rule-specific parameters
-
-**Supported Rules:**
-- `transitively_implements`: Returns symbols transitively implementing a requirement
-- `transitively_depends`: Returns requirements transitively depending on another
-- `impacted_by_change`: Returns entities impacted by a change to another entity
-- `affected_symbols`: Returns symbols implementing a requirement (including transitive dependencies)
-- `coverage_gap`: Evaluates coverage gaps for MUST requirements
-- `untested_symbols`: Returns symbols without test coverage
-- `stale`: Returns entities not updated recently
-- `orphaned`: Returns symbols with no implementation or test links
-- `conflicting`: Returns ADR pairs constraining the same symbol
-- `deprecated_still_used`: Returns deprecated ADRs still constraining symbols
-- `current_adr`: Returns all currently active ADRs
-- `adr_chain`: Returns full temporal chain from an ADR to current
-- `superseded_by`: Returns direct successor for an ADR
-- `domain_contradictions`: Returns contradictory requirements
-
-**Returns:**
-Structured content with rule results, including count, rows, and provenance.
-
-### `kb_impact`
-
-Shorthand for impact analysis. Returns all entities impacted by a change to a specific entity.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `entity`: Entity ID to analyze impact for
-
-**Returns:**
-Impact report with `entity`, `impacted` (sorted list of `{id, type}`), `count`, and `provenance`.
-
-### `kb_coverage_report`
-
-Aggregate coverage rollup for requirements or symbols.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `type` (optional): Entity type (`req`, `symbol`, or all)
-
-**Returns:**
-Coverage report with totals, gap reasons, untested symbol IDs, and provenance predicates.
-
-### `kb_current_adr`
-
-Returns all current (non-superseded) ADRs.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-
-**Returns:**
-List of current ADRs with `id`, `title`, and other metadata.
-
-### `kb_adr_chain`
-
-Returns full temporal chain from a starting ADR to the current one.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `adr`: ADR ID to start chain from
-
-**Returns:**
-Ordered chain of ADRs from the starting ADR to the current one, with statuses.
-
-### `kb_superseded_by`
-
-Returns direct successor for an ADR.
-
-**Parameters:**
-- `branch` (optional): Branch name for branch-aware operations
-- `adr`: ADR ID to find successor for
-
-**Returns:**
-Successor ADR information with `successor_id` and `successor_title`.
+- The server attaches to the active git branch automatically at startup.
+- If the active branch KB does not exist, the server attempts to create it from an existing template branch KB (`develop` first, then `main`).
+- Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
+- You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
+- Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
 
 ## Recommended Agent Workflow
 
-1. **Gather Context**: Use `kb_query` to read existing Requirements (`req`) or architectural decisions (`adr`) related to the user's task.
-2. **Execute Changes**: Write new code or documentation, and call `kb_upsert` to register new `symbol` or `test` entities.
-3. **Validate**: Call `kb_check` to ensure the new entities don't introduce cycle dependencies or dangling references.
-
-## Branch-Aware Operations
-
-All MCP tools support a `branch` parameter for branch-aware operations. If not provided, the server defaults to the current git branch.
-
-To force a specific branch, set the `branch` parameter:
-```json
-{
-  "branch": "feature-x",
-  "type": "req"
-}
-```
-
-Or set the `KIBI_BRANCH` environment variable when starting the `kibi-mcp` server:
-```bash
-KIBI_BRANCH=feature-x kibi-mcp
-```
+1. **Gather Context**: Use `kb_query` to inspect existing requirements, ADRs, tests, or symbols.
+2. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
+3. **Validate**: Run `kb_check` after structural changes.
+4. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
 ## Error Handling
 
 The MCP server returns structured errors for:
-- Invalid parameters (missing required fields, invalid types)
+- Invalid parameters (missing required fields, invalid enum values)
 - Referential integrity violations (attempting to delete entities with dependents)
-- Branch not found errors
+- Branch KB startup/attach failures
 - Validation failures
 
-Always check error responses and handle them gracefully before proceeding with operations.
+Always check error responses before proceeding with more mutations.
 
 ## Determinism Guarantees
 
-- All query results are sorted and de-duplicated for consistency
-- MCP responses include explicit field names and fixed shapes
-- Aggregate and report outputs are sorted before returning
-- The LLM can rely on stable ordering across repeated calls
+- Query results are sorted and de-duplicated for consistency
+- MCP responses use explicit field names and fixed shapes
+- Validation output is stable across repeated runs on unchanged KB state
