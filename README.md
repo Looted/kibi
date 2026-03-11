@@ -171,6 +171,63 @@ bun run publish:selective core,mcp  # publish only core and mcp
 bun run publish:selective cli  # publish only cli
 ```
 
+## Release Workflow (npm Packages)
+
+Kibi uses [changesets](https://github.com/changesets/changesets) for release metadata, changelogs, and versioning.  
+**Do NOT publish directly:** All npm publishing is performed by GitHub Actions after PR review and merge. Local/PR workflows only prepare changesets and version bumps.
+
+### Steps for Releasing
+
+1. **Add a changeset for your changes**  
+   ```bash
+   bun run changeset
+   ```
+   - Select affected packages (e.g., `kibi-core`, `kibi-cli`, `kibi-mcp`)
+   - Choose semver impact (patch/minor/major)
+   - Write a summary of the changes
+
+2. **Commit the generated `.changeset/*.md` file**  
+   - Use a Conventional Commit message describing the scope and reason for the release metadata or version change.
+
+3. **Open a PR with your changeset(s)**  
+   - Do NOT publish directly.  
+   - The PR will be reviewed and merged.
+
+4. **After PR merge, GitHub Actions will:**  
+   - Run `bun run version-packages` to bump versions and update changelogs
+   - Run `bun run release:npm` to publish only packages with new versions
+
+### Commands Reference
+
+- Add a changeset:  
+  `bun run changeset`
+- Check release status:  
+  `bunx changeset status`
+- Version packages (updates package.json and changelogs):  
+  `bun run version-packages`
+- Publish (CI only):  
+  `bun run release:npm`
+- Publish specific packages:  
+  `bun run publish:selective core,mcp`
+
+### Changelog Policy
+
+- All user-facing changes must be described in the changeset summary.
+- Changelogs are generated automatically from changesets.
+
+### defaultBranch Precedence
+
+When preparing releases, the default branch is resolved in this order:
+1. `.kb/config.json` `defaultBranch`
+2. `origin/HEAD`
+3. `main`
+
+### VS Code Extension
+
+The VS Code extension (`kibi-vscode`) is NOT published as part of the npm release workflow. It is published separately to the VS Code Marketplace.
+
+---
+
 ## Directory Structure
 
 ```
