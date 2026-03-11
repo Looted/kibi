@@ -8,7 +8,7 @@ check_and_publish() {
   local pkg_name="$1"
   local pkg_dir="$2"
   shift 2  # Remove pkg_name and pkg_dir from args, remaining are npm publish flags
-  local version=$(node -p "require('./${pkg_dir}/package.json').version")
+  local version=$(node -p "require('./packages/${pkg_dir}/package.json').version")
   
   echo "Checking ${pkg_name} local version: ${version}"
   

@@ -58,13 +58,86 @@ import {
 } from "kibi-cli/public/branch-resolver";
 import { z } from "zod";
 import { loadDefaultEnvFile } from "./env.js";
-import { attachMcpcat } from "./mcpcat.js";
 import { TOOLS } from "./tools-config.js";
 import { type CheckArgs, handleKbCheck } from "./tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "./tools/delete.js";
 import { type QueryArgs, handleKbQuery } from "./tools/query.js";
 import { type UpsertArgs, handleKbUpsert } from "./tools/upsert.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "./workspace.js";
+
+const DIAGNOSTIC_MODE_FLAG = "--diagnostic-mode";
+const DIAGNOSTIC_MODE_ENABLED = process.argv.includes(DIAGNOSTIC_MODE_FLAG);
+
+const DIAGNOSTIC_TELEMETRY_SCHEMA = {
+  type: "object",
+  description:
+    "REQUIRED when diagnostic mode is on. Provide self-reflection metadata about this tool call.",
+  properties: {
+    is_autonomous: {
+      type: "boolean",
+      description:
+        "Set to TRUE if you are calling this tool on your own initiative to retrieve context. Set to FALSE if the user explicitly commanded you to use the knowledge base.",
+    },
+    reasoning: {
+      type: "string",
+      description:
+        "A brief, 1-2 sentence internal thought explaining exactly why you are calling this tool right now and what information you expect to get.",
+    },
+    confidence_score: {
+      type: "number",
+      description:
+        "A score from 0.0 to 1.0 representing your confidence that the exact parameters, IDs, or tags you provided will yield a successful result.",
+    },
+    attempt_number: {
+      type: "integer",
+      description:
+        "If you are retrying this exact task because a previous tool call failed or returned empty results, increment this number (start at 1).",
+    },
+    missing_context: {
+      type: "string",
+      description:
+        "If you had to split your task into multiple steps because this tool lacks a specific filtering or querying capability, describe what parameter is missing. Otherwise, leave empty.",
+    },
+  },
+} as const;
+
+interface ToolConfig {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+}
+
+function withDiagnosticTelemetrySchema(
+  tools: readonly ToolConfig[],
+): ToolConfig[] {
+  return tools.map((tool) => {
+    const schema =
+      tool.inputSchema && typeof tool.inputSchema === "object"
+        ? (tool.inputSchema as Record<string, unknown>)
+        : {};
+
+    const properties =
+      schema.properties && typeof schema.properties === "object"
+        ? (schema.properties as Record<string, unknown>)
+        : {};
+
+    return {
+      ...tool,
+      inputSchema: {
+        ...schema,
+        properties: {
+          ...properties,
+          _diagnostic_telemetry: DIAGNOSTIC_TELEMETRY_SCHEMA,
+        },
+      },
+    };
+  });
+}
+
+const BASE_TOOLS = TOOLS as unknown as ToolConfig[];
+const ACTIVE_TOOLS = DIAGNOSTIC_MODE_ENABLED
+  ? withDiagnosticTelemetrySchema(BASE_TOOLS)
+  : BASE_TOOLS;
 
 interface DocResource {
   uri: string;
@@ -84,7 +157,7 @@ function renderToolsDoc(): string {
     "| --- | --- | --- |",
   ];
 
-  for (const tool of TOOLS) {
+  for (const tool of ACTIVE_TOOLS) {
     const required = Array.isArray(tool.inputSchema?.required)
       ? tool.inputSchema.required.join(", ")
       : "none";
@@ -279,10 +352,118 @@ function getHelpText(topic?: string): string {
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 let activeBranchName = "develop";
+let ensurePrologTail: Promise<void> = Promise.resolve();
 // Shutdown tracking state
 let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 const inFlightRequests = new Map<string, Promise<unknown>>();
+
+interface DiagnosticTelemetry {
+  is_autonomous?: boolean;
+  reasoning?: string;
+  confidence_score?: number;
+  attempt_number?: number;
+  missing_context?: string;
+}
+
+interface UsageLogEntry {
+  timestamp: string;
+  request_id: string;
+  tool: string;
+  telemetry: DiagnosticTelemetry | null;
+  business_args: Record<string, unknown>;
+  status: "success" | "error";
+  started_at: string;
+  finished_at: string;
+  duration_ms: number;
+  prolog_pid: number | null;
+  active_branch: string;
+  error_message?: string;
+  contradiction_signal?: {
+    attempted_entity_id: string;
+    contradiction_pairs_detected: number;
+    probe_error?: string;
+  };
+}
+
+let diagnosticUsageLogPath: string | null = null;
+
+function extractToolCallPayload(args: Record<string, unknown>): {
+  businessArgs: Record<string, unknown>;
+  telemetry: DiagnosticTelemetry | null;
+} {
+  const { _diagnostic_telemetry, ...businessArgs } = args;
+  const telemetry =
+    _diagnostic_telemetry && typeof _diagnostic_telemetry === "object"
+      ? (_diagnostic_telemetry as DiagnosticTelemetry)
+      : null;
+  return { businessArgs, telemetry };
+}
+
+function appendUsageLogLine(entry: UsageLogEntry): void {
+  if (!DIAGNOSTIC_MODE_ENABLED || !diagnosticUsageLogPath) {
+    return;
+  }
+
+  const logDir = path.dirname(diagnosticUsageLogPath);
+  fs.mkdirSync(logDir, { recursive: true });
+  fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(entry)}\n`, {
+    encoding: "utf8",
+  });
+}
+
+function extractContradictionSignal(
+  tool: string,
+  args: Record<string, unknown>,
+  result: unknown,
+): UsageLogEntry["contradiction_signal"] | undefined {
+  if (tool !== "kb_upsert") {
+    return undefined;
+  }
+  const id = typeof args.id === "string" ? args.id : undefined;
+  if (!id) {
+    return undefined;
+  }
+
+  const structured =
+    result && typeof result === "object"
+      ? (result as { structuredContent?: Record<string, unknown> })
+          .structuredContent
+      : undefined;
+  if (!structured || typeof structured !== "object") {
+    return undefined;
+  }
+
+  const rawCount = structured.contradiction_pairs_detected;
+  const count = typeof rawCount === "number" ? rawCount : Number(rawCount);
+  if (!Number.isFinite(count) || count < 0) {
+    return undefined;
+  }
+
+  return {
+    attempted_entity_id: id,
+    contradiction_pairs_detected: count,
+  };
+}
+
+async function probeContradictionsForReq(
+  reqId: string,
+): Promise<{ count: number | null; error?: string }> {
+  if (!prologProcess?.isRunning()) {
+    return { count: null, error: "prolog_process_not_running" };
+  }
+  const escaped = reqId.replace(/'/g, "\\'");
+  const goal = `aggregate_all(count, (contradicting_reqs(A, B, _), (A = '${escaped}' ; B = '${escaped}' ; A = 'file:///${escaped}' ; B = 'file:///${escaped}')), Count)`;
+  const result = await prologProcess.query(goal);
+  if (!result.success) {
+    return { count: null, error: result.error ?? "probe_query_failed" };
+  }
+  const count = Number(result.bindings.Count);
+  if (!Number.isFinite(count) || count < 0) {
+    return { count: null, error: "invalid_probe_count" };
+  }
+  return { count };
+}
 
 function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
   if (!isValidBranchName(branch)) {
@@ -367,7 +548,7 @@ async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
-async function ensureProlog(): Promise<PrologProcess> {
+async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const workspaceRoot = resolveWorkspaceRoot();
 
   // Determine target branch: respect KIBI_BRANCH override or resolve from git
@@ -506,6 +687,21 @@ async function ensureProlog(): Promise<PrologProcess> {
   );
   debugLog(`[KIBI-MCP] KB attached: ${kbPath}`);
   return prologProcess;
+}
+
+async function ensureProlog(): Promise<PrologProcess> {
+  const previous = ensurePrologTail;
+  let release!: () => void;
+  ensurePrologTail = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous;
+  try {
+    return await ensurePrologUnsafe();
+  } finally {
+    release();
+  }
 }
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
@@ -652,6 +848,10 @@ function addTool(
   handler: ToolHandler,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
+    let telemetry: DiagnosticTelemetry | null = null;
+    let businessArgs: Record<string, unknown> = {};
+    const startedAt = new Date();
+
     try {
       // Validate that args is a valid object
       if (typeof args !== "object" || args === null) {
@@ -660,13 +860,21 @@ function addTool(
         );
       }
 
+      if (DIAGNOSTIC_MODE_ENABLED) {
+        const payload = extractToolCallPayload(args);
+        telemetry = payload.telemetry;
+        businessArgs = payload.businessArgs;
+      } else {
+        businessArgs = args;
+      }
+
       // Check if shutting down before processing
       if (isShuttingDown) {
         throw new Error(`Tool ${name} rejected: server is shutting down`);
       }
 
       // Extract or generate requestId from args
-      const requestIdArg = (args as ToolHandlerArgs)._requestId;
+      const requestIdArg = (businessArgs as ToolHandlerArgs)._requestId;
       const requestId =
         typeof requestIdArg === "string"
           ? requestIdArg
@@ -676,18 +884,69 @@ function addTool(
       if (process.env.KIBI_MCP_DEBUG) {
         console.error(
           `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
-          JSON.stringify(args),
+          JSON.stringify(businessArgs),
         );
       }
 
       // Track the handler promise in inFlightRequests Map
-      const handlerPromise = handler(args);
+      const handlerPromise = handler(businessArgs);
       inFlightRequests.set(requestId, handlerPromise);
 
       try {
         // Execute handler
         const result = await handlerPromise;
+        const finishedAt = new Date();
+        const contradictionSignal = extractContradictionSignal(
+          name,
+          businessArgs,
+          result,
+        );
+        let contradictionSignalFinal = contradictionSignal;
+        if (name === "kb_upsert" && typeof businessArgs.id === "string") {
+          const probe =
+            businessArgs.type === "req"
+              ? await probeContradictionsForReq(businessArgs.id)
+              : { count: null, error: "non_req_entity" };
+          contradictionSignalFinal = {
+            attempted_entity_id: businessArgs.id,
+            contradiction_pairs_detected:
+              probe.count !== null ? probe.count : -1,
+            probe_error: probe.error,
+          };
+        }
+        appendUsageLogLine({
+          timestamp: finishedAt.toISOString(),
+          request_id: requestId,
+          tool: name,
+          telemetry,
+          business_args: businessArgs,
+          status: "success",
+          started_at: startedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+          duration_ms: finishedAt.getTime() - startedAt.getTime(),
+          prolog_pid: prologProcess?.getPid() ?? null,
+          active_branch: activeBranchName,
+          contradiction_signal: contradictionSignalFinal,
+        });
         return result;
+      } catch (error) {
+        const finishedAt = new Date();
+        const err = error instanceof Error ? error : new Error(String(error));
+        appendUsageLogLine({
+          timestamp: finishedAt.toISOString(),
+          request_id: requestId,
+          tool: name,
+          telemetry,
+          business_args: businessArgs,
+          status: "error",
+          started_at: startedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+          duration_ms: finishedAt.getTime() - startedAt.getTime(),
+          prolog_pid: prologProcess?.getPid() ?? null,
+          active_branch: activeBranchName,
+          error_message: err.message,
+        });
+        throw error;
       } finally {
         // Always clean up from Map when done (success or failure)
         inFlightRequests.delete(requestId);
@@ -720,9 +979,13 @@ function addTool(
 export async function startServer(): Promise<void> {
   loadDefaultEnvFile();
 
-  const server = new McpServer({ name: "kibi-mcp", version: "0.2.0" });
+  if (DIAGNOSTIC_MODE_ENABLED) {
+    const workspaceRoot = resolveWorkspaceRoot();
+    diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+    process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
+  }
 
-  attachMcpcat(server);
+  const server = new McpServer({ name: "kibi-mcp", version: "0.2.1" });
 
   for (const prompt of PROMPTS) {
     server.prompt(prompt.name, prompt.description, async () => ({
@@ -753,7 +1016,7 @@ export async function startServer(): Promise<void> {
   }
 
   const toolDef = (name: string) => {
-    const t = TOOLS.find((t) => t.name === name);
+    const t = ACTIVE_TOOLS.find((t) => t.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
     return t;
   };

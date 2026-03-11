@@ -45,12 +45,12 @@
 */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { resolveWorkspaceRoot } from "../workspace.js";
+import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
   type ManifestSymbolEntry as CliManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "kibi-cli/extractors/symbols-coordinator";
-import { dump as dumpYAML, load as parseYAML } from "js-yaml";
+import { resolveWorkspaceRoot } from "../workspace.js";
 
 export interface SymbolsRefreshArgs {
   dryRun?: boolean;
@@ -258,13 +258,21 @@ export async function refreshCoordinatesForSymbolId(
   return { refreshed, found: true };
 }
 
-function resolveManifestPath(workspaceRoot: string): string {
+export function resolveManifestPath(workspaceRoot: string): string {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
   if (existsSync(configPath)) {
     try {
       const config = JSON.parse(readFileSync(configPath, "utf8")) as {
         symbolsManifest?: string;
+        paths?: { symbols?: string };
       };
+      // Prefer paths.symbols (new standard) over symbolsManifest (legacy)
+      if (config.paths?.symbols) {
+        return path.isAbsolute(config.paths.symbols)
+          ? config.paths.symbols
+          : path.resolve(workspaceRoot, config.paths.symbols);
+      }
+      // Backward compatibility: check legacy symbolsManifest field
       if (config.symbolsManifest) {
         return path.isAbsolute(config.symbolsManifest)
           ? config.symbolsManifest
