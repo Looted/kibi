@@ -176,6 +176,18 @@ describe("kibi init", () => {
     expect(result).toBeDefined();
   });
 
+  test("allows init in non-git directory (uses default 'main' branch)", () => {
+    execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
+
+    expect(existsSync(path.join(tmpDir, ".kb"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/config.json"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/schema"))).toBe(true);
+    expect(existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+  });
+
   test("prints helpful message if .kb/ already exists", () => {
     execSync("git init", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });

@@ -47,6 +47,7 @@ import * as path from "node:path";
 import Table from "cli-table3";
 import { PrologProcess } from "../prolog.js";
 import relationshipSchema from "../public/schemas/relationship.js";
+import { resolveActiveBranch } from "../utils/branch-resolver.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
 
@@ -72,16 +73,27 @@ export async function queryCommand(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
 
-    let currentBranch = "main";
-    try {
-      const { execSync } = await import("node:child_process");
-      currentBranch = execSync("git branch --show-current", {
-        cwd: process.cwd(),
-        encoding: "utf8",
-      }).trim();
-      if (!currentBranch || currentBranch === "master") currentBranch = "main";
-    } catch {
-      currentBranch = "main";
+    // Resolve branch: allow non-git repos to use default "main" for query
+    let currentBranch: string;
+    const branchResult = resolveActiveBranch();
+
+    if ("error" in branchResult) {
+      const isNonGitError =
+        branchResult.code === "NOT_A_GIT_REPO" ||
+        branchResult.code === "GIT_NOT_AVAILABLE";
+
+      if (isNonGitError) {
+        // For query command, use "main" as default branch when git is not available
+        // or the current directory is not a git repository. This allows querying
+        // after init in a non-git directory.
+        currentBranch = "main";
+      } else {
+        console.error(`Error: Failed to resolve active branch:\n${branchResult.error}`);
+        await prolog.terminate();
+        process.exit(1);
+      }
+    } else {
+      currentBranch = branchResult.branch;
     }
 
     const kbPath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
