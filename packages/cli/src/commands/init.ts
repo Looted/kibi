@@ -47,10 +47,13 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  getBranchDiagnostic,
+  resolveActiveBranch,
+} from "../utils/branch-resolver.js";
+import {
   copySchemaFiles,
   createConfigFile,
   createKbDirectoryStructure,
-  getCurrentBranch,
   installGitHooks,
   updateGitIgnore,
 } from "./init-helpers.js";
@@ -66,7 +69,22 @@ export async function initCommand(options: InitOptions): Promise<void> {
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
-  const currentBranch = await getCurrentBranch();
+  // Resolve branch: allow non-git repos to use default "main" for init
+  let currentBranch: string;
+  const result = resolveActiveBranch();
+
+  if ("error" in result) {
+    // For init command, use "main" as default branch when not in a git repo
+    // This allows initialization before git init, which is useful for first-time setup
+    console.warn("Warning: Not in a git repository");
+    console.warn(`Branch resolution failed: ${result.error}`);
+    console.warn(
+      "Using 'main' as default branch. Run 'kibi sync' in a git repo for proper branch-aware behavior.",
+    );
+    currentBranch = "main";
+  } else {
+    currentBranch = result.branch;
+  }
 
   try {
     if (!kbExists) {
