@@ -110,6 +110,7 @@ export class PrologProcess {
   private outputBuffer = "";
   private errorBuffer = "";
   private cache: Map<string, QueryResult> = new Map();
+  private interactiveQueryTail: Promise<void> = Promise.resolve();
   private useOneShotMode =
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
   private attachedKbPath: string | null = null;
@@ -229,90 +230,114 @@ export class PrologProcess {
       throw new Error("Prolog process not started");
     }
 
-    this.outputBuffer = "";
-    this.errorBuffer = "";
+    const runInteractiveQuery = async (): Promise<QueryResult> => {
+      this.outputBuffer = "";
+      this.errorBuffer = "";
 
-    this.process.stdin.write(`${goal}.
-`);
+      const debug = !!process.env.KIBI_PROLOG_DEBUG;
+      const normalizedGoal = this.normalizeGoal(goal as string);
+      const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
+        ? normalizedGoal
+        : `once((${normalizedGoal}))`;
+      const start = Date.now();
 
-    const debug = !!process.env.KIBI_PROLOG_DEBUG;
-    const normalizedGoal = isSingleGoal
-      ? this.normalizeGoal(goal as string)
-      : undefined;
-    const start = Date.now();
-    if (debug && normalizedGoal)
-      console.error(`[prolog debug] start query: ${normalizedGoal}`);
+      if (debug) {
+        console.error(`[prolog debug] start query: ${normalizedGoal}`);
+      }
 
-    return new Promise((resolve, reject) => {
-      const timeoutId = setTimeout(() => {
-        const msg = `Query timeout after ${this.timeout / 1000}s`;
-        if (debug) {
-          const tailOut = this.outputBuffer.slice(-2048);
-          const tailErr = this.errorBuffer.slice(-2048);
-          console.error(`[prolog debug] timeout: ${msg}`);
-          console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
-          console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
-        }
-        reject(new Error(msg));
-      }, this.timeout);
+      this.process?.stdin?.write(`${wrappedGoal}.\n`);
 
-      const checkResult = () => {
-        if (this.errorBuffer.length > 0 && this.errorBuffer.includes("ERROR")) {
-          clearTimeout(timeoutId);
-          if (debug && normalizedGoal)
-            console.error(
-              `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
-            );
-          resolve({
-            success: false,
-            bindings: {},
-            error: this.translateError(this.errorBuffer),
-          });
-        } else if (
-          this.outputBuffer.includes("true.") ||
-          this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m) ||
-          // Match multi-line output ending with ] (Prolog list/term output without trailing period)
-          this.outputBuffer.match(/\]\s*$/m)
-        ) {
-          clearTimeout(timeoutId);
-          const result = {
-            success: true,
-            bindings: this.extractBindings(this.outputBuffer),
-          };
-          if (cacheable) {
-            this.cache.set(goalKey, result);
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          const msg = `Query timeout after ${this.timeout / 1000}s (pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${JSON.stringify(normalizedGoal.slice(0, 120))})`;
+          if (debug) {
+            const tailOut = this.outputBuffer.slice(-2048);
+            const tailErr = this.errorBuffer.slice(-2048);
+            console.error(`[prolog debug] timeout: ${msg}`);
+            console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
+            console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
           }
-          if (debug && normalizedGoal) {
-            console.error(
-              `[prolog debug] query success: ${normalizedGoal} elapsed=${(Date.now() - start) / 1000}s`,
-            );
+          reject(new Error(msg));
+        }, this.timeout);
+
+        const checkResult = () => {
+          if (
+            this.errorBuffer.length > 0 &&
+            this.errorBuffer.includes("ERROR")
+          ) {
+            clearTimeout(timeoutId);
+            if (debug) {
+              console.error(
+                `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
+              );
+            }
+            resolve({
+              success: false,
+              bindings: {},
+              error: this.translateError(this.errorBuffer),
+            });
+            return;
           }
-          resolve(result);
-          // Send newline to exit Prolog's interactive prompt
-          if (this.process?.stdin) {
-            this.process.stdin.write("\n");
+
+          if (
+            this.outputBuffer.includes("true.") ||
+            this.outputBuffer.match(/^[A-Z_][A-Za-z0-9_]*\s*=\s*.+\./m) ||
+            this.outputBuffer.match(/\]\s*$/m)
+          ) {
+            clearTimeout(timeoutId);
+            const result = {
+              success: true,
+              bindings: this.extractBindings(this.outputBuffer),
+            };
+            if (cacheable) {
+              this.cache.set(goalKey, result);
+            }
+            if (debug) {
+              console.error(
+                `[prolog debug] query success: ${normalizedGoal} elapsed=${(Date.now() - start) / 1000}s`,
+              );
+            }
+            resolve(result);
+            return;
           }
-        } else if (
-          this.outputBuffer.includes("false.") ||
-          this.outputBuffer.includes("fail.")
-        ) {
-          clearTimeout(timeoutId);
-          if (debug && normalizedGoal)
-            console.error(
-              `[prolog debug] query failed (false): ${normalizedGoal}`,
-            );
-          resolve({
-            success: false,
-            bindings: {},
-            error: "Query failed",
-          });
-        } else {
+
+          if (
+            this.outputBuffer.includes("false.") ||
+            this.outputBuffer.includes("fail.")
+          ) {
+            clearTimeout(timeoutId);
+            if (debug) {
+              console.error(
+                `[prolog debug] query failed (false): ${normalizedGoal}`,
+              );
+            }
+            resolve({
+              success: false,
+              bindings: {},
+              error: "Query failed",
+            });
+            return;
+          }
+
           setTimeout(checkResult, 50);
-        }
-      };
+        };
 
-      checkResult();
+        checkResult();
+      });
+    };
+
+    const previousQuery = this.interactiveQueryTail;
+    let releaseQuery!: () => void;
+    this.interactiveQueryTail = new Promise<void>((resolve) => {
+      releaseQuery = resolve;
     });
+
+    await previousQuery;
+    try {
+      return await runInteractiveQuery();
+    } finally {
+      releaseQuery();
+    }
   }
 
   invalidateCache(): void {
