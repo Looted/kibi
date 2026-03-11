@@ -117,10 +117,6 @@ export async function gcCommand(options: {
           : "main";
     }
 
-    // Debug: log resolved default branch for tests
-    // eslint-disable-next-line no-console
-    console.log(`DEBUG_DEFAULT_BRANCH=${defaultBranch}`);
-
     // Protect resolved branch and its 'master'->'main' normalization
     const protectedBranches = new Set<string>([defaultBranch]);
     if (defaultBranch === "main") protectedBranches.add("master");
