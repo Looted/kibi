@@ -69,6 +69,7 @@ export interface UpsertResult {
     created: number;
     updated: number;
     relationships_created: number;
+    contradiction_pairs_detected?: number;
   };
 }
 
@@ -199,6 +200,11 @@ export async function handleKbUpsert(
     // Save KB to disk
     await prolog.query("kb_save");
 
+    let contradictionPairsDetected: number | undefined;
+    if (type === "req") {
+      contradictionPairsDetected = await detectContradictionPairs(prolog, id);
+    }
+
     if (type === "symbol") {
       try {
         await refreshCoordinatesForSymbolId(id);
@@ -216,19 +222,38 @@ export async function handleKbUpsert(
       content: [
         {
           type: "text",
-          text: `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s).`,
+          text:
+            contradictionPairsDetected && contradictionPairsDetected > 0
+              ? `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s). Contradiction probe detected ${contradictionPairsDetected} potential conflict pair(s).`
+              : `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s).`,
         },
       ],
       structuredContent: {
         created,
         updated,
         relationships_created: relationshipsCreated,
+        contradiction_pairs_detected: contradictionPairsDetected,
       },
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Upsert execution failed: ${message}`);
   }
+}
+
+async function detectContradictionPairs(
+  prolog: PrologProcess,
+  reqId: string,
+): Promise<number> {
+  const escaped = escapeAtom(reqId);
+  const goal = `aggregate_all(count, (contradicting_reqs(A, B, _), (A = '${escaped}' ; B = '${escaped}' ; A = 'file:///${escaped}' ; B = 'file:///${escaped}')), Count)`;
+  const result = await prolog.query(goal);
+  if (!result.success) {
+    return 0;
+  }
+  const raw = result.bindings.Count;
+  const count = Number(raw);
+  return Number.isFinite(count) ? count : 0;
 }
 
 /**
