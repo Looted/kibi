@@ -352,6 +352,7 @@ function getHelpText(topic?: string): string {
 let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 let activeBranchName = "develop";
+let ensurePrologTail: Promise<void> = Promise.resolve();
 // Shutdown tracking state
 let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
@@ -367,10 +368,22 @@ interface DiagnosticTelemetry {
 
 interface UsageLogEntry {
   timestamp: string;
+  request_id: string;
   tool: string;
   telemetry: DiagnosticTelemetry | null;
   business_args: Record<string, unknown>;
   status: "success" | "error";
+  started_at: string;
+  finished_at: string;
+  duration_ms: number;
+  prolog_pid: number | null;
+  active_branch: string;
+  error_message?: string;
+  contradiction_signal?: {
+    attempted_entity_id: string;
+    contradiction_pairs_detected: number;
+    probe_error?: string;
+  };
 }
 
 let diagnosticUsageLogPath: string | null = null;
@@ -397,6 +410,59 @@ function appendUsageLogLine(entry: UsageLogEntry): void {
   fs.appendFileSync(diagnosticUsageLogPath, `${JSON.stringify(entry)}\n`, {
     encoding: "utf8",
   });
+}
+
+function extractContradictionSignal(
+  tool: string,
+  args: Record<string, unknown>,
+  result: unknown,
+): UsageLogEntry["contradiction_signal"] | undefined {
+  if (tool !== "kb_upsert") {
+    return undefined;
+  }
+  const id = typeof args.id === "string" ? args.id : undefined;
+  if (!id) {
+    return undefined;
+  }
+
+  const structured =
+    result && typeof result === "object"
+      ? (result as { structuredContent?: Record<string, unknown> })
+          .structuredContent
+      : undefined;
+  if (!structured || typeof structured !== "object") {
+    return undefined;
+  }
+
+  const rawCount = structured.contradiction_pairs_detected;
+  const count = typeof rawCount === "number" ? rawCount : Number(rawCount);
+  if (!Number.isFinite(count) || count < 0) {
+    return undefined;
+  }
+
+  return {
+    attempted_entity_id: id,
+    contradiction_pairs_detected: count,
+  };
+}
+
+async function probeContradictionsForReq(
+  reqId: string,
+): Promise<{ count: number | null; error?: string }> {
+  if (!prologProcess?.isRunning()) {
+    return { count: null, error: "prolog_process_not_running" };
+  }
+  const escaped = reqId.replace(/'/g, "\\'");
+  const goal = `aggregate_all(count, (contradicting_reqs(A, B, _), (A = '${escaped}' ; B = '${escaped}' ; A = 'file:///${escaped}' ; B = 'file:///${escaped}')), Count)`;
+  const result = await prologProcess.query(goal);
+  if (!result.success) {
+    return { count: null, error: result.error ?? "probe_query_failed" };
+  }
+  const count = Number(result.bindings.Count);
+  if (!Number.isFinite(count) || count < 0) {
+    return { count: null, error: "invalid_probe_count" };
+  }
+  return { count };
 }
 
 function ensureBranchKbExists(workspaceRoot: string, branch: string): void {
@@ -482,7 +548,7 @@ async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
-async function ensureProlog(): Promise<PrologProcess> {
+async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const workspaceRoot = resolveWorkspaceRoot();
 
   // Determine target branch: respect KIBI_BRANCH override or resolve from git
@@ -621,6 +687,21 @@ async function ensureProlog(): Promise<PrologProcess> {
   );
   debugLog(`[KIBI-MCP] KB attached: ${kbPath}`);
   return prologProcess;
+}
+
+async function ensureProlog(): Promise<PrologProcess> {
+  const previous = ensurePrologTail;
+  let release!: () => void;
+  ensurePrologTail = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous;
+  try {
+    return await ensurePrologUnsafe();
+  } finally {
+    release();
+  }
 }
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
@@ -769,6 +850,7 @@ function addTool(
   const wrappedHandler: ToolHandler = async (args) => {
     let telemetry: DiagnosticTelemetry | null = null;
     let businessArgs: Record<string, unknown> = {};
+    const startedAt = new Date();
 
     try {
       // Validate that args is a valid object
@@ -813,21 +895,56 @@ function addTool(
       try {
         // Execute handler
         const result = await handlerPromise;
+        const finishedAt = new Date();
+        const contradictionSignal = extractContradictionSignal(
+          name,
+          businessArgs,
+          result,
+        );
+        let contradictionSignalFinal = contradictionSignal;
+        if (name === "kb_upsert" && typeof businessArgs.id === "string") {
+          const probe =
+            businessArgs.type === "req"
+              ? await probeContradictionsForReq(businessArgs.id)
+              : { count: null, error: "non_req_entity" };
+          contradictionSignalFinal = {
+            attempted_entity_id: businessArgs.id,
+            contradiction_pairs_detected:
+              probe.count !== null ? probe.count : -1,
+            probe_error: probe.error,
+          };
+        }
         appendUsageLogLine({
-          timestamp: new Date().toISOString(),
+          timestamp: finishedAt.toISOString(),
+          request_id: requestId,
           tool: name,
           telemetry,
           business_args: businessArgs,
           status: "success",
+          started_at: startedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+          duration_ms: finishedAt.getTime() - startedAt.getTime(),
+          prolog_pid: prologProcess?.getPid() ?? null,
+          active_branch: activeBranchName,
+          contradiction_signal: contradictionSignalFinal,
         });
         return result;
       } catch (error) {
+        const finishedAt = new Date();
+        const err = error instanceof Error ? error : new Error(String(error));
         appendUsageLogLine({
-          timestamp: new Date().toISOString(),
+          timestamp: finishedAt.toISOString(),
+          request_id: requestId,
           tool: name,
           telemetry,
           business_args: businessArgs,
           status: "error",
+          started_at: startedAt.toISOString(),
+          finished_at: finishedAt.toISOString(),
+          duration_ms: finishedAt.getTime() - startedAt.getTime(),
+          prolog_pid: prologProcess?.getPid() ?? null,
+          active_branch: activeBranchName,
+          error_message: err.message,
         });
         throw error;
       } finally {
@@ -865,6 +982,7 @@ export async function startServer(): Promise<void> {
   if (DIAGNOSTIC_MODE_ENABLED) {
     const workspaceRoot = resolveWorkspaceRoot();
     diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+    process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
   }
 
   const server = new McpServer({ name: "kibi-mcp", version: "0.2.1" });

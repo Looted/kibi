@@ -110,6 +110,16 @@ kb_detach :-
     (   kb_attached(_Directory)
     ->  (
             kb_save,
+            % Unload RDF graph from memory to prevent duplication on reattach
+            (   kb_graph(GraphURI)
+            ->  rdf_unload_graph(GraphURI)
+            ;   true
+            ),
+            % Sync and close audit log
+            (   kb_audit_db(AuditLog)
+            ->  db_sync(AuditLog)
+            ;   true
+            ),
             % Clear state
             retractall(kb_attached(_)),
             retractall(kb_audit_db(_)),
@@ -151,6 +161,8 @@ with_kb_mutex(Goal) :-
 % Load legacy .pl entity files from the KB directory.
 % These files use entity/4 format: entity(Type, Id, Title, Props).
 load_kb_pl_files(Directory) :-
+    catch(abolish(entity/4), _, true),
+    dynamic(entity/4),
     retractall(entity(_, _, _, _)),
     directory_files(Directory, Files),
     forall(
