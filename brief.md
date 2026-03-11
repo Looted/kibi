@@ -78,10 +78,7 @@ The MCP server MUST expose tools that cover these operations without requiring a
 - `kb.upsert`: create/update entities and edges via a validated “changeset” payload.
 - `kb.delete`: remove entities/edges (restricted; see safety).
 - `kb.check`: run built-in consistency rules and return violations.
-- `kb.branch.ensure`: ensure branch KB exists (copy-from-default-branch if missing, using the resolver order above).
-- `kb.branch.gc`: list/delete stale branch KBs.
-
-The MCP server MUST be branch-aware: every tool call MUST accept `branch` explicitly or default to the caller’s current git branch.
+The MCP server is branch-aware: the server automatically resolves the active git branch on each request and attaches to the correct branch KB transparently. Branch management (ensure/gc) is handled via the CLI, not the MCP tool surface.
 
 ### 4.3 CLI (v0)
 A CLI MUST be provided with at least:
