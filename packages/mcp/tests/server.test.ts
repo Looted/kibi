@@ -66,9 +66,10 @@ async function sendRequest(
 function startServer(options?: {
   cwd?: string;
   env?: Record<string, string>;
+  args?: string[];
 }): ChildProcess {
   const serverPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
-  const proc = spawn("bun", ["run", serverPath], {
+  const proc = spawn("bun", ["run", serverPath, ...(options?.args ?? [])], {
     stdio: ["pipe", "pipe", "pipe"],
     cwd: options?.cwd,
     env: options?.env ? { ...process.env, ...options.env } : process.env,
@@ -120,7 +121,7 @@ describe("MCP Server", () => {
       "kibi-mcp",
     );
     expect((result.serverInfo as Record<string, unknown>).version).toBe(
-      "0.2.0",
+      "0.2.1",
     );
     expect(result.capabilities).toBeDefined();
 
@@ -182,6 +183,38 @@ describe("MCP Server", () => {
       "kb_delete",
       "kb_check",
     ]);
+    proc.kill();
+  });
+
+  test("should include diagnostic telemetry schema in diagnostic mode", async () => {
+    const proc = startServer({ args: ["--diagnostic-mode"] });
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/list",
+    });
+
+    const result = response.result as Record<string, unknown>;
+    const tools = result.tools as Array<Record<string, unknown>>;
+
+    for (const tool of tools) {
+      const inputSchema = tool.inputSchema as Record<string, unknown>;
+      const properties = inputSchema.properties as Record<string, unknown>;
+      expect(properties._diagnostic_telemetry).toBeDefined();
+    }
+
     proc.kill();
   });
 
