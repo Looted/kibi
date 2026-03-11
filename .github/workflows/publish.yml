@@ -31,12 +31,26 @@ jobs:
       - name: Check for changesets
         id: check
         run: |
-          if bunx changeset status --output /dev/null 2>&1; then
+          BASE_BRANCH=$(node -e "console.log(require('./.changeset/config.json').baseBranch || 'main')")
+          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}" || true
+          git fetch origin "${BASE_BRANCH}" || true
+
+          if bunx changeset status --since "${BASE_BRANCH}" --output /dev/null 2>&1; then
             echo "has_changesets=true" >> $GITHUB_OUTPUT
             echo "Changesets detected - will version packages"
           else
-            echo "has_changesets=false" >> $GITHUB_OUTPUT
-            echo "No changesets detected"
+            STATUS_OUTPUT=$(bunx changeset status --since "${BASE_BRANCH}" 2>&1 || true)
+            if echo "$STATUS_OUTPUT" | grep -q "Some packages have been changed"; then
+              echo "has_changesets=true" >> $GITHUB_OUTPUT
+              echo "Changesets detected - will version packages"
+            elif echo "$STATUS_OUTPUT" | grep -q "No changesets present"; then
+              echo "has_changesets=false" >> $GITHUB_OUTPUT
+              echo "No changesets detected"
+            else
+              echo "$STATUS_OUTPUT"
+              echo "changeset status failed unexpectedly"
+              exit 1
+            fi
           fi
 
   version-packages:
