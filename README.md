@@ -145,7 +145,7 @@ See [docs/mcp-reference.md](docs/mcp-reference.md) for detailed MCP server docum
 
 Kibi is organized as a monorepo with the following packages:
 
-- **kibi-core** (`packages/core/`): Core Prolog modules and RDF graph logic. Contains entity definitions, relationship predicates, and validation rules. Not published separately - bundled with kibi-cli and kibi-mcp.
+- **kibi-core** (`packages/core/`): Core Prolog modules and RDF graph logic. Contains entity definitions, relationship predicates, and validation rules. Published as `kibi-core` on npm; consumed as a dependency by both kibi-cli and kibi-mcp.
 - **kibi-cli** (`packages/cli/`): Command-line interface for Kibi. Provides the `kibi` command and all CLI functionality. Published as `kibi-cli` on npm.
 - **kibi-mcp** (`packages/mcp/`): Model Context Protocol server for LLM agent integration. Allows AI assistants to query and manipulate the knowledge base. Published as `kibi-mcp` on npm.
 - **kibi-vscode** (`packages/vscode/`): VS Code extension with TreeView visualization and CodeLens integration for symbol-aware development. Published as `kibi-vscode` on the VS Code Marketplace.
