@@ -424,4 +424,219 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
 
     await stopProcess(proc);
   });
+
+  it("should preserve MCP-written entities across restart with correct type filtering", async () => {
+    const reqId = "req-issue61-restart-001";
+    const adrId = "adr-issue61-restart-001";
+    const testId = "test-issue61-restart-001";
+
+    const procA = spawn("node", [sandbox.kibiMcpBin], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await new Promise((r) => setTimeout(r, 500));
+
+    const initA = {
+      jsonrpc: "2.0",
+      id: 400,
+      method: "initialize",
+      params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+    };
+
+    const createReq = {
+      jsonrpc: "2.0",
+      id: 401,
+      method: "tools/call",
+      params: {
+        name: "kb_upsert",
+        arguments: {
+          type: "req",
+          id: reqId,
+          properties: {
+            title: "Issue 61 req",
+            status: "active",
+            owner: "platform-team",
+            source: "test://issue-61",
+            tags: ["issue-61", "restart"],
+          },
+        },
+      },
+    };
+
+    const createAdr = {
+      jsonrpc: "2.0",
+      id: 402,
+      method: "tools/call",
+      params: {
+        name: "kb_upsert",
+        arguments: {
+          type: "adr",
+          id: adrId,
+          properties: {
+            title: "Issue 61 adr",
+            status: "active",
+            source: "test://issue-61",
+          },
+        },
+      },
+    };
+
+    const createTest = {
+      jsonrpc: "2.0",
+      id: 403,
+      method: "tools/call",
+      params: {
+        name: "kb_upsert",
+        arguments: {
+          type: "test",
+          id: testId,
+          properties: {
+            title: "Issue 61 test",
+            status: "active",
+            source: "test://issue-61",
+          },
+        },
+      },
+    };
+
+    try {
+      const initALine = JSON.parse(
+        await sendRaw(procA, JSON.stringify(initA)),
+      ) as JsonRpcRes;
+      assert.strictEqual(initALine.id, 400);
+
+      const reqLine = JSON.parse(
+        await sendRaw(procA, JSON.stringify(createReq)),
+      ) as JsonRpcRes;
+      assert.strictEqual(reqLine.id, 401);
+      assert.ok(!reqLine.result?.isError);
+
+      const adrLine = JSON.parse(
+        await sendRaw(procA, JSON.stringify(createAdr)),
+      ) as JsonRpcRes;
+      assert.strictEqual(adrLine.id, 402);
+      assert.ok(!adrLine.result?.isError);
+
+      const testLine = JSON.parse(
+        await sendRaw(procA, JSON.stringify(createTest)),
+      ) as JsonRpcRes;
+      assert.strictEqual(testLine.id, 403);
+      assert.ok(!testLine.result?.isError);
+    } finally {
+      await stopProcess(procA);
+    }
+
+    const procB = spawn("node", [sandbox.kibiMcpBin], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await new Promise((r) => setTimeout(r, 500));
+
+    const initB = {
+      jsonrpc: "2.0",
+      id: 410,
+      method: "initialize",
+      params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+    };
+    const readReqById = {
+      jsonrpc: "2.0",
+      id: 411,
+      method: "tools/call",
+      params: { name: "kb_query", arguments: { id: reqId } },
+    };
+    const listReq = {
+      jsonrpc: "2.0",
+      id: 412,
+      method: "tools/call",
+      params: { name: "kb_query", arguments: { type: "req", limit: 1000 } },
+    };
+    const listAdr = {
+      jsonrpc: "2.0",
+      id: 413,
+      method: "tools/call",
+      params: { name: "kb_query", arguments: { type: "adr", limit: 1000 } },
+    };
+    const listTest = {
+      jsonrpc: "2.0",
+      id: 414,
+      method: "tools/call",
+      params: { name: "kb_query", arguments: { type: "test", limit: 1000 } },
+    };
+
+    try {
+      const initBLine = JSON.parse(
+        await sendRaw(procB, JSON.stringify(initB)),
+      ) as JsonRpcRes;
+      assert.strictEqual(initBLine.id, 410);
+
+      const reqByIdLine = JSON.parse(
+        await sendRaw(procB, JSON.stringify(readReqById)),
+      ) as JsonRpcRes;
+      assert.strictEqual(reqByIdLine.id, 411);
+      assert.ok(!reqByIdLine.result?.isError);
+      const reqByIdText = (
+        reqByIdLine.result?.content as Array<{ text: string }> | undefined
+      )?.[0]?.text;
+      assert.match(reqByIdText ?? "", /req-issue61-restart-001/);
+      const reqByIdEntities =
+        (
+          reqByIdLine.result as
+            | { structuredContent?: { entities?: Array<{ owner?: string }> } }
+            | undefined
+        )?.structuredContent?.entities ?? [];
+      assert.strictEqual(reqByIdEntities[0]?.owner, "platform-team");
+
+      const reqListLine = JSON.parse(
+        await sendRaw(procB, JSON.stringify(listReq)),
+      ) as JsonRpcRes;
+      const reqEntities =
+        (
+          reqListLine.result as
+            | {
+                structuredContent?: {
+                  entities?: Array<{ id?: string; type?: string }>;
+                };
+              }
+            | undefined
+        )?.structuredContent?.entities ?? [];
+      assert.ok(reqEntities.some((entity) => entity.id === reqId));
+      assert.ok(reqEntities.every((entity) => entity.type === "req"));
+
+      const adrListLine = JSON.parse(
+        await sendRaw(procB, JSON.stringify(listAdr)),
+      ) as JsonRpcRes;
+      const adrEntities =
+        (
+          adrListLine.result as
+            | {
+                structuredContent?: {
+                  entities?: Array<{ id?: string; type?: string }>;
+                };
+              }
+            | undefined
+        )?.structuredContent?.entities ?? [];
+      assert.ok(adrEntities.some((entity) => entity.id === adrId));
+      assert.ok(adrEntities.every((entity) => entity.type === "adr"));
+
+      const testListLine = JSON.parse(
+        await sendRaw(procB, JSON.stringify(listTest)),
+      ) as JsonRpcRes;
+      const testEntities =
+        (
+          testListLine.result as
+            | {
+                structuredContent?: {
+                  entities?: Array<{ id?: string; type?: string }>;
+                };
+              }
+            | undefined
+        )?.structuredContent?.entities ?? [];
+      assert.ok(testEntities.some((entity) => entity.id === testId));
+      assert.ok(testEntities.every((entity) => entity.type === "test"));
+    } finally {
+      await stopProcess(procB);
+    }
+  });
 });
