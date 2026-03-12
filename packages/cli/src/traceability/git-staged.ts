@@ -55,6 +55,10 @@ const SUPPORTED_EXT = new Set([
 
 const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
+function shouldLogTraceDebug(): boolean {
+  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+}
+
 function hasSupportedExt(p: string): boolean {
   for (const ext of SUPPORTED_EXT) {
     if (p.endsWith(ext)) return true;
@@ -120,10 +124,11 @@ export function getStagedFiles(): StagedFile[] {
     const status = (statusRaw[0] as Status) || "M";
 
     if (status === "D") {
-      // deleted files: skip but log via console.debug
-      console.debug(
-        `Skipping deleted file (staged): ${entry.parts.join(" -> ")}`,
-      );
+      if (shouldLogTraceDebug()) {
+        console.debug(
+          `Skipping deleted file (staged): ${entry.parts.join(" -> ")}`,
+        );
+      }
       continue;
     }
 
@@ -138,7 +143,9 @@ export function getStagedFiles(): StagedFile[] {
     }
 
     if (!hasSupportedExt(path) && !isEntityMarkdown(path)) {
-      console.debug(`Skipping unsupported extension: ${path}`);
+      if (shouldLogTraceDebug()) {
+        console.debug(`Skipping unsupported extension: ${path}`);
+      }
       continue;
     }
 
@@ -150,7 +157,9 @@ export function getStagedFiles(): StagedFile[] {
         `git diff --cached -U0 -- "${path.replace(/"/g, '\\"')}"`,
       );
     } catch (err: unknown) {
-      console.debug(`Failed to get diff for ${path}: ${String(err)}`);
+      if (shouldLogTraceDebug()) {
+        console.debug(`Failed to get diff for ${path}: ${String(err)}`);
+      }
       diffText = "";
     }
 
@@ -166,9 +175,11 @@ export function getStagedFiles(): StagedFile[] {
       // binary or deleted in index
       const e = err as { message?: unknown } | undefined;
       const em = e?.message ? String(e.message) : String(err);
-      console.debug(
-        `Skipping binary/deleted or unreadable staged file ${path}: ${em}`,
-      );
+      if (shouldLogTraceDebug()) {
+        console.debug(
+          `Skipping binary/deleted or unreadable staged file ${path}: ${em}`,
+        );
+      }
       continue;
     }
 
