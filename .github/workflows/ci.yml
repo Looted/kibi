@@ -26,6 +26,11 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
       - name: Install JS deps
         run: bun install
 
@@ -54,6 +59,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Build packages
         run: |
           bun install
@@ -86,6 +95,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Build packages
         run: |
           bun install
@@ -115,6 +128,10 @@ jobs:
         uses: actions/checkout@v6
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Build packages
         run: |
           bun install
@@ -145,6 +162,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Build packages
         run: |
           bun install
