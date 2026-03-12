@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
-import { type TestSandbox, createSandbox, packAll } from "./helpers.js";
+import { type TestSandbox, createSandbox, kibi, packAll } from "./helpers.js";
 
 interface JsonRpcRes {
   id?: number;
@@ -62,6 +62,8 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       sandbox = createSandbox();
       await sandbox.install(tarballs);
       await sandbox.initGitRepo();
+      await kibi(sandbox, ["init"]);
+      await kibi(sandbox, ["sync"]);
     },
     { timeout: 120000 },
   );
@@ -228,6 +230,172 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       | Array<{ text: string }>
       | undefined;
     assert.match(content?.[0]?.text ?? "", /not found/i);
+
+    await stopProcess(proc);
+  });
+
+  it("should invalidate query cache after kb_upsert and kb_delete mutations", async () => {
+    const proc = spawn("node", [sandbox.kibiMcpBin], {
+      cwd: sandbox.repoDir,
+      env: sandbox.env,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    await new Promise((r) => setTimeout(r, 500));
+
+    const entityId = "req-issue58-cache-001";
+
+    const init = {
+      jsonrpc: "2.0",
+      id: 300,
+      method: "initialize",
+      params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+    };
+
+    const createReq = {
+      jsonrpc: "2.0",
+      id: 301,
+      method: "tools/call",
+      params: {
+        name: "kb_upsert",
+        arguments: {
+          type: "req",
+          id: entityId,
+          properties: {
+            title: "Issue 58 initial",
+            status: "active",
+            source: "test://issue-58",
+            tags: ["issue-58", "cache"],
+          },
+        },
+      },
+    };
+
+    const readById = {
+      jsonrpc: "2.0",
+      id: 302,
+      method: "tools/call",
+      params: {
+        name: "kb_query",
+        arguments: {
+          id: entityId,
+        },
+      },
+    };
+
+    const updateReq = {
+      jsonrpc: "2.0",
+      id: 303,
+      method: "tools/call",
+      params: {
+        name: "kb_upsert",
+        arguments: {
+          type: "req",
+          id: entityId,
+          properties: {
+            title: "Issue 58 updated",
+            status: "active",
+            source: "test://issue-58",
+            tags: ["issue-58", "cache", "updated"],
+          },
+        },
+      },
+    };
+
+    const listByType = {
+      jsonrpc: "2.0",
+      id: 304,
+      method: "tools/call",
+      params: {
+        name: "kb_query",
+        arguments: {
+          type: "req",
+          limit: 500,
+        },
+      },
+    };
+
+    const deleteReq = {
+      jsonrpc: "2.0",
+      id: 305,
+      method: "tools/call",
+      params: {
+        name: "kb_delete",
+        arguments: {
+          ids: [entityId],
+        },
+      },
+    };
+
+    const initLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(init)),
+    ) as JsonRpcRes;
+    assert.strictEqual(initLine.id, 300);
+
+    const createLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(createReq)),
+    ) as JsonRpcRes;
+    assert.strictEqual(createLine.id, 301);
+    assert.ok(!createLine.error, "create should succeed");
+    assert.ok(
+      !createLine.result?.isError,
+      "create should not return MCP tool error",
+    );
+
+    const firstReadLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(readById)),
+    ) as JsonRpcRes;
+    assert.strictEqual(firstReadLine.id, 302);
+    const firstReadText = (
+      firstReadLine.result?.content as Array<{ text: string }> | undefined
+    )?.[0]?.text;
+    assert.match(firstReadText ?? "", /Issue 58 initial/);
+
+    const updateLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(updateReq)),
+    ) as JsonRpcRes;
+    assert.strictEqual(updateLine.id, 303);
+    assert.ok(!updateLine.error, "update should succeed");
+    assert.ok(
+      !updateLine.result?.isError,
+      "update should not return MCP tool error",
+    );
+
+    const secondReadLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(readById)),
+    ) as JsonRpcRes;
+    assert.strictEqual(secondReadLine.id, 302);
+    const secondReadText = (
+      secondReadLine.result?.content as Array<{ text: string }> | undefined
+    )?.[0]?.text;
+    assert.match(secondReadText ?? "", /Issue 58 updated/);
+    assert.match(secondReadText ?? "", /status=active/);
+
+    const listLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(listByType)),
+    ) as JsonRpcRes;
+    assert.strictEqual(listLine.id, 304);
+    const listText = (listLine.result?.content as Array<{ text: string }>)[0]
+      ?.text;
+    assert.match(listText ?? "", /req-issue58-cache-001/);
+
+    const deleteLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(deleteReq)),
+    ) as JsonRpcRes;
+    assert.strictEqual(deleteLine.id, 305);
+    assert.ok(!deleteLine.error, "delete should succeed");
+    assert.ok(
+      !deleteLine.result?.isError,
+      "delete should not return MCP tool error",
+    );
+
+    const postDeleteReadLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(readById)),
+    ) as JsonRpcRes;
+    assert.strictEqual(postDeleteReadLine.id, 302);
+    const postDeleteText = (
+      postDeleteReadLine.result?.content as Array<{ text: string }> | undefined
+    )?.[0]?.text;
+    assert.match(postDeleteText ?? "", /No entities found/);
 
     await stopProcess(proc);
   });

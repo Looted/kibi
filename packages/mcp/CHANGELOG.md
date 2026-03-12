@@ -1,5 +1,16 @@
 # kibi-mcp
 
+## 0.2.2
+
+### Patch Changes
+
+- Fix stale read behavior in interactive MCP sessions by invalidating cached Prolog query results after successful write operations.
+
+  Add a persistent-session regression test that verifies create/read/update/read and delete/read consistency in one MCP process.
+
+- Updated dependencies
+  - kibi-cli@0.2.3
+
 ## 0.2.1
 
 ### Patch Changes

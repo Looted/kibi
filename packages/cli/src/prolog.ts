@@ -289,6 +289,9 @@ export class PrologProcess {
               success: true,
               bindings: this.extractBindings(this.outputBuffer),
             };
+            if (!cacheable) {
+              this.invalidateCache();
+            }
             if (cacheable) {
               this.cache.set(goalKey, result);
             }
