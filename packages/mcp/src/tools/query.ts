@@ -106,7 +106,7 @@ export async function handleKbQuery(
         goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
       }
     } else if (id && type) {
-      goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
+      goal = `findall(['${id}','${type}',Props], kb_entity('${id}', '${type}', Props), Results)`;
     } else if (id) {
       goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
@@ -125,22 +125,16 @@ export async function handleKbQuery(
     const queryResult = await prolog.query(goal);
 
     if (queryResult.success) {
-      if (id && type) {
-        // Single entity query
-        if (queryResult.bindings.Result) {
-          const entity = parseEntityFromBinding(queryResult.bindings.Result);
-          results = [entity];
-        }
-      } else {
-        // Multiple entities query
-        if (queryResult.bindings.Results) {
-          const entitiesData = parseListOfLists(queryResult.bindings.Results);
+      if (queryResult.bindings.Results) {
+        const entitiesData = parseListOfLists(queryResult.bindings.Results);
 
-          for (const data of entitiesData) {
-            const entity = parseEntityFromList(data);
-            results.push(entity);
-          }
+        for (const data of entitiesData) {
+          const entity = parseEntityFromList(data);
+          results.push(entity);
         }
+      } else if (queryResult.bindings.Result) {
+        const entity = parseEntityFromBinding(queryResult.bindings.Result);
+        results = [entity];
       }
     } else {
       throw new Error(queryResult.error || "Query failed with unknown error");
