@@ -52,6 +52,13 @@ function escapeAtom(value: string): string {
   return value.replace(/'/g, "\\'");
 }
 
+function toPrologAtom(value: string): string {
+  const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+  return simplePrologAtom.test(value)
+    ? value
+    : `'${value.replace(/'/g, "''")}'`;
+}
+
 export interface UpsertArgs {
   /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
   type: string;
@@ -282,11 +289,11 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     let prologValue: string;
 
     if (key === "id" && typeof value === "string") {
-      prologValue = `'${value}'`;
+      prologValue = `'${value.replace(/'/g, "''")}'`;
     } else if (Array.isArray(value)) {
       prologValue = JSON.stringify(value);
     } else if (ATOM_FIELDS.includes(key) && typeof value === "string") {
-      prologValue = value;
+      prologValue = toPrologAtom(value);
     } else if (STRING_FIELDS.includes(key) && typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
     } else if (typeof value === "string") {
