@@ -1,15 +1,15 @@
-import { describe, expect, test, mock } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
+import type { PrologProcess } from "kibi-cli/prolog";
 import {
+  VALID_ENTITY_TYPES,
   handleKbQuery,
-  splitTopLevel,
-  parsePrologValue,
-  parsePropertyList,
-  parseListOfLists,
   parseEntityFromBinding,
   parseEntityFromList,
-  VALID_ENTITY_TYPES,
+  parseListOfLists,
+  parsePrologValue,
+  parsePropertyList,
+  splitTopLevel,
 } from "../../src/tools/query.js";
-import { PrologProcess } from "kibi-cli/prolog";
 
 describe("MCP kb.query Parsing Functions", () => {
   test("VALID_ENTITY_TYPES should be defined", () => {
@@ -180,12 +180,12 @@ describe("MCP kb.query Parsing Functions", () => {
     test("should generate correct goal for id and type filter", async () => {
       (mockProlog.query as any).mockResolvedValueOnce({
         success: true,
-        bindings: { Result: '[id1, req, [title="T"]]' },
+        bindings: { Results: "[['id1','req','[title=\"T\"\"]]']" },
       });
 
       await handleKbQuery(mockProlog, { id: "id1", type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "kb_entity('id1', 'req', Props), Id = 'id1', Type = 'req', Result = [Id, Type, Props]",
+        "findall(['id1','req',Props], kb_entity('id1', 'req', Props), Results)",
       );
     });
 
