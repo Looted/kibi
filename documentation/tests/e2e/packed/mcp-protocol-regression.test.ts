@@ -241,7 +241,7 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       stdio: ["pipe", "pipe", "pipe"],
     });
     await new Promise((r) => setTimeout(r, 500));
-
+    try {
     const entityId = "req-issue58-cache-001";
 
     const init = {
@@ -396,7 +396,8 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       postDeleteReadLine.result?.content as Array<{ text: string }> | undefined
     )?.[0]?.text;
     assert.match(postDeleteText ?? "", /No entities found/);
-
-    await stopProcess(proc);
+    } finally {
+      await stopProcess(proc);
+    }
   });
 });
