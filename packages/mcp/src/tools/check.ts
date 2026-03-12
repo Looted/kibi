@@ -43,9 +43,34 @@
       fi
     done
 */
+import { existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { parsePairList } from "./prolog-list.js";
+
+const require = createRequire(import.meta.url);
+
+function resolveChecksPlPath(): string {
+  const overrideChecksPath = process.env.KIBI_CHECKS_PL_PATH;
+  if (overrideChecksPath && existsSync(overrideChecksPath)) {
+    return overrideChecksPath;
+  }
+
+  try {
+    const installedChecksPl = require.resolve("kibi-core/src/checks.pl");
+    if (existsSync(installedChecksPl)) {
+      return installedChecksPl;
+    }
+  } catch {}
+
+  const localChecksPl = path.join(process.cwd(), "packages/core/src/checks.pl");
+  if (existsSync(localChecksPl)) {
+    return localChecksPl;
+  }
+
+  throw new Error("Unable to resolve checks.pl path");
+}
 
 export interface CheckArgs {
   rules?: string[];
@@ -104,8 +129,7 @@ export async function handleKbCheck(
 
   try {
     const violations: Violation[] = [];
-
-    const allEntityIds = await getAllEntityIds(prolog);
+    let allEntityIds: string[] | null = null;
 
     // Run all validation rules (or specific rules if provided)
     const allRules = [
@@ -116,6 +140,40 @@ export async function handleKbCheck(
       "symbol-coverage",
     ];
     const rulesToRun = rules && rules.length > 0 ? rules : allRules;
+
+    const rulesAllowlist = new Set(rulesToRun);
+    const aggregatedViolations = await runAggregatedChecks(
+      prolog,
+      rulesAllowlist,
+    );
+    if (aggregatedViolations) {
+      const diagnostics: Diagnostic[] = aggregatedViolations.map((v) => ({
+        category: "SYNC_ERROR",
+        severity: "error",
+        message: v.description,
+        file: v.source,
+        suggestion: v.suggestion,
+      }));
+
+      const summary =
+        aggregatedViolations.length === 0
+          ? "No violations found"
+          : `${aggregatedViolations.length} violations found`;
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: summary,
+          },
+        ],
+        structuredContent: {
+          violations: aggregatedViolations,
+          count: aggregatedViolations.length,
+          diagnostics: formatDiagnosticsForMcp(diagnostics),
+        },
+      };
+    }
 
     if (rulesToRun.includes("must-priority-coverage")) {
       violations.push(...(await checkMustPriorityCoverage(prolog)));
@@ -130,6 +188,9 @@ export async function handleKbCheck(
     }
 
     if (rulesToRun.includes("required-fields")) {
+      if (!allEntityIds) {
+        allEntityIds = await getAllEntityIds(prolog);
+      }
       violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
     }
 
@@ -167,6 +228,84 @@ export async function handleKbCheck(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Check execution failed: ${message}`);
   }
+}
+
+async function runAggregatedChecks(
+  prolog: PrologProcess,
+  rulesAllowlist: Set<string>,
+): Promise<Violation[] | null> {
+  const checksPlPath = resolveChecksPlPath();
+  const checksPlPathEscaped = checksPlPath.replace(/'/g, "''");
+  const violations: Violation[] = [];
+
+  const ruleToPredicate: Record<string, string> = {
+    "must-priority-coverage": "check_must_priority_coverage",
+    "no-dangling-refs": "check_no_dangling_refs",
+    "no-cycles": "check_no_cycles",
+    "required-fields": "check_required_fields",
+    "symbol-coverage": "check_symbol_coverage",
+  };
+
+  for (const rule of rulesAllowlist) {
+    const predicate = ruleToPredicate[rule];
+    if (!predicate) {
+      continue;
+    }
+
+    const query = `(use_module('${checksPlPathEscaped}'), call(checks:${predicate}(Violations)), findall(_{rule:Rule,entityId:EntityId,description:Description,suggestion:Suggestion,source:Source}, member(violation(Rule, EntityId, Description, Suggestion, Source), Violations), Rows), call(checks:atom_json_dict(JsonString, Rows, [])))`;
+    const result = await prolog.query(query);
+    if (!result.success || !result.bindings.JsonString) {
+      return null;
+    }
+
+    let parsedRows: unknown;
+    try {
+      parsedRows = JSON.parse(result.bindings.JsonString);
+      if (typeof parsedRows === "string") {
+        parsedRows = JSON.parse(parsedRows);
+      }
+    } catch {
+      return null;
+    }
+
+    if (!Array.isArray(parsedRows)) {
+      return null;
+    }
+
+    for (const row of parsedRows) {
+      if (!row || typeof row !== "object") {
+        continue;
+      }
+      const raw = row as Record<string, unknown>;
+      const rule = typeof raw.rule === "string" ? raw.rule : "";
+      if (!rulesAllowlist.has(rule)) {
+        continue;
+      }
+      const entityId =
+        typeof raw.entityId === "string"
+          ? raw.entityId
+          : typeof raw.entity_id === "string"
+            ? raw.entity_id
+            : "";
+      const description =
+        typeof raw.description === "string" ? raw.description : "";
+      const suggestion =
+        typeof raw.suggestion === "string" ? raw.suggestion : undefined;
+      const source = typeof raw.source === "string" ? raw.source : undefined;
+      if (!rule || !entityId || !description) {
+        continue;
+      }
+      violations.push({
+        rule,
+        entityId,
+        description,
+        suggestion,
+        source,
+      });
+    }
+  }
+
+  return violations;
 }
 
 async function checkMustPriorityCoverage(
