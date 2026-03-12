@@ -289,10 +289,16 @@ export class PrologProcess {
               success: true,
               bindings: this.extractBindings(this.outputBuffer),
             };
-            if (!cacheable) {
+            // Treat any batch/compound goal as non-cacheable to preserve
+            // read-after-write consistency. A batch goal is produced when
+            // query(string[]) rewrites its inputs into "(goal1, goal2, ...)"
+            // which isCacheableGoal() would otherwise mis-classify as cacheable.
+            const isBatchGoal = /^\s*\(/.test(normalizedGoal);
+            const shouldCache = cacheable && !isBatchGoal;
+            if (!shouldCache) {
               this.invalidateCache();
             }
-            if (cacheable) {
+            if (shouldCache) {
               this.cache.set(goalKey, result);
             }
             if (debug) {
