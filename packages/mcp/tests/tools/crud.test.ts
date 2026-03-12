@@ -10,6 +10,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PrologProcess } from "kibi-cli/prolog";
+import { handleKbDelete } from "../../src/tools/delete.js";
 import { handleKbQuery } from "../../src/tools/query.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -85,6 +86,75 @@ describe("MCP CRUD Tool Handlers", () => {
 
       expect(result.structuredContent?.updated).toBe(1);
       expect(result.structuredContent?.created).toBe(0);
+    });
+
+    test("should return updated entity immediately after upsert", async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-003",
+        properties: {
+          title: "Initial Title",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-003",
+        properties: {
+          title: "Updated Immediately",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      const queryResult = await handleKbQuery(prolog, { id: "test-req-003" });
+      const entity = queryResult.structuredContent?.entities[0] as
+        | Record<string, unknown>
+        | undefined;
+
+      expect(entity).toBeDefined();
+      expect(entity?.title).toBe("Updated Immediately");
+    });
+  });
+
+  describe("kb.delete", () => {
+    test("should remove entity from id and type queries", async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-delete-001",
+        properties: {
+          title: "Delete Me",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      const beforeDeleteById = await handleKbQuery(prolog, {
+        id: "test-req-delete-001",
+      });
+      expect(beforeDeleteById.structuredContent?.entities.length).toBe(1);
+
+      const deleteResult = await handleKbDelete(prolog, {
+        ids: ["test-req-delete-001"],
+      });
+      expect(deleteResult.structuredContent?.deleted).toBe(1);
+      expect(deleteResult.structuredContent?.skipped).toBe(0);
+
+      const afterDeleteById = await handleKbQuery(prolog, {
+        id: "test-req-delete-001",
+      });
+      expect(afterDeleteById.structuredContent?.entities.length).toBe(0);
+
+      const afterDeleteByType = await handleKbQuery(prolog, {
+        type: "req",
+      });
+      const hasDeletedEntity =
+        afterDeleteByType.structuredContent?.entities.some(
+          (entity) => entity.id === "test-req-delete-001",
+        ) ?? false;
+      expect(hasDeletedEntity).toBe(false);
     });
   });
 

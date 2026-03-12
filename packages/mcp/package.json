@@ -1,6 +1,6 @@
 {
   "name": "kibi-mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",
     "ajv": "^8.18.0",
@@ -9,7 +9,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^0.2.2",
+    "kibi-cli": "^0.2.3",
     "kibi-core": "^0.1.7",
     "mcpcat": "^0.1.12",
     "ts-morph": "^23.0.0",
