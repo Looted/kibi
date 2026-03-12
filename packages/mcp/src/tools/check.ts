@@ -235,7 +235,8 @@ async function runAggregatedChecks(
   rulesAllowlist: Set<string>,
 ): Promise<Violation[] | null> {
   const checksPlPath = resolveChecksPlPath();
-  const checksPlPathEscaped = checksPlPath.replace(/'/g, "''");
+  const normalizedChecksPlPath = checksPlPath.replace(/\\/g, "/");
+  const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
   const violations: Violation[] = [];
 
   const ruleToPredicate: Record<string, string> = {

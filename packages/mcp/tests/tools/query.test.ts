@@ -180,12 +180,36 @@ describe("MCP kb.query Parsing Functions", () => {
     test("should generate correct goal for id and type filter", async () => {
       (mockProlog.query as any).mockResolvedValueOnce({
         success: true,
-        bindings: { Results: "[['id1','req','[title=\"T\"\"]]']" },
+        bindings: { Results: "[['id1','req',[title=\"T\"]]]" },
       });
 
       await handleKbQuery(mockProlog, { id: "id1", type: "req" });
       expect(mockProlog.query).toHaveBeenCalledWith(
         "findall(['id1','req',Props], kb_entity('id1', 'req', Props), Results)",
+      );
+    });
+
+    test("should escape single quotes in id using '' strategy", async () => {
+      (mockProlog.query as any).mockResolvedValueOnce({
+        success: true,
+        bindings: { Results: "[]" },
+      });
+
+      await handleKbQuery(mockProlog, { id: "o'brien", type: "req" });
+      expect(mockProlog.query).toHaveBeenCalledWith(
+        "findall(['o''brien','req',Props], kb_entity('o''brien', 'req', Props), Results)",
+      );
+    });
+
+    test("should escape single quotes in tags using '' strategy", async () => {
+      (mockProlog.query as any).mockResolvedValueOnce({
+        success: true,
+        bindings: { Results: "[]" },
+      });
+
+      await handleKbQuery(mockProlog, { tags: ["it's", "safe"] });
+      expect(mockProlog.query).toHaveBeenCalledWith(
+        "findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ['it''s','safe'])), Results)",
       );
     });
 

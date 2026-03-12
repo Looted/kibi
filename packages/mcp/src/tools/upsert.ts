@@ -49,7 +49,7 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
+  return value.replace(/'/g, "''");
 }
 
 function toPrologAtom(value: string): string {
