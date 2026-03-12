@@ -21,11 +21,11 @@ jobs:
       has_changesets: ${{ steps.check.outputs.has_changesets }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
       - name: Install dependencies
         run: bun install
       - name: Check for changesets
@@ -59,9 +59,9 @@ jobs:
     if: ${{ needs.check-changesets.outputs.has_changesets == 'true' && inputs.dry-run != true }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -88,13 +88,13 @@ jobs:
       to_publish: ${{ steps.check-packages.outputs.to_publish }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install SWI-Prolog
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -172,13 +172,13 @@ jobs:
     if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.to_publish != '' && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Install SWI-Prolog
         run: sudo apt-get update && sudo apt-get install -y swi-prolog
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -234,11 +234,11 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
