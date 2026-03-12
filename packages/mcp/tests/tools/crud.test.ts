@@ -156,6 +156,85 @@ describe("MCP CRUD Tool Handlers", () => {
         ) ?? false;
       expect(hasDeletedEntity).toBe(false);
     });
+
+    test("should return empty result for missing id+type lookup", async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-delete-typed-001",
+        properties: {
+          title: "Delete Typed",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      await handleKbDelete(prolog, { ids: ["test-req-delete-typed-001"] });
+
+      const typedLookup = await handleKbQuery(prolog, {
+        id: "test-req-delete-typed-001",
+        type: "req",
+      });
+
+      expect(typedLookup.structuredContent?.entities.length).toBe(0);
+      expect(typedLookup.content[0]?.text).toMatch(/No entities found/);
+    });
+
+    test("should converge after parallel create and delete batches", async () => {
+      await Promise.all([
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "test-req-parallel-001",
+          properties: {
+            title: "Parallel 1",
+            status: "active",
+            source: "test://mcp-crud",
+          },
+        }),
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "test-req-parallel-002",
+          properties: {
+            title: "Parallel 2",
+            status: "active",
+            source: "test://mcp-crud",
+          },
+        }),
+      ]);
+
+      const afterCreateOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+      });
+      const afterCreateTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+      });
+      expect(afterCreateOne.structuredContent?.entities.length).toBe(1);
+      expect(afterCreateTwo.structuredContent?.entities.length).toBe(1);
+
+      await Promise.all([
+        handleKbDelete(prolog, { ids: ["test-req-parallel-001"] }),
+        handleKbDelete(prolog, { ids: ["test-req-parallel-002"] }),
+      ]);
+
+      const postDeleteByIdOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+      });
+      const postDeleteByIdTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+      });
+      const postDeleteTypedOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+        type: "req",
+      });
+      const postDeleteTypedTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+        type: "req",
+      });
+
+      expect(postDeleteByIdOne.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteByIdTwo.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteTypedOne.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteTypedTwo.structuredContent?.entities.length).toBe(0);
+    });
   });
 
   describe("batch relationships", () => {

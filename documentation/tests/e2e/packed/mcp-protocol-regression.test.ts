@@ -282,6 +282,19 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       },
     };
 
+    const readByIdAndType = {
+      jsonrpc: "2.0",
+      id: 306,
+      method: "tools/call",
+      params: {
+        name: "kb_query",
+        arguments: {
+          id: entityId,
+          type: "req",
+        },
+      },
+    };
+
     const updateReq = {
       jsonrpc: "2.0",
       id: 303,
@@ -396,6 +409,18 @@ describe("MCP protocol regression (packed)", { timeout: 120000 }, () => {
       postDeleteReadLine.result?.content as Array<{ text: string }> | undefined
     )?.[0]?.text;
     assert.match(postDeleteText ?? "", /No entities found/);
+
+    const postDeleteTypedReadLine = JSON.parse(
+      await sendRaw(proc, JSON.stringify(readByIdAndType)),
+    ) as JsonRpcRes;
+    assert.strictEqual(postDeleteTypedReadLine.id, 306);
+    assert.ok(!postDeleteTypedReadLine.result?.isError);
+    const postDeleteTypedText = (
+      postDeleteTypedReadLine.result?.content as
+        | Array<{ text: string }>
+        | undefined
+    )?.[0]?.text;
+    assert.match(postDeleteTypedText ?? "", /No entities found/);
 
     await stopProcess(proc);
   });
