@@ -268,7 +268,7 @@ describe("buildHoverMarkdown", () => {
       file: "src/file.ts",
       line: 5,
     };
-    const entities = [];
+    const entities: Parameters<typeof buildHoverMarkdown>[1] = [];
     const result = buildHoverMarkdown(symbolInfo, entities);
     expect(result).toContain("# SYM-001");
     expect(result).toContain("`src/file.ts:5`");
@@ -367,7 +367,7 @@ describe("buildHoverMarkdown", () => {
       file: "src/file.ts",
       line: 5,
     };
-    const entities = [];
+    const entities: Parameters<typeof buildHoverMarkdown>[1] = [];
     const result = buildHoverMarkdown(symbolInfo, entities);
     expect(result).toContain(
       "[Browse entities](command:kibi.browseLinkedEntities)",

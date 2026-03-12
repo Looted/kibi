@@ -78,10 +78,6 @@ export interface Violation {
   source?: string;
 }
 
-function shouldLogStagedInfo(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
-}
-
 export async function checkCommand(options: CheckOptions): Promise<void> {
   try {
     // Resolve KB path with priority:
@@ -122,9 +118,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         // Get staged files
         const stagedFiles = getStagedFiles();
         if (!stagedFiles || stagedFiles.length === 0) {
-          if (shouldLogStagedInfo()) {
-            console.log("No staged files found.");
-          }
+          console.log("No staged files found.");
           process.exit(0);
         }
 
@@ -167,18 +161,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         }
 
         if (allSymbols.length === 0 && markdownFiles.length === 0) {
-          if (shouldLogStagedInfo()) {
-            console.log(
-              "No exported symbols or markdown entities found in staged files.",
-            );
-          }
+          console.log(
+            "No exported symbols or markdown entities found in staged files.",
+          );
           process.exit(0);
         }
 
         if (allSymbols.length === 0) {
-          if (shouldLogStagedInfo()) {
-            console.log("✓ No violations found in staged files.");
-          }
+          console.log("✓ No violations found in staged files.");
           process.exit(0);
         }
 
@@ -207,9 +197,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           process.exit(1);
         }
 
-        if (shouldLogStagedInfo()) {
-          console.log("✓ No violations found in staged symbols.");
-        }
+        console.log("✓ No violations found in staged symbols.");
         await cleanupTempKb(tempCtx.tempDir);
         process.exit(0);
       } catch (err) {

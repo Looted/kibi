@@ -206,6 +206,7 @@ export async function handleKbUpsert(
 
     // Save KB to disk
     await prolog.query("kb_save");
+    prolog.invalidateCache();
 
     let contradictionPairsDetected: number | undefined;
     if (type === "req") {
