@@ -49,7 +49,14 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
+  return value.replace(/'/g, "''");
+}
+
+function toPrologAtom(value: string): string {
+  const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+  return simplePrologAtom.test(value)
+    ? value
+    : `'${value.replace(/'/g, "''")}'`;
 }
 
 export interface UpsertArgs {
@@ -199,6 +206,7 @@ export async function handleKbUpsert(
 
     // Save KB to disk
     await prolog.query("kb_save");
+    prolog.invalidateCache();
 
     let contradictionPairsDetected: number | undefined;
     if (type === "req") {
@@ -282,11 +290,11 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     let prologValue: string;
 
     if (key === "id" && typeof value === "string") {
-      prologValue = `'${value}'`;
+      prologValue = `'${value.replace(/'/g, "''")}'`;
     } else if (Array.isArray(value)) {
       prologValue = JSON.stringify(value);
     } else if (ATOM_FIELDS.includes(key) && typeof value === "string") {
-      prologValue = value;
+      prologValue = toPrologAtom(value);
     } else if (STRING_FIELDS.includes(key) && typeof value === "string") {
       prologValue = `"${escapeQuotes(value)}"`;
     } else if (typeof value === "string") {

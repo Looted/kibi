@@ -98,7 +98,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation?.description).not.toContain("scenario");
   });
 
-  test("should pass must-priority coverage with both scenario and test", { timeout: 15000 }, async () => {
+  test("should pass must-priority coverage with both scenario and test", async () => {
     const relationship = {
       type: "validates",
       from: "test-001",
@@ -123,7 +123,7 @@ describe("MCP Check Tool Handler", () => {
         v.rule === "must-priority-coverage" && v.entityId === "req-must-001",
     );
     expect(violation).toBeUndefined();
-  });
+  }, 15000);
 
   test("should run required-fields rule without errors", async () => {
     await handleKbUpsert(prolog, {
@@ -277,4 +277,23 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(violation).toBeUndefined();
   });
+
+  test("should complete kb_check on a larger MCP-written dataset", async () => {
+    for (let i = 0; i < 40; i++) {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: `req-load-${i.toString().padStart(3, "0")}`,
+        properties: {
+          title: `Load Req ${i}`,
+          status: "active",
+          source: "test://check-load",
+        },
+      });
+    }
+
+    const result = await handleKbCheck(prolog, {});
+
+    expect(result.structuredContent).toBeDefined();
+    expect(result.structuredContent?.violations).toBeInstanceOf(Array);
+  }, 45000);
 });

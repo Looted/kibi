@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { readFileSync } from "node:fs";
 /*
  How to apply this header to source files (examples)
 
@@ -52,7 +53,10 @@ import { initCommand } from "./commands/init.js";
 import { queryCommand } from "./commands/query.js";
 import { syncCommand } from "./commands/sync.js";
 
-const VERSION = "0.1.0";
+const packageJson = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { version?: string };
+const VERSION = packageJson.version ?? "0.1.0";
 
 const program = new Command();
 

@@ -117,6 +117,126 @@ describe("MCP CRUD Tool Handlers", () => {
       expect(entity).toBeDefined();
       expect(entity?.title).toBe("Updated Immediately");
     });
+
+    test("should quote owner atoms with punctuation", async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-owner-001",
+        properties: {
+          title: "Owner Atom",
+          status: "active",
+          owner: "platform-team",
+          source: "test://mcp-crud",
+        },
+      });
+
+      const queryResult = await handleKbQuery(prolog, {
+        id: "test-req-owner-001",
+      });
+      const entity = queryResult.structuredContent?.entities[0] as
+        | Record<string, unknown>
+        | undefined;
+
+      expect(entity).toBeDefined();
+      expect(entity?.owner).toBe("platform-team");
+    });
+
+    test("should read MCP-written entities after process restart", async () => {
+      const reqId = "test-req-restart-001";
+      const adrId = "test-adr-restart-001";
+      const testId = "test-case-restart-001";
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: reqId,
+        properties: {
+          title: "Restart Read",
+          status: "active",
+          owner: "platform-team",
+          source: "test://mcp-crud",
+          tags: ["restart", "mcp-write"],
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "adr",
+        id: adrId,
+        properties: {
+          title: "Restart ADR",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: testId,
+        properties: {
+          title: "Restart Test",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      await prolog.query("kb_save");
+      await prolog.query("kb_detach");
+
+      const restarted = new PrologProcess();
+      try {
+        await restarted.start();
+        const attach = await restarted.query(`kb_attach('${testKbPath}')`);
+        expect(attach.success).toBe(true);
+
+        const byId = await handleKbQuery(restarted, { id: reqId });
+        expect(byId.structuredContent?.entities.length).toBe(1);
+
+        const byType = await handleKbQuery(restarted, {
+          type: "req",
+          limit: 500,
+        });
+        const ids = (byType.structuredContent?.entities ?? []).map(
+          (entity) => entity.id,
+        );
+        expect(ids).toContain(reqId);
+
+        const typedLookup = await handleKbQuery(restarted, {
+          id: reqId,
+          type: "req",
+        });
+        const typedEntity = typedLookup.structuredContent?.entities[0] as
+          | Record<string, unknown>
+          | undefined;
+        expect(typedEntity?.type).toBe("req");
+
+        const adrById = await handleKbQuery(restarted, { id: adrId });
+        expect(adrById.structuredContent?.entities.length).toBe(1);
+
+        const adrList = await handleKbQuery(restarted, {
+          type: "adr",
+          limit: 500,
+        });
+        const adrEntities = adrList.structuredContent?.entities ?? [];
+        expect(adrEntities.some((entity) => entity.id === adrId)).toBe(true);
+        expect(adrEntities.every((entity) => entity.type === "adr")).toBe(true);
+
+        const testList = await handleKbQuery(restarted, {
+          type: "test",
+          limit: 500,
+        });
+        const testEntities = testList.structuredContent?.entities ?? [];
+        expect(testEntities.some((entity) => entity.id === testId)).toBe(true);
+        expect(testEntities.every((entity) => entity.type === "test")).toBe(
+          true,
+        );
+      } finally {
+        if (restarted.isRunning()) {
+          await restarted.query("kb_detach");
+          await restarted.terminate();
+        }
+      }
+
+      await prolog.query(`kb_attach('${testKbPath}')`);
+    });
   });
 
   describe("kb.delete", () => {
@@ -155,6 +275,85 @@ describe("MCP CRUD Tool Handlers", () => {
           (entity) => entity.id === "test-req-delete-001",
         ) ?? false;
       expect(hasDeletedEntity).toBe(false);
+    });
+
+    test("should return empty result for missing id+type lookup", async () => {
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-delete-typed-001",
+        properties: {
+          title: "Delete Typed",
+          status: "active",
+          source: "test://mcp-crud",
+        },
+      });
+
+      await handleKbDelete(prolog, { ids: ["test-req-delete-typed-001"] });
+
+      const typedLookup = await handleKbQuery(prolog, {
+        id: "test-req-delete-typed-001",
+        type: "req",
+      });
+
+      expect(typedLookup.structuredContent?.entities.length).toBe(0);
+      expect(typedLookup.content[0]?.text).toMatch(/No entities found/);
+    });
+
+    test("should converge after parallel create and delete batches", async () => {
+      await Promise.all([
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "test-req-parallel-001",
+          properties: {
+            title: "Parallel 1",
+            status: "active",
+            source: "test://mcp-crud",
+          },
+        }),
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "test-req-parallel-002",
+          properties: {
+            title: "Parallel 2",
+            status: "active",
+            source: "test://mcp-crud",
+          },
+        }),
+      ]);
+
+      const afterCreateOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+      });
+      const afterCreateTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+      });
+      expect(afterCreateOne.structuredContent?.entities.length).toBe(1);
+      expect(afterCreateTwo.structuredContent?.entities.length).toBe(1);
+
+      await Promise.all([
+        handleKbDelete(prolog, { ids: ["test-req-parallel-001"] }),
+        handleKbDelete(prolog, { ids: ["test-req-parallel-002"] }),
+      ]);
+
+      const postDeleteByIdOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+      });
+      const postDeleteByIdTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+      });
+      const postDeleteTypedOne = await handleKbQuery(prolog, {
+        id: "test-req-parallel-001",
+        type: "req",
+      });
+      const postDeleteTypedTwo = await handleKbQuery(prolog, {
+        id: "test-req-parallel-002",
+        type: "req",
+      });
+
+      expect(postDeleteByIdOne.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteByIdTwo.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteTypedOne.structuredContent?.entities.length).toBe(0);
+      expect(postDeleteTypedTwo.structuredContent?.entities.length).toBe(0);
     });
   });
 
