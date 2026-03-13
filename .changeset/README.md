@@ -32,9 +32,11 @@ kibi-core (0.1.6)
 kibi-cli (0.2.0) ──→ uses kibi-core ^0.1.6
     ↓
 kibi-mcp (0.2.1) ──→ uses kibi-cli ^0.2.0, kibi-core ^0.1.6
+
+kibi-opencode (0.1.0) ──→ standalone OpenCode plugin package
 ```
 
-When `kibi-core` is bumped, `kibi-cli` and `kibi-mcp` will automatically update their dependency ranges.
+When `kibi-core` is bumped, `kibi-cli` and `kibi-mcp` will automatically update their dependency ranges. `kibi-opencode` is versioned independently and receives changelog updates through Changesets like the other npm packages.
 
 ## Adding a Changeset
 
