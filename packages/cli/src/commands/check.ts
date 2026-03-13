@@ -150,7 +150,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         for (const f of codeFiles) {
           try {
             const symbols = extractSymbolsFromStagedFile(f);
-            if (symbols && symbols.length) {
+            if (symbols?.length) {
               allSymbols.push(...symbols);
             }
           } catch (e) {
@@ -245,7 +245,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     ) {
       if (rulesAllowlist?.has(name) === false) return;
       const res = await fn(prolog, ...args);
-      if (res && res.length) violations.push(...res);
+      if (res?.length) violations.push(...res);
     }
     // Use aggregated checks (single Prolog call) when possible for better performance
     // This is significantly faster in Bun/Docker environments where one-shot mode
@@ -278,11 +278,13 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       await runCheck("no-dangling-refs", checkNoDanglingRefs);
       await runCheck("no-cycles", checkNoCycles);
       const allEntityIds = await getAllEntityIds(prolog);
-      await runCheck(
-        "required-fields",
-        checkRequiredFields as any,
-        allEntityIds,
-      );
+      if (!rulesAllowlist || rulesAllowlist.has("required-fields")) {
+        const requiredViolations = await checkRequiredFields(
+          prolog,
+          allEntityIds,
+        );
+        violations.push(...requiredViolations);
+      }
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
     }

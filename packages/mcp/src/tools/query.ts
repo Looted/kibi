@@ -45,6 +45,14 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 
+/**
+ * Escape a string for embedding inside a single-quoted Prolog atom.
+ * Doubles single-quote characters per ISO Prolog standard.
+ */
+function escapeAtomContent(value: string): string {
+  return value.replace(/'/g, "''");
+}
+
 export interface QueryArgs {
   type?: string;
   id?: string;
@@ -99,25 +107,31 @@ export async function handleKbQuery(
     let goal: string;
 
     if (sourceFile) {
-      const safeSource = sourceFile.replace(/'/g, "\\'");
+      const safeSource = escapeAtomContent(sourceFile);
       if (type) {
-        goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
+        const safeType = escapeAtomContent(type);
+        goal = `findall([Id,'${safeType}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${safeType}', Props)), Results)`;
       } else {
         goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
       }
     } else if (id && type) {
-      goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
+      const safeId = escapeAtomContent(id);
+      const safeType = escapeAtomContent(type);
+      goal = `findall(['${safeId}','${safeType}',Props], kb_entity('${safeId}', '${safeType}', Props), Results)`;
     } else if (id) {
-      goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
+      const safeId = escapeAtomContent(id);
+      goal = `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
-      const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
+      const tagList = `[${tags.map((t) => `'${escapeAtomContent(t)}'`).join(",")}]`;
       if (type) {
-        goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
+        const safeType = escapeAtomContent(type);
+        goal = `findall([Id,'${safeType}',Props], (kb_entity(Id, '${safeType}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
       } else {
         goal = `findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
       }
     } else if (type) {
-      goal = `findall([Id,'${type}',Props], kb_entity(Id, '${type}', Props), Results)`;
+      const safeType = escapeAtomContent(type);
+      goal = `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
     } else {
       goal = "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
     }
@@ -125,22 +139,16 @@ export async function handleKbQuery(
     const queryResult = await prolog.query(goal);
 
     if (queryResult.success) {
-      if (id && type) {
-        // Single entity query
-        if (queryResult.bindings.Result) {
-          const entity = parseEntityFromBinding(queryResult.bindings.Result);
-          results = [entity];
-        }
-      } else {
-        // Multiple entities query
-        if (queryResult.bindings.Results) {
-          const entitiesData = parseListOfLists(queryResult.bindings.Results);
+      if (queryResult.bindings.Results) {
+        const entitiesData = parseListOfLists(queryResult.bindings.Results);
 
-          for (const data of entitiesData) {
-            const entity = parseEntityFromList(data);
-            results.push(entity);
-          }
+        for (const data of entitiesData) {
+          const entity = parseEntityFromList(data);
+          results.push(entity);
         }
+      } else if (queryResult.bindings.Result) {
+        const entity = parseEntityFromBinding(queryResult.bindings.Result);
+        results = [entity];
       }
     } else {
       throw new Error(queryResult.error || "Query failed with unknown error");

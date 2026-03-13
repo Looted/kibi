@@ -187,7 +187,7 @@ describe("CLI", () => {
       cwd: path.join(importMetaDir, "../../.."),
     });
     expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(output.trim()).toBe("0.1.0");
+    expect(output.trim()).toBe("0.2.3");
   });
 
   test("shows help with all required commands", () => {

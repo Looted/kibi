@@ -45,7 +45,7 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
+  return value.replace(/'/g, "''");
 }
 
 export interface DeleteArgs {
@@ -81,8 +81,10 @@ export async function handleKbDelete(
 
   try {
     for (const id of ids) {
+      const safeId = escapeAtom(id);
+
       // Check if entity exists
-      const checkGoal = `once(kb_entity('${escapeAtom(id)}', _, _))`;
+      const checkGoal = `once(kb_entity('${safeId}', _, _))`;
       const checkResult = await prolog.query(checkGoal);
 
       if (!checkResult.success) {
@@ -92,34 +94,24 @@ export async function handleKbDelete(
       }
 
       // Check for dependents (entities that reference this one)
-      // Query each relationship type separately to avoid timeout with unbound Type
-      const relTypes = [
-        "depends_on",
-        "verified_by",
-        "validates",
-        "specified_by",
-        "relates_to",
-        "guards",
-        "publishes",
-        "consumes",
-      ];
-      let hasDependents = false;
+      const dependentsGoal = `findall([RelType,From], (member(RelType, [depends_on, verified_by, validates, specified_by, relates_to, guards, publishes, consumes]), kb_relationship(RelType, From, '${safeId}')), Dependents)`;
+      const dependentsResult = await prolog.query(dependentsGoal);
+      if (!dependentsResult.success) {
+        errors.push(
+          `Failed to inspect dependents for entity ${id}: ${dependentsResult.error ?? "Query failed"}`,
+        );
+        skipped++;
+        continue;
+      }
+      const hasDependents =
+        dependentsResult.bindings.Dependents !== undefined &&
+        dependentsResult.bindings.Dependents !== "[]";
 
-      for (const relType of relTypes) {
-        const dependentsGoal = `findall(From, kb_relationship(${relType}, From, '${id}'), Dependents)`;
-        const dependentsResult = await prolog.query(dependentsGoal);
-
-        if (dependentsResult.success && dependentsResult.bindings.Dependents) {
-          const dependentsStr = dependentsResult.bindings.Dependents;
-          if (dependentsStr !== "[]") {
-            errors.push(
-              `Cannot delete entity ${id}: has dependents (other entities reference it via ${relType})`,
-            );
-            skipped++;
-            hasDependents = true;
-            break;
-          }
-        }
+      if (hasDependents) {
+        errors.push(
+          `Cannot delete entity ${id}: has dependents (other entities reference it)`,
+        );
+        skipped++;
       }
 
       if (hasDependents) {
@@ -127,7 +119,7 @@ export async function handleKbDelete(
       }
 
       // No dependents, safe to delete
-      const deleteGoal = `kb_retract_entity('${id}')`;
+      const deleteGoal = `kb_retract_entity('${safeId}')`;
       const deleteResult = await prolog.query(deleteGoal);
 
       if (!deleteResult.success) {
@@ -142,6 +134,7 @@ export async function handleKbDelete(
 
     // Save KB to disk
     await prolog.query("kb_save");
+    prolog.invalidateCache();
 
     return {
       content: [

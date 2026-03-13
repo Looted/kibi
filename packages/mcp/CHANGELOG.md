@@ -1,5 +1,13 @@
 # kibi-mcp
 
+## 0.2.3
+
+### Patch Changes
+
+- Fix `kb_query` behavior for `{ id, type }` lookups so missing entities return an empty result instead of a `Query failed` execution error.
+
+  Add regression coverage to validate `delete -> query(id+type)` consistency in persistent MCP sessions.
+
 ## 0.2.2
 
 ### Patch Changes
