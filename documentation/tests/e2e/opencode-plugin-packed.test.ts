@@ -56,13 +56,13 @@ status: active
   test("plugin can be imported from package", async () => {
     // In a real packed scenario, this would import from the npm package
     // For now, verify the source modules exist and are loadable
-    const pkg = await import("../../packages/opencode/src/index.ts");
+    const pkg = await import("../../../packages/opencode/src/index.ts");
     assert.ok(pkg.default !== undefined);
   });
 
   test("enablement config disables all behavior", async () => {
     const { loadConfig, isPluginEnabled } = await import(
-      "../../packages/opencode/src/config.ts"
+      "../../../packages/opencode/src/config.ts"
     );
 
     // Test with enabled: false
@@ -74,7 +74,7 @@ status: active
 
   test("sync can be disabled independently", async () => {
     const { loadConfig } = await import(
-      "../../packages/opencode/src/config.ts"
+      "../../../packages/opencode/src/config.ts"
     );
     const cfg = loadConfig(tmpDir);
 
@@ -88,7 +88,7 @@ status: active
 
   test("compat mode sets hookMode", async () => {
     const { loadConfig } = await import(
-      "../../packages/opencode/src/config.ts"
+      "../../../packages/opencode/src/config.ts"
     );
     const cfg = loadConfig(tmpDir);
 
