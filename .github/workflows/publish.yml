@@ -119,7 +119,7 @@ jobs:
       - name: Build MCP package
         run: bun run build:mcp
       - name: Run tests
-        run: bun test --test-timeout=300000 --exclude="documentation/tests/e2e/packed/**"
+        run: bun test --timeout=300000 --exclude="documentation/tests/e2e/packed/**"
       - name: Determine packages to publish
         id: check-packages
         run: |
@@ -201,7 +201,7 @@ jobs:
           cd ../mcp && npm pack
       - name: Tarball content verification
         run: |
-          bun test --test-timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
+          bun test --timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
