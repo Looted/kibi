@@ -40,7 +40,7 @@ Automatically runs `kibi sync` after relevant file edits:
 ### Non-Blocking UX
 
 - Sync runs in background, never blocks OpenCode
-- Failures reported via logs, not toasts blocking workflow
+- Failures reported via console logs only, never as blocking UI elements
 
 ## Configuration
 
@@ -60,9 +60,6 @@ Config files (project overrides global):
 | `sync.debounceMs` | number | `2000` | Debounce window in milliseconds |
 | `sync.ignore` | string[] | `[]` | Additional paths to ignore |
 | `sync.relevant` | string[] | `[]` | Additional relevant paths |
-| `ux.toastFailures` | boolean | `true` | Show toast on sync failures |
-| `ux.toastSuccesses` | boolean | `false` | Show toast on sync success |
-| `ux.toastCooldownMs` | number | `10000` | Minimum time between toasts |
 | `logLevel` | string | `"info"` | Log level: `debug`, `info`, `warn`, `error` |
 
 ### Hook Modes
@@ -113,17 +110,6 @@ This is a thin bridge layer:
 - Reuses existing MCP tools (`kb_query`, `kb_check`, etc.)
 - Does NOT own KB storage, parsing, or validation
 
-## Telemetry Events
-
-The plugin emits structured events:
-
-- `prompt_injected`: Prompt guidance was injected
-- `sync_triggered`: Sync was scheduled
-- `sync_succeeded`: Sync completed successfully
-- `sync_failed`: Sync failed
-- `toast_shown`: Toast notification displayed
-- `compat_mode_used`: Compat mode was activated
-
 ## License
 
-MIT
+AGPL-3.0-or-later

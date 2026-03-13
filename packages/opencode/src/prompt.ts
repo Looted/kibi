@@ -4,7 +4,7 @@ import { isPluginEnabled } from "./config";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
-const GUIDENCE =
+const GUIDANCE =
   SENTINEL +
   `
 This project uses Kibi for traceability. Follow these rules:
@@ -23,7 +23,7 @@ This project uses Kibi for traceability. Follow these rules:
 
 // implements REQ-opencode-kibi-plugin-v1
 export function buildPrompt(): string {
-  return GUIDENCE.trim();
+  return GUIDANCE.trim();
 }
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -34,7 +34,7 @@ export function injectPrompt(current: string, config: KibiConfig): string {
   if (current.includes(SENTINEL)) {
     return current;
   }
-  return current + "\n\n" + GUIDENCE;
+  return current + "\n\n" + GUIDANCE;
 }
 
 export { SENTINEL };
