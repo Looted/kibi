@@ -4,9 +4,21 @@ import { isPluginEnabled } from "./config";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
-const GUIDENCE = `
-${SENTINEL}
-Query Kibi before design/implementation work. Prefer kb_query/kb_check for context. Update KB artifacts after relevant changes. Remember symbol traceability requirements.
+const GUIDENCE =
+  SENTINEL +
+  `
+This project uses Kibi for traceability. Follow these rules:
+
+**Before starting any work:** Run kb_query to find related requirements, ADRs, tests, and symbols. Never assume—verify first.
+
+**While working:**
+- Add "// implements REQ-xxx" comments to every new or modified function/class so the pre-commit hook can verify traceability.
+- When creating KB entities (kb_upsert), include relationship rows in the same call: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
+- Never embed scenarios or tests inside a requirement record. Each must be a separate entity linked via relationships.
+
+**After meaningful changes:** Run kb_check and fix all violations before continuing.
+
+**Key principle:** Every line of code should be traceable to a requirement. Every requirement should have at least one test.
 `;
 
 // implements REQ-opencode-kibi-plugin-v1

@@ -1,3 +1,4 @@
+import { exec } from "node:child_process";
 import path from "node:path";
 import type { KibiConfig } from "./config";
 import { shouldHandleFile } from "./file-filter";
@@ -190,28 +191,11 @@ class WorktreeSyncScheduler implements SyncScheduler {
 }
 
 async function runKibiSync(worktree: string): Promise<{ exitCode: number }> {
-  const bunDollar = (
-    globalThis as typeof globalThis & {
-      Bun?: {
-        $?: (
-          strings: TemplateStringsArray,
-          ...values: unknown[]
-        ) => {
-          cwd: (value: string) => {
-            quiet: () => { nothrow: () => Promise<{ exitCode?: number }> };
-          };
-        };
-      };
-    }
-  ).Bun?.$;
-
-  if (!bunDollar) {
-    throw new Error("Bun shell '$' is unavailable");
-  }
-
-  const result = await bunDollar`kibi sync`.cwd(worktree).quiet().nothrow();
-  const exitCode = typeof result.exitCode === "number" ? result.exitCode : 1;
-  return { exitCode };
+  return new Promise((resolve) => {
+    exec("kibi sync", { cwd: worktree }, (error) => {
+      resolve({ exitCode: error ? (error.code ?? 1) : 0 });
+    });
+  });
 }
 
 // implements REQ-opencode-kibi-plugin-v1

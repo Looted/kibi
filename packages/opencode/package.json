@@ -23,7 +23,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "^0.1.0"
+    "@opencode-ai/plugin": "^1.2.26"
   },
   "devDependencies": {
     "typescript": "^5.0.0"
