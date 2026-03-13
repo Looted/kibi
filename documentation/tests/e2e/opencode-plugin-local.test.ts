@@ -47,22 +47,22 @@ status: active
 
   test("plugin package can be loaded", async () => {
     // Verify the package can be imported
-    const pkg = await import("../../packages/opencode/src/index.ts");
+    const pkg = await import("../../../packages/opencode/src/index.ts");
     assert.ok(pkg.default !== undefined);
   });
 
   test("plugin exports required functions", async () => {
     const { injectPrompt, buildPrompt } = await import(
-      "../../packages/opencode/src/prompt.ts"
+      "../../../packages/opencode/src/prompt.ts"
     );
     const { loadConfig } = await import(
-      "../../packages/opencode/src/config.ts"
+      "../../../packages/opencode/src/config.ts"
     );
     const { shouldHandleFile } = await import(
-      "../../packages/opencode/src/file-filter.ts"
+      "../../../packages/opencode/src/file-filter.ts"
     );
     const { createSyncScheduler } = await import(
-      "../../packages/opencode/src/scheduler.ts"
+      "../../../packages/opencode/src/scheduler.ts"
     );
 
     assert.ok(typeof injectPrompt === "function");
@@ -75,7 +75,7 @@ status: active
   test("relevant file triggers sync eligibility", () => {
     const {
       shouldHandleFile,
-    } = require("../../packages/opencode/src/file-filter.ts");
+    } = require("../../../packages/opencode/src/file-filter.ts");
     const result = shouldHandleFile(
       "documentation/requirements/REQ-001.md",
       tmpDir,
@@ -86,7 +86,7 @@ status: active
   test("irrelevant file does not trigger sync", () => {
     const {
       shouldHandleFile,
-    } = require("../../packages/opencode/src/file-filter.ts");
+    } = require("../../../packages/opencode/src/file-filter.ts");
     const result = shouldHandleFile("src/main.ts", tmpDir);
     assert.equal(result, false);
   });
