@@ -4,9 +4,9 @@
 
 ### Patch Changes
 
-- Fix MCP query consistency after upsert by normalizing source lookups and stabilizing tag filtering/dedup behavior.
+- Fix `kb_entities_by_source` Prolog predicate to use `source=` (matching entity property format) instead of `source-`, and normalize source values via `source_value_atom/2` to handle both atom and string types.
 
-  This resolves inconsistent `kb_query` results across `sourceFile` and `tags` filters and prevents duplicate entities when multiple tags match.
+  This resolves inconsistent `kb_query` results when filtering by `sourceFile`.
 
 ## 0.1.7
 
