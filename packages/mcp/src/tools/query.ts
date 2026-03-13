@@ -122,6 +122,9 @@ export async function handleKbQuery(
       const safeId = escapeAtomContent(id);
       goal = `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
+      // TODO: Reintroduce server-side (Prolog) tag filtering once normalization
+      // issues with tag list formats are resolved, to avoid fetching all entities
+      // before filtering in JS for large knowledge bases.
       if (type) {
         const safeType = escapeAtomContent(type);
         goal = `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
