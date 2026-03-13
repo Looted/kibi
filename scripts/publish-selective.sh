@@ -32,6 +32,7 @@ if [ -n "$1" ]; then
       core) check_and_publish "kibi-core" "core" "${@:2}" ;;
       cli) check_and_publish "kibi-cli" "cli" "${@:2}" ;;
       mcp) check_and_publish "kibi-mcp" "mcp" "${@:2}" ;;
+      opencode) check_and_publish "kibi-opencode" "opencode" "${@:2}" ;;
       vscode) echo "kibi-vscode is published to VS Code Marketplace, not npm" ;;
       *) echo "Unknown package: $pkg" ;;
     esac
@@ -41,4 +42,5 @@ else
   check_and_publish "kibi-core" "core" "${@:2}"
   check_and_publish "kibi-cli" "cli" "${@:2}"
   check_and_publish "kibi-mcp" "mcp" "${@:2}"
+  check_and_publish "kibi-opencode" "opencode" "${@:2}"
 fi
