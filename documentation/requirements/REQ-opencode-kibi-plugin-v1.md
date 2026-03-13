@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-plugin-v1
-title: OpenCode Kibi Plugin v1: Prompt Guidance, Debounced Sync, Non-blocking UX
-status: active
+title: "OpenCode Kibi Plugin v1: Prompt Guidance, Debounced Sync, Non-blocking UX"
+status: open
 created_at: 2026-03-13T00:00:00Z
 updated_at: 2026-03-13T00:00:00Z
 source: packages/opencode/
