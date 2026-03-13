@@ -198,3 +198,73 @@ kibi gc --force
 - KBs are copied from `main` on new branch creation
 - Git hooks automate KB sync on branch checkout/merge
 - Run `kibi doctor` if you encounter environment issues
+
+
+## Staged Symbol Traceability (Agent Workflow)
+
+Staged Symbol Traceability ensures that every new or modified code symbol (function, class, or module) is explicitly linked to at least one requirement before it can be committed. This is a powerful feature for agents to enforce traceability.
+
+### Purpose
+
+This feature enforces a discipline where every code change must reference a requirement (REQ-xxx). It prevents "orphan" code from being merged, ensuring that all new features, bug fixes, and refactors are traceable to a documented need. This is especially valuable for regulated projects, safety-critical systems, or any team that wants to avoid technical debt and improve auditability.
+
+### Agent Workflow
+
+When implementing code changes, an agent should:
+
+1. **Add the `implements REQ-xxx` directive:**
+   ```typescript
+   export function myFunc() { } // implements REQ-001
+   ```
+
+   You can link to multiple requirements:
+   ```typescript
+   export class MyClass { } // implements REQ-001, REQ-002
+   ```
+
+2. **Verify traceability before committing:**
+   ```bash
+   kibi check --staged
+   ```
+
+   This command scans only files staged for commit and reports any new or modified symbols that do not have a requirement link.
+
+3. **Handle violations:**
+   If `kibi check --staged` reports violations, the agent must:
+   - Add appropriate `implements REQ-xxx` directives
+   - Or use `--dry-run` to understand what would be blocked
+
+
+### CLI Flags for Staged Checking
+
+
+- `--staged` – Only check staged files (not whole repo)
+- `--min-links <N>` – Minimum number of requirement links per symbol (default: 1)
+- `--kb-path <path>` – Path to KB directory (optional)
+- `--rules <rule1,rule2>` – Comma-separated list of rules to run (optional)
+- `--dry-run` – Show what would be blocked, but do not block commit
+
+
+### Integration with Git Hooks
+
+
+When `kibi init` is run (hooks are installed by default), a pre-commit hook is installed. This hook automatically runs `kibi check --staged` before every commit. If any staged code symbols are missing requirement links, commit will be blocked with a clear error message.
+
+### Configuration
+
+
+> **Note:** The `.kibi/traceability.json` configuration file is not yet implemented. Use CLI flags (`--min-links`) to customize enforcement.
+
+The following schema is planned for a future release:
+
+```json
+{
+  "minLinks": 1,
+  "langs": ["ts", "tsx", "js", "jsx"]
+}
+```
+
+---
+
+*For user-facing CLI syntax and quick reference, see [CLI Reference](docs/cli-reference.md#staged-symbol-traceability)*
+*For troubleshooting staged check issues, see [Troubleshooting](docs/troubleshooting.md)*
