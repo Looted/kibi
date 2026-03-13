@@ -11,16 +11,17 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Enforces traceability** — Links code symbols to requirements, preventing orphan features and technical debt
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
 - **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
-## Prerequisites
 
-- **kibi-core** (installed automatically with kibi-cli) — Prolog-based knowledge graph that tracks entities across branches
-- **SWI-Prolog 9.0+** — Kibi's knowledge graph runs on Prolog
-### Key Components
+## Key Components
 
 - **kibi-core** — Prolog-based knowledge graph that tracks entities across branches
 - **kibi-cli** — Command-line interface for automation and hooks
 - **kibi-mcp** — Model Context Protocol server for LLM integration
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
+
+## Prerequisites
+
+- **SWI-Prolog 9.0+** — Kibi's knowledge graph runs on Prolog
 
 
 
