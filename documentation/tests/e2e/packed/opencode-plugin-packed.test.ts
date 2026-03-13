@@ -1,98 +1,134 @@
 // Packed e2e test for npm package loading
-import { strict as assert } from "node:assert";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import assert from "node:assert";
+import { execFileSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { after, before, describe, it } from "node:test";
 
-describe("opencode-plugin-packed", () => {
-  const tmpDir = mkdtempSync(join(tmpdir(), "kibi-packed-"));
+const REPO_ROOT = resolve(process.cwd());
 
-  beforeAll(() => {
-    // Create minimal test repo structure for packed scenario
-    mkdirSync(join(tmpDir, ".kb"), { recursive: true });
-    mkdirSync(join(tmpDir, "documentation", "requirements"), {
-      recursive: true,
-    });
-    mkdirSync(join(tmpDir, "documentation", "tests"), { recursive: true });
+const RUN_NODE_TEST_SUITE =
+  typeof (globalThis as { Bun?: unknown }).Bun === "undefined";
 
-    // Create .kb/config.json
-    writeFileSync(
-      join(tmpDir, ".kb", "config.json"),
-      JSON.stringify({
-        paths: {
-          requirements: "documentation/requirements/**/*.md",
-          tests: "documentation/tests/**/*.md",
+if (RUN_NODE_TEST_SUITE) {
+  describe(
+    "opencode-plugin-packed",
+    { timeout: 180000 },
+    () => {
+      let tmpDir: string;
+      let installDir: string;
+
+      before(
+        async () => {
+          tmpDir = mkdtempSync(join(tmpdir(), "kibi-packed-"));
+          installDir = join(tmpDir, "install");
+          mkdirSync(installDir, { recursive: true });
+
+          // Pack the opencode package (triggers prepack → build)
+          const opencodeDir = join(REPO_ROOT, "packages/opencode");
+          const packOutput = execFileSync(
+            "npm",
+            ["pack", "--json"],
+            {
+              cwd: opencodeDir,
+              encoding: "utf8",
+              stdio: ["pipe", "pipe", "pipe"],
+            },
+          );
+
+          interface PackResult {
+            filename: string;
+          }
+          const [{ filename }] = JSON.parse(packOutput) as PackResult[];
+          const tarball = join(opencodeDir, filename as string);
+
+          // Install tarball into isolated prefix
+          execFileSync(
+            "npm",
+            ["install", "--prefix", installDir, tarball],
+            { stdio: ["pipe", "pipe", "pipe"] },
+          );
         },
-      }),
-    );
+        { timeout: 120000 },
+      );
 
-    // Create requirement file
-    writeFileSync(
-      join(tmpDir, "documentation", "requirements", "REQ-002.md"),
-      `---
-id: REQ-002
-title: Packed Test Requirement
-status: active
----
-# Packed Test`,
-    );
+      after(async () => {
+        rmSync(tmpDir, { recursive: true, force: true });
+      });
 
-    // Create test file
-    writeFileSync(
-      join(tmpDir, "documentation", "tests", "TEST-001.md"),
-      `---
-id: TEST-001
-title: Packed Test Case
-status: active
----
-# Test Case`,
-    );
-  });
+      it(
+        "plugin can be imported from package",
+        async () => {
+          const distIndex = join(
+            installDir,
+            "node_modules/kibi-opencode/dist/index.js",
+          );
+          assert.ok(
+            existsSync(distIndex),
+            `dist/index.js not found at ${distIndex}`,
+          );
+          const pkg = await import(distIndex);
+          assert.ok(pkg.default !== undefined);
+        },
+        { timeout: 30000 },
+      );
 
-  afterAll(() => {
-    rmSync(tmpDir, { recursive: true, force: true });
-  });
+      it(
+        "enablement config disables all behavior",
+        async () => {
+          const { isPluginEnabled } = await import(
+            join(
+              installDir,
+              "node_modules/kibi-opencode/dist/config.js",
+            )
+          );
+          const result = (
+            isPluginEnabled as (cfg: { enabled: boolean }) => boolean
+          )({ enabled: false });
+          assert.equal(result, false);
+        },
+        { timeout: 30000 },
+      );
 
-  test("plugin can be imported from package", async () => {
-    // In a real packed scenario, this would import from the npm package
-    // For now, verify the source modules exist and are loadable
-    const pkg = await import("../../packages/opencode/src/index.ts");
-    assert.ok(pkg.default !== undefined);
-  });
+      it(
+        "sync can be disabled independently",
+        async () => {
+          const configModule = (await import(
+            join(
+              installDir,
+              "node_modules/kibi-opencode/dist/config.js",
+            )
+          )) as { DEFAULTS: { sync: { enabled: boolean }; prompt: { hookMode: string } } };
+          const { DEFAULTS } = configModule;
+          assert.equal(DEFAULTS.sync.enabled, true);
+          const disabledSyncCfg = {
+            ...DEFAULTS,
+            sync: { ...DEFAULTS.sync, enabled: false },
+          };
+          assert.equal(disabledSyncCfg.sync.enabled, false);
+        },
+        { timeout: 30000 },
+      );
 
-  test("enablement config disables all behavior", async () => {
-    const { loadConfig, isPluginEnabled } = await import(
-      "../../packages/opencode/src/config.ts"
-    );
-
-    // Test with enabled: false
-    const disabledConfig = loadConfig(tmpDir);
-    // Project-level config would override, simulating disabled state
-    const result = isPluginEnabled({ ...disabledConfig, enabled: false });
-    assert.equal(result, false);
-  });
-
-  test("sync can be disabled independently", async () => {
-    const { loadConfig } = await import(
-      "../../packages/opencode/src/config.ts"
-    );
-    const cfg = loadConfig(tmpDir);
-
-    // Default sync is enabled
-    assert.equal(cfg.sync.enabled, true);
-
-    // Verify we can create config with sync disabled
-    const disabledSyncCfg = { ...cfg, sync: { ...cfg.sync, enabled: false } };
-    assert.equal(disabledSyncCfg.sync.enabled, false);
-  });
-
-  test("compat mode sets hookMode", async () => {
-    const { loadConfig } = await import(
-      "../../packages/opencode/src/config.ts"
-    );
-    const cfg = loadConfig(tmpDir);
-
-    // Default is "auto"
-    assert.equal(cfg.prompt.hookMode, "auto");
-  });
-});
+      it(
+        "compat mode sets hookMode",
+        async () => {
+          const configModule = (await import(
+            join(
+              installDir,
+              "node_modules/kibi-opencode/dist/config.js",
+            )
+          )) as { DEFAULTS: { sync: { enabled: boolean }; prompt: { hookMode: string } } };
+          assert.equal(configModule.DEFAULTS.prompt.hookMode, "auto");
+        },
+        { timeout: 30000 },
+      );
+    },
+  );
+}
