@@ -6,3 +6,8 @@ export function info(msg: string): void {
 export function warn(msg: string): void {
   console.warn("[kibi-opencode]", msg);
 }
+
+// implements REQ-opencode-kibi-plugin-v1
+export function error(msg: string): void {
+  console.error("[kibi-opencode]", msg);
+}
