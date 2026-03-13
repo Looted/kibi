@@ -1,3 +1,4 @@
+import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
 

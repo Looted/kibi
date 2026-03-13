@@ -1,10 +1,14 @@
 // implements REQ-opencode-kibi-plugin-v1
+import { createRequire } from "node:module";
 import { existsSync, readFileSync } from "node:fs";
-import * as pathMod from "node:path";
-// Lightweight fallback matcher if picomatch isn't installed in the test environment.
+import * as path from "node:path";
+
+const _require = createRequire(import.meta.url);
+
+// Lightweight fallback matcher if picomatch isn't installed.
 let picomatch: { isMatch: (s: string, p: string) => boolean };
 try {
-  picomatch = require("picomatch");
+  picomatch = _require("picomatch");
 } catch {
   picomatch = {
     isMatch: (str: string, pattern: string) => {
@@ -18,11 +22,6 @@ try {
     },
   };
 }
-import {
-  existsSync as fsExistsSync,
-  readFileSync as fsReadFileSync,
-} from "node:fs";
-import * as path from "node:path";
 
 // Local copy of DEFAULT_SYNC_PATHS to avoid cross-package TS rootDir issues
 const DEFAULT_SYNC_PATHS = {
@@ -40,9 +39,9 @@ function loadSyncConfigLocal(cwd = process.cwd()) {
   const configPath = path.join(cwd, ".kb/config.json");
   let userConfig: { paths?: Record<string, string>; defaultBranch?: string } =
     {};
-  if (fsExistsSync(configPath)) {
+  if (existsSync(configPath)) {
     try {
-      userConfig = JSON.parse(fsReadFileSync(configPath, "utf8")) || {};
+      userConfig = JSON.parse(readFileSync(configPath, "utf8")) || {};
     } catch {
       userConfig = {};
     }
@@ -66,7 +65,7 @@ function normalizePattern(p: string | undefined): string | null {
   // preserve explicit globs containing '*' or '/**'
   if (p.includes("*")) return p;
   // symbols manifest is typically a file (yaml) - keep as-is
-  if (p.endsWith(".yaml") || p.endsWith(".yml") || pathMod.extname(p)) return p;
+  if (p.endsWith(".yaml") || p.endsWith(".yml") || path.extname(p)) return p;
   // otherwise treat directory as markdown collection
   return `${p.replace(/\/+$/, "")}/**/*.md`;
 }
@@ -91,9 +90,9 @@ export function shouldHandleFile(
   filePath: string,
   cwd = process.cwd(),
 ): boolean {
-  const rel = pathMod.isAbsolute(filePath)
-    ? pathMod.relative(cwd, filePath).split(pathMod.sep).join("/")
-    : filePath.split(pathMod.sep).join("/");
+  const rel = path.isAbsolute(filePath)
+    ? path.relative(cwd, filePath).split(path.sep).join("/")
+    : filePath.split(path.sep).join("/");
 
   const paths = loadKbSyncPaths(cwd);
 
