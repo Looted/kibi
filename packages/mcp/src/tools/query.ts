@@ -122,12 +122,11 @@ export async function handleKbQuery(
       const safeId = escapeAtomContent(id);
       goal = `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
-      const tagList = `[${tags.map((t) => `'${escapeAtomContent(t)}'`).join(",")}]`;
       if (type) {
         const safeType = escapeAtomContent(type);
-        goal = `findall([Id,'${safeType}',Props], (kb_entity(Id, '${safeType}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
+        goal = `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
       } else {
-        goal = `findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
+        goal = "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
       }
     } else if (type) {
       const safeType = escapeAtomContent(type);
@@ -152,6 +151,12 @@ export async function handleKbQuery(
       }
     } else {
       throw new Error(queryResult.error || "Query failed with unknown error");
+    }
+
+    if (tags && tags.length > 0) {
+      results = dedupeEntities(
+        results.filter((entity) => hasAnyTag(entity, tags)),
+      );
     }
 
     // Apply pagination
@@ -190,6 +195,49 @@ export async function handleKbQuery(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Query execution failed: ${message}`);
   }
+}
+
+function hasAnyTag(
+  entity: Record<string, unknown>,
+  requestedTags: string[],
+): boolean {
+  const expected = new Set(requestedTags.map(normalizeTagValue));
+  const rawTags = entity.tags;
+  if (!Array.isArray(rawTags) || rawTags.length === 0) {
+    return false;
+  }
+
+  for (const tag of rawTags) {
+    if (expected.has(normalizeTagValue(tag))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function normalizeTagValue(tag: unknown): string {
+  return String(tag).trim();
+}
+
+function dedupeEntities(
+  entities: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  const seen = new Set<string>();
+  const deduped: Record<string, unknown>[] = [];
+
+  for (const entity of entities) {
+    const id = String(entity.id ?? "");
+    const type = String(entity.type ?? "");
+    const key = `${type}::${id}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    deduped.push(entity);
+  }
+
+  return deduped;
 }
 
 /**

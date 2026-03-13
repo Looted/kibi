@@ -1,5 +1,13 @@
 # kibi-core
 
+## 0.1.8
+
+### Patch Changes
+
+- Fix MCP query consistency after upsert by normalizing source lookups and stabilizing tag filtering/dedup behavior.
+
+  This resolves inconsistent `kb_query` results across `sourceFile` and `tags` filters and prevents duplicate entities when multiple tags match.
+
 ## 0.1.7
 
 ### Patch Changes

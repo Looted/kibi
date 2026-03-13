@@ -47,6 +47,111 @@ describe("MCP CRUD Tool Handlers", () => {
       const result = await handleKbQuery(prolog, {});
       expect(result.structuredContent?.entities).toBeInstanceOf(Array);
     });
+
+    test("should find freshly upserted entity by sourceFile", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "issue67-source-001",
+        properties: {
+          title: "Source Query Regression",
+          status: "active",
+          source: "mcp://repro/source",
+        },
+      });
+
+      const bySource = await handleKbQuery(prolog, {
+        sourceFile: "mcp://repro/source",
+        limit: 20,
+      });
+
+      const ids = (bySource.structuredContent?.entities ?? []).map((entity) =>
+        String(entity.id),
+      );
+      expect(ids).toContain("issue67-source-001");
+    });
+
+    test("should find freshly upserted entity by sourceFile and type", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "issue67-source-type-001",
+        properties: {
+          title: "Source+Type Query Regression",
+          status: "active",
+          source: "mcp://repro/source-type",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "issue67-source-type-req-001",
+        properties: {
+          title: "Source+Type Query Noise",
+          status: "active",
+          source: "mcp://repro/source-type",
+        },
+      });
+
+      const bySourceAndType = await handleKbQuery(prolog, {
+        sourceFile: "mcp://repro/source-type",
+        type: "fact",
+        limit: 20,
+      });
+
+      const ids = (bySourceAndType.structuredContent?.entities ?? []).map(
+        (entity) => String(entity.id),
+      );
+
+      expect(ids).toContain("issue67-source-type-001");
+      expect(ids).not.toContain("issue67-source-type-req-001");
+    });
+
+    test("should find freshly upserted entity by tag", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "issue67-tag-001",
+        properties: {
+          title: "Tag Query Regression",
+          status: "active",
+          source: "mcp://repro/tag",
+          tags: ["kibi-mcp-repro", "kibi-mcp-repro-issue67"],
+        },
+      });
+
+      const byTag = await handleKbQuery(prolog, {
+        tags: ["kibi-mcp-repro-issue67"],
+        limit: 20,
+      });
+
+      const ids = (byTag.structuredContent?.entities ?? []).map((entity) =>
+        String(entity.id),
+      );
+      expect(ids).toContain("issue67-tag-001");
+    });
+
+    test("should not return duplicate entities when multiple tags match", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "issue67-tag-dup-001",
+        properties: {
+          title: "Tag Duplicate Regression",
+          status: "active",
+          source: "mcp://repro/tag-dup",
+          tags: ["dup-a", "dup-b"],
+        },
+      });
+
+      const byTags = await handleKbQuery(prolog, {
+        tags: ["dup-a", "dup-b"],
+        limit: 20,
+      });
+
+      const ids = (byTags.structuredContent?.entities ?? []).map((entity) =>
+        String(entity.id),
+      );
+      const matches = ids.filter((id) => id === "issue67-tag-dup-001");
+
+      expect(matches.length).toBe(1);
+    });
   });
 
   describe("kb.upsert", () => {

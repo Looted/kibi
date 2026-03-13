@@ -270,9 +270,21 @@ convert_legacy_prop(Prop, Prop, true).
 kb_entities_by_source(SourcePath, Ids) :-
     findall(Id,
         (kb_entity(Id, _Type, Props),
-         memberchk(source-S, Props),
-         sub_atom(S, _, _, _, SourcePath)),
-        Ids).
+         memberchk(source=RawSource, Props),
+         source_value_atom(RawSource, SourceAtom),
+         sub_atom(SourceAtom, _, _, _, SourcePath)),
+        RawIds),
+    sort(RawIds, Ids).
+
+source_value_atom(Value, Atom) :-
+    (   atom(Value)
+    ->  Atom = Value
+    ;   string(Value)
+    ->  atom_string(Atom, Value)
+    ;   Value = ^^(Inner, _)
+    ->  source_value_atom(Inner, Atom)
+    ;   term_string(Value, Atom)
+    ).
 
 %% kb_assert_relationship(+Type, +From, +To, +Metadata)
 % Assert a relationship between two entities with validation.

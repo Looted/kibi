@@ -149,12 +149,19 @@ describe("MCP kb.query Parsing Functions", () => {
   });
 
   describe("handleKbQuery", () => {
+    const mockQuery = mock(
+      async (): Promise<{
+        success: boolean;
+        bindings: Record<string, string>;
+        error?: string;
+      }> => ({ success: true, bindings: {} }),
+    );
     const mockProlog = {
-      query: mock(async () => ({ success: true, bindings: {} })),
+      query: mockQuery,
     } as unknown as PrologProcess;
 
     test("should generate correct goal for all entities", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[]" },
       });
@@ -166,7 +173,7 @@ describe("MCP kb.query Parsing Functions", () => {
     });
 
     test("should generate correct goal for type filter", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[]" },
       });
@@ -178,7 +185,7 @@ describe("MCP kb.query Parsing Functions", () => {
     });
 
     test("should generate correct goal for id and type filter", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[['id1','req',[title=\"T\"]]]" },
       });
@@ -190,7 +197,7 @@ describe("MCP kb.query Parsing Functions", () => {
     });
 
     test("should escape single quotes in id using '' strategy", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[]" },
       });
@@ -201,28 +208,45 @@ describe("MCP kb.query Parsing Functions", () => {
       );
     });
 
-    test("should escape single quotes in tags using '' strategy", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+    test("should query entities before tag filtering", async () => {
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[]" },
       });
 
       await handleKbQuery(mockProlog, { tags: ["it's", "safe"] });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ['it''s','safe'])), Results)",
+        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
       );
     });
 
-    test("should generate correct goal for tags filter", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+    test("should generate query goal for tags filter", async () => {
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: "[]" },
       });
 
       await handleKbQuery(mockProlog, { tags: ["t1", "t2"] });
       expect(mockProlog.query).toHaveBeenCalledWith(
-        "findall([Id,Type,Props], (kb_entity(Id, Type, Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ['t1','t2'])), Results)",
+        "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
       );
+    });
+
+    test("should dedupe entities when multiple tags match", async () => {
+      mockQuery.mockResolvedValueOnce({
+        success: true,
+        bindings: {
+          Results:
+            '[[entity-1,fact,[title="One",status=active,tags=[dup_a,dup_b]]],[entity-1,fact,[title="One",status=active,tags=[dup_a,dup_b]]]]',
+        },
+      });
+
+      const result = await handleKbQuery(mockProlog, {
+        tags: ["dup_a", "dup_b"],
+      });
+
+      expect(result.structuredContent?.entities.length).toBe(1);
+      expect(result.structuredContent?.entities[0]?.id).toBe("entity-1");
     });
 
     test("should handle pagination (limit/offset)", async () => {
@@ -230,7 +254,7 @@ describe("MCP kb.query Parsing Functions", () => {
         { length: 10 },
         (_, i) => `[id${i}, req, [title=\"T${i}\", status=\"active\"]]`,
       );
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: true,
         bindings: { Results: `[${entities.join(",")}]` },
       });
@@ -244,8 +268,9 @@ describe("MCP kb.query Parsing Functions", () => {
     });
 
     test("should throw error on query failure", async () => {
-      (mockProlog.query as any).mockResolvedValueOnce({
+      mockQuery.mockResolvedValueOnce({
         success: false,
+        bindings: {},
         error: "Prolog Error",
       });
 
@@ -257,7 +282,7 @@ describe("MCP kb.query Parsing Functions", () => {
     test("should throw error on invalid type", async () => {
       const invalidType = "invalid";
       await expect(
-        handleKbQuery(mockProlog, { type: invalidType as any }),
+        handleKbQuery(mockProlog, { type: invalidType }),
       ).rejects.toThrow(
         `Invalid type '${invalidType}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
       );
