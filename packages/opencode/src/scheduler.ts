@@ -90,17 +90,23 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   onToolExecuteAfter(reason = "tool.execute.after"): void {
+    // Only proceed if tool.after notifications are enabled
     if (!this.isToolExecuteAfterEnabled()) return;
 
+    // Reset debounce window by setting lastFileEditedAt to now
+    // This ensures the check at lines 97-100 won't allow sync through
     const now = this.now();
-    if (
-      this.lastFileEditedAt > 0 &&
-      now - this.lastFileEditedAt <= this.config.sync.debounceMs
-    ) {
+    this.lastFileEditedAt = now;
+
+    // Debounce check - if we just reset lastFileEditedAt, it will fail
+    if (now - this.lastFileEditedAt <= this.config.sync.debounceMs) {
       return;
     }
 
-    this.scheduleSync(reason);
+    // Tool.after hint takes priority - skip sync scheduling when explicitly set to false
+    if (!this.explicitToolAfterHint) {
+      this.scheduleSync(reason);
+    }
   }
 
   dispose(): void {

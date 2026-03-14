@@ -2,34 +2,52 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from "bun:test";
 import { DEFAULTS, isPluginEnabled, loadConfig } from "../src/config";
 import * as logger from "../src/logger";
 
 describe("config loader", () => {
-  const home = path.join(os.homedir(), ".config", "opencode");
-  const projDir = path.join(process.cwd(), "tmp-project");
+  let tmpBase: string;
+  let home: string;
+  let projDir: string;
+  let origHome: string | undefined;
 
   beforeAll(() => {
-    try {
-      fs.mkdirSync(home, { recursive: true });
-    } catch {}
-    try {
-      fs.mkdirSync(path.join(projDir, ".opencode"), { recursive: true });
-    } catch {}
+    tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-config-test-"));
+    home = path.join(tmpBase, "home");
+    projDir = path.join(tmpBase, "project");
+    origHome = process.env.HOME;
+
+    fs.mkdirSync(path.join(home, ".config", "opencode"), { recursive: true });
+    fs.mkdirSync(path.join(projDir, ".opencode"), { recursive: true });
+
+    // Override HOME so os.homedir() resolves to our temp dir
+    process.env.HOME = home;
   });
 
   afterEach(() => {
     try {
-      fs.rmSync(path.join(home, "kibi.json"));
+      fs.rmSync(path.join(home, ".config", "opencode", "kibi.json"));
     } catch {}
     try {
       fs.rmSync(path.join(projDir, ".opencode", "kibi.json"));
     } catch {}
   });
 
+  afterAll(() => {
+    if (origHome !== undefined) {
+      process.env.HOME = origHome;
+    } else {
+      delete process.env.HOME;
+    }
+    try {
+      fs.rmSync(tmpBase, { recursive: true, force: true });
+    } catch {}
+  });
+
   test("global config loads correctly", () => {
     fs.writeFileSync(
-      path.join(home, "kibi.json"),
+      path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: true, prompt: { hookMode: "compat" } }),
     );
     const c = loadConfig(projDir);
@@ -39,7 +57,7 @@ describe("config loader", () => {
 
   test("project overrides global", () => {
     fs.writeFileSync(
-      path.join(home, "kibi.json"),
+      path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: true, prompt: { hookMode: "compat" } }),
     );
     fs.writeFileSync(
@@ -51,8 +69,11 @@ describe("config loader", () => {
   });
 
   test("invalid config falls back to defaults with warning", () => {
-    const warnSpy = jest.spyOn(logger, "warn");
-    fs.writeFileSync(path.join(home, "kibi.json"), "{ not: json");
+    const warnSpy = spyOn(logger, "warn");
+    fs.writeFileSync(
+      path.join(home, ".config", "opencode", "kibi.json"),
+      "{ not: json",
+    );
     const c = loadConfig(projDir);
     expect(c).toEqual(DEFAULTS);
     expect(warnSpy).toHaveBeenCalled();
@@ -61,7 +82,7 @@ describe("config loader", () => {
 
   test("enabled false disables plugin", () => {
     fs.writeFileSync(
-      path.join(home, "kibi.json"),
+      path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: false }),
     );
     const c = loadConfig(projDir);
@@ -70,10 +91,10 @@ describe("config loader", () => {
 
   test("prompt.hookMode validation", () => {
     fs.writeFileSync(
-      path.join(home, "kibi.json"),
+      path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ prompt: { hookMode: "invalid" } }),
     );
-    const warnSpy = jest.spyOn(logger, "warn");
+    const warnSpy = spyOn(logger, "warn");
     const c = loadConfig(projDir);
     expect(c.prompt.hookMode).toBe(DEFAULTS.prompt.hookMode);
     expect(warnSpy).toHaveBeenCalled();
