@@ -1,6 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugins": ["kibi-opencode"],
+  "plugin": ["kibi-opencode"],
   "mcp": {
     "kibi": {
       "type": "local",
