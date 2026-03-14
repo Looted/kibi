@@ -17,6 +17,7 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **kibi-core** — Prolog-based knowledge graph that tracks entities across branches
 - **kibi-cli** — Command-line interface for automation and hooks
 - **kibi-mcp** — Model Context Protocol server for LLM integration
+- **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
 
 ## Prerequisites
@@ -32,8 +33,14 @@ Kibi is designed to boost AI agents' memory during software development. It main
 # Using npm (recommended)
 npm install -g kibi-cli kibi-mcp
 
+# Optional: OpenCode plugin (project or global install)
+npm install kibi-opencode
+
 # Using bun
 bun add -g kibi-cli kibi-mcp
+
+# Optional: OpenCode plugin
+bun add kibi-opencode
 ```
 
 After installation, verify that kibi is available:
@@ -77,6 +84,21 @@ kibi check
 - **[AGENTS.md](AGENTS.md)** — Guidelines for AI agents working on kibi projects
 - **[Contributing](CONTRIBUTING.md)** — Development setup and contributor workflow
 
+## Release and Versioning
+
+All publishable npm packages in this repo (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`) follow the same Changesets workflow for versioning and changelog generation.
+
+```bash
+# Add release metadata for changed package(s)
+bun run changeset
+
+# Preview pending releases
+bunx changeset status
+
+# Apply version bumps and update package changelogs
+bun run version-packages
+```
+
 ---
 
-⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli` and `kibi-mcp` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
+⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, and `kibi-opencode` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
