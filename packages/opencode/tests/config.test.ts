@@ -1,8 +1,16 @@
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  spyOn,
+  test,
+} from "bun:test";
 // @ts-nocheck
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { afterAll, afterEach, beforeAll, describe, expect, spyOn, test } from "bun:test";
 import { DEFAULTS, isPluginEnabled, loadConfig } from "../src/config";
 import * as logger from "../src/logger";
 
@@ -37,8 +45,6 @@ describe("config loader", () => {
   afterAll(() => {
     if (origHome !== undefined) {
       process.env.HOME = origHome;
-    } else {
-      delete process.env.HOME;
     }
     try {
       fs.rmSync(tmpBase, { recursive: true, force: true });
@@ -46,6 +52,8 @@ describe("config loader", () => {
   });
 
   test("global config loads correctly", () => {
+    const warnSpy = spyOn(console, "warn");
+    const errorSpy = spyOn(console, "error");
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: true, prompt: { hookMode: "compat" } }),
@@ -53,51 +61,63 @@ describe("config loader", () => {
     const c = loadConfig(projDir);
     expect(c.enabled).toBe(true);
     expect(c.prompt.hookMode).toBe("compat");
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   test("project overrides global", () => {
+    const warnSpy = spyOn(console, "warn");
+    const errorSpy = spyOn(console, "error");
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: true, prompt: { hookMode: "compat" } }),
     );
     fs.writeFileSync(
-      path.join(projDir, ".opencode", "kibi.json"),
+      path.join(projDir, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: false }),
     );
     const c = loadConfig(projDir);
     expect(c.enabled).toBe(false);
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   test("invalid config falls back to defaults with warning", () => {
-    const warnSpy = spyOn(logger, "warn");
+    const warnSpy = spyOn(console, "warn");
+    const errorSpy = spyOn(console, "error");
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),
-      "{ not: json",
+      "{ not: json}",
     );
     const c = loadConfig(projDir);
     expect(c).toEqual(DEFAULTS);
     expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 
   test("enabled false disables plugin", () => {
+    const warnSpy = spyOn(console, "warn");
+    const errorSpy = spyOn(console, "error");
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ enabled: false }),
     );
     const c = loadConfig(projDir);
     expect(isPluginEnabled(c)).toBe(false);
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   test("prompt.hookMode validation", () => {
+    const warnSpy = spyOn(console, "warn");
+    const errorSpy = spyOn(console, "error");
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({ prompt: { hookMode: "invalid" } }),
     );
-    const warnSpy = spyOn(logger, "warn");
     const c = loadConfig(projDir);
     expect(c.prompt.hookMode).toBe(DEFAULTS.prompt.hookMode);
     expect(warnSpy).toHaveBeenCalled();
-    warnSpy.mockRestore();
+    errorSpy.mockRestore();
   });
 });
