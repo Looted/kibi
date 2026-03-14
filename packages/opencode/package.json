@@ -1,0 +1,38 @@
+{
+  "name": "kibi-opencode",
+  "version": "0.1.0",
+  "description": "Kibi OpenCode plugin - thin adapter to integrate Kibi with OpenCode sessions",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.2.26"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
