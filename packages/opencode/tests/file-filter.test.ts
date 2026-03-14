@@ -1,3 +1,4 @@
+import { describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
 import { shouldHandleFile } from "../src/file-filter";
 
