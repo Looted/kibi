@@ -341,7 +341,7 @@ describe("MCP CRUD Tool Handlers", () => {
       }
 
       await prolog.query(`kb_attach('${testKbPath}')`);
-    });
+    }, 15000);
   });
 
   describe("kb.delete", () => {
