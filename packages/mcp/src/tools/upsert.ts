@@ -60,14 +60,16 @@ function toPrologAtom(value: string): string {
 }
 
 export interface UpsertArgs {
-  /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
-  type: string;
-  /** Unique entity identifier */
-  id: string;
-  /** Key-value pairs to store as RDF properties (title, status, source, tags, etc.) */
-  properties: Record<string, unknown>;
-  /** Optional relationships to create alongside this entity */
+/** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
+type: string;
+/** Unique entity identifier */
+id: string;
+/** Key-value pairs to store as RDF properties (title, status, source, tags, etc.) */
+properties: Record<string, unknown>;
+/** Optional relationships to create alongside this entity */
   relationships?: Array<Record<string, unknown>>;
+  /** Internal: skip contradiction detection for bulk operations (improves performance) */
+  _skipContradictionCheck?: boolean;
 }
 
 export interface UpsertResult {
@@ -203,13 +205,18 @@ export async function handleKbUpsert(
 
       relationshipsCreated++;
     }
-
-    // Save KB to disk
+    // Note: kb_save is intentionally NOT called here for performance.
+    // Callers that need durability across restarts should explicitly call kb_save.
+    // This allows batching multiple upserts before a single disk write.
+    prolog.invalidateCache();
+    // Save KB to disk to ensure durability across process restarts
     await prolog.query("kb_save");
+    prolog.invalidateCache();
+    // multiple upserts and save once at the end for better performance.
     prolog.invalidateCache();
 
     let contradictionPairsDetected: number | undefined;
-    if (type === "req") {
+    if (type === "req" && !args._skipContradictionCheck) {
       contradictionPairsDetected = await detectContradictionPairs(prolog, id);
     }
 

@@ -1,5 +1,8 @@
 name: CI
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches: [develop]
@@ -30,6 +33,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+        env:
+          NODE_INSTALLER: npm
+      - name: Verify npm is available
+        run: npm --version
 
       - name: Install JS deps
         run: |
@@ -43,7 +50,7 @@ jobs:
 
       - name: Run unit tests
         if: ${{ !inputs.skip_tests }}
-        run: bun test --timeout=300000 --exclude="documentation/tests/e2e/packed/**"
+        run: bun run test:unit
 
       - name: Run integration tests
         if: ${{ !inputs.skip_tests }}
@@ -70,6 +77,7 @@ jobs:
           cd .opencode && bun install
           bun run build:cli
           bun run build:mcp
+      - name: Pack tarballs
         run: |
           cd packages/core && npm pack
           cd ../cli && npm pack
@@ -106,6 +114,7 @@ jobs:
           cd .opencode && bun install
           bun run build:cli
           bun run build:mcp
+      - name: Pack tarballs
         run: |
           cd packages/core && npm pack
           cd ../cli && npm pack
@@ -139,6 +148,7 @@ jobs:
           cd .opencode && bun install
           bun run build:cli
           bun run build:mcp
+      - name: Pack tarballs
         run: |
           cd packages/core && npm pack
           cd ../cli && npm pack
@@ -173,6 +183,7 @@ jobs:
           cd .opencode && bun install
           bun run build:cli
           bun run build:mcp
+      - name: Pack tarballs
         run: |
           cd packages/core && npm pack
           cd ../cli && npm pack
