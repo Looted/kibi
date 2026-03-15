@@ -208,7 +208,7 @@ else
             fi
             ;;
         unit)
-            echo -e "${YELLOW}⚠️  Unit tests should be run directly with 'bun test'${NC}"
+            echo -e "${YELLOW}⚠️  Unit tests should be run directly with 'bun run test:unit'${NC}"
             echo "Running in Docker anyway..."
             mapfile -t TEST_FILES < <(find "$REPO_ROOT/packages" -name "*.test.ts" -type f 2>/dev/null | sed "s|$REPO_ROOT/||")
             ;;
