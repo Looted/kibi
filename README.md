@@ -71,6 +71,22 @@ kibi check
 
 > **Note:** `kibi init` installs git hooks by default. Hooks automatically sync your KB on branch checkout and merge.
 
+## Dogfooding (Local Development)
+
+This repository uses kibi-opencode from source rather than the published npm package. The local plugin shim at `.opencode/plugins/kibi.ts` re-exports from `packages/opencode/dist/`, allowing you to test changes immediately.
+
+### Quick Start for Development
+
+```bash
+# Initial build
+cd packages/opencode && bun run build
+
+# Watch mode (auto-rebuild on changes)
+cd packages/opencode && bun run dev
+```
+
+See [packages/opencode/DEV.md](packages/opencode/DEV.md) for complete dogfood setup details.
+
 ## Documentation
 
 - **[Installation Guide](docs/install.md)** — Prerequisites, SWI-Prolog setup, and verification steps

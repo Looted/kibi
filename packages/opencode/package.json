@@ -26,6 +26,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"
   },

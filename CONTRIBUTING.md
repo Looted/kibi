@@ -29,7 +29,8 @@ tests/
 
 **Unit Tests (TypeScript/CLI)**
 ```bash
-bun test                           # All tests
+bun run test                       # Project test pipeline (unit + packed local e2e)
+bun run test:unit                  # All unit tests (packages/*)
 bun test packages/cli/             # CLI tests only
 bun test packages/mcp/             # MCP tests only
 ```
@@ -66,7 +67,7 @@ To simulate CI steps:
 1. Install SWI-Prolog (via apt-get or package manager)
 2. Install Bun
 3. Run `bun install`
-4. Run `bun test`
+4. Run `bun run test`
 5. Run integration tests and benchmarks as above
 
 ## Commit Message Conventions
@@ -80,7 +81,7 @@ Use the following prefixes:
 
 ## Pull Request Guidelines
 
-- [ ] All tests pass (`bun test`)
+- [ ] All tests pass (`bun run test`)
 - [ ] Code passes linting (`bun run check`)
 - [ ] Integration tests pass (34/34)
 - [ ] Documentation updated if needed
