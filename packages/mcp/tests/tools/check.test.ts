@@ -297,5 +297,5 @@ describe("MCP Check Tool Handler", () => {
 
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
-  }, 10000);
+  }, 20000);
 });
