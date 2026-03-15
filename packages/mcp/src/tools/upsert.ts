@@ -206,7 +206,9 @@ export async function handleKbUpsert(
       relationshipsCreated++;
     }
 
-    // Note: kb_save is intentionally NOT called here - callers should batch
+    // Save KB to disk to ensure durability across process restarts
+    await prolog.query("kb_save");
+    prolog.invalidateCache();
     // multiple upserts and save once at the end for better performance.
     prolog.invalidateCache();
 
