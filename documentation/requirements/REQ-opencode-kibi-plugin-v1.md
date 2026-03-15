@@ -13,8 +13,12 @@ tags:
   - plugin
   - traceability
 links:
-  - TEST-opencode-kibi-plugin-v1
-  - ADR-016
+  - type: verified_by
+    target: TEST-opencode-kibi-plugin-v1
+  - type: specified_by
+    target: SCEN-001
+  - type: relates_to
+    target: ADR-016
 ---
 
 The OpenCode Kibi Plugin v1 must:
