@@ -16,34 +16,12 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import type { PrologProcess } from "kibi-cli/prolog";
+import {
+  escapeAtom,
+  escapeString,
+  splitTopLevel,
+} from "./prolog-list.js";
 
 export interface QueryArgs {
   type?: string;
@@ -99,18 +77,21 @@ export async function handleKbQuery(
     let goal: string;
 
     if (sourceFile) {
-      const safeSource = sourceFile.replace(/'/g, "\\'");
+      const safeSource = escapeAtom(sourceFile);
       if (type) {
         goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
       } else {
         goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
       }
     } else if (id && type) {
-      goal = `kb_entity('${id}', '${type}', Props), Id = '${id}', Type = '${type}', Result = [Id, Type, Props]`;
+      const safeId = escapeAtom(id);
+      const safeType = escapeAtom(type);
+      goal = `kb_entity('${safeId}', '${safeType}', Props), Id = '${safeId}', Type = '${safeType}', Result = [Id, Type, Props]`;
     } else if (id) {
-      goal = `findall(['${id}',Type,Props], kb_entity('${id}', Type, Props), Results)`;
+      const safeId = escapeAtom(id);
+      goal = `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
     } else if (tags && tags.length > 0) {
-      const tagList = `[${tags.map((t) => `'${t}'`).join(",")}]`;
+      const tagList = `[${tags.map((t) => `'${escapeAtom(t)}'`).join(",")}]`;
       if (type) {
         goal = `findall([Id,'${type}',Props], (kb_entity(Id, '${type}', Props), memberchk(tags=Tags, Props), member(Tag, Tags), member(Tag, ${tagList})), Results)`;
       } else {
@@ -197,39 +178,13 @@ export function parseListOfLists(listStr: string): string[][] {
   }
 
   const results: string[][] = [];
-  let depth = 0;
-  let current = "";
-  let currentList: string[] = [];
+  const lists = splitTopLevel(cleaned, ",");
 
-  for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-
-    if (char === "[") {
-      depth++;
-      if (depth > 1) current += char;
-    } else if (char === "]") {
-      depth--;
-      if (depth === 0) {
-        if (current) {
-          currentList.push(current.trim());
-          current = "";
-        }
-        if (currentList.length > 0) {
-          results.push(currentList);
-          currentList = [];
-        }
-      } else {
-        current += char;
-      }
-    } else if (char === "," && depth === 1) {
-      if (current) {
-        currentList.push(current.trim());
-        current = "";
-      }
-    } else if (char === "," && depth === 0) {
-      // Skip comma between lists
-    } else {
-      current += char;
+  for (const list of lists) {
+    const content = list.trim();
+    if (content.startsWith("[") && content.endsWith("]")) {
+      const items = splitTopLevel(content.slice(1, -1), ",");
+      results.push(items.map((it) => it.trim()));
     }
   }
 
@@ -385,45 +340,6 @@ export function parsePrologValue(valueInput: string): unknown {
   }
 
   return value;
-}
-
-/**
- * Split a string by delimiter at the top level (not inside brackets or quotes).
- */
-export function splitTopLevel(str: string, delimiter: string): string[] {
-  const results: string[] = [];
-  let current = "";
-  let depth = 0;
-  let inQuotes = false;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    const prevChar = i > 0 ? str[i - 1] : "";
-
-    if (char === '"' && prevChar !== "\\") {
-      inQuotes = !inQuotes;
-      current += char;
-    } else if (!inQuotes && (char === "[" || char === "(")) {
-      depth++;
-      current += char;
-    } else if (!inQuotes && (char === "]" || char === ")")) {
-      depth--;
-      current += char;
-    } else if (!inQuotes && depth === 0 && char === delimiter) {
-      if (current) {
-        results.push(current);
-        current = "";
-      }
-    } else {
-      current += char;
-    }
-  }
-
-  if (current) {
-    results.push(current);
-  }
-
-  return results;
 }
 
 function stripOuterQuotes(value: string): string {

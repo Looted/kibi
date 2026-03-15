@@ -44,9 +44,7 @@
     done
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
-}
+import { escapeAtom } from "./prolog-list.js";
 
 export interface DeleteArgs {
   ids: string[];

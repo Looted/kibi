@@ -44,7 +44,12 @@
     done
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-import { parseAtomList, parsePairList } from "./prolog-list.js";
+import {
+  escapeAtom,
+  parseAtomList,
+  parsePairList,
+  parseTriples,
+} from "./prolog-list.js";
 
 export type DeriveRule =
   | "transitively_implements"
@@ -373,9 +378,6 @@ function makeConjunction(parts: string[]): string {
   return `, ${filtered.join(", ")}`;
 }
 
-function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
-}
 
 async function deriveCurrentAdr(prolog: PrologProcess): Promise<DeriveRow[]> {
   // Query for all current ADRs and their titles
@@ -407,7 +409,7 @@ async function deriveAdrChain(
   }
 
   // Parse triplets and include status
-  const triplets = parseTripleList(result.bindings.Rows);
+  const triplets = parseTriples(result.bindings.Rows);
   return triplets.map(([id, title, status]) => ({ id, title, status }));
 }
 
@@ -442,35 +444,6 @@ async function deriveSupersededBy(
   ];
 }
 
-function parseTripleList(raw: string): [string, string, string][] {
-  const match = raw.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
-  if (!content) {
-    return [];
-  }
-
-  // Parse triplets: [[a,b,c],[x,y,z],...]
-  const triplets: [string, string, string][] = [];
-  const tripletRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
-  let tripletMatch: RegExpExecArray | null;
-  do {
-    tripletMatch = tripletRegex.exec(content);
-    if (tripletMatch !== null) {
-      triplets.push([
-        tripletMatch[1].trim().replace(/^'|'$/g, ""),
-        tripletMatch[2].trim().replace(/^'|'$/g, ""),
-        tripletMatch[3].trim().replace(/^'|'$/g, ""),
-      ]);
-    }
-  } while (tripletMatch !== null);
-
-  return triplets;
-}
-
 async function deriveDomainContradictions(
   prolog: PrologProcess,
 ): Promise<DeriveRow[]> {
@@ -482,6 +455,6 @@ async function deriveDomainContradictions(
     return [];
   }
 
-  const rows = parseTripleList(result.bindings.Rows);
+  const rows = parseTriples(result.bindings.Rows);
   return rows.map(([reqA, reqB, reason]) => ({ reqA, reqB, reason }));
 }

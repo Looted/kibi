@@ -47,10 +47,8 @@ import Ajv from "ajv";
 import type { PrologProcess } from "kibi-cli/prolog";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
+import { escapeAtom, escapeString as escapeQuotes } from "./prolog-list.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
-function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
-}
 
 export interface UpsertArgs {
   /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
@@ -306,9 +304,3 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
   return `[${pairs.join(", ")}]`;
 }
 
-/**
- * Escape double quotes in strings for Prolog
- */
-function escapeQuotes(str: string): string {
-  return str.replace(/"/g, '\\"');
-}

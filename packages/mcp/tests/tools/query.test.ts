@@ -1,7 +1,6 @@
 import { describe, expect, test, mock } from "bun:test";
 import {
   handleKbQuery,
-  splitTopLevel,
   parsePrologValue,
   parsePropertyList,
   parseListOfLists,
@@ -9,6 +8,7 @@ import {
   parseEntityFromList,
   VALID_ENTITY_TYPES,
 } from "../../src/tools/query.js";
+import { splitTopLevel } from "../../src/tools/prolog-list.js";
 import { PrologProcess } from "kibi-cli/prolog";
 
 describe("MCP kb.query Parsing Functions", () => {

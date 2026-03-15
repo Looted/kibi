@@ -16,33 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 export function parseAtomList(raw: string): string[] {
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
@@ -64,7 +37,7 @@ export function parsePairList(raw: string): Array<[string, string]> {
   const pairs: Array<[string, string]> = [];
 
   for (const row of rows) {
-    const parts = splitTopLevel(row, ",").map((part) =>
+    const parts = splitTopLevel(unwrapList(row.trim()), ",").map((part) =>
       stripQuotes(part.trim()),
     );
     if (parts.length >= 2) {
@@ -80,7 +53,7 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
   const triples: Array<[string, string, string]> = [];
 
   for (const row of rows) {
-    const parts = splitTopLevel(row, ",").map((part) =>
+    const parts = splitTopLevel(unwrapList(row.trim()), ",").map((part) =>
       stripQuotes(part.trim()),
     );
     if (parts.length >= 3) {
@@ -89,6 +62,23 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
   }
 
   return triples;
+}
+
+/**
+ * Escape single quotes for Prolog atoms.
+ * Uses standard Prolog doubling of single quotes.
+ */
+export function escapeAtom(value: string): string {
+  if (!value) return "";
+  return value.replace(/'/g, "''");
+}
+
+/**
+ * Escape double quotes for Prolog strings.
+ */
+export function escapeString(value: string): string {
+  if (!value) return "";
+  return value.replace(/"/g, '\\"');
 }
 
 function parseListRows(raw: string): string[] {
@@ -102,39 +92,7 @@ function parseListRows(raw: string): string[] {
     return [];
   }
 
-  const rows: string[] = [];
-  let depth = 0;
-  let current = "";
-
-  for (let i = 0; i < content.length; i++) {
-    const ch = content[i];
-    if (ch === "[") {
-      depth++;
-      if (depth > 1) {
-        current += ch;
-      }
-      continue;
-    }
-
-    if (ch === "]") {
-      depth--;
-      if (depth === 0) {
-        rows.push(current.trim());
-        current = "";
-      } else {
-        current += ch;
-      }
-      continue;
-    }
-
-    if (ch === "," && depth === 0) {
-      continue;
-    }
-
-    current += ch;
-  }
-
-  return rows;
+  return splitTopLevel(content, ",");
 }
 
 function unwrapList(value: string): string {
@@ -144,7 +102,10 @@ function unwrapList(value: string): string {
   return value;
 }
 
-function splitTopLevel(input: string, delimiter: string): string[] {
+/**
+ * Split a string by delimiter at the top level (not inside brackets, parens or quotes).
+ */
+export function splitTopLevel(input: string, delimiter: string): string[] {
   const parts: string[] = [];
   let current = "";
   let depth = 0;

@@ -3,6 +3,9 @@ import {
   parseAtomList,
   parsePairList,
   parseTriples,
+  escapeAtom,
+  escapeString,
+  splitTopLevel,
 } from "../../src/tools/prolog-list.js";
 
 describe("Prolog List Parser", () => {
@@ -111,6 +114,53 @@ describe("Prolog List Parser", () => {
 
     test("should take first three elements of longer lists", () => {
       expect(parseTriples("[[a,b,c,d]]")).toEqual([["a", "b", "c"]]);
+    });
+  });
+
+  describe("escapeAtom", () => {
+    test("should escape single quotes by doubling them", () => {
+      expect(escapeAtom("foo'bar")).toBe("foo''bar");
+      expect(escapeAtom("o'reilly")).toBe("o''reilly");
+    });
+
+    test("should handle empty strings", () => {
+      expect(escapeAtom("")).toBe("");
+    });
+  });
+
+  describe("escapeString", () => {
+    test("should escape double quotes with backslash", () => {
+      expect(escapeString('He said "Hello"')).toBe('He said \\"Hello\\"');
+    });
+
+    test("should handle empty strings", () => {
+      expect(escapeString("")).toBe("");
+    });
+  });
+
+  describe("splitTopLevel", () => {
+    test("should split by comma at top level", () => {
+      expect(splitTopLevel("a,b,c", ",")).toEqual(["a", "b", "c"]);
+    });
+
+    test("should not split inside brackets", () => {
+      expect(splitTopLevel("a,[b,c],d", ",")).toEqual(["a", "[b,c]", "d"]);
+    });
+
+    test("should not split inside single quotes", () => {
+      expect(splitTopLevel("a,'b,c',d", ",")).toEqual(["a", "'b,c'", "d"]);
+    });
+
+    test("should not split inside double quotes", () => {
+      expect(splitTopLevel('a,"b,c",d', ",")).toEqual(["a", '"b,c"', "d"]);
+    });
+
+    test("should handle nested structures", () => {
+      expect(splitTopLevel("a,[[b,c],d],e", ",")).toEqual([
+        "a",
+        "[[b,c],d]",
+        "e",
+      ]);
     });
   });
 });

@@ -44,7 +44,7 @@
     done
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-import { parseAtomList } from "./prolog-list.js";
+import { escapeAtom, parseAtomList } from "./prolog-list.js";
 
 export interface ImpactArgs {
   entity: string;
@@ -130,6 +130,3 @@ async function getEntityType(
   return result.bindings.Type;
 }
 
-function escapeAtom(value: string): string {
-  return value.replace(/'/g, "\\'");
-}
