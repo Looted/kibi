@@ -20,6 +20,7 @@
     "build:cli": "bun --filter ./packages/cli build",
     "build:mcp": "bun --filter ./packages/mcp build",
     "build:opencode": "bun --filter ./packages/opencode build",
+    "dev:opencode": "bun --filter ./packages/opencode dev",
     "build": "bun run build:cli && bun run build:mcp && bun run build:opencode",
     "publish:selective": "./scripts/publish-selective.sh",
     "release:npm": "bun run build && ./scripts/publish-selective.sh",
