@@ -50,7 +50,7 @@ jobs:
 
       - name: Run unit tests
         if: ${{ !inputs.skip_tests }}
-        run: bun test --timeout=300000
+        run: bun test --timeout=300000 --exclude="documentation/tests/e2e/packed/old-dist/**"
 
       - name: Run integration tests
         if: ${{ !inputs.skip_tests }}
