@@ -187,7 +187,14 @@ describe("CLI", () => {
       cwd: path.join(importMetaDir, "../../.."),
     });
     expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(output.trim()).toBe("0.2.3");
+    // Read expected version from package.json
+    const pkgJson = JSON.parse(
+      require("node:fs").readFileSync(
+        path.join(importMetaDir, "../package.json"),
+        "utf-8",
+      ),
+    );
+    expect(output.trim()).toBe(pkgJson.version);
   });
 
   test("shows help with all required commands", () => {
