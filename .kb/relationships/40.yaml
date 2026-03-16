@@ -9,11 +9,11 @@ relationships:
     to: REQ-014
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-011.md
+    source: documentation/tests/TEST-011.md
   - id: rel-8a5cdb4e9d2e
     type: relates_to
     from: TEST-opencode-kibi-plugin-v1
     to: REQ-opencode-kibi-plugin-v1
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-opencode-kibi-plugin-v1.md
+    source: documentation/tests/TEST-opencode-kibi-plugin-v1.md

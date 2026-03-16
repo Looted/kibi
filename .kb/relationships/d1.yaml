@@ -9,11 +9,11 @@ relationships:
     to: REQ-003
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-001.md
+    source: documentation/tests/TEST-001.md
   - id: rel-3f9c0da283ed
     type: relates_to
     from: TEST-001
     to: SCEN-002
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-001.md
+    source: documentation/tests/TEST-001.md

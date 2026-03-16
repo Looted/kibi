@@ -9,11 +9,11 @@ relationships:
     to: ADR-007
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/flags/FLAG-001.md
+    source: documentation/flags/FLAG-001.md
   - id: rel-b3575f4b8102
     type: relates_to
     from: FLAG-001
     to: REQ-010
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/flags/FLAG-001.md
+    source: documentation/flags/FLAG-001.md
