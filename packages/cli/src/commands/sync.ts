@@ -408,6 +408,11 @@ export async function syncCommand(
 
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
+
+    // Extract relationships from shard files only
+    const shardResults = extractFromRelationshipShards(relationshipsDir);
+    const allRelationships = flattenRelationships(shardResults);
+
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
 
@@ -618,7 +623,21 @@ export async function syncCommand(
       // Track entity counts by type
       for (const { entity } of results) {
         entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
+    }
+
+    // Validate relationships against entity IDs
+    const entityIds = new Set<string>();
+    for (const { entity } of results) {
+      entityIds.add(entity.id);
+    }
+
+    const validationErrors = validateRelationships(allRelationships, entityIds);
+    if (validationErrors.length > 0 && !validateOnly) {
+      console.warn(`Warning: ${validationErrors.length} dangling relationship(s) found`);
+      for (const { relationship, error } of validationErrors) {
+        console.warn(`  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`);
       }
+    }
       const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
       const prologAtom = (value: string): string =>
         simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
