@@ -648,43 +648,16 @@ export async function syncCommand(
     }> = [];
 
     for (const rel of allRelationships) {
-      const fromId = idLookup.get(rel.from) || rel.from;
-      const toId = idLookup.get(rel.to) || rel.to;
-      const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+      const goal = `kb_assert_relationship(${rel.type}, '${rel.from}', '${rel.to}', [])`;
       const result = await prolog.query(goal);
       if (result.success) {
         relCount++;
         kbModified = true;
       } else {
         const message = result.error || "Unknown error";
-        failedRelationships.push({ rel, fromId, toId, error: message });
+        failedRelationships.push({ rel, fromId: rel.from, toId: rel.to, error: message });
       }
     }
-            const fromId = idLookup.get(rel.from) || rel.from;
-            const toId = idLookup.get(rel.to) || rel.to;
-
-            const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
-            const result = await prolog.query(goal);
-            if (result.success) {
-              relCount++;
-              kbModified = true;
-            } else {
-              failedRelationships.push({
-                rel,
-                fromId,
-                toId,
-                error: result.error || "Unknown error",
-              });
-            }
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            const fromId = idLookup.get(rel.from) || rel.from;
-            const toId = idLookup.get(rel.to) || rel.to;
-            failedRelationships.push({ rel, fromId, toId, error: message });
-          }
-        }
-      }
 
       const retryCount = 3;
       for (
