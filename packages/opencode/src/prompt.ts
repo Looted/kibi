@@ -9,9 +9,7 @@ This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over 
 
 Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not rely on undocumented tools.
 
-Keep changed symbols traceable with 
-
-// implements REQ-xxx
+Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
 
 Run kb_check after KB mutations.
 
@@ -21,14 +19,7 @@ Run kb_check after KB mutations.
 3. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
 4. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
-
-**Traceability:** Every new or modified function/class should have 
-
-// implements REQ-xxx
-
-so the pre-commit hook can verify coverage.
-`;
+**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.`;
 
 // implements REQ-opencode-kibi-plugin-v1
 export function buildPrompt(): string {
@@ -43,7 +34,7 @@ export function injectPrompt(current: string, config: KibiConfig): string {
   if (current.includes(SENTINEL)) {
     return current;
   }
-  return `${current}\n\n${GUIDANCE}`;
+  return `${current}\n\n${buildPrompt()}`;
 }
 
 export { SENTINEL };
