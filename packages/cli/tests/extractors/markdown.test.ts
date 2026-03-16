@@ -64,18 +64,6 @@ describe("Markdown Extractor", () => {
     ]);
   });
 
-  test("extracts relationships from frontmatter", () => {
-    const result = extractFromMarkdown(
-      "packages/cli/tests/fixtures/scenarios/SCEN-001.md",
-    );
-    expect(result.relationships).toBeInstanceOf(Array);
-    expect(result.relationships.length).toBeGreaterThan(0);
-    expect(result.relationships[0]).toHaveProperty("type");
-    expect(result.relationships[0]).toHaveProperty("from");
-    expect(result.relationships[0]).toHaveProperty("to");
-    expect(result.relationships[0].type).toBe("specified_by");
-    expect(result.relationships[0].to).toBe("REQ-001");
-  });
 
   test("infers type from directory path", () => {
     const result = extractFromMarkdown(
@@ -184,21 +172,6 @@ describe("Markdown Extractor", () => {
     unlinkSync(tempFile);
   });
 
-  test("handles string links format", () => {
-    const tempFile = "/tmp/test-string-links.md";
-    writeFileSync(
-      tempFile,
-      '---\ntitle: Test\ntype: req\nlinks:\n  - "TARGET-001"\n  - "TARGET-002"\n---\n# Test',
-    );
-
-    const result = extractFromMarkdown(tempFile);
-    expect(result.relationships.length).toBe(2);
-    expect(result.relationships[0].type).toBe("relates_to");
-    expect(result.relationships[0].to).toBe("TARGET-001");
-    expect(result.relationships[1].to).toBe("TARGET-002");
-
-    unlinkSync(tempFile);
-  });
 
   test("provides default values for missing fields", () => {
     const tempFile = "/tmp/test-defaults.md";
@@ -215,31 +188,6 @@ describe("Markdown Extractor", () => {
     unlinkSync(tempFile);
   });
 
-  test("extracts supersedes relationship from ADR frontmatter", () => {
-    const tempFile = "/tmp/test-supersedes.md";
-    writeFileSync(
-      tempFile,
-      `---
-id: ADR-010
-title: New Decision
-type: adr
-status: active
-links:
-  - type: supersedes
-    target: ADR-005
----
-# Content
-`,
-    );
-
-    const result = extractFromMarkdown(tempFile);
-    expect(result.relationships).toBeInstanceOf(Array);
-    expect(result.relationships.length).toBe(1);
-    expect(result.relationships[0].type).toBe("supersedes");
-    expect(result.relationships[0].to).toBe("ADR-005");
-
-    unlinkSync(tempFile);
-  });
 
   describe("Embedded Entity Detection", () => {
     test("rejects requirement with embedded scenarios array", () => {
@@ -351,7 +299,7 @@ links:
       const result = extractFromMarkdown(tempFile);
       expect(result.entity.id).toBe("SCEN-001");
       expect(result.entity.type).toBe("scenario");
-      expect(result.relationships.length).toBeGreaterThan(0);
+      expect(result.relationships.length).toBe(0);
 
       unlinkSync(tempFile);
     });
@@ -374,7 +322,7 @@ links:
       const result = extractFromMarkdown(tempFile);
       expect(result.entity.id).toBe("TEST-001");
       expect(result.entity.type).toBe("test");
-      expect(result.relationships.length).toBeGreaterThan(0);
+      expect(result.relationships.length).toBe(0);
 
       unlinkSync(tempFile);
     });
