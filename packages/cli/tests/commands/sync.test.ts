@@ -43,6 +43,7 @@ describe("kibi sync", () => {
   writeFileSync(
     path.join(reqDir, "req1.md"),
     `---
+id: req1
 title: User Authentication
 type: req
 status: approved
@@ -59,6 +60,7 @@ System must support OAuth2 authentication.
   writeFileSync(
     path.join(scenarioDir, "scenario1.md"),
     `---
+id: scenario1
 title: Login Flow
 status: active
 tags: [auth]
