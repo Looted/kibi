@@ -63,6 +63,19 @@ import {
   FrontmatterError,
   extractFromMarkdown,
 } from "../extractors/markdown.js";
+import {
+  extractFromRelationshipShards,
+  flattenRelationships,
+  getRelationshipsDir,
+  validateRelationships,
+} from "../extractors/relationships.js";
+import {
+  type RelationshipRecord,
+  pruneDangling,
+  relationshipIdFor,
+  writeShard,
+} from "../relationships/shards.js";
+
 
 import { copyFileSync } from "node:fs";
 import {
@@ -372,7 +385,18 @@ export async function syncCommand(
         })
       : [];
 
-    const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
+    const relationshipsDir = getRelationshipsDir(
+      path.join(process.cwd(), ".kb"),
+    );
+    const relationshipShards = await fg(`${relationshipsDir}/*.yaml`, {
+      cwd: process.cwd(),
+      absolute: true,
+    });
+    const sourceFiles = [
+      ...markdownFiles,
+      ...manifestFiles,
+      ...relationshipShards,
+    ].sort();
     // Use branch-specific cache to handle branch isolation correctly
     const cachePath = path.join(
       process.cwd(),
