@@ -110,7 +110,7 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     // Handle created_at - YAML may auto-convert ISO dates to Date objects
     let createdAt: string;
     if (rec.created_at instanceof Date) {
-      createdAt = rec.created_at.toISOString().replace(/.000Z$/, 'Z');
+      createdAt = rec.created_at.toISOString().replace(/\.000Z$/, 'Z');
     } else if (typeof rec.created_at === "string" && rec.created_at) {
       createdAt = rec.created_at;
     } else {

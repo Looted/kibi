@@ -69,13 +69,6 @@ import {
   getRelationshipsDir,
   validateRelationships,
 } from "../extractors/relationships.js";
-import {
-  type RelationshipRecord,
-  pruneDangling,
-  relationshipIdFor,
-  writeShard,
-} from "../relationships/shards.js";
-
 
 import { copyFileSync } from "node:fs";
 import {
@@ -388,10 +381,6 @@ export async function syncCommand(
     const relationshipsDir = getRelationshipsDir(
       path.join(process.cwd(), ".kb"),
     );
-    const relationshipShards = await fg(`${relationshipsDir}/*.yaml`, {
-      cwd: process.cwd(),
-      absolute: true,
-    });
     const sourceFiles = [
       ...markdownFiles,
       ...manifestFiles,
@@ -408,7 +397,9 @@ export async function syncCommand(
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
 
-    // Extract relationships from shard files only
+    // Extract relationships from shard files (canonical source per ADR-017).
+    // Relationships embedded in markdown/manifest files are also extracted and
+    // asserted separately by the results loop below.
     const shardResults = extractFromRelationshipShards(relationshipsDir);
     const allRelationships = flattenRelationships(shardResults);
 
@@ -538,9 +529,7 @@ export async function syncCommand(
       }
     }
 
-    const hasRelationshipShards = relationshipShards.length > 0;
-
-    if (results.length === 0 && !hasRelationshipShards && !rebuild) {
+    if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
 
@@ -624,24 +613,48 @@ export async function syncCommand(
       // Track entity counts by type
       for (const { entity } of results) {
         entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
-    }
-
-    // Validate relationships against entity IDs
-    const entityIds = new Set<string>();
-    for (const { entity } of results) {
-      entityIds.add(entity.id);
-    }
-
-    const validationErrors = validateRelationships(allRelationships, entityIds);
-    if (validationErrors.length > 0 && !validateOnly) {
-      console.warn(`Warning: ${validationErrors.length} dangling relationship(s) found`);
-      for (const { relationship, error } of validationErrors) {
-        console.warn(`  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`);
       }
-    }
+
       const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
       const prologAtom = (value: string): string =>
         simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
+
+      // Build the set of valid entity IDs from both the existing KB and new entities.
+      // Querying the attached KB ensures unchanged entities from prior syncs are
+      // included, preventing false dangling-relationship warnings on incremental syncs.
+      const entityIds = new Set<string>();
+      const existingIdsResult = await prolog.query(
+        "findall(Id, kb_entity(Id, _, _), ExistingIds)",
+      );
+      if (existingIdsResult.success && existingIdsResult.bindings?.ExistingIds) {
+        const raw = existingIdsResult.bindings.ExistingIds as string;
+        const cleaned = raw.trim().replace(/^\[/, "").replace(/\]$/, "");
+        if (cleaned) {
+          for (const atom of cleaned.split(",")) {
+            const id = atom.trim().replace(/^'|'$/g, "");
+            if (id) entityIds.add(id);
+          }
+        }
+      }
+      for (const { entity } of results) {
+        entityIds.add(entity.id);
+      }
+
+      // Validate shard relationships and filter out dangling ones to avoid
+      // repeated assertion failures in the loop below.
+      const validationErrors = validateRelationships(allRelationships, entityIds);
+      if (validationErrors.length > 0) {
+        console.warn(`Warning: ${validationErrors.length} dangling relationship(s) found`);
+        for (const { relationship, error } of validationErrors) {
+          console.warn(`  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`);
+        }
+      }
+      const danglingKeys = new Set(
+        validationErrors.map(({ relationship: r }) => `${r.type}|${r.from}|${r.to}`),
+      );
+      const validRelationships = allRelationships.filter(
+        (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
+      );
 
       for (const { entity } of results) {
         try {
@@ -702,7 +715,7 @@ export async function syncCommand(
             const fromId = idLookup.get(rel.from) || rel.from;
             const toId = idLookup.get(rel.to) || rel.to;
 
-            const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+            const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(fromId)}, ${prologAtom(toId)}, [])`;
             const result = await prolog.query(goal);
             if (result.success) {
               relCount++;
@@ -724,10 +737,10 @@ export async function syncCommand(
           }
         }
       }
-      // Assert relationships from shards
-      for (const rel of allRelationships) {
+      // Assert relationships from shards (dangling relationships already filtered out above)
+      for (const rel of validRelationships) {
         try {
-          const goal = `kb_assert_relationship(${rel.type}, '${rel.from}', '${rel.to}', [])`;
+          const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(rel.from)}, ${prologAtom(rel.to)}, [])`;
           const result = await prolog.query(goal);
           if (result.success) {
             relCount++;
@@ -756,7 +769,7 @@ export async function syncCommand(
 
         for (const { rel, fromId, toId } of failedRelationships) {
           try {
-            const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+            const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(fromId)}, ${prologAtom(toId)}, [])`;
             const result = await prolog.query(goal);
             if (result.success) {
               relCount++;

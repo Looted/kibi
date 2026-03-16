@@ -9,4 +9,4 @@ relationships:
     to: ADR-005
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/flags/FLAG-002.md
+    source: documentation/flags/FLAG-002.md

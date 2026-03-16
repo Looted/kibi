@@ -35,7 +35,7 @@ describe("Git hooks", () => {
     ).toBe(true);
   });
 
-  it("should install post-merge hook and make it executable", () => {
+  it("should install post-checkout hook (duplicate check - verifies content)", () => {
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
     expect(fs.existsSync(hookPath)).toBe(true);
     const stats = fs.statSync(hookPath);
