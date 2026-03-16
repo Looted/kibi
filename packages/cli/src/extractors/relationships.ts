@@ -18,7 +18,7 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type RelationshipRecord, readShard } from "../relationships/shards";
+import { type RelationshipRecord, readShard } from "../relationships/shards.js";
 
 export interface ExtractedRelationship {
   type: string;
