@@ -19,54 +19,44 @@
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import * as yaml from "js-yaml";
+import { load as parseYAML } from "js-yaml";
 
 /**
  * Represents a relationship record stored in shard files.
  */
 export interface RelationshipRecord {
-  /** Stable unique identifier: rel- + first 12 chars of sha256(type|from|to) */
   id: string;
-  /** Relationship type (e.g., implements, depends_on, relates_to) */
   type: string;
-  /** Source entity ID */
   from: string;
-  /** Target entity ID */
   to: string;
-  /** ISO 8601 timestamp when relationship was created */
   created_at: string;
-  /** Actor/system that created the relationship */
   created_by: string;
-  /** Provenance/source of the relationship */
   source: string;
-  /** Confidence level 0.0-1.0 */
   confidence?: number;
 }
 
 /**
- * Generates a stable relationship ID from type, from, and to.
- * Format: rel- + first 12 hex chars of sha256(type + "|" + from + "|" + to)
+ * Gets the path to the relationships directory for a given KB root.
  */
-export function relationshipIdFor(
-  type: string,
-  from: string,
-  to: string,
-): string {
-  const hash = crypto.createHash("sha256");
-  hash.update(`${type}|${from}|${to}`);
-  const digest = hash.digest("hex").toLowerCase();
-  return `rel-${digest.slice(0, 12)}`;
+export function getRelationshipsDir(kbRoot: string): string {
+  return path.join(kbRoot, "relationships");
 }
 
 /**
- * Determines the shard filename for a given entity ID.
- * Returns first 2 lowercase hex chars of sha256(entityId).
+ * Computes the shard name (first 2 chars of SHA256) for a given entity ID.
  */
 export function shardForFromId(fromId: string): string {
-  const hash = crypto.createHash("sha256");
-  hash.update(fromId);
-  const digest = hash.digest("hex").toLowerCase();
-  return digest.slice(0, 2);
+  const hash = crypto.createHash("sha256").update(fromId).digest("hex");
+  return hash.slice(0, 2);
+}
+
+/**
+ * Computes the shard path for a given entity ID.
+ * Uses first 2 chars of SHA256(entityId) as shard name.
+ */
+export function computeShardPath(kbRoot: string, entityId: string): string {
+  const shardName = shardForFromId(entityId);
+  return path.join(getRelationshipsDir(kbRoot), `${shardName}.yaml`);
 }
 
 /**
@@ -84,27 +74,20 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  const parsed = yaml.load(content) as { relationships?: unknown[] } | null;
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error(
-      `Invalid shard file format at ${shardPath}: expected object`,
-    );
-  }
+  const parsed = parseYAML(content) as {
+    relationships?: unknown[];
+  } | null;
 
-  if (!parsed.relationships) {
-    return [];
-  }
-
-  if (!Array.isArray(parsed.relationships)) {
+  if (!parsed || !Array.isArray(parsed.relationships)) {
     throw new Error(
-      `Invalid shard file format at ${shardPath}: relationships must be an array`,
+      `Invalid shard file: missing 'relationships' array at ${shardPath}`,
     );
   }
 
   return parsed.relationships.map((record, index) => {
-    if (!record || typeof record !== "object") {
+    if (typeof record !== "object" || record === null) {
       throw new Error(
-        `Invalid relationship record at ${shardPath}[${index}]: expected object`,
+        `Invalid record at ${shardPath}[${index}]: expected object`,
       );
     }
 
@@ -123,12 +106,19 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     if (typeof rec.to !== "string" || !rec.to) {
       throw new Error(`Missing or invalid 'to' at ${shardPath}[${index}]`);
     }
-    if (typeof rec.created_at !== "string" || !rec.created_at) {
+
+    // Handle created_at - YAML may auto-convert ISO dates to Date objects
+    let createdAt: string;
+    if (rec.created_at instanceof Date) {
+      createdAt = rec.created_at.toISOString().replace(/.000Z$/, 'Z');
+    } else if (typeof rec.created_at === "string" && rec.created_at) {
+      createdAt = rec.created_at;
+    } else {
       throw new Error(
         `Missing or invalid 'created_at' at ${shardPath}[${index}]`,
       );
     }
-    const createdAt: string = rec.created_at;
+
     if (typeof rec.created_by !== "string" || !rec.created_by) {
       throw new Error(
         `Missing or invalid 'created_by' at ${shardPath}[${index}]`,
@@ -162,49 +152,165 @@ export function readShard(shardPath: string): RelationshipRecord[] {
 }
 
 /**
+ * Writes a relationship shard file.
+ * Creates parent directories if needed.
+ */
+export function writeShard(
+  shardPath: string,
+  records: RelationshipRecord[],
+): void {
+  const dir = path.dirname(shardPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
+  // Sort and dedupe records
+  const sorted = sortRecords(records);
+  const seen = new Set<string>();
+  const unique: RelationshipRecord[] = [];
+
+  for (const record of sorted) {
+    const key = `${record.type}|${record.from}|${record.to}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    unique.push(record);
+  }
+
+  const yamlContent = serializeToYAML(unique);
+  fs.writeFileSync(shardPath, yamlContent, "utf8");
+}
+
+/**
+ * Serializes records to YAML format.
+ */
+function serializeToYAML(records: RelationshipRecord[]): string {
+  const lines: string[] = ["relationships:"];
+
+  for (const record of records) {
+    lines.push(`  - id: ${record.id}`);
+    lines.push(`    type: ${record.type}`);
+    lines.push(`    from: ${record.from}`);
+    lines.push(`    to: ${record.to}`);
+    lines.push(`    created_at: "${record.created_at}"`);
+    lines.push(`    created_by: ${record.created_by}`);
+    lines.push(`    source: ${record.source}`);
+    if (record.confidence !== undefined) {
+      lines.push(`    confidence: ${record.confidence}`);
+    }
+  }
+
+  return lines.join("\n") + "\n";
+}
+
+/**
  * Sorts records deterministically by from, then type, then to.
  */
 function sortRecords(records: RelationshipRecord[]): RelationshipRecord[] {
   return [...records].sort((a, b) => {
     const fromCompare = a.from.localeCompare(b.from);
     if (fromCompare !== 0) return fromCompare;
-
     const typeCompare = a.type.localeCompare(b.type);
     if (typeCompare !== 0) return typeCompare;
-
     return a.to.localeCompare(b.to);
   });
 }
 
 /**
- * Writes relationship records to a shard file.
- * Creates parent directories if needed.
- * Records are sorted deterministically before writing.
+ * Appends a relationship to the appropriate shard.
+ * Returns the shard path and record ID.
  */
-export function writeShard(
-  shardPath: string,
-  records: RelationshipRecord[],
-): void {
-  // Sort records deterministically
-  const sorted = sortRecords(records);
+export function appendRelationship(
+  kbRoot: string,
+  relationship: Omit<RelationshipRecord, "id">,
+): { shardPath: string; recordId: string } {
+  const shardPath = computeShardPath(kbRoot, relationship.from);
+  const existing = readShard(shardPath);
 
-  // Ensure parent directory exists
-  const dir = path.dirname(shardPath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  // Generate deterministic ID
+  const recordId = relationshipIdFor(
+    relationship.type,
+    relationship.from,
+    relationship.to,
+  );
+
+  // Check if relationship already exists
+  const exists = existing.some(
+    (r) =>
+      r.type === relationship.type &&
+      r.from === relationship.from &&
+      r.to === relationship.to,
+  );
+
+  if (!exists) {
+    const newRecord: RelationshipRecord = {
+      ...relationship,
+      id: recordId,
+    };
+    writeShard(shardPath, [...existing, newRecord]);
   }
 
-  // Serialize to YAML with specific formatting
-  const data = { relationships: sorted };
-  const yamlContent = yaml.dump(data, {
-    indent: 2,
-    lineWidth: -1, // Don't wrap lines
-    noRefs: true,
-    sortKeys: false, // Keep our ordering
-  });
-
-  fs.writeFileSync(shardPath, yamlContent, "utf8");
+  return { shardPath, recordId };
 }
+
+/**
+ * Lists all shard files in the relationships directory.
+ */
+export function listShards(kbRoot: string): string[] {
+  const relationshipsDir = getRelationshipsDir(kbRoot);
+  if (!fs.existsSync(relationshipsDir)) {
+    return [];
+  }
+
+  return fs
+    .readdirSync(relationshipsDir)
+    .filter((f) => f.endsWith(".yaml"))
+    .map((f) => path.join(relationshipsDir, f));
+}
+
+/**
+ * Reads all relationships from all shards.
+ */
+export function readAllShards(kbRoot: string): RelationshipRecord[] {
+  const shards = listShards(kbRoot);
+  const allRecords: RelationshipRecord[] = [];
+
+  for (const shardPath of shards) {
+    const records = readShard(shardPath);
+    allRecords.push(...records);
+  }
+
+  return allRecords;
+}
+
+/**
+ * Removes dangling relationships that reference non-existent entities.
+ */
+export function pruneDangling(
+  records: RelationshipRecord[],
+  validEntityIds: Set<string>,
+): RelationshipRecord[] {
+  return records.filter(
+    (record) =>
+      validEntityIds.has(record.from) && validEntityIds.has(record.to),
+  );
+}
+
+/**
+ * Generates a deterministic relationship ID.
+ */
+export function relationshipIdFor(
+  type: string,
+  from: string,
+  to: string,
+): string {
+  const hash = crypto
+    .createHash("sha256")
+    .update(`${type}|${from}|${to}`)
+    .digest("hex");
+  return `rel-${hash.slice(0, 12)}`;
+}
+
+
 
 /**
  * Merges existing and incoming relationship records.
@@ -246,17 +352,4 @@ export function mergeRecords(
   }
 
   return Array.from(recordMap.values());
-}
-
-/**
- * Removes relationship records where from or to entity IDs are not in the valid set.
- */
-export function pruneDangling(
-  records: RelationshipRecord[],
-  validEntityIds: Set<string>,
-): RelationshipRecord[] {
-  return records.filter(
-    (record) =>
-      validEntityIds.has(record.from) && validEntityIds.has(record.to),
-  );
 }
