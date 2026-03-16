@@ -62,12 +62,16 @@ Config files (project overrides global):
 | `sync.relevant` | string[] | `[]` | Additional relevant paths |
 | `logLevel` | string | `"info"` | Log level: `debug`, `info`, `warn`, `error` |
 
+### Hook Policy
+
+Per ADR-016, prompt text injection uses only `experimental.chat.system.transform`. The `chat.params` hook is reserved for model option enrichment (temperature, topP, etc.) and never carries prompt text.
+
 ### Hook Modes
 
-- `auto`: Use `experimental.chat.system.transform` (primary) or `chat.params` (fallback)
-- `chat-params`: Use `chat.params` only (limited to model options)
-- `system-transform`: Force `experimental.chat.system.transform`
-- `compat`: Disable prompt injection, conservative sync only
+- `auto`: Use `experimental.chat.system.transform` (primary); `chat.params` is a no-op registration for host compatibility
+- `chat-params`: Disable prompt injection; `chat.params` hook is registered but does not modify prompt text
+- `system-transform`: Force `experimental.chat.system.transform` for prompt injection
+- `compat`: Disable prompt injection entirely, conservative sync only
 
 ## Disablement
 
@@ -109,6 +113,16 @@ This is a thin bridge layer:
 - Reuses `kibi` CLI for sync operations
 - Reuses existing MCP tools (`kb_query`, `kb_check`, etc.)
 - Does NOT own KB storage, parsing, or validation
+
+### Future: File-Context Virtual Injection
+
+A proposed enhancement would inject Kibi context hints into file-read results (e.g., "This symbol has linked requirements"). This is **deferred** because:
+
+1. OpenCode's current plugin surface does not expose file-content interception hooks
+2. The `experimental.chat.system.transform` hook only supports system prompt injection
+3. Symbol metadata from `documentation/symbols.yaml` can inform this feature once host support exists
+
+Current workaround: static system prompt guidance directs agents to query Kibi explicitly.
 
 ## License
 
