@@ -59,7 +59,6 @@ export interface ExtractedEntity {
   owner?: string;
   priority?: string;
   severity?: string;
-  links?: unknown[];
   text_ref?: string;
 }
 
@@ -84,11 +83,6 @@ export class ManifestError extends Error {
   }
 }
 
-interface RelationshipObject {
-  type?: string;
-  target?: string;
-}
-
 interface ManifestSymbol {
   id?: string;
   title?: string;
@@ -98,8 +92,6 @@ interface ManifestSymbol {
   owner?: string;
   priority?: string;
   severity?: string;
-  links?: unknown[];
-  relationships?: RelationshipObject[];
   text_ref?: string;
   created_at?: string;
   updated_at?: string;
@@ -124,10 +116,7 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
       }
 
       const id = symbol.id || generateId(filePath, symbol.title);
-      const relationships = extractRelationships(
-        symbol.relationships || symbol.links || [],
-        id,
-      );
+      const relationships: ExtractedRelationship[] = [];
 
       return {
         entity: {
@@ -142,7 +131,6 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
           owner: symbol.owner,
           priority: symbol.priority,
           severity: symbol.severity,
-          links: symbol.links,
           text_ref: symbol.text_ref,
         },
         relationships,
@@ -170,33 +158,3 @@ function generateId(filePath: string, title: string): string {
   return hash.digest("hex").substring(0, 16);
 }
 
-interface LinkObject {
-  type?: string;
-  target?: string;
-  id?: string;
-  to?: string;
-}
-
-function extractRelationships(
-  links: unknown[],
-  fromId: string,
-): ExtractedRelationship[] {
-  if (!Array.isArray(links)) return [];
-
-  return links.map((link) => {
-    if (typeof link === "string") {
-      return {
-        type: "relates_to",
-        from: fromId,
-        to: link,
-      };
-    }
-
-    const linkObj = link as LinkObject;
-    return {
-      type: linkObj.type || "relates_to",
-      from: fromId,
-      to: linkObj.target || linkObj.id || linkObj.to || "",
-    };
-  });
-}

@@ -77,16 +77,7 @@ symbols:
     expect(results).toHaveLength(1);
     const { relationships } = results[0];
 
-    expect(relationships).toHaveLength(3);
-    expect(relationships[0].type).toBe("implements");
-    expect(relationships[0].from).toBe(results[0].entity.id);
-    expect(relationships[0].to).toBe("REQ-001");
-
-    expect(relationships[1].type).toBe("covered_by");
-    expect(relationships[1].to).toBe("TEST-042");
-
-    expect(relationships[2].type).toBe("relates_to");
-    expect(relationships[2].to).toBe("REQ-002");
+    expect(relationships).toHaveLength(0);
 
     cleanup();
   });
@@ -182,11 +173,7 @@ symbols:
     const results = extractFromManifest(filePath);
     const { relationships } = results[0];
 
-    expect(relationships).toHaveLength(4);
-    expect(relationships[0].type).toBe("implements");
-    expect(relationships[1].type).toBe("constrained_by");
-    expect(relationships[2].type).toBe("publishes");
-    expect(relationships[3].type).toBe("consumes");
+    expect(relationships).toHaveLength(0);
 
     cleanup();
   });
