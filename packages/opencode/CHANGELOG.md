@@ -1,5 +1,13 @@
 # kibi-opencode
 
+## 0.3.0
+
+### Minor Changes
+
+- Refreshed injected guidance to be concise and public-tool-only (removes trailing whitespace, consolidates traceability instructions).
+- Updated hook policy documentation per ADR-016.
+- Added hook-contract.test.ts to validate prompt injection and hook registration behavior.
+
 ## 0.2.0
 
 ### Minor Changes
