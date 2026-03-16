@@ -538,7 +538,9 @@ export async function syncCommand(
       }
     }
 
-    if (results.length === 0 && !rebuild) {
+    const hasRelationshipShards = relationshipShards.length > 0;
+
+    if (results.length === 0 && !hasRelationshipShards && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
 

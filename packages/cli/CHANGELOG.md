@@ -1,5 +1,15 @@
 # kibi-cli
 
+## 0.2.4
+
+### Patch Changes
+
+- Fix sync command to process relationship shards added after initial sync. The sync command now properly detects and imports relationship shard files (`.kb/relationships/*.yaml`) that are added after the first sync, instead of exiting early with "no changes".
+
+- Add explicit `id` fields to sync test fixtures for predictable relationship testing.
+
+## 0.2.3
+
 ## 0.2.3
 
 ### Patch Changes
