@@ -84,7 +84,7 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     return [];
   }
 
-  const parsed = yaml.load(content, { schema: yaml.JSON_SCHEMA }) as { relationships?: unknown[] } | null;
+  const parsed = yaml.load(content) as { relationships?: unknown[] } | null;
   if (!parsed || typeof parsed !== "object") {
     throw new Error(
       `Invalid shard file format at ${shardPath}: expected object`,
