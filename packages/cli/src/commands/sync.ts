@@ -637,67 +637,29 @@ export async function syncCommand(
       for (const { relationship, error } of validationErrors) {
         console.warn(`  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`);
       }
+
+    // Assert relationships using shard-based processing
+    let relCount = 0;
+    const failedRelationships: Array<{
+      rel: typeof allRelationships[0];
+      fromId: string;
+      toId: string;
+      error: string;
+    }> = [];
+
+    for (const rel of allRelationships) {
+      const fromId = idLookup.get(rel.from) || rel.from;
+      const toId = idLookup.get(rel.to) || rel.to;
+      const goal = `kb_assert_relationship(${rel.type}, '${fromId}', '${toId}', [])`;
+      const result = await prolog.query(goal);
+      if (result.success) {
+        relCount++;
+        kbModified = true;
+      } else {
+        const message = result.error || "Unknown error";
+        failedRelationships.push({ rel, fromId, toId, error: message });
+      }
     }
-      const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-      const prologAtom = (value: string): string =>
-        simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
-
-      for (const { entity } of results) {
-        try {
-          const props = [
-            `id='${entity.id}'`,
-            `title="${entity.title.replace(/"/g, '\\"')}"`,
-            `status=${prologAtom(entity.status)}`,
-            `created_at="${entity.created_at}"`,
-            `updated_at="${entity.updated_at}"`,
-            `source="${entity.source.replace(/"/g, '\\"')}"`,
-          ];
-
-          if (entity.tags && entity.tags.length > 0) {
-            const tagsList = entity.tags.map(prologAtom).join(",");
-            props.push(`tags=[${tagsList}]`);
-          }
-          if (entity.owner) props.push(`owner=${prologAtom(entity.owner)}`);
-          if (entity.priority)
-            props.push(`priority=${prologAtom(entity.priority)}`);
-          if (entity.severity)
-            props.push(`severity=${prologAtom(entity.severity)}`);
-          if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
-
-          const propsList = `[${props.join(", ")}]`;
-          const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
-          const result = await prolog.query(goal);
-          if (result.success) {
-            entityCount++;
-            kbModified = true;
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to upsert entity ${entity.id}: ${message}`,
-          );
-        }
-      }
-
-      const idLookup = new Map<string, string>();
-      for (const { entity } of results) {
-        const filename = path.basename(entity.source, ".md");
-        idLookup.set(filename, entity.id);
-        idLookup.set(entity.id, entity.id);
-      }
-
-      let relCount = 0;
-      const failedRelationships: Array<{
-        rel: ExtractedRelationship;
-        fromId: string;
-        toId: string;
-        error: string;
-      }> = [];
-
-      for (const { relationships } of results) {
-        for (const rel of relationships) {
-          try {
             const fromId = idLookup.get(rel.from) || rel.from;
             const toId = idLookup.get(rel.to) || rel.to;
 
