@@ -54,8 +54,11 @@ export interface SymbolEntry {
   sourceFile?: string;
   /** 1-based line number of the symbol declaration within sourceFile. */
   sourceLine?: number;
-  /** Raw links from symbols.yaml (related entity IDs). */
-  links: string[];
+  /**
+   * Optional array of entity IDs this symbol is linked to.
+   * @deprecated Use relationships from canonical shard storage instead.
+   */
+  links?: string[];
 }
 
 export interface SymbolIndex {

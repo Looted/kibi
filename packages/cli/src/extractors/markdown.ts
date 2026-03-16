@@ -59,7 +59,6 @@ export interface ExtractedEntity {
   owner?: string;
   priority?: string;
   severity?: string;
-  links?: unknown[];
   text_ref?: string;
 }
 
@@ -211,13 +210,26 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         filePath,
         {
           classification: "Embedded Entity Violation",
-          hint: `Move ${entityTypes} to separate entity files and link them using 'links' with relationship types like 'specified_by' or 'verified_by'.`,
+          hint: `Move ${entityTypes} to separate entity files and link them via relationship shards in .kb/relationships/.`,
         },
       );
     }
 
     const id = data.id || generateId(filePath, data.title);
-    const relationships = extractRelationships(data.links || [], id);
+
+    const relationships: ExtractedRelationship[] = [];
+
+    if (Array.isArray(data.links)) {
+      for (const link of data.links) {
+        if (link && typeof link === 'object' && typeof link.type === 'string' && typeof link.target === 'string') {
+          relationships.push({
+            type: link.type,
+            from: id,
+            to: link.target,
+          });
+        }
+      }
+    }
 
     return {
       entity: {
@@ -232,7 +244,6 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         owner: data.owner,
         priority: data.priority,
         severity: data.severity,
-        links: data.links,
         text_ref: data.text_ref,
       },
       relationships,
@@ -307,33 +318,3 @@ function generateId(filePath: string, title: string): string {
   return hash.digest("hex").substring(0, 16);
 }
 
-interface LinkObject {
-  type?: string;
-  target?: string;
-  id?: string;
-  to?: string;
-}
-
-function extractRelationships(
-  links: unknown[],
-  fromId: string,
-): ExtractedRelationship[] {
-  if (!Array.isArray(links)) return [];
-
-  return links.map((link) => {
-    if (typeof link === "string") {
-      return {
-        type: "relates_to",
-        from: fromId,
-        to: link,
-      };
-    }
-
-    const linkObj = link as LinkObject;
-    return {
-      type: linkObj.type || "relates_to",
-      from: fromId,
-      to: linkObj.target || linkObj.id || linkObj.to || "",
-    };
-  });
-}
