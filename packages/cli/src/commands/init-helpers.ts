@@ -174,28 +174,42 @@ export async function copySchemaFiles(
   console.log(`✓ Copied ${schemaFiles.length} schema files`);
 }
 
+const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
+const KIBI_HOOK_END = "# END kibi-managed";
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function installHook(hookPath: string, content: string): void {
+  const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
+
   if (existsSync(hookPath)) {
     const existing = readFileSync(hookPath, "utf8");
-    if (!existing.includes("kibi")) {
+
+    if (existing.includes(KIBI_HOOK_BEGIN) && existing.includes(KIBI_HOOK_END)) {
+      // Replace only the kibi-managed section, preserving any user-authored content
+      const updated = existing.replace(
+        new RegExp(`${escapeRegex(KIBI_HOOK_BEGIN)}[\\s\\S]*?${escapeRegex(KIBI_HOOK_END)}`),
+        kibiSection,
+      );
+      writeFileSync(hookPath, updated, { mode: 0o755 });
+    } else if (existing.includes("kibi branch ensure")) {
+      // Legacy format: already has the complete kibi logic, skip
+      return;
+    } else {
+      // Hook exists with user content (no kibi section) - append kibi section
+      const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
       writeFileSync(
         hookPath,
-        `${existing}
-${content}`,
-        {
-          mode: 0o755,
-        },
+        `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
+        { mode: 0o755 },
       );
     }
   } else {
-    writeFileSync(
-      hookPath,
-      `#!/bin/sh
-${content}`,
-      { mode: 0o755 },
-    );
+    writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
   }
-  // Explicitly ensure hook is executable (mode option can be inconsistent in Docker)
+  // Explicitly ensure hook is executable
   chmodSync(hookPath, 0o755);
 }
 
