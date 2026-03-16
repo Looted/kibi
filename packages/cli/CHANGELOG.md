@@ -4,6 +4,12 @@
 
 ### Patch Changes
 
+- ec7f86e: Fix sync command to process relationship shards added after initial sync. The sync command now properly detects and imports relationship shard files (`.kb/relationships/*.yaml`) that are added after the first sync, instead of exiting early with "no changes".
+
+## 0.2.4
+
+### Patch Changes
+
 - Fix sync command to process relationship shards added after initial sync. The sync command now properly detects and imports relationship shard files (`.kb/relationships/*.yaml`) that are added after the first sync, instead of exiting early with "no changes".
 
 - Add explicit `id` fields to sync test fixtures for predictable relationship testing.
