@@ -54,9 +54,7 @@ export interface SymbolEntry {
   sourceFile?: string;
   /** 1-based line number of the symbol declaration within sourceFile. */
   sourceLine?: number;
-  /** Raw links from symbols.yaml (related entity IDs). */
-  links: string[];
-}
+  /** Absolute path of the source file where this symbol lives, if available. */
 
 export interface SymbolIndex {
   /** title (lowercased) → SymbolEntry[] */
