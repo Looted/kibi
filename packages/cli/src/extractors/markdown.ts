@@ -216,7 +216,20 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
     }
 
     const id = data.id || generateId(filePath, data.title);
+
     const relationships: ExtractedRelationship[] = [];
+
+    if (Array.isArray(data.links)) {
+      for (const link of data.links) {
+        if (link && typeof link === 'object' && typeof link.type === 'string' && typeof link.target === 'string') {
+          relationships.push({
+            type: link.type,
+            from: id,
+            to: link.target,
+          });
+        }
+      }
+    }
 
     return {
       entity: {

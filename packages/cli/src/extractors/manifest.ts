@@ -95,6 +95,8 @@ interface ManifestSymbol {
   text_ref?: string;
   created_at?: string;
   updated_at?: string;
+  links?: string[];
+  relationships?: Array<{ type: string; target: string }>;
 }
 
 interface ManifestFile {
@@ -117,6 +119,42 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
 
       const id = symbol.id || generateId(filePath, symbol.title);
       const relationships: ExtractedRelationship[] = [];
+
+      // Extract relationships from links field
+      // Supports both simple strings (treated as implements) and typed objects
+      if (Array.isArray(symbol.links)) {
+        for (const link of symbol.links) {
+          if (typeof link === 'string') {
+            relationships.push({
+              type: 'implements',
+              from: id,
+              to: link,
+            });
+          } else if (link !== null && typeof link === 'object') {
+            const typedLink = link as { type?: unknown; target?: unknown };
+            if (typeof typedLink.type === 'string' && typeof typedLink.target === 'string') {
+              relationships.push({
+                type: typedLink.type,
+                from: id,
+                to: typedLink.target,
+              });
+            }
+          }
+        }
+      }
+
+      // Extract relationships from relationships field
+      if (Array.isArray(symbol.relationships)) {
+        for (const rel of symbol.relationships) {
+          if (rel && typeof rel.type === 'string' && typeof rel.target === 'string') {
+            relationships.push({
+              type: rel.type,
+              from: id,
+              to: rel.target,
+            });
+          }
+        }
+      }
 
       return {
         entity: {

@@ -77,7 +77,11 @@ symbols:
     expect(results).toHaveLength(1);
     const { relationships } = results[0];
 
-    expect(relationships).toHaveLength(0);
+    // Should extract 3 relationships: 2 typed + 1 simple string (treated as implements)
+    expect(relationships).toHaveLength(3);
+    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-001' });
+    expect(relationships).toContainEqual({ type: 'covered_by', from: expect.any(String), to: 'TEST-042' });
+    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-002' });
 
     cleanup();
   });
@@ -173,7 +177,12 @@ symbols:
     const results = extractFromManifest(filePath);
     const { relationships } = results[0];
 
-    expect(relationships).toHaveLength(0);
+    // Should extract all 4 typed relationships
+    expect(relationships).toHaveLength(4);
+    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-001' });
+    expect(relationships).toContainEqual({ type: 'constrained_by', from: expect.any(String), to: 'ADR-005' });
+    expect(relationships).toContainEqual({ type: 'publishes', from: expect.any(String), to: 'EVENT-001' });
+    expect(relationships).toContainEqual({ type: 'consumes', from: expect.any(String), to: 'EVENT-002' });
 
     cleanup();
   });
