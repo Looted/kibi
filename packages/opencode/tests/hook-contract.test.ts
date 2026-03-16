@@ -1,13 +1,20 @@
-import { describe, test } from "bun:test";
+import { afterAll, beforeAll, describe, spyOn, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import type { KibiConfig } from "../src/config";
+import kibiOpencodePlugin from "../src/index";
 import { SENTINEL, injectPrompt } from "../src/prompt";
 
 describe("hook contract", () => {
+  let tmpBase: string;
+  let homedirSpy: ReturnType<typeof spyOn>;
+
   const baseConfig: KibiConfig = {
     enabled: true,
     prompt: { enabled: true, hookMode: "auto" },
-    sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
+    sync: { enabled: false, debounceMs: 2000, ignore: [], relevant: [] },
     ux: {
       toastFailures: true,
       toastSuccesses: false,
@@ -16,12 +23,36 @@ describe("hook contract", () => {
     logLevel: "info",
   };
 
+  beforeAll(() => {
+    tmpBase = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-hook-test-"));
+    assert.ok(fs.existsSync(tmpBase), "tmpBase should be a valid directory");
+    // Prevent any real global kibi config from interfering
+    homedirSpy = spyOn(os, "homedir").mockReturnValue(tmpBase);
+  });
+
+  afterAll(() => {
+    homedirSpy.mockRestore();
+    try {
+      fs.rmSync(tmpBase, { recursive: true, force: true });
+    } catch {}
+  });
+
+  // Filesystem errors propagate intentionally so tests fail with a clear cause
+  function makeProjectDir(hookMode: string): string {
+    const dir = fs.mkdtempSync(path.join(tmpBase, "proj-"));
+    fs.mkdirSync(path.join(dir, ".opencode"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, ".opencode", "kibi.json"),
+      JSON.stringify({ prompt: { hookMode }, sync: { enabled: false } }),
+    );
+    return dir;
+  }
+
   test("system.transform is the primary prompt-text delivery hook", () => {
     // Per ADR-016: experimental.chat.system.transform carries prompt text
     const originalSystem = "Original system prompt";
     const result = injectPrompt(originalSystem, baseConfig);
 
-    // Should contain Kibi guidance via system.transform path
     assert.ok(result.includes(SENTINEL), "Prompt should contain Kibi sentinel");
     assert.ok(
       result.includes("kb_query"),
@@ -29,29 +60,50 @@ describe("hook contract", () => {
     );
   });
 
-  test("chat.params hook does not carry prompt text", () => {
-    // Per ADR-016: chat.params is for option-level enrichment only (temperature, topP, etc.)
-    // It should NEVER be used for prompt text injection
-    // This test documents that policy; the actual chat.params hook in index.ts is a no-op
+  test("auto mode registers both system.transform and chat.params hooks", async () => {
+    // Per ADR-016: auto mode registers both hooks
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
-    // When hookMode is "chat-params", prompt injection should be disabled
-    const chatParamsConfig: KibiConfig = {
-      ...baseConfig,
-      prompt: { ...baseConfig.prompt, hookMode: "chat-params" },
-    };
-
-    // In chat-params mode, injectPrompt behavior depends on plugin implementation
-    // The key contract is: chat.params hook itself should NOT inject prompt text
-    const originalSystem = "Original system prompt";
-    const result = injectPrompt(originalSystem, chatParamsConfig);
-
-    // The plugin should still respect prompt.enabled even in chat-params mode
-    // Implementation note: current behavior keeps prompt injection active in chat-params mode
-    // via the system transform path when auto mode is used
-    // This test documents the policy; actual enforcement is in index.ts hook registration
     assert.ok(
-      result.includes(originalSystem),
-      "Original system prompt should be preserved",
+      "experimental.chat.system.transform" in hooks,
+      "auto mode should register experimental.chat.system.transform",
+    );
+    assert.ok(
+      "chat.params" in hooks,
+      "auto mode should register chat.params",
+    );
+  });
+
+  test("chat-params mode: system.transform absent, chat.params present", async () => {
+    // Per ADR-016: chat.params is for option-level enrichment only (temperature, topP, etc.)
+    // and must NEVER inject prompt text. In chat-params only mode, system.transform
+    // must not be registered.
+    const dir = makeProjectDir("chat-params");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    assert.ok(
+      !("experimental.chat.system.transform" in hooks),
+      "chat-params mode must NOT register experimental.chat.system.transform",
+    );
+    assert.ok(
+      "chat.params" in hooks,
+      "chat-params mode should register chat.params",
+    );
+  });
+
+  test("system-transform mode: system.transform present, chat.params absent", async () => {
+    // Per ADR-016: system-transform mode uses only the system hook
+    const dir = makeProjectDir("system-transform");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    assert.ok(
+      "experimental.chat.system.transform" in hooks,
+      "system-transform mode should register experimental.chat.system.transform",
+    );
+    assert.ok(
+      !("chat.params" in hooks),
+      "system-transform mode must NOT register chat.params",
     );
   });
 
