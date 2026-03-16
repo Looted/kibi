@@ -175,27 +175,30 @@ export async function copySchemaFiles(
 }
 
 export function installHook(hookPath: string, content: string): void {
+  // The expected full content should include the kibi branch ensure command
+  const expectedMarker = "kibi branch ensure";
+  
   if (existsSync(hookPath)) {
     const existing = readFileSync(hookPath, "utf8");
-    if (!existing.includes("kibi")) {
-      writeFileSync(
-        hookPath,
-        `${existing}
-${content}`,
-        {
-          mode: 0o755,
-        },
-      );
+    // Only skip if the hook already has the proper branch ensure logic
+    if (existing.includes(expectedMarker)) {
+      // Already has proper kibi branch logic, skip
+      return;
     }
+    // Hook exists but doesn't have proper kibi content - overwrite it
+    writeFileSync(
+      hookPath,
+      `#!/bin/sh\n${content}`,
+      { mode: 0o755 },
+    );
   } else {
     writeFileSync(
       hookPath,
-      `#!/bin/sh
-${content}`,
+      `#!/bin/sh\n${content}`,
       { mode: 0o755 },
     );
   }
-  // Explicitly ensure hook is executable (mode option can be inconsistent in Docker)
+  // Explicitly ensure hook is executable
   chmodSync(hookPath, 0o755);
 }
 
