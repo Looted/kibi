@@ -265,10 +265,9 @@ System must support OAuth2 authentication with session renewal.
     type: relates_to
     from: req1
     to: scenario1
-    created_at: 2026-03-16T11:45:00Z
+    created_at: "2026-03-16T11:45:00Z"
     created_by: agent/test
-    source: test://sync-test`,
-      );
+    source: test://sync-test`);
 
       // Second sync should pick up the relationship
       const output = execSync(`bun ${kibiBin} sync`, {
