@@ -9,11 +9,4 @@ relationships:
     to: ADR-002
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/requirements/REQ-020.md
-  - id: rel-0cb090ae8e79
-    type: relates_to
-    from: REQ-020
-    to: ADR-XXX
-    created_at: "2026-03-16T12:57:51.090Z"
-    created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/requirements/REQ-020.md
+    source: documentation/requirements/REQ-020.md

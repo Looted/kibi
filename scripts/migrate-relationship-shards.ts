@@ -37,15 +37,15 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
   const result: Record<string, unknown> = {};
   let currentKey: string | null = null;
   let currentArray: unknown[] | null = null;
-  const indent = 0;
+  let currentObj: Record<string, string> | null = null;
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) continue;
 
-    const leadingSpaces = line.length - line.trimStart().length;
+    const indent = line.length - line.trimStart().length;
 
-    // Check for key: value pattern
+    // Check for top-level key: value pattern (no leading spaces)
     const keyMatch = line.match(/^(\w+):\s*(.*)$/);
     if (keyMatch) {
       // If we were building an array, save it
@@ -55,6 +55,7 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
 
       const [, key, value] = keyMatch;
       currentKey = key;
+      currentObj = null;
 
       if (value === "" || value === "[]") {
         // Could be start of array or empty value
@@ -74,14 +75,21 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
     } else if (currentArray !== null && trimmed.startsWith("- ")) {
       // Array item
       const item = trimmed.slice(2).trim();
-      if (item.startsWith("type:") || item.startsWith("target:")) {
-        // Object in array - simple parser for our use case
-        const obj: Record<string, string> = {};
-        const objLines = [item];
-        // Continue reading object properties
-        currentArray.push(obj);
+      const objPropMatch = item.match(/^(\w+):\s*(.*)$/);
+      if (objPropMatch) {
+        // Start of an object entry in the array (e.g. `- type: relates_to`)
+        currentObj = { [objPropMatch[1]]: objPropMatch[2] };
+        currentArray.push(currentObj);
       } else {
+        // Simple string value
+        currentObj = null;
         currentArray.push(item);
+      }
+    } else if (currentObj !== null && indent >= 4) {
+      // Continuation property of the current array object (e.g. `  target: ADR-002`)
+      const objPropMatch = trimmed.match(/^(\w+):\s*(.*)$/);
+      if (objPropMatch) {
+        currentObj[objPropMatch[1]] = objPropMatch[2];
       }
     }
   }
@@ -146,6 +154,13 @@ function parseYamlSimple(content: string): Record<string, unknown> {
           currentSymbol.relationships = currentRelationships;
           inRelationships = true;
           relIndent = indent;
+        } else if (inRelationships && currentRelationships && indent > relIndent + 2) {
+          // Continuation property of the current relationship entry
+          // (indented deeper than the `- ` item, e.g. `        target: ADR-002`)
+          const rel = currentRelationships[currentRelationships.length - 1];
+          if (rel && value) {
+            rel[key] = value;
+          }
         } else if (value) {
           currentSymbol[key] = value;
         }
@@ -157,25 +172,15 @@ function parseYamlSimple(content: string): Record<string, unknown> {
           currentArrayKey === "relationships" &&
           currentRelationships
         ) {
-          // Start of relationship object
-          if (indent <= relIndent + 2) {
-            // New relationship entry
-            const rel: Record<string, string> = {};
-            const parts = item.split(":").map((s) => s.trim());
-            if (parts.length === 2) {
-              rel[parts[0]] = parts[1];
-            }
-            currentRelationships.push(rel);
-          } else {
-            // Property of current relationship
-            const rel = currentRelationships[currentRelationships.length - 1];
-            if (rel) {
-              const parts = trimmed.split(":").map((s) => s.trim());
-              if (parts.length === 2) {
-                rel[parts[0]] = parts[1];
-              }
-            }
+          // New relationship entry (at the `- ` indent level)
+          const rel: Record<string, string> = {};
+          const colonIdx = item.indexOf(":");
+          if (colonIdx >= 0) {
+            const key = item.slice(0, colonIdx).trim();
+            const val = item.slice(colonIdx + 1).trim();
+            if (key) rel[key] = val;
           }
+          currentRelationships.push(rel);
         }
       }
     }
@@ -453,7 +458,7 @@ async function migrate(): Promise<void> {
       to: rel.to,
       created_at: now,
       created_by: "migration/adr-017",
-      source: rel.source,
+      source: path.relative(cwd, rel.source),
     };
 
     const shardPath = getShardPath(kbRoot, rel.from);

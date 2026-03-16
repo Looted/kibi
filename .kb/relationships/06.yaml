@@ -9,18 +9,18 @@ relationships:
     to: REQ-001
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-006.md
+    source: documentation/adr/ADR-006.md
   - id: rel-86ba917d8b0c
     type: relates_to
     from: ADR-006
     to: REQ-002
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-006.md
+    source: documentation/adr/ADR-006.md
   - id: rel-ca0f28e755fd
     type: relates_to
     from: ADR-006
     to: REQ-003
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-006.md
+    source: documentation/adr/ADR-006.md

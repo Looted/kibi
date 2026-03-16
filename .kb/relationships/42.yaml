@@ -9,18 +9,18 @@ relationships:
     to: ADR-005
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-008.md
+    source: documentation/adr/ADR-008.md
   - id: rel-c221c396a076
     type: relates_to
     from: ADR-008
     to: REQ-007
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-008.md
+    source: documentation/adr/ADR-008.md
   - id: rel-ef2bb9fbb0bb
     type: relates_to
     from: ADR-008
     to: REQ-vscode-traceability
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/adr/ADR-008.md
+    source: documentation/adr/ADR-008.md
