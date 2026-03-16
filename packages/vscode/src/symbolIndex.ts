@@ -54,7 +54,12 @@ export interface SymbolEntry {
   sourceFile?: string;
   /** 1-based line number of the symbol declaration within sourceFile. */
   sourceLine?: number;
-  /** Absolute path of the source file where this symbol lives, if available. */
+  /**
+   * Optional array of entity IDs this symbol is linked to.
+   * @deprecated Use relationships from canonical shard storage instead.
+   */
+  links?: string[];
+}
 
 export interface SymbolIndex {
   /** title (lowercased) → SymbolEntry[] */
