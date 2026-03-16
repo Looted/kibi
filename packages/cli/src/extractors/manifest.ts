@@ -95,7 +95,7 @@ interface ManifestSymbol {
   text_ref?: string;
   created_at?: string;
   updated_at?: string;
-  links?: string[];
+  links?: Array<string | { type: string; target: string }>;
   relationships?: Array<{ type: string; target: string }>;
 }
 

@@ -9,18 +9,18 @@ relationships:
     to: REQ-014
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/scenarios/SCEN-009.md
+    source: documentation/scenarios/SCEN-009.md
   - id: rel-00b6eab681a1
     type: relates_to
     from: TEST-002
     to: REQ-007
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-002.md
+    source: documentation/tests/TEST-002.md
   - id: rel-2173f2a7d63a
     type: relates_to
     from: TEST-002
     to: SCEN-007
     created_at: "2026-03-16T12:57:51.090Z"
     created_by: migration/adr-017
-    source: /home/looted/projects/kibi/documentation/tests/TEST-002.md
+    source: documentation/tests/TEST-002.md
