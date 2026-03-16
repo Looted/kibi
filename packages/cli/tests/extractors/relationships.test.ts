@@ -61,7 +61,7 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert
     confidence: 1.0`,
@@ -92,7 +92,7 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -104,7 +104,7 @@ describe("extractFromRelationshipShards", () => {
     type: depends_on
     from: REQ-002
     to: REQ-001
-    created_at: 2026-03-15T12:00:00Z
+    created_at: "2026-03-15T12:00:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -127,7 +127,7 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -153,14 +153,14 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert
   - id: rel-def789abc012
     type: covered_by
     from: SYM-001
     to: TEST-001
-    created_at: 2026-03-15T12:00:00Z
+    created_at: "2026-03-15T12:00:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -169,7 +169,6 @@ describe("extractFromRelationshipShards", () => {
     expect(results).toHaveLength(1);
     expect(results[0].relationships).toHaveLength(2);
   });
-
   test("throws on invalid relationship type", () => {
     fs.writeFileSync(
       path.join(relationshipsDir, "d4.yaml"),
@@ -178,7 +177,7 @@ describe("extractFromRelationshipShards", () => {
     type: invalid_type
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -196,7 +195,7 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: ""
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
@@ -214,15 +213,11 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: ""
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
 
-    expect(() => extractFromRelationshipShards(relationshipsDir)).toThrow(
-      /Missing or invalid 'to'/,
-    );
-      /Missing from or to/,
     expect(() => extractFromRelationshipShards(relationshipsDir)).toThrow(
       /Missing or invalid 'to'/,
     );
@@ -236,7 +231,7 @@ describe("extractFromRelationshipShards", () => {
     type: implements
     from: SYM-001
     to: REQ-001
-    created_at: 2026-03-15T11:45:00Z
+    created_at: "2026-03-15T11:45:00Z"
     created_by: agent/kibi-mcp
     source: mcp://kb_upsert`,
     );
