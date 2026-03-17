@@ -1,4 +1,4 @@
-import child_process from "node:child_process";
+import { execSync } from "node:child_process";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -15,9 +15,11 @@ export interface StagedFile {
   content?: string; // staged file content (UTF-8)
 }
 
-function runGit(cmd: string): string {
+type ExecFn = (cmd: string, opts: { encoding: "utf8" }) => string;
+
+function runGit(cmd: string, exec: ExecFn): string {
   try {
-    return child_process.execSync(cmd, { encoding: "utf8" });
+    return exec(cmd, { encoding: "utf8" });
   } catch (err: unknown) {
     // wrap common errors
     const e = err as { message?: unknown } | undefined;
@@ -57,6 +59,10 @@ const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
 function shouldLogTraceDebug(): boolean {
   return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+}
+
+function escapePath(p: string): string {
+  return p.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 function hasSupportedExt(p: string): boolean {
@@ -105,12 +111,13 @@ export function parseHunksFromDiff(
 /**
  * Get staged files with statuses, hunks and content.
  */
-export function getStagedFiles(): StagedFile[] {
+export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;
   try {
     nameStatus = runGit(
       "git diff --cached --name-status -z --diff-filter=ACMRD",
+      exec,
     );
   } catch (err: unknown) {
     throw new Error(`failed to list staged files: ${String(err)}`);
@@ -154,7 +161,8 @@ export function getStagedFiles(): StagedFile[] {
     try {
       // use new path for diff; quote the path to handle spaces
       diffText = runGit(
-        `git diff --cached -U0 -- "${path.replace(/"/g, '\\"')}"`,
+        `git diff --cached -U0 -- "${escapePath(path)}"`,
+        exec,
       );
     } catch (err: unknown) {
       if (shouldLogTraceDebug()) {
@@ -170,7 +178,7 @@ export function getStagedFiles(): StagedFile[] {
     // 5. read staged content using git show :<path>
     let content: string | undefined;
     try {
-      content = runGit(`git show :"${path.replace(/"/g, '\\"')}"`);
+      content = runGit(`git show :"${escapePath(path)}"`, exec);
     } catch (err: unknown) {
       // binary or deleted in index
       const e = err as { message?: unknown } | undefined;
