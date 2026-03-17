@@ -16,33 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import matter from "gray-matter";
@@ -59,7 +32,6 @@ export interface ExtractedEntity {
   owner?: string;
   priority?: string;
   severity?: string;
-  links?: unknown[];
   text_ref?: string;
 }
 
@@ -211,13 +183,31 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         filePath,
         {
           classification: "Embedded Entity Violation",
-          hint: `Move ${entityTypes} to separate entity files and link them using 'links' with relationship types like 'specified_by' or 'verified_by'.`,
+          hint: `Move ${entityTypes} to separate entity files and link them via relationship shards in .kb/relationships/.`,
         },
       );
     }
 
     const id = data.id || generateId(filePath, data.title);
-    const relationships = extractRelationships(data.links || [], id);
+
+    const relationships: ExtractedRelationship[] = [];
+
+    if (Array.isArray(data.links)) {
+      for (const link of data.links) {
+        if (
+          link &&
+          typeof link === "object" &&
+          typeof link.type === "string" &&
+          typeof link.target === "string"
+        ) {
+          relationships.push({
+            type: link.type,
+            from: id,
+            to: link.target,
+          });
+        }
+      }
+    }
 
     return {
       entity: {
@@ -232,7 +222,6 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         owner: data.owner,
         priority: data.priority,
         severity: data.severity,
-        links: data.links,
         text_ref: data.text_ref,
       },
       relationships,
@@ -305,35 +294,4 @@ function generateId(filePath: string, title: string): string {
   const hash = createHash("sha256");
   hash.update(`${filePath}:${title}`);
   return hash.digest("hex").substring(0, 16);
-}
-
-interface LinkObject {
-  type?: string;
-  target?: string;
-  id?: string;
-  to?: string;
-}
-
-function extractRelationships(
-  links: unknown[],
-  fromId: string,
-): ExtractedRelationship[] {
-  if (!Array.isArray(links)) return [];
-
-  return links.map((link) => {
-    if (typeof link === "string") {
-      return {
-        type: "relates_to",
-        from: fromId,
-        to: link,
-      };
-    }
-
-    const linkObj = link as LinkObject;
-    return {
-      type: linkObj.type || "relates_to",
-      from: fromId,
-      to: linkObj.target || linkObj.id || linkObj.to || "",
-    };
-  });
 }

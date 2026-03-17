@@ -8,6 +8,7 @@
     check_all_json/1,               % Returns all violations as JSON string
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
+    check_symbol_traceability/2,    % Returns list of symbols lacking direct traceability (ReqAdr option)
     check_no_dangling_refs/1,       % Returns list of dangling ref violations
     check_no_cycles/1,              % Returns list of cycle violations
     check_required_fields/1,        % Returns list of missing required field violations
@@ -34,9 +35,11 @@ all_relationship_types([
 %% check_all(-ViolationsDict)
 % Returns a dict with all violations grouped by rule type.
 % Each value is a list of violation terms: violation(Rule, EntityId, Description, Suggestion, Source)
+% For symbol-traceability, uses RequireAdr=false as default.
 check_all(ViolationsDict) :-
     check_must_priority_coverage(MustPriority),
     check_symbol_coverage(SymbolCoverage),
+    check_symbol_traceability(false, SymbolTraceability),
     check_no_dangling_refs(DanglingRefs),
     check_no_cycles(Cycles),
     check_required_fields(RequiredFields),
@@ -45,6 +48,7 @@ check_all(ViolationsDict) :-
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
+        symbol_traceability: SymbolTraceability,
         no_dangling_refs: DanglingRefs,
         no_cycles: Cycles,
         required_fields: RequiredFields,
@@ -96,6 +100,55 @@ symbol_coverage_violation(SymbolId, violation(
     "Update symbols.yaml to link this symbol to a related requirement.",
     Source
 )) :-
+    violation_source(SymbolId, symbol, Source).
+
+%% check_symbol_traceability(+RequireAdr, -Violations)
+% Finds all symbols lacking direct traceability:
+% - Every symbol must have at least one direct 'implements' relationship to a requirement
+% - If RequireAdr=true, the symbol must also have at least one 'constrained_by' relationship to an ADR
+check_symbol_traceability(RequireAdr, Violations) :-
+    findall(
+        Violation,
+        symbol_traceability_violation(RequireAdr, Violation),
+        Violations0
+    ),
+    sort(Violations0, Violations).
+
+symbol_traceability_violation(RequireAdr, violation(
+    'symbol-traceability',
+    SymbolId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(SymbolId, symbol, _),
+    % Check if symbol has direct implements to a requirement
+    (   kb_relationship(implements, SymbolId, ReqId),
+        kb_entity(ReqId, req, _)
+    ->  HasReq = true
+    ;   HasReq = false
+    ),
+    % Check if symbol has constrained_by to ADR (only if required)
+    (   RequireAdr = true ->
+        (   kb_relationship(constrained_by, SymbolId, AdrId),
+            kb_entity(AdrId, adr, _)
+        ->  HasAdr = true
+        ;   HasAdr = false
+        )
+    ;   HasAdr = true  % Not required, so pass this check
+    ),
+    % Determine what is missing
+    (   HasReq = false, HasAdr = false, RequireAdr = true ->
+        Description = "Symbol has no direct requirement link and no ADR constraint.",
+        Suggestion = "Add 'implements: REQ-xxx' and 'constrained_by: ADR-xxx' in symbols.yaml."
+    ;   HasReq = false ->
+        Description = "Symbol has no direct requirement link.",
+        Suggestion = "Add 'implements: REQ-xxx' in symbols.yaml."
+    ;   HasAdr = false ->
+        Description = "Symbol has no ADR constraint.",
+        Suggestion = "Add 'constrained_by: ADR-xxx' in symbols.yaml."
+    ;   fail  % No violation
+    ),
     violation_source(SymbolId, symbol, Source).
 
 %% check_no_dangling_refs(-Violations)
@@ -322,6 +375,39 @@ check_all_json(JsonString) :-
         json_write_dict(current_output, JsonDict, [width(0)]),
         JsonString
     ).
+
+%% check_all_json_with_options(-JsonString, +RequireAdr)
+% Returns all violations as JSON string with options.
+% RequireAdr: if true, symbol-traceability also requires ADR constraints.
+check_all_json_with_options(JsonString, RequireAdr) :-
+    check_all_with_options(ViolationsDict, RequireAdr),
+    violations_dict_to_json(ViolationsDict, JsonDict),
+    with_output_to_string(
+        json_write_dict(current_output, JsonDict, [width(0)]),
+        JsonString
+    ).
+
+%% check_all_with_options(-ViolationsDict, +RequireAdr)
+% Returns a dict with all violations, respecting options.
+check_all_with_options(ViolationsDict, RequireAdr) :-
+    check_must_priority_coverage(MustPriority),
+    check_symbol_coverage(SymbolCoverage),
+    check_symbol_traceability(RequireAdr, SymbolTraceability),
+    check_no_dangling_refs(DanglingRefs),
+    check_no_cycles(Cycles),
+    check_required_fields(RequiredFields),
+    check_deprecated_adrs(DeprecatedADRs),
+    check_domain_contradictions(Contradictions),
+    ViolationsDict = _{
+        must_priority_coverage: MustPriority,
+        symbol_coverage: SymbolCoverage,
+        symbol_traceability: SymbolTraceability,
+        no_dangling_refs: DanglingRefs,
+        no_cycles: Cycles,
+        required_fields: RequiredFields,
+        deprecated_adr_no_successor: DeprecatedADRs,
+        domain_contradictions: Contradictions
+    }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)
 % Converts a dict of violation/5 term lists to a dict of JSON-compatible dicts.

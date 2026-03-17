@@ -39,30 +39,28 @@ describe("kibi sync", () => {
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
 
-    // Requirement document
-    writeFileSync(
-      path.join(reqDir, "req1.md"),
-      `---
+  // Requirement document
+  writeFileSync(
+    path.join(reqDir, "req1.md"),
+    `---
+id: req1
 title: User Authentication
 type: req
 status: approved
 tags: [security, auth]
 owner: alice
-links:
-  - type: relates_to
-    target: scenario1
 ---
 
 # User Authentication
 
 System must support OAuth2 authentication.
-`,
-    );
-
-    // Scenario document
-    writeFileSync(
-      path.join(scenarioDir, "scenario1.md"),
-      `---
+  `,
+  );
+  // Scenario document
+  writeFileSync(
+    path.join(scenarioDir, "scenario1.md"),
+    `---
+id: scenario1
 title: Login Flow
 status: active
 tags: [auth]
@@ -72,9 +70,9 @@ tags: [auth]
 
 User logs in with OAuth2 provider.
 `,
-    );
+  );
 
-    // Symbol manifest
+  // Symbol manifest
     const docDir = path.join(tmpDir, "documentation");
     mkdirSync(docDir, { recursive: true });
     writeFileSync(
@@ -247,8 +245,33 @@ System must support OAuth2 authentication with session renewal.
   );
 
   test(
-    "extracts relationships from links",
+    "extracts relationships from shard files",
     async () => {
+      // First sync to get entity IDs
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+        stdio: "pipe",
+      });
+
+      // Create a relationship shard
+      const kbDir = path.join(tmpDir, ".kb");
+      const relationshipsDir = path.join(kbDir, "relationships");
+      mkdirSync(relationshipsDir, { recursive: true });
+
+      // Use hardcoded entity IDs based on the fixture
+      writeFileSync(
+        path.join(relationshipsDir, "a1.yaml"),
+        `relationships:
+  - id: rel-abc123def456
+    type: relates_to
+    from: req1
+    to: scenario1
+    created_at: "2026-03-16T11:45:00Z"
+    created_by: agent/test
+    source: test://sync-test`);
+
+      // Second sync should pick up the relationship
       const output = execSync(`bun ${kibiBin} sync`, {
         cwd: tmpDir,
         encoding: "utf8",

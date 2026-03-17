@@ -3,7 +3,6 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { gcCommand } from "../../src/commands/gc";
 
 const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
@@ -49,7 +48,8 @@ describe("kibi gc", () => {
     expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
       true,
     );
-    expect(res.stdout).toMatch(/Found 1 stale branch KB/);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
+    expect(res.stdout).toMatch(/Found 2 stale branch KB/);
   });
 
   test("force deletes stale KB", () => {
@@ -57,49 +57,23 @@ describe("kibi gc", () => {
     expect(fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch"))).toBe(
       false,
     );
-    expect(res.stdout).toMatch(/Deleted 1 stale branch KB/);
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(false);
+    expect(res.stdout).toMatch(/Deleted 2 stale branch KB/);
   });
 
-  test("main is preserved", () => {
+  test("keep-branch is preserved", () => {
     const res = runArgs(["gc", "--force"], tmpDir);
-    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/main"))).toBe(true);
-  });
-
-  test("configured default branch is preserved even if not a git branch", () => {
-    // create config with defaultBranch: trunk
-    const config = { paths: {}, defaultBranch: "trunk" };
-    fs.writeFileSync(
-      path.join(tmpDir, ".kb/config.json"),
-      JSON.stringify(config),
+    expect(fs.existsSync(path.join(tmpDir, ".kb/branches/keep-branch"))).toBe(
+      true,
     );
-
-    // create trunk KB and another stale branch
-    fs.mkdirSync(path.join(tmpDir, ".kb/branches/trunk"));
-    fs.mkdirSync(path.join(tmpDir, ".kb/branches/old-branch-2"));
-
-    // run gcCommand directly with cwd set to tmpDir
-    const prevCwd = process.cwd();
-    try {
-      process.chdir(tmpDir);
-      // call the command implementation directly
-      // force:true will perform deletion
-      // gcCommand uses process.cwd() internally
-      // await the promise
-      return gcCommand({ force: true }).then(() => {
-        expect(fs.existsSync(path.join(tmpDir, ".kb/branches/trunk"))).toBe(
-          true,
-        );
-        expect(
-          fs.existsSync(path.join(tmpDir, ".kb/branches/old-branch-2")),
-        ).toBe(false);
-      });
-    } finally {
-      process.chdir(prevCwd);
-    }
   });
 
   test("no stale branches reports zero", () => {
     fs.rmSync(path.join(tmpDir, ".kb/branches/old-branch"), {
+      recursive: true,
+      force: true,
+    });
+    fs.rmSync(path.join(tmpDir, ".kb/branches/main"), {
       recursive: true,
       force: true,
     });

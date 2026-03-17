@@ -15,39 +15,11 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 export const TOOLS = [
   {
     name: "kb_query",
     description:
-      "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects.",
+      "Read entities from the KB with filters. Use for discovery and lookup before edits. Do not use for writes. No mutation side effects. Tags filter by metadata tags only, not entity IDs.",
     inputSchema: {
       type: "object",
       properties: {
@@ -100,7 +72,7 @@ export const TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -254,7 +226,7 @@ export const TOOLS = [
   {
     name: "kb_check",
     description:
-      "Run KB validation rules and return violations. Use before or after mutations. Do not use for point lookups. No write side effects.",
+      "Run KB validation rules and return violations. Use before or after mutations. Do not use for point lookups. No write side effects. Prefer explicit rules for faster iteration.",
     inputSchema: {
       type: "object",
       properties: {
@@ -264,14 +236,17 @@ export const TOOLS = [
             type: "string",
             enum: [
               "must-priority-coverage",
+              "symbol-coverage",
+              "symbol-traceability",
               "no-dangling-refs",
               "no-cycles",
               "required-fields",
-              "symbol-coverage",
+              "deprecated-adr-no-successor",
+              "domain-contradictions",
             ],
           },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, no-dangling-refs, no-cycles, required-fields, symbol-coverage. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions. If omitted, server runs all.",
         },
       },
     },

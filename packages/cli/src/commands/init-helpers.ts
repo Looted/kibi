@@ -16,33 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import {
   chmodSync,
   copyFileSync,
@@ -70,7 +43,7 @@ branch_flag=$3
 
 if [ "$branch_flag" = "1" ]; then
   # Try to resolve the branch we just left (strip decorations like ^ and ~)
-  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/\^.*//')
+  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/\\^.*//')
 
   # Basic validation: non-empty and does not contain ~ or ^
   if [ -n "$old_branch" ] && echo "$old_branch" | grep -qv '[~^]'; then
@@ -174,28 +147,47 @@ export async function copySchemaFiles(
   console.log(`✓ Copied ${schemaFiles.length} schema files`);
 }
 
+const KIBI_HOOK_BEGIN = "# BEGIN kibi-managed";
+const KIBI_HOOK_END = "# END kibi-managed";
+
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 export function installHook(hookPath: string, content: string): void {
+  const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
+
   if (existsSync(hookPath)) {
     const existing = readFileSync(hookPath, "utf8");
-    if (!existing.includes("kibi")) {
+
+    if (
+      existing.includes(KIBI_HOOK_BEGIN) &&
+      existing.includes(KIBI_HOOK_END)
+    ) {
+      // Replace only the kibi-managed section, preserving any user-authored content
+      const updated = existing.replace(
+        new RegExp(
+          `${escapeRegex(KIBI_HOOK_BEGIN)}[\\s\\S]*?${escapeRegex(KIBI_HOOK_END)}`,
+        ),
+        kibiSection,
+      );
+      writeFileSync(hookPath, updated, { mode: 0o755 });
+    } else if (existing.includes("kibi branch ensure")) {
+      // Legacy format: already has the complete kibi logic, skip
+      return;
+    } else {
+      // Hook exists with user content (no kibi section) - append kibi section
+      const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
       writeFileSync(
         hookPath,
-        `${existing}
-${content}`,
-        {
-          mode: 0o755,
-        },
+        `${shebang}${existing.trimEnd()}\n${kibiSection}\n`,
+        { mode: 0o755 },
       );
     }
   } else {
-    writeFileSync(
-      hookPath,
-      `#!/bin/sh
-${content}`,
-      { mode: 0o755 },
-    );
+    writeFileSync(hookPath, `#!/bin/sh\n${kibiSection}\n`, { mode: 0o755 });
   }
-  // Explicitly ensure hook is executable (mode option can be inconsistent in Docker)
+  // Explicitly ensure hook is executable
   chmodSync(hookPath, 0o755);
 }
 

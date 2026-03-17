@@ -4,22 +4,24 @@ import { isPluginEnabled } from "./config";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
-const GUIDANCE =
-  SENTINEL +
-  `
-This project uses Kibi for traceability. Follow these rules:
+const GUIDANCE = `${SENTINEL}
+This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
-**Before starting any work:** Run kb_query to find related requirements, ADRs, tests, and symbols. Never assume—verify first.
+Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not rely on undocumented tools.
 
-**While working:**
-- Add "// implements REQ-xxx" comments to every new or modified function/class so the pre-commit hook can verify traceability.
-- When creating KB entities (kb_upsert), include relationship rows in the same call: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
-- Never embed scenarios or tests inside a requirement record. Each must be a separate entity linked via relationships.
+Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
 
-**After meaningful changes:** Run kb_check and fix all violations before continuing.
+Run kb_check after KB mutations.
 
-**Key principle:** Every line of code should be traceable to a requirement. Every requirement should have at least one test.
-`;
+**Kibi-first workflow:**
+1. **Discover**: Run kb_query with filters (sourceFile, type, tags) to find related requirements, ADRs, tests, and symbols.
+2. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
+3. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
+4. **Validate**: Run kb_check after KB mutations to catch violations early.
+
+**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+
+Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization workflow.`;
 
 // implements REQ-opencode-kibi-plugin-v1
 export function buildPrompt(): string {
@@ -34,7 +36,7 @@ export function injectPrompt(current: string, config: KibiConfig): string {
   if (current.includes(SENTINEL)) {
     return current;
   }
-  return current + "\n\n" + GUIDANCE;
+  return `${current}\n\n${buildPrompt()}`;
 }
 
 export { SENTINEL };
