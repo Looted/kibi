@@ -16,37 +16,19 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import * as path from "node:path";
 import Table from "cli-table3";
 import { PrologProcess } from "../prolog.js";
+import {
+  parseEntityFromBinding,
+  parseEntityFromList,
+  parseListOfLists,
+  parsePrologValue,
+  parsePropertyList,
+  splitTopLevel,
+} from "../prolog/codec.js";
 import relationshipSchema from "../public/schemas/relationship.js";
+import { VALID_ENTITY_TYPES } from "../query/service.js";
 import { resolveActiveBranch } from "../utils/branch-resolver.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
@@ -88,7 +70,9 @@ export async function queryCommand(
         // after init in a non-git directory.
         currentBranch = "main";
       } else {
-        console.error(`Error: Failed to resolve active branch:\n${branchResult.error}`);
+        console.error(
+          `Error: Failed to resolve active branch:\n${branchResult.error}`,
+        );
         await prolog.terminate();
         process.exit(1);
       }
@@ -142,25 +126,13 @@ export async function queryCommand(
     // Query entities mode
     else if (type || options.source) {
       // Validate type if provided
-      if (type) {
-        const validTypes = [
-          "req",
-          "scenario",
-          "test",
-          "adr",
-          "flag",
-          "event",
-          "symbol",
-          "fact",
-        ];
-        if (!validTypes.includes(type)) {
-          await prolog.query("kb_detach");
-          await prolog.terminate();
-          console.error(
-            `Error: Invalid type '${type}'. Valid types: ${validTypes.join(", ")}`,
-          );
-          process.exit(1);
-        }
+      if (type && !VALID_ENTITY_TYPES.includes(type)) {
+        await prolog.query("kb_detach");
+        await prolog.terminate();
+        console.error(
+          `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
+        );
+        process.exit(1);
       }
 
       let goal: string;
@@ -243,277 +215,6 @@ export async function queryCommand(
     console.error(`Error: ${message}`);
     process.exit(1);
   }
-}
-
-/**
- * Parse a Prolog list of lists into a JavaScript array.
- * Input: "[[a,b,c],[d,e,f]]"
- * Output: [["a", "b", "c"], ["d", "e", "f"]]
- */
-function parseListOfLists(listStr: string): string[][] {
-  // Clean input
-  const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-
-  if (cleaned === "") {
-    return [];
-  }
-
-  const results: string[][] = [];
-  let depth = 0;
-  let inQuotes = false;
-  let current = "";
-  let currentList: string[] = [];
-
-  for (let i = 0; i < cleaned.length; i++) {
-    const char = cleaned[i];
-    const prevChar = i > 0 ? cleaned[i - 1] : "";
-
-    if (char === '"' && prevChar !== "\\") {
-      inQuotes = !inQuotes;
-      current += char;
-      continue;
-    }
-
-    if (inQuotes) {
-      current += char;
-      continue;
-    }
-
-    if (char === "[") {
-      depth++;
-      if (depth > 1) current += char;
-    } else if (char === "]") {
-      depth--;
-      if (depth === 0) {
-        if (current) {
-          currentList.push(current.trim());
-          current = "";
-        }
-        if (currentList.length > 0) {
-          results.push(currentList);
-          currentList = [];
-        }
-      } else {
-        current += char;
-      }
-    } else if (char === "," && depth === 1) {
-      if (current) {
-        currentList.push(current.trim());
-        current = "";
-      }
-    } else if (char === "," && depth === 0) {
-      // Skip comma between lists
-    } else {
-      current += char;
-    }
-  }
-
-  return results;
-}
-
-/**
- * Parse a single entity from Prolog binding format.
- * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
- */
-function parseEntityFromBinding(bindingStr: string): any {
-  const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
-  const parts = splitTopLevel(cleaned, ",");
-
-  if (parts.length < 3) {
-    return {};
-  }
-
-  const id = parts[0].trim();
-  const type = parts[1].trim();
-  const propsStr = parts.slice(2).join(",").trim();
-
-  const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
-}
-
-/**
- * Parse entity from array returned by parseListOfLists.
- * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
- */
-function parseEntityFromList(data: string[]): any {
-  if (data.length < 3) {
-    return {};
-  }
-
-  const id = data[0].trim();
-  const type = data[1].trim();
-  const propsStr = data[2].trim();
-
-  const props = parsePropertyList(propsStr);
-  return { id, type, ...props };
-}
-
-/**
- * Parse Prolog property list into JavaScript object.
- * Input: "[id=abc123, title=^^(\"User Auth\", xsd:string), status='file:///path/approved', tags=^^(\"[security,auth]\", xsd:string)]"
- * Output: { id: "abc123", title: "User Auth", status: "approved", tags: ["security", "auth"] }
- */
-function parsePropertyList(propsStr: string): Record<string, any> {
-  const props: Record<string, any> = {};
-
-  // Remove outer brackets
-  let cleaned = propsStr.trim();
-  if (cleaned.startsWith("[")) {
-    cleaned = cleaned.substring(1);
-  }
-  if (cleaned.endsWith("]")) {
-    cleaned = cleaned.substring(0, cleaned.length - 1);
-  }
-
-  // Split by top-level commas
-  const pairs = splitTopLevel(cleaned, ",");
-
-  for (const pair of pairs) {
-    const eqIndex = pair.indexOf("=");
-    if (eqIndex === -1) continue;
-
-    const key = pair.substring(0, eqIndex).trim();
-    const value = pair.substring(eqIndex + 1).trim();
-
-    if (key === "..." || value === "..." || value === "...|...") {
-      continue;
-    }
-
-    const parsed = parsePrologValue(value);
-    props[key] = parsed;
-  }
-
-  return props;
-}
-
-/**
- * Parse a single Prolog value, handling typed literals and URIs.
- * Examples:
- * - ^^("value", 'http://...#string') -> "value"
- * - 'file:///path/to/id' -> "id" (extract last segment)
- * - "string" -> "string"
- * - atom -> "atom"
- * - [a,b,c] -> ["a", "b", "c"]
- */
-function parsePrologValue(value: string): any {
-  value = value.trim();
-
-  if (value.startsWith("^^(")) {
-    const innerStart = value.indexOf("(") + 1;
-    let depth = 1;
-    let innerEnd = innerStart;
-    for (let i = innerStart; i < value.length; i++) {
-      if (value[i] === "(") depth++;
-      if (value[i] === ")") {
-        depth--;
-        if (depth === 0) {
-          innerEnd = i;
-          break;
-        }
-      }
-    }
-    const innerContent = value.substring(innerStart, innerEnd);
-
-    const parts = splitTopLevel(innerContent, ",");
-    if (parts.length >= 2) {
-      let literalValue = parts[0].trim();
-
-      if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
-        literalValue = literalValue.substring(1, literalValue.length - 1);
-      }
-
-      if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
-        const listContent = literalValue.substring(1, literalValue.length - 1);
-        if (listContent === "") {
-          return [];
-        }
-        return listContent.split(",").map((item) => item.trim());
-      }
-
-      return literalValue;
-    }
-  }
-
-  if (value.startsWith("file:///")) {
-    const cleaned = value;
-    const lastSlash = cleaned.lastIndexOf("/");
-    if (lastSlash !== -1) {
-      return cleaned.substring(lastSlash + 1);
-    }
-    return cleaned;
-  }
-
-  // Handle quoted string
-  if (value.startsWith('"') && value.endsWith('"')) {
-    return value.substring(1, value.length - 1);
-  }
-
-  // Handle quoted atom (may contain file URLs that need extraction)
-  if (value.startsWith("'") && value.endsWith("'")) {
-    const unquoted = value.substring(1, value.length - 1);
-    // Check if unquoted value is a file URL
-    if (unquoted.startsWith("file:///")) {
-      const lastSlash = unquoted.lastIndexOf("/");
-      if (lastSlash !== -1) {
-        return unquoted.substring(lastSlash + 1);
-      }
-    }
-    return unquoted;
-  }
-
-  // Handle list
-  if (value.startsWith("[") && value.endsWith("]")) {
-    const listContent = value.substring(1, value.length - 1);
-    if (listContent === "") {
-      return [];
-    }
-    const items = listContent.split(",").map((item) => {
-      return parsePrologValue(item.trim());
-    });
-    return items;
-  }
-
-  // Return as-is
-  return value;
-}
-
-/**
- * Split a string by delimiter at the top level (not inside brackets or quotes).
- */
-function splitTopLevel(str: string, delimiter: string): string[] {
-  const results: string[] = [];
-  let current = "";
-  let depth = 0;
-  let inQuotes = false;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    const prevChar = i > 0 ? str[i - 1] : "";
-
-    if (char === '"' && prevChar !== "\\") {
-      inQuotes = !inQuotes;
-      current += char;
-    } else if (!inQuotes && (char === "[" || char === "(")) {
-      depth++;
-      current += char;
-    } else if (!inQuotes && (char === "]" || char === ")")) {
-      depth--;
-      current += char;
-    } else if (!inQuotes && depth === 0 && char === delimiter) {
-      if (current) {
-        results.push(current);
-        current = "";
-      }
-    } else {
-      current += char;
-    }
-  }
-
-  if (current) {
-    results.push(current);
-  }
-
-  return results;
 }
 
 /**

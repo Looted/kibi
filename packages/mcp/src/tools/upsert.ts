@@ -15,58 +15,21 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
 import Ajv from "ajv";
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import type { PrologProcess } from "kibi-cli/prolog";
+import { escapeAtom, toPrologAtom } from "kibi-cli/prolog/codec";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
-function escapeAtom(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function toPrologAtom(value: string): string {
-  const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-  return simplePrologAtom.test(value)
-    ? value
-    : `'${value.replace(/'/g, "''")}'`;
-}
 
 export interface UpsertArgs {
-/** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
-type: string;
-/** Unique entity identifier */
-id: string;
-/** Key-value pairs to store as RDF properties (title, status, source, tags, etc.) */
-properties: Record<string, unknown>;
-/** Optional relationships to create alongside this entity */
+  /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
+  type: string;
+  /** Unique entity identifier */
+  id: string;
+  /** Key-value pairs to store as RDF properties (title, status, source, tags, etc.) */
+  properties: Record<string, unknown>;
+  /** Optional relationships to create alongside this entity */
   relationships?: Array<Record<string, unknown>>;
   /** Internal: skip contradiction detection for bulk operations (improves performance) */
   _skipContradictionCheck?: boolean;

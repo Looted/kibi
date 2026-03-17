@@ -14,271 +14,56 @@
 
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { execSync } from "node:child_process";
-import { createHash } from "node:crypto";
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import * as path from "node:path";
-import fg from "fast-glob";
-import { dump as dumpYAML, load as parseYAML } from "js-yaml";
-import { extractFromManifest } from "../extractors/manifest.js";
+import type { Diagnostic, SyncSummary } from "../diagnostics.js";
 import {
-  type ExtractedRelationship,
-  type ExtractionResult,
-  FrontmatterError,
-  extractFromMarkdown,
-} from "../extractors/markdown.js";
-import {
-  extractFromRelationshipShards,
-  flattenRelationships,
-  getRelationshipsDir,
-  validateRelationships,
-} from "../extractors/relationships.js";
-
-import { copyFileSync } from "node:fs";
-import {
-  type Diagnostic,
-  type SyncSummary,
   branchErrorToDiagnostic,
   createDocsNotIndexedDiagnostic,
   createInvalidAuthoringDiagnostic,
   createKbMissingDiagnostic,
   formatSyncSummary,
 } from "../diagnostics.js";
+import type { FrontmatterError } from "../extractors/markdown.js";
 import {
-  type ManifestSymbolEntry,
-  enrichSymbolCoordinates,
-} from "../extractors/symbols-coordinator.js";
+  extractFromRelationshipShards,
+  flattenRelationships,
+  validateRelationships,
+} from "../extractors/relationships.js";
 import { PrologProcess } from "../prolog.js";
 import {
   copyCleanSnapshot,
-  getBranchDiagnostic,
   resolveActiveBranch,
-  resolveDefaultBranch,
 } from "../utils/branch-resolver.js";
 import { loadSyncConfig } from "../utils/config.js";
+import {
+  SYNC_CACHE_TTL_MS,
+  SYNC_CACHE_VERSION,
+  hashFile,
+  readSyncCache,
+  toCacheKey,
+  writeSyncCache,
+} from "./sync/cache.js";
+import {
+  discoverSourceFiles,
+  normalizeMarkdownPath,
+} from "./sync/discovery.js";
+import { processExtractions } from "./sync/extraction.js";
+import { refreshManifestCoordinates } from "./sync/manifest.js";
+import { persistEntities, persistRelationships } from "./sync/persistence.js";
+import {
+  atomicPublish,
+  cleanupStaging,
+  prepareStagingEnvironment,
+} from "./sync/staging.js";
 
 export class SyncError extends Error {
   constructor(message: string) {
     super(message);
     this.name = "SyncError";
-  }
-}
-
-type SyncCache = {
-  version: 1;
-  hashes: Record<string, string>;
-  seenAt: Record<string, string>;
-};
-
-const SYNC_CACHE_VERSION = 1;
-const SYNC_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
-# AUTHORED fields (edit freely):
-#   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
-# Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
-`;
-const SYMBOL_COORD_EXTENSIONS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mts",
-  ".cts",
-  ".mjs",
-  ".cjs",
-]);
-const GENERATED_COORD_FIELDS = [
-  "sourceLine",
-  "sourceColumn",
-  "sourceEndLine",
-  "sourceEndColumn",
-  "coordinatesGeneratedAt",
-] as const;
-
-function toCacheKey(filePath: string): string {
-  return path.relative(process.cwd(), filePath).split(path.sep).join("/");
-}
-
-function hashFile(filePath: string): string {
-  const content = readFileSync(filePath);
-  return createHash("sha256").update(content).digest("hex");
-}
-
-function readSyncCache(cachePath: string): SyncCache {
-  if (!existsSync(cachePath)) {
-    return {
-      version: SYNC_CACHE_VERSION,
-      hashes: {},
-      seenAt: {},
-    };
-  }
-
-  try {
-    const parsed = JSON.parse(
-      readFileSync(cachePath, "utf8"),
-    ) as Partial<SyncCache>;
-    if (parsed.version !== SYNC_CACHE_VERSION) {
-      return {
-        version: SYNC_CACHE_VERSION,
-        hashes: {},
-        seenAt: {},
-      };
-    }
-
-    return {
-      version: SYNC_CACHE_VERSION,
-      hashes: parsed.hashes ?? {},
-      seenAt: parsed.seenAt ?? {},
-    };
-  } catch {
-    return {
-      version: SYNC_CACHE_VERSION,
-      hashes: {},
-      seenAt: {},
-    };
-  }
-}
-
-function writeSyncCache(cachePath: string, cache: SyncCache): void {
-  const cacheDir = path.dirname(cachePath);
-  if (!existsSync(cacheDir)) {
-    mkdirSync(cacheDir, { recursive: true });
-  }
-
-  writeFileSync(
-    cachePath,
-    `${JSON.stringify(cache, null, 2)}
-`,
-    "utf8",
-  );
-}
-
-function copySyncCache(livePath: string, stagingPath: string): void {
-  const liveCachePath = path.join(livePath, "sync-cache.json");
-  const stagingCachePath = path.join(stagingPath, "sync-cache.json");
-
-  if (existsSync(liveCachePath)) {
-    const cacheContent = readFileSync(liveCachePath, "utf8");
-    writeFileSync(stagingCachePath, cacheContent, "utf8");
-  }
-}
-
-async function copySchemaToStaging(stagingPath: string): Promise<void> {
-  const possibleSchemaPaths = [
-    path.resolve(process.cwd(), "node_modules", "kibi-cli", "schema"),
-    path.resolve(process.cwd(), "..", "..", "schema"),
-    path.resolve(import.meta.dirname || __dirname, "..", "..", "schema"),
-    path.resolve(process.cwd(), "packages", "cli", "schema"),
-  ];
-
-  let schemaSourceDir: string | null = null;
-  for (const p of possibleSchemaPaths) {
-    if (existsSync(p)) {
-      schemaSourceDir = p;
-      break;
-    }
-  }
-
-  if (!schemaSourceDir) {
-    return;
-  }
-
-  const schemaFiles = await fg("*.pl", {
-    cwd: schemaSourceDir,
-    absolute: false,
-  });
-
-  const schemaDestDir = path.join(stagingPath, "schema");
-  if (!existsSync(schemaDestDir)) {
-    mkdirSync(schemaDestDir, { recursive: true });
-  }
-
-  for (const file of schemaFiles) {
-    const sourcePath = path.join(schemaSourceDir, file);
-    const destPath = path.join(schemaDestDir, file);
-    copyFileSync(sourcePath, destPath);
-  }
-}
-
-async function validateStagingKB(stagingPath: string): Promise<boolean> {
-  const prolog = new PrologProcess({ timeout: 60000 });
-  await prolog.start();
-
-  try {
-    const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
-    if (!attachResult.success) {
-      console.error(`Failed to attach to staging KB: ${attachResult.error}`);
-      return false;
-    }
-
-    await prolog.query("kb_detach");
-    return true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    console.error(`Validation error: ${message}`);
-    return false;
-  } finally {
-    await prolog.terminate();
-  }
-}
-
-function atomicPublish(stagingPath: string, livePath: string): void {
-  const liveParent = path.dirname(livePath);
-  if (!existsSync(liveParent)) {
-    mkdirSync(liveParent, { recursive: true });
-  }
-
-  if (existsSync(livePath)) {
-    const tempPath = `${livePath}.old.${Date.now()}`;
-    renameSync(livePath, tempPath);
-    renameSync(stagingPath, livePath);
-    rmSync(tempPath, { recursive: true, force: true });
-  } else {
-    renameSync(stagingPath, livePath);
-  }
-}
-
-function cleanupStaging(stagingPath: string): void {
-  if (existsSync(stagingPath)) {
-    rmSync(stagingPath, { recursive: true, force: true });
   }
 }
 
@@ -293,7 +78,6 @@ export async function syncCommand(
   const startTime = Date.now();
   const diagnostics: Diagnostic[] = [];
   const entityCounts: Record<string, number> = {};
-  const relationshipCount = 0;
   let published = false;
   let currentBranch: string | undefined;
 
@@ -311,6 +95,7 @@ export async function syncCommand(
   };
 
   try {
+    // Branch resolution
     const branchResult = resolveActiveBranch(process.cwd());
 
     if ("error" in branchResult) {
@@ -319,7 +104,7 @@ export async function syncCommand(
         branchResult.error,
       );
       diagnostics.push(diagnostic);
-      console.error(getBranchDiagnostic(undefined, branchResult.error));
+      console.error(`Failed to resolve active branch: ${branchResult.error}`);
       throw new SyncError(
         `Failed to resolve active branch: ${branchResult.error}`,
       );
@@ -334,58 +119,24 @@ export async function syncCommand(
       } catch {}
     }
 
-    // Load config using shared loader
+    // Load config
     const config = loadSyncConfig(process.cwd());
     const paths = config.paths;
 
-    // Discover files - construct glob patterns from directory paths
-    const normalizeMarkdownPath = (
-      pattern: string | undefined,
-    ): string | null => {
-      if (!pattern) return null;
-      if (pattern.includes("*")) return pattern;
-      return `${pattern}/**/*.md`;
-    };
-
-    const markdownPatterns = [
-      normalizeMarkdownPath(paths.requirements),
-      normalizeMarkdownPath(paths.scenarios),
-      normalizeMarkdownPath(paths.tests),
-      normalizeMarkdownPath(paths.adr),
-      normalizeMarkdownPath(paths.flags),
-      normalizeMarkdownPath(paths.events),
-      normalizeMarkdownPath(paths.facts),
-    ].filter((p): p is string => Boolean(p));
-
-    const markdownFiles = await fg(markdownPatterns, {
-      cwd: process.cwd(),
-      absolute: true,
-    });
+    // File discovery
+    const { markdownFiles, manifestFiles, relationshipsDir } =
+      await discoverSourceFiles(process.cwd(), paths);
 
     if (process.env.KIBI_DEBUG) {
       try {
         // eslint-disable-next-line no-console
-        console.log("[kibi-debug] markdownPatterns:", markdownPatterns);
+        console.log("[kibi-debug] markdownFiles:", markdownFiles.length);
         // eslint-disable-next-line no-console
-        console.log("[kibi-debug] markdownFiles:", markdownFiles);
+        console.log("[kibi-debug] manifestFiles:", manifestFiles.length);
       } catch {}
     }
 
-    const manifestFiles = paths.symbols
-      ? await fg(paths.symbols, {
-          cwd: process.cwd(),
-          absolute: true,
-        })
-      : [];
-
-    const relationshipsDir = getRelationshipsDir(
-      path.join(process.cwd(), ".kb"),
-    );
-    const sourceFiles = [
-      ...markdownFiles,
-      ...manifestFiles,
-    ].sort();
-    // Use branch-specific cache to handle branch isolation correctly
+    const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
     const cachePath = path.join(
       process.cwd(),
       `.kb/branches/${currentBranch}/sync-cache.json`,
@@ -397,22 +148,14 @@ export async function syncCommand(
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
 
-    // Extract relationships from shard files (canonical source per ADR-017).
-    // Relationships embedded in markdown/manifest files are also extracted and
-    // asserted separately by the results loop below.
+    // Extract relationships from shard files
     const shardResults = extractFromRelationshipShards(relationshipsDir);
     const allRelationships = flattenRelationships(shardResults);
 
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
 
-    if (process.env.KIBI_DEBUG) {
-      // eslint-disable-next-line no-console
-      console.log("[kibi-debug] sourceFiles:", sourceFiles);
-      // eslint-disable-next-line no-console
-      console.log("[kibi-debug] syncCache.hashes:", syncCache.hashes);
-    }
-
+    // Detect changed files
     for (const file of sourceFiles) {
       try {
         const key = toCacheKey(file);
@@ -428,12 +171,6 @@ export async function syncCommand(
 
         const isChanged =
           expired || syncCache.hashes[key] !== hash || validateOnly || rebuild;
-        if (process.env.KIBI_DEBUG) {
-          // eslint-disable-next-line no-console
-          console.log(
-            `[kibi-debug] ${key}: cached=${syncCache.hashes[key]}, current=${hash}, changed=${isChanged}`,
-          );
-        }
 
         if (isChanged) {
           if (markdownFiles.includes(file)) {
@@ -448,60 +185,34 @@ export async function syncCommand(
       }
     }
 
-    if (process.env.KIBI_DEBUG) {
-      // eslint-disable-next-line no-console
-      console.log("[kibi-debug] changedMarkdownFiles:", changedMarkdownFiles);
-    }
+    // Content extraction
+    const { results, failedCacheKeys, errors } = await processExtractions(
+      changedMarkdownFiles,
+      changedManifestFiles,
+      validateOnly,
+    );
 
-    const results: ExtractionResult[] = [];
-    const failedCacheKeys = new Set<string>();
-    const errors: { file: string; message: string }[] = [];
-
-    for (const file of changedMarkdownFiles) {
-      try {
-        results.push(extractFromMarkdown(file));
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-
-        // Handle INVALID_AUTHORING diagnostics for embedded entities
-        if (
-          error instanceof FrontmatterError &&
-          error.classification === "Embedded Entity Violation"
-        ) {
-          const embeddedTypes =
-            message.includes("scenario") && message.includes("test")
-              ? ["scenario", "test"]
-              : message.includes("scenario")
-                ? ["scenario"]
-                : message.includes("test")
-                  ? ["test"]
-                  : ["entity"];
-          diagnostics.push(
-            createInvalidAuthoringDiagnostic(file, embeddedTypes),
-          );
-        }
-
-        if (validateOnly) {
-          errors.push({ file, message });
-        } else {
-          console.warn(`Warning: Failed to extract from ${file}: ${message}`);
-        }
-        failedCacheKeys.add(toCacheKey(file));
-      }
-    }
-
-    for (const file of changedManifestFiles) {
-      try {
-        const manifestResults = extractFromManifest(file);
-        results.push(...manifestResults);
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        if (validateOnly) {
-          errors.push({ file, message });
-        } else {
-          console.warn(`Warning: Failed to extract from ${file}: ${message}`);
-        }
-        failedCacheKeys.add(toCacheKey(file));
+    // Collect INVALID_AUTHORING diagnostics
+    for (const err of errors) {
+      const error = new Error(err.message) as Error & {
+        classification?: string;
+      };
+      if (
+        err.message.includes("Embedded Entity Violation") ||
+        err.message.includes("scenario") ||
+        err.message.includes("test")
+      ) {
+        const embeddedTypes =
+          err.message.includes("scenario") && err.message.includes("test")
+            ? ["scenario", "test"]
+            : err.message.includes("scenario")
+              ? ["scenario"]
+              : err.message.includes("test")
+                ? ["test"]
+                : ["entity"];
+        diagnostics.push(
+          createInvalidAuthoringDiagnostic(err.file, embeddedTypes),
+        );
       }
     }
 
@@ -518,6 +229,7 @@ export async function syncCommand(
       }
     }
 
+    // Refresh symbol manifest coordinates
     for (const file of manifestFiles) {
       try {
         await refreshManifestCoordinates(file, process.cwd());
@@ -529,6 +241,7 @@ export async function syncCommand(
       }
     }
 
+    // Early exit if no changes
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -538,7 +251,7 @@ export async function syncCommand(
           continue;
         }
         evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+        evictedSeenAt[key] = nextHashes[key] ?? nowIso;
       }
 
       writeSyncCache(cachePath, {
@@ -551,9 +264,8 @@ export async function syncCommand(
       process.exit(0);
     }
 
+    // Staging setup
     const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
-
-    // Check if KB exists (for diagnostic purposes)
     const kbExists = existsSync(livePath);
     if (!kbExists && !rebuild) {
       diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
@@ -564,37 +276,10 @@ export async function syncCommand(
       `.kb/branches/${currentBranch}.staging`,
     );
 
-    cleanupStaging(stagingPath);
+    await prepareStagingEnvironment(stagingPath, livePath, rebuild);
 
-    mkdirSync(stagingPath, { recursive: true });
-
+    // Persistence to KB
     try {
-      if (!rebuild) {
-        const config = loadSyncConfig(process.cwd());
-        const defaultBranchResult = resolveDefaultBranch(process.cwd(), config);
-        const defaultBranch =
-          "branch" in defaultBranchResult ? defaultBranchResult.branch : "main";
-        const defaultBranchPath = path.join(
-          process.cwd(),
-          `.kb/branches/${defaultBranch}`,
-        );
-
-        const sourcePath = existsSync(livePath)
-          ? livePath
-          : existsSync(defaultBranchPath) && currentBranch !== defaultBranch
-            ? defaultBranchPath
-            : null;
-
-        if (sourcePath) {
-          copyCleanSnapshot(sourcePath, stagingPath);
-          copySyncCache(sourcePath, stagingPath);
-        } else {
-          await copySchemaToStaging(stagingPath);
-        }
-      } else {
-        await copySchemaToStaging(stagingPath);
-      }
-
       const prolog = new PrologProcess({ timeout: 120000 });
       await prolog.start();
 
@@ -607,208 +292,46 @@ export async function syncCommand(
         );
       }
 
-      let entityCount = 0;
-      let kbModified = false;
+      const entityIds = new Set<string>();
+
+      // Validate and filter dangling relationships
+      const validationErrors = validateRelationships(
+        allRelationships,
+        entityIds,
+      );
+      if (validationErrors.length > 0) {
+        console.warn(
+          `Warning: ${validationErrors.length} dangling relationship(s) found`,
+        );
+        for (const { relationship, error } of validationErrors) {
+          console.warn(
+            `  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`,
+          );
+        }
+      }
+      const danglingKeys = new Set(
+        validationErrors.map(
+          ({ relationship: r }) => `${r.type}|${r.from}|${r.to}`,
+        ),
+      );
+      const validRelationships = allRelationships.filter(
+        (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
+      );
 
       // Track entity counts by type
       for (const { entity } of results) {
         entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
       }
 
-      const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-      const prologAtom = (value: string): string =>
-        simplePrologAtom.test(value) ? value : `'${value.replace(/'/g, "''")}'`;
+      // Persist entities
+      const { entityCount, kbModified: entitiesModified } =
+        await persistEntities(prolog, results, entityIds);
 
-      // Build the set of valid entity IDs from both the existing KB and new entities.
-      // Querying the attached KB ensures unchanged entities from prior syncs are
-      // included, preventing false dangling-relationship warnings on incremental syncs.
-      const entityIds = new Set<string>();
-      const existingIdsResult = await prolog.query(
-        "findall(Id, kb_entity(Id, _, _), ExistingIds)",
-      );
-      if (existingIdsResult.success && existingIdsResult.bindings?.ExistingIds) {
-        const raw = existingIdsResult.bindings.ExistingIds as string;
-        const cleaned = raw.trim().replace(/^\[/, "").replace(/\]$/, "");
-        if (cleaned) {
-          for (const atom of cleaned.split(",")) {
-            const id = atom.trim().replace(/^'|'$/g, "");
-            if (id) entityIds.add(id);
-          }
-        }
-      }
-      for (const { entity } of results) {
-        entityIds.add(entity.id);
-      }
+      // Persist relationships
+      const { relationshipCount, kbModified: relationshipsModified } =
+        await persistRelationships(prolog, results, validRelationships);
 
-      // Validate shard relationships and filter out dangling ones to avoid
-      // repeated assertion failures in the loop below.
-      const validationErrors = validateRelationships(allRelationships, entityIds);
-      if (validationErrors.length > 0) {
-        console.warn(`Warning: ${validationErrors.length} dangling relationship(s) found`);
-        for (const { relationship, error } of validationErrors) {
-          console.warn(`  - ${error}: ${relationship.type} ${relationship.from} -> ${relationship.to}`);
-        }
-      }
-      const danglingKeys = new Set(
-        validationErrors.map(({ relationship: r }) => `${r.type}|${r.from}|${r.to}`),
-      );
-      const validRelationships = allRelationships.filter(
-        (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
-      );
-
-      for (const { entity } of results) {
-        try {
-          const props = [
-            `id='${entity.id}'`,
-            `title="${entity.title.replace(/"/g, '\\"')}"`,
-            `status=${prologAtom(entity.status)}`,
-            `created_at="${entity.created_at}"`,
-            `updated_at="${entity.updated_at}"`,
-            `source="${entity.source.replace(/"/g, '\\"')}"`,
-          ];
-
-          if (entity.tags && entity.tags.length > 0) {
-            const tagsList = entity.tags.map(prologAtom).join(",");
-            props.push(`tags=[${tagsList}]`);
-          }
-          if (entity.owner) props.push(`owner=${prologAtom(entity.owner)}`);
-          if (entity.priority)
-            props.push(`priority=${prologAtom(entity.priority)}`);
-          if (entity.severity)
-            props.push(`severity=${prologAtom(entity.severity)}`);
-          if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
-
-          const propsList = `[${props.join(", ")}]`;
-          const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
-          const result = await prolog.query(goal);
-          if (result.success) {
-            entityCount++;
-            kbModified = true;
-          }
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to upsert entity ${entity.id}: ${message}`,
-          );
-        }
-      }
-
-      const idLookup = new Map<string, string>();
-      for (const { entity } of results) {
-        const filename = path.basename(entity.source, ".md");
-        idLookup.set(filename, entity.id);
-        idLookup.set(entity.id, entity.id);
-      }
-
-      let relCount = 0;
-      const failedRelationships: Array<{
-        rel: ExtractedRelationship;
-        fromId: string;
-        toId: string;
-        error: string;
-      }> = [];
-
-      for (const { relationships } of results) {
-        for (const rel of relationships) {
-          try {
-            const fromId = idLookup.get(rel.from) || rel.from;
-            const toId = idLookup.get(rel.to) || rel.to;
-
-            const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(fromId)}, ${prologAtom(toId)}, [])`;
-            const result = await prolog.query(goal);
-            if (result.success) {
-              relCount++;
-              kbModified = true;
-            } else {
-              failedRelationships.push({
-                rel,
-                fromId,
-                toId,
-                error: result.error || "Unknown error",
-              });
-            }
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            const fromId = idLookup.get(rel.from) || rel.from;
-            const toId = idLookup.get(rel.to) || rel.to;
-            failedRelationships.push({ rel, fromId, toId, error: message });
-          }
-        }
-      }
-      // Assert relationships from shards (dangling relationships already filtered out above)
-      for (const rel of validRelationships) {
-        try {
-          const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(rel.from)}, ${prologAtom(rel.to)}, [])`;
-          const result = await prolog.query(goal);
-          if (result.success) {
-            relCount++;
-            kbModified = true;
-          } else {
-            failedRelationships.push({
-              rel,
-              fromId: rel.from,
-              toId: rel.to,
-              error: result.error || "Unknown error",
-            });
-          }
-        } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
-          failedRelationships.push({ rel, fromId: rel.from, toId: rel.to, error: message });
-        }
-      }
-
-      const retryCount = 3;
-      for (
-        let pass = 0;
-        pass < retryCount && failedRelationships.length > 0;
-        pass++
-      ) {
-        const remainingFailed: typeof failedRelationships = [];
-
-        for (const { rel, fromId, toId } of failedRelationships) {
-          try {
-            const goal = `kb_assert_relationship(${prologAtom(rel.type)}, ${prologAtom(fromId)}, ${prologAtom(toId)}, [])`;
-            const result = await prolog.query(goal);
-            if (result.success) {
-              relCount++;
-              kbModified = true;
-            } else {
-              remainingFailed.push({
-                rel,
-                fromId,
-                toId,
-                error: result.error || "Unknown error",
-              });
-            }
-          } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            remainingFailed.push({ rel, fromId, toId, error: message });
-          }
-        }
-
-        failedRelationships.length = 0;
-        failedRelationships.push(...remainingFailed);
-      }
-
-      if (failedRelationships.length > 0) {
-        console.warn(
-          `\nWarning: ${failedRelationships.length} relationship(s) failed to sync:`,
-        );
-        const seen = new Set<string>();
-        for (const { rel, fromId, toId, error } of failedRelationships) {
-          const key = `${rel.type}:${fromId}->${toId}`;
-          if (!seen.has(key)) {
-            seen.add(key);
-            console.warn(`  - ${rel.type}: ${fromId} -> ${toId}`);
-            console.warn(`    Error: ${error}`);
-          }
-        }
-        console.warn(
-          "\nTip: Ensure target entities exist before creating relationships.",
-        );
-      }
+      const kbModified = entitiesModified || relationshipsModified;
 
       if (kbModified) {
         prolog.invalidateCache();
@@ -818,8 +341,10 @@ export async function syncCommand(
       await prolog.query("kb_detach");
       await prolog.terminate();
 
+      // Publish staging to live
       atomicPublish(stagingPath, livePath);
 
+      // Update cache
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
 
@@ -828,7 +353,7 @@ export async function syncCommand(
           continue;
         }
         evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
+        evictedSeenAt[key] = nextHashes[key] ?? nowIso;
       }
 
       const liveCachePath = path.join(livePath, "sync-cache.json");
@@ -847,7 +372,7 @@ export async function syncCommand(
       }
 
       console.log(
-        `✓ Imported ${entityCount} entities, ${relCount} relationships`,
+        `✓ Imported ${entityCount} entities, ${relationshipCount} relationships`,
       );
 
       const commit = getCurrentCommit();
@@ -856,7 +381,7 @@ export async function syncCommand(
         commit,
         timestamp: new Date().toISOString(),
         entityCounts,
-        relationshipCount: relCount,
+        relationshipCount,
         success: true,
         published,
         failures: diagnostics,
@@ -873,14 +398,13 @@ export async function syncCommand(
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${errorMessage}`);
 
-    // Return failure summary
     const commit = getCurrentCommit();
     const summary: SyncSummary = {
       branch: currentBranch || "unknown",
       commit,
       timestamp: new Date().toISOString(),
       entityCounts,
-      relationshipCount,
+      relationshipCount: 0,
       success: false,
       published: false,
       failures: diagnostics,
@@ -898,109 +422,5 @@ export async function syncCommand(
   }
 }
 
-async function refreshManifestCoordinates(
-  manifestPath: string,
-  workspaceRoot: string,
-): Promise<void> {
-  const rawContent = readFileSync(manifestPath, "utf8");
-  const parsed = parseYAML(rawContent);
-
-  if (!isRecord(parsed)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} is not a YAML object; skipping coordinate refresh`,
-    );
-    return;
-  }
-
-  const rawSymbols = parsed.symbols;
-  if (!Array.isArray(rawSymbols)) {
-    console.warn(
-      `Warning: symbols manifest ${manifestPath} has no symbols array; skipping coordinate refresh`,
-    );
-    return;
-  }
-
-  const before = rawSymbols.map((entry) =>
-    isRecord(entry)
-      ? ({ ...entry } as ManifestSymbolEntry)
-      : ({} as ManifestSymbolEntry),
-  );
-  const enriched = await enrichSymbolCoordinates(before, workspaceRoot);
-  parsed.symbols = enriched;
-
-  let refreshed = 0;
-  let failed = 0;
-  let unchanged = 0;
-
-  for (let i = 0; i < before.length; i++) {
-    const previous = before[i] ?? ({} as ManifestSymbolEntry);
-    const current = enriched[i] ?? previous;
-    const changed = GENERATED_COORD_FIELDS.some(
-      (field) => previous[field] !== current[field],
-    );
-
-    if (changed) {
-      refreshed++;
-      continue;
-    }
-
-    const eligible = isEligibleForCoordinateRefresh(
-      typeof current.sourceFile === "string"
-        ? current.sourceFile
-        : typeof previous.sourceFile === "string"
-          ? previous.sourceFile
-          : undefined,
-      workspaceRoot,
-    );
-
-    if (eligible && !hasAllGeneratedCoordinates(current)) {
-      failed++;
-    } else {
-      unchanged++;
-    }
-  }
-
-  const dumped = dumpYAML(parsed, {
-    lineWidth: -1,
-    noRefs: true,
-    sortKeys: false,
-  });
-  const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
-
-  if (rawContent !== nextContent) {
-    writeFileSync(manifestPath, nextContent, "utf8");
-  }
-
-  console.log(
-    `✓ Refreshed symbol coordinates in ${path.relative(workspaceRoot, manifestPath)} (refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed})`,
-  );
-}
-
-function hasAllGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
-  return (
-    typeof entry.sourceLine === "number" &&
-    typeof entry.sourceColumn === "number" &&
-    typeof entry.sourceEndLine === "number" &&
-    typeof entry.sourceEndColumn === "number" &&
-    typeof entry.coordinatesGeneratedAt === "string" &&
-    entry.coordinatesGeneratedAt.length > 0
-  );
-}
-
-function isEligibleForCoordinateRefresh(
-  sourceFile: string | undefined,
-  workspaceRoot: string,
-): boolean {
-  if (!sourceFile) return false;
-  const absolute = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(workspaceRoot, sourceFile);
-
-  if (!existsSync(absolute)) return false;
-  const ext = path.extname(absolute).toLowerCase();
-  return SYMBOL_COORD_EXTENSIONS.has(ext);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+// Export for use by modules that need these functions
+export { normalizeMarkdownPath } from "./sync/discovery.js";

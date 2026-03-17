@@ -69,6 +69,8 @@ The Kibi MCP server exposes exactly four public tools:
 - `kb_delete`
 - `kb_check`
 
+For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode.
+
 Allowed enum values for entity types, relationship types, and validation rules are encoded directly in each tool's `inputSchema`.
 
 ## Querying Best Practices
@@ -76,10 +78,9 @@ Allowed enum values for entity types, relationship types, and validation rules a
 When you need information about the project:
 
 1. Use `kb_query` with `type` when you know the entity kind.
-2. Use `kb_query` with `id` for an exact lookup.
-3. Use `kb_query` with `tags` to find related areas.
-4. Use `kb_query` with `sourceFile` to find KB entities linked to a specific file.
-5. Use small `limit` values first, then paginate with `offset` if needed.
+2. Use `kb_query` with `id` for exact lookups.
+3. Use `kb_query` with `tags` or `sourceFile` for discovery.
+4. Paginate with `limit` and `offset` for large result sets.
 
 ## Creating and Updating Entities
 
@@ -103,19 +104,16 @@ When creating or updating entities:
    - `covered_by` for symbol -> test
    - `constrains` and `requires_property` for requirement/fact modeling
 
-## Retroactive Initialization Prompt
+**Important:** Execute `kb_upsert` calls sequentially. Do not fire in parallel to avoid lock contention.
 
-Use this prompt to have an LLM bootstrap an existing project into Kibi:
+## Anti-Patterns
 
-```text
-Please scan this project and populate the Kibi knowledge base.
+Avoid these common mistakes:
 
-1. Use `kb_query` to inspect existing entities and avoid collisions.
-2. Use `kb_upsert` in small batches to create requirements, ADRs, symbols, tests, scenarios, flags, events, and facts.
-3. Add relationship rows during each upsert so traceability is explicit.
-4. Run `kb_check` after each batch and fix violations before continuing.
-5. Use `kb_delete` only if a mistaken entity or relationship needs to be removed deliberately.
-```
+- **Don't call `kb_check` without rules during iteration** - Full validation is slow; only run when needed or with specific rules.
+- **Don't fire `kb_upsert` in parallel** - This causes lock contention. Always execute upserts sequentially.
+- **Don't use tags as multi-ID lookup** - Tags are for categorization, not for querying multiple specific entities.
+- **Don't create relationships to non-existent entities** - Always confirm target entities exist before linking.
 
 ## Before Starting Work
 
@@ -125,7 +123,7 @@ Please scan this project and populate the Kibi knowledge base.
 
 ## During Development
 
-1. Create entities as you go with `kb_upsert`.
+1. Create entities as you go with `kb_upsert` (sequentially).
 2. Maintain relationships continuously instead of batch-fixing them later.
 3. Run `kb_check` after significant structural changes.
 
@@ -140,27 +138,23 @@ Please scan this project and populate the Kibi knowledge base.
 ### Creating a New Feature
 
 ```text
-1. Query existing requirements in the feature area with `kb_query`
-2. Create or update requirements via `kb_upsert`
-3. Create scenarios, symbols, and tests with `kb_upsert`
-4. Link them using relationship rows in the same call when possible
-5. Run `kb_check`
+1. Query existing requirements in the feature area with kb_query
+2. Create or update requirements via kb_upsert (include relationship rows)
+3. Run kb_check
 ```
 
 ### Investigating an Issue
 
 ```text
-1. Use `kb_query` to find related requirements, ADRs, symbols, and tests
-2. Determine which entities need updates
-3. Apply the smallest safe `kb_upsert` or `kb_delete`
-4. Run `kb_check`
+1. Use kb_query to find related requirements, ADRs, symbols, and tests
+2. Apply the smallest safe kb_upsert or kb_delete
+3. Run kb_check
 ```
 
 ### Refactoring Code
 
 ```text
-1. Query existing symbol and requirement context with `kb_query`
-2. Update symbol entities and links via `kb_upsert`
-3. Remove stale entities only if necessary using `kb_delete`
-4. Run `kb_check`
+1. Query existing symbol and requirement context with kb_query
+2. Update symbol entities and links via kb_upsert
+3. Run kb_check
 ```

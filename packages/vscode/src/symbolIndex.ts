@@ -15,34 +15,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -217,24 +189,31 @@ export function queryRelationshipsViaCli(
   symbolId: string,
   workspaceRoot: string,
 ): Array<{ type: string; from: string; to: string }> {
-  try {
-    const output = execSync(
-      `bun run packages/cli/bin/kibi query --relationships ${symbolId} --format json`,
-      {
+  // Try candidates in order: system PATH first, then dev source tree fallback
+  const candidates = [
+    `kibi query --relationships ${symbolId} --format json`,
+    `bun run packages/cli/bin/kibi query --relationships ${symbolId} --format json`,
+  ];
+
+  for (const cmd of candidates) {
+    try {
+      const output = execSync(cmd, {
         cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 10000,
         stdio: ["ignore", "pipe", "ignore"],
-      },
-    );
-    return JSON.parse(output) as Array<{
-      type: string;
-      from: string;
-      to: string;
-    }>;
-  } catch {
-    return [];
+      });
+      return JSON.parse(output) as Array<{
+        type: string;
+        from: string;
+        to: string;
+      }>;
+    } catch {
+      // ignore, try next candidate
+    }
   }
+
+  return [];
 }
 
 // Named exports are already performed inline above. No additional export list needed.

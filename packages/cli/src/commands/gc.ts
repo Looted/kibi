@@ -16,38 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { resolveDefaultBranch } from "../utils/branch-resolver.js";
-import { loadConfig } from "../utils/config.js";
 
 export async function gcCommand(options: {
   dryRun?: boolean;
@@ -102,29 +73,8 @@ export async function gcCommand(options: {
       .filter((d) => d.isDirectory())
       .map((d) => d.name);
 
-    // Resolve configured/default branch to protect
-    const config = loadConfig(process.cwd());
-    // Prefer explicit configured defaultBranch if set
-    const configured = config?.defaultBranch;
-    let defaultBranch: string;
-    if (configured && typeof configured === "string" && configured.trim()) {
-      defaultBranch = configured.trim();
-    } else {
-      const resolved = resolveDefaultBranch(process.cwd(), config);
-      defaultBranch =
-        "branch" in resolved && typeof resolved.branch === "string"
-          ? resolved.branch
-          : "main";
-    }
-
-    // Protect resolved branch and its 'master'->'main' normalization
-    const protectedBranches = new Set<string>([defaultBranch]);
-    if (defaultBranch === "main") protectedBranches.add("master");
-    if (defaultBranch === "master") protectedBranches.add("main");
-
-    const staleBranches = kbBranches.filter(
-      (kb) => !protectedBranches.has(kb) && !gitBranches.has(kb),
-    );
+    // Branches are protected if they exist in git - no default branch concept
+    const staleBranches = kbBranches.filter((kb) => !gitBranches.has(kb));
 
     // Perform deletion when dryRun is false (force requested)
     const performDelete = !dryRun;

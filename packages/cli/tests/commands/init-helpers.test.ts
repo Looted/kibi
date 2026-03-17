@@ -35,19 +35,14 @@ describe("init-helpers", () => {
 
   test("getCurrentBranch returns current branch", async () => {
     execSync("git init", { cwd: tmpDir });
-    try {
-      // Make sure we have a commit so HEAD is valid for some git versions
-      execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
-      execSync("git checkout -b test-branch", { cwd: tmpDir });
+    // Make sure we have a commit so HEAD is valid for some git versions
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+    execSync("git checkout -b test-branch", { cwd: tmpDir });
 
-      const branch = await getCurrentBranch(tmpDir);
-      expect(branch).toBe("test-branch");
-    } catch (e) {
-      // If git fails (e.g. no user configured), it might default to develop.
-      // But in CI/sandbox environments git init should work.
-      console.error(e);
-      // We can check if it returns something reasonable at least
-    }
+    const branch = await getCurrentBranch(tmpDir);
+    expect(branch).toBe("test-branch");
   });
 
   test("getCurrentBranch throws error if git fails and KIBI_BRANCH not set", async () => {
@@ -139,5 +134,15 @@ describe("init-helpers", () => {
     // check executable bit
     const stats = statSync(path.join(hooksDir, "pre-commit"));
     expect(stats.mode & 0o111).not.toBe(0);
+
+    // Verify the post-checkout hook contains the correct literal-caret sed expression.
+    // A JavaScript template-literal escape bug (\\^ vs \^) previously caused the
+    // old_branch extraction to silently produce an empty string, meaning --from was
+    // never forwarded to `kibi branch ensure` and every new branch got an empty KB.
+    const postCheckoutContent = readFileSync(
+      path.join(hooksDir, "post-checkout"),
+      "utf-8",
+    );
+    expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
   });
 });

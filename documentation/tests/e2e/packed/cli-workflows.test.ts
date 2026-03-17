@@ -169,28 +169,27 @@ if (RUN_NODE_TEST_SUITE) {
     it("should run kibi check after sync", async () => {
       if (!hasProlog) return;
 
-      // Run check with extended timeout - should complete successfully
+      // Run check with extended timeout
       const { stdout, stderr, exitCode } = await kibi(sandbox, ["check"], {
         timeoutMs: 60000,
       });
 
-      // Check should pass (exit code 0) or report violations (exit code 1)
-      // Either is acceptable - we just need it to complete without timeout
       const output = stdout + stderr;
-      assert.ok(
-        exitCode === 0 || exitCode === 1,
-        `check should complete with exit code 0 or 1, got ${exitCode}. Output: ${output}`,
+
+      // check should pass cleanly — the entities created in earlier tests
+      // (REQ-001, SCEN-001) have no relationship violations
+      assert.strictEqual(
+        exitCode,
+        0,
+        `check should pass with exit code 0, got ${exitCode}. Output: ${output}`,
       );
 
-      // Should produce output (either success message or violations)
+      // Should produce output confirming no violations
       assert.ok(output.length > 0, "check should produce output");
-
-      if (exitCode === 0) {
-        assert.ok(
-          output.includes("No violations") || output.includes("✓"),
-          "Successful check should indicate no violations",
-        );
-      }
+      assert.ok(
+        output.includes("No violations") || output.includes("✓"),
+        `Successful check should indicate no violations. Output: ${output}`,
+      );
 
       console.log(`  ✓ Check completed (exit code: ${exitCode})`);
     });

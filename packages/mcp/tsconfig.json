@@ -7,9 +7,11 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "outDir": "./dist",
+    "rootDir": "src",
     "baseUrl": ".",
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
+      "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
       "kibi-cli/extractors/symbols-coordinator": [
         "../cli/dist/public/extractors/symbols-coordinator"
       ],
