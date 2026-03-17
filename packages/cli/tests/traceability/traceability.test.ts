@@ -39,10 +39,11 @@ describe("git-staged utilities", () => {
   });
 
   it("getStagedFiles calls git and returns staged files (mocked)", () => {
-    // mock execSync via module mocking in bun:test
-    const child = require("node:child_process");
-    const origExecSync = child.execSync;
-    child.execSync = (cmd: string) => {
+    // Mutate the child_process module cache so execSync is intercepted.
+    // This works in Bun because require() returns the same cached module object.
+    const child_process = require("node:child_process");
+    const origExecSync = child_process.execSync;
+    child_process.execSync = (cmd: string) => {
       if (cmd.includes("--name-status")) return "A\tnew.ts\0";
       if (cmd.includes("git diff --cached -U0"))
         return "@@ -0,0 +1,3 @@\n+line\n";
@@ -51,10 +52,9 @@ describe("git-staged utilities", () => {
     };
     try {
       const files = getStagedFiles();
-      // depending on environment execSync mock matching, allow 0 or 1
-      expect([0, 1]).toContain(files.length);
+      expect(files.length).toBe(1);
     } finally {
-      child.execSync = origExecSync;
+      child_process.execSync = origExecSync;
     }
   });
 });

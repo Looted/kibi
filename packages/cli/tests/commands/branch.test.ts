@@ -38,11 +38,15 @@ describe("kibi branch ensure", () => {
   });
 
   test(
-    "creates branch KB from --from when source exists",
+    "creates empty KB when no --from is passed and current branch has no source KB",
     async () => {
       const sourceBranch = "feature-src";
       const targetBranch = "feature-target";
 
+      // Create a KB for an unrelated branch (sourceBranch) but do NOT pass
+      // --from to branch ensure. Without --from, branch ensure should NOT
+      // auto-copy from unrelated branches — it only copies from the default
+      // branch (main/develop) if present, or creates an empty KB otherwise.
       mkdirSync(path.join(tmpDir, ".kb/branches", sourceBranch), {
         recursive: true,
       });
@@ -63,6 +67,7 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
+      // kb.rdf should NOT be copied from sourceBranch since --from was not passed
       expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,

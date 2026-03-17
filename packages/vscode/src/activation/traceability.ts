@@ -147,11 +147,14 @@ function resolveManifestPath(workspaceRoot: string): string {
     if (fs.existsSync(configPath)) {
       const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
         symbolsManifest?: string;
+        paths?: { symbols?: string };
       };
-      if (config.symbolsManifest) {
-        return path.isAbsolute(config.symbolsManifest)
-          ? config.symbolsManifest
-          : path.resolve(workspaceRoot, config.symbolsManifest);
+      // Check top-level symbolsManifest (legacy) or paths.symbols (current convention)
+      const manifestRelPath = config.symbolsManifest ?? config.paths?.symbols;
+      if (manifestRelPath) {
+        return path.isAbsolute(manifestRelPath)
+          ? manifestRelPath
+          : path.resolve(workspaceRoot, manifestRelPath);
       }
     }
   } catch {
