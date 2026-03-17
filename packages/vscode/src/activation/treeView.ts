@@ -22,10 +22,10 @@ export function registerTreeView(
   workspaceRoot: string,
   workspaceFolderUri: vscode.Uri,
 ): TreeViewRegistrationResult {
-  const treeDataProvider = new KibiTreeDataProvider(workspaceRoot, output);
+  const treeDataProvider = new KibiTreeDataProvider(workspaceRoot);
 
   const treeView = vscode.window.createTreeView(KIBI_VIEW_ID, {
-    treeDataProvider,
+    treeDataProvider: treeDataProvider,
     showCollapseAll: true,
   });
   output.appendLine(`Tree view registered: ${KIBI_VIEW_ID}`);

@@ -1,5 +1,19 @@
 # kibi-opencode
 
+## 0.4.0
+
+### Minor Changes
+
+- Add dynamic contextual prompt guidance based on edit type and workspace state.
+- Add path-kind classifier for detecting code, requirement, KB doc, and .kb edits.
+- Add knowledge classifier for FACT-first domain routing (invariants vs requirements vs decisions).
+- Add workspace health detector for bootstrap nudges.
+- Emit loud warnings when agents attempt manual .kb/** edits.
+- Add targeted validation guidance for requirement completeness and traceability.
+- Update REQ-opencode-kibi-plugin-v1 to include enforcement features.
+- Add SCEN-opencode-enforcement for enforcement workflow.
+- Update TEST-opencode-kibi-plugin-v1 to cover enforcement features.
+
 ## 0.3.0
 
 ### Minor Changes
