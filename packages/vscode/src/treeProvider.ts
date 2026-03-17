@@ -124,7 +124,10 @@ export class KibiTreeDataProvider
   private relationships: KbRelationship[] = [];
   private loaded = false;
 
-  constructor(private workspaceRoot: string) {}
+  constructor(
+    private workspaceRoot: string,
+    private output?: vscode.OutputChannel,
+  ) {}
 
   refresh(): void {
     this.loaded = false;
@@ -443,8 +446,29 @@ export class KibiTreeDataProvider
   /**
    * Find and return the local path for a given entity ID.
    * Used by the `kibi.openEntityById` command.
+   *
+   * Now checks if the local path actually exists before returning it.
+   * Returns undefined if the path doesn't exist on the filesystem.
    */
   getLocalPathForEntity(id: string): string | undefined {
-    return this.entities.find((e) => e.id === id)?.localPath;
+    const entity = this.entities.find((e) => e.id === id);
+    if (!entity) {
+      return undefined;
+    }
+
+    // If entity has no local path, return undefined immediately
+    if (!entity.localPath) {
+      return undefined;
+    }
+
+    // Check if the local path actually exists on the filesystem
+    if (!fs.existsSync(entity.localPath)) {
+      this.output?.appendLine(
+        `getLocalPathForEntity: Entity ${id} has localPath ${entity.localPath} but file does not exist.`,
+      );
+      return undefined;
+    }
+
+    return entity.localPath;
   }
 }
