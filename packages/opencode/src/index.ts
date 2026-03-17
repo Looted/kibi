@@ -1,10 +1,18 @@
 import * as config from "./config";
 import * as fileFilter from "./file-filter";
 import * as logger from "./logger";
-import { SENTINEL, injectPrompt } from "./prompt";
+import { type PathKind, analyzePath } from "./path-kind";
+import { SENTINEL, buildPrompt, injectPrompt } from "./prompt";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
+import { checkWorkspaceHealth } from "./workspace-health";
 
 // implements REQ-opencode-kibi-plugin-v1
+
+interface RecentEdit {
+  path: string;
+  kind: PathKind;
+  timestamp: number;
+}
 
 import type { Hooks, Plugin, PluginInput } from "@opencode-ai/plugin";
 
@@ -12,6 +20,11 @@ export type { Plugin, PluginInput, Hooks };
 
 let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
 let cfg: config.KibiConfig | null = null;
+
+// Track recent edits for contextual guidance
+const MAX_RECENT_EDITS = 5;
+let recentEdits: RecentEdit[] = [];
+let hasRecentKbEdit = false;
 
 // implements REQ-opencode-kibi-plugin-v1
 const kibiOpencodePlugin: Plugin = async (
@@ -23,6 +36,12 @@ const kibiOpencodePlugin: Plugin = async (
   if (!cfg.enabled) {
     logger.info("kibi-opencode: disabled via config");
     return {};
+  }
+
+  // Check workspace health for bootstrap nudges
+  const workspaceHealth = checkWorkspaceHealth(input.worktree);
+  if (workspaceHealth.needsBootstrap) {
+    logger.warn("kibi-opencode: workspace needs Kibi bootstrap");
   }
 
   logger.info("kibi-opencode: setting up hooks");
@@ -39,8 +58,33 @@ const kibiOpencodePlugin: Plugin = async (
 
     hooks.event = async ({ event }) => {
       if (event.type !== "file.edited") return;
-      const filePath = (event as { type: string; properties: { file: string } }).properties.file;
+      const filePath = (event as { type: string; properties: { file: string } })
+        .properties.file;
       if (!filePath) return;
+
+      // Analyze path for tracking and classification
+      const pathAnalysis = analyzePath(filePath, input.worktree);
+
+      // Check for .kb edit (loud warning)
+      if (pathAnalysis.isUnderKb) {
+        hasRecentKbEdit = true;
+        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+      }
+
+      // Track recent edits
+      const now = Date.now();
+      recentEdits.push({
+        path: filePath,
+        kind: pathAnalysis.kind,
+        timestamp: now,
+      });
+
+      // Keep only recent edits
+      if (recentEdits.length > MAX_RECENT_EDITS) {
+        recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
+      }
+
+      // Only schedule sync for relevant files (not .kb)
       if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
       logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
@@ -55,7 +99,11 @@ const kibiOpencodePlugin: Plugin = async (
     if (hookMode === "system-transform" || hookMode === "auto") {
       hooks["experimental.chat.system.transform"] = async (_input, output) => {
         const currentSystem = output.system.join("\n");
-        const injected = injectPrompt(currentSystem, cfg!);
+        const injected = injectPrompt(currentSystem, cfg!, {
+          recentEdits,
+          workspaceHealth,
+          hasRecentKbEdit,
+        });
         output.system.length = 0;
         output.system.push(injected);
       };
