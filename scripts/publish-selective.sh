@@ -18,7 +18,7 @@ check_and_publish() {
     return 0
   else
     echo "Publishing ${pkg_name}@${version}..."
-    cd packages/${pkg_dir} && npm publish "$@" && cd ../..
+    (cd "packages/${pkg_dir}" && npm publish "$@")
     return 0
   fi
 }

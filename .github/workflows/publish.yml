@@ -3,6 +3,10 @@ name: Publish to npm
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 on:
   push:
     branches: [master]
@@ -276,7 +280,7 @@ jobs:
             pkg_dir="${output%=*}"
             pkg_name="${output#*=}"
             echo "Publishing ${pkg_name}..."
-            cd packages/${pkg_dir} && npm publish --provenance --access public && cd ../..
+            (cd "${GITHUB_WORKSPACE}/packages/${pkg_dir}" && npm publish --provenance --access public)
           done <<< "$to_publish"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
