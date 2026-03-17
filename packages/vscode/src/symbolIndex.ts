@@ -189,24 +189,31 @@ export function queryRelationshipsViaCli(
   symbolId: string,
   workspaceRoot: string,
 ): Array<{ type: string; from: string; to: string }> {
-  try {
-    const output = execSync(
-      `bun run packages/cli/bin/kibi query --relationships ${symbolId} --format json`,
-      {
+  // Try candidates in order: system PATH first, then dev source tree fallback
+  const candidates = [
+    `kibi query --relationships ${symbolId} --format json`,
+    `bun run packages/cli/bin/kibi query --relationships ${symbolId} --format json`,
+  ];
+
+  for (const cmd of candidates) {
+    try {
+      const output = execSync(cmd, {
         cwd: workspaceRoot,
         encoding: "utf8",
         timeout: 10000,
         stdio: ["ignore", "pipe", "ignore"],
-      },
-    );
-    return JSON.parse(output) as Array<{
-      type: string;
-      from: string;
-      to: string;
-    }>;
-  } catch {
-    return [];
+      });
+      return JSON.parse(output) as Array<{
+        type: string;
+        from: string;
+        to: string;
+      }>;
+    } catch {
+      // ignore, try next candidate
+    }
   }
+
+  return [];
 }
 
 // Named exports are already performed inline above. No additional export list needed.

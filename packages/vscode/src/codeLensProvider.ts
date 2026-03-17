@@ -62,11 +62,14 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       try {
         const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
           symbolsManifest?: string;
+          paths?: { symbols?: string };
         };
-        if (config.symbolsManifest) {
-          return path.isAbsolute(config.symbolsManifest)
-            ? config.symbolsManifest
-            : path.resolve(this.workspaceRoot, config.symbolsManifest);
+        // Check top-level symbolsManifest (legacy) or paths.symbols (current convention)
+        const manifestRelPath = config.symbolsManifest ?? config.paths?.symbols;
+        if (manifestRelPath) {
+          return path.isAbsolute(manifestRelPath)
+            ? manifestRelPath
+            : path.resolve(this.workspaceRoot, manifestRelPath);
         }
       } catch {
         // ignore
@@ -98,7 +101,7 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       // Store metadata in WeakMap
       codeLensMetadata.set(lens, {
         symbolId: entry.id,
-        staticLinks: entry.links,
+        staticLinks: entry.links ?? [],
         sourceFile: entry.sourceFile,
         sourceLine: entry.sourceLine,
       });

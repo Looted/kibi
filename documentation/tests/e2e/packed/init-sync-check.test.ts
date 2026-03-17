@@ -61,7 +61,7 @@ if (RUN_NODE_TEST_SUITE) {
       const { stdout } = await kibi(sandbox, ["init"]);
 
       assert.ok(
-        stdout.includes("initialized") || stdout.includes("success"),
+        stdout.includes("initialized successfully"),
         "Should indicate success",
       );
 
@@ -123,7 +123,10 @@ if (RUN_NODE_TEST_SUITE) {
 
       const { stdout } = await kibi(sandbox, ["sync"]);
 
-      assert.ok(stdout.includes("Imported") || stdout.includes("✓"));
+      assert.ok(
+        stdout.includes("✓ Imported"),
+        `Expected sync success, got: ${stdout}`,
+      );
       assert.ok(/\d+ entities/.test(stdout));
 
       assert.ok(

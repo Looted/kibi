@@ -1,4 +1,4 @@
-import { execSync } from "node:child_process";
+import child_process from "node:child_process";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -17,7 +17,7 @@ export interface StagedFile {
 
 function runGit(cmd: string): string {
   try {
-    return execSync(cmd, { encoding: "utf8" });
+    return child_process.execSync(cmd, { encoding: "utf8" });
   } catch (err: unknown) {
     // wrap common errors
     const e = err as { message?: unknown } | undefined;
