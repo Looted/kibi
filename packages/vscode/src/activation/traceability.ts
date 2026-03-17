@@ -106,7 +106,7 @@ export function registerTraceability(
   }
 
   // ── Symbol index ─────────────────────────────────────────────────────────────
-  const manifestPath = resolveManifestPath(workspaceRoot);
+  const manifestPath = resolveSymbolsManifestPath(workspaceRoot);
   const symbolIndex: SymbolIndex | null = buildIndex(
     manifestPath,
     workspaceRoot,
