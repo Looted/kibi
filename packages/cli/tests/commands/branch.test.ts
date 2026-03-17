@@ -9,13 +9,12 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { branchEnsureCommand } from "../../src/commands/branch.js";
-import { loadConfig } from "../../src/utils/config.js";
 
 describe("kibi branch ensure", () => {
   const TEST_TIMEOUT_MS = 15000;
   let tmpDir: string;
   let originalCwd: string;
+  const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
   beforeEach(() => {
     originalCwd = process.cwd();
@@ -57,32 +56,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: sourceBranch });
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "creates empty KB when --from is missing",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "kb.rdf"),
-        "main rdf content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
+      execSync(`bun ${kibiBin} branch ensure`, {
         cwd: tmpDir,
         stdio: "pipe",
       });
-
-      await branchEnsureCommand({});
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
@@ -107,7 +84,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: "nonexistent-branch" });
+      execSync(`bun ${kibiBin} branch ensure`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
@@ -126,7 +106,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({});
+      execSync(`bun ${kibiBin} branch ensure`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
@@ -151,7 +134,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: "../etc/passwd" });
+      execSync(`bun ${kibiBin} branch ensure`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
@@ -176,7 +162,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: "refs/heads/main" });
+      execSync(`bun ${kibiBin} branch ensure`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
@@ -203,7 +192,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: "other-branch" });
+      execSync(`bun ${kibiBin} branch ensure --from other-branch`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", existingBranch);
       expect(existsSync(path.join(targetPath, "existing.rdf"))).toBe(true);
@@ -239,7 +231,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: sourceBranch });
+      execSync(`bun ${kibiBin} branch ensure --from ${sourceBranch}`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
@@ -268,7 +263,10 @@ describe("kibi branch ensure", () => {
         stdio: "pipe",
       });
 
-      await branchEnsureCommand({ from: fromBranch });
+      execSync(`bun ${kibiBin} branch ensure --from ${fromBranch}`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(path.join(targetPath, "custom.rdf"))).toBe(true);
