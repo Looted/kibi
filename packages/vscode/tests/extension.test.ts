@@ -1,86 +1,165 @@
-import { expect, test } from "bun:test";
+/**
+ * Tests for KibiTreeDataProvider from src/treeProvider.ts.
+ *
+ * Exercises the real implementation (not an in-test mock) by:
+ *  1. Mocking the `vscode` module (unavailable outside VS Code runtime)
+ *  2. Writing a real kb.rdf fixture to a temp directory
+ *  3. Calling the public getChildren() API and asserting correct tree structure
+ *
+ * This ensures that changes to RDF parsing or root-item grouping are caught.
+ */
 
-interface MockTreeItem {
-  label: string;
-  iconPath?: string;
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+
+// ---------------------------------------------------------------------------
+// Minimal vscode mock — only the APIs used by KibiTreeDataProvider
+// ---------------------------------------------------------------------------
+const TreeItemCollapsibleState = { None: 0, Collapsed: 1, Expanded: 2 };
+
+class ThemeIcon {
+  constructor(public id: string) {}
+}
+class TreeItem {
+  constructor(
+    public label: string,
+    public collapsibleState: number,
+  ) {}
+  iconPath?: ThemeIcon;
   contextValue?: string;
-  collapsibleState: number;
-  children?: MockTreeItem[];
+  tooltip?: string;
+  command?: unknown;
+  resourceUri?: unknown;
 }
-
-class MockTreeDataProvider {
-  constructor(private workspaceRoot: string) {}
-
-  async getChildren(element?: MockTreeItem): Promise<MockTreeItem[]> {
-    if (!this.workspaceRoot) {
-      return [];
-    }
-
-    if (element) {
-      return element.children || [this.createPlaceholderItem()];
-    }
-
-    return this.getRootItems();
-  }
-
-  private getRootItems(): MockTreeItem[] {
-    const entityTypes = [
-      { name: "Requirements", icon: "list-ordered", count: 0 },
-      { name: "Scenarios", icon: "file-text", count: 0 },
-      { name: "Tests", icon: "check", count: 0 },
-      { name: "ADRs", icon: "book", count: 0 },
-      { name: "Flags", icon: "flag", count: 0 },
-      { name: "Events", icon: "calendar", count: 0 },
-      { name: "Symbols", icon: "symbol-class", count: 0 },
-    ];
-
-    return entityTypes.map((type) => ({
-      label: `${type.name} (${type.count})`,
-      iconPath: type.icon,
-      contextValue: `kibi-${type.name.toLowerCase()}`,
-      collapsibleState: 2,
-      children: [this.createPlaceholderItem()],
-    }));
-  }
-
-  private createPlaceholderItem(): MockTreeItem {
-    return {
-      label: "Click to load...",
-      iconPath: "info",
-      contextValue: "kibi-placeholder",
-      collapsibleState: 0,
-    };
-  }
+class EventEmitter {
+  event = () => {};
+  fire() {}
 }
+const window = { showInformationMessage: mock(() => {}) };
+const Uri = { file: (p: string) => ({ fsPath: p }) };
 
-test("TreeDataProvider creates root items", async () => {
-  const provider = new MockTreeDataProvider("/fake/workspace");
-  const rootItems = await provider.getChildren();
+mock.module("vscode", () => ({
+  TreeItemCollapsibleState,
+  ThemeIcon,
+  TreeItem,
+  EventEmitter,
+  window,
+  Uri,
+}));
 
-  expect(rootItems).toHaveLength(7);
-  expect(rootItems[0].label).toContain("Requirements");
-  expect(rootItems[1].label).toContain("Scenarios");
-  expect(rootItems[2].label).toContain("Tests");
-  expect(rootItems[3].label).toContain("ADRs");
-  expect(rootItems[4].label).toContain("Flags");
-  expect(rootItems[5].label).toContain("Events");
-  expect(rootItems[6].label).toContain("Symbols");
+// ---------------------------------------------------------------------------
+// Fixture RDF — two entities: one req, one scenario
+// ---------------------------------------------------------------------------
+const FIXTURE_RDF = `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:kb="http://kibi.dev/kb/">
+  <rdf:Description rdf:about="urn:kibi:entity/REQ-001">
+    <kb:id>REQ-001</kb:id>
+    <kb:type>req</kb:type>
+    <kb:title>Test Requirement</kb:title>
+    <kb:status rdf:resource="http://kibi.dev/kb/status/open"/>
+    <kb:tags></kb:tags>
+    <kb:source>documentation/requirements/REQ-001.md</kb:source>
+  </rdf:Description>
+  <rdf:Description rdf:about="urn:kibi:entity/SCEN-001">
+    <kb:id>SCEN-001</kb:id>
+    <kb:type>scenario</kb:type>
+    <kb:title>Test Scenario</kb:title>
+    <kb:status rdf:resource="http://kibi.dev/kb/status/draft"/>
+    <kb:tags></kb:tags>
+    <kb:source>documentation/scenarios/SCEN-001.md</kb:source>
+  </rdf:Description>
+</rdf:RDF>`;
+
+let tmpDir: string;
+
+beforeEach(() => {
+  tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-vscode-test-"));
+  // Create the branch KB directory structure
+  const branchDir = path.join(tmpDir, ".kb", "branches", "develop");
+  fs.mkdirSync(branchDir, { recursive: true });
+  fs.writeFileSync(path.join(branchDir, "kb.rdf"), FIXTURE_RDF);
+  // Stub git so getCurrentBranch returns "develop"
+  const binDir = path.join(tmpDir, "bin");
+  fs.mkdirSync(binDir);
+  const fakeGit = path.join(binDir, "git");
+  fs.writeFileSync(fakeGit, "#!/bin/sh\necho develop\n");
+  fs.chmodSync(fakeGit, 0o755);
 });
 
-test("TreeDataProvider creates placeholder children", async () => {
-  const provider = new MockTreeDataProvider("/fake/workspace");
-  const rootItems = await provider.getChildren();
-  const firstItem = rootItems[0];
-
-  const children = await provider.getChildren(firstItem);
-  expect(children).toHaveLength(1);
-  expect(children[0].label).toBe("Click to load...");
-  expect(children[0].contextValue).toBe("kibi-placeholder");
+afterEach(() => {
+  if (tmpDir && fs.existsSync(tmpDir)) {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
 });
 
-test("TreeDataProvider handles empty workspace", async () => {
-  const provider = new MockTreeDataProvider("");
-  const rootItems = await provider.getChildren();
+test("KibiTreeDataProvider.getChildren returns 7 entity-type root items", async () => {
+  const { KibiTreeDataProvider } = await import("../src/treeProvider");
+  const provider = new KibiTreeDataProvider(tmpDir);
+  const roots = await provider.getChildren();
 
-  expect(rootItems).toHaveLength(0);
+  // Must have exactly one group per entity type defined in ENTITY_TYPE_META
+  expect(roots).toHaveLength(7);
+
+  const labels = roots.map((r) => r.label);
+  expect(labels.some((l) => l.startsWith("Requirements"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("Scenarios"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("Tests"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("ADRs"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("Flags"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("Events"))).toBe(true);
+  expect(labels.some((l) => l.startsWith("Symbols"))).toBe(true);
+});
+
+test("KibiTreeDataProvider correctly counts parsed entities per type", async () => {
+  const { KibiTreeDataProvider } = await import("../src/treeProvider");
+  const provider = new KibiTreeDataProvider(tmpDir);
+  const roots = await provider.getChildren();
+
+  const reqGroup = roots.find((r) => r.label.startsWith("Requirements"));
+  const scenGroup = roots.find((r) => r.label.startsWith("Scenarios"));
+  const testGroup = roots.find((r) => r.label.startsWith("Tests"));
+
+  // Fixture has 1 req and 1 scenario, 0 tests
+  expect(reqGroup?.label).toBe("Requirements (1)");
+  expect(scenGroup?.label).toBe("Scenarios (1)");
+  expect(testGroup?.label).toBe("Tests (0)");
+});
+
+test("KibiTreeDataProvider entity children have correct id and title", async () => {
+  const { KibiTreeDataProvider } = await import("../src/treeProvider");
+  const provider = new KibiTreeDataProvider(tmpDir);
+  const roots = await provider.getChildren();
+
+  const reqGroup = roots.find((r) => r.label.startsWith("Requirements"));
+  expect(reqGroup?.children).toBeDefined();
+
+  const reqItem = reqGroup?.children?.[0];
+  expect(reqItem?.label).toBe("REQ-001: Test Requirement");
+  expect(reqItem?.contextValue).toBe("kibi-entity-req");
+});
+
+test("KibiTreeDataProvider returns empty groups when no kb.rdf exists", async () => {
+  // Remove the kb.rdf file
+  fs.rmSync(path.join(tmpDir, ".kb"), { recursive: true, force: true });
+
+  const { KibiTreeDataProvider } = await import("../src/treeProvider");
+  const provider = new KibiTreeDataProvider(tmpDir);
+  const roots = await provider.getChildren();
+
+  // Still returns 7 groups (one per type), all with count 0
+  expect(roots).toHaveLength(7);
+  for (const root of roots) {
+    expect(root.label).toMatch(/\(0\)$/);
+  }
+});
+
+test("KibiTreeDataProvider.getChildren returns empty array for empty workspaceRoot", async () => {
+  const { KibiTreeDataProvider } = await import("../src/treeProvider");
+  const provider = new KibiTreeDataProvider("");
+  const roots = await provider.getChildren();
+
+  expect(roots).toHaveLength(0);
 });

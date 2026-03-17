@@ -18,6 +18,11 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
+import {
+  type ChecksConfig,
+  DEFAULT_CHECKS_CONFIG,
+  type SymbolTraceabilityOptions,
+} from "./rule-registry.js";
 
 /**
  * Configuration paths for entity documentation directories.
@@ -39,13 +44,22 @@ export interface KbConfigPaths {
  */
 export interface KbConfig {
   paths: KbConfigPaths;
+  /**
+   * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
+   * without requiring a configured default. This field is ignored but kept for compatibility.
+   */
   defaultBranch?: string;
+  checks?: ChecksConfig;
 }
+
+export type { ChecksConfig, SymbolTraceabilityOptions };
 
 /**
  * Default configuration values for new repositories.
  */
-export const DEFAULT_CONFIG: KbConfig = {
+export const DEFAULT_CONFIG: KbConfig & { $schema: string } = {
+  $schema:
+    "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
   paths: {
     requirements: "documentation/requirements",
     scenarios: "documentation/scenarios",
@@ -56,7 +70,7 @@ export const DEFAULT_CONFIG: KbConfig = {
     facts: "documentation/facts",
     symbols: "documentation/symbols.yaml",
   },
-  defaultBranch: undefined,
+  checks: DEFAULT_CHECKS_CONFIG,
 };
 
 /**
@@ -100,6 +114,18 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
       ...userConfig.paths,
     },
     defaultBranch: userConfig.defaultBranch,
+    checks: userConfig.checks
+      ? {
+          rules: {
+            ...DEFAULT_CHECKS_CONFIG.rules,
+            ...userConfig.checks.rules,
+          },
+          symbolTraceability: {
+            ...DEFAULT_CHECKS_CONFIG.symbolTraceability,
+            ...userConfig.checks.symbolTraceability,
+          },
+        }
+      : DEFAULT_CHECKS_CONFIG,
   };
 }
 
@@ -131,5 +157,17 @@ export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
       ...userConfig.paths,
     },
     defaultBranch: userConfig.defaultBranch,
+    checks: userConfig.checks
+      ? {
+          rules: {
+            ...DEFAULT_CHECKS_CONFIG.rules,
+            ...userConfig.checks.rules,
+          },
+          symbolTraceability: {
+            ...DEFAULT_CHECKS_CONFIG.symbolTraceability,
+            ...userConfig.checks.symbolTraceability,
+          },
+        }
+      : DEFAULT_CHECKS_CONFIG,
   };
 }

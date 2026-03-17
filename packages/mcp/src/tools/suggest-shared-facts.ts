@@ -15,34 +15,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import type { PrologProcess } from "kibi-cli/prolog";
 import { parseAtomList } from "./prolog-list.js";
 
@@ -88,7 +60,11 @@ export async function handleSuggestSharedFacts(
     }
 
     const reqsList = parseAtomList(reqsResult.bindings.Reqs);
-    const requirements: Array<{ id: string; title: string; description: string }> = [];
+    const requirements: Array<{
+      id: string;
+      title: string;
+      description: string;
+    }> = [];
 
     // Parse the list-of-lists format from Prolog
     const reqMatch = reqsList.join("").matchAll(/\[([^,]+),([^\]]+)\]/g);
@@ -102,7 +78,7 @@ export async function handleSuggestSharedFacts(
 
     // Query all existing facts for context
     const factsResult = await prolog.query(
-      "findall([Id,Title], (kb_entity(Id, fact, Props), memberchk(title=Title, Props)), Facts)"
+      "findall([Id,Title], (kb_entity(Id, fact, Props), memberchk(title=Title, Props)), Facts)",
     );
 
     if (!factsResult.success || !factsResult.bindings.Facts) {
@@ -123,7 +99,11 @@ export async function handleSuggestSharedFacts(
     }
 
     // Extract and analyze domain concepts from requirements
-    const suggestions = analyzeSharedConcepts(requirements, existingFacts, minFreq);
+    const suggestions = analyzeSharedConcepts(
+      requirements,
+      existingFacts,
+      minFreq,
+    );
 
     return {
       content: [
@@ -167,7 +147,7 @@ function analyzeSharedConcepts(
 
     // Extract repeated phrases (2+ words)
     // Extract repeated phrases (2+ words)
-    const words = text.split(/\s+/).filter(w => w.length > 3);
+    const words = text.split(/\s+/).filter((w) => w.length > 3);
     for (let i = 0; i < words.length - 1; i++) {
       const phrase = `${words[i]} ${words[i + 1]}`;
       if (!conceptCounts.has(phrase)) {
@@ -209,6 +189,6 @@ function analyzeSharedConcepts(
 function capitalizeConcept(concept: string): string {
   return concept
     .split(/\s+/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }

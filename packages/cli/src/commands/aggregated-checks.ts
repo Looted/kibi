@@ -1,5 +1,6 @@
 import path from "node:path";
 import { type PrologProcess, resolveKbPlPath } from "../prolog.js";
+import { escapeAtom } from "../prolog/codec.js";
 import type { Violation } from "./check.js";
 
 interface JsonViolation {
@@ -14,16 +15,26 @@ interface JsonViolation {
  * Run all checks using the aggregated Prolog predicates.
  * This makes a single Prolog call and parses JSON output, significantly
  * faster than running individual checks with multiple round-trips.
+ * @param prolog - The Prolog process
+ * @param rulesAllowlist - Set of rule names to run (null = all)
+ * @param requireAdr - Whether to require ADR constraints for symbol-traceability
  */
 export async function runAggregatedChecks(
   prolog: PrologProcess,
   rulesAllowlist: Set<string> | null,
+  requireAdr = false,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
-  const checksPlPathEscaped = checksPlPath.replace(/'/g, "''");
-  const query = `(use_module('${checksPlPathEscaped}'), call(checks:check_all_json(JsonString)))`;
+  const checksPlPathEscaped = escapeAtom(checksPlPath);
+  // Use check_all_json_with_options if available, otherwise fall back to check_all_json
+  const requireAdrStr = requireAdr ? "true" : "false";
+  const query = `(use_module('${checksPlPathEscaped}'), 
+    (   predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
+    ;   call(checks:check_all_json(JsonString))
+    ))`;
 
   try {
     const result = await prolog.query(query);

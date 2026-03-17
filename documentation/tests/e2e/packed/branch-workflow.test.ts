@@ -1,5 +1,11 @@
 import assert from "node:assert";
-import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 import { afterEach, before, beforeEach, describe, it } from "node:test";
 import {
@@ -179,10 +185,15 @@ status: draft
         await kibi(sandbox, ["sync"]);
 
         const { stdout: featureQuery } = await kibi(sandbox, ["query", "req"]);
-        // Should show both since they're both on this branch now
+        // Should show both: develop-only was committed before checkout and
+        // feature-only was added on this branch
         assert.ok(
-          featureQuery.includes("feature-only") ||
-            featureQuery.includes("develop-only"),
+          featureQuery.includes("feature-only"),
+          "feature branch should show feature-only entity",
+        );
+        assert.ok(
+          featureQuery.includes("develop-only"),
+          "feature branch should still show develop-only entity (both files exist here)",
         );
 
         await run("git", ["checkout", "develop"], {
@@ -532,6 +543,62 @@ status: draft
         const { stdout: orphanQuery } = await kibi(sandbox, ["query", "req"]);
         assert.ok(orphanQuery.includes("orphan"));
         assert.ok(!orphanQuery.includes("Develop"));
+      },
+    );
+    it(
+      "should copy develop KB to new branch via post-checkout hook",
+      { timeout: TEST_TIMEOUT_MS },
+      async () => {
+        if (!hasProlog) return;
+
+        // Use real hooks so the post-checkout hook fires on branch creation
+        await kibi(sandbox, ["init"]);
+
+        const reqDir = join(sandbox.repoDir, "documentation/requirements");
+        mkdirSync(reqDir, { recursive: true });
+
+        writeFileSync(
+          join(reqDir, "develop-req.md"),
+          `---
+title: Develop Seed
+type: req
+status: approved
+---
+
+# Develop Seed
+`,
+        );
+
+        await kibi(sandbox, ["sync"]);
+
+        await run("git", ["add", "."], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+        await run("git", ["commit", "-m", "seed develop"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+
+        // The post-checkout hook fires here and should copy develop KB to feature
+        await run("git", ["checkout", "-b", "feature-hook-copy"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+
+        const featureKbPath = join(
+          sandbox.repoDir,
+          ".kb/branches/feature-hook-copy/kb.rdf",
+        );
+        assert.ok(
+          existsSync(featureKbPath),
+          "feature branch KB should be created by hook",
+        );
+
+        // The KB should have been COPIED from develop, so it should already
+        // contain the develop entity without an explicit sync
+        const kbContent = readFileSync(featureKbPath, "utf8");
+        assert.ok(kbContent.length > 0, "copied KB should not be empty");
       },
     );
   });

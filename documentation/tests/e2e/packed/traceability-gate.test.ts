@@ -141,10 +141,10 @@ if (RUN_NODE_TEST_SUITE) {
         exitCode = 1;
       }
 
-      const passed =
-        out.includes("No violations found") ||
-        out.includes("✓") ||
-        out.includes("No staged files found");
+      // "No staged files found" is NOT a passing outcome — it means git staging
+      // silently failed and the traceability check never ran. Only accept a
+      // genuine clean-check result.
+      const passed = out.includes("No violations found") || out.includes("✓");
       assert.ok(passed, `Expected passing output, got: ${out}`);
 
       // non-mutation assertions

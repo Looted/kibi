@@ -179,21 +179,46 @@ if (RUN_NODE_TEST_SUITE) {
 
         assert.strictEqual(exitCode, 0, "git checkout should succeed");
 
-        // The post-checkout hook should have run kibi sync
-        // This creates a branch-specific KB
+        // The post-checkout hook should have run kibi branch ensure --from + kibi sync
+        // This MUST create a branch-specific KB copied from the source branch (not empty)
         const { exitCode: kbExists } = await run(
           "test",
           ["-d", ".kb/branches/feature/test-hook"],
           { cwd: sandbox.repoDir, env: sandbox.env },
         );
 
-        // Note: The hook may or may not have created the KB depending on timing
-        // and whether the hook is properly configured. This is informational.
-        if (kbExists === 0) {
-          console.log("  ✓ Post-checkout hook created branch KB");
-        } else {
-          console.log("  ⚠️  Branch KB not created (hook may need review)");
-        }
+        assert.strictEqual(
+          kbExists,
+          0,
+          "Post-checkout hook must create branch KB directory — if this fails, check that the hook resolves old_branch correctly (sed escape bug?)",
+        );
+
+        // The new branch KB must contain the entity from the source branch.
+        // If the KB was copied correctly, querying on the new branch should find REQ-HOOK-001.
+        // If the KB was created empty and synced from scratch, the entity would still appear
+        // (it has a markdown file) — so we additionally verify no dangling-relationship spam
+        // by checking the query exit code is clean.
+        const { exitCode: queryExit, stdout: queryOut } = await kibi(sandbox, [
+          "query",
+          "req",
+          "--id",
+          "REQ-HOOK-001",
+          "--format",
+          "json",
+        ]);
+        assert.strictEqual(
+          queryExit,
+          0,
+          "kibi query should succeed on new branch",
+        );
+        assert.ok(
+          queryOut.includes("REQ-HOOK-001"),
+          "New branch KB must contain REQ-HOOK-001 from source branch",
+        );
+
+        console.log(
+          "  ✓ Post-checkout hook created branch KB with source content",
+        );
       },
     );
 
