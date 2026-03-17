@@ -1,0 +1,53 @@
+/*
+ * Workspace resolution utilities for Kibi VS Code extension
+ */
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as vscode from "vscode";
+
+/**
+ * Resolves the workspace root using VS Code workspace folders or KIBI_WORKSPACE_ROOT env var.
+ * Returns the workspace root path or undefined if not found.
+ */
+export function resolveWorkspaceRoot(
+  output: vscode.OutputChannel,
+): string | undefined {
+  let workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+  // Fall back to KIBI_WORKSPACE_ROOT environment variable
+  if (!workspaceRoot) {
+    const envWorkspaceRoot = process.env.KIBI_WORKSPACE_ROOT;
+    if (envWorkspaceRoot) {
+      const resolved = path.resolve(envWorkspaceRoot);
+      const kbConfigPath = path.join(resolved, ".kb", "config.json");
+      if (fs.existsSync(kbConfigPath)) {
+        workspaceRoot = resolved;
+        output.appendLine(
+          `No workspace folder attached; using KIBI_WORKSPACE_ROOT fallback: ${workspaceRoot}`,
+        );
+      } else {
+        output.appendLine(
+          `KIBI_WORKSPACE_ROOT is set but missing .kb/config.json: ${resolved}`,
+        );
+      }
+    }
+  }
+
+  if (!workspaceRoot) {
+    output.appendLine("No workspace folder found; activation skipped.");
+    return undefined;
+  }
+
+  output.appendLine(`Workspace root: ${workspaceRoot}`);
+  return workspaceRoot;
+}
+
+/**
+ * Gets the workspace folder URI for the given workspace root path.
+ */
+export function getWorkspaceFolderUri(workspaceRoot: string): vscode.Uri {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.find(
+    (folder) => folder.uri.fsPath === workspaceRoot,
+  );
+  return workspaceFolder?.uri ?? vscode.Uri.file(workspaceRoot);
+}

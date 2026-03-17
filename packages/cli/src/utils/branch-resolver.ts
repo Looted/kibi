@@ -348,6 +348,10 @@ export function getVolatileArtifactPatterns(): string[] {
 }
 
 /**
+ * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
+ * without requiring a configured default. This function is kept for backward compatibility
+ * but should not be used for new code.
+ *
  * Resolve the default branch using the following precedence:
  * 1. Configured defaultBranch from config (if set and valid)
  * 2. Git remote HEAD (refs/remotes/origin/HEAD)

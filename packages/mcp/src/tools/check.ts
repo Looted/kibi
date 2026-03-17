@@ -15,34 +15,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
@@ -138,6 +110,9 @@ export async function handleKbCheck(
       "no-cycles",
       "required-fields",
       "symbol-coverage",
+      "symbol-traceability",
+      "deprecated-adr-no-successor",
+      "domain-contradictions",
     ];
     const rulesToRun = rules && rules.length > 0 ? rules : allRules;
 
@@ -196,6 +171,10 @@ export async function handleKbCheck(
 
     if (rulesToRun.includes("symbol-coverage")) {
       violations.push(...(await checkSymbolCoverage(prolog)));
+    }
+
+    if (rulesToRun.includes("symbol-traceability")) {
+      violations.push(...(await checkSymbolTraceability(prolog, false)));
     }
 
     const diagnostics: Diagnostic[] = violations.map((v) => ({
@@ -304,6 +283,43 @@ async function runAggregatedChecks(
         source,
       });
     }
+  }
+
+  return violations;
+}
+
+async function checkSymbolTraceability(
+  prolog: PrologProcess,
+  requireAdr: boolean,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const requireAdrStr = requireAdr ? "true" : "false";
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src), checks:symbol_traceability_violation(${requireAdrStr}, violation(Rule, EntityId, Desc, Sugg, Src)), Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    const violationRegex =
+      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
+    let match: RegExpExecArray | null;
+    do {
+      match = violationRegex.exec(violationsStr);
+      if (match) {
+        violations.push({
+          rule: match[1].trim().replace(/^'|'$/g, ""),
+          entityId: match[2].trim(),
+          description: match[3].trim().replace(/^"|"$/g, ""),
+          suggestion: match[4].trim().replace(/^"|"$/g, ""),
+          source: match[5].trim() || undefined,
+        });
+      }
+    } while (match);
   }
 
   return violations;

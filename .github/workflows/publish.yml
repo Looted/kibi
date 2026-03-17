@@ -159,6 +159,7 @@ jobs:
                 core) check_package "kibi-core" "core" ;;
                 cli) check_package "kibi-cli" "cli" ;;
                 mcp) check_package "kibi-mcp" "mcp" ;;
+                opencode) check_package "kibi-opencode" "opencode" ;;
                 vscode) echo "kibi-vscode is published to VS Code Marketplace, not npm" ;;
                 *) echo "Unknown package: $pkg" ;;
               esac
@@ -167,6 +168,7 @@ jobs:
             check_package "kibi-core" "core"
             check_package "kibi-cli" "cli"
             check_package "kibi-mcp" "mcp"
+            check_package "kibi-opencode" "opencode"
           fi
           
           echo "to_publish<<EOF" >> $GITHUB_OUTPUT
@@ -208,6 +210,7 @@ jobs:
           cd packages/core && npm pack
           cd ../cli && npm pack
           cd ../mcp && npm pack
+          cd ../opencode && npm pack
       - name: Tarball content verification
         run: |
           bun test --timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
@@ -222,6 +225,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/core/kibi-core-*.tgz
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
+          npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
           ./node_modules/.bin/kibi --version
           ./node_modules/.bin/kibi init --no-hooks
           ./node_modules/.bin/kibi query req

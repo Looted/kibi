@@ -182,9 +182,10 @@ describe("MCP Server", () => {
     proc.kill();
   });
 
-  test("should include diagnostic telemetry schema in diagnostic mode", async () => {
-    const proc = startServer({ args: ["--diagnostic-mode"] });
+  test("should handle prompts/list request", async () => {
+    const proc = startServer();
 
+    // Initialize first
     await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 1,
@@ -196,167 +197,85 @@ describe("MCP Server", () => {
       },
     });
 
+    // Request prompts list
     const response = await sendRequest(proc, {
       jsonrpc: "2.0",
       id: 2,
-      method: "tools/list",
+      method: "prompts/list",
     });
 
     const result = response.result as Record<string, unknown>;
-    const tools = result.tools as Array<Record<string, unknown>>;
+    expect(result.prompts).toBeDefined();
+    const prompts = result.prompts as Array<Record<string, unknown>>;
+    expect(prompts.length).toBeGreaterThanOrEqual(1);
 
-    for (const tool of tools) {
-      const inputSchema = tool.inputSchema as Record<string, unknown>;
-      const properties = inputSchema.properties as Record<string, unknown>;
-      expect(properties._diagnostic_telemetry).toBeDefined();
-    }
+    // Check that init-kibi prompt is included
+    const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
+    expect(initKibiPrompt).toBeDefined();
+    expect(initKibiPrompt?.description).toBeDefined();
+    expect(typeof initKibiPrompt?.description).toBe("string");
 
     proc.kill();
   });
 
-  test("should write diagnostic usage telemetry with contradiction signal", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));
-    const kibiCliBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+  test("should handle prompts/get for init-kibi", async () => {
+    const proc = startServer();
 
-    execSync("git init", { cwd: tempRoot, stdio: "ignore" });
-    execSync('git config user.email "test@example.com"', {
-      cwd: tempRoot,
-      stdio: "ignore",
+    // Initialize first
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
     });
-    execSync('git config user.name "Kibi Test"', {
-      cwd: tempRoot,
-      stdio: "ignore",
+
+    // Get init-kibi prompt
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "prompts/get",
+      params: {
+        name: "init-kibi",
+      },
     });
-    fs.writeFileSync(path.join(tempRoot, "README.md"), "test\n");
-    execSync("git add README.md", { cwd: tempRoot, stdio: "ignore" });
-    execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
-    execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
 
-    execSync(`bun run ${kibiCliBin} init`, { cwd: tempRoot, stdio: "ignore" });
+    const result = response.result as Record<string, unknown>;
+    expect(result).toBeDefined();
 
-    const proc = startServer({ cwd: tempRoot, args: ["--diagnostic-mode"] });
+    // Check that response contains expected content
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages).toBeDefined();
+    expect(messages.length).toBeGreaterThan(0);
 
-    try {
-      await sendRequest(proc, {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2024-11-05",
-          capabilities: {},
-          clientInfo: { name: "test", version: "1.0" },
-        },
-      });
+    // Extract content from messages
+    const contentText = messages
+      .map((msg) => {
+        const content = msg.content as
+          | { type: string; text: string }
+          | undefined;
+        return content?.text || "";
+      })
+      .join(" ");
 
-      const upsert = async (
-        id: string,
-        type: string,
-        relationships: Array<{ type: string; from: string; to: string }> = [],
-        telemetry?: Record<string, unknown>,
-      ) => {
-        const args: Record<string, unknown> = {
-          type,
-          id,
-          properties: {
-            title: id,
-            status: "active",
-            source: "test",
-          },
-          relationships,
-        };
-        if (telemetry) {
-          args._diagnostic_telemetry = telemetry;
-        }
-        return sendRequest(proc, {
-          jsonrpc: "2.0",
-          id: Math.floor(Math.random() * 10_000) + 100,
-          method: "tools/call",
-          params: {
-            name: "kb_upsert",
-            arguments: args,
-          },
-        });
-      };
+    // Assert that content mentions expected public tools
+    expect(contentText).toMatch(/kb_query/);
+    expect(contentText).toMatch(/kb_upsert/);
+    expect(contentText).toMatch(/kb_check/);
 
-      const fact1 = await upsert("FACT-CONFLICT", "fact");
-      const fact2 = await upsert("FACT-PROP-A", "fact");
-      const fact3 = await upsert("FACT-PROP-B", "fact");
-      expect((fact1.result as Record<string, unknown>)?.isError).toBeFalsy();
-      expect((fact2.result as Record<string, unknown>)?.isError).toBeFalsy();
-      expect((fact3.result as Record<string, unknown>)?.isError).toBeFalsy();
+    // Assert that content mentions bootstrap or backfill
+    expect(contentText).toMatch(/(bootstrap|backfill)/);
 
-      const req1 = await upsert("REQ-CONFLICT-1", "req", [
-        { type: "constrains", from: "REQ-CONFLICT-1", to: "FACT-CONFLICT" },
-        {
-          type: "requires_property",
-          from: "REQ-CONFLICT-1",
-          to: "FACT-PROP-A",
-        },
-      ]);
-      expect((req1.result as Record<string, unknown>)?.isError).toBeFalsy();
+    // Assert that content does NOT mention non-public tools
+    expect(contentText).not.toMatch(/kb_query_relationships/);
+    expect(contentText).not.toMatch(/kb_branch_gc/);
+    expect(contentText).not.toMatch(/kb_list_entity_types/);
 
-      const conflictResponse = await upsert(
-        "REQ-CONFLICT-2",
-        "req",
-        [
-          {
-            type: "constrains",
-            from: "REQ-CONFLICT-2",
-            to: "FACT-CONFLICT",
-          },
-          {
-            type: "requires_property",
-            from: "REQ-CONFLICT-2",
-            to: "FACT-PROP-B",
-          },
-        ],
-        {
-          is_autonomous: true,
-          reasoning: "conflict probe",
-          confidence_score: 1,
-        },
-      );
-      expect(conflictResponse.error).toBeUndefined();
-      expect(
-        (conflictResponse.result as Record<string, unknown>)?.isError,
-      ).toBeFalsy();
-
-      proc.kill();
-
-      const usageLog = path.join(tempRoot, ".kb", "usage.log");
-      expect(fs.existsSync(usageLog)).toBe(true);
-
-      const lines = fs
-        .readFileSync(usageLog, "utf8")
-        .trim()
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => JSON.parse(line) as Record<string, unknown>);
-      expect(lines.length).toBeGreaterThan(0);
-
-      const conflictLog = lines.find(
-        (entry) =>
-          entry.tool === "kb_upsert" &&
-          (entry.business_args as Record<string, unknown>)?.id ===
-            "REQ-CONFLICT-2",
-      );
-      expect(conflictLog).toBeDefined();
-      expect(typeof conflictLog?.request_id).toBe("string");
-      expect(typeof conflictLog?.duration_ms).toBe("number");
-      expect(typeof conflictLog?.started_at).toBe("string");
-      expect(typeof conflictLog?.finished_at).toBe("string");
-
-      const signal = conflictLog?.contradiction_signal as
-        | Record<string, unknown>
-        | undefined;
-      expect(signal).toBeDefined();
-      expect(signal?.attempted_entity_id).toBe("REQ-CONFLICT-2");
-      expect(Number(signal?.contradiction_pairs_detected)).toBeGreaterThan(0);
-    } finally {
-      proc.kill();
-      fs.rmSync(tempRoot, { recursive: true, force: true });
-    }
-  }, 120000);
+    proc.kill();
+  });
 
   test("should reject removed MCP tools", async () => {
     const proc = startServer();

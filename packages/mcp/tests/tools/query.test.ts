@@ -1,15 +1,14 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
-  VALID_ENTITY_TYPES,
-  handleKbQuery,
   parseEntityFromBinding,
   parseEntityFromList,
   parseListOfLists,
   parsePrologValue,
   parsePropertyList,
   splitTopLevel,
-} from "../../src/tools/query.js";
+} from "../../../cli/src/prolog/codec.js";
+import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";
 
 describe("MCP kb.query Parsing Functions", () => {
   test("VALID_ENTITY_TYPES should be defined", () => {
