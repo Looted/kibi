@@ -29,6 +29,10 @@ Query Kibi before design/implementation work. Prefer kb_query/kb_check for conte
 - Uses `<!-- kibi-opencode -->` sentinel to prevent duplicate injections
 - Respects `prompt.enabled` and overall `enabled` config flags
 
+### Bootstrap Command
+
+OpenCode exposes Kibi MCP prompts as slash commands. The `/init-kibi` command runs the retroactive bootstrap workflow using only public MCP tools.
+
 ### Debounced Sync
 
 Automatically runs `kibi sync` after relevant file edits:

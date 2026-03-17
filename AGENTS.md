@@ -119,6 +119,45 @@ This ensures the knowledge base grows with each investigation, making future wor
 
 ---
 
+## Kibi MCP Best Practices
+
+### Query First
+Always call kb_query before mutations to confirm current state.
+
+*Rationale:* Prevents duplicate entities and ensures you're updating existing records rather than creating conflicts.
+
+### Create Before Link
+Relationship endpoints must exist before creating the relationship.
+
+*Rationale:* Referential integrity requires target entities to be defined; otherwise, the relationship will fail validation.
+
+### Prefer Targeted Checks
+Use kb_check with explicit rules during iteration, not the full check.
+
+*Rationale:* Targeted checks are faster and provide focused feedback, speeding up the iteration cycle.
+
+### Sequential Writes
+Issue kb_upsert calls sequentially, never in parallel (avoid mutex contention).
+
+*Rationale:* Kibi uses file-based storage with mutex locks; parallel writes can cause contention errors and data corruption.
+
+### Tags Are Not IDs
+The tags parameter filters by metadata tags, not entity IDs.
+
+*Rationale:* Tags are categorization labels, not identifiers; filtering by ID requires the id parameter, not tags.
+
+### Small Batches
+Upsert in small reviewable batches, validate after each.
+
+*Rationale:* Smaller batches make errors easier to isolate and recover from, and ensure each batch is correct before moving on.
+
+### Gap Reports
+Record uncertainty in gap reports, not speculative entities.
+
+*Rationale:* The KB should contain verified knowledge, not guesses; speculative entries introduce noise and reduce trust in the system.
+
+---
+
 ## Documentation Workflow
 
 ### Creating a New Entity

@@ -12,6 +12,24 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
 - **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
 
+### What You Get
+
+Kibi provides concrete, day-to-day benefits for developers and teams:
+
+- **Requirements Traceability** — Track every code symbol back to its requirement. Know why code exists and what business need it addresses.
+
+- **Test Coverage Visibility** — See which requirements have tests, which don't, and what's covered at a glance. Ensure nothing slips through the cracks.
+
+- **Architectural Constraints** — Link code to ADRs. Know what constraints apply to each symbol and verify architecture decisions are honored.
+
+- **Feature Flag Blast Radius** — See what code depends on a flag before toggling it. Understand the impact of enabling or disabling a feature.
+
+- **Event-Driven Architecture** — Map who publishes and consumes each domain event. Trace event flows and identify couplings across the system.
+
+- **Branch-Local Memory** — Every git branch keeps its own KB snapshot. Switch contexts without losing traceability or polluting other branches.
+
+For OpenCode users, bootstrap an existing repo with `/init-kibi`.
+
 ## Key Components
 
 - **kibi-core** — Prolog-based knowledge graph that tracks entities across branches

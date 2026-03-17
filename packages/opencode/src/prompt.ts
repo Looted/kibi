@@ -19,7 +19,9 @@ Run kb_check after KB mutations.
 3. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
 4. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.`;
+**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+
+Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization workflow.`;
 
 // implements REQ-opencode-kibi-plugin-v1
 export function buildPrompt(): string {

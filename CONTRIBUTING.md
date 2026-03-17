@@ -1,5 +1,7 @@
 # CONTRIBUTING.md
 
+> **Note:** We are not accepting contributions at this moment. Feel free to [post an issue](https://github.com/Looted/kibi/issues) if you have feedback or suggestions.
+
 ## Development Setup
 
 **Prerequisites**

@@ -16,35 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import * as path from "node:path";
 import { PrologProcess } from "../prolog.js";
+import { escapeAtom } from "../prolog/codec.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
@@ -58,6 +32,12 @@ import {
   formatViolations as formatStagedViolations,
   validateStagedSymbols,
 } from "../traceability/validate.js";
+import { loadConfig } from "../utils/config.js";
+import {
+  type ChecksConfig,
+  RULES,
+  getEffectiveRules,
+} from "../utils/rule-registry.js";
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
 
@@ -216,7 +196,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     const prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
-    const kbPathEscaped = resolvedKbPath.replace(/'/g, "''");
+    const kbPathEscaped = escapeAtom(resolvedKbPath);
     const attachResult = await prolog.query(`kb_attach('${kbPathEscaped}')`);
 
     if (!attachResult.success) {
@@ -227,15 +207,15 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     const violations: Violation[] = [];
 
-    // Parse rules allowlist if provided
-    let rulesAllowlist: Set<string> | null = null;
-    if (options.rules) {
-      const parts = (options.rules as string)
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean) as string[];
-      rulesAllowlist = new Set(parts);
-    }
+    // Load config to get rule enablement settings
+    const config = loadConfig(process.cwd());
+    const checksConfig: ChecksConfig = config.checks ?? {
+      rules: Object.fromEntries(RULES.map((r) => [r.name, true])),
+      symbolTraceability: { requireAdr: false },
+    };
+
+    // Get effective rules based on config and CLI --rules filter
+    const effectiveRules = getEffectiveRules(checksConfig.rules, options.rules);
 
     // Helper to conditionally run a check by name
     async function runCheck(
@@ -243,16 +223,18 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       fn: (p: PrologProcess, ...args: unknown[]) => Promise<Violation[]>,
       ...args: unknown[]
     ) {
-      if (rulesAllowlist?.has(name) === false) return;
+      if (!effectiveRules.has(name)) return;
       const res = await fn(prolog, ...args);
       if (res?.length) violations.push(...res);
     }
+
     // Use aggregated checks (single Prolog call) when possible for better performance
     // This is significantly faster in Bun/Docker environments where one-shot mode
     // spawns a new Prolog process for each query
     const supportedRules = [
       "must-priority-coverage",
       "symbol-coverage",
+      "symbol-traceability",
       "no-dangling-refs",
       "no-cycles",
       "required-fields",
@@ -260,25 +242,33 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       "domain-contradictions",
     ];
 
-    const canUseAggregated =
-      !rulesAllowlist ||
-      Array.from(rulesAllowlist).every((r) => supportedRules.includes(r));
+    const canUseAggregated = Array.from(effectiveRules).every((r) =>
+      supportedRules.includes(r),
+    );
 
     if (canUseAggregated) {
       // Fast path: single Prolog call returning all violations
+      // Pass the requireAdr option for symbol-traceability
       const aggregatedViolations = await runAggregatedChecks(
         prolog,
-        rulesAllowlist,
+        effectiveRules,
+        checksConfig.symbolTraceability?.requireAdr ?? false,
       );
       violations.push(...aggregatedViolations);
     } else {
       // Legacy path: individual checks for backward compatibility
       await runCheck("must-priority-coverage", checkMustPriorityCoverage);
       await runCheck("symbol-coverage", checkSymbolCoverage);
+      await runCheck("symbol-traceability", (p) =>
+        checkSymbolTraceability(
+          p,
+          checksConfig.symbolTraceability?.requireAdr ?? false,
+        ),
+      );
       await runCheck("no-dangling-refs", checkNoDanglingRefs);
       await runCheck("no-cycles", checkNoCycles);
       const allEntityIds = await getAllEntityIds(prolog);
-      if (!rulesAllowlist || rulesAllowlist.has("required-fields")) {
+      if (effectiveRules.has("required-fields")) {
         const requiredViolations = await checkRequiredFields(
           prolog,
           allEntityIds,
@@ -746,6 +736,47 @@ async function checkSymbolCoverage(
         }
       }
     }
+  }
+
+  return violations;
+}
+
+async function checkSymbolTraceability(
+  prolog: PrologProcess,
+  requireAdr: boolean,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const requireAdrStr = requireAdr ? "true" : "false";
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src), 
+      checks:symbol_traceability_violation(${requireAdrStr}, violation(Rule, EntityId, Desc, Sugg, Src)), 
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  // Parse the violations from Prolog format
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    // Parse each violation term
+    const violationRegex =
+      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
+    let match: RegExpExecArray | null;
+    do {
+      match = violationRegex.exec(violationsStr);
+      if (match) {
+        violations.push({
+          rule: match[1].trim().replace(/^'|'$/g, ""),
+          entityId: match[2].trim(),
+          description: match[3].trim().replace(/^"|"$/g, ""),
+          suggestion: match[4].trim().replace(/^"|"$/g, ""),
+          source: match[5].trim() || undefined,
+        });
+      }
+    } while (match);
   }
 
   return violations;

@@ -103,6 +103,29 @@ describe("prompt", () => {
     );
   });
 
+  test("guidance mentions /init-kibi bootstrap command", () => {
+    const result = injectPrompt("", {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
+      ux: {
+        toastFailures: true,
+        toastSuccesses: false,
+        toastCooldownMs: 10000,
+      },
+      logLevel: "info",
+    });
+
+    assert.ok(
+      result.includes("/init-kibi"),
+      "Should mention /init-kibi command",
+    );
+    assert.ok(
+      result.includes("bootstrap") || result.includes("retroactive"),
+      "Should mention bootstrap or retroactive",
+    );
+  });
+
   test("guidance prefers Kibi over inline comments", () => {
     const result = injectPrompt("", {
       enabled: true,
