@@ -67,7 +67,7 @@ describe("kibi branch ensure", () => {
   );
 
   test(
-    "falls back to default branch when --from is missing",
+    "creates empty KB when --from is missing",
     async () => {
       const targetBranch = "feature-branch";
 
@@ -86,13 +86,13 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
+      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "falls back to default branch when --from KB does not exist",
+    "creates empty KB when --from KB does not exist",
     async () => {
       const targetBranch = "feature-branch";
 
@@ -111,7 +111,7 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
+      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
@@ -136,7 +136,7 @@ describe("kibi branch ensure", () => {
   );
 
   test(
-    "rejects invalid --from branch name",
+    "creates empty KB for invalid --from branch name",
     async () => {
       const targetBranch = "feature-branch";
 
@@ -155,13 +155,13 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
+      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "rejects decorated --from branch name (refs/heads/)",
+    "creates empty KB for decorated --from branch name (refs/heads/)",
     async () => {
       const targetBranch = "feature-branch";
 
@@ -180,7 +180,7 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(targetPath)).toBe(true);
-      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(true);
+      expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
@@ -208,44 +208,6 @@ describe("kibi branch ensure", () => {
       const targetPath = path.join(tmpDir, ".kb/branches", existingBranch);
       expect(existsSync(path.join(targetPath, "existing.rdf"))).toBe(true);
       expect(existsSync(path.join(targetPath, "kb.rdf"))).toBe(false);
-    },
-    TEST_TIMEOUT_MS,
-  );
-
-  test(
-    "uses configured defaultBranch over origin/HEAD",
-    async () => {
-      const targetBranch = "feature-branch";
-
-      writeFileSync(
-        path.join(tmpDir, ".kb/config.json"),
-        JSON.stringify({ defaultBranch: "develop" }),
-      );
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "develop"), {
-        recursive: true,
-      });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "develop", "develop.rdf"),
-        "develop content",
-      );
-
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "main.rdf"),
-        "main content",
-      );
-
-      execSync(`git checkout -b ${targetBranch}`, {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
-
-      await branchEnsureCommand({});
-
-      const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
-      expect(existsSync(path.join(targetPath, "develop.rdf"))).toBe(true);
-      expect(existsSync(path.join(targetPath, "main.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
@@ -288,7 +250,7 @@ describe("kibi branch ensure", () => {
   );
 
   test(
-    "prefers --from over default branch when both exist",
+    "creates branch KB from valid --from branch",
     async () => {
       const fromBranch = "custom-source";
       const targetBranch = "feature-target";
@@ -301,12 +263,6 @@ describe("kibi branch ensure", () => {
         "custom content",
       );
 
-      mkdirSync(path.join(tmpDir, ".kb/branches", "main"), { recursive: true });
-      writeFileSync(
-        path.join(tmpDir, ".kb/branches", "main", "main.rdf"),
-        "main content",
-      );
-
       execSync(`git checkout -b ${targetBranch}`, {
         cwd: tmpDir,
         stdio: "pipe",
@@ -316,7 +272,6 @@ describe("kibi branch ensure", () => {
 
       const targetPath = path.join(tmpDir, ".kb/branches", targetBranch);
       expect(existsSync(path.join(targetPath, "custom.rdf"))).toBe(true);
-      expect(existsSync(path.join(targetPath, "main.rdf"))).toBe(false);
     },
     TEST_TIMEOUT_MS,
   );
