@@ -11,13 +11,7 @@
   "bin": {
     "kibi": "bin/kibi"
   },
-  "files": [
-    "dist",
-    "bin",
-    "schema",
-    "src/schemas",
-    "src/public"
-  ],
+  "files": ["dist", "bin", "schema", "src/schemas", "src/public"],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "prepack": "npm run build"
@@ -30,6 +24,10 @@
     "./prolog": {
       "types": "./dist/public/prolog/index.d.ts",
       "default": "./dist/public/prolog/index.js"
+    },
+    "./prolog/codec": {
+      "types": "./dist/prolog/codec.d.ts",
+      "default": "./dist/prolog/codec.js"
     },
     "./extractors/symbols-coordinator": {
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
