@@ -18,6 +18,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
+import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 // queryRelationshipsViaCli is provided by ./symbolIndex
@@ -30,7 +31,7 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
   private watcher: vscode.FileSystemWatcher | null = null;
 
   constructor(private workspaceRoot: string) {
-    this.manifestPath = this.resolveManifestPath();
+    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
     this.buildIndexFromManifest();
   }
 

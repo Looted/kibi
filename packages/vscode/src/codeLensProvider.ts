@@ -20,6 +20,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import { categorizeEntities, formatLensTitle } from "./helpers";
 import type { RelationshipCache } from "./relationshipCache";
+import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
 import {
   type SymbolEntry,
   type SymbolIndex,
@@ -50,7 +51,7 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
     private workspaceRoot: string,
     private sharedCache: RelationshipCache,
   ) {
-    this.manifestPath = this.resolveManifestPath();
+    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
     this.index = buildIndex(this.manifestPath, this.workspaceRoot);
     this.rebuildFileAliases();
   }
