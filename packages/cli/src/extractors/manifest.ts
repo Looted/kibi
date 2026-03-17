@@ -16,33 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/*
- How to apply this header to source files (examples)
-
- 1) Prepend header to a single file (POSIX shells):
-
-    cat LICENSE_HEADER.txt "$FILE" > "$FILE".with-header && mv "$FILE".with-header "$FILE"
-
- 2) Apply to multiple files (example: the project's main entry files):
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp packages/cli/src/*.ts packages/mcp/src/*.ts; do
-      if [ -f "$f" ]; then
-        cp "$f" "$f".bak
-        (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-      fi
-    done
-
- 3) Avoid duplicating the header: run a quick guard to only add if missing
-
-    for f in packages/cli/bin/kibi packages/mcp/bin/kibi-mcp; do
-      if [ -f "$f" ]; then
-        if ! head -n 5 "$f" | grep -q "Copyright (C) 2026 Piotr Franczyk"; then
-          cp "$f" "$f".bak
-          (cat LICENSE_HEADER.txt; echo; cat "$f" ) > "$f".new && mv "$f".new "$f"
-        fi
-      fi
-    done
-*/
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { load as parseYAML } from "js-yaml";
@@ -124,15 +97,18 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
       // Supports both simple strings (treated as implements) and typed objects
       if (Array.isArray(symbol.links)) {
         for (const link of symbol.links) {
-          if (typeof link === 'string') {
+          if (typeof link === "string") {
             relationships.push({
-              type: 'implements',
+              type: "implements",
               from: id,
               to: link,
             });
-          } else if (link !== null && typeof link === 'object') {
+          } else if (link !== null && typeof link === "object") {
             const typedLink = link as { type?: unknown; target?: unknown };
-            if (typeof typedLink.type === 'string' && typeof typedLink.target === 'string') {
+            if (
+              typeof typedLink.type === "string" &&
+              typeof typedLink.target === "string"
+            ) {
               relationships.push({
                 type: typedLink.type,
                 from: id,
@@ -146,7 +122,11 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
       // Extract relationships from relationships field
       if (Array.isArray(symbol.relationships)) {
         for (const rel of symbol.relationships) {
-          if (rel && typeof rel.type === 'string' && typeof rel.target === 'string') {
+          if (
+            rel &&
+            typeof rel.type === "string" &&
+            typeof rel.target === "string"
+          ) {
             relationships.push({
               type: rel.type,
               from: id,
@@ -195,4 +175,3 @@ function generateId(filePath: string, title: string): string {
   hash.update(`${filePath}:${title}`);
   return hash.digest("hex").substring(0, 16);
 }
-

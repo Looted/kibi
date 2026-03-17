@@ -160,6 +160,22 @@ status: approved
         existsSync(join(sandbox.repoDir, ".kb/branches/feature/kb.rdf")),
         "feature branch KB should be created",
       );
+
+      // Verify the feature KB was copied from develop rather than created fresh.
+      // Both files should have identical content (a real copy, not a blank file).
+      const developKb = readFileSync(
+        join(sandbox.repoDir, ".kb/branches/develop/kb.rdf"),
+        "utf8",
+      );
+      const featureKb = readFileSync(
+        join(sandbox.repoDir, ".kb/branches/feature/kb.rdf"),
+        "utf8",
+      );
+      assert.strictEqual(
+        featureKb,
+        developKb,
+        "feature KB should be a copy of develop KB, not a new empty file",
+      );
     });
 
     it("should sync KB after merge", { timeout: TEST_TIMEOUT_MS }, async () => {
@@ -229,8 +245,12 @@ status: draft
 
       const { stdout: developQuery } = await kibi(sandbox, ["query", "req"]);
       assert.ok(
-        developQuery.includes("Develop") || developQuery.includes("Feature"),
-        "Query should show merged requirements",
+        developQuery.includes("Develop"),
+        "develop query should include Develop requirement after merge",
+      );
+      assert.ok(
+        developQuery.includes("Feature"),
+        "develop query should include Feature requirement after merge",
       );
     });
 
@@ -344,15 +364,15 @@ status: approved
           env: sandbox.env,
         });
 
-        try {
-          await run("git", ["checkout", commitHash.trim()], {
-            cwd: sandbox.repoDir,
-            env: sandbox.env,
-          });
-        } catch {
-          // Detached HEAD might fail sync, but should not crash
-        }
+        // git checkout to a commit SHA puts repo in detached HEAD state.
+        // The checkout itself must succeed (it only warns about detached HEAD).
+        await run("git", ["checkout", commitHash.trim()], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
 
+        // KB must still exist even in detached HEAD — the hook may produce an
+        // error/warning but must not remove the KB directory.
         assert.ok(existsSync(join(sandbox.repoDir, ".kb")), "KB should exist");
       },
     );
@@ -383,18 +403,27 @@ Missing type field
           env: sandbox.env,
         });
 
+        // Commit may succeed (sync warns but allows commit) or fail due to
+        // pre-commit hook blocking invalid entities. Both outcomes are acceptable —
+        // the KB directory must survive regardless.
+        let commitSucceeded = false;
         try {
           await run("git", ["commit", "-m", "invalid"], {
             cwd: sandbox.repoDir,
             env: sandbox.env,
           });
-        } catch {
-          // Commit might succeed even if sync has warnings
+          commitSucceeded = true;
+        } catch (err) {
+          // Pre-commit hook blocked the commit — that is also acceptable behavior.
+          // Anything other than a hook-driven rejection would be unexpected, but
+          // we cannot distinguish those cases here, so we just continue.
+          commitSucceeded = false;
         }
 
+        // Whether the commit succeeded or was blocked, the KB directory must exist
         assert.ok(
           existsSync(join(sandbox.repoDir, ".kb")),
-          "KB should still exist",
+          `KB should still exist after ${commitSucceeded ? "successful" : "blocked"} commit`,
         );
       },
     );

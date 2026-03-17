@@ -1,0 +1,156 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
+  "title": "Kibi Configuration",
+  "description": "Configuration schema for Kibi knowledge base",
+  "type": "object",
+  "properties": {
+    "paths": {
+      "type": "object",
+      "description": "Directory paths for entity documentation",
+      "properties": {
+        "requirements": {
+          "type": "string",
+          "description": "Path to requirements markdown files",
+          "default": "documentation/requirements"
+        },
+        "scenarios": {
+          "type": "string",
+          "description": "Path to BDD scenario markdown files",
+          "default": "documentation/scenarios"
+        },
+        "tests": {
+          "type": "string",
+          "description": "Path to test specification markdown files",
+          "default": "documentation/tests"
+        },
+        "adr": {
+          "type": "string",
+          "description": "Path to Architecture Decision Record markdown files",
+          "default": "documentation/adr"
+        },
+        "flags": {
+          "type": "string",
+          "description": "Path to feature flag markdown files",
+          "default": "documentation/flags"
+        },
+        "events": {
+          "type": "string",
+          "description": "Path to domain event markdown files",
+          "default": "documentation/events"
+        },
+        "facts": {
+          "type": "string",
+          "description": "Path to atomic fact markdown files",
+          "default": "documentation/facts"
+        },
+        "symbols": {
+          "type": "string",
+          "description": "Path to symbols.yaml manifest file",
+          "default": "documentation/symbols.yaml"
+        }
+      }
+    },
+    "defaultBranch": {
+      "type": "string",
+      "description": "[DEPRECATED] No longer used. Branch lifecycle now follows git naturally without requiring a configured default. This field is ignored but kept for backward compatibility.",
+      "deprecated": true
+    },
+    "checks": {
+      "type": "object",
+      "description": "Configuration for KB validation rules",
+      "properties": {
+        "rules": {
+          "type": "object",
+          "description": "Enable/disable individual validation rules. All rules default to true.",
+          "properties": {
+            "must-priority-coverage": {
+              "type": "boolean",
+              "description": "Every must-priority requirement must have at least one scenario and one test",
+              "default": true
+            },
+            "symbol-coverage": {
+              "type": "boolean",
+              "description": "Symbols should be traceable to requirements via transitive implements relationships",
+              "default": true
+            },
+            "symbol-traceability": {
+              "type": "boolean",
+              "description": "Source symbols must have direct implements links to requirements (and optionally ADR constraints)",
+              "default": true
+            },
+            "no-dangling-refs": {
+              "type": "boolean",
+              "description": "All relationship targets must exist in the KB",
+              "default": true
+            },
+            "no-cycles": {
+              "type": "boolean",
+              "description": "No circular dependency chains in requirements",
+              "default": true
+            },
+            "required-fields": {
+              "type": "boolean",
+              "description": "All entities must have required fields (id, title, status, created_at, updated_at, source)",
+              "default": true
+            },
+            "deprecated-adr-no-successor": {
+              "type": "boolean",
+              "description": "Deprecated ADRs must have a successor ADR that supersedes them",
+              "default": true
+            },
+            "domain-contradictions": {
+              "type": "boolean",
+              "description": "Detect contradictions between requirements constraining the same fact",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "symbolTraceability": {
+          "type": "object",
+          "description": "Options for the symbol-traceability rule",
+          "properties": {
+            "requireAdr": {
+              "type": "boolean",
+              "description": "If true, symbols must also have a direct constrained_by relationship to an ADR",
+              "default": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "paths": {
+        "requirements": "documentation/requirements",
+        "scenarios": "documentation/scenarios",
+        "tests": "documentation/tests",
+        "adr": "documentation/adr",
+        "flags": "documentation/flags",
+        "events": "documentation/events",
+        "facts": "documentation/facts",
+        "symbols": "documentation/symbols.yaml"
+      },
+      "checks": {
+        "rules": {
+          "must-priority-coverage": true,
+          "symbol-coverage": true,
+          "symbol-traceability": true,
+          "no-dangling-refs": true,
+          "no-cycles": true,
+          "required-fields": true,
+          "deprecated-adr-no-successor": true,
+          "domain-contradictions": true
+        },
+        "symbolTraceability": {
+          "requireAdr": false
+        }
+      }
+    }
+  ]
+}

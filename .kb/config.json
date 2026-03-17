@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
   "paths": {
     "requirements": "documentation/requirements",
     "scenarios": "documentation/scenarios",
@@ -8,5 +9,20 @@
     "events": "documentation/events",
     "facts": "documentation/facts",
     "symbols": "documentation/symbols.yaml"
+  },
+  "checks": {
+    "rules": {
+      "must-priority-coverage": true,
+      "symbol-coverage": true,
+      "symbol-traceability": true,
+      "no-dangling-refs": true,
+      "no-cycles": true,
+      "required-fields": true,
+      "deprecated-adr-no-successor": true,
+      "domain-contradictions": true
+    },
+    "symbolTraceability": {
+      "requireAdr": false
+    }
   }
 }

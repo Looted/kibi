@@ -71,6 +71,9 @@ describe("kibi init", () => {
     const configPath = path.join(tmpDir, ".kb/config.json");
     const config = JSON.parse(readFileSync(configPath, "utf-8"));
 
+    expect(config.$schema).toBe(
+      "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
+    );
     expect(config.paths).toBeDefined();
     expect(config.paths.requirements).toBe("documentation/requirements");
     expect(config.paths.scenarios).toBe("documentation/scenarios");
@@ -80,6 +83,30 @@ describe("kibi init", () => {
     expect(config.paths.events).toBe("documentation/events");
     expect(config.paths.facts).toBe("documentation/facts");
     expect(config.paths.symbols).toBe("documentation/symbols.yaml");
+  });
+
+  test("creates config.json with all check rules explicitly set to true", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const configPath = path.join(tmpDir, ".kb/config.json");
+    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+
+    expect(config.checks).toBeDefined();
+    expect(config.checks.rules).toBeDefined();
+    expect(config.checks.rules["must-priority-coverage"]).toBe(true);
+    expect(config.checks.rules["symbol-coverage"]).toBe(true);
+    expect(config.checks.rules["symbol-traceability"]).toBe(true);
+    expect(config.checks.rules["no-dangling-refs"]).toBe(true);
+    expect(config.checks.rules["no-cycles"]).toBe(true);
+    expect(config.checks.rules["required-fields"]).toBe(true);
+    expect(config.checks.rules["deprecated-adr-no-successor"]).toBe(true);
+    expect(config.checks.rules["domain-contradictions"]).toBe(true);
+    expect(config.checks.symbolTraceability).toBeDefined();
+    expect(config.checks.symbolTraceability.requireAdr).toBe(false);
   });
 
   test("does not fail if .kb already exists", () => {
