@@ -18,16 +18,45 @@ Or via OpenCode's plugin system in `opencode.json`:
 
 ## Features
 
+### Dynamic Contextual Guidance
+
+The plugin provides context-aware prompt guidance based on recent edits and workspace state:
+
+- **Code edits**: Guidance for querying Kibi by sourceFile, preferring Kibi over comments, and adding `// implements REQ-xxx` traceability
+- **Requirement edits**: Guidance for maintaining separate REQ/SCEN/TEST artifacts and avoiding embedded scenarios
+- **KB doc edits**: Guidance for proper entity relationships and validation
+- **Bootstrap needed**: Detection and nudges for uninitialized repos
+
+### Targeted Validation Checks
+
+After KB-document edits, the plugin runs targeted `kibi check` rules:
+
+- **Requirement/scenario/test/ADR/fact edits**: `kibi check --rules required-fields,no-dangling-refs`
+- **Must-priority requirements**: `kibi check --rules must-priority-coverage`
+
+Runs in background after sync completes, non-blocking.
+
+### FACT-First Domain Routing
+
+Long comments and prose are analyzed to suggest appropriate Kibi entity types:
+
+- **FACT**: Domain invariants, property values, limits, cardinality (e.g., "must be unique", "at most", "default is")
+- **REQ**: System behavior, capabilities, obligations (e.g., "system must", "user can")
+- **ADR**: Technical decisions, tradeoffs, rationale (e.g., "we chose", "because", "constraint")
+- **SCEN**: Behavior examples, Given/When/Then flows
+- **TEST**: Verification language, assertions
+
+### Loud `.kb/**` Edit Warnings
+
+Manual edits to files under `.kb/**` trigger prominent warnings:
+
+- Logs warning immediately
+- Injects prompt guidance discouraging manual `.kb` edits
+- Directs agents toward MCP/CLI tools (`kb_upsert`, `kb_query`, etc.)
+
 ### Prompt Guidance Injection
 
-The plugin injects guidance into OpenCode sessions to improve agent grounding:
-
-```
-Query Kibi before design/implementation work. Prefer kb_query/kb_check for context. Update KB artifacts after relevant changes. Remember symbol traceability requirements.
-```
-
-- Uses `<!-- kibi-opencode -->` sentinel to prevent duplicate injections
-- Respects `prompt.enabled` and overall `enabled` config flags
+The plugin injects guidance into OpenCode sessions to improve agent grounding. Uses `<!-- kibi-opencode -->` sentinel to prevent duplicate injections and respects `prompt.enabled` and overall `enabled` config flags.
 
 ### Bootstrap Command
 
@@ -64,6 +93,10 @@ Config files (project overrides global):
 | `sync.debounceMs` | number | `2000` | Debounce window in milliseconds |
 | `sync.ignore` | string[] | `[]` | Additional paths to ignore |
 | `sync.relevant` | string[] | `[]` | Additional relevant paths |
+| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
+| `guidance.warnOnKbEdits` | boolean | `true` | Enable loud warnings for .kb/** edits |
+| `guidance.factFirstDomainRouting` | boolean | `true` | Enable FACT-first domain routing suggestions |
+| `guidance.targetedChecks.enabled` | boolean | `true` | Enable post-sync targeted validation checks |
 | `logLevel` | string | `"info"` | Log level: `debug`, `info`, `warn`, `error` |
 
 ### Hook Policy
