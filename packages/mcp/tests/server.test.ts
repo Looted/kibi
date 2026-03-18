@@ -71,10 +71,20 @@ function startServer(options?: {
     env: options?.env ? { ...process.env, ...options.env } : process.env,
   });
 
-  // Ensure process is killed when parent exits
+  // Log errors from the server process
   proc.on("error", (err) => {
     console.error("Server process error:", err);
   });
+
+  // Ensure the server process is killed when the parent process exits
+  const cleanup = () => {
+    if (!proc.killed) {
+      proc.kill("SIGKILL");
+    }
+  };
+  process.on("exit", cleanup);
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
 
   return proc;
 }
@@ -86,10 +96,8 @@ async function killServer(proc: ChildProcess): Promise<void> {
       return;
     }
 
-    // Try graceful termination first
-    proc.kill("SIGTERM");
-
-    // Force kill after 1 second if still running
+    // Register exit/error handlers before sending SIGTERM to avoid a race
+    // where the process exits before the handler is attached.
     const forceKillTimeout = setTimeout(() => {
       if (!proc.killed) {
         proc.kill("SIGKILL");
@@ -105,6 +113,9 @@ async function killServer(proc: ChildProcess): Promise<void> {
       clearTimeout(forceKillTimeout);
       resolve();
     });
+
+    // Try graceful termination after handlers are registered
+    proc.kill("SIGTERM");
   });
 }
 
