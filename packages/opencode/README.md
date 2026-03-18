@@ -29,26 +29,15 @@ The plugin provides context-aware prompt guidance based on recent edits and work
 
 ### Targeted Validation Checks
 
-After KB-document edits, the plugin runs targeted `kibi check` rules:
+After KB-document edits, the plugin queues targeted `kibi check` rules to run after sync:
 
 - **Requirement/scenario/test/ADR/fact edits**: `kibi check --rules required-fields,no-dangling-refs`
-- **Must-priority requirements**: `kibi check --rules must-priority-coverage`
 
-Runs in background after sync completes, non-blocking.
-
-### FACT-First Domain Routing
-
-Long comments and prose are analyzed to suggest appropriate Kibi entity types:
-
-- **FACT**: Domain invariants, property values, limits, cardinality (e.g., "must be unique", "at most", "default is")
-- **REQ**: System behavior, capabilities, obligations (e.g., "system must", "user can")
-- **ADR**: Technical decisions, tradeoffs, rationale (e.g., "we chose", "because", "constraint")
-- **SCEN**: Behavior examples, Given/When/Then flows
-- **TEST**: Verification language, assertions
+Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
 
 ### Loud `.kb/**` Edit Warnings
 
-Manual edits to files under `.kb/**` trigger prominent warnings:
+When `guidance.warnOnKbEdits` is enabled (default: `true`), manual edits to files under `.kb/**` trigger prominent warnings:
 
 - Logs warning immediately
 - Injects prompt guidance discouraging manual `.kb` edits
