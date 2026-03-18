@@ -61,6 +61,7 @@ if (RUN_NODE_TEST_SUITE) {
 
       it(
         "plugin root exports only loader-safe plugin function",
+        { timeout: 30000 },
         async () => {
           const distIndex = join(
             installDir,
@@ -88,11 +89,11 @@ if (RUN_NODE_TEST_SUITE) {
             }
           }
         },
-        { timeout: 30000 },
       );
 
       it(
         "helpers accessible via subpath exports",
+        { timeout: 30000 },
         async () => {
           const configModule = await import(
             join(installDir, "node_modules/kibi-opencode/config.js")
@@ -113,7 +114,6 @@ if (RUN_NODE_TEST_SUITE) {
           assert.ok(typeof schedulerModule.createSyncScheduler === "function");
           assert.ok(typeof fileFilterModule.shouldHandleFile === "function");
         },
-        { timeout: 30000 },
       );
     },
   );

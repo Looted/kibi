@@ -143,6 +143,6 @@ describe("init-helpers", () => {
       path.join(hooksDir, "post-checkout"),
       "utf-8",
     );
-    expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
+    expect(postCheckoutContent).toContain("sed 's/[~^].*//'");
   });
 });
