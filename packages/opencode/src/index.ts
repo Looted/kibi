@@ -34,8 +34,8 @@ function lintRequirementDoc(
         : filePath;
     const content = fs.readFileSync(resolvedPath, "utf-8");
 
-    // Check for embedded scenarios (Given/When/Then patterns)
-    if (/given\s+.*when\s+.*then/i.test(content)) {
+    // Check for embedded scenarios (Given/When/Then patterns) - implements REQ-opencode-kibi-plugin-v1
+    if (/given\s+[\s\S]*?when\s+[\s\S]*?then/i.test(content)) {
       warnings.push({
         category: "embedded-scenario-in-req",
         message: `Requirement file ${filePath} appears to contain embedded scenario (Given/When/Then). Consider extracting to a separate SCEN entity.`,
