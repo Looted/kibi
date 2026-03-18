@@ -4,6 +4,7 @@ import * as logger from "./logger";
 import { type PathKind, analyzePath } from "./path-kind";
 import { SENTINEL, buildPrompt, injectPrompt } from "./prompt";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
+import { type WarningCategory, getSessionTracker } from "./session-tracker";
 import { checkWorkspaceHealth } from "./workspace-health";
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -14,7 +15,54 @@ interface RecentEdit {
   timestamp: number;
 }
 
+import * as fs from "node:fs";
 import type { Hooks, Plugin, PluginInput } from "@opencode-ai/plugin";
+
+/**
+ * Lint requirement document for anti-patterns.
+ */
+function lintRequirementDoc(
+  filePath: string,
+): Array<{ category: WarningCategory; message: string }> {
+  const warnings: Array<{ category: WarningCategory; message: string }> = [];
+
+  try {
+    const content = fs.readFileSync(filePath, "utf-8");
+    const lower = content.toLowerCase();
+
+    // Check for embedded scenarios (Given/When/Then patterns)
+    if (/given\s+.*when\s+.*then/i.test(content)) {
+      warnings.push({
+        category: "embedded-scenario-in-req",
+        message: `Requirement file ${filePath} appears to contain embedded scenario (Given/When/Then). Consider extracting to a separate SCEN entity.`,
+      });
+    }
+
+    // Check for embedded tests (assert/verify patterns)
+    if (/\b(assert|verify|expected\s+to|should\s+return)\b/i.test(content)) {
+      warnings.push({
+        category: "embedded-test-in-req",
+        message: `Requirement file ${filePath} appears to contain embedded test assertions. Consider extracting to a separate TEST entity.`,
+      });
+    }
+
+    // Check for very long requirement that might need splitting
+    const lines = content.split("\n");
+    const contentLines = lines.filter(
+      (l) => l.trim() && !l.startsWith("---") && !l.startsWith("#"),
+    );
+    if (contentLines.length > 50) {
+      warnings.push({
+        category: "missing-traceability",
+        message: `Requirement file ${filePath} is very long (${contentLines.length} content lines). Consider splitting into multiple requirements or extracting scenarios/tests.`,
+      });
+    }
+  } catch {
+    // Ignore read errors
+  }
+
+  return warnings;
+}
 
 export type { Plugin, PluginInput, Hooks };
 
@@ -42,6 +90,18 @@ const kibiOpencodePlugin: Plugin = async (
   const workspaceHealth = checkWorkspaceHealth(input.worktree);
   if (workspaceHealth.needsBootstrap) {
     logger.warn("kibi-opencode: workspace needs Kibi bootstrap");
+    getSessionTracker().recordWarning(
+      "bootstrap-needed",
+      input.worktree,
+      "Workspace missing Kibi bootstrap",
+    );
+  }
+
+  // Log session summary periodically
+  const tracker = getSessionTracker();
+  if (tracker.isSessionExpired()) {
+    tracker.logSummary();
+    tracker.reset();
   }
 
   logger.info("kibi-opencode: setting up hooks");
@@ -69,6 +129,23 @@ const kibiOpencodePlugin: Plugin = async (
       if (pathAnalysis.isUnderKb) {
         hasRecentKbEdit = true;
         logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+        getSessionTracker().recordWarning(
+          "kb-edit",
+          filePath,
+          `Manual .kb edit: ${filePath}`,
+        );
+      }
+
+      // Lint requirement docs for anti-patterns
+      if (pathAnalysis.kind === "requirement") {
+        const lintWarnings = lintRequirementDoc(filePath);
+        for (const warning of lintWarnings) {
+          getSessionTracker().recordWarning(
+            warning.category,
+            filePath,
+            warning.message,
+          );
+        }
       }
 
       // Track recent edits
