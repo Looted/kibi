@@ -1,5 +1,18 @@
 # kibi-mcp
 
+## 0.3.0
+
+### Minor Changes
+
+- 582bede: Add `init-kibi` MCP prompt for retroactive repository bootstrapping. Update existing prompts with telemetry-driven best practices. Refresh tool descriptions with safety-focused guidance.
+
+### Patch Changes
+
+- Updated dependencies [29de3fa]
+- Updated dependencies [0b11a77]
+  - kibi-core@0.1.9
+  - kibi-cli@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes
