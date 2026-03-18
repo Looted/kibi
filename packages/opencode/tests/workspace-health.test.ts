@@ -70,7 +70,7 @@ describe("workspace-health checkWorkspaceHealth", () => {
     fs.mkdirSync(kbDir, { recursive: true });
     fs.writeFileSync(path.join(kbDir, "config.json"), "{}");
 
-    // Create all doc dirs
+    // Create all doc dirs with dummy markdown files
     const docDirs = [
       "documentation/requirements",
       "documentation/scenarios",
@@ -78,7 +78,11 @@ describe("workspace-health checkWorkspaceHealth", () => {
       "documentation/adr",
     ];
     for (const dir of docDirs) {
-      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      const dirPath = path.join(tmpDir, dir);
+      fs.mkdirSync(dirPath, { recursive: true });
+      // Create a dummy markdown file in each dir
+      const dummyFile = path.join(dirPath, "DUMMY.md");
+      fs.writeFileSync(dummyFile, "# Dummy");
     }
 
     const result = checkWorkspaceHealth(tmpDir);

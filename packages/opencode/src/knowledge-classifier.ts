@@ -88,7 +88,7 @@ const TEST_CUES = [
 ];
 
 /**
- * Analyze a comment or prose block and suggest the most appropriate entity type.
+ * Analyze a comment or prose block and suggest most appropriate entity type.
  */
 export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
   if (!text || text.trim().length < 50) {
@@ -114,7 +114,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = factScore;
     bestMatch = {
       type: "fact",
-      confidence: factScore > 3 ? "high" : factScore > 1 ? "medium" : "low",
+      confidence: factScore >= 3 ? "high" : factScore > 1 ? "medium" : "low",
       reasoning:
         'Contains domain invariant or property cues like "must be unique", "at most", or "default is"',
     };
@@ -124,7 +124,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = reqScore;
     bestMatch = {
       type: "req",
-      confidence: reqScore > 2 ? "high" : reqScore > 1 ? "medium" : "low",
+      confidence: reqScore >= 3 ? "high" : reqScore > 1 ? "medium" : "low",
       reasoning:
         'Contains system behavior or obligation cues like "system must", "user can", or "shall"',
     };
@@ -134,7 +134,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = adrScore;
     bestMatch = {
       type: "adr",
-      confidence: adrScore > 2 ? "high" : adrScore > 1 ? "medium" : "low",
+      confidence: adrScore >= 3 ? "high" : adrScore > 1 ? "medium" : "low",
       reasoning:
         'Contains decision or tradeoff cues like "we chose", "because", or "constraint"',
     };
@@ -145,7 +145,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     bestMatch = {
       type: "scenario",
       confidence:
-        scenarioScore > 2 ? "high" : scenarioScore > 1 ? "medium" : "low",
+        scenarioScore >= 3 ? "high" : scenarioScore > 1 ? "medium" : "low",
       reasoning:
         'Contains behavior example cues like "given/when/then" or "user flow"',
     };
@@ -155,16 +155,16 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = testScore;
     bestMatch = {
       type: "test",
-      confidence: testScore > 2 ? "high" : testScore > 1 ? "medium" : "low",
+      confidence: testScore >= 3 ? "high" : testScore > 1 ? "medium" : "low",
       reasoning:
         'Contains verification cues like "verify", "assert", or "expected"',
     };
   }
 
-  // Low confidence threshold
-  if (bestMatch && bestMatch.confidence === "low") {
-    return null;
+  // Return best match
+  if (bestMatch) {
+    return bestMatch;
   }
 
-  return bestMatch;
+  return null;
 }

@@ -18,13 +18,7 @@ const KIBI_DOC_DIRS = [
   "documentation/flags",
   "documentation/events",
   "documentation/facts",
-  "documentation/requirements",
-  "documentation/scenarios",
-  "documentation/tests",
-  "documentation/adr",
-  "documentation/flags",
-  "documentation/events",
-  "documentation/facts",
+  "symbols.yaml",
 ];
 
 /**
@@ -47,7 +41,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // If missing config or multiple doc dirs, suggest bootstrap
+  // If missing config or more than 2 doc dirs are missing, suggest bootstrap
   const needsBootstrap = missingConfig || missingDocDirs.length > 2;
 
   return {

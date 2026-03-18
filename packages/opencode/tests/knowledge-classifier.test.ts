@@ -23,7 +23,7 @@ describe("knowledge-classifier classifyKnowledge", () => {
       assert.ok(result);
       assert.equal(result!.type, "fact");
       assert.ok(
-        result!.confidence === "medium" || result!.confidence === "high",
+        result!.confidence === "high" || result!.confidence === "medium",
       );
     });
 
