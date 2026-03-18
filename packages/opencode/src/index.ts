@@ -2,7 +2,7 @@ import * as config from "./config";
 import * as fileFilter from "./file-filter";
 import * as logger from "./logger";
 import { type PathKind, analyzePath } from "./path-kind";
-import { SENTINEL, buildPrompt, injectPrompt } from "./prompt";
+import { injectPrompt } from "./prompt";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
 import { type WarningCategory, getSessionTracker } from "./session-tracker";
 import { checkWorkspaceHealth } from "./workspace-health";
@@ -23,12 +23,16 @@ import type { Hooks, Plugin, PluginInput } from "@opencode-ai/plugin";
  */
 function lintRequirementDoc(
   filePath: string,
+  worktree?: string,
 ): Array<{ category: WarningCategory; message: string }> {
   const warnings: Array<{ category: WarningCategory; message: string }> = [];
 
   try {
-    const content = fs.readFileSync(filePath, "utf-8");
-    const lower = content.toLowerCase();
+    const resolvedPath =
+      worktree && !filePath.startsWith("/")
+        ? `${worktree}/${filePath}`
+        : filePath;
+    const content = fs.readFileSync(resolvedPath, "utf-8");
 
     // Check for embedded scenarios (Given/When/Then patterns)
     if (/given\s+.*when\s+.*then/i.test(content)) {
@@ -98,11 +102,13 @@ const kibiOpencodePlugin: Plugin = async (
     );
   }
 
-  // Log session summary periodically
-  const tracker = getSessionTracker();
-  if (tracker.isSessionExpired()) {
-    tracker.logSummary();
-    tracker.reset();
+  // Log session summary periodically (gated on config)
+  if (cfg.guidance.sessionSummary.enabled) {
+    const tracker = getSessionTracker();
+    if (tracker.isSessionExpired(cfg.guidance.sessionSummary.logIntervalMs)) {
+      tracker.logSummary();
+      tracker.reset();
+    }
   }
 
   logger.info("kibi-opencode: setting up hooks");
@@ -126,8 +132,8 @@ const kibiOpencodePlugin: Plugin = async (
       // Analyze path for tracking and classification
       const pathAnalysis = analyzePath(filePath, input.worktree);
 
-      // Check for .kb edit (loud warning)
-      if (pathAnalysis.isUnderKb) {
+      // Check for .kb edit (loud warning) — gated on guidance.warnOnKbEdits
+      if (pathAnalysis.isUnderKb && cfg.guidance.warnOnKbEdits) {
         hasRecentKbEdit = true;
         logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
         getSessionTracker().recordWarning(
@@ -139,7 +145,7 @@ const kibiOpencodePlugin: Plugin = async (
 
       // Lint requirement docs for anti-patterns
       if (pathAnalysis.kind === "requirement") {
-        const lintWarnings = lintRequirementDoc(filePath);
+        const lintWarnings = lintRequirementDoc(filePath, input.worktree);
         for (const warning of lintWarnings) {
           getSessionTracker().recordWarning(
             warning.category,
@@ -165,14 +171,16 @@ const kibiOpencodePlugin: Plugin = async (
       // Only schedule sync for relevant files (not .kb)
       if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
-      // Determine targeted checks based on edit type
+      // Determine targeted checks based on edit type (gated on guidance.targetedChecks.enabled)
       let checkRules: string[] | undefined;
-      if (pathAnalysis.kind === "requirement") {
-        checkRules = ["required-fields", "no-dangling-refs"];
-      } else if (
-        ["scenario", "test", "adr", "fact"].includes(pathAnalysis.kind)
-      ) {
-        checkRules = ["required-fields", "no-dangling-refs"];
+      if (cfg.guidance.targetedChecks.enabled) {
+        if (
+          ["requirement", "scenario", "test", "adr", "fact"].includes(
+            pathAnalysis.kind,
+          )
+        ) {
+          checkRules = ["required-fields", "no-dangling-refs"];
+        }
       }
 
       logger.info(`kibi-opencode: scheduling sync for ${filePath}`);

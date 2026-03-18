@@ -1,11 +1,7 @@
 // implements REQ-opencode-kibi-plugin-v1
 import type { KibiConfig } from "./config";
 import { isPluginEnabled } from "./config";
-import {
-  type KnowledgeSuggestion,
-  classifyKnowledge,
-} from "./knowledge-classifier";
-import { type PathKind, analyzePath } from "./path-kind";
+import type { PathKind } from "./path-kind";
 import type { WorkspaceHealth } from "./workspace-health";
 
 const SENTINEL = "<!-- kibi-opencode -->";
@@ -20,7 +16,7 @@ export interface PromptContext {
  * Build prompt guidance block based on path kind.
  */
 function buildContextualGuidance(context: PromptContext): string {
-  const parts: string[] = [];
+  const parts: string[] = [SENTINEL];
 
   // 1. Check for recent .kb edits (loud warning)
   if (context.hasRecentKbEdit) {
@@ -82,7 +78,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
 When editing requirements:
 1. **Keep artifacts separate** - Do not embed scenarios or tests inside requirement files.
 2. **Add verification** - Create or update linked \`SCEN\` and \`TEST\` entities.
-3. **Check coverage** - For \`priority: must\` requirements, ensure both scenario and test coverage (kibi check --rules must-priority-coverage).
+3. **Check coverage** - For \`priority: must\` requirements, ensure both scenario and test coverage.
 
 Preferred structure:
 - \`REQ-xxx.md\` contains the requirement statement
@@ -103,10 +99,9 @@ When editing KB documentation:
 `);
   }
 
-  // Only include general Kibi workflow if no specific context
-  if (parts.length === 0) {
-    parts.push(`${SENTINEL}
-This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
+  // Only include general Kibi workflow if no specific context (beyond the sentinel)
+  if (parts.length === 1) {
+    parts.push(`This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
 Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not rely on undocumented tools.
 
