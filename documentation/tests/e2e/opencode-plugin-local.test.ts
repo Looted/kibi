@@ -86,6 +86,30 @@ if (RUN_NODE_TEST_SUITE) {
     );
 
     it(
+      "plugin root exports only loader-safe plugin function",
+      async () => {
+        const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+        const pkg = await import(distIndex);
+        assert.ok(pkg.default !== undefined, "must have default export");
+
+        // Verify no runtime helpers are exported from root (loader-safety check)
+        const exportNames = Object.keys(pkg);
+        for (const name of exportNames) {
+          if (name === "default") continue;
+
+          const value = pkg[name];
+          if (typeof value === "function") {
+            // Any function export from root would be called by OpenCode's loader
+            assert.fail(
+              `Root export "${name}" is a function and would be invoked by OpenCode loader`,
+            );
+          }
+        }
+      },
+      { timeout: 30000 },
+    );
+
+    it(
       "relevant file triggers sync eligibility",
       async () => {
         const { shouldHandleFile } = await import(

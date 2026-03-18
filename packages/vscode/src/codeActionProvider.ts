@@ -15,9 +15,9 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
+import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 // queryRelationshipsViaCli is provided by ./symbolIndex
@@ -30,33 +30,8 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
   private watcher: vscode.FileSystemWatcher | null = null;
 
   constructor(private workspaceRoot: string) {
-    this.manifestPath = this.resolveManifestPath();
+    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
     this.buildIndexFromManifest();
-  }
-
-  private resolveManifestPath(): string {
-    // Prefer path in .kb/config.json if present
-    const configPath = path.join(this.workspaceRoot, ".kb", "config.json");
-    if (fs.existsSync(configPath)) {
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
-          symbolsManifest?: string;
-        };
-        if (config.symbolsManifest) {
-          return path.isAbsolute(config.symbolsManifest)
-            ? config.symbolsManifest
-            : path.resolve(this.workspaceRoot, config.symbolsManifest);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    // Default convention: symbols.yaml at workspace root
-    const candidates = [
-      path.join(this.workspaceRoot, "symbols.yaml"),
-      path.join(this.workspaceRoot, "symbols.yml"),
-    ];
-    return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
   }
 
   private buildIndexFromManifest(): void {
@@ -72,7 +47,7 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
       ),
     );
     const rebuild = () => {
-      this.manifestPath = this.resolveManifestPath();
+      this.manifestPath = resolveSymbolsManifestPath(this.workspaceRoot);
       this.buildIndexFromManifest();
     };
     this.watcher.onDidChange(rebuild);

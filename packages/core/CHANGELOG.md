@@ -1,5 +1,11 @@
 # kibi-core
 
+## 0.1.9
+
+### Patch Changes
+
+- 29de3fa: Bump patch version for safe release
+
 ## 0.1.8
 
 ### Patch Changes

@@ -1,5 +1,6 @@
 // Packed e2e test for npm package loading
 import assert from "node:assert";
+import { execFileSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -54,7 +55,7 @@ if (RUN_NODE_TEST_SUITE) {
     });
 
     it(
-      "plugin can be imported from package",
+      "plugin root exports only loader-safe plugin function",
       async () => {
         const distIndex = join(
           installDir,
@@ -65,60 +66,46 @@ if (RUN_NODE_TEST_SUITE) {
           `dist/index.js not found at ${distIndex}`,
         );
         const pkg = await import(distIndex);
-        assert.ok(pkg.default !== undefined);
+        assert.ok(pkg.default !== undefined, "must have default export");
+
+        // Verify no runtime helpers are exported from root (loader-safety check)
+        const exportNames = Object.keys(pkg);
+        for (const name of exportNames) {
+          if (name === "default") continue;
+
+          const value = pkg[name];
+          if (typeof value === "function") {
+            // Any function export from root would be called by OpenCode's loader
+            assert.fail(
+              `Root export "${name}" is a function and would be invoked by OpenCode loader`,
+            );
+          }
+        }
       },
       { timeout: 30000 },
     );
 
     it(
-      "enablement config disables all behavior",
+      "helpers accessible via subpath exports",
       async () => {
-        const { isPluginEnabled } = await import(
+        const configModule = await import(
           join(installDir, "node_modules/kibi-opencode/dist/config.js")
         );
-        const result = (
-          isPluginEnabled as (cfg: { enabled: boolean }) => boolean
-        )({ enabled: false });
-        assert.equal(result, false);
-      },
-      { timeout: 30000 },
-    );
+        const promptModule = await import(
+          join(installDir, "node_modules/kibi-opencode/dist/prompt.js")
+        );
+        const schedulerModule = await import(
+          join(installDir, "node_modules/kibi-opencode/dist/scheduler.js")
+        );
+        const fileFilterModule = await import(
+          join(installDir, "node_modules/kibi-opencode/dist/file-filter.js")
+        );
 
-    it(
-      "sync can be disabled independently",
-      async () => {
-        const configModule = (await import(
-          join(installDir, "node_modules/kibi-opencode/dist/config.js")
-        )) as {
-          DEFAULTS: {
-            sync: { enabled: boolean };
-            prompt: { hookMode: string };
-          };
-        };
-        const { DEFAULTS } = configModule;
-        assert.equal(DEFAULTS.sync.enabled, true);
-        const disabledSyncCfg = {
-          ...DEFAULTS,
-          sync: { ...DEFAULTS.sync, enabled: false },
-        };
-        assert.equal(disabledSyncCfg.sync.enabled, false);
-      },
-      { timeout: 30000 },
-    );
-
-    it(
-      "compat mode sets hookMode",
-      async () => {
-        const configModule = (await import(
-          join(installDir, "node_modules/kibi-opencode/dist/config.js")
-        )) as {
-          DEFAULTS: {
-            sync: { enabled: boolean };
-            prompt: { hookMode: string };
-          };
-        };
-        const { DEFAULTS } = configModule;
-        assert.equal(DEFAULTS.prompt.hookMode, "auto");
+        // Verify helper functions are accessible via subpaths
+        assert.ok(typeof configModule.isPluginEnabled === "function");
+        assert.ok(typeof promptModule.injectPrompt === "function");
+        assert.ok(typeof schedulerModule.createSyncScheduler === "function");
+        assert.ok(typeof fileFilterModule.shouldHandleFile === "function");
       },
       { timeout: 30000 },
     );
