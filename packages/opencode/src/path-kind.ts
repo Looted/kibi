@@ -49,20 +49,22 @@ export function analyzePath(filePath: string, cwd: string): PathAnalysis {
   // Check for Kibi doc paths
   const normalized = rel.toLowerCase();
   for (const pattern of KIBI_DOC_PATTERNS) {
-    if (normalized.startsWith(pattern.replace(/\*\*/g, ""))) {
+    const patternPrefix = pattern.replace(/\*\*/g, "");
+    const fullPathPattern = `documentation/${patternPrefix}`;
+    if (normalized.startsWith(fullPathPattern)) {
       isKibiDocRelevant = true;
       if (kind === "unknown") {
         // Map to specific kind based on path
-        if (pattern.includes("requirements")) kind = "requirement";
-        else if (pattern.includes("scenarios")) kind = "scenario";
-        else if (pattern.includes("tests")) kind = "test";
-        else if (pattern.includes("adr")) kind = "adr";
-        else if (pattern.includes("facts")) kind = "fact";
-        else if (pattern.includes("events"))
+        if (patternPrefix.includes("requirements")) kind = "requirement";
+        else if (patternPrefix.includes("scenarios")) kind = "scenario";
+        else if (patternPrefix.includes("tests")) kind = "test";
+        else if (patternPrefix.includes("adr")) kind = "adr";
+        else if (patternPrefix.includes("facts")) kind = "fact";
+        else if (patternPrefix.includes("events"))
           kind = "fact"; // events map to fact for routing
-        else if (pattern.includes("flags"))
+        else if (patternPrefix.includes("flags"))
           kind = "fact"; // flags map to fact for routing
-        else if (pattern.includes("symbols")) kind = "fact";
+        else if (patternPrefix.includes("symbols")) kind = "fact";
       }
       break;
     }
