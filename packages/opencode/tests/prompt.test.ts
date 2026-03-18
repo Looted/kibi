@@ -1,6 +1,27 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import type { KibiConfig } from "../src/config";
 import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
+
+const baseConfig: KibiConfig = {
+  enabled: true,
+  prompt: { enabled: true, hookMode: "auto" },
+  sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
+  ux: {
+    toastFailures: true,
+    toastSuccesses: false,
+    toastCooldownMs: 10000,
+  },
+  guidance: {
+    dynamic: true,
+    warnOnKbEdits: true,
+    factFirstDomainRouting: true,
+    commentDetection: { enabled: true, minLines: 6 },
+    targetedChecks: { enabled: true },
+    sessionSummary: { enabled: true, logIntervalMs: 1800000 },
+  },
+  logLevel: "info",
+};
 
 describe("prompt", () => {
   test("buildPrompt returns guidance with sentinel", () => {
@@ -9,63 +30,26 @@ describe("prompt", () => {
   });
 
   test("injectPrompt adds guidance when not present", () => {
-    const result = injectPrompt("hello", {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt("hello", baseConfig);
     assert.ok(result.includes(SENTINEL));
   });
 
   test("injectPrompt skips when sentinel present", () => {
     const withSentinel = `hello\n\n${SENTINEL}`;
-    const result = injectPrompt(withSentinel, {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt(withSentinel, baseConfig);
     assert.equal(result, withSentinel);
   });
 
   test("injectPrompt skips when prompt disabled", () => {
     const result = injectPrompt("hello", {
-      enabled: true,
+      ...baseConfig,
       prompt: { enabled: false, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
     });
     assert.equal(result, "hello");
   });
 
   test("guidance mentions only public Kibi tools", () => {
-    const result = injectPrompt("", {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt("", baseConfig);
 
     // Should mention public tools
     assert.ok(result.includes("kb_query"), "Should mention kb_query");
@@ -85,17 +69,7 @@ describe("prompt", () => {
   });
 
   test("guidance includes traceability instruction", () => {
-    const result = injectPrompt("", {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt("", baseConfig);
 
     assert.ok(
       result.includes("// implements REQ-xxx"),
@@ -104,17 +78,7 @@ describe("prompt", () => {
   });
 
   test("guidance mentions /init-kibi bootstrap command", () => {
-    const result = injectPrompt("", {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt("", baseConfig);
 
     assert.ok(
       result.includes("/init-kibi"),
@@ -127,17 +91,7 @@ describe("prompt", () => {
   });
 
   test("guidance prefers Kibi over inline comments", () => {
-    const result = injectPrompt("", {
-      enabled: true,
-      prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-      ux: {
-        toastFailures: true,
-        toastSuccesses: false,
-        toastCooldownMs: 10000,
-      },
-      logLevel: "info",
-    });
+    const result = injectPrompt("", baseConfig);
 
     assert.ok(
       result.includes(
