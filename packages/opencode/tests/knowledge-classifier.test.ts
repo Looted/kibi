@@ -145,7 +145,7 @@ describe("knowledge-classifier classifyKnowledge", () => {
 
     it("returns null for low confidence matches", () => {
       const text =
-        "This is some random text that doesn't contain any specific cues about facts, requirements, or decisions. It just talks about general things.";
+        "This is some random text that doesn't contain any specific cues about systems or behaviors. It just talks about general everyday topics and observations.";
       const result = classifyKnowledge(text);
       assert.equal(result, null);
     });

@@ -18,6 +18,7 @@ const FACT_CUES = [
   "must be unique",
   "at most",
   "exactly one",
+  "default",
   "default is",
   "expires after",
   "cannot exceed",
@@ -42,7 +43,6 @@ const REQ_CUES = [
   "user should",
   "should allow",
   "shall",
-  "requirement",
   "must support",
   "capability",
   "permission",
@@ -68,7 +68,6 @@ const ADR_CUES = [
  */
 const SCENARIO_CUES = [
   "given",
-  "when",
   "then",
   "user flow",
   "example interaction",
@@ -110,11 +109,12 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
   const testScore = scoreMatches(TEST_CUES, text);
 
   // Determine the best match with some tie-breaking logic
+  // Confidence: 3+ matches = high, 1-2 matches = medium, 0 = no result
   if (factScore > maxMatches) {
     maxMatches = factScore;
     bestMatch = {
       type: "fact",
-      confidence: factScore >= 3 ? "high" : factScore > 1 ? "medium" : "low",
+      confidence: factScore >= 3 ? "high" : "medium",
       reasoning:
         'Contains domain invariant or property cues like "must be unique", "at most", or "default is"',
     };
@@ -124,7 +124,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = reqScore;
     bestMatch = {
       type: "req",
-      confidence: reqScore >= 3 ? "high" : reqScore > 1 ? "medium" : "low",
+      confidence: reqScore >= 3 ? "high" : "medium",
       reasoning:
         'Contains system behavior or obligation cues like "system must", "user can", or "shall"',
     };
@@ -134,7 +134,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = adrScore;
     bestMatch = {
       type: "adr",
-      confidence: adrScore >= 3 ? "high" : adrScore > 1 ? "medium" : "low",
+      confidence: adrScore >= 3 ? "high" : "medium",
       reasoning:
         'Contains decision or tradeoff cues like "we chose", "because", or "constraint"',
     };
@@ -144,8 +144,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = scenarioScore;
     bestMatch = {
       type: "scenario",
-      confidence:
-        scenarioScore >= 3 ? "high" : scenarioScore > 1 ? "medium" : "low",
+      confidence: scenarioScore >= 3 ? "high" : "medium",
       reasoning:
         'Contains behavior example cues like "given/when/then" or "user flow"',
     };
@@ -155,13 +154,13 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
     maxMatches = testScore;
     bestMatch = {
       type: "test",
-      confidence: testScore >= 3 ? "high" : testScore > 1 ? "medium" : "low",
+      confidence: testScore >= 3 ? "high" : "medium",
       reasoning:
         'Contains verification cues like "verify", "assert", or "expected"',
     };
   }
 
-  // Return best match
+  // Return best match (any match with at least 1 cue is medium+ confidence)
   if (bestMatch) {
     return bestMatch;
   }
