@@ -19,7 +19,6 @@ import { execSync } from "node:child_process";
 import * as vscode from "vscode";
 import { buildHoverMarkdown } from "./helpers";
 import type { RelationshipCache } from "./relationshipCache";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
 import type { SymbolIndex } from "./symbolIndex";
 
 interface EntityDetails {

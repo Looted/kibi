@@ -141,8 +141,8 @@ class SessionTracker {
   /**
    * Check if session has expired.
    */
-  isSessionExpired(): boolean {
-    return Date.now() - this.sessionStart > SESSION_DURATION_MS;
+  isSessionExpired(intervalMs = SESSION_DURATION_MS): boolean {
+    return Date.now() - this.sessionStart > intervalMs;
   }
 
   private logWarning(category: WarningCategory, message: string): void {
