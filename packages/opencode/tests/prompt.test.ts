@@ -100,4 +100,37 @@ describe("prompt", () => {
       "Should guide agents to prefer Kibi over comments",
     );
   });
+
+  test("contextual guidance for code edits includes sentinel", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+    });
+    assert.ok(result.includes(SENTINEL), "Contextual guidance must include sentinel");
+    assert.ok(result.includes("Code changes detected"), "Should include code edit guidance");
+  });
+
+  test("contextual guidance for requirement edits includes sentinel", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "documentation/requirements/REQ-001.md", kind: "requirement" }],
+    });
+    assert.ok(result.includes(SENTINEL), "Contextual guidance must include sentinel");
+    assert.ok(result.includes("Requirement changes detected"), "Should include requirement guidance");
+  });
+
+  test("contextual guidance for .kb edits includes sentinel and warning", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [],
+      hasRecentKbEdit: true,
+    });
+    assert.ok(result.includes(SENTINEL), "Contextual guidance must include sentinel");
+    assert.ok(result.includes("WARNING"), "Should include .kb edit warning");
+  });
+
+  test("injectPrompt with contextual guidance skips when sentinel already present", () => {
+    const existing = `existing\n\n${SENTINEL}\nsome old guidance`;
+    const result = injectPrompt(existing, baseConfig, {
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+    });
+    assert.equal(result, existing, "Should not inject again when sentinel present");
+  });
 });

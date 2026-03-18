@@ -96,16 +96,16 @@ if (RUN_NODE_TEST_SUITE) {
         { timeout: 30000 },
         async () => {
           const configModule = await import(
-            join(installDir, "node_modules/kibi-opencode/config.js")
+            join(installDir, "node_modules/kibi-opencode/dist/config.js")
           );
           const promptModule = await import(
-            join(installDir, "node_modules/kibi-opencode/prompt.js")
+            join(installDir, "node_modules/kibi-opencode/dist/prompt.js")
           );
           const schedulerModule = await import(
-            join(installDir, "node_modules/kibi-opencode/scheduler.js")
+            join(installDir, "node_modules/kibi-opencode/dist/scheduler.js")
           );
           const fileFilterModule = await import(
-            join(installDir, "node_modules/kibi-opencode/file-filter.js")
+            join(installDir, "node_modules/kibi-opencode/dist/file-filter.js")
           );
 
           // Verify helper functions are accessible via subpaths
