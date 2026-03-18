@@ -1,6 +1,6 @@
 {
   "name": "kibi-opencode",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Kibi OpenCode plugin - thin adapter to integrate Kibi with OpenCode sessions",
   "type": "module",
   "main": "dist/index.js",
