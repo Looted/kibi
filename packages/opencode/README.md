@@ -12,7 +12,7 @@ Or via OpenCode's plugin system in `opencode.json`:
 
 ```json
 {
-  "plugins": ["kibi-opencode"]
+  "plugin": ["kibi-opencode"]
 }
 ```
 
