@@ -20,6 +20,14 @@ describe("hook contract", () => {
       toastSuccesses: false,
       toastCooldownMs: 10000,
     },
+    guidance: {
+      dynamic: true,
+      warnOnKbEdits: true,
+      factFirstDomainRouting: true,
+      commentDetection: { enabled: true, minLines: 6 },
+      targetedChecks: { enabled: true },
+      sessionSummary: { enabled: true, logIntervalMs: 1800000 },
+    },
     logLevel: "info",
   };
 
@@ -69,10 +77,7 @@ describe("hook contract", () => {
       "experimental.chat.system.transform" in hooks,
       "auto mode should register experimental.chat.system.transform",
     );
-    assert.ok(
-      "chat.params" in hooks,
-      "auto mode should register chat.params",
-    );
+    assert.ok("chat.params" in hooks, "auto mode should register chat.params");
   });
 
   test("chat-params mode: system.transform absent, chat.params present", async () => {

@@ -1,5 +1,25 @@
 # kibi-opencode
 
+## 0.4.0
+
+### Minor Changes
+
+- Add dynamic contextual prompt guidance based on edit type and workspace state.
+- Add path-kind classifier for detecting code, requirement, KB doc, and .kb edits.
+- Add workspace health detector for bootstrap nudges.
+- Emit loud warnings when agents attempt manual .kb/** edits (gated on `guidance.warnOnKbEdits`).
+- Add targeted validation checks for requirement completeness and traceability (gated on `guidance.targetedChecks.enabled`).
+- Add session tracking with configurable periodic summaries (`guidance.sessionSummary`).
+- Add `/init-kibi` advertisement to injected guidance.
+- Update REQ-opencode-kibi-plugin-v1 to include enforcement features.
+- Add SCEN-opencode-enforcement for enforcement workflow.
+- Update TEST-opencode-kibi-plugin-v1 to cover enforcement features.
+
+### Patch Changes
+
+- All guidance config toggles now respected: `guidance.warnOnKbEdits`, `guidance.targetedChecks.enabled`, `guidance.sessionSummary.enabled/logIntervalMs`.
+- Requirement lint path resolution now handles relative paths from worktree.
+
 ## 0.3.0
 
 ### Minor Changes

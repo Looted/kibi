@@ -5,6 +5,11 @@
   "description": "Configuration schema for Kibi knowledge base",
   "type": "object",
   "properties": {
+    "$schema": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional JSON Schema identifier for editor/schema tooling"
+    },
     "paths": {
       "type": "object",
       "description": "Directory paths for entity documentation",

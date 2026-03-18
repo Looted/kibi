@@ -71,7 +71,52 @@ function startServer(options?: {
     env: options?.env ? { ...process.env, ...options.env } : process.env,
   });
 
+  // Log errors from the server process
+  proc.on("error", (err) => {
+    console.error("Server process error:", err);
+  });
+
+  // Ensure the server process is killed when the parent process exits
+  const cleanup = () => {
+    if (!proc.killed) {
+      proc.kill("SIGKILL");
+    }
+  };
+  process.on("exit", cleanup);
+  process.on("SIGINT", cleanup);
+  process.on("SIGTERM", cleanup);
+
   return proc;
+}
+
+async function killServer(proc: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    if (proc.killed || !proc.pid) {
+      resolve();
+      return;
+    }
+
+    // Register exit/error handlers before sending SIGTERM to avoid a race
+    // where the process exits before the handler is attached.
+    const forceKillTimeout = setTimeout(() => {
+      if (!proc.killed) {
+        proc.kill("SIGKILL");
+      }
+    }, 1000);
+
+    proc.on("exit", () => {
+      clearTimeout(forceKillTimeout);
+      resolve();
+    });
+
+    proc.on("error", () => {
+      clearTimeout(forceKillTimeout);
+      resolve();
+    });
+
+    // Try graceful termination after handlers are registered
+    proc.kill("SIGTERM");
+  });
 }
 
 describe("MCP Server", () => {
@@ -93,7 +138,7 @@ describe("MCP Server", () => {
     expect(response.id).toBe(1);
     expect(response.result).toBeDefined();
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle initialize request", async () => {
@@ -121,7 +166,7 @@ describe("MCP Server", () => {
     );
     expect(result.capabilities).toBeDefined();
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle notifications/initialized", async () => {
@@ -144,7 +189,7 @@ describe("MCP Server", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle tools/list request", async () => {
@@ -179,7 +224,7 @@ describe("MCP Server", () => {
       "kb_delete",
       "kb_check",
     ]);
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle prompts/list request", async () => {
@@ -215,7 +260,7 @@ describe("MCP Server", () => {
     expect(initKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle prompts/get for init-kibi", async () => {
@@ -274,7 +319,7 @@ describe("MCP Server", () => {
     expect(contentText).not.toMatch(/kb_branch_gc/);
     expect(contentText).not.toMatch(/kb_list_entity_types/);
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should reject removed MCP tools", async () => {
@@ -309,7 +354,7 @@ describe("MCP Server", () => {
       | undefined;
     expect(content?.[0]?.text).toMatch(/not found/i);
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should initialize from non-repo cwd with workspace override", async () => {
@@ -335,7 +380,7 @@ describe("MCP Server", () => {
     expect(response.id).toBe(1);
     expect(response.result).toBeDefined();
 
-    proc.kill();
+    await killServer(proc);
     fs.rmSync(tempRoot, { recursive: true, force: true });
   });
 
@@ -396,7 +441,7 @@ describe("MCP Server", () => {
         fs.existsSync(path.join(tempRoot, ".kb/branches/feature-auto-ensure")),
       ).toBe(true);
     } finally {
-      proc.kill();
+      await killServer(proc);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   });
@@ -426,7 +471,7 @@ describe("MCP Server", () => {
     expect(error.code).toBe(-32601); // METHOD_NOT_FOUND
     expect(error.message).toContain("Method not found");
 
-    proc.kill();
+    await killServer(proc);
   });
 
   test("should handle mixed kb_query/kb_check/kb_upsert/kb_delete burst without timeouts", async () => {
@@ -554,7 +599,7 @@ describe("MCP Server", () => {
         expect(del.error).toBeUndefined();
       }
     } finally {
-      proc.kill();
+      await killServer(proc);
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 180000);

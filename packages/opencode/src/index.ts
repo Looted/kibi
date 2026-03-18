@@ -1,28 +1,114 @@
 import * as config from "./config";
 import * as fileFilter from "./file-filter";
 import * as logger from "./logger";
-import { SENTINEL, injectPrompt } from "./prompt";
+import { type PathKind, analyzePath } from "./path-kind";
+import { injectPrompt } from "./prompt";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
+import { type WarningCategory, getSessionTracker } from "./session-tracker";
+import { checkWorkspaceHealth } from "./workspace-health";
 
 // implements REQ-opencode-kibi-plugin-v1
 
+interface RecentEdit {
+  path: string;
+  kind: PathKind;
+  timestamp: number;
+}
+
+import * as fs from "node:fs";
 import type { Hooks, Plugin, PluginInput } from "@opencode-ai/plugin";
+
+/**
+ * Lint requirement document for anti-patterns.
+ */
+function lintRequirementDoc(
+  filePath: string,
+  worktree?: string,
+): Array<{ category: WarningCategory; message: string }> {
+  const warnings: Array<{ category: WarningCategory; message: string }> = [];
+
+  try {
+    const resolvedPath =
+      worktree && !filePath.startsWith("/")
+        ? `${worktree}/${filePath}`
+        : filePath;
+    const content = fs.readFileSync(resolvedPath, "utf-8");
+
+    // Check for embedded scenarios (Given/When/Then patterns)
+    if (/given\s+.*when\s+.*then/i.test(content)) {
+      warnings.push({
+        category: "embedded-scenario-in-req",
+        message: `Requirement file ${filePath} appears to contain embedded scenario (Given/When/Then). Consider extracting to a separate SCEN entity.`,
+      });
+    }
+
+    // Check for embedded tests (assert/verify patterns)
+    if (/\b(assert|verify|expected\s+to|should\s+return)\b/i.test(content)) {
+      warnings.push({
+        category: "embedded-test-in-req",
+        message: `Requirement file ${filePath} appears to contain embedded test assertions. Consider extracting to a separate TEST entity.`,
+      });
+    }
+
+    // Check for very long requirement that might need splitting
+    const lines = content.split("\n");
+    const contentLines = lines.filter(
+      (l) => l.trim() && !l.startsWith("---") && !l.startsWith("#"),
+    );
+    if (contentLines.length > 50) {
+      warnings.push({
+        category: "missing-traceability",
+        message: `Requirement file ${filePath} is very long (${contentLines.length} content lines). Consider splitting into multiple requirements or extracting scenarios/tests.`,
+      });
+    }
+  } catch {
+    // Ignore read errors
+  }
+
+  return warnings;
+}
 
 export type { Plugin, PluginInput, Hooks };
 
 let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
-let cfg: config.KibiConfig | null = null;
+let cfg: config.KibiConfig;
+
+// Track recent edits for contextual guidance
+const MAX_RECENT_EDITS = 5;
+let recentEdits: RecentEdit[] = [];
+let hasRecentKbEdit = false;
 
 // implements REQ-opencode-kibi-plugin-v1
 const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
   // Load config
-  cfg = config.loadConfig(input.directory);
+  const loadedCfg = config.loadConfig(input.directory);
+  cfg = loadedCfg;
 
   if (!cfg.enabled) {
     logger.info("kibi-opencode: disabled via config");
     return {};
+  }
+
+  // Check workspace health for bootstrap nudges
+  const workspaceHealth = checkWorkspaceHealth(input.worktree);
+  if (workspaceHealth.needsBootstrap) {
+    logger.warn("kibi-opencode: workspace needs Kibi bootstrap");
+    getSessionTracker().recordWarning(
+      "bootstrap-needed",
+      input.worktree,
+      "Workspace missing Kibi bootstrap",
+    );
+  }
+
+  // Log session summary periodically (gated on config)
+  if (cfg.guidance.sessionSummary.enabled) {
+    const tracker = getSessionTracker();
+    if (tracker.isSessionExpired(cfg.guidance.sessionSummary.logIntervalMs)) {
+      tracker.logSummary();
+      tracker.reset();
+    }
   }
 
   logger.info("kibi-opencode: setting up hooks");
@@ -39,12 +125,66 @@ const kibiOpencodePlugin: Plugin = async (
 
     hooks.event = async ({ event }) => {
       if (event.type !== "file.edited") return;
-      const filePath = (event as { type: string; properties: { file: string } }).properties.file;
+      const filePath = (event as { type: string; properties: { file: string } })
+        .properties.file;
       if (!filePath) return;
+
+      // Analyze path for tracking and classification
+      const pathAnalysis = analyzePath(filePath, input.worktree);
+
+      // Check for .kb edit (loud warning) — gated on guidance.warnOnKbEdits
+      if (pathAnalysis.isUnderKb && cfg.guidance.warnOnKbEdits) {
+        hasRecentKbEdit = true;
+        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+        getSessionTracker().recordWarning(
+          "kb-edit",
+          filePath,
+          `Manual .kb edit: ${filePath}`,
+        );
+      }
+
+      // Lint requirement docs for anti-patterns
+      if (pathAnalysis.kind === "requirement") {
+        const lintWarnings = lintRequirementDoc(filePath, input.worktree);
+        for (const warning of lintWarnings) {
+          getSessionTracker().recordWarning(
+            warning.category,
+            filePath,
+            warning.message,
+          );
+        }
+      }
+
+      // Track recent edits
+      const now = Date.now();
+      recentEdits.push({
+        path: filePath,
+        kind: pathAnalysis.kind,
+        timestamp: now,
+      });
+
+      // Keep only recent edits
+      if (recentEdits.length > MAX_RECENT_EDITS) {
+        recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
+      }
+
+      // Only schedule sync for relevant files (not .kb)
       if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
+      // Determine targeted checks based on edit type (gated on guidance.targetedChecks.enabled)
+      let checkRules: string[] | undefined;
+      if (cfg.guidance.targetedChecks.enabled) {
+        if (
+          ["requirement", "scenario", "test", "adr", "fact"].includes(
+            pathAnalysis.kind,
+          )
+        ) {
+          checkRules = ["required-fields", "no-dangling-refs"];
+        }
+      }
+
       logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-      scheduler!.scheduleSync("file.edited", filePath);
+      scheduler?.scheduleSync("file.edited", filePath, checkRules);
     };
   }
 
@@ -55,7 +195,11 @@ const kibiOpencodePlugin: Plugin = async (
     if (hookMode === "system-transform" || hookMode === "auto") {
       hooks["experimental.chat.system.transform"] = async (_input, output) => {
         const currentSystem = output.system.join("\n");
-        const injected = injectPrompt(currentSystem, cfg!);
+        const injected = injectPrompt(currentSystem, cfg, {
+          recentEdits,
+          workspaceHealth,
+          hasRecentKbEdit,
+        });
         output.system.length = 0;
         output.system.push(injected);
       };
@@ -81,5 +225,3 @@ const kibiOpencodePlugin: Plugin = async (
 };
 
 export default kibiOpencodePlugin;
-
-export { config, fileFilter, createSyncScheduler, injectPrompt, SENTINEL };

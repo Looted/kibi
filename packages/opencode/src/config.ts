@@ -21,6 +21,22 @@ export interface KibiConfig {
     toastSuccesses: boolean;
     toastCooldownMs: number;
   };
+  guidance: {
+    dynamic: boolean;
+    warnOnKbEdits: boolean;
+    factFirstDomainRouting: boolean;
+    commentDetection: {
+      enabled: boolean;
+      minLines: number;
+    };
+    targetedChecks: {
+      enabled: boolean;
+    };
+    sessionSummary: {
+      enabled: boolean;
+      logIntervalMs: number;
+    };
+  };
   logLevel: string;
 }
 
@@ -29,6 +45,22 @@ const DEFAULTS: KibiConfig = {
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: { toastFailures: true, toastSuccesses: false, toastCooldownMs: 10000 },
+  guidance: {
+    dynamic: true,
+    warnOnKbEdits: true,
+    factFirstDomainRouting: true,
+    commentDetection: {
+      enabled: true,
+      minLines: 6,
+    },
+    targetedChecks: {
+      enabled: true,
+    },
+    sessionSummary: {
+      enabled: true,
+      logIntervalMs: 30 * 60 * 1000, // 30 minutes
+    },
+  },
   logLevel: "info",
 };
 
@@ -96,6 +128,41 @@ function validateAndMerge(obj: unknown): KibiConfig {
   }
 
   if (typeof src.logLevel === "string") out.logLevel = src.logLevel;
+
+  if (src.guidance && typeof src.guidance === "object") {
+    const g = src.guidance as Record<string, unknown>;
+    out.guidance = { ...DEFAULTS.guidance };
+    if (typeof g.dynamic === "boolean") out.guidance.dynamic = g.dynamic;
+    if (typeof g.warnOnKbEdits === "boolean")
+      out.guidance.warnOnKbEdits = g.warnOnKbEdits;
+    if (typeof g.factFirstDomainRouting === "boolean")
+      out.guidance.factFirstDomainRouting = g.factFirstDomainRouting;
+
+    if (g.commentDetection && typeof g.commentDetection === "object") {
+      const cd = g.commentDetection as Record<string, unknown>;
+      out.guidance.commentDetection = { ...DEFAULTS.guidance.commentDetection };
+      if (typeof cd.enabled === "boolean")
+        out.guidance.commentDetection.enabled = cd.enabled;
+      if (typeof cd.minLines === "number")
+        out.guidance.commentDetection.minLines = cd.minLines;
+    }
+
+    if (g.targetedChecks && typeof g.targetedChecks === "object") {
+      const tc = g.targetedChecks as Record<string, unknown>;
+      out.guidance.targetedChecks = { ...DEFAULTS.guidance.targetedChecks };
+      if (typeof tc.enabled === "boolean")
+        out.guidance.targetedChecks.enabled = tc.enabled;
+    }
+
+    if (g.sessionSummary && typeof g.sessionSummary === "object") {
+      const ss = g.sessionSummary as Record<string, unknown>;
+      out.guidance.sessionSummary = { ...DEFAULTS.guidance.sessionSummary };
+      if (typeof ss.enabled === "boolean")
+        out.guidance.sessionSummary.enabled = ss.enabled;
+      if (typeof ss.logIntervalMs === "number")
+        out.guidance.sessionSummary.logIntervalMs = ss.logIntervalMs;
+    }
+  }
 
   return out;
 }

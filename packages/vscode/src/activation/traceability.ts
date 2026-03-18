@@ -2,8 +2,6 @@
  * Traceability feature registration utilities for Kibi VS Code extension
  * Includes code actions, code lens, and hover providers
  */
-import * as fs from "node:fs";
-import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   KibiCodeActionProvider,
@@ -12,6 +10,7 @@ import {
 import { KibiCodeLensProvider } from "../codeLensProvider";
 import { KibiHoverProvider } from "../hoverProvider";
 import { RelationshipCache } from "../relationshipCache";
+import { resolveSymbolsManifestPath } from "../shared/manifestResolver";
 import { type SymbolIndex, buildIndex } from "../symbolIndex";
 
 export interface TraceabilityRegistrationResult {
@@ -106,7 +105,7 @@ export function registerTraceability(
   }
 
   // ── Symbol index ─────────────────────────────────────────────────────────────
-  const manifestPath = resolveManifestPath(workspaceRoot);
+  const manifestPath = resolveSymbolsManifestPath(workspaceRoot);
   const symbolIndex: SymbolIndex | null = buildIndex(
     manifestPath,
     workspaceRoot,
@@ -136,34 +135,4 @@ export function registerTraceability(
   }
 
   return results;
-}
-
-/**
- * Resolves the manifest path using config.json or default conventions.
- */
-function resolveManifestPath(workspaceRoot: string): string {
-  const configPath = path.join(workspaceRoot, ".kb", "config.json");
-  try {
-    if (fs.existsSync(configPath)) {
-      const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
-        symbolsManifest?: string;
-        paths?: { symbols?: string };
-      };
-      // Check top-level symbolsManifest (legacy) or paths.symbols (current convention)
-      const manifestRelPath = config.symbolsManifest ?? config.paths?.symbols;
-      if (manifestRelPath) {
-        return path.isAbsolute(manifestRelPath)
-          ? manifestRelPath
-          : path.resolve(workspaceRoot, manifestRelPath);
-      }
-    }
-  } catch {
-    // ignore
-  }
-  // Default convention: symbols.yaml at workspace root
-  const candidates = [
-    path.join(workspaceRoot, "symbols.yaml"),
-    path.join(workspaceRoot, "symbols.yml"),
-  ];
-  return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
 }

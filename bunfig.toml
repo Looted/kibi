@@ -1,0 +1,20 @@
+[test]
+# Coverage is only collected when --coverage flag is passed (e.g. via test:coverage:unit).
+# Normal `bun test` and `bun run test:unit` runs are unaffected.
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage/unit"
+coveragePathIgnorePatterns = [
+  # Test files — must not contribute fake coverage
+  "**/tests/**",
+  "**/*.test.ts",
+  "**/*.spec.ts",
+  # E2E suite — excluded explicitly even though `packages/` glob already skips it
+  "documentation/tests/e2e/**",
+  # Build outputs and generated files
+  "dist/**",
+  "build/**",
+  # Type declaration stubs
+  "**/*.d.ts",
+  # Prolog codec (plain JS, not TS source)
+  "**/prolog/codec.js",
+]
