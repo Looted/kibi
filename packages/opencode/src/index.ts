@@ -67,7 +67,7 @@ function lintRequirementDoc(
 export type { Plugin, PluginInput, Hooks };
 
 let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
-let cfg: config.KibiConfig | null = null;
+let cfg: config.KibiConfig;
 
 // Track recent edits for contextual guidance
 const MAX_RECENT_EDITS = 5;
@@ -79,7 +79,8 @@ const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
   // Load config
-  cfg = config.loadConfig(input.directory);
+  const loadedCfg = config.loadConfig(input.directory);
+  cfg = loadedCfg;
 
   if (!cfg.enabled) {
     logger.info("kibi-opencode: disabled via config");
@@ -175,7 +176,7 @@ const kibiOpencodePlugin: Plugin = async (
       }
 
       logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-      scheduler!.scheduleSync("file.edited", filePath, checkRules);
+      scheduler?.scheduleSync("file.edited", filePath, checkRules);
     };
   }
 
@@ -186,7 +187,7 @@ const kibiOpencodePlugin: Plugin = async (
     if (hookMode === "system-transform" || hookMode === "auto") {
       hooks["experimental.chat.system.transform"] = async (_input, output) => {
         const currentSystem = output.system.join("\n");
-        const injected = injectPrompt(currentSystem, cfg!, {
+        const injected = injectPrompt(currentSystem, cfg, {
           recentEdits,
           workspaceHealth,
           hasRecentKbEdit,
@@ -216,5 +217,3 @@ const kibiOpencodePlugin: Plugin = async (
 };
 
 export default kibiOpencodePlugin;
-
-export { config, fileFilter, createSyncScheduler, injectPrompt, SENTINEL };

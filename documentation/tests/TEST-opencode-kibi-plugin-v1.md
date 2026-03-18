@@ -27,5 +27,6 @@ Automated verification for the OpenCode Kibi Plugin v1 requirement includes:
 - Integration tests for targeted background validation checks after KB-document edits.
 - Tests for loud warning behavior when `.kb/**` files are edited.
 - Tests for bootstrap/health detection and nudges toward `/init-kibi` and `kibi init`.
+- **Packed package loader-safety test** verifying that root exports are OpenCode-loader compatible (only plugin function, no helper function exports).
 
 All test code must reference `REQ-opencode-kibi-plugin-v1` for traceability.
