@@ -18,7 +18,7 @@ const KIBI_DOC_DIRS = [
   "documentation/flags",
   "documentation/events",
   "documentation/facts",
-  "symbols.yaml",
+  "documentation/symbols.yaml",
 ];
 
 /**

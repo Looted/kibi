@@ -70,20 +70,22 @@ describe("workspace-health checkWorkspaceHealth", () => {
     fs.mkdirSync(kbDir, { recursive: true });
     fs.writeFileSync(path.join(kbDir, "config.json"), "{}");
 
-    // Create all doc dirs with dummy markdown files
+    // Create all doc dirs required by KIBI_DOC_DIRS
     const docDirs = [
       "documentation/requirements",
       "documentation/scenarios",
       "documentation/tests",
       "documentation/adr",
+      "documentation/flags",
+      "documentation/events",
+      "documentation/facts",
     ];
     for (const dir of docDirs) {
-      const dirPath = path.join(tmpDir, dir);
-      fs.mkdirSync(dirPath, { recursive: true });
-      // Create a dummy markdown file in each dir
-      const dummyFile = path.join(dirPath, "DUMMY.md");
-      fs.writeFileSync(dummyFile, "# Dummy");
+      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
     }
+
+    // Create symbols.yaml in documentation/
+    fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]");
 
     const result = checkWorkspaceHealth(tmpDir);
     assert.equal(result.needsBootstrap, false);
