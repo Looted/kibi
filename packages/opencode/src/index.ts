@@ -87,8 +87,18 @@ const kibiOpencodePlugin: Plugin = async (
       // Only schedule sync for relevant files (not .kb)
       if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
+      // Determine targeted checks based on edit type
+      let checkRules: string[] | undefined;
+      if (pathAnalysis.kind === "requirement") {
+        checkRules = ["required-fields", "no-dangling-refs"];
+      } else if (
+        ["scenario", "test", "adr", "fact"].includes(pathAnalysis.kind)
+      ) {
+        checkRules = ["required-fields", "no-dangling-refs"];
+      }
+
       logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-      scheduler!.scheduleSync("file.edited", filePath);
+      scheduler!.scheduleSync("file.edited", filePath, checkRules);
     };
   }
 
