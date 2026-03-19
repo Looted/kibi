@@ -141,7 +141,7 @@ if (RUN_NODE_TEST_SUITE) {
             id: "req1",
             title: "Initial Requirement",
             type: "req",
-            status: "draft",
+            status: "open",
             tags: ["test"],
           },
           "Test requirement for MCP operations.",
@@ -339,7 +339,7 @@ if (RUN_NODE_TEST_SUITE) {
                 id: "req-new",
                 properties: {
                   title: "New Requirement",
-                  status: "draft",
+                  status: "open",
                   source: "test://integration",
                   tags: ["new"],
                 },
@@ -414,7 +414,7 @@ if (RUN_NODE_TEST_SUITE) {
                 id: "req1",
                 properties: {
                   title: "Updated Title",
-                  status: "approved",
+                  status: "open",
                   source: "test://integration",
                   tags: ["updated"],
                 },

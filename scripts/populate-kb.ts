@@ -1,11 +1,11 @@
 #!/usr/bin/env bun
+import path from "node:path";
 /**
  * Populates the Kibi KB with entities derived from project documentation.
  * Run from repo root: bun run scripts/populate-kb.ts
  */
 import { PrologProcess } from "../packages/cli/src/prolog.js";
 import { handleKbUpsert } from "../packages/mcp/src/tools/upsert.js";
-import path from "node:path";
 
 const kbPath = path.resolve(".kb/branches/main");
 const prolog = new PrologProcess({ timeout: 30000 });
@@ -30,7 +30,7 @@ const entities: EntityDef[] = [
     id: "REQ-001",
     properties: {
       title: "Repo-local per-branch knowledge base",
-      status: "active",
+      status: "open",
       source: "brief.md#3.1",
       priority: "must",
       tags: ["core", "storage", "branching"],
@@ -41,7 +41,7 @@ const entities: EntityDef[] = [
     id: "REQ-002",
     properties: {
       title: "MCP server with 6 tools over stdio transport",
-      status: "active",
+      status: "open",
       source: "brief.md#4.2",
       priority: "must",
       tags: ["mcp", "api", "tools"],
@@ -52,7 +52,7 @@ const entities: EntityDef[] = [
     id: "REQ-003",
     properties: {
       title: "CLI with init, sync, query, check, gc, doctor commands",
-      status: "active",
+      status: "open",
       source: "brief.md#4.3",
       priority: "must",
       tags: ["cli", "commands"],
@@ -64,7 +64,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "Eight entity types: req, scenario, test, adr, flag, event, symbol, fact",
-      status: "active",
+      status: "open",
       source: "brief.md#2.1",
       priority: "must",
       tags: ["schema", "entities"],
@@ -75,7 +75,7 @@ const entities: EntityDef[] = [
     id: "REQ-005",
     properties: {
       title: "Typed relationships between entities with audit metadata",
-      status: "active",
+      status: "open",
       source: "brief.md#2.2",
       priority: "must",
       tags: ["schema", "relationships"],
@@ -87,7 +87,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "Built-in consistency validation rules (must-priority-coverage, no-cycles, no-dangling-refs)",
-      status: "active",
+      status: "open",
       source: "brief.md#2.3",
       priority: "must",
       tags: ["validation", "check"],
@@ -98,7 +98,7 @@ const entities: EntityDef[] = [
     id: "REQ-007",
     properties: {
       title: "Markdown and YAML manifest extractors for entity import",
-      status: "active",
+      status: "open",
       source: "brief.md#5.2",
       priority: "must",
       tags: ["extractors", "sync"],
@@ -109,7 +109,7 @@ const entities: EntityDef[] = [
     id: "REQ-008",
     properties: {
       title: "Git hooks for automated KB sync on branch checkout and merge",
-      status: "active",
+      status: "open",
       source: "brief.md#3.3",
       priority: "must",
       tags: ["git", "hooks", "automation"],
@@ -120,7 +120,7 @@ const entities: EntityDef[] = [
     id: "REQ-009",
     properties: {
       title: "RDF persistence using SWI-Prolog rdf_persistency library",
-      status: "active",
+      status: "open",
       source: "brief.md#3.2",
       priority: "must",
       tags: ["storage", "prolog", "rdf"],
@@ -131,7 +131,7 @@ const entities: EntityDef[] = [
     id: "REQ-010",
     properties: {
       title: "VS Code extension with TreeView sidebar for KB navigation",
-      status: "active",
+      status: "open",
       source: "brief.md",
       priority: "should",
       tags: ["vscode", "ui"],
@@ -142,7 +142,7 @@ const entities: EntityDef[] = [
     id: "REQ-011",
     properties: {
       title: "Write governance: validated changesets and append-only audit log",
-      status: "active",
+      status: "open",
       source: "brief.md#5.3",
       priority: "must",
       tags: ["governance", "audit", "safety"],
@@ -153,7 +153,7 @@ const entities: EntityDef[] = [
     id: "REQ-012",
     properties: {
       title: "Copy-from-main semantics for new branch KB creation",
-      status: "active",
+      status: "open",
       source: "brief.md#3.1",
       priority: "must",
       tags: ["branching", "copy-from-main"],
@@ -166,7 +166,7 @@ const entities: EntityDef[] = [
     id: "ADR-001",
     properties: {
       title: "Use SWI-Prolog with RDF persistence for knowledge base storage",
-      status: "active",
+      status: "accepted",
       source: "brief.md#3.2",
       tags: ["storage", "prolog", "rdf"],
       text_ref: "docs/architecture.md",
@@ -177,7 +177,7 @@ const entities: EntityDef[] = [
     id: "ADR-002",
     properties: {
       title: "Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess",
-      status: "active",
+      status: "accepted",
       source: ".sisyphus/plans/kibi-v0.md",
       tags: ["cli", "bun", "nodejs"],
     },
@@ -188,7 +188,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "Use stdio JSON-RPC transport for MCP server (no embedded newlines)",
-      status: "active",
+      status: "accepted",
       source: "brief.md#4.1",
       tags: ["mcp", "transport", "json-rpc"],
     },
@@ -198,7 +198,7 @@ const entities: EntityDef[] = [
     id: "ADR-004",
     properties: {
       title: "Per-branch KB isolation with no automatic cross-branch merging",
-      status: "active",
+      status: "accepted",
       source: "brief.md#3.1",
       tags: ["branching", "isolation", "guardrail"],
     },
@@ -209,7 +209,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "Language-agnostic symbol extraction via YAML manifest files (SCIP deferred to v1)",
-      status: "active",
+      status: "accepted",
       source: "brief.md#5.2",
       tags: ["symbols", "manifest", "extractors"],
     },
@@ -219,7 +219,7 @@ const entities: EntityDef[] = [
     id: "ADR-006",
     properties: {
       title: "Monorepo structure: core (Prolog) + cli + mcp + vscode packages",
-      status: "active",
+      status: "accepted",
       source: ".sisyphus/plans/kibi-v0.md",
       tags: ["monorepo", "structure"],
     },
@@ -229,7 +229,7 @@ const entities: EntityDef[] = [
     id: "ADR-007",
     properties: {
       title: "Defer graph visualization and full VS Code features to post-v0",
-      status: "active",
+      status: "accepted",
       source: ".sisyphus/plans/kibi-v0.md",
       tags: ["vscode", "scope", "deferred"],
     },
@@ -242,7 +242,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "vscode-full-features: full VS Code extension with graph visualization",
-      status: "draft",
+      status: "inactive",
       source: ".sisyphus/plans/kibi-v0.md",
       tags: ["vscode", "deferred", "post-v0"],
     },
@@ -253,7 +253,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "scip-symbol-extraction: SCIP/LSP-based language-specific symbol indexing",
-      status: "draft",
+      status: "inactive",
       source: "brief.md#5.2",
       tags: ["symbols", "scip", "v1"],
     },
@@ -263,7 +263,7 @@ const entities: EntityDef[] = [
     id: "FLAG-003",
     properties: {
       title: "web-ui: browser-based KB explorer UI",
-      status: "draft",
+      status: "inactive",
       source: "brief.md",
       tags: ["ui", "web", "non-goal-v0"],
     },
@@ -273,7 +273,7 @@ const entities: EntityDef[] = [
     id: "FLAG-004",
     properties: {
       title: "cross-repo-support: KB federation across multiple repositories",
-      status: "draft",
+      status: "inactive",
       source: "brief.md",
       tags: ["multi-repo", "non-goal-v0"],
     },
@@ -283,7 +283,7 @@ const entities: EntityDef[] = [
     id: "FLAG-005",
     properties: {
       title: "ci-coverage-import: import test coverage data from CI into KB",
-      status: "draft",
+      status: "inactive",
       source: "brief.md#5.2",
       tags: ["ci", "coverage", "future"],
     },
@@ -295,7 +295,7 @@ const entities: EntityDef[] = [
     id: "EVT-001",
     properties: {
       title: "v0.0.1 released as Functional Alpha",
-      status: "active",
+      status: "passing",
       source: ".sisyphus/CONTINUATION-PLAN.md",
       tags: ["release", "v0"],
     },
@@ -305,7 +305,7 @@ const entities: EntityDef[] = [
     id: "EVT-002",
     properties: {
       title: "KB initialized on repository with kibi init",
-      status: "active",
+      status: "passing",
       source: "README.md",
       tags: ["init", "lifecycle"],
     },
@@ -315,7 +315,7 @@ const entities: EntityDef[] = [
     id: "EVT-003",
     properties: {
       title: "Branch KB created from main snapshot on first checkout",
-      status: "active",
+      status: "passing",
       source: "brief.md#3.1",
       tags: ["branching", "lifecycle"],
     },
@@ -325,7 +325,7 @@ const entities: EntityDef[] = [
     id: "EVT-004",
     properties: {
       title: "Entity sync triggered by post-checkout or post-merge git hook",
-      status: "active",
+      status: "passing",
       source: "brief.md#3.3",
       tags: ["git", "hooks", "sync"],
     },
@@ -335,7 +335,7 @@ const entities: EntityDef[] = [
     id: "EVT-005",
     properties: {
       title: "KB garbage collected: stale branch stores deleted by kibi gc",
-      status: "active",
+      status: "passing",
       source: "brief.md#3.3",
       tags: ["gc", "maintenance"],
     },
@@ -347,7 +347,7 @@ const entities: EntityDef[] = [
     id: "SCEN-001",
     properties: {
       title: "Agent queries requirements from KB via MCP kb_query tool",
-      status: "active",
+      status: "passing",
       source: ".sisyphus/plans/kibi-v0.md",
       tags: ["mcp", "query", "agent"],
     },
@@ -358,7 +358,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "Developer initializes KB on fresh repository with kibi init --hooks",
-      status: "active",
+      status: "passing",
       source: "README.md",
       tags: ["init", "setup"],
     },
@@ -368,7 +368,7 @@ const entities: EntityDef[] = [
     id: "SCEN-003",
     properties: {
       title: "Branch switch triggers copy-from-main KB creation and auto-sync",
-      status: "active",
+      status: "passing",
       source: "brief.md#3.3",
       tags: ["branching", "hooks", "automation"],
     },
@@ -379,7 +379,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "LLM agent upserts new requirement via MCP and KB validates schema",
-      status: "active",
+      status: "passing",
       source: "brief.md#5.3",
       tags: ["mcp", "upsert", "validation"],
     },
@@ -630,7 +630,7 @@ const errors: string[] = [];
 for (const e of entities) {
   try {
     const result = await handleKbUpsert(
-      prolog,
+      prolog as unknown as Parameters<typeof handleKbUpsert>[0],
       e as Parameters<typeof handleKbUpsert>[1],
     );
     if (result.structuredContent?.created) created++;
@@ -650,6 +650,6 @@ console.log(
   `\n✓ ${created} created, ${updated} updated, ${errors.length} errors across ${entities.length} entities`,
 );
 if (errors.length) {
-  console.error("Errors:\n" + errors.map((e) => `  ${e}`).join("\n"));
+  console.error(`Errors:\n${errors.map((e) => `  ${e}`).join("\n")}`);
   process.exit(1);
 }

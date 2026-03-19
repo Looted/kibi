@@ -39,13 +39,33 @@ describe("Entity Schema", () => {
     const entity = {
       id: "test-1",
       title: "Test",
-      status: "active",
+      status: "open",
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
       source: "https://example.com",
       type: "req",
     };
     expect(validate(entity)).toBe(true);
+  });
+
+  test("accepts documented entity-specific statuses", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+    const base = {
+      id: "test-entity",
+      title: "Test",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "https://example.com",
+    };
+
+    expect(validate({ ...base, type: "req", status: "open" })).toBe(true);
+    expect(validate({ ...base, type: "test", status: "passing" })).toBe(true);
+    expect(validate({ ...base, type: "adr", status: "accepted" })).toBe(true);
+    expect(validate({ ...base, type: "flag", status: "inactive" })).toBe(true);
+    expect(validate({ ...base, type: "symbol", status: "removed" })).toBe(true);
   });
 
   test("rejects entity missing title", async () => {
@@ -55,7 +75,7 @@ describe("Entity Schema", () => {
     const validate = ajv.compile(entitySchema as any);
     const entity = {
       id: "test-1",
-      status: "active",
+      status: "open",
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
       source: "https://example.com",
@@ -103,7 +123,36 @@ describe("Changeset Schema", () => {
           entity: {
             id: "e1",
             title: "T",
-            status: "active",
+            status: "open",
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+            source: "https://x",
+            type: "req",
+          },
+        },
+      ],
+      metadata: { timestamp: "2024-01-01T00:00:00Z" },
+    };
+    expect(validate(cs)).toBe(true);
+  });
+
+  test("accepts changeset upserts with documented req status", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore
+    ajv.addSchema(entitySchema as any, "entity.schema.json");
+    // @ts-ignore
+    ajv.addSchema(relationshipSchema as any, "relationship.schema.json");
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(changesetSchema as any);
+    const cs = {
+      operations: [
+        {
+          operation: "upsert",
+          entity: {
+            id: "e-open",
+            title: "T",
+            status: "open",
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
             source: "https://x",

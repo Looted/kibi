@@ -40,7 +40,7 @@ if (RUN_NODE_TEST_SUITE) {
         );
         writeFileSync(
           join(tmpDir, "documentation", "requirements", "REQ-001.md"),
-          "---\nid: REQ-001\ntitle: Test Requirement\nstatus: active\n---\n# Test",
+          "---\nid: REQ-001\ntitle: Test Requirement\nstatus: open\n---\n# Test",
         );
         writeFileSync(join(tmpDir, "src", "main.ts"), "console.log('hello');");
       },

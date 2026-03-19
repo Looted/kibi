@@ -15,7 +15,7 @@ links:
 ---
 
 Steps:
-1. Agent sends `kb_upsert` with `{ type: "req", id: "REQ-NEW", title: "...", status: "active", priority: "must" }`
+1. Agent sends `kb_upsert` with `{ type: "req", id: "REQ-NEW", title: "...", status: "open", priority: "must" }`
 2. MCP server validates against changeset schema (required fields present, status enum valid)
 3. Prolog asserts `kb_entity(REQ-NEW, req, Props)` and persists to RDF
 4. Agent receives `{ success: true }` response

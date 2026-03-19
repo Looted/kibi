@@ -46,6 +46,17 @@ export interface ExtractionResult {
   relationships: ExtractedRelationship[];
 }
 
+const DEFAULT_STATUS_BY_TYPE: Record<string, string> = {
+  req: "open",
+  scenario: "draft",
+  test: "pending",
+  adr: "proposed",
+  flag: "active",
+  event: "active",
+  symbol: "active",
+  fact: "active",
+};
+
 export class FrontmatterError extends Error {
   public classification: string;
   public hint: string;
@@ -130,6 +141,7 @@ export function detectEmbeddedEntities(
   return detected;
 }
 
+// implements REQ-007, REQ-004
 export function extractFromMarkdown(filePath: string): ExtractionResult {
   let content: string;
   try {
@@ -214,7 +226,7 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
         id,
         type,
         title: data.title,
-        status: data.status || "draft",
+        status: data.status || DEFAULT_STATUS_BY_TYPE[String(type)] || "active",
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
         source: filePath,

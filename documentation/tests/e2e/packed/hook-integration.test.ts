@@ -129,7 +129,7 @@ if (RUN_NODE_TEST_SUITE) {
         `---
 title: Initial Requirement
 type: req
-status: approved
+ status: open
 ---
 
 # Initial
@@ -191,7 +191,7 @@ status: approved
         `---
 title: Develop
 type: req
-status: approved
+ status: open
 ---
 
 # Develop
@@ -217,7 +217,7 @@ status: approved
         `---
 title: Feature
 type: req
-status: draft
+ status: open
 ---
 
 # Feature
@@ -334,7 +334,7 @@ echo "Existing hook"
           `---
 title: Test
 type: req
-status: approved
+ status: open
 ---
 
 # Test

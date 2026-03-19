@@ -28,7 +28,7 @@ Create or update a single entity and optional relationships in one call.
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
-- `properties`: Entity fields, including required `title` and `status`
+- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility)
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
 
 **Returns:**
