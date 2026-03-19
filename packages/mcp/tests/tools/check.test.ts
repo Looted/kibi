@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import process from "node:process";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
@@ -298,4 +299,282 @@ describe("MCP Check Tool Handler", () => {
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
   }, 20000);
+
+  test("should detect symbol-traceability violations", async () => {
+    // Create a symbol without an implements relationship
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-notrace-001",
+      properties: {
+        title: "Symbol without traceability",
+        status: "active",
+        source: "test://traceability",
+      },
+      // Note: No implements relationship - this should trigger a violation
+    });
+
+    // Run check with all rules (includes symbol-traceability)
+    const result = await handleKbCheck(prolog, {});
+
+    expect(result.structuredContent).toBeDefined();
+    // Look for symbol-traceability violation
+    const traceabilityViolation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "symbol-traceability" && v.entityId === "symbol-notrace-001",
+    );
+    expect(traceabilityViolation).toBeDefined();
+    // The description should mention the missing requirement link
+    expect(traceabilityViolation?.description).toMatch(/requirement/i);
+  }, 15000);
+
+  test("should pass symbol-traceability when symbol implements requirement", async () => {
+    // Create a requirement and a symbol with implements relationship
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-traceability-pass-001",
+      properties: {
+        title: "Requirement for passing traceability",
+        status: "open",
+        source: "test://traceability-pass",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-pass-001",
+      properties: {
+        title: "Symbol with traceability",
+        status: "active",
+        source: "test://traceability-pass",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "symbol-trace-pass-001",
+          to: "req-traceability-pass-001",
+        },
+      ],
+    });
+
+    // Run check with symbol-traceability rule
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    // Should have no violations for our symbol
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-pass-001",
+    );
+    expect(symbolViolation).toBeUndefined();
+  }, 15000);
+
+  test("should run symbol-traceability rule without errors when filtering", async () => {
+    // Create a requirement and symbol without relationship
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-filter-001",
+      properties: {
+        title: "Filter test requirement",
+        status: "open",
+        source: "test://filter-test",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-filter-001",
+      properties: {
+        title: "Filter test symbol",
+        status: "active",
+        source: "test://filter-test",
+      },
+    });
+
+    // Run check with only symbol-traceability rule
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    expect(result.structuredContent?.violations).toBeInstanceOf(Array);
+    // All violations should be symbol-traceability only
+    const nonMatchingViolations = result.structuredContent?.violations.filter(
+      (v) => v.rule !== "symbol-traceability",
+    );
+    expect(nonMatchingViolations?.length).toBe(0);
+  }, 15000);
+
+  test("should include all rules when no specific rules provided", async () => {
+    // This test ensures the aggregated check path covers all rules
+    // and doesn't early-return missing rules like symbol-traceability
+
+    // Create entities that would trigger various violations
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-all-001",
+      properties: {
+        title: "Must-priority requirement",
+        status: "open",
+        priority: "must",
+        source: "test://all-rules",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-all-001",
+      properties: {
+        title: "Symbol without traceability",
+        status: "active",
+        source: "test://all-rules",
+      },
+      // No implements relationship - triggers symbol-traceability violation
+    });
+
+    // Run check without specific rules (should run all rules)
+    const result = await handleKbCheck(prolog, {});
+
+    expect(result.structuredContent).toBeDefined();
+    expect(result.structuredContent?.violations).toBeInstanceOf(Array);
+
+    const violations = result.structuredContent?.violations || [];
+
+    // Check that we have both must-priority-coverage and symbol-traceability violations
+    const mustPriorityViolation = violations.find(
+      (v) => v.rule === "must-priority-coverage",
+    );
+    const symbolTraceabilityViolation = violations.find(
+      (v) => v.rule === "symbol-traceability",
+    );
+    const symbolCoverageViolation = violations.find(
+      (v) => v.rule === "symbol-coverage",
+    );
+
+    // We should have must-priority-coverage violation
+    expect(mustPriorityViolation).toBeDefined();
+    // We should have symbol-coverage violation (same symbol, different rule)
+    expect(symbolCoverageViolation).toBeDefined();
+    expect(symbolCoverageViolation?.entityId).toBe("symbol-all-001");
+    // We should also have symbol-traceability violation
+    expect(symbolTraceabilityViolation).toBeDefined();
+    expect(symbolTraceabilityViolation?.entityId).toBe("symbol-all-001");
+  }, 15000);
+
+  test("should respect disabled rules from .kb/config.json", async () => {
+    const originalWorkspace = process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = testKbPath;
+
+    try {
+      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+      await fs.writeFile(
+        path.join(testKbPath, ".kb", "config.json"),
+        JSON.stringify(
+          {
+            checks: {
+              rules: {
+                "symbol-traceability": false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      await handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "symbol-config-disabled-001",
+        properties: {
+          title: "Config disabled symbol",
+          status: "active",
+          source: "test://config-disabled",
+        },
+      });
+
+      const result = await handleKbCheck(prolog, {});
+      const violation = result.structuredContent?.violations.find(
+        (v) =>
+          v.rule === "symbol-traceability" &&
+          v.entityId === "symbol-config-disabled-001",
+      );
+
+      expect(violation).toBeUndefined();
+    } finally {
+      if (originalWorkspace === undefined) {
+        process.env.KIBI_WORKSPACE = "";
+      } else {
+        process.env.KIBI_WORKSPACE = originalWorkspace;
+      }
+    }
+  }, 15000);
+
+  test("should respect requireAdr from .kb/config.json", async () => {
+    const originalWorkspace = process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = testKbPath;
+
+    try {
+      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+      await fs.writeFile(
+        path.join(testKbPath, ".kb", "config.json"),
+        JSON.stringify(
+          {
+            checks: {
+              symbolTraceability: {
+                requireAdr: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "req-config-adr-001",
+        properties: {
+          title: "ADR config requirement",
+          status: "open",
+          source: "test://config-adr",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "symbol-config-adr-001",
+        properties: {
+          title: "ADR constrained symbol",
+          status: "active",
+          source: "test://config-adr",
+        },
+        relationships: [
+          {
+            type: "implements",
+            from: "symbol-config-adr-001",
+            to: "req-config-adr-001",
+          },
+        ],
+      });
+
+      const result = await handleKbCheck(prolog, {
+        rules: ["symbol-traceability"],
+      });
+
+      const violation = result.structuredContent?.violations.find(
+        (v) =>
+          v.rule === "symbol-traceability" &&
+          v.entityId === "symbol-config-adr-001",
+      );
+
+      expect(violation).toBeDefined();
+      expect(violation?.description).toMatch(/ADR/i);
+    } finally {
+      if (originalWorkspace === undefined) {
+        process.env.KIBI_WORKSPACE = "";
+      } else {
+        process.env.KIBI_WORKSPACE = originalWorkspace;
+      }
+    }
+  }, 15000);
 });
