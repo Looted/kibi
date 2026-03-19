@@ -537,6 +537,66 @@ describe("MCP CRUD Tool Handlers", () => {
       expect(result.structuredContent?.relationships_created).toBe(3);
     }, 15000);
 
+    test("should rollback entity when relationship target does not exist", async () => {
+      // Try to create entity with relationship to non-existent target
+      const upsertPromise = handleKbUpsert(prolog, {
+        type: "test",
+        id: "atomic-test-001",
+        properties: {
+          title: "Atomic Test",
+          status: "passing",
+          source: "test://atomic",
+        },
+        relationships: [
+          {
+            type: "validates",
+            from: "atomic-test-001",
+            to: "non-existent-target",
+          },
+        ],
+      });
+
+      // Should fail
+      expect(upsertPromise).rejects.toThrow();
+
+      // Verify entity does NOT exist after failure
+      const queryResult = await handleKbQuery(prolog, {
+        id: "atomic-test-001",
+      });
+      expect(queryResult.structuredContent?.entities.length).toBe(0);
+    }, 15000);
+
+    test("should rollback entity after detach/reattach when relationship fails", async () => {
+      // Try to create entity with invalid relationship
+      const entityId = "atomic-detach-test-001";
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: entityId,
+        properties: {
+          title: "Atomic Detach Test",
+          status: "passing",
+          source: "test://atomic-detach",
+        },
+        relationships: [
+          { type: "validates", from: entityId, to: "another-non-existent" },
+        ],
+      }).catch(() => {
+        // Expected to fail
+      });
+
+      // Save and detach
+      await prolog.query("kb_save");
+      await prolog.query("kb_detach");
+
+      // Reattach
+      const attach = await prolog.query(`kb_attach('${testKbPath}')`);
+      expect(attach.success).toBe(true);
+
+      // Verify entity still does not exist after reattach
+      const queryResult = await handleKbQuery(prolog, { id: entityId });
+      expect(queryResult.structuredContent?.entities.length).toBe(0);
+    }, 15000);
+
     test("should support backward compatibility without relationships", async () => {
       const result = await handleKbUpsert(prolog, {
         type: "req",
