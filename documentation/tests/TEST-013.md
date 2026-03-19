@@ -20,9 +20,9 @@ links:
 ### Test 1: current_adr returns non-superseded ADRs
 
 **Setup:**
-- ADR-001 status: active, no supersedes relationship pointing to it
+- ADR-001 status: accepted, no supersedes relationship pointing to it
 - ADR-005 status: deprecated, ADR-008 supersedes ADR-005
-- ADR-008 status: active, no supersedes relationship pointing to it
+- ADR-008 status: accepted, no supersedes relationship pointing to it
 
 **Expected Result:**
 - current_adr(ADR-001) succeeds

@@ -54,7 +54,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "issue67-source-001",
         properties: {
           title: "Source Query Regression",
-          status: "active",
+          status: "open",
           source: "mcp://repro/source",
         },
       });
@@ -76,7 +76,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "issue67-source-type-001",
         properties: {
           title: "Source+Type Query Regression",
-          status: "active",
+          status: "open",
           source: "mcp://repro/source-type",
         },
       });
@@ -86,7 +86,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "issue67-source-type-req-001",
         properties: {
           title: "Source+Type Query Noise",
-          status: "active",
+          status: "open",
           source: "mcp://repro/source-type",
         },
       });
@@ -111,7 +111,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "issue67-tag-001",
         properties: {
           title: "Tag Query Regression",
-          status: "active",
+          status: "open",
           source: "mcp://repro/tag",
           tags: ["kibi-mcp-repro", "kibi-mcp-repro-issue67"],
         },
@@ -134,7 +134,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "issue67-tag-dup-001",
         properties: {
           title: "Tag Duplicate Regression",
-          status: "active",
+          status: "open",
           source: "mcp://repro/tag-dup",
           tags: ["dup-a", "dup-b"],
         },
@@ -155,13 +155,49 @@ describe("MCP CRUD Tool Handlers", () => {
   });
 
   describe("kb.upsert", () => {
+    test("should accept documented req/test/adr statuses", async () => {
+      const reqResult = await handleKbUpsert(prolog, {
+        type: "req",
+        id: "test-req-open-001",
+        properties: {
+          title: "Open Requirement",
+          status: "open",
+          source: "test://mcp-crud",
+        },
+      });
+
+      const testResult = await handleKbUpsert(prolog, {
+        type: "test",
+        id: "test-case-passing-001",
+        properties: {
+          title: "Passing Test",
+          status: "passing",
+          source: "test://mcp-crud",
+        },
+      });
+
+      const adrResult = await handleKbUpsert(prolog, {
+        type: "adr",
+        id: "test-adr-accepted-001",
+        properties: {
+          title: "Accepted ADR",
+          status: "accepted",
+          source: "test://mcp-crud",
+        },
+      });
+
+      expect(reqResult.structuredContent?.created).toBe(1);
+      expect(testResult.structuredContent?.created).toBe(1);
+      expect(adrResult.structuredContent?.created).toBe(1);
+    });
+
     test("should create a new entity", async () => {
       const result = await handleKbUpsert(prolog, {
         type: "req",
         id: "test-req-001",
         properties: {
           title: "Test Requirement",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -174,7 +210,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-002",
         properties: {
           title: "Original Title",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -184,7 +220,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-002",
         properties: {
           title: "Updated Title",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -199,7 +235,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-003",
         properties: {
           title: "Initial Title",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -209,7 +245,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-003",
         properties: {
           title: "Updated Immediately",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -229,7 +265,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-owner-001",
         properties: {
           title: "Owner Atom",
-          status: "active",
+          status: "open",
           owner: "platform-team",
           source: "test://mcp-crud",
         },
@@ -256,7 +292,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: reqId,
         properties: {
           title: "Restart Read",
-          status: "active",
+          status: "open",
           owner: "platform-team",
           source: "test://mcp-crud",
           tags: ["restart", "mcp-write"],
@@ -268,7 +304,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: adrId,
         properties: {
           title: "Restart ADR",
-          status: "active",
+          status: "accepted",
           source: "test://mcp-crud",
         },
       });
@@ -278,7 +314,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: testId,
         properties: {
           title: "Restart Test",
-          status: "active",
+          status: "passing",
           source: "test://mcp-crud",
         },
       });
@@ -351,7 +387,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-delete-001",
         properties: {
           title: "Delete Me",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -388,7 +424,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "test-req-delete-typed-001",
         properties: {
           title: "Delete Typed",
-          status: "active",
+          status: "open",
           source: "test://mcp-crud",
         },
       });
@@ -411,7 +447,7 @@ describe("MCP CRUD Tool Handlers", () => {
           id: "test-req-parallel-001",
           properties: {
             title: "Parallel 1",
-            status: "active",
+            status: "open",
             source: "test://mcp-crud",
           },
         }),
@@ -420,7 +456,7 @@ describe("MCP CRUD Tool Handlers", () => {
           id: "test-req-parallel-002",
           properties: {
             title: "Parallel 2",
-            status: "active",
+            status: "open",
             source: "test://mcp-crud",
           },
         }),
@@ -468,17 +504,17 @@ describe("MCP CRUD Tool Handlers", () => {
       await handleKbUpsert(prolog, {
         type: "req",
         id: "batch-target-1",
-        properties: { title: "Target 1", status: "active", source: "test" },
+        properties: { title: "Target 1", status: "open", source: "test" },
       });
       await handleKbUpsert(prolog, {
         type: "req",
         id: "batch-target-2",
-        properties: { title: "Target 2", status: "active", source: "test" },
+        properties: { title: "Target 2", status: "open", source: "test" },
       });
       await handleKbUpsert(prolog, {
         type: "req",
         id: "batch-target-3",
-        properties: { title: "Target 3", status: "active", source: "test" },
+        properties: { title: "Target 3", status: "open", source: "test" },
       });
 
       // Create entity with batch relationships
@@ -487,7 +523,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "batch-test-001",
         properties: {
           title: "Batch Test",
-          status: "active",
+          status: "passing",
           source: "test://batch",
         },
         relationships: [
@@ -507,7 +543,7 @@ describe("MCP CRUD Tool Handlers", () => {
         id: "no-rel-req",
         properties: {
           title: "No Relationships",
-          status: "active",
+          status: "open",
           source: "test://compat",
         },
       });
@@ -523,7 +559,7 @@ describe("MCP CRUD Tool Handlers", () => {
       await handleKbUpsert(prolog, {
         type: "req",
         id: "idempotency-req-1",
-        properties: { title: "Req 1", status: "active", source: "test" },
+        properties: { title: "Req 1", status: "open", source: "test" },
       });
       await handleKbUpsert(prolog, {
         type: "scenario",
@@ -535,7 +571,7 @@ describe("MCP CRUD Tool Handlers", () => {
       await handleKbUpsert(prolog, {
         type: "req",
         id: "idempotency-req-1",
-        properties: { title: "Req 1", status: "active", source: "test" },
+        properties: { title: "Req 1", status: "open", source: "test" },
         relationships: [
           {
             type: "specified_by",
@@ -549,7 +585,7 @@ describe("MCP CRUD Tool Handlers", () => {
       await handleKbUpsert(prolog, {
         type: "req",
         id: "idempotency-req-1",
-        properties: { title: "Req 1", status: "active", source: "test" },
+        properties: { title: "Req 1", status: "open", source: "test" },
         relationships: [
           {
             type: "specified_by",
@@ -573,7 +609,7 @@ describe("MCP CRUD Tool Handlers", () => {
       await handleKbUpsert(prolog, {
         type: "req",
         id: "idempotency-req-2",
-        properties: { title: "Req 2", status: "active", source: "test" },
+        properties: { title: "Req 2", status: "open", source: "test" },
       });
       await handleKbUpsert(prolog, {
         type: "scenario",
@@ -585,7 +621,7 @@ describe("MCP CRUD Tool Handlers", () => {
       const result = await handleKbUpsert(prolog, {
         type: "req",
         id: "idempotency-req-2",
-        properties: { title: "Req 2", status: "active", source: "test" },
+        properties: { title: "Req 2", status: "open", source: "test" },
         relationships: [
           {
             type: "specified_by",

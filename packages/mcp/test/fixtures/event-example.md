@@ -1,7 +1,7 @@
 ---
 id: event-001
 title: Password reset requested
-status: recorded
+status: active
 created_at: 2026-02-17T12:25:00Z
 updated_at: 2026-02-17T12:25:00Z
 source: https://example.com/events/reset-requested

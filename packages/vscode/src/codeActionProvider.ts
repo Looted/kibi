@@ -113,7 +113,9 @@ export async function browseLinkedEntities(
   symbolId: string,
   relationships: Array<{ type: string; from: string; to: string }>,
   _workspaceRoot: string,
-  getLocalPath: (id: string) => string | undefined,
+  getNavigationTarget: (
+    id: string,
+  ) => { localPath: string; line?: number } | undefined,
   _symbolSourceFile?: string,
   _symbolSourceLine?: number,
 ): Promise<void> {
@@ -130,11 +132,13 @@ export async function browseLinkedEntities(
   }
 
   const items: vscode.QuickPickItem[] = uniqueIds.map((id) => {
-    const localPath = getLocalPath(id);
+    const navigationTarget = getNavigationTarget(id);
     return {
       label: id,
-      description: localPath ? path.basename(localPath) : "(no local file)",
-      detail: localPath ?? undefined,
+      description: navigationTarget?.localPath
+        ? path.basename(navigationTarget.localPath)
+        : "(no local file)",
+      detail: navigationTarget?.localPath ?? undefined,
     };
   });
 
@@ -146,9 +150,10 @@ export async function browseLinkedEntities(
 
   if (!selected) return;
 
-  const localPath = getLocalPath(selected.label) ?? selected.detail;
+  const navigationTarget = getNavigationTarget(selected.label);
+  const localPath = navigationTarget?.localPath ?? selected.detail;
   if (localPath) {
-    await openFileAtLine(localPath);
+    await openFileAtLine(localPath, navigationTarget?.line);
   } else {
     vscode.window.showInformationMessage(
       `Entity "${selected.label}" has no local source file.`,

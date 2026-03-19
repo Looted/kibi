@@ -17,6 +17,18 @@ import * as path from "node:path";
 import { categorizeEntities, formatLensTitle } from "../src/helpers";
 import { buildIndex } from "../src/symbolIndex";
 
+type MockHoverContents = { value: string; isTrusted?: boolean };
+type MockPosition = { line: number; character: number };
+type MockDocument = { uri: { fsPath: string }; getText: () => string };
+type MockToken = { isCancellationRequested: boolean };
+type IndexedSymbol = {
+  id: string;
+  title: string;
+  sourceFile?: string;
+  sourceLine?: number;
+};
+type EntityCacheEntry<T> = { data: T; timestamp: number };
+
 const vscode = {
   Range: class {
     constructor(
@@ -31,7 +43,7 @@ const vscode = {
     ) {}
   },
   Hover: class {
-    constructor(public contents: any) {}
+    constructor(public contents: MockHoverContents) {}
   },
   MarkdownString: class {
     isTrusted?: boolean;
@@ -47,6 +59,8 @@ type MockEntityDetails = {
   status: string;
   tags: string[];
 };
+type CachedRelationships = EntityCacheEntry<MockRelationship[]>;
+type CachedEntity = EntityCacheEntry<MockEntityDetails | null>;
 
 let mockQueryRelationships = mock(
   (_symbolId?: string): MockRelationship[] => [],
@@ -67,10 +81,16 @@ const mockExecSync = mock((cmd: string) => {
 const CACHE_TTL_MS = 30_000;
 
 class TestHoverProvider {
-  private index: any | null = null;
+  private index: ReturnType<typeof buildIndex> | null = null;
   private manifestPath: string;
-  private entityCache = new Map<string, any>();
-  private inflight = new Map<string, Promise<any>>();
+  private entityCache = new Map<
+    string,
+    EntityCacheEntry<MockRelationship[] | MockEntityDetails | null>
+  >();
+  private inflight = new Map<
+    string,
+    Promise<MockRelationship[] | MockEntityDetails | null>
+  >();
 
   constructor(private workspaceRoot: string) {
     this.manifestPath = this.resolveManifestPath();
@@ -86,10 +106,10 @@ class TestHoverProvider {
   }
 
   async provideHover(
-    document: any,
-    position: any,
-    token: any,
-  ): Promise<any | null> {
+    document: MockDocument,
+    position: MockPosition,
+    token: MockToken,
+  ): Promise<InstanceType<typeof vscode.Hover> | null> {
     if (token.isCancellationRequested) return null;
 
     if (!this.index) return null;
@@ -100,7 +120,7 @@ class TestHoverProvider {
 
     // Find symbol at position (VS Code uses 0-based line numbers)
     const symbolAtPosition = symbols.find(
-      (sym: any) => sym.sourceLine === position.line + 1,
+      (sym: IndexedSymbol) => sym.sourceLine === position.line + 1,
     );
     if (!symbolAtPosition) return null;
 
@@ -137,17 +157,17 @@ class TestHoverProvider {
 
   private async fetchRelationships(
     symbolId: string,
-    token: any,
+    token: MockToken,
   ): Promise<Array<{ type: string; from: string; to: string }>> {
     const cached = this.entityCache.get(`rel:${symbolId}`);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return cached.data;
+      return (cached as CachedRelationships).data;
     }
 
     if (token.isCancellationRequested) return [];
 
     const existing = this.inflight.get(`rel:${symbolId}`);
-    if (existing) return existing;
+    if (existing) return (await existing) as MockRelationship[];
 
     const promise = this.queryRelationshipsViaCli(symbolId);
     this.inflight.set(`rel:${symbolId}`, promise);
@@ -178,7 +198,7 @@ class TestHoverProvider {
 
   private async fetchEntityDetails(
     relationships: Array<{ type: string; from: string; to: string }>,
-    token: any,
+    token: MockToken,
   ): Promise<
     Array<{
       id: string;
@@ -222,11 +242,11 @@ class TestHoverProvider {
   } | null> {
     const cached = this.entityCache.get(`entity:${entityId}`);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-      return cached.data;
+      return (cached as CachedEntity).data;
     }
 
     const existing = this.inflight.get(`entity:${entityId}`);
-    if (existing) return existing;
+    if (existing) return (await existing) as MockEntityDetails | null;
 
     const promise = this.queryEntityViaCli(entityId);
     this.inflight.set(`entity:${entityId}`, promise);
@@ -343,7 +363,7 @@ describe("KibiHoverProvider", () => {
       id: "REQ-001",
       type: "req",
       title: "Sample Requirement",
-      status: "active",
+      status: "open",
       tags: ["feature", "backend"],
     }));
 
@@ -358,10 +378,11 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("# SYM-001");
     expect(hover.contents.value).toContain("📋 **REQ-001**");
     expect(hover.contents.value).toContain("Sample Requirement");
-    expect(hover.contents.value).toContain("status: active");
+    expect(hover.contents.value).toContain("status: open");
     expect(hover.contents.value).toContain("tags: feature, backend");
   });
 
@@ -391,6 +412,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.isTrusted).toBe(true);
   });
 
@@ -420,6 +442,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain(
       "[Browse entities](command:kibi.browseLinkedEntities)",
     );
@@ -506,6 +529,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("# SYM-001");
   });
 
@@ -537,6 +561,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("# SYM-001");
     expect(hover.contents.value).toContain(
       "[Browse entities](command:kibi.browseLinkedEntities)",
@@ -571,6 +596,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("# SYM-001");
   });
 
@@ -615,7 +641,7 @@ describe("KibiHoverProvider", () => {
           id,
           type: "flag",
           title: "feature_checkout",
-          status: "active",
+          status: "open",
           tags: ["feature-flag"],
         };
       }
@@ -639,6 +665,7 @@ describe("KibiHoverProvider", () => {
     const hover = await provider.provideHover(document, position, token);
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("🚩 **FLAG-feature_checkout**");
     expect(hover.contents.value).toContain("feature_checkout");
   });
@@ -669,7 +696,7 @@ describe("KibiHoverProvider", () => {
           id: "REQ-001",
           type: "req",
           title: "Checkout requirement",
-          status: "active",
+          status: "open",
           tags: ["checkout"],
         };
       }
@@ -678,7 +705,7 @@ describe("KibiHoverProvider", () => {
           id,
           type: "flag",
           title: "feature_checkout",
-          status: "active",
+          status: "open",
           tags: ["feature-flag"],
         };
       }
@@ -712,6 +739,7 @@ describe("KibiHoverProvider", () => {
     );
 
     expect(hover).not.toBeNull();
+    if (!hover) throw new Error("Expected hover");
     expect(hover.contents.value).toContain("# SYM-001");
     expect(hover.contents.value).toContain("📋 **REQ-001**");
     expect(lensTitle).toBe("📋 1 req • 🚩 guarded by feature_checkout");
@@ -740,7 +768,7 @@ describe("KibiHoverProvider", () => {
       id: "REQ-001",
       type: "req",
       title: "Sample Requirement",
-      status: "active",
+      status: "open",
       tags: [],
     }));
 
@@ -755,11 +783,13 @@ describe("KibiHoverProvider", () => {
     // First hover
     const hover1 = await provider.provideHover(document, position, token);
     expect(hover1).not.toBeNull();
+    if (!hover1) throw new Error("Expected hover1");
     const firstCallCount = callCount;
 
     // Second hover (should use cache)
     const hover2 = await provider.provideHover(document, position, token);
     expect(hover2).not.toBeNull();
+    if (!hover2) throw new Error("Expected hover2");
     expect(callCount).toBe(firstCallCount); // No additional calls
   });
 
@@ -801,7 +831,7 @@ describe("KibiHoverProvider", () => {
           id: "REQ-001",
           type: "req",
           title: "Requirement 1",
-          status: "active",
+          status: "open",
           tags: ["r1"],
         };
       }
@@ -810,7 +840,7 @@ describe("KibiHoverProvider", () => {
           id: "TEST-002",
           type: "test",
           title: "Test 2",
-          status: "passed",
+          status: "passing",
           tags: ["t2"],
         };
       }
@@ -841,6 +871,7 @@ describe("KibiHoverProvider", () => {
 
     expect(hover1).not.toBeNull();
     expect(hover2).not.toBeNull();
+    if (!hover1 || !hover2) throw new Error("Expected both hovers");
     expect(hover1.contents.value).toContain("# SYM-001");
     expect(hover1.contents.value).toContain("REQ-001");
     expect(hover2.contents.value).toContain("# SYM-002");

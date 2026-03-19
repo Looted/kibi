@@ -10,7 +10,7 @@ function generateTestFile(id: number): string {
   return `---
 id: req-bench-${id}
 title: Benchmark Requirement ${id}
-status: approved
+status: open
 priority: ${["critical", "high", "medium", "low"][id % 4]}
 tags: [benchmark, perf-test, category-${id % 5}, sprint-${Math.floor(id / 10)}]
 ---

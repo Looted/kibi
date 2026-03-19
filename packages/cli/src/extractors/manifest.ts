@@ -76,6 +76,7 @@ interface ManifestFile {
   symbols?: ManifestSymbol[];
 }
 
+// implements REQ-007
 export function extractFromManifest(filePath: string): ExtractionResult[] {
   try {
     const content = readFileSync(filePath, "utf8");
@@ -141,7 +142,7 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
           id,
           type: "symbol",
           title: symbol.title,
-          status: symbol.status || "draft",
+          status: symbol.status || "active",
           created_at: symbol.created_at || new Date().toISOString(),
           updated_at: symbol.updated_at || new Date().toISOString(),
           source: filePath,

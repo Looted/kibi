@@ -669,7 +669,7 @@ async function checkDeprecatedAdrs(
       rule: "deprecated-adr-no-successor",
       entityId: adrId,
       description:
-        "Archived/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
+        "Superseded/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
       suggestion: `Create a new ADR and add: links: [{type: supersedes, target: ${adrId}}]`,
       source,
     });
