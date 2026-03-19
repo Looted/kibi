@@ -16,6 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 export const TOOLS = [
+  // implements REQ-002
   {
     name: "kb_query",
     description:
@@ -109,19 +110,8 @@ export const TOOLS = [
             },
             status: {
               type: "string",
-              enum: [
-                "active",
-                "draft",
-                "archived",
-                "deleted",
-                "approved",
-                "rejected",
-                "pending",
-                "in_progress",
-                "superseded",
-              ],
               description:
-                "Required lifecycle state. Allowed values are fixed enum options. Example: 'active'.",
+                "Required lifecycle state. Allowed values depend on entity type; backward-compatible legacy statuses are also accepted. Examples: 'open', 'passing', 'accepted', 'active'.",
             },
             source: {
               type: "string",

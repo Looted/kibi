@@ -1,7 +1,7 @@
 ---
 id: ADR-annotation-strategy
 title: "Use symbols.yaml manifest for code-symbol-to-entity mapping (no inline annotations)"
-status: active
+status: accepted
 created_at: 2026-02-18T00:00:00Z
 updated_at: 2026-02-18T00:00:00Z
 priority: must

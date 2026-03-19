@@ -102,7 +102,7 @@ if (RUN_NODE_TEST_SUITE) {
         {
           title: "User Login",
           type: "req",
-          status: "approved",
+          status: "open",
           tags: ["auth", "security"],
           owner: "alice",
         },
@@ -147,7 +147,7 @@ if (RUN_NODE_TEST_SUITE) {
           id: "req-auth",
           title: "Authentication Required",
           type: "req",
-          status: "approved",
+          status: "open",
           tags: ["security"],
         },
         "All API endpoints require authentication.",
@@ -175,7 +175,7 @@ if (RUN_NODE_TEST_SUITE) {
           {
             title: "Valid Requirement",
             type: "req",
-            status: "approved",
+            status: "open",
             tags: ["feature"],
             owner: "bob",
           },
@@ -206,7 +206,7 @@ if (RUN_NODE_TEST_SUITE) {
         {
           title: "Test Requirement",
           type: "req",
-          status: "draft",
+          status: "open",
         },
         "Content.",
       );
@@ -244,7 +244,7 @@ if (RUN_NODE_TEST_SUITE) {
             id: "req-auth",
             title: "Auth Requirement",
             type: "req",
-            status: "approved",
+            status: "open",
             tags: ["auth", "security"],
           },
           "# Auth",
@@ -257,7 +257,7 @@ if (RUN_NODE_TEST_SUITE) {
             id: "req-perf",
             title: "Performance Requirement",
             type: "req",
-            status: "approved",
+            status: "open",
             tags: ["performance"],
           },
           "# Performance",

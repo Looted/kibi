@@ -278,7 +278,7 @@ if (RUN_NODE_TEST_SUITE) {
               id: entityId,
               properties: {
                 title: "Issue 58 initial",
-                status: "active",
+                status: "open",
                 source: "test://issue-58",
                 tags: ["issue-58", "cache"],
               },
@@ -322,7 +322,7 @@ if (RUN_NODE_TEST_SUITE) {
               id: entityId,
               properties: {
                 title: "Issue 58 updated",
-                status: "active",
+                status: "open",
                 source: "test://issue-58",
                 tags: ["issue-58", "cache", "updated"],
               },
@@ -397,7 +397,7 @@ if (RUN_NODE_TEST_SUITE) {
           secondReadLine.result?.content as Array<{ text: string }> | undefined
         )?.[0]?.text;
         assert.match(secondReadText ?? "", /Issue 58 updated/);
-        assert.match(secondReadText ?? "", /status=active/);
+        assert.match(secondReadText ?? "", /status=open/);
 
         const listLine = JSON.parse(
           await sendRaw(proc, JSON.stringify(listByType)),
@@ -480,7 +480,7 @@ if (RUN_NODE_TEST_SUITE) {
               id: reqId,
               properties: {
                 title: "Issue 61 req",
-                status: "active",
+                status: "open",
                 owner: "platform-team",
                 source: "test://issue-61",
                 tags: ["issue-61", "restart"],
@@ -500,7 +500,7 @@ if (RUN_NODE_TEST_SUITE) {
               id: adrId,
               properties: {
                 title: "Issue 61 adr",
-                status: "active",
+                status: "accepted",
                 source: "test://issue-61",
               },
             },
@@ -518,7 +518,7 @@ if (RUN_NODE_TEST_SUITE) {
               id: testId,
               properties: {
                 title: "Issue 61 test",
-                status: "active",
+                status: "passing",
                 source: "test://issue-61",
               },
             },

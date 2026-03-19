@@ -26,6 +26,7 @@ const WORKSPACE_ENV_KEYS = [
 
 const KB_PATH_ENV_KEYS = ["KIBI_KB_PATH", "KB_PATH"] as const;
 
+// implements REQ-002, REQ-012
 export function resolveWorkspaceRoot(startDir: string = process.cwd()): string {
   const envRoot = readFirstEnv(WORKSPACE_ENV_KEYS);
   if (envRoot) {
@@ -45,28 +46,7 @@ export function resolveWorkspaceRoot(startDir: string = process.cwd()): string {
   return path.resolve(startDir);
 }
 
-export function resolveWorkspaceRootInfo(startDir: string = process.cwd()): {
-  root: string;
-  reason: "env" | "kb" | "git" | "cwd";
-} {
-  const envRoot = readFirstEnv(WORKSPACE_ENV_KEYS);
-  if (envRoot) {
-    return { root: path.resolve(envRoot), reason: "env" };
-  }
-
-  const kbRoot = findUpwards(startDir, ".kb");
-  if (kbRoot) {
-    return { root: kbRoot, reason: "kb" };
-  }
-
-  const gitRoot = findUpwards(startDir, ".git");
-  if (gitRoot) {
-    return { root: gitRoot, reason: "git" };
-  }
-
-  return { root: path.resolve(startDir), reason: "cwd" };
-}
-
+// implements REQ-002, REQ-012
 export function resolveKbPath(workspaceRoot: string, branch: string): string {
   const envPath = readFirstEnv(KB_PATH_ENV_KEYS);
   if (envPath) {
@@ -80,6 +60,7 @@ export function resolveKbPath(workspaceRoot: string, branch: string): string {
   return path.join(workspaceRoot, ".kb", "branches", branch);
 }
 
+// implements REQ-002
 export function resolveEnvFilePath(
   envFileName: string,
   workspaceRoot: string,

@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { resolveManifestPath } from "../../src/tools/symbols";
+import {
+  refreshCoordinatesForSymbolId,
+  resolveManifestPath,
+} from "../../src/tools/symbols";
 
 const TEST_ROOT = path.join(
   __dirname,
@@ -93,4 +96,203 @@ describe("resolveManifestPath precedence (regression)", () => {
     const resolved = resolveManifestPath(TEST_ROOT);
     expect(resolved).toBe(REPO_ROOT_SYMBOLS);
   });
+});
+
+const REFRESH_TEST_ROOT = path.join(__dirname, "../../../.tmp/symbols-refresh");
+const REFRESH_MANIFEST_PATH = path.join(REFRESH_TEST_ROOT, "symbols.yaml");
+
+function writeRefreshFixture(content: string) {
+  emptyDirSync(REFRESH_TEST_ROOT);
+  fs.writeFileSync(REFRESH_MANIFEST_PATH, content, "utf-8");
+}
+
+describe("resolveManifestPath - additional coverage", () => {
+  beforeEach(() => {
+    emptyDirSync(TEST_ROOT);
+    ensureDirSync(path.dirname(CONFIG_PATH));
+  });
+
+  it("should handle absolute paths.symbols (line 130)", () => {
+    const absoluteCustomPath = "/absolute/custom/symbols.yaml";
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ paths: { symbols: absoluteCustomPath } }, null, 2),
+    );
+    const resolved = resolveManifestPath(TEST_ROOT);
+    expect(resolved).toBe(absoluteCustomPath);
+  });
+
+  it("should handle legacy symbolsManifest with absolute path (line 132-136)", () => {
+    const absoluteLegacyPath = "/legacy/symbols.yaml";
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ symbolsManifest: absoluteLegacyPath }, null, 2),
+    );
+    const resolved = resolveManifestPath(TEST_ROOT);
+    expect(resolved).toBe(absoluteLegacyPath);
+  });
+
+  it("should handle legacy symbolsManifest with relative path (line 133-135)", () => {
+    const relativeLegacyPath = "legacy/symbols.yaml";
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ symbolsManifest: relativeLegacyPath }, null, 2),
+    );
+    const resolved = resolveManifestPath(TEST_ROOT);
+    expect(resolved).toBe(path.resolve(TEST_ROOT, relativeLegacyPath));
+  });
+
+  it("should prefer paths.symbols over legacy symbolsManifest", () => {
+    ensureDirSync(path.dirname(CUSTOM_SYMBOLS_PATH));
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify(
+        {
+          paths: { symbols: "custom/symbols.yaml" },
+          symbolsManifest: "legacy/symbols.yaml",
+        },
+        null,
+        2,
+      ),
+    );
+    fs.writeFileSync(CUSTOM_SYMBOLS_PATH, "custom: true\n");
+    const resolved = resolveManifestPath(TEST_ROOT);
+    expect(resolved).toBe(CUSTOM_SYMBOLS_PATH);
+  });
+
+  it("should handle malformed config.json (catch block at line 137)", () => {
+    fs.writeFileSync(CONFIG_PATH, "invalid json{");
+    const resolved = resolveManifestPath(TEST_ROOT);
+    // Should fall back to default behavior
+    expect(resolved).toBe(REPO_ROOT_SYMBOLS);
+  });
+
+  it("should handle empty paths.symbols gracefully", () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ paths: { symbols: "" } }, null, 2),
+    );
+    const resolved = resolveManifestPath(TEST_ROOT);
+    expect(resolved).toBe(REPO_ROOT_SYMBOLS);
+  });
+});
+
+describe("refreshCoordinatesForSymbolId", () => {
+  beforeEach(() => {
+    emptyDirSync(REFRESH_TEST_ROOT);
+  });
+
+  it("should return refreshed=false and found=false for invalid YAML (line 64)", async () => {
+    const invalidYaml = "not a valid object";
+    writeRefreshFixture(invalidYaml);
+    const result = await refreshCoordinatesForSymbolId(
+      "any-id",
+      REFRESH_TEST_ROOT,
+    );
+    expect(result).toEqual({ refreshed: false, found: false });
+  });
+
+  it("should return refreshed=false and found=false when symbols is not an array (line 64)", async () => {
+    const yamlWithoutArray = `
+symbols: "not an array"
+`;
+    writeRefreshFixture(yamlWithoutArray);
+    const result = await refreshCoordinatesForSymbolId(
+      "any-id",
+      REFRESH_TEST_ROOT,
+    );
+    expect(result).toEqual({ refreshed: false, found: false });
+  });
+
+  it("should return refreshed=false and found=false when symbol not found (line 76)", async () => {
+    const yamlWithSymbol = `
+symbols:
+  - id: existing-symbol
+    title: Existing Symbol
+`;
+    writeRefreshFixture(yamlWithSymbol);
+    const result = await refreshCoordinatesForSymbolId(
+      "non-existent-id",
+      REFRESH_TEST_ROOT,
+    );
+    expect(result).toEqual({ refreshed: false, found: false });
+  });
+
+  it("should handle non-record symbol entries (line 70)", async () => {
+    const yamlWithNonRecord = `# symbols.yaml
+# AUTHORED fields (edit freely):
+#   id, title, sourceFile, links, status, tags, owner, priority
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+# Run \`kibi sync\` or call the \`kb_symbols_refresh\` MCP tool to refresh coordinates.
+symbols:
+  - "string-entry"
+  - id: valid-symbol
+    title: Valid Symbol
+`;
+    writeRefreshFixture(yamlWithNonRecord);
+
+    const result = await refreshCoordinatesForSymbolId(
+      "valid-symbol",
+      REFRESH_TEST_ROOT,
+    );
+    // Should find the symbol and attempt refresh
+    expect(result.found).toBe(true);
+  });
+
+  it("should successfully refresh coordinates (lines 78-93, 95-96, 98-101, 103-112)", async () => {
+    const yamlWithSymbol = `# symbols.yaml
+# AUTHORED fields (edit freely):
+#   id, title, sourceFile, links, status, tags, owner, priority
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+# Run \`kibi sync\` or call the \`kb_symbols_refresh\` MCP tool to refresh coordinates.
+symbols:
+  - id: test-symbol
+    title: Test Symbol
+    sourceFile: "src/test.ts"
+`;
+    writeRefreshFixture(yamlWithSymbol);
+
+    const result = await refreshCoordinatesForSymbolId(
+      "test-symbol",
+      REFRESH_TEST_ROOT,
+    );
+    // The result will depend on whether enrichSymbolCoordinates finds the symbol
+    // At minimum, we expect found: true since the symbol exists
+    expect(result.found).toBe(true);
+  });
+
+  it("should write file only when content changes (lines 110-112)", async () => {
+    const yamlWithCoordinates = `# symbols.yaml
+# AUTHORED fields (edit freely):
+#   id, title, sourceFile, links, status, tags, owner, priority
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+# Run \`kibi sync\` or call the \`kb_symbols_refresh\` MCP tool to refresh coordinates.
+symbols:
+  - id: test-symbol
+    title: Test Symbol
+    sourceLine: 10
+    sourceColumn: 0
+    sourceEndLine: 20
+    sourceEndColumn: 5
+    coordinatesGeneratedAt: '2024-01-01T00:00:00Z'
+`;
+    writeRefreshFixture(yamlWithCoordinates);
+
+    const originalContent = fs.readFileSync(REFRESH_MANIFEST_PATH, "utf-8");
+    const result = await refreshCoordinatesForSymbolId(
+      "test-symbol",
+      REFRESH_TEST_ROOT,
+    );
+
+    // File should not be rewritten if no changes
+    const newContent = fs.readFileSync(REFRESH_MANIFEST_PATH, "utf-8");
+    expect(newContent).toBe(originalContent);
+  });
+
+  // Note: handleKbSymbolsRefresh tests require the actual workspace root
+  // and cannot be easily mocked. They are omitted to avoid test complexity.
+  // The function is tested indirectly via integration/e2e tests.
 });

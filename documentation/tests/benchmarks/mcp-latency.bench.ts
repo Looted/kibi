@@ -11,7 +11,7 @@ function generateTestFile(id: number): string {
   return `---
 id: req-mcp-${id}
 title: MCP Benchmark Requirement ${id}
-status: approved
+status: open
 priority: high
 tags: [mcp, benchmark]
 ---

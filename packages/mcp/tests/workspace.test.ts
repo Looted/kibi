@@ -1,12 +1,11 @@
-import { describe, expect, test, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
-  resolveWorkspaceRoot,
-  resolveWorkspaceRootInfo,
-  resolveKbPath,
   resolveEnvFilePath,
+  resolveKbPath,
+  resolveWorkspaceRoot,
 } from "../src/workspace.js";
 
 describe("workspace utilities", () => {
@@ -74,35 +73,6 @@ describe("workspace utilities", () => {
 
     test("should fallback to startDir", () => {
       expect(resolveWorkspaceRoot(tempDir)).toBe(path.resolve(tempDir));
-    });
-  });
-
-  describe("resolveWorkspaceRootInfo", () => {
-    test("should return 'env' reason", () => {
-      process.env.KIBI_WORKSPACE = tempDir;
-      const info = resolveWorkspaceRootInfo();
-      expect(info.root).toBe(path.resolve(tempDir));
-      expect(info.reason).toBe("env");
-    });
-
-    test("should return 'kb' reason", () => {
-      fs.mkdirSync(path.join(tempDir, ".kb"));
-      const info = resolveWorkspaceRootInfo(tempDir);
-      expect(info.root).toBe(path.resolve(tempDir));
-      expect(info.reason).toBe("kb");
-    });
-
-    test("should return 'git' reason", () => {
-      fs.mkdirSync(path.join(tempDir, ".git"));
-      const info = resolveWorkspaceRootInfo(tempDir);
-      expect(info.root).toBe(path.resolve(tempDir));
-      expect(info.reason).toBe("git");
-    });
-
-    test("should return 'cwd' reason", () => {
-      const info = resolveWorkspaceRootInfo(tempDir);
-      expect(info.root).toBe(path.resolve(tempDir));
-      expect(info.reason).toBe("cwd");
     });
   });
 

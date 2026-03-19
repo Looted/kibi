@@ -9,6 +9,7 @@
       "type": "string",
       "enum": [
         "active",
+        "inactive",
         "draft",
         "archived",
         "deleted",
@@ -16,7 +17,16 @@
         "rejected",
         "pending",
         "in_progress",
-        "superseded"
+        "superseded",
+        "open",
+        "closed",
+        "deprecated",
+        "passing",
+        "failing",
+        "skipped",
+        "proposed",
+        "accepted",
+        "removed"
       ]
     },
     "created_at": { "type": "string" },

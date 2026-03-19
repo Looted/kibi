@@ -49,7 +49,7 @@ describe("MCP Check Tool Handler", () => {
       id: "req-must-001",
       properties: {
         title: "Must-priority requirement",
-        status: "active",
+        status: "open",
         priority: "must",
         source: "test://check-test",
       },
@@ -81,7 +81,7 @@ describe("MCP Check Tool Handler", () => {
       id: "scenario-001",
       properties: {
         title: "Scenario for must req",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
       relationships: [relationship],
@@ -110,7 +110,7 @@ describe("MCP Check Tool Handler", () => {
       id: "test-001",
       properties: {
         title: "Test for must req",
-        status: "active",
+        status: "passing",
         source: "test://check-test",
       },
       relationships: [relationship],
@@ -131,7 +131,7 @@ describe("MCP Check Tool Handler", () => {
       id: "complete-req-001",
       properties: {
         title: "Complete requirement",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
     });
@@ -163,7 +163,7 @@ describe("MCP Check Tool Handler", () => {
       id: "req-valid-001",
       properties: {
         title: "Valid requirement",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
     });
@@ -188,7 +188,7 @@ describe("MCP Check Tool Handler", () => {
       id: "req-nocycle-a",
       properties: {
         title: "Requirement A",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
     });
@@ -198,7 +198,7 @@ describe("MCP Check Tool Handler", () => {
       id: "req-nocycle-b",
       properties: {
         title: "Requirement B",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
       relationships: [relationship],
@@ -245,7 +245,7 @@ describe("MCP Check Tool Handler", () => {
       id: "req-for-symbol-001",
       properties: {
         title: "Requirement for symbol",
-        status: "active",
+        status: "open",
         source: "test://check-test",
       },
     });
@@ -286,7 +286,7 @@ describe("MCP Check Tool Handler", () => {
         id: `req-load-${i.toString().padStart(3, "0")}`,
         properties: {
           title: `Load Req ${i}`,
-          status: "active",
+          status: "open",
           source: "test://check-load",
         },
         _skipContradictionCheck: true,

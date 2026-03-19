@@ -554,12 +554,12 @@ conflicting(Adr1, Adr2) :-
     Adr1 @< Adr2.
 
 %% deprecated_still_used(+Adr, -Symbols)
-% Deprecated/archived/rejected ADRs that still constrain symbols.
+% Deprecated/superseded ADRs that still constrain symbols.
 deprecated_still_used(Adr, Symbols) :-
     kb_entity(Adr, adr, Props),
     memberchk(status=Status, Props),
     normalize_term_atom(Status, StatusAtom),
-    memberchk(StatusAtom, [deprecated, archived, rejected]),
+    memberchk(StatusAtom, [deprecated, superseded]),
     setof(Symbol, kb_relationship(constrained_by, Symbol, Adr), Symbols),
     !.
 deprecated_still_used(_, []).
@@ -569,9 +569,11 @@ deprecated_still_used(_, []).
 %% ------------------------------------------------------------------
 
 %% current_adr(+Id)
-% True when Id is an ADR not superseded by any other ADR.
+% True when Id is an accepted ADR not superseded by any other ADR.
 current_adr(Id) :-
-    kb_entity(Id, adr, _),
+    kb_entity(Id, adr, Props),
+    memberchk(status=Status, Props),
+    normalize_term_atom(Status, accepted),
     \+ kb_relationship(supersedes, _, Id).
 
 %% superseded_by(+OldId, -NewId)
@@ -593,20 +595,23 @@ adr_chain_acc(Id, Visited, [Id|Rest]) :-
     adr_chain_acc(Newer, [Id|Visited], Rest).
 
 %% deprecated_no_successor(+OldId)
-% Lint rule: ADR is archived/deprecated but has no supersedes relationship pointing to it.
+% Lint rule: ADR is superseded/deprecated but has no supersedes relationship pointing to it.
 deprecated_no_successor(Id) :-
     kb_entity(Id, adr, Props),
     memberchk(status=Status, Props),
     normalize_term_atom(Status, StatusAtom),
-    memberchk(StatusAtom, [archived, deprecated]),
+    memberchk(StatusAtom, [superseded, deprecated]),
     \+ kb_relationship(supersedes, _, Id).
 
 %% current_req(+Id)
-% Requirement is current when active and not superseded by another requirement.
+% Requirement is current when not deprecated and not superseded by another requirement.
+% Canonical statuses: open, in_progress, closed.
+% Legacy statuses accepted for backwards compatibility: active, approved.
 current_req(Id) :-
     kb_entity(Id, req, Props),
     memberchk(status=Status, Props),
-    normalize_term_atom(Status, active),
+    normalize_term_atom(Status, StatusAtom),
+    memberchk(StatusAtom, [open, in_progress, closed, active, approved]),
     \+ kb_relationship(supersedes, _, Id).
 
 %% contradicting_reqs(-ReqA, -ReqB, -Reason)

@@ -31,6 +31,9 @@ export function registerTraceability(
   workspaceRoot: string,
   treeDataProvider: {
     getLocalPathForEntity: (entityId: string) => string | undefined;
+    getNavigationTargetForEntity?: (
+      entityId: string,
+    ) => { localPath: string; line?: number } | undefined;
   },
 ): TraceabilityRegistrationResult {
   const relationshipCache = new RelationshipCache();
@@ -56,7 +59,12 @@ export function registerTraceability(
           symbolId,
           relationships ?? [],
           workspaceRoot,
-          (id) => treeDataProvider.getLocalPathForEntity(id),
+          (id) =>
+            treeDataProvider.getNavigationTargetForEntity?.(id) ??
+            (() => {
+              const localPath = treeDataProvider.getLocalPathForEntity(id);
+              return localPath ? { localPath } : undefined;
+            })(),
           sourceFile,
           sourceLine,
         );
