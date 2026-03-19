@@ -5,7 +5,9 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
@@ -79,6 +81,7 @@ describe("kibi check", () => {
       writeFileSync(
         path.join(reqDir, "req1.md"),
         `---
+id: req1
 title: User Authentication
 type: req
 status: open
@@ -97,6 +100,7 @@ links:
       writeFileSync(
         path.join(scenarioDir, "scenario1.md"),
         `---
+id: scenario1
 title: Login Scenario
 status: active
 tags: [auth]
@@ -109,6 +113,7 @@ tags: [auth]
       writeFileSync(
         path.join(testDir, "test1.md"),
         `---
+id: test1
 title: Auth Test
 status: passing
 tags: [auth]
@@ -137,6 +142,80 @@ links:
   );
 
   test(
+    "check is read-only and does not rewrite kb.rdf",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const testDir = path.join(tmpDir, "documentation/tests");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(scenarioDir, { recursive: true });
+      mkdirSync(testDir, { recursive: true });
+
+      writeFileSync(
+        path.join(reqDir, "req1.md"),
+        `---
+id: req1
+title: User Authentication
+type: req
+status: open
+priority: must
+links:
+  - type: specified_by
+    target: scenario1
+  - type: verified_by
+    target: test1
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(scenarioDir, "scenario1.md"),
+        `---
+id: scenario1
+title: Login Scenario
+type: scenario
+status: active
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDir, "test1.md"),
+        `---
+id: test1
+title: Auth Test
+type: test
+status: passing
+links:
+  - type: validates
+    target: req1
+---
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const rdfPath = path.join(tmpDir, ".kb/branches/main/kb.rdf");
+      const before = readFileSync(rdfPath, "utf8");
+      const beforeMtime = statSync(rdfPath).mtimeMs;
+
+      const output = execSync(`bun ${kibiBin} check`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      expect(output).toContain("No violations found");
+
+      const after = readFileSync(rdfPath, "utf8");
+      const afterMtime = statSync(rdfPath).mtimeMs;
+      expect(after).toBe(before);
+      expect(afterMtime).toBe(beforeMtime);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "detects must-priority requirement without scenario",
     async () => {
       const reqDir = path.join(tmpDir, "documentation/requirements");
@@ -148,6 +227,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req1.md"),
         `---
+id: req1
 title: Critical Feature
 type: req
 status: open
@@ -163,6 +243,7 @@ owner: bob
       writeFileSync(
         path.join(testDir, "test1.md"),
         `---
+id: test1
 title: Feature Test
 status: passing
 tags: [test]
@@ -202,6 +283,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req2.md"),
         `---
+id: req2
 title: Another Critical Feature
 type: req
 status: open
@@ -217,12 +299,10 @@ owner: charlie
       writeFileSync(
         path.join(scenarioDir, "scenario1.md"),
         `---
+id: scenario1
 title: Feature Scenario
 status: active
 tags: [scenario]
-links:
-  - type: specified_by
-    target: req2
 ---
 
 # Feature Scenario
@@ -298,6 +378,9 @@ status: passing
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: tests/TEST-VERIFIED-001.md
+links:
+  - type: validates
+    target: REQ-VERIFIED-001
 ---
 
 # Verified Test
@@ -397,6 +480,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req1.md"),
         `---
+id: req1
 title: Feature with Bad Link
 type: req
 status: open
@@ -434,6 +518,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req1.md"),
         `---
+id: req1
 title: Requirement 1
 type: req
 status: open
@@ -452,6 +537,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req2.md"),
         `---
+id: req2
 title: Requirement 2
 type: req
 status: open
@@ -470,6 +556,7 @@ links:
       writeFileSync(
         path.join(reqDir, "req3.md"),
         `---
+id: req3
 title: Requirement 3
 type: req
 status: open
@@ -542,6 +629,7 @@ owner: alice
       writeFileSync(
         path.join(reqDir, "req1.md"),
         `---
+id: req1
 title: Uncovered Feature
 type: req
 status: open

@@ -33,6 +33,14 @@ import { resolveActiveBranch } from "../utils/branch-resolver.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
 
+type QueryRelationship = {
+  type: string;
+  from: string;
+  to: string;
+};
+
+type QueryEntity = Record<string, unknown>;
+
 interface QueryOptions {
   id?: string;
   tag?: string;
@@ -43,12 +51,15 @@ interface QueryOptions {
   offset?: string;
 }
 
+// implements REQ-003
 export async function queryCommand(
   type: string | undefined,
   options: QueryOptions,
 ): Promise<void> {
+  let prolog: PrologProcess | null = null;
+  let attached = false;
   try {
-    const prolog = new PrologProcess({ timeout: 120000 });
+    prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
     await prolog.query(
@@ -90,8 +101,9 @@ export async function queryCommand(
       );
       process.exit(1);
     }
+    attached = true;
 
-    let results: any[] = [];
+    let results: Array<QueryRelationship | QueryEntity> = [];
 
     // Query relationships mode
     if (options.relationships) {
@@ -127,8 +139,6 @@ export async function queryCommand(
     else if (type || options.source) {
       // Validate type if provided
       if (type && !VALID_ENTITY_TYPES.includes(type)) {
-        await prolog.query("kb_detach");
-        await prolog.terminate();
         console.error(
           `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
         );
@@ -177,16 +187,11 @@ export async function queryCommand(
         }
       }
     } else {
-      await prolog.query("kb_detach");
-      await prolog.terminate();
       console.error(
         "Error: Must specify entity type, --source, or --relationships option",
       );
       process.exit(1);
     }
-
-    await prolog.query("kb_detach");
-    await prolog.terminate();
 
     // Apply pagination
     const limit = Number.parseInt(options.limit || "100");
@@ -214,13 +219,27 @@ export async function queryCommand(
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
     process.exit(1);
+  } finally {
+    if (prolog) {
+      if (attached) {
+        try {
+          await prolog.query("kb_detach");
+        } catch {}
+      }
+      try {
+        await prolog.terminate();
+      } catch {}
+    }
   }
 }
 
 /**
  * Output results as a formatted table.
  */
-function outputTable(items: any[], isRelationships: boolean): void {
+function outputTable(
+  items: Array<QueryRelationship | QueryEntity>,
+  isRelationships: boolean,
+): void {
   if (items.length === 0) {
     console.log("No entities found.");
     return;
@@ -233,10 +252,11 @@ function outputTable(items: any[], isRelationships: boolean): void {
     });
 
     for (const item of items) {
+      const rel = item as QueryRelationship;
       table.push([
-        item.type || "N/A",
-        item.from?.substring(0, 16) || "N/A",
-        item.to?.substring(0, 16) || "N/A",
+        rel.type || "N/A",
+        rel.from.substring(0, 16) || "N/A",
+        rel.to.substring(0, 16) || "N/A",
       ]);
     }
 
@@ -248,12 +268,22 @@ function outputTable(items: any[], isRelationships: boolean): void {
     });
 
     for (const entity of items) {
+      const record = entity as QueryEntity;
+      const id = typeof record.id === "string" ? record.id : "N/A";
+      const entityType = typeof record.type === "string" ? record.type : "N/A";
+      const title = typeof record.title === "string" ? record.title : "N/A";
+      const status = typeof record.status === "string" ? record.status : "N/A";
+      const tags = Array.isArray(record.tags)
+        ? record.tags
+            .filter((tag): tag is string => typeof tag === "string")
+            .join(", ")
+        : "";
       table.push([
-        entity.id?.substring(0, 16) || "N/A",
-        entity.type || "N/A",
-        (entity.title || "N/A").substring(0, 38),
-        entity.status || "N/A",
-        (entity.tags || []).join(", ").substring(0, 28) || "",
+        id.substring(0, 16),
+        entityType,
+        title.substring(0, 38),
+        status,
+        tags.substring(0, 28),
       ]);
     }
 

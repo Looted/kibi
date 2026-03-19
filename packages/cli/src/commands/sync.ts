@@ -67,6 +67,7 @@ export class SyncError extends Error {
   }
 }
 
+// implements REQ-003, REQ-007
 export async function syncCommand(
   options: {
     validateOnly?: boolean;
@@ -162,9 +163,10 @@ export async function syncCommand(
         const hash = hashFile(file);
         const lastSeen = syncCache.seenAt[key];
         const lastSeenMs = lastSeen ? Date.parse(lastSeen) : Number.NaN;
-        const expired = Number.isNaN(lastSeenMs)
-          ? false
-          : nowMs - lastSeenMs > SYNC_CACHE_TTL_MS;
+        const expired =
+          !lastSeen ||
+          Number.isNaN(lastSeenMs) ||
+          nowMs - lastSeenMs > SYNC_CACHE_TTL_MS;
 
         nextHashes[key] = hash;
         nextSeenAt[key] = nowIso;
@@ -184,6 +186,10 @@ export async function syncCommand(
         console.warn(`Warning: Failed to hash ${file}: ${message}`);
       }
     }
+
+    const performedFullReindex =
+      changedMarkdownFiles.length === markdownFiles.length &&
+      changedManifestFiles.length === manifestFiles.length;
 
     // Content extraction
     const { results, failedCacheKeys, errors } = await processExtractions(
@@ -251,7 +257,7 @@ export async function syncCommand(
           continue;
         }
         evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextHashes[key] ?? nowIso;
+        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
       }
 
       writeSyncCache(cachePath, {
@@ -294,7 +300,16 @@ export async function syncCommand(
 
       const entityIds = new Set<string>();
 
-      // Validate and filter dangling relationships
+      // Track entity counts by type
+      for (const { entity } of results) {
+        entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
+      }
+
+      // Persist entities
+      const { entityCount, kbModified: entitiesModified } =
+        await persistEntities(prolog, results, entityIds);
+
+      // Validate and filter dangling relationships after entity IDs are known.
       const validationErrors = validateRelationships(
         allRelationships,
         entityIds,
@@ -318,15 +333,6 @@ export async function syncCommand(
         (r) => !danglingKeys.has(`${r.type}|${r.from}|${r.to}`),
       );
 
-      // Track entity counts by type
-      for (const { entity } of results) {
-        entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
-      }
-
-      // Persist entities
-      const { entityCount, kbModified: entitiesModified } =
-        await persistEntities(prolog, results, entityIds);
-
       // Persist relationships
       const { relationshipCount, kbModified: relationshipsModified } =
         await persistRelationships(prolog, results, validRelationships);
@@ -337,7 +343,12 @@ export async function syncCommand(
         prolog.invalidateCache();
       }
 
-      await prolog.query("kb_save");
+      const saveResult = await prolog.query("kb_save");
+      if (!saveResult.success) {
+        throw new SyncError(
+          `Failed to save staging KB: ${saveResult.error || "Unknown error"}`,
+        );
+      }
       await prolog.query("kb_detach");
       await prolog.terminate();
 
@@ -353,7 +364,7 @@ export async function syncCommand(
           continue;
         }
         evictedHashes[key] = hash;
-        evictedSeenAt[key] = nextHashes[key] ?? nowIso;
+        evictedSeenAt[key] = nextSeenAt[key] ?? nowIso;
       }
 
       const liveCachePath = path.join(livePath, "sync-cache.json");
@@ -365,7 +376,11 @@ export async function syncCommand(
 
       published = true;
 
-      if (markdownFiles.length > 0 && entityCount < markdownFiles.length) {
+      if (
+        performedFullReindex &&
+        markdownFiles.length > 0 &&
+        entityCount < markdownFiles.length
+      ) {
         diagnostics.push(
           createDocsNotIndexedDiagnostic(markdownFiles.length, entityCount),
         );

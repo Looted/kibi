@@ -131,7 +131,7 @@ test("timeout message reports configured timeout (100ms) not hardcoded 30s", asy
 // These tests reproduce the "No permission to modify static procedure 'kb:entity/4'" error
 // that occurs when reattaching to a KB in the same live Prolog process.
 
-test("fails on repeated kb_attach in same process (Node regression #53)", async () => {
+test("repeated kb_attach in same process fails without explicit detach", async () => {
   const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-node-kb-"));
   const prolog = createInteractiveProlog();
   try {
@@ -153,13 +153,9 @@ test("fails on repeated kb_attach in same process (Node regression #53)", async 
 
     await prolog.query("kb_save");
 
-    // Second attach to same KB should fail with static procedure error (regression #53)
+    // Second attach should now fail because implicit detach no longer occurs.
     const attach2 = await prolog.query(`kb_attach('${tempKbDir}')`);
-    assert.strictEqual(
-      attach2.success,
-      true,
-      "Second kb_attach should succeed",
-    );
+    assert.strictEqual(attach2.success, false, "Second kb_attach should fail");
 
     await prolog.query("kb_detach");
   } finally {

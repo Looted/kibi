@@ -1,7 +1,7 @@
 /// <reference types="bun-types" />
 import { afterEach, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -171,6 +171,59 @@ describe("PrologProcess", () => {
         "kb_entity('REQ-BATCH-ROLLBACK', _, _)",
       );
       expect(rolledBackEntity.success).toBe(false);
+    } finally {
+      await prolog.query("kb_detach");
+      if (existsSync(tempKbDir)) {
+        rmSync(tempKbDir, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test("one-shot attached read queries do not create kb.rdf", async () => {
+    const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-readonly-kb-"));
+    prolog = new PrologProcess();
+    await prolog.start();
+
+    try {
+      const attachResult = await prolog.query(`kb_attach('${tempKbDir}')`);
+      expect(attachResult.success).toBe(true);
+
+      const result = await prolog.query("X = 42");
+      expect(result.success).toBe(true);
+      expect(result.bindings.X).toBe("42");
+
+      expect(existsSync(path.join(tempKbDir, "kb.rdf"))).toBe(false);
+    } finally {
+      await prolog.query("kb_detach");
+      if (existsSync(tempKbDir)) {
+        rmSync(tempKbDir, { recursive: true, force: true });
+      }
+    }
+  });
+
+  test("one-shot attached writes persist atomically", async () => {
+    const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-write-kb-"));
+    prolog = new PrologProcess();
+    await prolog.start();
+
+    try {
+      const attachResult = await prolog.query(`kb_attach('${tempKbDir}')`);
+      expect(attachResult.success).toBe(true);
+
+      const writeResult = await prolog.query(
+        `kb_assert_entity(req, [id='REQ-ONE-SHOT-001', title="One Shot Entity", status=open, created_at="2026-02-20T00:00:00Z", updated_at="2026-02-20T00:00:00Z", source="one-shot-test"])`,
+      );
+      expect(writeResult.success).toBe(true);
+
+      const saveResult = await prolog.query("kb_save");
+      expect(saveResult.success).toBe(true);
+
+      const rdfPath = path.join(tempKbDir, "kb.rdf");
+      expect(existsSync(rdfPath)).toBe(true);
+      const rdf = readFileSync(rdfPath, "utf8");
+      expect(rdf).toContain("REQ-ONE-SHOT-001");
+      expect(rdf.trimEnd().endsWith("</rdf:RDF>")).toBe(true);
+      expect(rdf.includes("\u0000")).toBe(false);
     } finally {
       await prolog.query("kb_detach");
       if (existsSync(tempKbDir)) {
