@@ -40,6 +40,10 @@ afterEach(() => {
   if (fs.existsSync(symbolsYml)) {
     fs.unlinkSync(symbolsYml);
   }
+  const docsDir = path.join(tempDir, "documentation");
+  if (fs.existsSync(docsDir)) {
+    fs.rmSync(docsDir, { recursive: true, force: true });
+  }
 });
 
 afterAll(() => {
@@ -52,7 +56,17 @@ afterAll(() => {
 describe("resolveSymbolsManifestPath - missing config", () => {
   test("no config file falls back to default candidates", () => {
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
+  });
+
+  test("documentation/symbols.yaml takes precedence over workspace-root defaults", () => {
+    const docsDir = path.join(tempDir, "documentation");
+    fs.mkdirSync(docsDir, { recursive: true });
+    const docsSymbols = path.join(docsDir, "symbols.yaml");
+    fs.writeFileSync(docsSymbols, "symbols: []");
+
+    const result = resolveSymbolsManifestPath(tempDir);
+    expect(result).toBe(docsSymbols);
   });
 
   test("no config file but symbols.yaml exists returns symbols.yaml", () => {
@@ -87,7 +101,7 @@ describe("resolveSymbolsManifestPath - malformed config", () => {
     fs.writeFileSync(configPath, "{ invalid json }");
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("empty config.json falls back to defaults", () => {
@@ -97,7 +111,7 @@ describe("resolveSymbolsManifestPath - malformed config", () => {
     fs.writeFileSync(configPath, "");
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config.json with syntax errors falls back to defaults", () => {
@@ -107,7 +121,7 @@ describe("resolveSymbolsManifestPath - malformed config", () => {
     fs.writeFileSync(configPath, '{ "symbolsManifest": "/path/to/file" ');
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("malformed config with symbols.yaml fallback returns symbols.yaml", () => {
@@ -174,7 +188,7 @@ describe("resolveSymbolsManifestPath - paths.symbols handling", () => {
     fs.writeFileSync(configPath, JSON.stringify({ paths: { symbols: null } }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config with paths.symbols empty string falls back to defaults", () => {
@@ -184,7 +198,7 @@ describe("resolveSymbolsManifestPath - paths.symbols handling", () => {
     fs.writeFileSync(configPath, JSON.stringify({ paths: { symbols: "" } }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 });
 
@@ -238,7 +252,7 @@ describe("resolveSymbolsManifestPath - symbolsManifest legacy handling", () => {
     fs.writeFileSync(configPath, JSON.stringify({ symbolsManifest: null }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config with symbolsManifest empty string falls back to defaults", () => {
@@ -248,7 +262,7 @@ describe("resolveSymbolsManifestPath - symbolsManifest legacy handling", () => {
     fs.writeFileSync(configPath, JSON.stringify({ symbolsManifest: "" }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 });
 
@@ -371,7 +385,7 @@ describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", ()
     fs.writeFileSync(configPath, "{}");
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config with paths object but no symbols returns symbols.yaml", () => {
@@ -381,7 +395,7 @@ describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", ()
     fs.writeFileSync(configPath, JSON.stringify({ paths: {} }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config with null paths returns symbols.yaml", () => {
@@ -391,7 +405,7 @@ describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", ()
     fs.writeFileSync(configPath, JSON.stringify({ paths: null }));
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("both symbols.yaml and symbols.yml exist returns symbols.yaml", () => {
@@ -429,7 +443,7 @@ describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", ()
     fs.writeFileSync(configPath, "{}");
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config with symbolsManifest undefined returns symbols.yaml", () => {
@@ -442,7 +456,7 @@ describe("resolveSymbolsManifestPath - fallback to symbols.yaml/symbols.yml", ()
     );
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 });
 
@@ -489,7 +503,7 @@ describe("resolveSymbolsManifestPath - priority and fallback behavior", () => {
     );
 
     const result = resolveSymbolsManifestPath(tempDir);
-    expect(result).toBe(path.join(tempDir, "symbols.yaml"));
+    expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
   });
 
   test("config error falls back to existing symbols.yaml", () => {

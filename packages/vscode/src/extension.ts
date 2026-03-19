@@ -26,6 +26,7 @@ import {
   validateMcpServerPath,
 } from "./activation";
 
+// implements REQ-vscode-traceability
 export function activate(context: vscode.ExtensionContext) {
   const output = vscode.window.createOutputChannel("Kibi");
   output.appendLine("Activating Kibi extension...");
@@ -74,6 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
     treeViewResult.watcher,
     navigationCommands.openEntityCommand,
     navigationCommands.openEntityByIdCommand,
+    navigationCommands.openTreeItemSourceCommand,
     navigationCommands.focusKnowledgeBaseCommand,
   ];
 
