@@ -16,13 +16,14 @@ export interface TreeViewRegistrationResult {
 /**
  * Registers the Kibi tree view with file system watcher for auto-refresh.
  */
+// implements REQ-vscode-traceability
 export function registerTreeView(
   context: vscode.ExtensionContext,
   output: vscode.OutputChannel,
   workspaceRoot: string,
   workspaceFolderUri: vscode.Uri,
 ): TreeViewRegistrationResult {
-  const treeDataProvider = new KibiTreeDataProvider(workspaceRoot);
+  const treeDataProvider = new KibiTreeDataProvider(workspaceRoot, output);
 
   const treeView = vscode.window.createTreeView(KIBI_VIEW_ID, {
     treeDataProvider: treeDataProvider,
