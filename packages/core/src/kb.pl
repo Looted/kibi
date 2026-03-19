@@ -605,11 +605,13 @@ deprecated_no_successor(Id) :-
 
 %% current_req(+Id)
 % Requirement is current when not deprecated and not superseded by another requirement.
+% Canonical statuses: open, in_progress, closed.
+% Legacy statuses accepted for backwards compatibility: active, approved.
 current_req(Id) :-
     kb_entity(Id, req, Props),
     memberchk(status=Status, Props),
     normalize_term_atom(Status, StatusAtom),
-    memberchk(StatusAtom, [open, in_progress, closed]),
+    memberchk(StatusAtom, [open, in_progress, closed, active, approved]),
     \+ kb_relationship(supersedes, _, Id).
 
 %% contradicting_reqs(-ReqA, -ReqB, -Reason)

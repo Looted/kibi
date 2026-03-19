@@ -295,7 +295,7 @@ const entities: EntityDef[] = [
     id: "EVT-001",
     properties: {
       title: "v0.0.1 released as Functional Alpha",
-      status: "passing",
+      status: "active",
       source: ".sisyphus/CONTINUATION-PLAN.md",
       tags: ["release", "v0"],
     },
@@ -305,7 +305,7 @@ const entities: EntityDef[] = [
     id: "EVT-002",
     properties: {
       title: "KB initialized on repository with kibi init",
-      status: "passing",
+      status: "active",
       source: "README.md",
       tags: ["init", "lifecycle"],
     },
@@ -315,7 +315,7 @@ const entities: EntityDef[] = [
     id: "EVT-003",
     properties: {
       title: "Branch KB created from main snapshot on first checkout",
-      status: "passing",
+      status: "active",
       source: "brief.md#3.1",
       tags: ["branching", "lifecycle"],
     },
@@ -325,7 +325,7 @@ const entities: EntityDef[] = [
     id: "EVT-004",
     properties: {
       title: "Entity sync triggered by post-checkout or post-merge git hook",
-      status: "passing",
+      status: "active",
       source: "brief.md#3.3",
       tags: ["git", "hooks", "sync"],
     },
@@ -335,7 +335,7 @@ const entities: EntityDef[] = [
     id: "EVT-005",
     properties: {
       title: "KB garbage collected: stale branch stores deleted by kibi gc",
-      status: "passing",
+      status: "active",
       source: "brief.md#3.3",
       tags: ["gc", "maintenance"],
     },
