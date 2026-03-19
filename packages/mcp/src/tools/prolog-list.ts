@@ -15,6 +15,7 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+// implements REQ-002
 export function parseAtomList(raw: string): string[] {
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
@@ -31,6 +32,7 @@ export function parseAtomList(raw: string): string[] {
     .filter((token) => token.length > 0);
 }
 
+// implements REQ-002
 export function parsePairList(raw: string): Array<[string, string]> {
   const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
@@ -45,22 +47,6 @@ export function parsePairList(raw: string): Array<[string, string]> {
   }
 
   return pairs;
-}
-
-export function parseTriples(raw: string): Array<[string, string, string]> {
-  const rows = parseListRows(raw);
-  const triples: Array<[string, string, string]> = [];
-
-  for (const row of rows) {
-    const parts = splitTopLevel(row, ",").map((part) =>
-      stripQuotes(part.trim()),
-    );
-    if (parts.length >= 3) {
-      triples.push([parts[0], parts[1], parts[2]]);
-    }
-  }
-
-  return triples;
 }
 
 function parseListRows(raw: string): string[] {

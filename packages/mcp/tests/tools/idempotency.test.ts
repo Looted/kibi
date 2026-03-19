@@ -45,7 +45,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req1",
-      properties: { title: "Req 1", status: "active", source: "test" },
+      properties: { title: "Req 1", status: "open", source: "test" },
     });
     await handleKbUpsert(prolog, {
       type: "scenario",
@@ -57,7 +57,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req1",
-      properties: { title: "Req 1", status: "active", source: "test" },
+      properties: { title: "Req 1", status: "open", source: "test" },
       relationships: [{ type: "specified_by", from: "req1", to: "scen1" }],
     });
 
@@ -65,7 +65,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req1",
-      properties: { title: "Req 1", status: "active", source: "test" },
+      properties: { title: "Req 1", status: "open", source: "test" },
       relationships: [{ type: "specified_by", from: "req1", to: "scen1" }],
     });
 
@@ -83,7 +83,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req2",
-      properties: { title: "Req 2", status: "active", source: "test" },
+      properties: { title: "Req 2", status: "open", source: "test" },
     });
     await handleKbUpsert(prolog, {
       type: "scenario",
@@ -95,7 +95,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req2",
-      properties: { title: "Req 2", status: "active", source: "test" },
+      properties: { title: "Req 2", status: "open", source: "test" },
       relationships: [
         { type: "specified_by", from: "req2", to: "scen2" },
         { type: "specified_by", from: "req2", to: "scen2" },
@@ -116,7 +116,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req3",
-      properties: { title: "Req 3", status: "active", source: "test" },
+      properties: { title: "Req 3", status: "open", source: "test" },
     });
     await handleKbUpsert(prolog, {
       type: "scenario",
@@ -128,7 +128,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req3",
-      properties: { title: "Req 3", status: "active", source: "test" },
+      properties: { title: "Req 3", status: "open", source: "test" },
       relationships: [{ type: "specified_by", from: "req3", to: "scen3" }],
     });
 
@@ -136,7 +136,7 @@ describe("KB Relationship Idempotency", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req3",
-      properties: { title: "Req 3", status: "active", source: "test" },
+      properties: { title: "Req 3", status: "open", source: "test" },
       relationships: [{ type: "specified_by", from: "req3", to: "scen3" }],
     });
 

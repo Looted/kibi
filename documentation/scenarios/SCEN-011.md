@@ -22,7 +22,7 @@ An AI agent is considering a change to the storage layer and needs to understand
 ### Steps
 
 1. Agent is considering a change to the storage layer.
-2. Agent calls kbderive with rule: current_adr — receives list of active ADRs.
+2. Agent calls kbderive with rule: current_adr — receives list of accepted ADRs.
 3. Agent calls kbderive with rule: adr_chain, params: {adr: "ADR-001"} — receives full timeline.
 4. Agent understands ADR-001 was superseded by ADR-009 in v0.5 and uses that context.
 5. Agent creates ADR-010 with links: [{type: supersedes, target: ADR-009}].

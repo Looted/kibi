@@ -324,7 +324,7 @@ deprecated_adr_violation(violation(
 )) :-
     deprecated_no_successor(AdrId),
     
-    Description = "Archived/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
+    Description = "Superseded/deprecated ADR has no successor — add a supersedes link from the replacement ADR",
     
     format(string(Suggestion), "Create a new ADR and add: links: [{type: supersedes, target: ~w}]", [AdrId]),
     

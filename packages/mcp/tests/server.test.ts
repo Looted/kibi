@@ -89,6 +89,21 @@ function startServer(options?: {
   return proc;
 }
 
+function writeEmptyKbSnapshot(branchKbPath: string): void {
+  fs.mkdirSync(path.join(branchKbPath, "journal"), { recursive: true });
+  fs.writeFileSync(
+    path.join(branchKbPath, "kb.rdf"),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:kb="urn-kibi:"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+</rdf:RDF>
+`,
+  );
+  fs.writeFileSync(path.join(branchKbPath, "kb.rdf.lock"), "");
+}
+
 async function killServer(proc: ChildProcess): Promise<void> {
   return new Promise((resolve) => {
     if (proc.killed || !proc.pid) {
@@ -224,6 +239,19 @@ describe("MCP Server", () => {
       "kb_delete",
       "kb_check",
     ]);
+
+    const kbUpsert = tools.find((tool) => tool.name === "kb_upsert");
+    const statusSchema = (
+      (kbUpsert?.inputSchema as Record<string, unknown>)?.properties as Record<
+        string,
+        unknown
+      >
+    )?.properties as Record<string, unknown> | undefined;
+    const nestedStatus = (statusSchema?.properties as Record<string, unknown>)
+      ?.status as Record<string, unknown> | undefined;
+    expect(nestedStatus?.type).toBe("string");
+    expect(nestedStatus?.anyOf).toBeUndefined();
+
     await killServer(proc);
   });
 
@@ -408,9 +436,7 @@ describe("MCP Server", () => {
     });
 
     const developKb = path.join(tempRoot, ".kb/branches/develop");
-    fs.mkdirSync(path.join(developKb, "journal"), { recursive: true });
-    fs.writeFileSync(path.join(developKb, "kb.rdf"), "");
-    fs.writeFileSync(path.join(developKb, "kb.rdf.lock"), "");
+    writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({ cwd: tempRoot });
 
@@ -492,9 +518,7 @@ describe("MCP Server", () => {
     execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
 
     const developKb = path.join(tempRoot, ".kb/branches/develop");
-    fs.mkdirSync(path.join(developKb, "journal"), { recursive: true });
-    fs.writeFileSync(path.join(developKb, "kb.rdf"), "");
-    fs.writeFileSync(path.join(developKb, "kb.rdf.lock"), "");
+    writeEmptyKbSnapshot(developKb);
 
     const proc = startServer({ cwd: tempRoot });
 
@@ -537,6 +561,10 @@ describe("MCP Server", () => {
           30000,
         );
         expect(upsert.error).toBeUndefined();
+        const upsertResult = upsert.result as
+          | Record<string, unknown>
+          | undefined;
+        expect(upsertResult?.isError).not.toBe(true);
 
         const queryById = await sendRequest(
           proc,

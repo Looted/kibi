@@ -8,6 +8,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 
+// implements REQ-vscode-traceability
 /**
  * Resolves the manifest path for symbols.yaml using config.json or defaults.
  *
@@ -29,8 +30,8 @@ export function resolveSymbolsManifestPath(workspaceRoot: string): string {
         paths?: { symbols?: string };
       };
 
-      // Check top-level symbolsManifest (legacy) or paths.symbols (current convention)
-      const manifestRelPath = config.symbolsManifest ?? config.paths?.symbols;
+      // Prefer paths.symbols (current convention) over top-level symbolsManifest (legacy)
+      const manifestRelPath = config.paths?.symbols ?? config.symbolsManifest;
 
       if (manifestRelPath) {
         // If path is absolute, use it directly

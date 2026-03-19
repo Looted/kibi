@@ -30,12 +30,12 @@ symbols:
   - id: symbol-io-logger
     title: IO logger
     source: https://example.com/symbols/io-logger
-    status: defined
+    status: active
     tags: [logging, io]
   - id: symbol-auth-service
     title: Auth service
     source: https://example.com/symbols/auth-service
-    status: defined
+    status: active
     tags: [auth]
 `;
     const filePath = setupTestFile("test-manifest.yaml", yaml);
@@ -45,7 +45,7 @@ symbols:
     expect(results).toHaveLength(2);
     expect(results[0].entity.type).toBe("symbol");
     expect(results[0].entity.title).toBe("IO logger");
-    expect(results[0].entity.status).toBe("defined");
+    expect(results[0].entity.status).toBe("active");
     expect(results[0].entity.source).toBe(filePath);
     expect(results[0].entity.tags).toEqual(["logging", "io"]);
     expect(results[0].entity.id).toBe("symbol-io-logger");
@@ -62,7 +62,7 @@ symbols:
   - id: symbol-auth-service
     title: Auth service
     source: https://example.com/symbols/auth-service
-    status: defined
+    status: active
     links:
       - type: implements
         target: REQ-001
@@ -79,9 +79,21 @@ symbols:
 
     // Should extract 3 relationships: 2 typed + 1 simple string (treated as implements)
     expect(relationships).toHaveLength(3);
-    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-001' });
-    expect(relationships).toContainEqual({ type: 'covered_by', from: expect.any(String), to: 'TEST-042' });
-    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-002' });
+    expect(relationships).toContainEqual({
+      type: "implements",
+      from: expect.any(String),
+      to: "REQ-001",
+    });
+    expect(relationships).toContainEqual({
+      type: "covered_by",
+      from: expect.any(String),
+      to: "TEST-042",
+    });
+    expect(relationships).toContainEqual({
+      type: "implements",
+      from: expect.any(String),
+      to: "REQ-002",
+    });
 
     cleanup();
   });
@@ -92,7 +104,7 @@ symbols:
   - id: symbol-auth-service
     title: Auth service
     source: https://example.com/symbols/auth-service
-    status: defined
+    status: active
 `;
     const filePath = setupTestFile("test-id.yaml", yaml);
 
@@ -118,7 +130,7 @@ symbols:
     expect(results).toHaveLength(1);
     const { entity } = results[0];
 
-    expect(entity.status).toBe("draft");
+    expect(entity.status).toBe("active");
     expect(entity.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(entity.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(entity.tags).toBeUndefined();
@@ -130,7 +142,7 @@ symbols:
     const yaml = `
 symbols:
   - source: https://example.com/no-title
-    status: defined
+    status: active
 `;
     const filePath = setupTestFile("test-no-title.yaml", yaml);
 
@@ -179,10 +191,26 @@ symbols:
 
     // Should extract all 4 typed relationships
     expect(relationships).toHaveLength(4);
-    expect(relationships).toContainEqual({ type: 'implements', from: expect.any(String), to: 'REQ-001' });
-    expect(relationships).toContainEqual({ type: 'constrained_by', from: expect.any(String), to: 'ADR-005' });
-    expect(relationships).toContainEqual({ type: 'publishes', from: expect.any(String), to: 'EVENT-001' });
-    expect(relationships).toContainEqual({ type: 'consumes', from: expect.any(String), to: 'EVENT-002' });
+    expect(relationships).toContainEqual({
+      type: "implements",
+      from: expect.any(String),
+      to: "REQ-001",
+    });
+    expect(relationships).toContainEqual({
+      type: "constrained_by",
+      from: expect.any(String),
+      to: "ADR-005",
+    });
+    expect(relationships).toContainEqual({
+      type: "publishes",
+      from: expect.any(String),
+      to: "EVENT-001",
+    });
+    expect(relationships).toContainEqual({
+      type: "consumes",
+      from: expect.any(String),
+      to: "EVENT-002",
+    });
 
     cleanup();
   });

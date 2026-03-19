@@ -229,14 +229,14 @@ describe("buildHoverMarkdown", () => {
         id: "REQ-001",
         type: "req",
         title: "User Login",
-        status: "active",
+        status: "open",
         tags: ["auth"],
       },
       {
         id: "TEST-001",
         type: "test",
         title: "Login Test",
-        status: "passed",
+        status: "passing",
         tags: ["unit", "auth"],
       },
       {
@@ -251,10 +251,10 @@ describe("buildHoverMarkdown", () => {
     expect(result).toContain("# SYM-001");
     expect(result).toContain("`src/auth.ts:10`");
     expect(result).toContain(
-      "📋 **REQ-001**: User Login (status: active, tags: auth)",
+      "📋 **REQ-001**: User Login (status: open, tags: auth)",
     );
     expect(result).toContain(
-      "✓ **TEST-001**: Login Test (status: passed, tags: unit, auth)",
+      "✓ **TEST-001**: Login Test (status: passing, tags: unit, auth)",
     );
     expect(result).toContain(
       "📐 **ADR-001**: JWT Decision (status: accepted, tags: security)",
@@ -290,7 +290,7 @@ describe("buildHoverMarkdown", () => {
         id: "TEST-001",
         type: "test",
         title: "Test",
-        status: "passed",
+        status: "passing",
         tags: [],
       },
     ];
@@ -306,19 +306,19 @@ describe("buildHoverMarkdown", () => {
       line: 1,
     };
     const entities = [
-      { id: "REQ-001", type: "req", title: "Req", status: "active", tags: [] },
+      { id: "REQ-001", type: "req", title: "Req", status: "open", tags: [] },
       {
         id: "SCEN-001",
         type: "scenario",
         title: "Scenario",
-        status: "draft",
+        status: "active",
         tags: [],
       },
       {
         id: "TEST-001",
         type: "test",
         title: "Test",
-        status: "passed",
+        status: "passing",
         tags: [],
       },
       {
@@ -332,14 +332,14 @@ describe("buildHoverMarkdown", () => {
         id: "FLAG-001",
         type: "flag",
         title: "Flag",
-        status: "enabled",
+        status: "active",
         tags: [],
       },
       {
         id: "EVENT-001",
         type: "event",
         title: "Event",
-        status: "active",
+        status: "open",
         tags: [],
       },
       {
@@ -386,7 +386,7 @@ describe("buildHoverMarkdown", () => {
         id: "REQ-001",
         type: "req",
         title: "Requirement with & special <chars>",
-        status: "active",
+        status: "open",
         tags: ["tag-with-dash", "tag_with_underscore"],
       },
     ];

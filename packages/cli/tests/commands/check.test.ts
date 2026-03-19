@@ -81,7 +81,7 @@ describe("kibi check", () => {
         `---
 title: User Authentication
 type: req
-status: approved
+status: open
 priority: must
 tags: [security]
 owner: alice
@@ -150,7 +150,7 @@ links:
         `---
 title: Critical Feature
 type: req
-status: approved
+status: open
 priority: must
 tags: [critical]
 owner: bob
@@ -204,7 +204,7 @@ links:
         `---
 title: Another Critical Feature
 type: req
-status: approved
+status: open
 priority: must
 tags: [critical]
 owner: charlie
@@ -258,7 +258,7 @@ links:
         `---
 id: REQ-VERIFIED-001
 title: Verified Requirement
-status: active
+status: open
 priority: must
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
@@ -324,10 +324,10 @@ source: tests/TEST-VERIFIED-001.md
         `symbols:
   - id: symbol-uncovered-001
     title: Uncovered Symbol 1
-    status: implemented
+    status: active
   - id: symbol-uncovered-002
     title: Uncovered Symbol 2
-    status: implemented
+    status: active
 `,
       );
 
@@ -357,7 +357,7 @@ source: tests/TEST-VERIFIED-001.md
         `---
 id: REQ-SELF-CYCLE
 title: Self Cycle
-status: active
+status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
@@ -399,7 +399,7 @@ links:
         `---
 title: Feature with Bad Link
 type: req
-status: approved
+status: open
 priority: should
 tags: [feature]
 owner: alice
@@ -436,7 +436,7 @@ links:
         `---
 title: Requirement 1
 type: req
-status: approved
+status: open
 priority: should
 tags: [feature]
 owner: alice
@@ -454,7 +454,7 @@ links:
         `---
 title: Requirement 2
 type: req
-status: approved
+status: open
 priority: should
 tags: [feature]
 owner: bob
@@ -472,7 +472,7 @@ links:
         `---
 title: Requirement 3
 type: req
-status: approved
+status: open
 priority: should
 tags: [feature]
 owner: charlie
@@ -544,7 +544,7 @@ owner: alice
         `---
 title: Uncovered Feature
 type: req
-status: approved
+status: open
 priority: must
 tags: [critical]
 owner: alice
@@ -639,7 +639,7 @@ links:
         `---
 id: ADR-002
 title: New Decision
-status: active
+status: accepted
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: adr/ADR-002.md
@@ -717,7 +717,7 @@ source: facts/FACT-LIMIT-3.md
         `---
 id: REQ-018
 title: Users have a maximum of 2 roles
-status: active
+status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
@@ -736,7 +736,7 @@ links:
         `---
 id: REQ-019
 title: Users can now have 3 roles
-status: active
+status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
@@ -814,7 +814,7 @@ source: facts/FACT-LIMIT-3.md
         `---
 id: REQ-018
 title: Users have a maximum of 2 roles
-status: active
+status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
@@ -833,7 +833,7 @@ links:
         `---
 id: REQ-019
 title: Users can now have 3 roles
-status: active
+status: open
 priority: should
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z

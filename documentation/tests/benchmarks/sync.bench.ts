@@ -11,7 +11,7 @@ function generateTestFile(id: number): string {
   return `---
 id: req-bench-${id}
 title: Benchmark Requirement ${id}
-status: approved
+status: open
 priority: high
 tags: [benchmark, performance, test-${id % 10}]
 ---

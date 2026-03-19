@@ -1,9 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import {
-  parseAtomList,
-  parsePairList,
-  parseTriples,
-} from "../../src/tools/prolog-list.js";
+import { parseAtomList, parsePairList } from "../../src/tools/prolog-list.js";
 
 describe("Prolog List Parser", () => {
   describe("parseAtomList", () => {
@@ -84,33 +80,6 @@ describe("Prolog List Parser", () => {
     test("should take first two elements of longer lists", () => {
       // parsePairList takes parts[0] and parts[1]
       expect(parsePairList("[[a,b,c]]")).toEqual([["a", "b"]]);
-    });
-  });
-
-  describe("parseTriples", () => {
-    test("should handle empty input", () => {
-      expect(parseTriples("")).toEqual([]);
-      expect(parseTriples("[]")).toEqual([]);
-    });
-
-    test("should parse simple triples", () => {
-      expect(parseTriples("[[a,b,c], [d,e,f]]")).toEqual([
-        ["a", "b", "c"],
-        ["d", "e", "f"],
-      ]);
-    });
-
-    test("should handle mixed quotes", () => {
-      expect(parseTriples("[['a', \"b\", c]]")).toEqual([["a", "b", "c"]]);
-    });
-
-    test("should ignore incomplete triples", () => {
-      // parseTriples checks if parts.length >= 3
-      expect(parseTriples("[[a,b], [c,d,e]]")).toEqual([["c", "d", "e"]]);
-    });
-
-    test("should take first three elements of longer lists", () => {
-      expect(parseTriples("[[a,b,c,d]]")).toEqual([["a", "b", "c"]]);
     });
   });
 });

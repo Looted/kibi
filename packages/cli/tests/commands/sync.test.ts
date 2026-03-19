@@ -39,14 +39,14 @@ describe("kibi sync", () => {
     mkdirSync(reqDir, { recursive: true });
     mkdirSync(scenarioDir, { recursive: true });
 
-  // Requirement document
-  writeFileSync(
-    path.join(reqDir, "req1.md"),
-    `---
+    // Requirement document
+    writeFileSync(
+      path.join(reqDir, "req1.md"),
+      `---
 id: req1
 title: User Authentication
 type: req
-status: approved
+status: open
 tags: [security, auth]
 owner: alice
 ---
@@ -55,11 +55,11 @@ owner: alice
 
 System must support OAuth2 authentication.
   `,
-  );
-  // Scenario document
-  writeFileSync(
-    path.join(scenarioDir, "scenario1.md"),
-    `---
+    );
+    // Scenario document
+    writeFileSync(
+      path.join(scenarioDir, "scenario1.md"),
+      `---
 id: scenario1
 title: Login Flow
 status: active
@@ -70,19 +70,19 @@ tags: [auth]
 
 User logs in with OAuth2 provider.
 `,
-  );
+    );
 
-  // Symbol manifest
+    // Symbol manifest
     const docDir = path.join(tmpDir, "documentation");
     mkdirSync(docDir, { recursive: true });
     writeFileSync(
       path.join(docDir, "symbols.yaml"),
       `symbols:
   - title: authenticate()
-    status: implemented
+    status: active
     tags: [auth]
   - title: logout()
-    status: implemented
+    status: active
     tags: [auth]
 `,
     );
@@ -192,7 +192,7 @@ User logs in with OAuth2 provider.
         `---
 title: User Authentication Updated
 type: req
-status: approved
+status: open
 tags: [security, auth]
 owner: alice
 links:
@@ -269,7 +269,8 @@ System must support OAuth2 authentication with session renewal.
     to: scenario1
     created_at: "2026-03-16T11:45:00Z"
     created_by: agent/test
-    source: test://sync-test`);
+    source: test://sync-test`,
+      );
 
       // Second sync should pick up the relationship
       const output = execSync(`bun ${kibiBin} sync`, {

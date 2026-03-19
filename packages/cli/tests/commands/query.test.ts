@@ -39,7 +39,7 @@ describe("kibi query", () => {
       `---
 title: User Authentication
 type: req
-status: approved
+status: open
 tags: [security, auth]
 owner: alice
 links:
@@ -59,7 +59,7 @@ System must support OAuth2 authentication.
       `---
 title: Payment Processing
 type: req
-status: draft
+status: open
 tags: [payments, finance]
 owner: bob
 ---
@@ -76,7 +76,7 @@ System must support credit card payments.
       `---
 title: Feature with Source
 type: req
-status: active
+status: open
 tags: [feature]
 source: src/features/feature.ts
 ---
@@ -107,10 +107,10 @@ User logs in with OAuth2 provider.
       path.join(tmpDir, "symbols.yaml"),
       `symbols:
   - title: authenticate()
-    status: implemented
+    status: active
     tags: [auth]
   - title: processPayment()
-    status: implemented
+    status: active
     tags: [payments]
 `,
     );

@@ -54,7 +54,7 @@ describe("Markdown Extractor", () => {
     expect(result.entity.type).toBe("req");
     expect(result.entity.id).toMatch(/^[0-9a-f]{16}$/);
     expect(result.entity.title).toBe("User Authentication");
-    expect(result.entity.status).toBe("approved");
+    expect(result.entity.status).toBe("open");
     expect(result.entity.priority).toBe("high");
     expect(result.entity.owner).toBe("security-team");
     expect(result.entity.tags).toEqual([
@@ -63,7 +63,6 @@ describe("Markdown Extractor", () => {
       "phase-1",
     ]);
   });
-
 
   test("infers type from directory path", () => {
     const result = extractFromMarkdown(
@@ -161,7 +160,7 @@ describe("Markdown Extractor", () => {
     const tempFile = "/tmp/test-missing-title.md";
     writeFileSync(
       tempFile,
-      "---\nstatus: draft\ntype: req\n---\n# Content without title",
+      "---\nstatus: open\ntype: req\n---\n# Content without title",
     );
 
     expect(() => extractFromMarkdown(tempFile)).toThrow(FrontmatterError);
@@ -172,7 +171,6 @@ describe("Markdown Extractor", () => {
     unlinkSync(tempFile);
   });
 
-
   test("provides default values for missing fields", () => {
     const tempFile = "/tmp/test-defaults.md";
     writeFileSync(
@@ -181,13 +179,36 @@ describe("Markdown Extractor", () => {
     );
 
     const result = extractFromMarkdown(tempFile);
-    expect(result.entity.status).toBe("draft");
+    expect(result.entity.status).toBe("open");
     expect(result.entity.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
     expect(result.entity.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 
     unlinkSync(tempFile);
   });
 
+  test("uses type-specific default statuses", () => {
+    const scenarioFile = "/tmp/scenarios/test-default-scenario.md";
+    mkdirSync("/tmp/scenarios", { recursive: true });
+    writeFileSync(scenarioFile, "---\ntitle: Minimal Scenario\n---\n# Content");
+
+    const testFile = "/tmp/tests/test-default-test.md";
+    mkdirSync("/tmp/tests", { recursive: true });
+    writeFileSync(testFile, "---\ntitle: Minimal Test\n---\n# Content");
+
+    const adrFile = "/tmp/adr/test-default-adr.md";
+    mkdirSync("/tmp/adr", { recursive: true });
+    writeFileSync(adrFile, "---\ntitle: Minimal ADR\n---\n# Content");
+
+    try {
+      expect(extractFromMarkdown(scenarioFile).entity.status).toBe("draft");
+      expect(extractFromMarkdown(testFile).entity.status).toBe("pending");
+      expect(extractFromMarkdown(adrFile).entity.status).toBe("proposed");
+    } finally {
+      unlinkSync(scenarioFile);
+      unlinkSync(testFile);
+      unlinkSync(adrFile);
+    }
+  });
 
   describe("Embedded Entity Detection", () => {
     test("rejects requirement with embedded scenarios array", () => {

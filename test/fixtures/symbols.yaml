@@ -2,11 +2,11 @@ symbols:
   - id: symbol-io-logger
     title: IO logger
     source: https://example.com/symbols/io-logger
-    status: defined
+    status: active
     tags: [logging]
   - id: symbol-auth-service
     title: Auth service
     source: https://example.com/symbols/auth-service
-    status: defined
+    status: active
     tags: [auth]
     links: [REQ-001]

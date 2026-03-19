@@ -12,7 +12,9 @@ coveragePathIgnorePatterns = [
   "documentation/tests/e2e/**",
   # Build outputs and generated files
   "dist/**",
+  "**/dist/**",
   "build/**",
+  "**/build/**",
   # Type declaration stubs
   "**/*.d.ts",
   # Prolog codec (plain JS, not TS source)

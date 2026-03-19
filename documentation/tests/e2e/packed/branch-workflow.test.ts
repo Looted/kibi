@@ -80,7 +80,7 @@ if (RUN_NODE_TEST_SUITE) {
           `---
 title: Develop Branch Requirement
 type: req
-status: approved
+ status: open
 ---
 
 # Develop Req
@@ -108,7 +108,7 @@ status: approved
           `---
 title: Feature Branch Requirement
 type: req
-status: draft
+ status: open
 ---
 
 # Feature Req
@@ -144,7 +144,7 @@ status: draft
           `---
 title: Develop Only
 type: req
-status: approved
+ status: open
 ---
 
 # Develop Only
@@ -175,7 +175,7 @@ status: approved
           `---
 title: Feature Only
 type: req
-status: draft
+ status: open
 ---
 
 # Feature Only
@@ -226,7 +226,7 @@ status: draft
           `---
 title: Version 1
 type: req
-status: approved
+ status: open
 ---
 
 # V1
@@ -254,7 +254,7 @@ status: approved
           `---
 title: Version 2
 type: req
-status: approved
+ status: open
 ---
 
 # V2
@@ -308,7 +308,7 @@ status: approved
           `---
 title: Feature Req
 type: req
-status: draft
+ status: open
 ---
 
 # Feature
@@ -345,7 +345,7 @@ status: draft
           `---
 title: Shared Requirement
 type: req
-status: approved
+ status: open
 ---
 
 # Shared
@@ -407,7 +407,7 @@ status: approved
           `---
 title: Develop
 type: req
-status: approved
+ status: open
 ---
 
 # Develop
@@ -435,7 +435,7 @@ status: approved
           `---
 title: Feature
 type: req
-status: draft
+ status: open
 ---
 
 # Feature
@@ -496,7 +496,7 @@ status: draft
           `---
 title: Develop
 type: req
-status: approved
+ status: open
 ---
 
 # Develop
@@ -531,7 +531,7 @@ status: approved
           `---
 title: Orphan
 type: req
-status: draft
+ status: open
 ---
 
 # Orphan
@@ -562,7 +562,7 @@ status: draft
           `---
 title: Develop Seed
 type: req
-status: approved
+ status: open
 ---
 
 # Develop Seed
