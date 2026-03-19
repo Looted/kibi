@@ -103,7 +103,12 @@ export async function handleKbDelete(
     }
 
     // Save KB to disk
-    await prolog.query("kb_save");
+    const saveResult = await prolog.query("kb_save");
+    if (!saveResult.success) {
+      throw new Error(
+        `Failed to save KB after delete: ${saveResult.error || "Unknown error"}`,
+      );
+    }
     prolog.invalidateCache();
 
     return {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -175,6 +175,60 @@ User logs in with OAuth2 provider.
       expect(typeof cache.seenAt["documentation/requirements/req1.md"]).toBe(
         "string",
       );
+      expect(cache.seenAt["documentation/requirements/req1.md"]).not.toMatch(
+        /^[a-f0-9]{64}$/,
+      );
+      expect(
+        Number.isNaN(
+          Date.parse(cache.seenAt["documentation/requirements/req1.md"]),
+        ),
+      ).toBe(false);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "re-imports files when cache seenAt values are invalid",
+    async () => {
+      execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      const cachePath = path.join(tmpDir, ".kb/branches/main/sync-cache.json");
+      const cache = JSON.parse(readFileSync(cachePath, "utf8")) as {
+        version: number;
+        hashes: Record<string, string>;
+        seenAt: Record<string, string>;
+      };
+
+      cache.seenAt = Object.fromEntries(
+        Object.entries(cache.hashes).map(([key, value]) => [key, value]),
+      );
+      writeFileSync(cachePath, JSON.stringify(cache, null, 2));
+
+      const result = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      expect(result.status).toBe(0);
+      const output = `${result.stdout}${result.stderr}`;
+      const match = output.match(
+        /Imported (\d+) entities, (\d+) relationships/,
+      );
+      expect(match).toBeDefined();
+
+      if (!match) throw new Error("Output format mismatch");
+
+      expect(Number.parseInt(match[1])).toBeGreaterThan(0);
+
+      const repairedCache = JSON.parse(readFileSync(cachePath, "utf8")) as {
+        seenAt: Record<string, string>;
+      };
+      for (const value of Object.values(repairedCache.seenAt)) {
+        expect(Number.isNaN(Date.parse(value))).toBe(false);
+      }
     },
     TEST_TIMEOUT_MS,
   );
@@ -240,6 +294,38 @@ System must support OAuth2 authentication with session renewal.
 
       expect(output).toContain("Imported");
       // No error exit code
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "imports valid shard relationships without false dangling warnings",
+    async () => {
+      const relationshipsDir = path.join(tmpDir, ".kb", "relationships");
+      mkdirSync(relationshipsDir, { recursive: true });
+
+      writeFileSync(
+        path.join(relationshipsDir, "a1.yaml"),
+        `relationships:
+  - id: rel-abc123def456
+    type: relates_to
+    from: req1
+    to: scenario1
+    created_at: "2026-03-16T11:45:00Z"
+    created_by: agent/test
+    source: test://sync-test`,
+      );
+
+      const result = spawnSync("bun", [kibiBin, "sync"], {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      expect(result.status).toBe(0);
+      const output = `${result.stdout}${result.stderr}`;
+      expect(output).toMatch(/Imported \d+ entities, [1-9]\d* relationships/);
+      expect(output).not.toContain("dangling relationship(s) found");
+      expect(output).not.toContain("relationship(s) failed to sync");
     },
     TEST_TIMEOUT_MS,
   );

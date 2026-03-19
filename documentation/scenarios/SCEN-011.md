@@ -10,9 +10,6 @@ tags:
   - adr
   - temporal
   - agent-workflow
-links:
-  - type: specified_by
-    target: REQ-016
 ---
 
 ## Scenario

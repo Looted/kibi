@@ -128,6 +128,7 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
+// implements REQ-008
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const workspaceRoot = resolveWorkspaceRoot();
 
@@ -166,7 +167,14 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
       `[KIBI-MCP] Branch changed: ${activeBranchName} -> ${targetBranch}`,
     );
 
-    // Detach from old KB
+    // Persist and detach from old KB
+    const saveResult = await prologProcess.query("kb_save");
+    if (!saveResult.success) {
+      throw new Error(
+        `Failed to save old KB before detach: ${saveResult.error || "Unknown error"}`,
+      );
+    }
+
     const detachResult = await prologProcess.query("kb_detach");
     if (!detachResult.success) {
       debugLog(

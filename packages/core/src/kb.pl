@@ -59,16 +59,15 @@ kb_uri('urn-kibi:').
 :- dynamic kb_attached/1.
 :- dynamic kb_audit_db/1.
 :- dynamic kb_graph/1.
+:- dynamic kb_attached_snapshot/1.
 :- dynamic entity/4.  % Support legacy .pl file format (Type, Id, Title, Props)
 
 %% kb_attach(+Directory)
 % Attach to a KB directory with RDF persistence and file locking.
 % Creates directory if it doesn't exist.
 kb_attach(Directory) :-
-    % If we were already attached in this process, detach first.
-    % This prevents accidentally loading the same RDF snapshot multiple times.
     (   kb_attached(_)
-    ->  kb_detach
+    ->  throw(error(permission_error(attach, kb, Directory), kb_attach/1))
     ;   true
     ),
     % Ensure directory exists
@@ -89,6 +88,7 @@ kb_attach(Directory) :-
     ->  rdf_load(DataFile, [graph(GraphURI), silent(true)])
     ;   true
     ),
+    current_data_stamp(DataFile, SnapshotStamp),
     % Set up audit log - only attach if not already attached
     atom_concat(Directory, '/audit.log', AuditLog),
     (   db_attached(AuditLog)
@@ -99,55 +99,114 @@ kb_attach(Directory) :-
     assert(kb_attached(Directory)),
     assert(kb_audit_db(AuditLog)),
     assert(kb_graph(GraphURI)),
+    assert(kb_attached_snapshot(SnapshotStamp)),
 
     % Load legacy .pl entity files if present
     load_kb_pl_files(Directory).
 
 
 %% kb_detach
-% Safely detach from KB, flushing journals and closing audit log.
+% Safely detach from KB without persisting pending changes.
+% Call kb_save/0 explicitly before kb_detach/0 when durability is required.
+% implements REQ-009
 kb_detach :-
     (   kb_attached(_Directory)
     ->  (
-            kb_save,
             % Unload RDF graph from memory to prevent duplication on reattach
             (   kb_graph(GraphURI)
             ->  rdf_unload_graph(GraphURI)
             ;   true
             ),
-            % Sync and close audit log
-            (   kb_audit_db(AuditLog)
-            ->  db_sync(AuditLog)
+            (   db_attached(_)
+            ->  catch(db_detach, _, true)
             ;   true
             ),
             % Clear state
             retractall(kb_attached(_)),
             retractall(kb_audit_db(_)),
-            retractall(kb_graph(_))
+            retractall(kb_graph(_)),
+            retractall(kb_attached_snapshot(_))
         )
     ;   true
     ).
 
 %% kb_save
 % Save RDF graph and sync audit log to disk
+% implements REQ-009
 kb_save :-
     (   kb_attached(Directory)
-    ->  (
-            % Save RDF graph to file with namespace declarations
-            atom_concat(Directory, '/kb.rdf', DataFile),
-            % Get current graph URI
-            kb_graph(GraphURI),
-            % If we have a graph URI, save that graph. Otherwise save all data
-            % (fallback) so a kb.rdf is always produced. Report errors if save fails.
-            (   kb_graph(GraphURI)
-            ->  catch(rdf_save(DataFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])]), E, print_message(error, E))
-            ;   catch(rdf_save(DataFile, [base_uri('urn-kibi:'), namespaces([kb, xsd])]), E2, print_message(error, E2))
-            ),
-            % Sync audit log
-            (   kb_audit_db(AuditLog)
-            ->  db_sync(AuditLog)
-            ;   true
-            )
+    ->  with_kb_mutex(with_kb_file_lock(Directory, kb_save_locked(Directory)))
+    ;   true
+    ).
+
+with_kb_file_lock(Directory, Goal) :-
+    atom_concat(Directory, '/kb.lock', LockFile),
+    setup_call_cleanup(
+        open(LockFile, append, LockStream, [lock(write)]),
+        call(Goal),
+        close(LockStream)
+    ).
+
+kb_save_locked(Directory) :-
+    atom_concat(Directory, '/kb.rdf', DataFile),
+    temp_rdf_file(Directory, TempFile),
+    catch(
+        (
+            ensure_snapshot_current(DataFile),
+            save_rdf_snapshot(TempFile),
+            rename_file(TempFile, DataFile),
+            current_data_stamp(DataFile, UpdatedStamp),
+            retractall(kb_attached_snapshot(_)),
+            assert(kb_attached_snapshot(UpdatedStamp)),
+            sync_audit_log
+        ),
+        Error,
+        (
+            cleanup_temp_file(TempFile),
+            throw(Error)
+        )
+    ).
+
+temp_rdf_file(Directory, TempFile) :-
+    get_time(Timestamp),
+    Millis is floor(Timestamp * 1000),
+    (   current_prolog_flag(pid, Pid)
+    ->  true
+    ;   Pid = 0
+    ),
+    format(atom(TempFile), '~w/kb.rdf.tmp.~w.~w', [Directory, Pid, Millis]).
+
+save_rdf_snapshot(TargetFile) :-
+    (   kb_graph(GraphURI)
+    ->  rdf_save(TargetFile, [graph(GraphURI), base_uri('urn-kibi:'), namespaces([kb, xsd])])
+    ;   rdf_save(TargetFile, [base_uri('urn-kibi:'), namespaces([kb, xsd])])
+    ).
+
+sync_audit_log :-
+    (   kb_audit_db(AuditLog)
+    ->  db_sync(AuditLog)
+    ;   true
+    ).
+
+cleanup_temp_file(TempFile) :-
+    (   exists_file(TempFile)
+    ->  catch(delete_file(TempFile), _, true)
+    ;   true
+    ).
+
+current_data_stamp(DataFile, missing) :-
+    \+ exists_file(DataFile),
+    !.
+current_data_stamp(DataFile, stamp(MTime, Size)) :-
+    time_file(DataFile, MTime),
+    size_file(DataFile, Size).
+
+ensure_snapshot_current(DataFile) :-
+    (   kb_attached_snapshot(ExpectedStamp)
+    ->  current_data_stamp(DataFile, CurrentStamp),
+        (   ExpectedStamp == CurrentStamp
+        ->  true
+        ;   throw(error(permission_error(save, kb, stale_snapshot), kb_save/0))
         )
     ;   true
     ).

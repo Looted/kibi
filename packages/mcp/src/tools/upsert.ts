@@ -180,7 +180,12 @@ export async function handleKbUpsert(
     // This allows batching multiple upserts before a single disk write.
     prolog.invalidateCache();
     // Save KB to disk to ensure durability across process restarts
-    await prolog.query("kb_save");
+    const saveResult = await prolog.query("kb_save");
+    if (!saveResult.success) {
+      throw new Error(
+        `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
+      );
+    }
 
     let contradictionPairsDetected: number | undefined;
     if (type === "req" && !args._skipContradictionCheck) {
