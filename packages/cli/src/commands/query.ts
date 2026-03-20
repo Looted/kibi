@@ -109,9 +109,11 @@ export async function queryCommand(
     if (options.relationships) {
       const fromId = String(options.relationships);
       const safeFromId = fromId.replace(/'/g, "''");
+      const relTypesList = REL_TYPES.join(", ");
 
-      // Query all relationship types for the given source ID
-      const goal = `findall([Type,From,To], (From='${safeFromId}', kb_relationship(Type, From, To)), Results)`;
+      // Query all known relationship types for the given source ID.
+      // kb_relationship/3 requires the relationship type to be instantiated.
+      const goal = `findall([Type,From,To], (member(Type, [${relTypesList}]), kb_relationship(Type, '${safeFromId}', To), From='${safeFromId}'), Results)`;
 
       const queryResult = await prolog.query(goal);
 

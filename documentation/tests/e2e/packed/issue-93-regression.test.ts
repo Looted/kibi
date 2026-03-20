@@ -126,6 +126,37 @@ if (RUN_NODE_TEST_SUITE) {
             "kb:entity/SCEN-ISSUE93-001",
             queryOut,
           );
+
+          const {
+            exitCode: relCode,
+            stdout: relOut,
+            stderr: relError,
+          } = await kibi(sandbox, [
+            "query",
+            "--relationships",
+            "REQ-ISSUE93-001",
+            "--format",
+            "json",
+          ]);
+          assert.strictEqual(
+            relCode,
+            0,
+            `relationship query should succeed: ${relError}`,
+          );
+
+          const relationships = JSON.parse(relOut) as Array<{
+            type?: string;
+            from?: string;
+            to?: string;
+          }>;
+          assert.ok(Array.isArray(relationships), relOut);
+          assert.deepStrictEqual(relationships, [
+            {
+              type: "relates_to",
+              from: "REQ-ISSUE93-001",
+              to: "SCEN-ISSUE93-001",
+            },
+          ]);
         },
       );
     },

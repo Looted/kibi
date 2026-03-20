@@ -3,5 +3,5 @@
 ---
 
 Import plain string Markdown frontmatter `links` as generic `relates_to`
-relationships during `kibi sync`, matching the documented authoring pattern and
-the existing migration and VS Code behavior.
+relationships during `kibi sync`, and fix `kibi query --relationships` so it
+returns outgoing relationships reliably.
