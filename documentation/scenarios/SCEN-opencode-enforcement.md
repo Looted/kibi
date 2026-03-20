@@ -12,9 +12,6 @@ tags:
   - opencode
   - kibi-first
   - guidance
-links:
-  - type: specified_by
-    target: REQ-opencode-kibi-plugin-v1
 ---
 
 ## Scenario

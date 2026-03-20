@@ -14,12 +14,12 @@
 
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-import { existsSync } from "node:fs";
+ */
+import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { parsePairList } from "./prolog-list.js";
+import { resolveWorkspaceRoot } from "../workspace.js";
 
 const require = createRequire(import.meta.url);
 
@@ -47,6 +47,33 @@ function resolveChecksPlPath(): string {
 export interface CheckArgs {
   rules?: string[];
 }
+
+const ALL_RULES = [
+  "must-priority-coverage",
+  "no-dangling-refs",
+  "no-cycles",
+  "required-fields",
+  "symbol-coverage",
+  "symbol-traceability",
+  "deprecated-adr-no-successor",
+  "domain-contradictions",
+] as const;
+
+const RULE_NAMES = new Set<string>(ALL_RULES);
+
+interface ChecksConfig {
+  rules: Record<string, boolean>;
+  symbolTraceability: {
+    requireAdr: boolean;
+  };
+}
+
+const DEFAULT_CHECKS_CONFIG: ChecksConfig = {
+  rules: Object.fromEntries(ALL_RULES.map((rule) => [rule, true])),
+  symbolTraceability: {
+    requireAdr: false,
+  },
+};
 
 interface Violation {
   rule: string;
@@ -89,10 +116,83 @@ export interface CheckResult {
   };
 }
 
+// implements REQ-002
+function loadChecksConfig(workspaceRoot: string): ChecksConfig {
+  const configPath = path.join(workspaceRoot, ".kb", "config.json");
+
+  if (!existsSync(configPath)) {
+    return DEFAULT_CHECKS_CONFIG;
+  }
+
+  try {
+    const content = readFileSync(configPath, "utf8");
+    const parsed = JSON.parse(content) as {
+      checks?: Partial<ChecksConfig>;
+    };
+
+    const parsedRules = parsed.checks?.rules;
+    const normalizedRules: Record<string, boolean> = {
+      ...DEFAULT_CHECKS_CONFIG.rules,
+    };
+    if (parsedRules && typeof parsedRules === "object") {
+      for (const [key, value] of Object.entries(parsedRules)) {
+        if (typeof value === "boolean") {
+          normalizedRules[key] = value;
+        }
+        // Ignore non-boolean values (they are not added to normalizedRules, preserving defaults)
+      }
+    }
+
+    const parsedSt = parsed.checks?.symbolTraceability;
+    const normalizedSt = { ...DEFAULT_CHECKS_CONFIG.symbolTraceability };
+    if (parsedSt && typeof parsedSt === "object") {
+      if (typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean") {
+        normalizedSt.requireAdr = (parsedSt as { requireAdr: boolean }).requireAdr;
+      }
+    }
+
+    return {
+      rules: normalizedRules,
+      symbolTraceability: normalizedSt,
+    };
+  } catch {
+    return DEFAULT_CHECKS_CONFIG;
+  }
+}
+
+// implements REQ-002
+function getEffectiveRules(
+  configRules: Record<string, boolean>,
+  requestedRules?: string[],
+): Set<string> {
+  const effective = new Set<string>();
+
+  for (const rule of ALL_RULES) {
+    const enabled = configRules[rule] ?? true;
+    if (enabled) {
+      effective.add(rule);
+    }
+  }
+
+  if (requestedRules && requestedRules.length > 0) {
+    const allowed = new Set(
+      requestedRules.filter((rule) => RULE_NAMES.has(rule)),
+    );
+    for (const rule of Array.from(effective)) {
+      if (!allowed.has(rule)) {
+        effective.delete(rule);
+      }
+    }
+  }
+
+  return effective;
+}
+
 /**
  * Handle kb_check tool calls - run validation rules on the KB
  * Reuses validation logic from CLI check command
  */
+// implements REQ-002
 export async function handleKbCheck(
   prolog: PrologProcess,
   args: CheckArgs,
@@ -100,84 +200,30 @@ export async function handleKbCheck(
   const { rules } = args;
 
   try {
-    const violations: Violation[] = [];
-    let allEntityIds: string[] | null = null;
+    const workspaceRoot = resolveWorkspaceRoot();
+    const checksConfig = loadChecksConfig(workspaceRoot);
+    const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
 
-    // Run all validation rules (or specific rules if provided)
-    const allRules = [
-      "must-priority-coverage",
-      "no-dangling-refs",
-      "no-cycles",
-      "required-fields",
-      "symbol-coverage",
-      "symbol-traceability",
-      "deprecated-adr-no-successor",
-      "domain-contradictions",
-    ];
-    const rulesToRun = rules && rules.length > 0 ? rules : allRules;
-
-    const rulesAllowlist = new Set(rulesToRun);
-    const aggregatedViolations = await runAggregatedChecks(
-      prolog,
-      rulesAllowlist,
-    );
-    if (aggregatedViolations) {
-      const diagnostics: Diagnostic[] = aggregatedViolations.map((v) => ({
-        category: "SYNC_ERROR",
-        severity: "error",
-        message: v.description,
-        file: v.source,
-        suggestion: v.suggestion,
-      }));
-
-      const summary =
-        aggregatedViolations.length === 0
-          ? "No violations found"
-          : `${aggregatedViolations.length} violations found`;
-
+    if (rulesAllowlist.size === 0) {
       return {
-        content: [
-          {
-            type: "text",
-            text: summary,
-          },
-        ],
+        content: [{ type: "text", text: "No violations found" }],
         structuredContent: {
-          violations: aggregatedViolations,
-          count: aggregatedViolations.length,
-          diagnostics: formatDiagnosticsForMcp(diagnostics),
+          violations: [],
+          count: 0,
+          diagnostics: [],
         },
       };
     }
 
-    if (rulesToRun.includes("must-priority-coverage")) {
-      violations.push(...(await checkMustPriorityCoverage(prolog)));
-    }
+    // Run aggregated checks using same approach as CLI
+    // This now runs ALL rules including symbol-traceability
+    const aggregatedViolations = await runAggregatedChecks(
+      prolog,
+      rulesAllowlist,
+      checksConfig.symbolTraceability.requireAdr,
+    );
 
-    if (rulesToRun.includes("no-dangling-refs")) {
-      violations.push(...(await checkNoDanglingRefs(prolog)));
-    }
-
-    if (rulesToRun.includes("no-cycles")) {
-      violations.push(...(await checkNoCycles(prolog)));
-    }
-
-    if (rulesToRun.includes("required-fields")) {
-      if (!allEntityIds) {
-        allEntityIds = await getAllEntityIds(prolog);
-      }
-      violations.push(...(await checkRequiredFields(prolog, allEntityIds)));
-    }
-
-    if (rulesToRun.includes("symbol-coverage")) {
-      violations.push(...(await checkSymbolCoverage(prolog)));
-    }
-
-    if (rulesToRun.includes("symbol-traceability")) {
-      violations.push(...(await checkSymbolTraceability(prolog, false)));
-    }
-
-    const diagnostics: Diagnostic[] = violations.map((v) => ({
+    const diagnostics: Diagnostic[] = aggregatedViolations.map((v) => ({
       category: "SYNC_ERROR",
       severity: "error",
       message: v.description,
@@ -186,9 +232,9 @@ export async function handleKbCheck(
     }));
 
     const summary =
-      violations.length === 0
+      aggregatedViolations.length === 0
         ? "No violations found"
-        : `${violations.length} violations found`;
+        : `${aggregatedViolations.length} violations found`;
 
     return {
       content: [
@@ -198,8 +244,8 @@ export async function handleKbCheck(
         },
       ],
       structuredContent: {
-        violations,
-        count: violations.length,
+        violations: aggregatedViolations,
+        count: aggregatedViolations.length,
         diagnostics: formatDiagnosticsForMcp(diagnostics),
       },
     };
@@ -209,355 +255,62 @@ export async function handleKbCheck(
   }
 }
 
+// implements REQ-002
 async function runAggregatedChecks(
   prolog: PrologProcess,
   rulesAllowlist: Set<string>,
-): Promise<Violation[] | null> {
-  const checksPlPath = resolveChecksPlPath();
-  const normalizedChecksPlPath = checksPlPath.replace(/\\/g, "/");
-  const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
-  const violations: Violation[] = [];
-
-  const ruleToPredicate: Record<string, string> = {
-    "must-priority-coverage": "check_must_priority_coverage",
-    "no-dangling-refs": "check_no_dangling_refs",
-    "no-cycles": "check_no_cycles",
-    "required-fields": "check_required_fields",
-    "symbol-coverage": "check_symbol_coverage",
-  };
-
-  for (const rule of rulesAllowlist) {
-    const predicate = ruleToPredicate[rule];
-    if (!predicate) {
-      continue;
-    }
-
-    const query = `(use_module('${checksPlPathEscaped}'), call(checks:${predicate}(Violations)), findall(_{rule:Rule,entityId:EntityId,description:Description,suggestion:Suggestion,source:Source}, member(violation(Rule, EntityId, Description, Suggestion, Source), Violations), Rows), call(checks:atom_json_dict(JsonString, Rows, [])))`;
-    const result = await prolog.query(query);
-    if (!result.success || !result.bindings.JsonString) {
-      return null;
-    }
-
-    let parsedRows: unknown;
-    try {
-      parsedRows = JSON.parse(result.bindings.JsonString);
-      if (typeof parsedRows === "string") {
-        parsedRows = JSON.parse(parsedRows);
-      }
-    } catch {
-      return null;
-    }
-
-    if (!Array.isArray(parsedRows)) {
-      return null;
-    }
-
-    for (const row of parsedRows) {
-      if (!row || typeof row !== "object") {
-        continue;
-      }
-      const raw = row as Record<string, unknown>;
-      const rule = typeof raw.rule === "string" ? raw.rule : "";
-      if (!rulesAllowlist.has(rule)) {
-        continue;
-      }
-      const entityId =
-        typeof raw.entityId === "string"
-          ? raw.entityId
-          : typeof raw.entity_id === "string"
-            ? raw.entity_id
-            : "";
-      const description =
-        typeof raw.description === "string" ? raw.description : "";
-      const suggestion =
-        typeof raw.suggestion === "string" ? raw.suggestion : undefined;
-      const source = typeof raw.source === "string" ? raw.source : undefined;
-      if (!rule || !entityId || !description) {
-        continue;
-      }
-      violations.push({
-        rule,
-        entityId,
-        description,
-        suggestion,
-        source,
-      });
-    }
-  }
-
-  return violations;
-}
-
-async function checkSymbolTraceability(
-  prolog: PrologProcess,
   requireAdr: boolean,
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
+  const checksPlPath = resolveChecksPlPath();
+  const normalizedChecksPlPath = checksPlPath.replace(/\\/g, "/");
+  const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
+
+  // Use check_all_json_with_options if available, otherwise fall back to check_all_json
   const requireAdrStr = requireAdr ? "true" : "false";
-  const result = await prolog.query(
-    `findall(violation(Rule, EntityId, Desc, Sugg, Src), checks:symbol_traceability_violation(${requireAdrStr}, violation(Rule, EntityId, Desc, Sugg, Src)), Violations)`,
-  );
-
-  if (!result.success || !result.bindings.Violations) {
-    return violations;
-  }
-
-  const violationsStr = result.bindings.Violations as string;
-  if (violationsStr && violationsStr !== "[]") {
-    const violationRegex =
-      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
-    let match: RegExpExecArray | null;
-    do {
-      match = violationRegex.exec(violationsStr);
-      if (match) {
-        violations.push({
-          rule: match[1].trim().replace(/^'|'$/g, ""),
-          entityId: match[2].trim(),
-          description: match[3].trim().replace(/^"|"$/g, ""),
-          suggestion: match[4].trim().replace(/^"|"$/g, ""),
-          source: match[5].trim() || undefined,
-        });
-      }
-    } while (match);
-  }
-
-  return violations;
-}
-
-async function checkMustPriorityCoverage(
-  prolog: PrologProcess,
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const gapsResult = await prolog.query(
-    "setof([Req,Reason], coverage_gap(Req, Reason), Rows)",
-  );
-  if (!gapsResult.success || !gapsResult.bindings.Rows) {
-    return violations;
-  }
-
-  const gaps = parsePairList(gapsResult.bindings.Rows);
-  for (const [reqId, reason] of gaps) {
-    const entityResult = await prolog.query(
-      `kb_entity('${reqId}', req, Props)`,
-    );
-    let source = "";
-    if (entityResult.success && entityResult.bindings.Props) {
-      const propsStr = entityResult.bindings.Props;
-      const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      if (sourceMatch) {
-        source = sourceMatch[1];
-      }
-    }
-
-    const missing: string[] = [];
-    if (reason.includes("scenario")) {
-      missing.push("scenario");
-    }
-    if (reason.includes("test")) {
-      missing.push("test");
-    }
-
-    violations.push({
-      rule: "must-priority-coverage",
-      entityId: reqId,
-      description: `Must-priority requirement lacks ${missing.join(" and ")} coverage`,
-      source,
-      suggestion: missing
-        .map((m) => `Create ${m} that covers this requirement`)
-        .join("; "),
-    });
-  }
-
-  return violations;
-}
-
-async function getAllEntityIds(
-  prolog: PrologProcess,
-  type?: string,
-): Promise<string[]> {
-  const typeFilter = type ? `, Type = ${type}` : "";
-  const query = `findall(Id, (kb_entity(Id, Type, _)${typeFilter}), Ids)`;
+  const query = `(use_module('${checksPlPathEscaped}'),
+    (   predicate_property(checks:check_all_json_with_options(_, _), _)
+    ->  call(checks:check_all_json_with_options(JsonString, ${requireAdrStr}))
+    ;   call(checks:check_all_json(JsonString))
+    ))`;
 
   const result = await prolog.query(query);
 
-  if (!result.success || !result.bindings.Ids) {
-    return [];
-  }
-
-  const idsStr = result.bindings.Ids;
-  const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
-  if (!content) {
-    return [];
-  }
-
-  return content.split(",").map((id) => id.trim().replace(/^'|'$/g, ""));
-}
-
-async function checkNoDanglingRefs(
-  prolog: PrologProcess,
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  // Get all entity IDs once
-  const allEntityIds = new Set(await getAllEntityIds(prolog));
-
-  // Get all relationships by querying all known relationship types
-  const relTypes = [
-    "depends_on",
-    "verified_by",
-    "validates",
-    "specified_by",
-    "relates_to",
-  ];
-
-  const allRels: Array<{ from: string; to: string }> = [];
-
-  for (const relType of relTypes) {
-    const relsResult = await prolog.query(
-      `findall([From,To], kb_relationship(${relType}, From, To), Rels)`,
+  if (!result.success) {
+    throw new Error(
+      `Aggregated checks query failed: ${result.error || "Unknown error"}`,
     );
+  }
 
-    if (relsResult.success && relsResult.bindings.Rels) {
-      const relsStr = relsResult.bindings.Rels;
-      const match = relsStr.match(/\[(.*)\]/);
-      if (match) {
-        const content = match[1].trim();
-        if (content) {
-          const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-          for (const relMatch of relMatches) {
-            const fromId = relMatch[1].trim().replace(/^'|'$/g, "");
-            const toId = relMatch[2].trim().replace(/^'|'$/g, "");
-            allRels.push({ from: fromId, to: toId });
-          }
-        }
-      }
+  let violationsDict: Record<string, JsonViolation[]>;
+  try {
+    const jsonString = result.bindings.JsonString;
+    if (!jsonString) {
+      throw new Error("No JSON string in binding");
     }
-  }
-
-  // Check all collected relationships for dangling refs
-  for (const rel of allRels) {
-    if (!allEntityIds.has(rel.from)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.from,
-        description: `Relationship references non-existent entity: ${rel.from}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
+    let parsed = JSON.parse(jsonString);
+    if (typeof parsed === "string") {
+      parsed = JSON.parse(parsed);
     }
-
-    if (!allEntityIds.has(rel.to)) {
-      violations.push({
-        rule: "no-dangling-refs",
-        entityId: rel.to,
-        description: `Relationship references non-existent entity: ${rel.to}`,
-        suggestion: "Remove relationship or create missing entity",
-      });
-    }
+    violationsDict = parsed as Record<string, JsonViolation[]>;
+  } catch (parseError) {
+    throw new Error(
+      `Failed to parse violations JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    );
   }
 
-  return violations;
-}
-
-async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  // Get all depends_on relationships
-  const depsResult = await prolog.query(
-    "findall([From,To], kb_relationship(depends_on, From, To), Deps)",
-  );
-
-  if (!depsResult.success || !depsResult.bindings.Deps) {
-    return violations;
-  }
-
-  const depsStr = depsResult.bindings.Deps;
-  const match = depsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return violations;
-  }
-
-  const content = match[1].trim();
-  if (!content) {
-    return violations;
-  }
-
-  // Build adjacency map
-  const graph = new Map<string, string[]>();
-  const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-
-  for (const depMatch of depMatches) {
-    const from = depMatch[1].trim().replace(/^'|'$/g, "");
-    const to = depMatch[2].trim().replace(/^'|'$/g, "");
-
-    if (!graph.has(from)) {
-      graph.set(from, []);
-    }
-    const fromList = graph.get(from);
-    if (fromList) {
-      fromList.push(to);
-    }
-  }
-
-  // DFS to detect cycles
-  const visited = new Set<string>();
-  const recStack = new Set<string>();
-
-  function hasCycleDFS(node: string, path: string[]): string[] | null {
-    visited.add(node);
-    recStack.add(node);
-    path.push(node);
-
-    const neighbors = graph.get(node) || [];
-    for (const neighbor of neighbors) {
-      if (!visited.has(neighbor)) {
-        const cyclePath = hasCycleDFS(neighbor, [...path]);
-        if (cyclePath) return cyclePath;
-      } else if (recStack.has(neighbor)) {
-        // Cycle detected
-        return [...path, neighbor];
-      }
-    }
-
-    recStack.delete(node);
-    return null;
-  }
-
-  // Check each node for cycles
-  for (const node of graph.keys()) {
-    if (!visited.has(node)) {
-      const cyclePath = hasCycleDFS(node, []);
-      if (cyclePath) {
-        const cycleWithSources: string[] = [];
-        for (const entityId of cyclePath) {
-          const entityResult = await prolog.query(
-            `kb_entity('${entityId}', _, Props)`,
-          );
-          let sourceName = entityId;
-          if (entityResult.success && entityResult.bindings.Props) {
-            const propsStr = entityResult.bindings.Props;
-            const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-            if (sourceMatch) {
-              sourceName = path.basename(sourceMatch[1], ".md");
-            }
-          }
-          cycleWithSources.push(sourceName);
-        }
-
+  for (const ruleViolations of Object.values(violationsDict)) {
+    for (const v of ruleViolations) {
+      const isAllowed = rulesAllowlist.has(v.rule);
+      if (isAllowed) {
         violations.push({
-          rule: "no-cycles",
-          entityId: cyclePath[0],
-          description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
-          suggestion:
-            "Break the cycle by removing one of the depends_on relationships",
+          rule: v.rule,
+          entityId: v.entityId,
+          description: v.description,
+          suggestion: v.suggestion || undefined,
+          source: v.source || undefined,
         });
-        break; // Report only first cycle found
       }
     }
   }
@@ -565,83 +318,10 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   return violations;
 }
 
-async function checkRequiredFields(
-  prolog: PrologProcess,
-  allEntityIds: string[],
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const required = [
-    "id",
-    "title",
-    "status",
-    "created_at",
-    "updated_at",
-    "source",
-  ];
-
-  for (const entityId of allEntityIds) {
-    const result = await prolog.query(`kb_entity('${entityId}', Type, Props)`);
-
-    if (result.success && result.bindings.Props) {
-      // Parse properties list: [key1=value1, key2=value2, ...]
-      const propsStr = result.bindings.Props;
-      const propKeys = new Set<string>();
-
-      // Extract keys from Props
-      const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
-      for (const match of keyMatches) {
-        propKeys.add(match[1]);
-      }
-
-      // Check for missing required fields
-      for (const field of required) {
-        if (!propKeys.has(field)) {
-          violations.push({
-            rule: "required-fields",
-            entityId: entityId,
-            description: `Missing required field: ${field}`,
-            suggestion: `Add ${field} to entity definition`,
-          });
-        }
-      }
-    }
-  }
-
-  return violations;
-}
-
-async function checkSymbolCoverage(
-  prolog: PrologProcess,
-): Promise<Violation[]> {
-  const violations: Violation[] = [];
-
-  const uncoveredResult = await prolog.query(
-    "setof(Symbol, (kb_entity(Symbol, symbol, _), \\+ transitively_implements(Symbol, _)), Symbols)",
-  );
-
-  if (uncoveredResult.success && uncoveredResult.bindings.Symbols) {
-    const symbolsStr = uncoveredResult.bindings.Symbols;
-    const match = symbolsStr.match(/\[(.*)\]/);
-
-    if (match) {
-      const content = match[1].trim();
-      if (content) {
-        const symbolMatches = content.matchAll(/'([^']+)'/g);
-        for (const symbolMatch of symbolMatches) {
-          const symbolId = symbolMatch[1];
-          violations.push({
-            rule: "symbol-coverage",
-            entityId: symbolId,
-            description:
-              "Code symbol is not traceable to any functional requirement.",
-            suggestion:
-              "Update symbols.yaml to link this symbol to a related requirement.",
-          });
-        }
-      }
-    }
-  }
-
-  return violations;
+interface JsonViolation {
+  rule: string;
+  entityId: string;
+  description: string;
+  suggestion: string;
+  source: string;
 }

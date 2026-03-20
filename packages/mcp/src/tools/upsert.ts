@@ -53,6 +53,7 @@ const validateRelationship = ajv.compile(relationshipSchema);
  * Handle kb.upsert tool calls
  * Accepts { type, id, properties } — the flat format matching the tool schema.
  * Validates the assembled entity against JSON Schema before Prolog writes.
+ * implements REQ-002, REQ-011
  */
 export async function handleKbUpsert(
   prolog: PrologProcess,
@@ -121,7 +122,7 @@ export async function handleKbUpsert(
       const id = entity.id as string;
       const type = entity.type as string;
 
-      // Check if entity exists
+      // Check if entity exists before transaction (to determine created vs updated)
       const checkGoal = `once(kb_entity('${escapeAtom(id)}', _, _))`;
       const checkResult = await prolog.query(checkGoal);
 
@@ -130,53 +131,59 @@ export async function handleKbUpsert(
       // Build property list for Prolog
       const props = buildPropertyList(entity);
 
-      // Assert entity (upsert)
+      // Build relationship goals
+      const relationshipGoals: string[] = [];
+      for (const rel of relationships) {
+        const relType = rel.type as string;
+        const from = rel.from as string;
+        const to = rel.to as string;
+        const metadata = buildRelationshipMetadata(rel);
+        relationshipGoals.push(
+          `kb_assert_relationship(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`,
+        );
+      }
+
+      // Build atomic transaction goal wrapping entity + all relationships
+      // implements REQ-002, REQ-011
+      let transactionGoal: string;
+      if (relationshipGoals.length === 0) {
+        // Simple case: just entity
+        transactionGoal = `rdf_transaction((kb_assert_entity(${type}, ${props})))`;
+      } else {
+        // Entity + relationships in one transaction
+        const goals = [
+          `kb_assert_entity(${type}, ${props})`,
+          ...relationshipGoals,
+        ].join(", ");
+        transactionGoal = `rdf_transaction((${goals}))`;
+      }
+
+      const txResult = await prolog.query(transactionGoal);
+
+      if (!txResult.success) {
+        throw new Error(
+          `Failed to upsert entity ${id}: ${txResult.error || "Unknown error"} (goal: ${transactionGoal})`,
+        );
+      }
+
+      // Update counters
       if (isUpdate) {
-        // Update counter only. kb_assert_entity implements upsert semantics in Prolog.
         updated++;
       } else {
         created++;
       }
 
-      const assertGoal = `kb_assert_entity(${type}, ${props})`;
-      const assertResult = await prolog.query(assertGoal);
-
-      if (!assertResult.success) {
-        throw new Error(
-          `Failed to assert entity ${id}: ${assertResult.error || "Unknown error"}`,
-        );
-      }
+      relationshipsCreated += relationships.length;
     }
-
-    // Process relationships
-    for (const rel of relationships) {
-      const relType = rel.type as string;
-      const from = rel.from as string;
-      const to = rel.to as string;
-
-      // Build metadata
-      const metadata = buildRelationshipMetadata(rel);
-
-      const relGoal = `kb_assert_relationship(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`;
-      const relResult = await prolog.query(relGoal);
-
-      if (!relResult.success) {
-        throw new Error(
-          `Failed to assert relationship ${relType} from ${from} to ${to}: ${relResult.error || "Unknown error"}`,
-        );
-      }
-
-      relationshipsCreated++;
+    // Save KB to disk after all entities/relationships are written to ensure
+    // durability across process restarts.
+    prolog.invalidateCache();
+    const saveResult = await prolog.query("kb_save");
+    if (!saveResult.success) {
+      throw new Error(
+        `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
+      );
     }
-    // Note: kb_save is intentionally NOT called here for performance.
-    // Callers that need durability across restarts should explicitly call kb_save.
-    // This allows batching multiple upserts before a single disk write.
-    prolog.invalidateCache();
-    // Save KB to disk to ensure durability across process restarts
-    await prolog.query("kb_save");
-    prolog.invalidateCache();
-    // multiple upserts and save once at the end for better performance.
-    prolog.invalidateCache();
 
     let contradictionPairsDetected: number | undefined;
     if (type === "req" && !args._skipContradictionCheck) {

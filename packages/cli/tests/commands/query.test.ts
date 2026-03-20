@@ -4,7 +4,9 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
@@ -37,6 +39,7 @@ describe("kibi query", () => {
     writeFileSync(
       path.join(reqDir, "req1.md"),
       `---
+id: req1
 title: User Authentication
 type: req
 status: open
@@ -57,6 +60,7 @@ System must support OAuth2 authentication.
     writeFileSync(
       path.join(reqDir, "req2.md"),
       `---
+id: req2
 title: Payment Processing
 type: req
 status: open
@@ -74,6 +78,7 @@ System must support credit card payments.
     writeFileSync(
       path.join(reqDir, "req3.md"),
       `---
+id: req3
 title: Feature with Source
 type: req
 status: open
@@ -91,6 +96,7 @@ Feature has source path.
     writeFileSync(
       path.join(scenarioDir, "scenario1.md"),
       `---
+id: scenario1
 title: Login Flow
 status: active
 tags: [auth]
@@ -319,6 +325,59 @@ User logs in with OAuth2 provider.
         expect(commandError.status).not.toBe(0);
         expect(commandError.stderr?.toString()).toContain("Invalid type");
       }
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "query is read-only and does not rewrite kb.rdf",
+    () => {
+      const docReqDir = path.join(tmpDir, "documentation/requirements");
+      mkdirSync(docReqDir, { recursive: true });
+      writeFileSync(
+        path.join(docReqDir, "req-readonly.md"),
+        `---
+id: req-readonly
+title: Read Only Query Requirement
+type: req
+status: open
+---
+`,
+      );
+
+      execSync(`node ${kibiBin} sync`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const branch =
+        execSync("git branch --show-current", {
+          cwd: tmpDir,
+          encoding: "utf8",
+        }).trim() || "master";
+      const effectiveBranch = branch === "master" ? "main" : branch;
+      const rdfPath = path.join(
+        tmpDir,
+        `.kb/branches/${effectiveBranch}/kb.rdf`,
+      );
+      const before = readFileSync(rdfPath, "utf8");
+      const beforeMtime = statSync(rdfPath).mtimeMs;
+
+      const output = execSync(`node ${kibiBin} query req --format json`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      const rows = JSON.parse(output);
+      expect(Array.isArray(rows)).toBe(true);
+      expect(
+        rows.some((row: { id?: string }) => row.id === "req-readonly"),
+      ).toBe(true);
+
+      const after = readFileSync(rdfPath, "utf8");
+      const afterMtime = statSync(rdfPath).mtimeMs;
+      expect(after).toBe(before);
+      expect(afterMtime).toBe(beforeMtime);
     },
     TEST_TIMEOUT_MS,
   );
