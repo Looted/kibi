@@ -6,7 +6,7 @@ This repository dogfoods local built `kibi-mcp` and `kibi-opencode` artifacts in
 
 The repo-root setup relies on these files:
 
-1. `opencode.json` starts the local MCP server with `bun run packages/mcp/bin/kibi-mcp --diagnostic-mode`.
+1. `opencode.json` starts the local MCP server through a `git rev-parse --show-toplevel` wrapper so it still resolves the repo root when OpenCode is launched from a subdirectory like `packages/opencode`.
 2. `opencode.json` keeps `"plugin": []`, so OpenCode does not auto-install the published `kibi-opencode` package.
 3. `.opencode/plugins/kibi.ts` re-exports `../../packages/opencode/dist/index.js`.
 4. `packages/mcp/dist/` and `packages/opencode/dist/` must exist locally because OpenCode uses those built outputs.
@@ -45,7 +45,7 @@ That watch mode updates `packages/opencode/dist/`, but version bumps and cross-p
 
 1. You edit code in `packages/mcp/src/` or `packages/opencode/src/`.
 2. The build writes compiled output into `packages/mcp/dist/` and `packages/opencode/dist/`.
-3. OpenCode reads the local MCP server from `packages/mcp/bin/kibi-mcp`.
+3. OpenCode resolves the repo root with `git rev-parse --show-toplevel` and then starts `packages/mcp/bin/kibi-mcp` from that absolute path.
 4. OpenCode auto-loads `.opencode/plugins/kibi.ts`, which re-exports the local `packages/opencode/dist/index.js` build.
 5. Restarting OpenCode picks up the refreshed local artifacts.
 

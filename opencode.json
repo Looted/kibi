@@ -5,10 +5,9 @@
     "kibi": {
       "type": "local",
       "command": [
-        "bun",
-        "run",
-        "packages/mcp/bin/kibi-mcp",
-        "--diagnostic-mode"
+        "sh",
+        "-lc",
+        "repo_root=$(git rev-parse --show-toplevel) && exec bun run \"$repo_root/packages/mcp/bin/kibi-mcp\" --diagnostic-mode"
       ],
       "enabled": true
     }
