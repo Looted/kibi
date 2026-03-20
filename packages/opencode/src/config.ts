@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as logger from "./logger";
+import * as logger from "./logger.js";
 
 // implements REQ-opencode-kibi-plugin-v1
 export interface KibiConfig {

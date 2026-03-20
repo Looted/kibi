@@ -1,8 +1,8 @@
 // implements REQ-opencode-kibi-plugin-v1
-import type { KibiConfig } from "./config";
-import { isPluginEnabled } from "./config";
-import type { PathKind } from "./path-kind";
-import type { WorkspaceHealth } from "./workspace-health";
+import type { KibiConfig } from "./config.js";
+import { isPluginEnabled } from "./config.js";
+import type { PathKind } from "./path-kind.js";
+import type { WorkspaceHealth } from "./workspace-health.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 

@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -8,6 +7,7 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
+  createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
@@ -82,17 +82,29 @@ if (RUN_NODE_TEST_SUITE) {
         await sandbox.install(tarballs);
         await sandbox.initGitRepo();
 
-        // Initialize kibi KB so check --staged can attach to a branch KB
-        try {
-          await kibi(sandbox, ["init"]);
-        } catch {
-          // init may fail if git has no commits yet; create an empty commit first
-          await run("git", ["commit", "--allow-empty", "-m", "initial"], {
-            cwd: sandbox.repoDir,
-            env: sandbox.env,
-          });
-          await kibi(sandbox, ["init"]);
-        }
+        // Initialize kibi KB and create an explicit HEAD commit so staged-file
+        // checks run deterministically across git environments.
+        await kibi(sandbox, ["init"]);
+        await run("git", ["commit", "--allow-empty", "-m", "initial"], {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        });
+
+        createMarkdownFile(
+          sandbox,
+          "documentation/requirements/REQ-001.md",
+          {
+            id: "REQ-001",
+            title: "Traceability baseline requirement",
+            status: "open",
+            created_at: "2026-03-20T17:30:00Z",
+            updated_at: "2026-03-20T17:30:00Z",
+            source: "documentation/requirements/REQ-001.md",
+          },
+          "Requirement seeded so staged traceability checks can resolve REQ-001.",
+        );
+
+        await kibi(sandbox, ["sync"], { timeoutMs: TEST_TIMEOUT_MS });
       },
       { timeout: 120000 },
     );
@@ -128,17 +140,14 @@ if (RUN_NODE_TEST_SUITE) {
       });
 
       let out = "";
-      let exitCode = 0;
       try {
         const result = await kibi(sandbox, ["check", "--staged"], {
           timeoutMs: TEST_TIMEOUT_MS,
         });
         out = result.stdout + result.stderr;
-        exitCode = result.exitCode;
       } catch (e) {
         const err = e as Error;
         out = err.message;
-        exitCode = 1;
       }
 
       // "No staged files found" is NOT a passing outcome — it means git staging

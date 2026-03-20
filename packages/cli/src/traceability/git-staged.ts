@@ -31,17 +31,33 @@ function runGit(cmd: string, exec: ExecFn): string {
 /**
  * Parse null-separated name-status output from git
  */
+// implements REQ-014
 export function parseNameStatusNull(
   input: string,
 ): Array<{ status: string; parts: string[] }> {
   if (!input) return [];
   const entries = input.split("\0").filter(Boolean);
-  return entries.map((entry) => {
-    const cols = entry.split("\t");
-    const status = cols[0];
-    const parts = cols.slice(1);
-    return { status, parts };
-  });
+  const rows: Array<{ status: string; parts: string[] }> = [];
+
+  for (let i = 0; i < entries.length; ) {
+    const entry = entries[i] ?? "";
+
+    if (entry.includes("\t")) {
+      const cols = entry.split("\t");
+      rows.push({ status: cols[0] ?? "", parts: cols.slice(1) });
+      i += 1;
+      continue;
+    }
+
+    const status = entry;
+    const isRenameOrCopy = /^[RC]\d*$/.test(status);
+    const partCount = isRenameOrCopy ? 2 : 1;
+    const parts = entries.slice(i + 1, i + 1 + partCount);
+    rows.push({ status, parts });
+    i += 1 + partCount;
+  }
+
+  return rows;
 }
 
 const SUPPORTED_EXT = new Set([
@@ -111,6 +127,7 @@ export function parseHunksFromDiff(
 /**
  * Get staged files with statuses, hunks and content.
  */
+// implements REQ-014
 export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
   // 1. get staged name-status -z
   let nameStatus: string;
@@ -160,10 +177,7 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
     let diffText = "";
     try {
       // use new path for diff; quote the path to handle spaces
-      diffText = runGit(
-        `git diff --cached -U0 -- "${escapePath(path)}"`,
-        exec,
-      );
+      diffText = runGit(`git diff --cached -U0 -- "${escapePath(path)}"`, exec);
     } catch (err: unknown) {
       if (shouldLogTraceDebug()) {
         console.debug(`Failed to get diff for ${path}: ${String(err)}`);
