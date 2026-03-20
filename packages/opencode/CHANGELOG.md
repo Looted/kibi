@@ -1,5 +1,16 @@
 # kibi-opencode
 
+## 0.4.2
+
+### Patch Changes
+
+- 6e9e15c: Import plain string Markdown frontmatter `links` as generic `relates_to`
+  relationships during `kibi sync`, and fix `kibi query --relationships` so it
+  returns outgoing relationships reliably. Also fix `kibi-opencode` tarball ESM
+  imports and self-contained plugin typings so packed installs can build and load
+  the plugin and helper subpath exports in Node.
+- dabf1af: Document the repo-local dogfood workflow, make the local MCP startup path resolve from nested working directories, and lock the local MCP/plugin wiring with tests.
+
 ## 0.4.1
 
 ### Patch Changes
