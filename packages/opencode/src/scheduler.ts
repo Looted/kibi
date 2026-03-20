@@ -1,8 +1,8 @@
 import { exec } from "node:child_process";
 import path from "node:path";
-import type { KibiConfig } from "./config";
-import { shouldHandleFile } from "./file-filter";
-import * as logger from "./logger";
+import type { KibiConfig } from "./config.js";
+import { shouldHandleFile } from "./file-filter.js";
+import * as logger from "./logger.js";
 
 export type TimeoutHandle = ReturnType<typeof setTimeout>;
 

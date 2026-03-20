@@ -30,8 +30,17 @@ describe("git-staged utilities", () => {
     expect(rows[1].parts[1]).toBe("new.ts");
   });
 
+  it("parseNameStatusNull parses git -z output with null-delimited paths", () => {
+    const input = "A\0path/to/file.ts\0R100\0old.ts\0new.ts\0";
+    const rows = parseNameStatusNull(input);
+    expect(rows).toEqual([
+      { status: "A", parts: ["path/to/file.ts"] },
+      { status: "R100", parts: ["old.ts", "new.ts"] },
+    ]);
+  });
+
   it("parseHunksFromDiff parses hunk headers", () => {
-    const diff = `@@ -1,2 +3,4 @@\n@@ -10 +12,3 @@\n`;
+    const diff = "@@ -1,2 +3,4 @@\n@@ -10 +12,3 @@\n";
     const ranges = parseHunksFromDiff(diff);
     expect(ranges.length).toBe(2);
     expect(ranges[0].start).toBe(3);
@@ -51,13 +60,30 @@ describe("git-staged utilities", () => {
     const files = getStagedFiles(mockExec);
     expect(files.length).toBe(1);
   });
+
+  it("getStagedFiles handles null-delimited git status output", () => {
+    const mockExec = (cmd: string) => {
+      if (cmd.includes("--name-status")) return "A\0new.js\0";
+      if (cmd.includes("git diff --cached -U0"))
+        return "@@ -0,0 +1,2 @@\n+line\n";
+      if (cmd.startsWith("git show"))
+        return "export function foo() { return 1; }\n";
+      return "";
+    };
+
+    const files = getStagedFiles(mockExec);
+    expect(files).toHaveLength(1);
+    expect(files[0]?.path).toBe("new.js");
+    expect(files[0]?.status).toBe("A");
+  });
 });
 
 describe("symbol-extract", () => {
   it("extracts exported functions, classes, enums and variables", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "file.ts",
-      content: `export function a() {}\nexport class B {}\nexport enum E { X }\nexport const C = 1;`,
+      content:
+        "export function a() {}\nexport class B {}\nexport enum E { X }\nexport const C = 1;",
       hunkRanges: [{ start: 1, end: 100 }],
       status: "M",
     };
@@ -71,9 +97,10 @@ describe("symbol-extract", () => {
   });
 
   it("selects only declarations intersecting hunks", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "file.ts",
-      content: `export function keep() {}\n// filler\n\nexport function skip() {}\n`,
+      content:
+        "export function keep() {}\n// filler\n\nexport function skip() {}\n",
       hunkRanges: [{ start: 1, end: 1 }],
       status: "M",
     };
@@ -84,9 +111,9 @@ describe("symbol-extract", () => {
   });
 
   it("new file includes all exported decls", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "newfile.ts",
-      content: `export function a() {}\nexport function b() {}`,
+      content: "export function a() {}\nexport function b() {}",
       hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
       status: "A",
     };
@@ -95,9 +122,9 @@ describe("symbol-extract", () => {
   });
 
   it("pure rename with no hunks yields none selected", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "renamed.ts",
-      content: `export function x() {}`,
+      content: "export function x() {}",
       hunkRanges: [],
       status: "R",
     };
@@ -107,9 +134,9 @@ describe("symbol-extract", () => {
   });
 
   it("parses implements directives and multiple REQs", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "d.ts",
-      content: `// implements REQ-1, REQ-2\nexport function z() {}`,
+      content: "// implements REQ-1, REQ-2\nexport function z() {}",
       hunkRanges: [{ start: 1, end: 10 }],
       status: "M",
     };
@@ -120,9 +147,9 @@ describe("symbol-extract", () => {
   });
 
   it("syntax error in staged file returns empty array", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "bad.ts",
-      content: `export function x( {`,
+      content: "export function x( {",
       hunkRanges: [{ start: 1, end: 10 }],
       status: "M",
     };
@@ -131,9 +158,9 @@ describe("symbol-extract", () => {
   });
 
   it("resolveSymbolId is deterministic (hash stable)", () => {
-    const staged: any = {
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "file.ts",
-      content: `export function stable() {}`,
+      content: "export function stable() {}",
       hunkRanges: [{ start: 1, end: 10 }],
       status: "M",
     };
@@ -159,10 +186,10 @@ describe("temp-kb and validate", () => {
         hunkRanges: [],
         reqLinks: [],
       },
-    ] as any);
+    ] as Parameters<typeof createOverlayFacts>[0]);
     expect(
-      facts.includes("changed_symbol(s1)") ||
-        facts.includes("changed_symbol('s1')"),
+      facts.includes("kb:changed_symbol(s1)") ||
+        facts.includes("kb:changed_symbol('s1')"),
     ).toBe(true);
   });
 
@@ -176,9 +203,9 @@ describe("temp-kb and validate", () => {
         hunkRanges: [],
         reqLinks: ["REQ-001"],
       },
-    ] as any);
+    ] as Parameters<typeof createOverlayFacts>[0]);
     expect(facts).toContain("REQ-001");
-    expect(facts).toContain("changed_symbol_req");
+    expect(facts).toContain("kb:changed_symbol_req");
   });
 
   it("cleanupTempKb is safe to call for an unknown temp dir", async () => {
@@ -195,7 +222,7 @@ describe("temp-kb and validate", () => {
           },
         };
       },
-    } as any;
+    } as unknown as Parameters<typeof validateStagedSymbols>[0]["prolog"];
     const violations = await validateStagedSymbols({
       minLinks: 2,
       prolog: fakeProlog,
@@ -208,7 +235,7 @@ describe("temp-kb and validate", () => {
   it("minLinks threshold logic: no violations when enough links", async () => {
     const fakeProlog = {
       query: async (_: string) => ({ success: true, bindings: { Rows: "[]" } }),
-    } as any;
+    } as unknown as Parameters<typeof validateStagedSymbols>[0]["prolog"];
     const violations = await validateStagedSymbols({
       minLinks: 1,
       prolog: fakeProlog,

@@ -1,11 +1,11 @@
-import * as config from "./config";
-import * as fileFilter from "./file-filter";
-import * as logger from "./logger";
-import { type PathKind, analyzePath } from "./path-kind";
-import { injectPrompt } from "./prompt";
-import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
-import { type WarningCategory, getSessionTracker } from "./session-tracker";
-import { checkWorkspaceHealth } from "./workspace-health";
+import * as config from "./config.js";
+import * as fileFilter from "./file-filter.js";
+import * as logger from "./logger.js";
+import { type PathKind, analyzePath } from "./path-kind.js";
+import { injectPrompt } from "./prompt.js";
+import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
+import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
+import { checkWorkspaceHealth } from "./workspace-health.js";
 
 // implements REQ-opencode-kibi-plugin-v1
 
