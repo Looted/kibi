@@ -76,6 +76,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: ./coverage/unit/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
           flags: unit
           name: unit-coverage
           fail_ci_if_error: false
