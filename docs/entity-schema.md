@@ -71,8 +71,10 @@ created_at: 2026-03-10T10:00:00Z
 updated_at: 2026-03-10T10:00:00Z
 source: documentation/requirements/REQ-001.md
 links:
-  - SCEN-001
-  - TEST-001
+  - type: specified_by
+    target: SCEN-001
+  - type: verified_by
+    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -96,6 +98,18 @@ source: documentation/tests/TEST-001.md
 ---
 ```
 
+**Generic Link Shorthand:**
+
+```yaml
+links:
+  - ADR-001
+  - FACT-001
+```
+
+Plain string Markdown `links` entries are imported as generic `relates_to`
+relationships. Use typed link objects or relationship rows when the semantic
+relationship matters.
+
 **Relationship Rows Example:**
 
 ```yaml
@@ -118,7 +132,7 @@ relationship:
   source: documentation/requirements/REQ-001.md
 ```
 
-> **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
+> **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
 
 **Invalid Example (Prohibited):**
 

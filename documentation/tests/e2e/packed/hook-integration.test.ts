@@ -12,7 +12,6 @@ import {
   type Tarballs,
   type TestSandbox,
   checkPrologAvailable,
-  createMarkdownFile,
   createSandbox,
   kibi,
   packAll,
@@ -145,10 +144,16 @@ status: open
         env: sandbox.env,
       });
 
-      // After the initial commit, .kb/branches/develop may be created by init
+      await kibi(sandbox, ["sync"]);
+
+      // After init the branch directory exists; after sync the KB RDF exists.
       assert.ok(
         existsSync(join(sandbox.repoDir, ".kb/branches/develop")),
         "develop branch KB should exist",
+      );
+      assert.ok(
+        existsSync(join(sandbox.repoDir, ".kb/branches/develop/kb.rdf")),
+        "develop branch KB RDF should exist after sync",
       );
 
       await run("git", ["checkout", "-b", "feature"], {
@@ -171,10 +176,14 @@ status: open
         join(sandbox.repoDir, ".kb/branches/feature/kb.rdf"),
         "utf8",
       );
+
+      const normalizeTimestamps = (rdf: string) =>
+        rdf.replace(/<kb:(created_at|updated_at)[^>]*>[^<]+<\/kb:\1>/g, "");
+
       assert.strictEqual(
-        featureKb,
-        developKb,
-        "feature KB should be a copy of develop KB, not a new empty file",
+        normalizeTimestamps(featureKb),
+        normalizeTimestamps(developKb),
+        "feature KB should preserve develop KB content after checkout sync",
       );
     });
 

@@ -1,8 +1,8 @@
 // implements REQ-opencode-kibi-plugin-v1
-import type { KibiConfig } from "./config";
-import { isPluginEnabled } from "./config";
-import type { PathKind } from "./path-kind";
-import type { WorkspaceHealth } from "./workspace-health";
+import type { KibiConfig } from "./config.js";
+import { isPluginEnabled } from "./config.js";
+import type { PathKind } from "./path-kind.js";
+import type { WorkspaceHealth } from "./workspace-health.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
@@ -15,6 +15,7 @@ export interface PromptContext {
 /**
  * Build prompt guidance block based on path kind.
  */
+// implements REQ-opencode-kibi-plugin-v1
 function buildContextualGuidance(context: PromptContext): string {
   const parts: string[] = [SENTINEL];
 
@@ -109,6 +110,8 @@ Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or mo
 
 Run kb_check after KB mutations.
 
+Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
+
 **Kibi-first workflow:**
 1. **Discover**: Run kb_query with filters (sourceFile, type, tags) to find related requirements, ADRs, tests, and symbols.
 2. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
@@ -134,6 +137,8 @@ Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not re
 Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
 
 Run kb_check after KB mutations.
+
+Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
 **Kibi-first workflow:**
 1. **Discover**: Run kb_query with filters (sourceFile, type, tags) to find related requirements, ADRs, tests, and symbols.

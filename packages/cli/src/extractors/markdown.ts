@@ -155,7 +155,7 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
   }
 
   try {
-    const { data, content: body } = matter(content);
+    const { data } = matter(content);
 
     if (content.trim().startsWith("---")) {
       const parts = content.split("---");
@@ -206,6 +206,15 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
 
     if (Array.isArray(data.links)) {
       for (const link of data.links) {
+        if (typeof link === "string") {
+          relationships.push({
+            type: "relates_to",
+            from: id,
+            to: link,
+          });
+          continue;
+        }
+
         if (
           link &&
           typeof link === "object" &&

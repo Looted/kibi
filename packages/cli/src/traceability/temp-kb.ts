@@ -125,19 +125,20 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   return ctx;
 }
 
+// implements REQ-014
 export function createOverlayFacts(symbols: ExtractedSymbol[]): string {
   const lines: string[] = [];
 
   for (const symbol of symbols) {
-    lines.push(`changed_symbol(${escapePrologAtom(symbol.id)}).`);
+    lines.push(`kb:changed_symbol(${escapePrologAtom(symbol.id)}).`);
     lines.push(
-      `changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
+      `kb:changed_symbol_loc(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(symbol.location.file)}, ${symbol.location.startLine}, 0, ${escapePrologAtom(symbol.name)}).`,
     );
 
     // Emit overlay facts for requirement links from code-comment directives.
     for (const reqId of symbol.reqLinks) {
       lines.push(
-        `changed_symbol_req(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(reqId)}).`,
+        `kb:changed_symbol_req(${escapePrologAtom(symbol.id)}, ${escapePrologAtom(reqId)}).`,
       );
     }
   }

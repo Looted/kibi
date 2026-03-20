@@ -370,6 +370,87 @@ System must support OAuth2 authentication with session renewal.
   );
 
   test(
+    "imports markdown string links as relates_to relationships",
+    async () => {
+      const testsDir = path.join(tmpDir, "documentation/tests");
+      mkdirSync(testsDir, { recursive: true });
+
+      writeFileSync(
+        path.join(tmpDir, "documentation/requirements", "req-linked.md"),
+        `---
+id: req-linked
+title: Requirement with mixed links
+type: req
+status: open
+links:
+  - scenario-linked
+  - type: verified_by
+    target: test-linked
+---
+
+# Requirement with mixed links
+
+Import plain string links as generic relationships.
+`,
+      );
+
+      writeFileSync(
+        path.join(tmpDir, "documentation/scenarios", "scenario-linked.md"),
+        `---
+id: scenario-linked
+title: Linked Scenario
+status: active
+---
+
+# Linked Scenario
+`,
+      );
+
+      writeFileSync(
+        path.join(testsDir, "test-linked.md"),
+        `---
+id: test-linked
+title: Linked Test
+status: passing
+---
+
+# Linked Test
+`,
+      );
+
+      const output = execSync(`bun ${kibiBin} sync`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      });
+
+      const match = output.match(
+        /Imported (\d+) entities, (\d+) relationships/,
+      );
+      expect(match).toBeDefined();
+      if (!match) throw new Error("Output format mismatch");
+
+      expect(Number.parseInt(match[2])).toBeGreaterThanOrEqual(2);
+
+      const queryOutput = execSync(
+        `bun ${kibiBin} query req --id req-linked --format json`,
+        {
+          cwd: tmpDir,
+          encoding: "utf8",
+        },
+      );
+
+      const [result] = JSON.parse(queryOutput) as Array<{
+        relates_to?: string;
+        verified_by?: string;
+      }>;
+
+      expect(result?.relates_to).toBe("kb:entity/scenario-linked");
+      expect(result?.verified_by).toBe("kb:entity/test-linked");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "reports entity and relationship counts",
     async () => {
       const output = execSync(`bun ${kibiBin} sync`, {
