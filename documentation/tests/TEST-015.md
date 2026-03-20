@@ -24,10 +24,12 @@ links:
 3. Create the linked scenario Markdown file in the same repo.
 4. Run `kibi sync` and assert exit code 0.
 5. Run `kibi query req --id <id> --format json`.
-6. Assert the synced requirement includes `relates_to: kb:entity/<scenario-id>`.
+6. Run `kibi query --relationships <id> --format json`.
+7. Assert both commands expose the linked scenario relationship.
 
 ## Expected Result
 
 - Packed consumers get the same string-link behavior as the source repo.
 - Plain string Markdown links survive sync as generic `relates_to` edges.
+- `kibi query --relationships` returns the synced outgoing link set.
 - Typed links in the same file still preserve their explicit relationship type.
