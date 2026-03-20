@@ -3,4 +3,4 @@
 "kibi-mcp": patch
 ---
 
-Generate unit-test LCOV coverage in CI, upload it for public Codecov reporting without a token, and add a README coverage badge alongside the main CI status badge.
+Generate unit-test LCOV coverage in CI, upload it to Codecov using the repository's CODECOV_TOKEN secret, and add a README coverage badge alongside the main CI status badge.
