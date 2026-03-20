@@ -254,16 +254,21 @@ User logs in with OAuth2 provider.
 
       const results = JSON.parse(output);
       expect(Array.isArray(results)).toBe(true);
+      expect(results.length).toBeGreaterThan(0);
 
-      if (results.length > 0) {
-        for (const rel of results) {
-          expect(typeof rel.type).toBe("string");
-          expect(typeof rel.from).toBe("string");
-          expect(typeof rel.to).toBe("string");
-          expect(rel.from).toBe(entityWithLinks.id);
-          expect(relationshipSchema.properties.type.enum).toContain(rel.type);
-        }
+      for (const rel of results) {
+        expect(typeof rel.type).toBe("string");
+        expect(typeof rel.from).toBe("string");
+        expect(typeof rel.to).toBe("string");
+        expect(rel.from).toBe(entityWithLinks.id);
+        expect(relationshipSchema.properties.type.enum).toContain(rel.type);
       }
+
+      expect(results).toContainEqual({
+        type: "relates_to",
+        from: entityWithLinks.id,
+        to: "scenario1",
+      });
     },
     TEST_TIMEOUT_MS,
   );

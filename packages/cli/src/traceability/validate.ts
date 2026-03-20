@@ -15,13 +15,13 @@ export interface Violation {
   requiredLinks: number;
 }
 
-function unquoteAtom(v: string): string {
+function unquoteAtom(value: string): string {
   // remove surrounding single quotes and unescape doubled quotes
-  v = v.trim();
-  if (v.startsWith("'") && v.endsWith("'")) {
-    v = v.slice(1, -1).replace(/''/g, "'");
+  const trimmed = value.trim();
+  if (trimmed.startsWith("'") && trimmed.endsWith("'")) {
+    return trimmed.slice(1, -1).replace(/''/g, "'");
   }
-  return v;
+  return trimmed;
 }
 
 function splitTopLevelComma(s: string): string[] {
@@ -125,19 +125,20 @@ function parsePrologListOfLists(value: string): string[][] {
   return out;
 }
 
+// implements REQ-014
 export async function validateStagedSymbols(
   options: ValidationOptions,
 ): Promise<Violation[]> {
   const { minLinks, prolog } = options;
 
-  const goal = `findall([Sym,Count,File,Line,Col,Name], changed_symbol_violation(Sym, ${minLinks}, Count, File, Line, Col, Name), Rows)`;
+  const goal = `findall([Sym,Count,File,Line,Col,Name], kb:changed_symbol_violation(Sym, ${minLinks}, Count, File, Line, Col, Name), Rows)`;
 
   const res = await prolog.query(goal);
   if (!res.success) {
     throw new Error(`Prolog query failed: ${res.error || "unknown error"}`);
   }
 
-  const rowsRaw = res.bindings["Rows"] ?? "[]";
+  const rowsRaw = res.bindings.Rows ?? "[]";
   const lists = parsePrologListOfLists(rowsRaw);
   const violations: Violation[] = [];
   for (const row of lists) {

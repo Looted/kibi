@@ -1,11 +1,11 @@
-import * as config from "./config";
-import * as fileFilter from "./file-filter";
-import * as logger from "./logger";
-import { type PathKind, analyzePath } from "./path-kind";
-import { injectPrompt } from "./prompt";
-import { type SchedulerOptions, createSyncScheduler } from "./scheduler";
-import { type WarningCategory, getSessionTracker } from "./session-tracker";
-import { checkWorkspaceHealth } from "./workspace-health";
+import * as config from "./config.js";
+import * as fileFilter from "./file-filter.js";
+import * as logger from "./logger.js";
+import { type PathKind, analyzePath } from "./path-kind.js";
+import { injectPrompt } from "./prompt.js";
+import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
+import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
+import { checkWorkspaceHealth } from "./workspace-health.js";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -16,7 +16,35 @@ interface RecentEdit {
 }
 
 import * as fs from "node:fs";
-import type { Hooks, Plugin, PluginInput } from "@opencode-ai/plugin";
+
+export interface PluginInput {
+  worktree: string;
+  directory: string;
+}
+
+interface OpencodeEventPayload {
+  type: string;
+  properties?: Record<string, unknown>;
+}
+
+interface EventHookInput {
+  event: OpencodeEventPayload;
+}
+
+interface SystemTransformOutput {
+  system: string[];
+}
+
+export interface Hooks {
+  event?: (input: EventHookInput) => void | Promise<void>;
+  "experimental.chat.system.transform"?: (
+    input: unknown,
+    output: SystemTransformOutput,
+  ) => void | Promise<void>;
+  "chat.params"?: (input: unknown, output: unknown) => void | Promise<void>;
+}
+
+export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
 
 /**
  * Lint requirement document for anti-patterns.
@@ -67,8 +95,6 @@ function lintRequirementDoc(
 
   return warnings;
 }
-
-export type { Plugin, PluginInput, Hooks };
 
 let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
 let cfg: config.KibiConfig;

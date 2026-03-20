@@ -1,5 +1,4 @@
 import assert from "node:assert";
-import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
 import { after, before, describe, it } from "node:test";
 import {
@@ -454,7 +453,7 @@ if (RUN_NODE_TEST_SUITE) {
           "Should have at least one content item",
         );
         assert.ok(queryResult.content?.[0]?.text.includes("Updated Title"));
-        assert.ok(queryResult.content?.[0]?.text.includes("approved"));
+        assert.ok(queryResult.content?.[0]?.text.includes("status=open"));
       },
     );
 

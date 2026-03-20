@@ -131,6 +131,22 @@ describe("Markdown Extractor", () => {
     }
   });
 
+  test("formats FrontmatterError with hint and original error", () => {
+    const error = new FrontmatterError("Broken frontmatter", "/tmp/test.md", {
+      classification: "Syntax Error",
+      hint: "Fix the YAML block.",
+      originalError: "unexpected end of stream",
+    });
+
+    expect(error.toString()).toContain(
+      "/tmp/test.md: [Syntax Error] Broken frontmatter",
+    );
+    expect(error.toString()).toContain("How to fix:\n- Fix the YAML block.");
+    expect(error.toString()).toContain(
+      "Original error: unexpected end of stream",
+    );
+  });
+
   test("generates consistent IDs", () => {
     const result1 = extractFromMarkdown(
       "packages/cli/tests/fixtures/requirements/REQ-001.md",
@@ -320,7 +336,13 @@ links:
       const result = extractFromMarkdown(tempFile);
       expect(result.entity.id).toBe("SCEN-001");
       expect(result.entity.type).toBe("scenario");
-      expect(result.relationships.length).toBe(0);
+      expect(result.relationships).toEqual([
+        {
+          type: "relates_to",
+          from: "SCEN-001",
+          to: "REQ-001",
+        },
+      ]);
 
       unlinkSync(tempFile);
     });
@@ -343,9 +365,51 @@ links:
       const result = extractFromMarkdown(tempFile);
       expect(result.entity.id).toBe("TEST-001");
       expect(result.entity.type).toBe("test");
-      expect(result.relationships.length).toBe(0);
+      expect(result.relationships).toEqual([
+        {
+          type: "relates_to",
+          from: "TEST-001",
+          to: "REQ-001",
+        },
+      ]);
 
       unlinkSync(tempFile);
+    });
+
+    test("extracts mixed string and typed links from markdown", () => {
+      const tempFile = "/tmp/requirements/test-mixed-links.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-001
+title: Mixed links requirement
+links:
+  - SCEN-001
+  - type: verified_by
+    target: TEST-001
+---
+# Content
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.relationships).toEqual([
+          {
+            type: "relates_to",
+            from: "REQ-001",
+            to: "SCEN-001",
+          },
+          {
+            type: "verified_by",
+            from: "REQ-001",
+            to: "TEST-001",
+          },
+        ]);
+      } finally {
+        unlinkSync(tempFile);
+      }
     });
 
     test("detectEmbeddedEntities returns empty for non-req types", () => {
