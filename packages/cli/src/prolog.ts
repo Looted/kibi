@@ -104,7 +104,7 @@ export class PrologProcess {
     const kbPath = resolveKbPlPath();
     this.process = spawn(this.swiplPath, [
       "-g",
-      `use_module('${kbPath}'), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+      `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
       "--quiet",
     ]);
 
@@ -338,6 +338,20 @@ export class PrologProcess {
     );
   }
 
+  // implements REQ-009
+  private isMutatingGoal(goal: string): boolean {
+    return (
+      goal.includes("kb_assert_") ||
+      goal.includes("kb_delete_") ||
+      goal.includes("kb_retract_")
+    );
+  }
+
+  // implements REQ-009
+  private isExplicitSaveGoal(goal: string): boolean {
+    return goal.trim().startsWith("kb_save");
+  }
+
   private async queryOneShot(goal: string | string[]): Promise<QueryResult> {
     if (Array.isArray(goal)) {
       return this.execOneShot(goal, this.attachedKbPath);
@@ -354,6 +368,13 @@ export class PrologProcess {
 
     const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
     if (attachMatch) {
+      if (this.attachedKbPath !== null) {
+        return {
+          success: false,
+          bindings: {},
+          error: "KB already attached",
+        };
+      }
       const attachResult = this.execOneShot(trimmedGoal, null);
       if (attachResult.success) {
         this.attachedKbPath = attachMatch[1];
@@ -364,18 +385,29 @@ export class PrologProcess {
     return this.execOneShot(trimmedGoal, this.attachedKbPath);
   }
 
+  // implements REQ-009
   private execOneShot(goal: string, kbPath: string | null): QueryResult;
   private execOneShot(goal: string[], kbPath: string | null): QueryResult;
   private execOneShot(
     goal: string | string[],
     kbPath: string | null,
   ): QueryResult {
-    const goalList = Array.isArray(goal)
+    const originalGoalList = Array.isArray(goal)
       ? goal.map((item) => this.normalizeGoal(item))
       : [this.normalizeGoal(goal)];
+    const explicitSaveRequested = Array.isArray(goal)
+      ? originalGoalList.some((item) => this.isExplicitSaveGoal(item))
+      : false;
+    const goalList = explicitSaveRequested
+      ? originalGoalList.filter((item) => !this.isExplicitSaveGoal(item))
+      : originalGoalList;
     const isBatch = goalList.length > 1;
     const combinedGoal =
-      goalList.length === 1 ? goalList[0] : `(${goalList.join(", ")})`;
+      goalList.length === 0
+        ? "true"
+        : goalList.length === 1
+          ? goalList[0]
+          : `(${goalList.join(", ")})`;
     const kbModulePath = resolveKbPlPath();
     const prologGoal = [
       `use_module('${kbModulePath}')`,
@@ -385,8 +417,14 @@ export class PrologProcess {
       "read_term_from_atom(GoalAtom, Goal, [variable_names(Vars)])",
       kbPath ? "getenv('KIBI_KB_PATH', KBPath), kb_attach(KBPath)" : "true",
       isBatch ? "WrappedGoal = rdf_transaction(Goal)" : "WrappedGoal = Goal",
-      "(catch(call(WrappedGoal), E, (print_message(error, E), fail)) -> (forall(member(Name=Value, Vars), (write(Name), write('='), write_term(Value, [quoted(true), max_depth(0)]), writeln('.'))), writeln('__KIBI_TRUE__.')) ; writeln('__KIBI_FALSE__.'))",
-      kbPath ? "kb_save, kb_detach" : "true",
+      "(catch(call(WrappedGoal), E, (print_message(error, E), fail)) -> QuerySucceeded = true ; QuerySucceeded = false)",
+      kbPath &&
+      (explicitSaveRequested ||
+        goalList.some((item) => this.isMutatingGoal(item)))
+        ? "(QuerySucceeded == true -> kb_save ; true)"
+        : "true",
+      kbPath ? "kb_detach" : "true",
+      "(QuerySucceeded == true -> (forall(member(Name=Value, Vars), (write(Name), write('='), write_term(Value, [quoted(true), max_depth(0)]), writeln('.'))), writeln('__KIBI_TRUE__.')) ; writeln('__KIBI_FALSE__.'))",
     ].join(", ");
 
     const result = spawnSync(
@@ -416,6 +454,14 @@ export class PrologProcess {
     const stdout = result.stdout ?? "";
     const stderr = result.stderr ?? "";
 
+    if (stderr.includes("ERROR")) {
+      return {
+        success: false,
+        bindings: {},
+        error: this.translateError(stderr),
+      };
+    }
+
     if (stdout.includes("__KIBI_TRUE__")) {
       const clean = stdout
         .split("\n")
@@ -424,14 +470,6 @@ export class PrologProcess {
       return {
         success: true,
         bindings: this.extractBindings(clean),
-      };
-    }
-
-    if (stderr.includes("ERROR")) {
-      return {
-        success: false,
-        bindings: {},
-        error: this.translateError(stderr),
       };
     }
 

@@ -131,7 +131,7 @@ test("timeout message reports configured timeout (100ms) not hardcoded 30s", asy
 // These tests reproduce the "No permission to modify static procedure 'kb:entity/4'" error
 // that occurs when reattaching to a KB in the same live Prolog process.
 
-test("fails on repeated kb_attach in same process (Node regression #53)", async () => {
+test("repeated kb_attach in same process fails without explicit detach", async () => {
   const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-node-kb-"));
   const prolog = createInteractiveProlog();
   try {
@@ -153,13 +153,9 @@ test("fails on repeated kb_attach in same process (Node regression #53)", async 
 
     await prolog.query("kb_save");
 
-    // Second attach to same KB should fail with static procedure error (regression #53)
+    // Second attach should now fail because implicit detach no longer occurs.
     const attach2 = await prolog.query(`kb_attach('${tempKbDir}')`);
-    assert.strictEqual(
-      attach2.success,
-      true,
-      "Second kb_attach should succeed",
-    );
+    assert.strictEqual(attach2.success, false, "Second kb_attach should fail");
 
     await prolog.query("kb_detach");
   } finally {
@@ -260,6 +256,42 @@ test("interactive mode serializes concurrent queries without timing out", async 
         `binding should match ${i}`,
       );
     }
+
+    const detach = await prolog.query("kb_detach");
+    assert.strictEqual(detach.success, true, "detach should succeed");
+  } finally {
+    try {
+      await prolog.terminate();
+    } catch {}
+    if (existsSync(tempKbDir)) {
+      rmSync(tempKbDir, { recursive: true, force: true });
+    }
+  }
+});
+
+test("interactive mode supports rdf_transaction mutation queries", async () => {
+  const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-rdf-tx-"));
+  const prolog = createInteractiveProlog({ timeout: 5000 });
+  try {
+    await prolog.start();
+
+    const attach = await prolog.query(`kb_attach('${tempKbDir}')`);
+    assert.strictEqual(attach.success, true, "attach should succeed");
+
+    const upsert = await prolog.query(
+      `rdf_transaction((kb_assert_entity(req, [id='REQ-RDF-TX-001', title="Transaction Entity", status=open, created_at="2026-03-20T00:00:00Z", updated_at="2026-03-20T00:00:00Z", source="rdf-transaction-test"])))`,
+    );
+    assert.strictEqual(
+      upsert.success,
+      true,
+      "rdf_transaction mutation should succeed",
+    );
+
+    const exists = await prolog.query("kb_entity('REQ-RDF-TX-001', _, _)");
+    assert.strictEqual(exists.success, true, "entity should be queryable");
+
+    const save = await prolog.query("kb_save");
+    assert.strictEqual(save.success, true, "save should succeed");
 
     const detach = await prolog.query("kb_detach");
     assert.strictEqual(detach.success, true, "detach should succeed");

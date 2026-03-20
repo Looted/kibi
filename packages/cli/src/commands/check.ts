@@ -58,7 +58,10 @@ export interface Violation {
   source?: string;
 }
 
+// implements REQ-006
 export async function checkCommand(options: CheckOptions): Promise<void> {
+  let prolog: PrologProcess | null = null;
+  let attached = false;
   try {
     // Resolve KB path with priority:
     // --kb-path > git branch --show-current > KIBI_BRANCH env > develop > main
@@ -193,7 +196,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       }
     }
 
-    const prolog = new PrologProcess({ timeout: 120000 });
+    prolog = new PrologProcess({ timeout: 120000 });
     await prolog.start();
 
     const kbPathEscaped = escapeAtom(resolvedKbPath);
@@ -204,6 +207,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       console.error(`Error: Failed to attach KB: ${attachResult.error}`);
       process.exit(1);
     }
+    attached = true;
 
     const violations: Violation[] = [];
 
@@ -224,9 +228,17 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       ...args: unknown[]
     ) {
       if (!effectiveRules.has(name)) return;
+      if (!prolog) {
+        throw new Error("Prolog process not initialized");
+      }
       const res = await fn(prolog, ...args);
       if (res?.length) violations.push(...res);
     }
+
+    if (!prolog) {
+      throw new Error("Prolog process not initialized");
+    }
+    const activeProlog = prolog;
 
     // Use aggregated checks (single Prolog call) when possible for better performance
     // This is significantly faster in Bun/Docker environments where one-shot mode
@@ -250,7 +262,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       // Fast path: single Prolog call returning all violations
       // Pass the requireAdr option for symbol-traceability
       const aggregatedViolations = await runAggregatedChecks(
-        prolog,
+        activeProlog,
         effectiveRules,
         checksConfig.symbolTraceability?.requireAdr ?? false,
       );
@@ -267,10 +279,10 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       );
       await runCheck("no-dangling-refs", checkNoDanglingRefs);
       await runCheck("no-cycles", checkNoCycles);
-      const allEntityIds = await getAllEntityIds(prolog);
+      const allEntityIds = await getAllEntityIds(activeProlog);
       if (effectiveRules.has("required-fields")) {
         const requiredViolations = await checkRequiredFields(
-          prolog,
+          activeProlog,
           allEntityIds,
         );
         violations.push(...requiredViolations);
@@ -278,9 +290,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
     }
-    await prolog.query("kb_detach");
-    await prolog.terminate();
-
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
       process.exit(0);
@@ -304,6 +313,17 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
     process.exit(1);
+  } finally {
+    if (prolog) {
+      if (attached) {
+        try {
+          await prolog.query("kb_detach");
+        } catch {}
+      }
+      try {
+        await prolog.terminate();
+      } catch {}
+    }
   }
 }
 

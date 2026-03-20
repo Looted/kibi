@@ -18,13 +18,13 @@ symbols:
         target: REQ-009
     sourceLine: 79
     sourceColumn: 13
-    sourceEndLine: 527
+    sourceEndLine: 565
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:36.964Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:32.374Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 57
+    sourceLine: 58
     links:
       - REQ-002
       - REQ-011
@@ -34,9 +34,9 @@ symbols:
       - type: implements
         target: REQ-011
     sourceColumn: 22
-    sourceEndLine: 220
+    sourceEndLine: 229
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.050Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:32.535Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -49,7 +49,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 174
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.099Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:32.625Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -61,15 +61,15 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-006
-    sourceLine: 96
+    sourceLine: 181
     sourceColumn: 22
-    sourceEndLine: 210
+    sourceEndLine: 241
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.150Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:32.736Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 122
+    sourceLine: 172
     links:
       - REQ-010
       - REQ-vscode-traceability
@@ -79,9 +79,9 @@ symbols:
       - type: implements
         target: REQ-vscode-traceability
     sourceColumn: 13
-    sourceEndLine: 554
+    sourceEndLine: 1002
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.255Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:32.944Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -94,7 +94,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 172
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.297Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.024Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -107,11 +107,11 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 46
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.298Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.026Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 122
+    sourceLine: 172
     links:
       - REQ-vscode-traceability
       - REQ-010
@@ -121,15 +121,14 @@ symbols:
       - type: implements
         target: REQ-010
     sourceColumn: 13
-    sourceEndLine: 554
+    sourceEndLine: 1002
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.470Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.368Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
     links:
       - REQ-vscode-traceability
-      - ADR-annotation-strategy
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -139,7 +138,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 106
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.472Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.371Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -179,14 +178,13 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 98
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.473Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.372Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
     sourceLine: 40
     links:
       - REQ-vscode-traceability
-      - ADR-annotation-strategy
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -195,14 +193,13 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 334
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-19T09:40:37.534Z'
+    coordinatesGeneratedAt: '2026-03-19T23:33:33.508Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
     sourceLine: 167
     links:
       - REQ-vscode-traceability
-      - TEST-vscode-traceability
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -213,7 +210,6 @@ symbols:
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 81
     links:
-      - ADR-annotation-strategy
       - REQ-vscode-traceability
     relationships:
       - type: constrained_by

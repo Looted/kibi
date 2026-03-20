@@ -54,9 +54,33 @@ jobs:
       - name: Build MCP package
         run: bun run build:mcp
 
+      - name: Run unit tests with coverage
+        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        run: bun run test:coverage:unit
+
       - name: Run unit tests
-        if: ${{ !inputs.skip_tests }}
+        if: ${{ !inputs.skip_tests && !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
         run: bun run test:unit
+
+      - name: Upload unit coverage artifact
+        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-coverage
+          path: coverage/unit/lcov.info
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Upload unit coverage to Codecov
+        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage/unit/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: unit
+          name: unit-coverage
+          fail_ci_if_error: false
+          verbose: true
 
       - name: Run integration tests
         if: ${{ !inputs.skip_tests }}

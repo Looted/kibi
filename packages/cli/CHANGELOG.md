@@ -1,5 +1,15 @@
 # kibi-cli
 
+## 0.2.6
+
+### Patch Changes
+
+- 5188a8f: Fix `kb_upsert` status validation so documented entity-specific lifecycle values like `open`, `passing`, and `accepted` are accepted again. The MCP tool schema now avoids advertising a stale fixed status enum, and the shared entity schema accepts both documented statuses and legacy compatibility values.
+- Fix `kibi sync` false dangling-relationship warnings by validating relationship shards after entity IDs are loaded, repair sync cache `seenAt` timestamps so invalid cache entries trigger a safe re-import instead of silently skipping files, and harden KB persistence so read-only query/check flows no longer rewrite live RDF snapshots.
+- Updated dependencies [4e05344]
+- Updated dependencies
+  - kibi-core@0.1.10
+
 ## 0.2.5
 
 ### Patch Changes

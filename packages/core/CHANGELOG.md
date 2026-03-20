@@ -1,5 +1,12 @@
 # kibi-core
 
+## 0.1.10
+
+### Patch Changes
+
+- 4e05344: Align core status semantics with the documented entity-specific lifecycle values so requirement and ADR derivations treat canonical states like `open`, `in_progress`, `closed`, `accepted`, `deprecated`, and `superseded` consistently.
+- Fix `kibi sync` false dangling-relationship warnings by validating relationship shards after entity IDs are loaded, repair sync cache `seenAt` timestamps so invalid cache entries trigger a safe re-import instead of silently skipping files, and harden KB persistence so read-only query/check flows no longer rewrite live RDF snapshots.
+
 ## 0.1.9
 
 ### Patch Changes

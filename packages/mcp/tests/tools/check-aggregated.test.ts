@@ -5,19 +5,30 @@ import { handleKbCheck } from "../../src/tools/check.js";
 describe("MCP check aggregated path", () => {
   test("should use aggregated checks for filtered rules", async () => {
     const query = mock(async (goal: string) => {
-      if (goal.includes("check_required_fields")) {
+      if (goal.includes("check_all_json_with_options")) {
         return {
           success: true,
           bindings: {
-            JsonString: JSON.stringify([
-              {
-                rule: "required-fields",
-                entityId: "REQ-001",
-                description: "Missing required field: source",
-                suggestion: "Add source to entity definition",
-                source: "requirements/REQ-001.md",
-              },
-            ]),
+            JsonString: JSON.stringify({
+              "required-fields": [
+                {
+                  rule: "required-fields",
+                  entityId: "REQ-001",
+                  description: "Missing required field: source",
+                  suggestion: "Add source to entity definition",
+                  source: "requirements/REQ-001.md",
+                },
+              ],
+              "symbol-traceability": [
+                {
+                  rule: "symbol-traceability",
+                  entityId: "SYM-001",
+                  description: "Missing requirement link",
+                  suggestion: "Add implements REQ-001",
+                  source: "src/symbol.ts",
+                },
+              ],
+            }),
           },
         };
       }
@@ -39,6 +50,6 @@ describe("MCP check aggregated path", () => {
     expect(query).toHaveBeenCalledTimes(1);
     const firstCallGoal = (query as unknown as { mock: { calls: string[][] } })
       .mock.calls[0]?.[0];
-    expect(firstCallGoal).toContain("check_required_fields");
+    expect(firstCallGoal).toContain("check_all_json_with_options");
   });
 });

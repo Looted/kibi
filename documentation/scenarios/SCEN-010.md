@@ -9,9 +9,6 @@ tags:
   - mcp
   - context
   - agent-workflow
-links:
-  - type: specified_by
-    target: REQ-015
 ---
 
 Steps:
