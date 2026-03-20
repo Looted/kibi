@@ -557,7 +557,7 @@ describe("MCP CRUD Tool Handlers", () => {
       });
 
       // Should fail
-      expect(upsertPromise).rejects.toThrow();
+      await expect(upsertPromise).rejects.toThrow();
 
       // Verify entity does NOT exist after failure
       const queryResult = await handleKbQuery(prolog, {
