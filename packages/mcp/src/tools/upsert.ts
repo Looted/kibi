@@ -175,11 +175,9 @@ export async function handleKbUpsert(
 
       relationshipsCreated += relationships.length;
     }
-    // Note: kb_save is intentionally NOT called here for performance.
-    // Callers that need durability across restarts should explicitly call kb_save.
-    // This allows batching multiple upserts before a single disk write.
+    // Save KB to disk after all entities/relationships are written to ensure
+    // durability across process restarts.
     prolog.invalidateCache();
-    // Save KB to disk to ensure durability across process restarts
     const saveResult = await prolog.query("kb_save");
     if (!saveResult.success) {
       throw new Error(

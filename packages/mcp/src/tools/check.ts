@@ -130,15 +130,30 @@ function loadChecksConfig(workspaceRoot: string): ChecksConfig {
       checks?: Partial<ChecksConfig>;
     };
 
+    const parsedRules = parsed.checks?.rules;
+    const normalizedRules: Record<string, boolean> = {
+      ...DEFAULT_CHECKS_CONFIG.rules,
+    };
+    if (parsedRules && typeof parsedRules === "object") {
+      for (const [key, value] of Object.entries(parsedRules)) {
+        if (typeof value === "boolean") {
+          normalizedRules[key] = value;
+        }
+        // Ignore non-boolean values (they are not added to normalizedRules, preserving defaults)
+      }
+    }
+
+    const parsedSt = parsed.checks?.symbolTraceability;
+    const normalizedSt = { ...DEFAULT_CHECKS_CONFIG.symbolTraceability };
+    if (parsedSt && typeof parsedSt === "object") {
+      if (typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean") {
+        normalizedSt.requireAdr = (parsedSt as { requireAdr: boolean }).requireAdr;
+      }
+    }
+
     return {
-      rules: {
-        ...DEFAULT_CHECKS_CONFIG.rules,
-        ...parsed.checks?.rules,
-      },
-      symbolTraceability: {
-        ...DEFAULT_CHECKS_CONFIG.symbolTraceability,
-        ...parsed.checks?.symbolTraceability,
-      },
+      rules: normalizedRules,
+      symbolTraceability: normalizedSt,
     };
   } catch {
     return DEFAULT_CHECKS_CONFIG;
@@ -260,52 +275,47 @@ async function runAggregatedChecks(
     ;   call(checks:check_all_json(JsonString))
     ))`;
 
-  try {
-    const result = await prolog.query(query);
+  const result = await prolog.query(query);
 
-    if (!result.success) {
-      console.warn(
-        "Aggregated checks query failed, falling back to individual checks",
-      );
-      return [];
-    }
-
-    let violationsDict: Record<string, JsonViolation[]>;
-    try {
-      const jsonString = result.bindings.JsonString;
-      if (!jsonString) {
-        throw new Error("No JSON string in binding");
-      }
-      let parsed = JSON.parse(jsonString);
-      if (typeof parsed === "string") {
-        parsed = JSON.parse(parsed);
-      }
-      violationsDict = parsed as Record<string, JsonViolation[]>;
-    } catch (parseError) {
-      console.warn("Failed to parse violations JSON:", parseError);
-      return [];
-    }
-
-    for (const ruleViolations of Object.values(violationsDict)) {
-      for (const v of ruleViolations) {
-        const isAllowed = rulesAllowlist.has(v.rule);
-        if (isAllowed) {
-          violations.push({
-            rule: v.rule,
-            entityId: v.entityId,
-            description: v.description,
-            suggestion: v.suggestion || undefined,
-            source: v.source || undefined,
-          });
-        }
-      }
-    }
-
-    return violations;
-  } catch (error) {
-    console.warn("Error running aggregated checks:", error);
-    return [];
+  if (!result.success) {
+    throw new Error(
+      `Aggregated checks query failed: ${result.error || "Unknown error"}`,
+    );
   }
+
+  let violationsDict: Record<string, JsonViolation[]>;
+  try {
+    const jsonString = result.bindings.JsonString;
+    if (!jsonString) {
+      throw new Error("No JSON string in binding");
+    }
+    let parsed = JSON.parse(jsonString);
+    if (typeof parsed === "string") {
+      parsed = JSON.parse(parsed);
+    }
+    violationsDict = parsed as Record<string, JsonViolation[]>;
+  } catch (parseError) {
+    throw new Error(
+      `Failed to parse violations JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+    );
+  }
+
+  for (const ruleViolations of Object.values(violationsDict)) {
+    for (const v of ruleViolations) {
+      const isAllowed = rulesAllowlist.has(v.rule);
+      if (isAllowed) {
+        violations.push({
+          rule: v.rule,
+          entityId: v.entityId,
+          description: v.description,
+          suggestion: v.suggestion || undefined,
+          source: v.source || undefined,
+        });
+      }
+    }
+  }
+
+  return violations;
 }
 
 interface JsonViolation {
