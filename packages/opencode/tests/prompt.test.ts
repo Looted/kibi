@@ -1,3 +1,4 @@
+/// <reference types="bun-types" />
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { KibiConfig } from "../src/config";
@@ -74,6 +75,20 @@ describe("prompt", () => {
     assert.ok(
       result.includes("// implements REQ-xxx"),
       "Should mention traceability comment pattern",
+    );
+  });
+
+  test("guidance includes repo dogfood rebuild note", () => {
+    const result = injectPrompt("", baseConfig);
+
+    assert.ok(
+      result.includes("bun run build"),
+      "Should mention rebuild command for dogfood setup",
+    );
+    assert.ok(result.includes("kibi-mcp"), "Should mention local MCP artifact");
+    assert.ok(
+      result.includes("kibi-opencode"),
+      "Should mention local plugin artifact",
     );
   });
 

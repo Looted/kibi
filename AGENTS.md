@@ -116,6 +116,7 @@ This ensures the knowledge base grows with each investigation, making future wor
 - **Changelog Parity:** Maintain package changelogs consistently across all npm packages, including `packages/opencode/CHANGELOG.md` for `kibi-opencode`.
 - **Commit Messages:** All release-related commits must follow Conventional Commits and clearly describe the scope and reason for the release metadata or version change.
 - **defaultBranch Precedence:** When preparing releases, the default branch is resolved in this order: `.kb/config.json` `defaultBranch` → `origin/HEAD` → `main`.
+- **Dogfood Rebuild Rule:** This repo's OpenCode setup uses local built `kibi-mcp` and `kibi-opencode` artifacts via `opencode.json` and `.opencode/plugins/kibi.ts`. After changing any Kibi package version or local package wiring used by that setup, run `bun run build` before testing or using OpenCode here.
 
 ---
 

@@ -1,105 +1,90 @@
-# Kibi-Opencode Dogfood Setup
+# Kibi OpenCode Dogfood Setup
 
-This directory contains the OpenCode plugin for Kibi. When developing locally, this project uses a "dogfood" setup where the plugin is loaded from source rather than from the published npm package.
+This repository dogfoods local built `kibi-mcp` and `kibi-opencode` artifacts instead of consuming the published npm packages in its own OpenCode workflow.
 
-## Local Plugin Architecture
+## Local Wiring
 
-The dogfood setup consists of:
+The repo-root setup relies on these files:
 
-1. **Source Code**: `packages/opencode/src/` - TypeScript source files
-2. **Local Shim**: `.opencode/plugins/kibi.ts` - Thin re-export of the built plugin
-3. **Built Output**: `packages/opencode/dist/` - Compiled JavaScript
+1. `opencode.json` starts the local MCP server with `bun run packages/mcp/bin/kibi-mcp --diagnostic-mode`.
+2. `opencode.json` keeps `"plugin": []`, so OpenCode does not auto-install the published `kibi-opencode` package.
+3. `.opencode/plugins/kibi.ts` re-exports `../../packages/opencode/dist/index.js`.
+4. `packages/mcp/dist/` and `packages/opencode/dist/` must exist locally because OpenCode uses those built outputs.
 
-The local shim at `.opencode/plugins/kibi.ts` exports:
-```typescript
-export { default } from "../../packages/opencode/dist/index.js";
-```
+## Initial Setup
 
-OpenCode automatically discovers and loads plugins from `.opencode/plugins/`, so this shim makes the locally built plugin available.
-
-## Development Workflow
-
-### Initial Setup
-
-1. Build the plugin once:
-   ```bash
-   cd packages/opencode
-   bun run build
-   ```
-
-2. Ensure `opencode.json` in the project root has:
-   ```json
-   {
-     "plugin": []
-   }
-   ```
-   (Empty array = local plugins only, no npm packages)
-
-### During Development
-
-Option 1: Manual rebuild after changes
 ```bash
-cd packages/opencode
+bun install
 bun run build
 ```
 
-Option 2: Watch mode for automatic rebuilds
+## Rebuild Rule
+
+Because this repo uses local build artifacts, rerun the full build whenever you:
+
+- change a version in `package.json` for any Kibi package
+- change local package wiring between `packages/core`, `packages/cli`, `packages/mcp`, and `packages/opencode`
+- change code in `packages/mcp/src/`
+- need refreshed build output before testing the repo's OpenCode dogfood flow
+
+Use:
+
 ```bash
-cd packages/opencode
-bun run dev
+bun run build
 ```
 
-The watch mode will automatically rebuild the plugin when you save changes in `packages/opencode/src/`.
+If you are only iterating on `packages/opencode/src/`, you can keep the plugin build hot with:
+
+```bash
+bun run dev:opencode
+```
+
+That watch mode updates `packages/opencode/dist/`, but version bumps and cross-package changes still require `bun run build`.
 
 ## How It Works
 
-1. You edit TypeScript files in `packages/opencode/src/`
-2. Build/watch process compiles them to `packages/opencode/dist/`
-3. `.opencode/plugins/kibi.ts` re-exports from the dist directory
-4. OpenCode loads the plugin from `.opencode/plugins/`
-5. Changes are reflected immediately after rebuild
+1. You edit code in `packages/mcp/src/` or `packages/opencode/src/`.
+2. The build writes compiled output into `packages/mcp/dist/` and `packages/opencode/dist/`.
+3. OpenCode reads the local MCP server from `packages/mcp/bin/kibi-mcp`.
+4. OpenCode auto-loads `.opencode/plugins/kibi.ts`, which re-exports the local `packages/opencode/dist/index.js` build.
+5. Restarting OpenCode picks up the refreshed local artifacts.
 
 ## Verification
 
-To verify the dogfood setup is working:
+Check the dogfood wiring after rebuilds:
 
-1. Check that the local shim exists:
-   ```bash
-   cat .opencode/plugins/kibi.ts
-   ```
-
-2. Verify the plugin is built:
-   ```bash
-   ls -la packages/opencode/dist/
-   ```
-
-3. Restart OpenCode to pick up the local plugin
+```bash
+cat opencode.json
+cat .opencode/plugins/kibi.ts
+ls packages/mcp/dist
+ls packages/opencode/dist
+```
 
 ## Common Issues
 
-**Plugin not loading:**
-- Ensure `opencode.json` has `"plugin": []` (no npm package reference)
-- Verify the build completed successfully: `ls packages/opencode/dist/`
-- Restart OpenCode after changes
+**Published plugin got loaded instead of the local one:**
+- Ensure `opencode.json` keeps `"plugin": []`
+- Ensure `.opencode/plugins/kibi.ts` still points at `../../packages/opencode/dist/index.js`
 
-**Changes not reflected:**
-- If using manual build: run `bun run build` after changes
-- If using watch mode: ensure the watch process is running
-- Restart OpenCode to reload the plugin
+**Changes are not reflected in OpenCode:**
+- Run `bun run build`
+- If you are iterating only on the plugin, confirm `bun run dev:opencode` is still running
+- Restart OpenCode after the rebuild
 
 ## Testing
 
-Run tests for the plugin:
+Run the relevant plugin tests:
+
 ```bash
-cd packages/opencode
-bun test
+bun test packages/opencode/tests
 ```
 
 ## Publishing
 
-When ready to publish:
-1. Update version in `package.json`
+When preparing a release for `kibi-opencode`:
+
+1. Update version metadata as needed
 2. Run `bun run build`
-3. Test the built plugin locally first
-4. Create a changeset: `bun run changeset`
+3. Test the local dogfood setup against the rebuilt artifacts
+4. Create a changeset with `bun run changeset`
 5. Follow the release workflow in the main README

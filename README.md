@@ -54,14 +54,8 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 # Using npm (recommended)
 npm install -g kibi-cli kibi-mcp
 
-# Optional: OpenCode plugin (project or global install)
-npm install kibi-opencode
-
 # Using bun
 bun add -g kibi-cli kibi-mcp
-
-# Optional: OpenCode plugin
-bun add kibi-opencode
 ```
 
 After installation, verify that kibi is available:
@@ -69,6 +63,36 @@ After installation, verify that kibi is available:
 ```bash
 kibi --version
 ```
+
+### OpenCode Plugin
+
+Add `kibi-opencode` to your project `opencode.json`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["kibi-opencode"]
+}
+```
+
+OpenCode installs npm plugins declared in `plugin` automatically at startup.
+
+### VS Code MCP
+
+Create `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "kibi-mcp"
+    }
+  }
+}
+```
+
+If `kibi-mcp` is not on your `PATH`, replace `command` with the full executable path.
 
 For complete installation steps and SWI-Prolog setup, see [detailed installation guide](docs/install.md).
 
@@ -91,22 +115,6 @@ kibi check
 ```
 
 > **Note:** `kibi init` installs git hooks by default. Hooks automatically sync your KB on branch checkout and merge.
-
-## Dogfooding (Local Development)
-
-This repository uses kibi-opencode from source rather than the published npm package. The local plugin shim at `.opencode/plugins/kibi.ts` re-exports from `packages/opencode/dist/`, allowing you to test changes immediately.
-
-### Quick Start for Development
-
-```bash
-# Initial build
-cd packages/opencode && bun run build
-
-# Watch mode (auto-rebuild on changes)
-cd packages/opencode && bun run dev
-```
-
-See [packages/opencode/DEV.md](packages/opencode/DEV.md) for complete dogfood setup details.
 
 ## Documentation
 
