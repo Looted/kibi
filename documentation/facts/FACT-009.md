@@ -3,7 +3,7 @@ id: FACT-009
 title: GitHub Actions workflow handles npm publishing
 status: active
 created_at: 2026-02-25T15:50:00Z
-updated_at: 2026-02-25T15:50:00Z
+updated_at: 2026-03-20T00:00:00Z
 source: documentation/facts/FACT-009.md
 tags:
   - deployment
@@ -22,6 +22,6 @@ Workflow steps:
 5. Install dependencies with `bun install`
 6. Build packages with `bun run build`
 7. Run tests with `bun test`
-8. Publish both packages (`kibi-cli` and `kibi-mcp`) to npm
+8. Publish release-managed packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`) to npm when their versions are not already present on the registry
 
 The workflow uses npm for publishing (not bun) to ensure compatibility with npm registry requirements. Published packages use the `--provenance --access public` flags for package integrity.

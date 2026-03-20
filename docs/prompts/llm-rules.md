@@ -13,6 +13,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 5. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
 6. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
 7. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
+8. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
 
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
 
