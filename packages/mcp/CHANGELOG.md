@@ -1,5 +1,15 @@
 # kibi-mcp
 
+## 0.3.2
+
+### Patch Changes
+
+- bc020dd: Generate unit-test LCOV coverage in CI, upload it to Codecov using the repository's CODECOV_TOKEN secret, and add a README coverage badge alongside the main CI status badge.
+- Updated dependencies [bc020dd]
+- Updated dependencies [e61aa15]
+- Updated dependencies [6e9e15c]
+  - kibi-cli@0.2.7
+
 ## 0.3.1
 
 ### Patch Changes

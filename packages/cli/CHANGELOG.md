@@ -1,5 +1,17 @@
 # kibi-cli
 
+## 0.2.7
+
+### Patch Changes
+
+- bc020dd: Generate unit-test LCOV coverage in CI, upload it to Codecov using the repository's CODECOV_TOKEN secret, and add a README coverage badge alongside the main CI status badge.
+- e61aa15: Load SWI-Prolog's `rdf_db` library in interactive CLI sessions so `rdf_transaction/1` mutation queries do not fall into interactive correction prompts and hang MCP requests that rely on the long-lived Prolog process.
+- 6e9e15c: Import plain string Markdown frontmatter `links` as generic `relates_to`
+  relationships during `kibi sync`, and fix `kibi query --relationships` so it
+  returns outgoing relationships reliably. Also fix `kibi-opencode` tarball ESM
+  imports and self-contained plugin typings so packed installs can build and load
+  the plugin and helper subpath exports in Node.
+
 ## 0.2.6
 
 ### Patch Changes
