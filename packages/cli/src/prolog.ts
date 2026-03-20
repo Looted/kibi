@@ -104,7 +104,7 @@ export class PrologProcess {
     const kbPath = resolveKbPlPath();
     this.process = spawn(this.swiplPath, [
       "-g",
-      `use_module('${kbPath}'), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
+      `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
       "--quiet",
     ]);
 

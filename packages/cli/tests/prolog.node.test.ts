@@ -268,3 +268,39 @@ test("interactive mode serializes concurrent queries without timing out", async 
     }
   }
 });
+
+test("interactive mode supports rdf_transaction mutation queries", async () => {
+  const tempKbDir = mkdtempSync(path.join(os.tmpdir(), "kibi-rdf-tx-"));
+  const prolog = createInteractiveProlog({ timeout: 5000 });
+  try {
+    await prolog.start();
+
+    const attach = await prolog.query(`kb_attach('${tempKbDir}')`);
+    assert.strictEqual(attach.success, true, "attach should succeed");
+
+    const upsert = await prolog.query(
+      `rdf_transaction((kb_assert_entity(req, [id='REQ-RDF-TX-001', title="Transaction Entity", status=open, created_at="2026-03-20T00:00:00Z", updated_at="2026-03-20T00:00:00Z", source="rdf-transaction-test"])))`,
+    );
+    assert.strictEqual(
+      upsert.success,
+      true,
+      "rdf_transaction mutation should succeed",
+    );
+
+    const exists = await prolog.query("kb_entity('REQ-RDF-TX-001', _, _)");
+    assert.strictEqual(exists.success, true, "entity should be queryable");
+
+    const save = await prolog.query("kb_save");
+    assert.strictEqual(save.success, true, "save should succeed");
+
+    const detach = await prolog.query("kb_detach");
+    assert.strictEqual(detach.success, true, "detach should succeed");
+  } finally {
+    try {
+      await prolog.terminate();
+    } catch {}
+    if (existsSync(tempKbDir)) {
+      rmSync(tempKbDir, { recursive: true, force: true });
+    }
+  }
+});
