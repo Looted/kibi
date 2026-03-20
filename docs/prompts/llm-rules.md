@@ -10,7 +10,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 2. **Start with `kb_query`.** Read current requirements, ADRs, tests, symbols, or source-linked entities before making assumptions.
 3. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 4. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
-5. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using the `links` field and relationship rows (`specified_by`, `verified_by`).
+5. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`).
 6. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
 7. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
 8. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
@@ -26,8 +26,10 @@ id: REQ-001
 title: User authentication
 status: open
 links:
-  - SCEN-001
-  - TEST-001
+  - type: specified_by
+    target: SCEN-001
+  - type: verified_by
+    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -59,7 +61,11 @@ scenarios:
 ---
 ```
 
-> **Rule:** Do NOT embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using the `links` field and relationship rows.
+Plain string Markdown `links` entries are still valid, but they import as
+generic `relates_to` edges only. Use typed `links` objects or relationship rows
+when semantic relationships matter.
+
+> **Rule:** Do NOT embed scenarios or tests inside requirement records. Always create separate files for each entity and link them using explicit typed `links` entries or relationship rows. Plain string `links` are generic `relates_to` only.
 
 ## Public MCP Surface
 
