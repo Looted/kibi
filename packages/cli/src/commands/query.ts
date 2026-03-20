@@ -144,7 +144,8 @@ export async function queryCommand(
         console.error(
           `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
         );
-        process.exit(1);
+        process.exitCode = 1;
+        return;
       }
 
       let goal: string;
@@ -192,7 +193,8 @@ export async function queryCommand(
       console.error(
         "Error: Must specify entity type, --source, or --relationships option",
       );
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
     // Apply pagination
@@ -206,7 +208,7 @@ export async function queryCommand(
       } else {
         console.log("No entities found");
       }
-      process.exit(0);
+      return;
     }
 
     // Format output
@@ -215,12 +217,10 @@ export async function queryCommand(
     } else {
       console.log(JSON.stringify(paginated, null, 2));
     }
-
-    process.exit(0);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
-    process.exit(1);
+    process.exitCode = 1;
   } finally {
     if (prolog) {
       if (attached) {

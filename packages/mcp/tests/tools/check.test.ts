@@ -502,7 +502,7 @@ describe("MCP Check Tool Handler", () => {
       expect(violation).toBeUndefined();
     } finally {
       if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
+        delete process.env.KIBI_WORKSPACE;
       } else {
         process.env.KIBI_WORKSPACE = originalWorkspace;
       }
@@ -571,7 +571,7 @@ describe("MCP Check Tool Handler", () => {
       expect(violation?.description).toMatch(/ADR/i);
     } finally {
       if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
+        delete process.env.KIBI_WORKSPACE;
       } else {
         process.env.KIBI_WORKSPACE = originalWorkspace;
       }
