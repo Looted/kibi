@@ -1,5 +1,5 @@
-import { strict as assert } from "node:assert";
 import { describe, test } from "bun:test";
+import { strict as assert } from "node:assert";
 import { DEFAULTS } from "../src/config";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 
@@ -155,5 +155,59 @@ describe("sync scheduler", () => {
     clock.advance(100);
     await flushAsync();
     assert.equal(runs, 1);
+  });
+
+  test("merges checkRules across debounced edits", async () => {
+    const clock = createFakeClock();
+    const completions: SyncRunMetadata[] = [];
+
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      onRunComplete: (meta) => completions.push(meta),
+      runSync: async () => ({ exitCode: 0 }),
+    });
+
+    // First edit with standard checks
+    scheduler.scheduleSync("file.edited", "doc.md", ["required-fields"]);
+    clock.advance(20);
+
+    // Second edit with elevated checks (simulating must-priority requirement)
+    scheduler.scheduleSync("file.edited", "req.md", [
+      "required-fields",
+      "no-dangling-refs",
+      "must-priority-coverage",
+    ]);
+    clock.advance(20);
+
+    // Third edit with no specific checks
+    scheduler.scheduleSync("file.edited", "other.md");
+
+    clock.advance(100);
+    await flushAsync();
+
+    assert.equal(completions.length, 1);
+    const rules = completions[0]?.checkRules ?? [];
+
+    // All rules should be merged (no duplicates)
+    assert.ok(
+      rules.includes("required-fields"),
+      "should include required-fields",
+    );
+    assert.ok(
+      rules.includes("no-dangling-refs"),
+      "should include no-dangling-refs",
+    );
+    assert.ok(
+      rules.includes("must-priority-coverage"),
+      "should include must-priority-coverage",
+    );
+    assert.equal(rules.length, 3, "should have exactly 3 unique rules");
   });
 });

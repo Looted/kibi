@@ -196,4 +196,38 @@ title: No Priority
       assert.equal(getRequirementPriority(nonExistent), null);
     });
   });
+
+  describe("edge cases", () => {
+    it("handles CRLF line endings", () => {
+      const reqFile = path.join(tmpDir, "REQ-CRLF.md");
+      // biome-ignore lint/style/useTemplate: Need escaped CRLF for test
+      const content = "---\r\nid: REQ-CRLF\r\npriority: must\r\n---\r\n";
+      fs.writeFileSync(reqFile, content);
+
+      assert.equal(isMustPriorityRequirement(reqFile), true);
+    });
+
+    it("handles BOM marker", () => {
+      const reqFile = path.join(tmpDir, "REQ-BOM.md");
+      // biome-ignore lint/style/useTemplate: BOM character needed for test
+      const content = "\uFEFF---\nid: REQ-BOM\npriority: must\n---\n";
+      fs.writeFileSync(reqFile, content);
+
+      assert.equal(isMustPriorityRequirement(reqFile), true);
+    });
+
+    it("handles inline YAML comments", () => {
+      const reqFile = path.join(tmpDir, "REQ-COMMENT.md");
+      fs.writeFileSync(
+        reqFile,
+        `---
+id: REQ-COMMENT
+priority: must  # This is a comment
+---
+`,
+      );
+
+      assert.equal(isMustPriorityRequirement(reqFile), true);
+    });
+  });
 });
