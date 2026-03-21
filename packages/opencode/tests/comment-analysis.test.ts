@@ -216,7 +216,11 @@ print(message)
       const result = analyzeCodeFile(pyFile, { minLines: 3 });
       // This might or might not be detected depending on heuristic
       // The important thing is it doesn't crash
-      assert.ok(result === null || result !== null);
+      assert.doesNotThrow(() => {
+        analyzeCodeFile(pyFile, { minLines: 3 });
+      });
+      // An assigned string should not be detected as a docstring
+      assert.equal(result, null);
     });
 
     it("ignores short Python comments", () => {
@@ -494,21 +498,21 @@ class User:
       fs.writeFileSync(
         pyFile,
         `"""
-This is the actual module docstring.
-It should be detected as a docstring.
-And it has enough lines.
-"""
-
-SECOND_STRING = """
 User email must be unique across the entire system.
 Each user can have at most 5 active sessions.
 Sessions expire after 30 minutes of inactivity.
+"""
+
+SECOND_STRING = """
+This is an assigned string, not a docstring.
+It should not be detected by the analyzer.
+Even though it has multiple lines here.
 """
 `,
       );
 
       const result = analyzeCodeFile(pyFile, { minLines: 3 });
-      // Should detect the module docstring, not the second string
+      // Should detect the module docstring (first triple-quoted string, not assigned)
       assert.ok(result, "Should detect module docstring");
       assert.equal(result?.sourceKind, "docstring");
     });

@@ -1,20 +1,21 @@
 // implements REQ-opencode-kibi-plugin-v1
 
 import * as fs from "node:fs";
+import * as path from "node:path";
 
 /**
  * Parse frontmatter from markdown content.
  * Returns null if no valid frontmatter found.
  */
 function parseFrontmatter(content: string): Record<string, unknown> | null {
-  const match = content.match(/^---\s*\n([\s\S]*?)\n---/);
+  const match = content.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return null;
 
   const frontmatterText = match[1];
   const result: Record<string, unknown> = {};
 
   // Simple YAML-like parsing for top-level scalar values only
-  for (const line of frontmatterText.split("\n")) {
+  for (const line of frontmatterText.split(/\r?\n/)) {
     const colonIndex = line.indexOf(":");
     if (colonIndex === -1) continue;
 
@@ -54,8 +55,8 @@ export function isMustPriorityRequirement(
 ): boolean {
   try {
     const resolvedPath =
-      worktree && !filePath.startsWith("/")
-        ? `${worktree}/${filePath}`
+      worktree && !path.isAbsolute(filePath)
+        ? path.join(worktree, filePath)
         : filePath;
 
     const content = fs.readFileSync(resolvedPath, "utf-8");
@@ -81,8 +82,8 @@ export function getRequirementPriority(
 ): string | null {
   try {
     const resolvedPath =
-      worktree && !filePath.startsWith("/")
-        ? `${worktree}/${filePath}`
+      worktree && !path.isAbsolute(filePath)
+        ? path.join(worktree, filePath)
         : filePath;
 
     const content = fs.readFileSync(resolvedPath, "utf-8");
