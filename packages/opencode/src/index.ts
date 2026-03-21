@@ -5,6 +5,7 @@ import {
 import * as config from "./config.js";
 import * as fileFilter from "./file-filter.js";
 import * as logger from "./logger.js";
+import * as path from "node:path";
 import { type PathKind, analyzePath } from "./path-kind.js";
 import { injectPrompt } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
@@ -194,8 +195,8 @@ const kibiOpencodePlugin: Plugin = async (
 
     if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
       const resolvedPath =
-        input.worktree && !filePath.startsWith("/")
-          ? `${input.worktree}/${filePath}`
+        input.worktree && !path.isAbsolute(filePath)
+          ? path.join(input.worktree, filePath)
           : filePath;
 
       const suggestion = analyzeCodeFile(resolvedPath, {
