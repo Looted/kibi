@@ -52,8 +52,9 @@ export interface Hooks {
 export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
 
 /**
- * Lint requirement document for anti-patterns.
+ * Lint requirement documents for embedded scenarios/tests and oversized content.
  */
+// implements REQ-opencode-kibi-plugin-v1
 function lintRequirementDoc(
   filePath: string,
   worktree?: string,
@@ -67,7 +68,6 @@ function lintRequirementDoc(
         : filePath;
     const content = fs.readFileSync(resolvedPath, "utf-8");
 
-    // Check for embedded scenarios (Given/When/Then patterns) - implements REQ-opencode-kibi-plugin-v1
     if (/given\s+[\s\S]*?when\s+[\s\S]*?then/i.test(content)) {
       warnings.push({
         category: "embedded-scenario-in-req",
@@ -75,7 +75,6 @@ function lintRequirementDoc(
       });
     }
 
-    // Check for embedded tests (assert/verify patterns)
     if (/\b(assert|verify|expected\s+to|should\s+return)\b/i.test(content)) {
       warnings.push({
         category: "embedded-test-in-req",
@@ -83,7 +82,6 @@ function lintRequirementDoc(
       });
     }
 
-    // Check for very long requirement that might need splitting
     const lines = content.split("\n");
     const contentLines = lines.filter(
       (l) => l.trim() && !l.startsWith("---") && !l.startsWith("#"),
@@ -154,17 +152,14 @@ const kibiOpencodePlugin: Plugin = async (
     scheduler = createSyncScheduler(schedulerOpts);
   }
 
-  // Setup event hook (unconditional - handles comment detection, warnings, tracking)
   hooks.event = async ({ event }) => {
     if (event.type !== "file.edited") return;
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
     if (!filePath) return;
 
-    // Analyze path for tracking and classification
     const pathAnalysis = analyzePath(filePath, input.worktree);
 
-    // Check for .kb edit (loud warning) — gated on guidance.warnOnKbEdits
     if (pathAnalysis.isUnderKb && cfg.guidance.warnOnKbEdits) {
       hasRecentKbEdit = true;
       logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
@@ -175,7 +170,6 @@ const kibiOpencodePlugin: Plugin = async (
       );
     }
 
-    // Lint requirement docs for anti-patterns
     if (pathAnalysis.kind === "requirement") {
       const lintWarnings = lintRequirementDoc(filePath, input.worktree);
       for (const warning of lintWarnings) {
@@ -187,7 +181,6 @@ const kibiOpencodePlugin: Plugin = async (
       }
     }
 
-    // Track recent edits
     const now = Date.now();
     recentEdits.push({
       path: filePath,
@@ -195,12 +188,10 @@ const kibiOpencodePlugin: Plugin = async (
       timestamp: now,
     });
 
-    // Keep only recent edits
     if (recentEdits.length > MAX_RECENT_EDITS) {
       recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
     }
 
-    // Analyze code files for durable knowledge comments (gated on commentDetection)
     if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
       const resolvedPath =
         input.worktree && !filePath.startsWith("/")
@@ -212,15 +203,12 @@ const kibiOpencodePlugin: Plugin = async (
       });
 
       if (suggestion) {
-        // Always update the suggestion for the current edit context
         recentCommentSuggestion = suggestion;
 
-        // Check for dedupe on warnings only
         const dedupeKey = `${filePath}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
         if (!seenFingerprints.has(dedupeKey)) {
           seenFingerprints.add(dedupeKey);
 
-          // Map suggestion type to warning category
           const warningCategory: WarningCategory =
             suggestion.suggestionType === "fact"
               ? "long-comment-missed-fact"
@@ -238,23 +226,18 @@ const kibiOpencodePlugin: Plugin = async (
           );
         }
       } else {
-        // Clear stale suggestion when no durable knowledge detected
         recentCommentSuggestion = null;
       }
     } else {
-      // Clear suggestion for non-code files
       recentCommentSuggestion = null;
     }
 
-    // Only schedule sync for relevant files (not .kb) when sync is enabled
     if (!cfg.sync.enabled) return;
     if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
-    // Determine targeted checks based on edit type (gated on guidance.targetedChecks.enabled)
     let checkRules: string[] | undefined;
     if (cfg.guidance.targetedChecks.enabled) {
       if (pathAnalysis.kind === "requirement") {
-        // Must-priority requirements get elevated validation
         if (isMustPriorityRequirement(filePath, input.worktree)) {
           checkRules = [
             "required-fields",
@@ -278,7 +261,6 @@ const kibiOpencodePlugin: Plugin = async (
     scheduler?.scheduleSync("file.edited", filePath, checkRules);
   };
 
-  // Setup prompt injection hook
   if (cfg.prompt.enabled) {
     const hookMode = cfg.prompt.hookMode;
 

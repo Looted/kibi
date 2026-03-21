@@ -21,7 +21,6 @@ export interface PromptContext {
 function buildContextualGuidance(context: PromptContext): string {
   const parts: string[] = [SENTINEL];
 
-  // 1. Check for recent .kb edits (loud warning)
   if (context.hasRecentKbEdit) {
     parts.push(`
 ⚠️  **WARNING: Do not edit .kb/** files manually.**
@@ -35,7 +34,6 @@ Instead:
 `);
   }
 
-  // 2. Check for bootstrap/health issues
   if (context.workspaceHealth?.needsBootstrap) {
     parts.push(`
 🔧 **Bootstrap required**
@@ -47,16 +45,13 @@ This repository does not appear to have Kibi initialized. Consider running:
 `);
   }
 
-  // 3. Analyze recent edits and provide targeted guidance
   const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
   const reqEdits = context.recentEdits.filter((e) => e.kind === "requirement");
   const kbDocEdits = context.recentEdits.filter((e) =>
     ["requirement", "scenario", "test", "adr", "fact"].includes(e.kind),
   );
 
-  // Code edit guidance
   if (codeEdits.length > 0) {
-    // Check for specific comment suggestion
     const suggestion = context.recentCommentSuggestion;
     if (suggestion) {
       let routingMessage = "";
@@ -107,7 +102,6 @@ Before implementing or explaining code:
       }
       parts.push(routingMessage);
     } else {
-      // Generic code edit guidance
       parts.push(`
 📝 **Code changes detected**
 
@@ -126,7 +120,6 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     }
   }
 
-  // Requirement edit guidance
   if (reqEdits.length > 0) {
     parts.push(`
 📋 **Requirement changes detected**
@@ -143,7 +136,6 @@ Preferred structure:
 `);
   }
 
-  // KB doc edit guidance (requirement, scenario, test, ADR, fact)
   if (kbDocEdits.length > 0 && reqEdits.length === 0) {
     parts.push(`
 📚 **Kibi documentation changes detected**
@@ -155,7 +147,6 @@ When editing KB documentation:
 `);
   }
 
-  // Only include general Kibi workflow if no specific context (beyond the sentinel)
   if (parts.length === 1) {
     parts.push(`This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
