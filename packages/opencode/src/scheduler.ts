@@ -88,7 +88,15 @@ class WorktreeSyncScheduler implements SyncScheduler {
       this.lastFileEditedAt = this.now();
     }
 
-    this.pending = { reason, filePath, checkRules };
+    // Merge checkRules to preserve elevated checks (e.g., must-priority-coverage)
+    // across debounced edits. New rules are additive; duplicates are removed.
+    const existingRules = this.pending?.checkRules ?? [];
+    const mergedRules =
+      checkRules || existingRules.length > 0
+        ? [...new Set([...existingRules, ...(checkRules ?? [])])]
+        : undefined;
+
+    this.pending = { reason, filePath, checkRules: mergedRules };
     if (this.timer) this.clearTimeoutFn(this.timer);
     this.timer = this.setTimeoutFn(() => {
       this.timer = null;

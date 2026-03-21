@@ -1,6 +1,6 @@
+import { existsSync, readFileSync } from "node:fs";
 // implements REQ-opencode-kibi-plugin-v1
 import { createRequire } from "node:module";
-import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 
 const _require = createRequire(import.meta.url);
@@ -55,7 +55,7 @@ function loadSyncConfigLocal(cwd = process.cwd()) {
   };
 }
 
-function loadKbSyncPaths(cwd = process.cwd()) {
+export function loadKbSyncPaths(cwd = process.cwd()) {
   const cfg = loadSyncConfigLocal(cwd);
   return cfg.paths ?? DEFAULT_SYNC_PATHS;
 }
