@@ -120,11 +120,9 @@ export async function syncCommand(
       } catch {}
     }
 
-    // Load config
     const config = loadSyncConfig(process.cwd());
     const paths = config.paths;
 
-    // File discovery
     const { markdownFiles, manifestFiles, relationshipsDir } =
       await discoverSourceFiles(process.cwd(), paths);
 
@@ -149,14 +147,12 @@ export async function syncCommand(
     const nextHashes: Record<string, string> = {};
     const nextSeenAt: Record<string, string> = {};
 
-    // Extract relationships from shard files
     const shardResults = extractFromRelationshipShards(relationshipsDir);
     const allRelationships = flattenRelationships(shardResults);
 
     const changedMarkdownFiles: string[] = [];
     const changedManifestFiles: string[] = [];
 
-    // Detect changed files
     for (const file of sourceFiles) {
       try {
         const key = toCacheKey(file);
@@ -191,7 +187,6 @@ export async function syncCommand(
       changedMarkdownFiles.length === markdownFiles.length &&
       changedManifestFiles.length === manifestFiles.length;
 
-    // Content extraction
     const { results, failedCacheKeys, errors } = await processExtractions(
       changedMarkdownFiles,
       changedManifestFiles,
@@ -235,7 +230,6 @@ export async function syncCommand(
       }
     }
 
-    // Refresh symbol manifest coordinates
     for (const file of manifestFiles) {
       try {
         await refreshManifestCoordinates(file, process.cwd());
@@ -247,7 +241,6 @@ export async function syncCommand(
       }
     }
 
-    // Early exit if no changes
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -270,7 +263,6 @@ export async function syncCommand(
       process.exit(0);
     }
 
-    // Staging setup
     const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
     const kbExists = existsSync(livePath);
     if (!kbExists && !rebuild) {
@@ -284,7 +276,6 @@ export async function syncCommand(
 
     await prepareStagingEnvironment(stagingPath, livePath, rebuild);
 
-    // Persistence to KB
     try {
       const prolog = new PrologProcess({ timeout: 120000 });
       await prolog.start();
@@ -300,16 +291,13 @@ export async function syncCommand(
 
       const entityIds = new Set<string>();
 
-      // Track entity counts by type
       for (const { entity } of results) {
         entityCounts[entity.type] = (entityCounts[entity.type] || 0) + 1;
       }
 
-      // Persist entities
       const { entityCount, kbModified: entitiesModified } =
         await persistEntities(prolog, results, entityIds);
 
-      // Validate and filter dangling relationships after entity IDs are known.
       const validationErrors = validateRelationships(
         allRelationships,
         entityIds,
@@ -352,10 +340,8 @@ export async function syncCommand(
       await prolog.query("kb_detach");
       await prolog.terminate();
 
-      // Publish staging to live
       atomicPublish(stagingPath, livePath);
 
-      // Update cache
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
 
@@ -437,5 +423,4 @@ export async function syncCommand(
   }
 }
 
-// Export for use by modules that need these functions
 export { normalizeMarkdownPath } from "./sync/discovery.js";

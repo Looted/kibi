@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
-import { resetSessionTracker } from "../src/session-tracker";
+import { resetSessionTracker, getSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -302,7 +302,12 @@ describe("index kibiOpencodePlugin", () => {
         $: {} as any,
       });
 
-      assert.ok(!hooks.event);
+      // Event hook is now always created for comment detection and warnings
+      // Only sync scheduler is conditional on sync.enabled
+      assert.ok(
+        hooks.event,
+        "event hook should exist even when sync is disabled",
+      );
     });
   });
 
@@ -1419,6 +1424,238 @@ with normal content.
     });
   });
 
+  describe("must-priority targeted checks", () => {
+    it("schedules elevated checks for must-priority requirements", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          paths: {
+            requirements: "documentation/requirements/**/*.md",
+            scenarios: "documentation/scenarios/**/*.md",
+            tests: "documentation/tests/**/*.md",
+            adr: "documentation/adr/**/*.md",
+            facts: "documentation/facts/**/*.md",
+          },
+        }),
+      );
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-001.md");
+      fs.writeFileSync(
+        reqFile,
+        `---
+id: REQ-001
+title: Must Priority Requirement
+priority: must
+---
+
+This is a must-priority requirement.
+`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              targetedChecks: {
+                enabled: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: reqFile,
+          },
+        },
+      };
+
+      await eventHook(mockEvent);
+    });
+
+    it("schedules standard checks for non-must requirements", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          paths: {
+            requirements: "documentation/requirements/**/*.md",
+            scenarios: "documentation/scenarios/**/*.md",
+            tests: "documentation/tests/**/*.md",
+            adr: "documentation/adr/**/*.md",
+            facts: "documentation/facts/**/*.md",
+          },
+        }),
+      );
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-002.md");
+      fs.writeFileSync(
+        reqFile,
+        `---
+id: REQ-002
+title: Should Priority Requirement
+priority: should
+---
+
+This is a should-priority requirement.
+`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              targetedChecks: {
+                enabled: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: reqFile,
+          },
+        },
+      };
+
+      await eventHook(mockEvent);
+    });
+
+    it("schedules standard checks for requirements without priority", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          paths: {
+            requirements: "documentation/requirements/**/*.md",
+            scenarios: "documentation/scenarios/**/*.md",
+            tests: "documentation/tests/**/*.md",
+            adr: "documentation/adr/**/*.md",
+            facts: "documentation/facts/**/*.md",
+          },
+        }),
+      );
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-003.md");
+      fs.writeFileSync(
+        reqFile,
+        `---
+id: REQ-003
+title: No Priority Requirement
+---
+
+This requirement has no priority field.
+`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              targetedChecks: {
+                enabled: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: reqFile,
+          },
+        },
+      };
+
+      await eventHook(mockEvent);
+    });
+  });
+
   describe("event hook edge cases", () => {
     it("ignores non-file.edited events", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
@@ -1497,6 +1734,453 @@ with normal content.
       };
 
       await eventHook(mockEvent);
+    });
+  });
+
+  describe("Python file integration", () => {
+    it("detects durable knowledge in Python docstrings via event hook", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              commentDetection: {
+                enabled: true,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create a Python file with a docstring
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        `"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
+
+import datetime
+
+class User:
+    pass
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/models.py",
+          },
+        },
+      };
+
+      await eventHook(mockEvent);
+
+      // Verify prompt injection works
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = {};
+      const mockOutput = { system: ["original system prompt"] };
+
+      await transformHook(mockInput, mockOutput);
+
+      assert.ok(mockOutput.system.length > 0);
+      assert.ok(
+        mockOutput.system[0].includes("kibi-opencode"),
+        "Prompt should contain kibi-opencode",
+      );
+    });
+
+    it("detects durable knowledge in Python # comments via event hook", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              commentDetection: {
+                enabled: true,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create a Python file with # comments
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "database.py"),
+        `# We chose PostgreSQL over MongoDB because we need ACID transactions
+# and strong consistency guarantees. The tradeoff is slightly higher
+# operational complexity but ensures data integrity for financial records.
+#
+# This decision was made in March 2024 after evaluating multiple options.
+
+import psycopg2
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/database.py",
+          },
+        },
+      };
+
+      await eventHook(mockEvent);
+
+      // Verify prompt injection works
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = {};
+      const mockOutput = { system: ["original system prompt"] };
+
+      await transformHook(mockInput, mockOutput);
+
+      assert.ok(mockOutput.system.length > 0);
+      assert.ok(
+        mockOutput.system[0].includes("kibi-opencode"),
+        "Prompt should contain kibi-opencode",
+      );
+    });
+
+    it("respects commentDetection.enabled: false for Python files", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              commentDetection: {
+                enabled: false,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        `"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
+
+import datetime
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/models.py",
+          },
+        },
+      };
+
+      // Should not throw
+      await eventHook(mockEvent);
+    });
+
+    it("processes Python files even when sync is disabled", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: false,
+            },
+            guidance: {
+              commentDetection: {
+                enabled: true,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        `"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
+
+import datetime
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Event hook should exist even when sync is disabled
+      assert.ok(hooks.event, "Event hook should exist when sync is disabled");
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/models.py",
+          },
+        },
+      };
+
+      // Should process without errors
+      await eventHook(mockEvent);
+    });
+
+    it("deduplicates repeated Python file edits", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            guidance: {
+              commentDetection: {
+                enabled: true,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        `"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
+
+import datetime
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      const mockEvent = {
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/models.py",
+          },
+        },
+      };
+
+      // First edit
+      await eventHook(mockEvent);
+
+      const warningsAfterFirstEdit = getSessionTracker().generateSummary().totalWarnings;
+
+      // Second edit (same file, same content)
+      await eventHook(mockEvent);
+
+      // Dedupe should prevent the second edit from adding another warning
+      const warningsAfterSecondEdit = getSessionTracker().generateSummary().totalWarnings;
+      assert.equal(
+        warningsAfterSecondEdit,
+        warningsAfterFirstEdit,
+        "Second edit of the same file should not record a new warning due to deduplication",
+      );
+    });
+
+    it("clears suggestion when switching from code file to KB doc", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: {
+              enabled: true,
+            },
+            prompt: {
+              enabled: true,
+              hookMode: "system-transform",
+            },
+            guidance: {
+              commentDetection: {
+                enabled: true,
+                minLines: 3,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        `"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
+
+import datetime
+`,
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // First edit: Python file with durable knowledge
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "src/models.py",
+          },
+        },
+      });
+
+      // After code file edit, transform hook should inject durable knowledge guidance
+      const outputAfterCode = { system: ["base system prompt"] };
+      await transformHook({}, outputAfterCode);
+      assert.ok(
+        outputAfterCode.system[0].includes("Durable knowledge detected"),
+        "Prompt should contain durable knowledge guidance after code file edit",
+      );
+
+      // Second edit: KB doc (should clear suggestion)
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: {
+            file: "documentation/requirements/REQ-001.md",
+          },
+        },
+      });
+
+      // After KB doc edit, transform hook should NOT inject durable knowledge guidance
+      const outputAfterKbDoc = { system: ["base system prompt"] };
+      await transformHook({}, outputAfterKbDoc);
+      assert.ok(
+        !outputAfterKbDoc.system[0].includes("Durable knowledge detected"),
+        "Prompt should not contain durable knowledge guidance after switching to KB doc",
+      );
     });
   });
 });

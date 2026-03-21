@@ -1,9 +1,22 @@
 # kibi-mcp
 
+## 0.3.3
+
+### Patch Changes
+
+- Fix `--diagnostic-mode` support and server version reporting (fixes #97)
+
+  - `--diagnostic-mode` now properly enables diagnostic logging to `.kb/usage.log`
+  - Server version now dynamically reads from `package.json` instead of hardcoded value
+  - Added usage logging with tool call telemetry (timestamp, duration, status, branch, prolog PID)
+  - Fixed version drift: server now reports `0.3.2` matching the package version
+  - Added source-level implementation in `src/` ensuring published package behavior matches source
+
 ## 0.3.2
 
 ### Patch Changes
 
+- Fix `--diagnostic-mode` support: the flag now properly enables diagnostic logging to `.kb/usage.log`. Previously the flag was parsed but not implemented in the published package. Also fixes server version reporting to dynamically read from `package.json` instead of hardcoded `0.2.1`.
 - bc020dd: Generate unit-test LCOV coverage in CI, upload it to Codecov using the repository's CODECOV_TOKEN secret, and add a README coverage badge alongside the main CI status badge.
 - Updated dependencies [bc020dd]
 - Updated dependencies [e61aa15]

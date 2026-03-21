@@ -32,7 +32,6 @@ export function activate(context: vscode.ExtensionContext) {
   output.appendLine("Activating Kibi extension...");
   context.subscriptions.push(output);
 
-  // ── Workspace Resolution ─────────────────────────────────────────────────────
   const workspaceRoot = resolveWorkspaceRoot(output);
   if (!workspaceRoot) {
     return;
@@ -40,10 +39,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const workspaceFolderUri = getWorkspaceFolderUri(workspaceRoot);
 
-  // ── MCP Server Path Validation ──────────────────────────────────────────────
   validateMcpServerPath(output);
 
-  // ── Tree View Registration ──────────────────────────────────────────────────
   const treeViewResult = registerTreeView(
     context,
     output,
@@ -51,13 +48,11 @@ export function activate(context: vscode.ExtensionContext) {
     workspaceFolderUri,
   );
 
-  // ── Navigation Commands Registration ───────────────────────────────────────
   const navigationCommands = registerNavigationCommands(
     output,
     treeViewResult.treeDataProvider,
   );
 
-  // ── Traceability Features Registration ─────────────────────────────────────
   const traceabilityResult = registerTraceability(
     context,
     output,
@@ -65,10 +60,8 @@ export function activate(context: vscode.ExtensionContext) {
     treeViewResult.treeDataProvider,
   );
 
-  // ── Context on File Open Registration ───────────────────────────────────────
   registerContextOnOpen(context, output, workspaceRoot);
 
-  // ── Subscriptions ───────────────────────────────────────────────────────────
   const subscriptions: vscode.Disposable[] = [
     treeViewResult.refreshCommand,
     treeViewResult.treeView,

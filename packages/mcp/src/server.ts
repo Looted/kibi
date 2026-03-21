@@ -16,8 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { readFileSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { initializeDiagnosticMode } from "./diagnostics.js";
 import { loadDefaultEnvFile } from "./env.js";
 import { setupDocsAndPrompts } from "./server/docs.js";
 import { registerAllTools } from "./server/tools.js";
@@ -26,12 +28,21 @@ import {
   setupTransportHandlers,
 } from "./server/transport.js";
 
+// Read version from package.json to prevent drift
+const packageJson = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { version?: string };
+const VERSION = packageJson.version ?? "0.1.0";
+
 export async function startServer(): Promise<void> {
   // Load environment configuration
   loadDefaultEnvFile();
 
+  // Initialize diagnostic mode if --diagnostic-mode flag is present
+  initializeDiagnosticMode();
+
   // Create MCP server
-  const server = new McpServer({ name: "kibi-mcp", version: "0.2.1" });
+  const server = new McpServer({ name: "kibi-mcp", version: VERSION });
 
   // Setup documentation resources and prompts
   setupDocsAndPrompts(server);

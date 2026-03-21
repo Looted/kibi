@@ -19,12 +19,23 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
+import {
+  DIAGNOSTIC_MODE_ENABLED,
+  appendUsageLogLine,
+  extractToolCallPayload,
+} from "../diagnostics.js";
 import { TOOLS } from "../tools-config.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "../tools/delete.js";
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
-import { ensureProlog, inFlightRequests, isShuttingDown } from "./session.js";
+import {
+  activeBranchName,
+  ensureProlog,
+  inFlightRequests,
+  isShuttingDown,
+  prologProcess,
+} from "./session.js";
 
 export interface ToolConfig {
   name: string;
@@ -184,6 +195,12 @@ function addTool(
   handler: ToolHandler,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
+    const startedAt = new Date();
+    // Extract telemetry in diagnostic mode
+    const { businessArgs, telemetry } = DIAGNOSTIC_MODE_ENABLED
+      ? extractToolCallPayload(args)
+      : { businessArgs: args, telemetry: null };
+
     try {
       // Validate that args is a valid object
       if (typeof args !== "object" || args === null) {
@@ -191,8 +208,6 @@ function addTool(
           `Invalid arguments for tool ${name}: expected object, got ${typeof args}`,
         );
       }
-
-      const businessArgs = args;
 
       // Check if shutting down before processing
       if (isShuttingDown) {
@@ -220,7 +235,48 @@ function addTool(
 
       try {
         // Execute handler
-        return await handlerPromise;
+        const result = await handlerPromise;
+
+        // Log usage in diagnostic mode
+        if (DIAGNOSTIC_MODE_ENABLED) {
+          const finishedAt = new Date();
+          appendUsageLogLine({
+            timestamp: finishedAt.toISOString(),
+            request_id: requestId,
+            tool: name,
+            telemetry,
+            business_args: businessArgs,
+            status: "success",
+            started_at: startedAt.toISOString(),
+            finished_at: finishedAt.toISOString(),
+            duration_ms: finishedAt.getTime() - startedAt.getTime(),
+            prolog_pid: prologProcess?.getPid() ?? null,
+            active_branch: activeBranchName,
+          });
+        }
+
+        return result;
+      } catch (error) {
+        // Log error in diagnostic mode
+        if (DIAGNOSTIC_MODE_ENABLED) {
+          const finishedAt = new Date();
+          const err = error instanceof Error ? error : new Error(String(error));
+          appendUsageLogLine({
+            timestamp: finishedAt.toISOString(),
+            request_id: requestId,
+            tool: name,
+            telemetry,
+            business_args: businessArgs,
+            status: "error",
+            started_at: startedAt.toISOString(),
+            finished_at: finishedAt.toISOString(),
+            duration_ms: finishedAt.getTime() - startedAt.getTime(),
+            prolog_pid: prologProcess?.getPid() ?? null,
+            active_branch: activeBranchName,
+            error_message: err.message,
+          });
+        }
+        throw error;
       } finally {
         // Always clean up from Map when done (success or failure)
         inFlightRequests.delete(requestId);

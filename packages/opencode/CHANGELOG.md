@@ -1,5 +1,30 @@
 # kibi-opencode
 
+## 0.5.0
+
+### Minor Changes
+
+- Add durable knowledge comment detection for JS/TS and Python
+
+  - New `comment-analysis.ts` module detects long durable-knowledge comments in code files
+  - Supports JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings)
+  - Automatically classifies comments as FACT, ADR, REQ, SCEN, or TEST using knowledge classifier
+  - Injects specific routing guidance based on classification type
+  - Tracks seen comments by fingerprint to avoid repeated guidance
+  - Adds `.py` to recognized code file extensions
+  - Implements REQ-opencode-comment-routing with comprehensive test coverage
+
+### Patch Changes
+
+- Add must-priority-aware targeted validation for requirement edits
+
+  - Requirement files with `priority: must` now get elevated validation checks
+  - Must-priority edits trigger: `kibi check --rules required-fields,no-dangling-refs,must-priority-coverage`
+  - Other KB-document edits keep standard checks: `required-fields,no-dangling-refs`
+  - Adds `requirement-doc.ts` helper module for safe frontmatter parsing
+  - Falls back gracefully on malformed or missing frontmatter
+  - Implements REQ-opencode-kibi-plugin-v1: must-priority coverage validation
+
 ## 0.4.2
 
 ### Patch Changes

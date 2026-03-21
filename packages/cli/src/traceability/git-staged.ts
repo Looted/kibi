@@ -71,6 +71,8 @@ const SUPPORTED_EXT = new Set([
   ".cjs",
 ]);
 
+const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
+
 const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
 function shouldLogTraceDebug(): boolean {
@@ -92,6 +94,15 @@ function isEntityMarkdown(p: string): boolean {
   if (!p.endsWith(".md")) return false;
   for (const dir of ENTITY_MARKDOWN_DIRS) {
     if (p.includes(dir)) return true;
+  }
+  return false;
+}
+
+function isManifestFile(p: string): boolean {
+  const base = p.split(/[\/]/).pop();
+  if (!base) return false;
+  for (const name of SUPPORTED_MANIFEST) {
+    if (base === name) return true;
   }
   return false;
 }
@@ -166,7 +177,11 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
       }
     }
 
-    if (!hasSupportedExt(path) && !isEntityMarkdown(path)) {
+    if (
+      !hasSupportedExt(path) &&
+      !isEntityMarkdown(path) &&
+      !isManifestFile(path)
+    ) {
       if (shouldLogTraceDebug()) {
         console.debug(`Skipping unsupported extension: ${path}`);
       }

@@ -17,7 +17,7 @@ export interface PathAnalysis {
   isKibiDocRelevant: boolean;
 }
 
-const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"];
+const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".py"];
 const KB_PREFIX = ".kb";
 
 const KIBI_DOC_PATTERNS = [
@@ -31,7 +31,11 @@ const KIBI_DOC_PATTERNS = [
   "symbols.yaml",
 ];
 
-export function analyzePath(filePath: string, cwd: string): PathAnalysis {
+export function analyzePath(
+  // implements REQ-opencode-kibi-plugin-v1
+  filePath: string,
+  cwd: string,
+): PathAnalysis {
   const rel = path.isAbsolute(filePath)
     ? path.relative(cwd, filePath).split(path.sep).join("/")
     : filePath.split(path.sep).join("/");

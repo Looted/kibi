@@ -1,3 +1,4 @@
+import type { CommentAnalysisResult } from "./comment-analysis.js";
 // implements REQ-opencode-kibi-plugin-v1
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
@@ -10,6 +11,7 @@ export interface PromptContext {
   recentEdits: Array<{ path: string; kind: PathKind }>;
   workspaceHealth?: WorkspaceHealth;
   hasRecentKbEdit?: boolean;
+  recentCommentSuggestion?: CommentAnalysisResult | null;
 }
 
 /**
@@ -19,7 +21,6 @@ export interface PromptContext {
 function buildContextualGuidance(context: PromptContext): string {
   const parts: string[] = [SENTINEL];
 
-  // 1. Check for recent .kb edits (loud warning)
   if (context.hasRecentKbEdit) {
     parts.push(`
 ⚠️  **WARNING: Do not edit .kb/** files manually.**
@@ -33,7 +34,6 @@ Instead:
 `);
   }
 
-  // 2. Check for bootstrap/health issues
   if (context.workspaceHealth?.needsBootstrap) {
     parts.push(`
 🔧 **Bootstrap required**
@@ -45,22 +45,70 @@ This repository does not appear to have Kibi initialized. Consider running:
 `);
   }
 
-  // 3. Analyze recent edits and provide targeted guidance
   const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
   const reqEdits = context.recentEdits.filter((e) => e.kind === "requirement");
   const kbDocEdits = context.recentEdits.filter((e) =>
     ["requirement", "scenario", "test", "adr", "fact"].includes(e.kind),
   );
 
-  // Code edit guidance
   if (codeEdits.length > 0) {
-    parts.push(`
+    const suggestion = context.recentCommentSuggestion;
+    if (suggestion) {
+      let routingMessage = "";
+      switch (suggestion.suggestionType) {
+        case "fact":
+          routingMessage = `🎯 **Durable knowledge detected: FACT**
+
+Your recent code edit contains a comment that looks like a **domain invariant** (properties, limits, defaults, or cardinality constraints).
+
+**Action**: Instead of inline comments, route this to a FACT entity:
+- Create \`documentation/facts/FACT-xxx.md\` with the invariant
+- Link it to relevant requirements using \`constrains\` or \`requires_property\` relationships
+- Reference the FACT in code with a comment (e.g., \`// constrained by FACT-xxx\` in JS/TS or a docstring comment in Python)
+
+This keeps domain truths centralized and searchable.`;
+          break;
+        case "adr":
+          routingMessage = `🎯 **Durable knowledge detected: ADR**
+
+Your recent code edit contains a comment that looks like a **technical decision** (tradeoffs, rationale, or architecture choices).
+
+**Action**: Instead of inline comments, route this to an ADR entity:
+- Create \`documentation/adr/ADR-xxx.md\` documenting the decision
+- Include context, options considered, and the chosen approach
+- Link to constrained code symbols using \`constrained_by\` relationships
+
+This preserves decision context for future maintainers.`;
+          break;
+        case "req":
+          routingMessage = `🎯 **Durable knowledge detected: REQ**
+
+Your recent code edit contains a comment that looks like **behavior intent** (system capabilities or user-facing requirements).
+
+**Action**: Instead of inline comments, route this to a REQ entity:
+- Create \`documentation/requirements/REQ-xxx.md\` with the behavior description
+- Add SCEN and TEST entities for specification and verification
+- Link code to requirements using traceability comments (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python)
+
+This ensures behavior is documented and traceable.`;
+          break;
+        default:
+          routingMessage = `📝 **Code changes detected**
+
+Before implementing or explaining code:
+1. **Query Kibi first** - Run kb_query by sourceFile to find related requirements, ADRs, tests, and symbols.
+2. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
+3. **Add traceability** - Add traceability comments to new or modified functions/classes so the pre-commit hook can verify coverage (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python).`;
+      }
+      parts.push(routingMessage);
+    } else {
+      parts.push(`
 📝 **Code changes detected**
 
 Before implementing or explaining code:
 1. **Query Kibi first** - Run kb_query by sourceFile to find related requirements, ADRs, tests, and symbols.
 2. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-3. **Add traceability** - Add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
+3. **Add traceability** - Add traceability comments to new or modified functions/classes (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python) so the pre-commit hook can verify coverage.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
 - \`FACT\` for domain invariants, properties, limits, cardinalities
@@ -69,9 +117,9 @@ If you're adding long explanatory comments, consider routing that knowledge to:
 - \`SCEN\` for behavior examples and flows
 - \`TEST\` for verification intent
 `);
+    }
   }
 
-  // Requirement edit guidance
   if (reqEdits.length > 0) {
     parts.push(`
 📋 **Requirement changes detected**
@@ -88,7 +136,6 @@ Preferred structure:
 `);
   }
 
-  // KB doc edit guidance (requirement, scenario, test, ADR, fact)
   if (kbDocEdits.length > 0 && reqEdits.length === 0) {
     parts.push(`
 📚 **Kibi documentation changes detected**
@@ -100,7 +147,6 @@ When editing KB documentation:
 `);
   }
 
-  // Only include general Kibi workflow if no specific context (beyond the sentinel)
   if (parts.length === 1) {
     parts.push(`This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 

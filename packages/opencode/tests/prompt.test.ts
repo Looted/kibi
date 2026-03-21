@@ -389,4 +389,100 @@ describe("prompt", () => {
       "Should include KB doc guidance",
     );
   });
+
+  test("specific FACT routing guidance when recentCommentSuggestion is FACT", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/models.py", kind: "code" }],
+      recentCommentSuggestion: {
+        filePath: "src/models.py",
+        suggestionType: "fact",
+        confidence: "high",
+        reasoning: "Contains domain invariants",
+        fingerprint: "abc123",
+        sourceKind: "docstring",
+      },
+    });
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      result.includes("Durable knowledge detected: FACT"),
+      "Should include FACT-specific guidance",
+    );
+    assert.ok(
+      result.includes("domain invariant"),
+      "Should mention domain invariants",
+    );
+    assert.ok(
+      result.includes("documentation/facts/FACT-xxx.md"),
+      "Should suggest creating FACT entity",
+    );
+  });
+
+  test("specific ADR routing guidance when recentCommentSuggestion is ADR", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/database.py", kind: "code" }],
+      recentCommentSuggestion: {
+        filePath: "src/database.py",
+        suggestionType: "adr",
+        confidence: "high",
+        reasoning: "Contains technical decision rationale",
+        fingerprint: "def456",
+        sourceKind: "block-comment",
+      },
+    });
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      result.includes("Durable knowledge detected: ADR"),
+      "Should include ADR-specific guidance",
+    );
+    assert.ok(
+      result.includes("technical decision"),
+      "Should mention technical decisions",
+    );
+    assert.ok(
+      result.includes("documentation/adr/ADR-xxx.md"),
+      "Should suggest creating ADR entity",
+    );
+  });
+
+  test("specific REQ routing guidance when recentCommentSuggestion is REQ", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/api.py", kind: "code" }],
+      recentCommentSuggestion: {
+        filePath: "src/api.py",
+        suggestionType: "req",
+        confidence: "medium",
+        reasoning: "Contains behavior intent",
+        fingerprint: "ghi789",
+        sourceKind: "docstring",
+      },
+    });
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      result.includes("Durable knowledge detected: REQ"),
+      "Should include REQ-specific guidance",
+    );
+    assert.ok(
+      result.includes("behavior intent"),
+      "Should mention behavior intent",
+    );
+    assert.ok(
+      result.includes("documentation/requirements/REQ-xxx.md"),
+      "Should suggest creating REQ entity",
+    );
+  });
+
+  test("generic code guidance when no recentCommentSuggestion", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/utils.py", kind: "code" }],
+    });
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      result.includes("Code changes detected"),
+      "Should include generic code guidance",
+    );
+    assert.ok(
+      result.includes("FACT") && result.includes("ADR"),
+      "Should mention KB entity types",
+    );
+  });
 });

@@ -1,5 +1,5 @@
-import { strict as assert } from "node:assert";
 import { describe, test } from "bun:test";
+import { strict as assert } from "node:assert";
 import { DEFAULTS } from "../src/config";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 

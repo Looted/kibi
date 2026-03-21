@@ -66,7 +66,6 @@ export async function queryCommand(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
 
-    // Resolve branch: allow non-git repos to use default "main" for query
     let currentBranch: string;
     const branchResult = resolveActiveBranch();
 
@@ -105,14 +104,11 @@ export async function queryCommand(
 
     let results: Array<QueryRelationship | QueryEntity> = [];
 
-    // Query relationships mode
     if (options.relationships) {
       const fromId = String(options.relationships);
       const safeFromId = fromId.replace(/'/g, "''");
       const relTypesList = REL_TYPES.join(", ");
 
-      // Query all known relationship types for the given source ID.
-      // kb_relationship/3 requires the relationship type to be instantiated.
       const goal = `findall([Type,From,To], (member(Type, [${relTypesList}]), kb_relationship(Type, '${safeFromId}', To), From='${safeFromId}'), Results)`;
 
       const queryResult = await prolog.query(goal);
@@ -136,10 +132,7 @@ export async function queryCommand(
             REL_TYPES.includes(rel.type),
         );
       }
-    }
-    // Query entities mode
-    else if (type || options.source) {
-      // Validate type if provided
+    } else if (type || options.source) {
       if (type && !VALID_ENTITY_TYPES.includes(type)) {
         console.error(
           `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
@@ -151,7 +144,6 @@ export async function queryCommand(
       let goal: string;
 
       if (options.source) {
-        // Query by source path (substring match)
         const safeSource = String(options.source).replace(/'/g, "\\'");
         if (type) {
           goal = `findall([Id,'${type}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${type}', Props)), Results)`;
@@ -197,7 +189,6 @@ export async function queryCommand(
       return;
     }
 
-    // Apply pagination
     const limit = Number.parseInt(options.limit || "100");
     const offset = Number.parseInt(options.offset || "0");
     const paginated = results.slice(offset, offset + limit);

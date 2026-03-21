@@ -3,6 +3,15 @@ import { type ChildProcess, execSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+// Read expected version from package.json to prevent drift
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = path.resolve(__dirname, "../package.json");
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
+  version?: string;
+};
+const EXPECTED_VERSION = packageJson.version ?? "0.1.0";
 
 async function sendRequest(
   proc: ChildProcess,
@@ -177,7 +186,7 @@ describe("MCP Server", () => {
       "kibi-mcp",
     );
     expect((result.serverInfo as Record<string, unknown>).version).toBe(
-      "0.2.1",
+      EXPECTED_VERSION,
     );
     expect(result.capabilities).toBeDefined();
 
@@ -631,4 +640,101 @@ describe("MCP Server", () => {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 180000);
+
+  test("should create usage.log when --diagnostic-mode is enabled", async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));
+    const repoDir = path.join(tempRoot, "repo");
+    fs.mkdirSync(repoDir, { recursive: true });
+
+    // Initialize git repo and kibi
+    execSync("git init -b main", { cwd: repoDir, stdio: "pipe" });
+    execSync("git config user.email test@test.com", {
+      cwd: repoDir,
+      stdio: "pipe",
+    });
+    execSync("git config user.name Test", { cwd: repoDir, stdio: "pipe" });
+
+    const serverPath = path.resolve(import.meta.dir, "../bin/kibi-mcp");
+    const proc = spawn("bun", ["run", serverPath, "--diagnostic-mode"], {
+      stdio: ["pipe", "pipe", "pipe"],
+      cwd: repoDir,
+      env: process.env,
+    });
+
+    try {
+      // Initialize server
+      await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        },
+        30000,
+      );
+
+      // Send initialized notification
+      proc.stdin?.write(
+        `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+      );
+
+      // Initialize kibi via CLI
+      execSync(
+        `node ${path.resolve(import.meta.dir, "../../cli/bin/kibi")} init`,
+        {
+          cwd: repoDir,
+          env: process.env,
+        },
+      );
+
+      // Call kb_query with diagnostic telemetry
+      await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_query",
+            arguments: {
+              type: "req",
+              _diagnostic_telemetry: {
+                is_autonomous: true,
+                reasoning: "Testing diagnostic mode",
+                confidence_score: 0.95,
+              },
+            },
+          },
+        },
+        30000,
+      );
+
+      // Give filesystem time to flush
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Verify usage.log was created
+      const usageLogPath = path.join(repoDir, ".kb", "usage.log");
+      expect(fs.existsSync(usageLogPath)).toBe(true);
+
+      // Verify usage.log contains our tool call
+      const logContent = fs.readFileSync(usageLogPath, "utf8");
+      expect(logContent).toContain("kb_query");
+      expect(logContent).toContain("success");
+
+      // Verify telemetry was logged
+      const lines = logContent.trim().split("\n");
+      const lastLine = JSON.parse(lines[lines.length - 1]);
+      expect(lastLine.tool).toBe("kb_query");
+      expect(lastLine.telemetry).toBeDefined();
+      expect(lastLine.telemetry.is_autonomous).toBe(true);
+    } finally {
+      await killServer(proc);
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  }, 60000);
 });

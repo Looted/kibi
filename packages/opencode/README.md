@@ -31,9 +31,10 @@ The plugin provides context-aware prompt guidance based on recent edits and work
 
 After KB-document edits, the plugin queues targeted `kibi check` rules to run after sync:
 
-- **Requirement/scenario/test/ADR/fact edits**: `kibi check --rules required-fields,no-dangling-refs`
+- **Must-priority requirement edits**: `kibi check --rules required-fields,no-dangling-refs,must-priority-coverage`
+- **Other requirement/scenario/test/ADR/fact edits**: `kibi check --rules required-fields,no-dangling-refs`
 
-Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
+The plugin inspects requirement frontmatter to detect `priority: must` and schedules elevated validation for critical requirements. Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
 
 ### Loud `.kb/**` Edit Warnings
 
@@ -62,6 +63,29 @@ session.summary: 12 total warnings
   embedded-scenario-in-req: 3
 session.patterns: Repeated anti-patterns detected:
   missing-traceability: 5 occurrences
+```
+
+### Durable Knowledge Comment Detection
+
+When editing code files, the plugin analyzes long comments and docstrings for durable knowledge that should be routed to Kibi instead of inline comments:
+
+- **Supported languages**: JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings)
+- **Smart filtering**: Only analyzes comments above `guidance.commentDetection.minLines` threshold
+- **Classification**: Automatically categorizes as FACT (invariants/limits), ADR (decisions/tradeoffs), REQ (behavior), SCEN (flows), or TEST (verification)
+- **Specific routing guidance**: Injects targeted prompts based on classification:
+  - FACT: "This looks like a domain invariant; route to a FACT via Kibi"
+  - ADR: "This looks like decision rationale; route to an ADR"
+  - REQ: "This looks like behavior intent; route to a REQ"
+- **Deduplication**: Tracks seen comments by fingerprint to avoid repeated guidance
+- **Non-blocking**: Analysis runs without blocking sync or other operations
+
+Example Python file triggering FACT guidance:
+```python
+"""
+User accounts must have unique email addresses.
+Each user can have at most 5 active sessions.
+Sessions expire after 30 minutes of inactivity.
+"""
 ```
 
 ### Prompt Guidance Injection

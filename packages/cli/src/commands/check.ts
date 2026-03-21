@@ -17,11 +17,15 @@
 */
 
 import * as path from "node:path";
+import { extractFromManifest } from "../extractors/manifest.js";
 import { PrologProcess } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
-import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
+import {
+  type ManifestLookup,
+  extractSymbolsFromStagedFile,
+} from "../traceability/symbol-extract.js";
 import {
   cleanupTempKb,
   consultOverlay,
@@ -40,6 +44,7 @@ import {
 } from "../utils/rule-registry.js";
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
+import { discoverSourceFiles } from "./sync/discovery.js";
 
 export interface CheckOptions {
   fix?: boolean;
@@ -63,8 +68,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
   let prolog: PrologProcess | null = null;
   let attached = false;
   try {
-    // Resolve KB path with priority:
-    // --kb-path > git branch --show-current > KIBI_BRANCH env > develop > main
     let resolvedKbPath = "";
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
@@ -87,8 +90,6 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       );
     }
 
-    // If --staged mode requested, run staged-symbol traceability gate.
-    // We skip creating the main prolog session entirely in this path.
     if (options.staged) {
       const minLinks = options.minLinks ? Number(options.minLinks) : 1;
       let tempCtx: {
@@ -98,7 +99,36 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         prolog: PrologProcess;
       } | null = null;
       try {
-        // Get staged files
+        const config = loadConfig(process.cwd());
+
+        const manifestLookup: ManifestLookup = new Map();
+        const { manifestFiles } = await discoverSourceFiles(
+          process.cwd(),
+          config.paths,
+        );
+        for (const manifestPath of manifestFiles) {
+          try {
+            const entries = extractFromManifest(manifestPath);
+            for (const entry of entries) {
+              // Prefer the per-symbol sourceFile; fall back to entity.source or manifest path
+              const sourceFile =
+                entry.sourceFile || entry.entity.source || manifestPath;
+              const key = `${sourceFile}:${entry.entity.title}`;
+              // Extract requirement links (implements relationships to REQ-*)
+              const links = entry.relationships
+                .filter(
+                  (r) =>
+                    r.type === "implements" &&
+                    r.to.match(/^[A-Z][A-Z0-9\-_]*$/),
+                )
+                .map((r) => r.to);
+              manifestLookup.set(key, { id: entry.entity.id, links });
+            }
+          } catch {
+            // Ignore manifest parsing errors
+          }
+        }
+
         const stagedFiles = getStagedFiles();
         if (!stagedFiles || stagedFiles.length === 0) {
           console.log("No staged files found.");
@@ -132,7 +162,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
         for (const f of codeFiles) {
           try {
-            const symbols = extractSymbolsFromStagedFile(f);
+            const symbols = extractSymbolsFromStagedFile(f, manifestLookup);
             if (symbols?.length) {
               allSymbols.push(...symbols);
             }
@@ -158,13 +188,11 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         // Create temp KB
         tempCtx = await createTempKb(resolvedKbPath);
 
-        // Write overlay facts THEN consult so Prolog sees the changed_symbol facts
         const overlayFacts = createOverlayFacts(allSymbols);
         const fs = await import("node:fs/promises");
         await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
         await consultOverlay(tempCtx);
 
-        // Validate staged symbols using the temp KB prolog session
         const violationsRaw = await validateStagedSymbols({
           minLinks,
           prolog: tempCtx.prolog,
@@ -211,14 +239,12 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
 
     const violations: Violation[] = [];
 
-    // Load config to get rule enablement settings
     const config = loadConfig(process.cwd());
     const checksConfig: ChecksConfig = config.checks ?? {
       rules: Object.fromEntries(RULES.map((r) => [r.name, true])),
       symbolTraceability: { requireAdr: false },
     };
 
-    // Get effective rules based on config and CLI --rules filter
     const effectiveRules = getEffectiveRules(checksConfig.rules, options.rules);
 
     // Helper to conditionally run a check by name
@@ -332,7 +358,6 @@ async function checkMustPriorityCoverage(
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
-  // Find all must-priority requirements
   const mustReqs = await findMustPriorityReqs(prolog);
 
   for (const reqId of mustReqs) {
@@ -435,10 +460,8 @@ async function checkNoDanglingRefs(
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
-  // Get all entity IDs once
   const allEntityIds = new Set(await getAllEntityIds(prolog));
 
-  // Get all relationships by querying all known relationship types
   const relTypes = [
     "depends_on",
     "verified_by",
@@ -500,7 +523,6 @@ async function checkNoDanglingRefs(
 async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   const violations: Violation[] = [];
 
-  // Get all depends_on relationships
   const depsResult = await prolog.query(
     "findall([From,To], kb_relationship(depends_on, From, To), Deps)",
   );
@@ -520,7 +542,6 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
     return violations;
   }
 
-  // Build adjacency map
   const graph = new Map<string, string[]>();
   const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
 
@@ -536,7 +557,6 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
     }
   }
 
-  // DFS to detect cycles
   const visited = new Set<string>();
   const recStack = new Set<string>();
 
@@ -560,7 +580,6 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
     return null;
   }
 
-  // Check each node for cycles
   for (const node of graph.keys()) {
     if (!visited.has(node)) {
       const cyclePath = hasCycleDFS(node, []);
@@ -615,17 +634,14 @@ async function checkRequiredFields(
     const result = await prolog.query(`kb_entity('${entityId}', Type, Props)`);
 
     if (result.success && result.bindings.Props) {
-      // Parse properties list: [key1=value1, key2=value2, ...]
       const propsStr = result.bindings.Props;
       const propKeys = new Set<string>();
 
-      // Extract keys from Props
       const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
       for (const match of keyMatches) {
         propKeys.add(match[1]);
       }
 
-      // Check for missing required fields
       for (const field of required) {
         if (!propKeys.has(field)) {
           violations.push({
@@ -672,7 +688,6 @@ async function checkDeprecatedAdrs(
     .map((id) => id.trim().replace(/^'|'$/g, ""));
 
   for (const adrId of adrIds) {
-    // Get source for better error message
     const entityResult = await prolog.query(
       `kb_entity('${adrId}', adr, Props)`,
     );
@@ -778,10 +793,8 @@ async function checkSymbolTraceability(
     return violations;
   }
 
-  // Parse the violations from Prolog format
   const violationsStr = result.bindings.Violations as string;
   if (violationsStr && violationsStr !== "[]") {
-    // Parse each violation term
     const violationRegex =
       /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
     let match: RegExpExecArray | null;
