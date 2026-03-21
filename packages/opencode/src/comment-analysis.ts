@@ -61,7 +61,6 @@ function extractJsTsComments(
   while (i < lines.length) {
     const line = lines[i];
 
-    // Check for block comment
     if (line.trim().startsWith("/*")) {
       const blockLines: string[] = [];
       let j = i;
@@ -86,7 +85,6 @@ function extractJsTsComments(
       continue;
     }
 
-    // Check for line comments
     if (line.trim().startsWith("//")) {
       const commentLines: string[] = [];
       let j = i;
@@ -114,7 +112,6 @@ function extractJsTsComments(
  * Check if a line is an assignment (x = y), which would disqualify a triple-quoted string from being a docstring.
  */
 function isAssignment(line: string): boolean {
-  // Match patterns like: x = """, x=""", x = ''' , etc.
   return /^\s*\w+\s*=\s*["']/.test(line);
 }
 
@@ -122,20 +119,12 @@ function isAssignment(line: string): boolean {
  * Check if a line starts a class or function definition.
  */
 function isClassOrDef(line: string): boolean {
-  return /^\s*(class|def)\s+\w+/.test(line);
+  return /^\s*(class|async\s+def|def)\s+\w+/.test(line);
 }
 
 /**
  * Extract Python comment blocks (# and true docstrings only).
- *
- * True docstrings are:
- * - Module docstring: first significant statement in the file
- * - Class/function docstring: first significant statement inside the class/function body
- *
- * Not docstrings:
- * - Assigned triple-quoted strings (x = """...""")
- * - Strings inside control flow (if/for/while/with/try blocks)
- * - Later standalone strings in a module
+ * See REQ-opencode-comment-routing and SCEN-opencode-python-comment-routing for docstring detection rules.
  */
 function extractPythonComments(
   content: string,
@@ -144,10 +133,8 @@ function extractPythonComments(
     [];
   const lines = content.split("\n");
 
-  // Track state for docstring detection
   let foundModuleDocstring = false;
   let insideClassOrDef = false;
-  let classOrDefBodyStart = -1;
   let classOrDefIndent = 0;
   let foundClassDocstring = false;
 
@@ -162,7 +149,7 @@ function extractPythonComments(
 
   function extractDocstring(
     startIdx: number,
-    quote: "\"'\"'\"'" | "'''",
+    quote: '"""' | "'''",
     indent: number,
   ): { text: string; endIdx: number } | null {
     const docstringLines: string[] = [];
@@ -241,7 +228,6 @@ function extractPythonComments(
     // Check for class/def definitions
     if (isClassOrDef(line)) {
       insideClassOrDef = true;
-      classOrDefBodyStart = i;
       classOrDefIndent = indent;
       foundClassDocstring = false;
       i++;
@@ -272,7 +258,7 @@ function extractPythonComments(
           foundClassDocstring = true;
         }
         // Skip to end of string
-        const quote = trimmed.startsWith('"""') ? "\"'\"'\"'" : "'''";
+        const quote = trimmed.startsWith('"""') ? '"""' : "'''";
         i++;
         while (i < lines.length && !lines[i].includes(quote)) {
           i++;
@@ -281,7 +267,7 @@ function extractPythonComments(
         continue;
       }
 
-      const quote = trimmed.startsWith('"""') ? "\"'\"'\"'" : "'''";
+      const quote = trimmed.startsWith('"""') ? '"""' : "'''";
 
       // Check if this is a valid docstring position
       let isDocstring = false;
