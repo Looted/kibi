@@ -7,12 +7,14 @@ import { type PathKind, analyzePath } from "../src/path-kind";
 describe("path-kind analyzePath", () => {
   const cwd = "/home/project";
 
-  it("classifies code files (.ts, .tsx, .js, .jsx)", () => {
+  it("classifies code files (.ts, .tsx, .js, .jsx, .py)", () => {
     const cases: Array<{ path: string; expected: PathKind }> = [
       { path: "src/app/main.ts", expected: "code" },
       { path: "src/components/Button.tsx", expected: "code" },
       { path: "lib/utils.js", expected: "code" },
       { path: "pages/index.jsx", expected: "code" },
+      { path: "src/models.py", expected: "code" },
+      { path: "utils/helpers.py", expected: "code" },
     ];
 
     for (const tc of cases) {

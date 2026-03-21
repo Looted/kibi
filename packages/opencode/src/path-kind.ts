@@ -17,7 +17,7 @@ export interface PathAnalysis {
   isKibiDocRelevant: boolean;
 }
 
-const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx"];
+const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".py"];
 const KB_PREFIX = ".kb";
 
 const KIBI_DOC_PATTERNS = [
