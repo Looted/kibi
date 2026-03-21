@@ -110,8 +110,9 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           try {
             const entries = extractFromManifest(manifestPath);
             for (const entry of entries) {
-              // Use the source from the entity, or fall back to manifest path
-              const sourceFile = entry.entity.source || manifestPath;
+              // Prefer the per-symbol sourceFile; fall back to entity.source or manifest path
+              const sourceFile =
+                entry.sourceFile || entry.entity.source || manifestPath;
               const key = `${sourceFile}:${entry.entity.title}`;
               // Extract requirement links (implements relationships to REQ-*)
               const links = entry.relationships

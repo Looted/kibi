@@ -147,7 +147,6 @@ function extractPythonComments(
   // Track state for docstring detection
   let foundModuleDocstring = false;
   let insideClassOrDef = false;
-  let classOrDefBodyStart = -1;
   let classOrDefIndent = 0;
   let foundClassDocstring = false;
 
@@ -162,7 +161,7 @@ function extractPythonComments(
 
   function extractDocstring(
     startIdx: number,
-    quote: "\"'\"'\"'" | "'''",
+    quote: '"""' | "'''",
     indent: number,
   ): { text: string; endIdx: number } | null {
     const docstringLines: string[] = [];
@@ -241,7 +240,6 @@ function extractPythonComments(
     // Check for class/def definitions
     if (isClassOrDef(line)) {
       insideClassOrDef = true;
-      classOrDefBodyStart = i;
       classOrDefIndent = indent;
       foundClassDocstring = false;
       i++;
@@ -272,7 +270,7 @@ function extractPythonComments(
           foundClassDocstring = true;
         }
         // Skip to end of string
-        const quote = trimmed.startsWith('"""') ? "\"'\"'\"'" : "'''";
+        const quote = trimmed.startsWith('"""') ? '"""' : "'''";
         i++;
         while (i < lines.length && !lines[i].includes(quote)) {
           i++;
@@ -281,7 +279,7 @@ function extractPythonComments(
         continue;
       }
 
-      const quote = trimmed.startsWith('"""') ? "\"'\"'\"'" : "'''";
+      const quote = trimmed.startsWith('"""') ? '"""' : "'''";
 
       // Check if this is a valid docstring position
       let isDocstring = false;
@@ -393,7 +391,10 @@ export function analyzeCodeFile(
       };
 
       // Prefer high confidence, then prefer earlier comments
-      if (!bestResult || result.confidence === "high") {
+      if (
+        !bestResult ||
+        (bestResult.confidence === "medium" && result.confidence === "high")
+      ) {
         bestResult = result;
       }
     }
