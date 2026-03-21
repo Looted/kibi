@@ -42,7 +42,6 @@ export function registerTraceability(
     symbolIndex: null,
   };
 
-  // ── Code action provider ───────────────────────────────────────────────────
   try {
     const codeActionProvider = new KibiCodeActionProvider(workspaceRoot);
     codeActionProvider.watchManifest(context);
@@ -89,7 +88,6 @@ export function registerTraceability(
     );
   }
 
-  // ── CodeLens provider ──────────────────────────────────────────────────────
   try {
     const codeLensProvider = new KibiCodeLensProvider(
       workspaceRoot,
@@ -112,7 +110,6 @@ export function registerTraceability(
     );
   }
 
-  // ── Symbol index ─────────────────────────────────────────────────────────────
   const manifestPath = resolveSymbolsManifestPath(workspaceRoot);
   const symbolIndex: SymbolIndex | null = buildIndex(
     manifestPath,
@@ -120,7 +117,6 @@ export function registerTraceability(
   );
   results.symbolIndex = symbolIndex;
 
-  // ── Hover provider ─────────────────────────────────────────────────────────
   try {
     const hoverProvider = new KibiHoverProvider(
       workspaceRoot,
