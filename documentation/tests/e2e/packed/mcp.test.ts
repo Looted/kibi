@@ -1,6 +1,8 @@
 import assert from "node:assert";
 import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
+import fs from "node:fs";
+import { join } from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
   type Tarballs,
@@ -398,6 +400,128 @@ if (RUN_NODE_TEST_SUITE) {
       await stopProcess(mcpProcess);
 
       console.log("  ✓ MCP server shutdown gracefully");
+    });
+
+    it("should create usage.log when started with --diagnostic-mode", async () => {
+      if (!hasProlog) return;
+
+      const mcpProcess: ChildProcess = spawn(
+        "node",
+        [sandbox.kibiMcpBin, "--diagnostic-mode"],
+        {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+          stdio: ["pipe", "pipe", "pipe"],
+        },
+      );
+
+      let responseReceived = false;
+      let responseData = "";
+
+      const timeout = setTimeout(() => {
+        mcpProcess.kill();
+      }, 15000);
+
+      return new Promise((resolve, reject) => {
+        mcpProcess.stdout?.on("data", (data: Buffer) => {
+          responseData += data.toString();
+
+          try {
+            const lines = responseData.trim().split("\n");
+            for (const line of lines) {
+              if (line.trim()) {
+                const msg = JSON.parse(line) as JsonRpcResponse;
+                if (msg.id === 3 && msg.result?.content) {
+                  responseReceived = true;
+                  clearTimeout(timeout);
+                  void stopProcess(mcpProcess).finally(() => {
+                    // Verify usage.log was created
+                    const usageLogPath = join(
+                      sandbox.repoDir,
+                      ".kb",
+                      "usage.log",
+                    );
+                    assert.ok(
+                      fs.existsSync(usageLogPath),
+                      "usage.log should exist when --diagnostic-mode is enabled",
+                    );
+
+                    // Verify usage.log contains valid JSON lines
+                    const logContent = fs
+                      .readFileSync(usageLogPath, "utf8")
+                      .trim();
+                    assert.ok(
+                      logContent.length > 0,
+                      "usage.log should not be empty",
+                    );
+
+                    const logLines = logContent.split("\n");
+                    for (const logLine of logLines) {
+                      const entry = JSON.parse(logLine);
+                      assert.ok(
+                        entry.timestamp,
+                        "Log entry should have timestamp",
+                      );
+                      assert.ok(entry.tool, "Log entry should have tool name");
+                      assert.ok(entry.status, "Log entry should have status");
+                      assert.ok(
+                        entry.active_branch,
+                        "Log entry should have branch",
+                      );
+                    }
+
+                    console.log(
+                      "  ✓ usage.log created with valid diagnostic entries",
+                    );
+                    resolve();
+                  });
+                  return;
+                }
+              }
+            }
+          } catch {
+            // Keep waiting
+          }
+        });
+
+        mcpProcess.on("error", reject);
+        mcpProcess.on("close", () => {
+          clearTimeout(timeout);
+          if (!responseReceived) {
+            reject(new Error("MCP server did not respond to query"));
+          }
+        });
+
+        // Initialize
+        const initRequest: JsonRpcRequest = {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "e2e-test", version: "1.0.0" },
+          },
+        };
+
+        // Call kb_query to trigger diagnostic logging
+        const queryRequest: JsonRpcRequest = {
+          jsonrpc: "2.0",
+          id: 3,
+          method: "tools/call",
+          params: {
+            name: "kb_query",
+            arguments: {
+              type: "req",
+            },
+          },
+        };
+
+        mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
+        setTimeout(() => {
+          mcpProcess.stdin?.write(`${JSON.stringify(queryRequest)}\n`);
+        }, 1000);
+      });
     });
   });
 }

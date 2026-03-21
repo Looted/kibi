@@ -172,7 +172,6 @@ class SessionTracker {
   }
 }
 
-// Singleton instance
 let globalTracker: SessionTracker | null = null;
 
 export function getSessionTracker(): SessionTracker {
