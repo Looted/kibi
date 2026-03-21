@@ -261,8 +261,6 @@ links:
 
       // Check should fail
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
-      console.log(`[TEST DEBUG] stdout: ${stdout}`);
-      console.log(`[TEST DEBUG] stderr: ${stderr}`);
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("must-priority-coverage");
@@ -942,6 +940,180 @@ links:
       const { status, stdout, stderr } = runKibi(kibiBin, ["check"], tmpDir);
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "--staged passes when symbol is linked in symbols.yaml without inline directives",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const srcDir = path.join(tmpDir, "src");
+
+      mkdirSync(docDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      // Create requirement
+      writeFileSync(
+        path.join(docDir, "REQ-STAGED-001.md"),
+        `---
+id: REQ-STAGED-001
+title: Staged Test Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/REQ-STAGED-001.md
+---
+`,
+      );
+
+      // Create symbols.yaml with explicit ID and requirement link
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-STAGED-001
+    title: stagedFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-STAGED-001
+    status: active
+`,
+      );
+
+      // Create source file (no inline implements directive)
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function stagedFunction() {
+  return "hello";
+}
+`,
+      );
+
+      // Initialize git and stage files (skip pre-commit hook for initial setup)
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Modify the source file
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function stagedFunction() {
+  return "hello world";
+}
+`,
+      );
+
+      // Stage only the source file
+      execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      // Sync KB first
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      // Run staged check - should pass because symbols.yaml links it
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "--staged uses custom paths.symbols from config",
+    async () => {
+      const configDir = path.join(tmpDir, ".kb");
+      const customDir = path.join(tmpDir, "custom");
+      const srcDir = path.join(tmpDir, "src");
+
+      mkdirSync(configDir, { recursive: true });
+      mkdirSync(customDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      // Create custom config with custom symbols path
+      writeFileSync(
+        path.join(configDir, "config.json"),
+        JSON.stringify({
+          paths: {
+            symbols: "custom/my-symbols.yaml",
+          },
+        }),
+      );
+
+      // Create requirement
+      writeFileSync(
+        path.join(customDir, "REQ-CUSTOM-001.md"),
+        `---
+id: REQ-CUSTOM-001
+title: Custom Path Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: custom/REQ-CUSTOM-001.md
+---
+`,
+      );
+
+      // Create symbols.yaml in custom location
+      writeFileSync(
+        path.join(customDir, "my-symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-CUSTOM-001
+    title: customFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-CUSTOM-001
+    status: active
+`,
+      );
+
+      // Create source file
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function customFunction() {
+  return "custom";
+}
+`,
+      );
+
+      // Initialize git and stage (skip pre-commit hook for initial setup)
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Modify and stage
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function customFunction() {
+  return "custom modified";
+}
+`,
+      );
+      execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      // Sync KB
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      // Run staged check
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
       expect(output).toContain("No violations found");
     },
     TEST_TIMEOUT_MS,
