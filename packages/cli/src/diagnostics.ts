@@ -137,7 +137,6 @@ export function formatSyncSummary(summary: SyncSummary): string {
   lines.push(`Total Relationships: ${summary.relationshipCount}`);
   lines.push("");
 
-  // Status
   lines.push(`Status: ${summary.success ? "✓ Success" : "✗ Failed"}`);
   lines.push(`Published: ${summary.published ? "Yes" : "No"}`);
 
@@ -145,7 +144,6 @@ export function formatSyncSummary(summary: SyncSummary): string {
     lines.push(`Duration: ${summary.durationMs}ms`);
   }
 
-  // Failures
   if (summary.failures.length > 0) {
     lines.push("");
     lines.push(`Failures (${summary.failures.length}):`);
@@ -170,9 +168,7 @@ export function formatSyncSummary(summary: SyncSummary): string {
 /**
  * Format diagnostics for MCP structured response
  */
-export function formatDiagnosticsForMcp(
-  diagnostics: Diagnostic[],
-): Array<{
+export function formatDiagnosticsForMcp(diagnostics: Diagnostic[]): Array<{
   category: string;
   severity: string;
   message: string;

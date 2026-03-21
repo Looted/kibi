@@ -14,10 +14,8 @@
 
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ */
 
-// Public export of entity schema
-// Generated from entity.schema.json
 const entitySchema = {
   $id: "entity.schema.json",
   title: "Entity",
