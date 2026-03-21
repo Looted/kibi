@@ -4,7 +4,10 @@ import {
   parseHunksFromDiff,
   parseNameStatusNull,
 } from "../../src/traceability/git-staged.js";
-import { extractSymbolsFromStagedFile } from "../../src/traceability/symbol-extract.js";
+import {
+  type ManifestLookup,
+  extractSymbolsFromStagedFile,
+} from "../../src/traceability/symbol-extract.js";
 import {
   cleanupTempKb,
   createOverlayFacts,
@@ -171,6 +174,82 @@ describe("symbol-extract", () => {
       (s) => s.name === "stable",
     );
     expect(s1?.id).toBe(s2?.id);
+  });
+
+  it("uses manifest lookup ID when symbol matches sourceFile:title", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      [
+        "src/app/version.ts:APP_VERSION",
+        { id: "SYMBOL-056", links: ["REQ-001", "REQ-022"] },
+      ],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/app/version.ts",
+      content: "export const APP_VERSION = '1.3.0';",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms.length).toBe(1);
+    expect(syms[0]?.id).toBe("SYMBOL-056");
+    expect(syms[0]?.reqLinks).toContain("REQ-001");
+    expect(syms[0]?.reqLinks).toContain("REQ-022");
+  });
+
+  it("manifest lookup distinguishes symbols by sourceFile not just title", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      ["src/a/helper.ts:helper", { id: "SYM-A", links: ["REQ-A"] }],
+      ["src/b/helper.ts:helper", { id: "SYM-B", links: ["REQ-B"] }],
+    ]);
+    const stagedA: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/a/helper.ts",
+      content: "export function helper() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const symsA = extractSymbolsFromStagedFile(stagedA, manifestLookup);
+    expect(symsA[0]?.id).toBe("SYM-A");
+    expect(symsA[0]?.reqLinks).toContain("REQ-A");
+
+    const stagedB: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/b/helper.ts",
+      content: "export function helper() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const symsB = extractSymbolsFromStagedFile(stagedB, manifestLookup);
+    expect(symsB[0]?.id).toBe("SYM-B");
+    expect(symsB[0]?.reqLinks).toContain("REQ-B");
+  });
+
+  it("inline directive links take precedence over manifest links", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      ["file.ts:foo", { id: "SYM-001", links: ["REQ-MANIFEST"] }],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "file.ts",
+      content: "// implements: REQ-INLINE\nexport function foo() {}",
+      hunkRanges: [{ start: 1, end: 2 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms[0]?.id).toBe("SYM-001");
+    expect(syms[0]?.reqLinks).toContain("REQ-INLINE");
+    expect(syms[0]?.reqLinks).not.toContain("REQ-MANIFEST");
+  });
+
+  it("falls back to hash ID when no manifest match exists", () => {
+    const manifestLookup: ManifestLookup = new Map();
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/new.ts",
+      content: "export function newFunc() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms[0]?.id).not.toBe("");
+    expect(syms[0]?.id.length).toBe(16); // SHA256 hex slice
+    expect(syms[0]?.reqLinks.length).toBe(0);
   });
 });
 
