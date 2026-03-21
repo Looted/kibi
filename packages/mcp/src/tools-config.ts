@@ -14,8 +14,14 @@
 
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-export const TOOLS = [
+ */
+
+import {
+  DIAGNOSTIC_MODE_ENABLED,
+  DIAGNOSTIC_TELEMETRY_SCHEMA,
+} from "./diagnostics.js";
+
+const BASE_TOOLS = [
   // implements REQ-002
   {
     name: "kb_query",
@@ -242,3 +248,43 @@ export const TOOLS = [
     },
   },
 ];
+
+/**
+ * Tool configuration type with flexible inputSchema.
+ */
+interface ToolConfig {
+  name: string;
+  description: string;
+  inputSchema: Record<string, unknown>;
+}
+
+/**
+ * Inject _diagnostic_telemetry schema into tool inputs when diagnostic mode is enabled.
+ */
+function withDiagnosticTelemetrySchema(tools: ToolConfig[]): ToolConfig[] {
+  return tools.map((tool) => {
+    const schema = tool.inputSchema;
+    const properties =
+      schema.properties && typeof schema.properties === "object"
+        ? (schema.properties as Record<string, unknown>)
+        : {};
+    return {
+      ...tool,
+      inputSchema: {
+        ...schema,
+        properties: {
+          ...properties,
+          _diagnostic_telemetry: DIAGNOSTIC_TELEMETRY_SCHEMA,
+        },
+      },
+    };
+  });
+}
+
+/**
+ * Active tools list.
+ * In diagnostic mode, all tools include the _diagnostic_telemetry parameter.
+ */
+export const TOOLS: ToolConfig[] = DIAGNOSTIC_MODE_ENABLED
+  ? withDiagnosticTelemetrySchema(BASE_TOOLS as ToolConfig[])
+  : (BASE_TOOLS as ToolConfig[]);
