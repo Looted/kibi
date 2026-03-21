@@ -993,6 +993,14 @@ source: documentation/REQ-STAGED-001.md
 
       // Initialize git and stage files (skip pre-commit hook for initial setup)
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync('git commit -m "initial" --no-verify', {
         cwd: tmpDir,
         stdio: "pipe",
@@ -1087,6 +1095,14 @@ source: custom/REQ-CUSTOM-001.md
 
       // Initialize git and stage (skip pre-commit hook for initial setup)
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync('git commit -m "initial" --no-verify', {
         cwd: tmpDir,
         stdio: "pipe",
