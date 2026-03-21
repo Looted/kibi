@@ -1,6 +1,5 @@
 // implements REQ-opencode-kibi-plugin-v1
 import path from "node:path";
-import { loadKbSyncPaths } from "./file-filter.js";
 
 export type PathKind =
   | "code"
@@ -21,49 +20,22 @@ export interface PathAnalysis {
 const CODE_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".py"];
 const KB_PREFIX = ".kb";
 
-/**
- * Derive the PathKind from a path key and relative file path.
- */
-function kindFromPathKey(key: string, rel: string): PathKind | null {
-  // Normalize for comparison
-  const keyLower = key.toLowerCase();
+const KIBI_DOC_PATTERNS = [
+  "requirements/**",
+  "scenarios/**",
+  "tests/**",
+  "adr/**",
+  "flags/**",
+  "events/**",
+  "facts/**",
+  "symbols.yaml",
+];
 
-  // Check if the path matches the expected pattern for this key
-  // Handle both glob patterns and directory prefixes
-  const isMatch = (pattern: string, target: string): boolean => {
-    const normalizedPattern = pattern.replace(/\*\*/g, "").toLowerCase();
-    const normalizedTarget = target.toLowerCase();
-    // Check exact file match or directory prefix match
-    const prefix = `${normalizedPattern.replace(/\/+$/, "")}/`;
-    return (
-      normalizedTarget === normalizedPattern ||
-      normalizedTarget.startsWith(prefix)
-    );
-  };
-
-  if (!isMatch(key, rel)) return null;
-
-  switch (keyLower) {
-    case "requirements":
-      return "requirement";
-    case "scenarios":
-      return "scenario";
-    case "tests":
-      return "test";
-    case "adr":
-      return "adr";
-    case "facts":
-      return "fact";
-    case "events":
-      return "fact"; // events map to fact for routing
-    case "flags":
-      return "fact"; // flags map to fact for routing
-    default:
-      return null;
-  }
-}
-
-export function analyzePath(filePath: string, cwd: string): PathAnalysis {
+export function analyzePath(
+  // implements REQ-opencode-kibi-plugin-v1
+  filePath: string,
+  cwd: string,
+): PathAnalysis {
   const rel = path.isAbsolute(filePath)
     ? path.relative(cwd, filePath).split(path.sep).join("/")
     : filePath.split(path.sep).join("/");
@@ -78,45 +50,25 @@ export function analyzePath(filePath: string, cwd: string): PathAnalysis {
     isUnderKb = true;
   }
 
-  // Check for Kibi doc paths using config-aware patterns
-  const paths = loadKbSyncPaths(cwd);
-  const pathKeys: Array<keyof typeof paths> = [
-    "requirements",
-    "scenarios",
-    "tests",
-    "adr",
-    "facts",
-    "flags",
-    "events",
-    "symbols",
-  ];
-
-  for (const key of pathKeys) {
-    const pattern = paths[key];
-    if (!pattern) continue;
-
-    // Convert pattern to a path for matching
-    // e.g., "requirements/**/*.md" -> "requirements/"
-    const dirPattern = pattern
-      .replace(/\/\*\*\/\*\.md$/, "")
-      .replace(/\*\*/g, "");
-
-    // Check if the file matches this pattern
-    const normalizedRel = rel.toLowerCase();
-    const normalizedPattern = dirPattern.toLowerCase();
-    const patternPrefix = `${normalizedPattern}/`;
-
-    // Match if file is in this directory or matches exactly
-    if (
-      normalizedRel.startsWith(patternPrefix) ||
-      normalizedRel === normalizedPattern
-    ) {
+  // Check for Kibi doc paths
+  const normalized = rel.toLowerCase();
+  for (const pattern of KIBI_DOC_PATTERNS) {
+    const patternPrefix = pattern.replace(/\*\*/g, "");
+    const fullPathPattern = `documentation/${patternPrefix}`;
+    if (normalized.startsWith(fullPathPattern)) {
       isKibiDocRelevant = true;
       if (kind === "unknown") {
-        const derivedKind = kindFromPathKey(key, rel);
-        if (derivedKind) {
-          kind = derivedKind;
-        }
+        // Map to specific kind based on path
+        if (patternPrefix.includes("requirements")) kind = "requirement";
+        else if (patternPrefix.includes("scenarios")) kind = "scenario";
+        else if (patternPrefix.includes("tests")) kind = "test";
+        else if (patternPrefix.includes("adr")) kind = "adr";
+        else if (patternPrefix.includes("facts")) kind = "fact";
+        else if (patternPrefix.includes("events"))
+          kind = "fact"; // events map to fact for routing
+        else if (patternPrefix.includes("flags"))
+          kind = "fact"; // flags map to fact for routing
+        else if (patternPrefix.includes("symbols")) kind = "fact";
       }
       break;
     }

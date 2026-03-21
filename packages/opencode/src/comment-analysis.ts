@@ -119,7 +119,7 @@ function isAssignment(line: string): boolean {
  * Check if a line starts a class or function definition.
  */
 function isClassOrDef(line: string): boolean {
-  return /^\s*(class|async\s+def|def)\s+\w+/.test(line);
+  return /^\s*(class|def)\s+\w+/.test(line);
 }
 
 /**
@@ -379,7 +379,10 @@ export function analyzeCodeFile(
       };
 
       // Prefer high confidence, then prefer earlier comments
-      if (!bestResult || result.confidence === "high") {
+      if (
+        !bestResult ||
+        (bestResult.confidence === "medium" && result.confidence === "high")
+      ) {
         bestResult = result;
       }
     }

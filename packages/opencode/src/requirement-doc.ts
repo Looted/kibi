@@ -13,10 +13,27 @@ function normalizeContent(content: string): string {
 }
 
 /**
- * Check if a path is absolute (cross-platform).
+ * Check if a position is inside quotes in a string.
+ * Simple check: odd number of unescaped quotes before position.
  */
-function isAbsolutePath(filePath: string): boolean {
-  return path.isAbsolute(filePath);
+function isInsideQuotes(str: string, pos: number): boolean {
+  let count = 0;
+  let escaped = false;
+  for (let i = 0; i < pos; i++) {
+    const char = str[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (char === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (char === '"' || char === "'") {
+      count++;
+    }
+  }
+  return count % 2 === 1;
 }
 
 /**
@@ -72,30 +89,6 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
 }
 
 /**
- * Check if a position is inside quotes in a string.
- * Simple check: odd number of unescaped quotes before position.
- */
-function isInsideQuotes(str: string, pos: number): boolean {
-  let count = 0;
-  let escaped = false;
-  for (let i = 0; i < pos; i++) {
-    const char = str[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (char === "\\") {
-      escaped = true;
-      continue;
-    }
-    if (char === '"' || char === "'") {
-      count++;
-    }
-  }
-  return count % 2 === 1;
-}
-
-/**
  * Read a requirement file and determine if it has priority: must.
  * Returns false on any error (file not found, parse failure, etc.)
  * Handles CRLF line endings, BOM markers, and cross-platform paths.
@@ -107,7 +100,7 @@ export function isMustPriorityRequirement(
 ): boolean {
   try {
     const resolvedPath =
-      worktree && !isAbsolutePath(filePath)
+      worktree && !path.isAbsolute(filePath)
         ? path.join(worktree, filePath)
         : filePath;
 
@@ -135,7 +128,7 @@ export function getRequirementPriority(
 ): string | null {
   try {
     const resolvedPath =
-      worktree && !isAbsolutePath(filePath)
+      worktree && !path.isAbsolute(filePath)
         ? path.join(worktree, filePath)
         : filePath;
 

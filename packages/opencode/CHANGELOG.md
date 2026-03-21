@@ -14,8 +14,6 @@
   - Adds `.py` to recognized code file extensions
   - Implements REQ-opencode-comment-routing with comprehensive test coverage
 
-## 0.4.3
-
 ### Patch Changes
 
 - Add must-priority-aware targeted validation for requirement edits
