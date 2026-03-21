@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
-import { resetSessionTracker } from "../src/session-tracker";
+import { resetSessionTracker, getSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -2079,11 +2079,18 @@ import datetime
       // First edit
       await eventHook(mockEvent);
 
+      const warningsAfterFirstEdit = getSessionTracker().generateSummary().totalWarnings;
+
       // Second edit (same file, same content)
       await eventHook(mockEvent);
 
-      // Should complete without errors - dedupe happens internally
-      assert.ok(true, "Should handle repeated edits without errors");
+      // Dedupe should prevent the second edit from adding another warning
+      const warningsAfterSecondEdit = getSessionTracker().generateSummary().totalWarnings;
+      assert.equal(
+        warningsAfterSecondEdit,
+        warningsAfterFirstEdit,
+        "Second edit of the same file should not record a new warning due to deduplication",
+      );
     });
 
     it("clears suggestion when switching from code file to KB doc", async () => {
@@ -2096,6 +2103,10 @@ import datetime
             enabled: true,
             sync: {
               enabled: true,
+            },
+            prompt: {
+              enabled: true,
+              hookMode: "system-transform",
             },
             guidance: {
               commentDetection: {
@@ -2133,8 +2144,9 @@ import datetime
       });
 
       const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
 
-      // First edit: Python file
+      // First edit: Python file with durable knowledge
       await eventHook({
         event: {
           type: "file.edited",
@@ -2143,6 +2155,14 @@ import datetime
           },
         },
       });
+
+      // After code file edit, transform hook should inject durable knowledge guidance
+      const outputAfterCode = { system: ["base system prompt"] };
+      await transformHook({}, outputAfterCode);
+      assert.ok(
+        outputAfterCode.system[0].includes("Durable knowledge detected"),
+        "Prompt should contain durable knowledge guidance after code file edit",
+      );
 
       // Second edit: KB doc (should clear suggestion)
       await eventHook({
@@ -2154,7 +2174,13 @@ import datetime
         },
       });
 
-      assert.ok(true, "Should clear suggestion when switching to KB doc");
+      // After KB doc edit, transform hook should NOT inject durable knowledge guidance
+      const outputAfterKbDoc = { system: ["base system prompt"] };
+      await transformHook({}, outputAfterKbDoc);
+      assert.ok(
+        !outputAfterKbDoc.system[0].includes("Durable knowledge detected"),
+        "Prompt should not contain durable knowledge guidance after switching to KB doc",
+      );
     });
   });
 });

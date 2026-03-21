@@ -44,6 +44,8 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
+  /** The per-symbol source code file, distinct from the manifest file path. */
+  sourceFile?: string;
 }
 
 export class ManifestError extends Error {
@@ -153,6 +155,7 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
           text_ref: symbol.text_ref,
         },
         relationships,
+        sourceFile: symbol.source,
       };
     });
   } catch (error) {
