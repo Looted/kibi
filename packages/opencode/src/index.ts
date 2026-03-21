@@ -1,8 +1,13 @@
+import {
+  type CommentAnalysisResult,
+  analyzeCodeFile,
+} from "./comment-analysis.js";
 import * as config from "./config.js";
 import * as fileFilter from "./file-filter.js";
 import * as logger from "./logger.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
 import { injectPrompt } from "./prompt.js";
+import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { checkWorkspaceHealth } from "./workspace-health.js";
@@ -96,21 +101,12 @@ function lintRequirementDoc(
   return warnings;
 }
 
-let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
-let cfg: config.KibiConfig;
-
-// Track recent edits for contextual guidance
-const MAX_RECENT_EDITS = 5;
-let recentEdits: RecentEdit[] = [];
-let hasRecentKbEdit = false;
-
 // implements REQ-opencode-kibi-plugin-v1
 const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
   // Load config
-  const loadedCfg = config.loadConfig(input.directory);
-  cfg = loadedCfg;
+  const cfg = config.loadConfig(input.directory);
 
   if (!cfg.enabled) {
     logger.info("kibi-opencode: disabled via config");
@@ -141,78 +137,146 @@ const kibiOpencodePlugin: Plugin = async (
 
   const hooks: Hooks = {};
 
-  // Setup file-edit triggered sync via event hook
+  // Plugin instance state (not module globals)
+  const MAX_RECENT_EDITS = 5;
+  let recentEdits: RecentEdit[] = [];
+  let hasRecentKbEdit = false;
+  let recentCommentSuggestion: CommentAnalysisResult | null = null;
+  const seenFingerprints = new Set<string>(); // For deduplication
+
+  // Create scheduler only if sync is enabled
+  let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
   if (cfg.sync.enabled) {
     const schedulerOpts: SchedulerOptions = {
       worktree: input.worktree,
       config: cfg,
     };
     scheduler = createSyncScheduler(schedulerOpts);
+  }
 
-    hooks.event = async ({ event }) => {
-      if (event.type !== "file.edited") return;
-      const filePath = (event as { type: string; properties: { file: string } })
-        .properties.file;
-      if (!filePath) return;
+  // Setup event hook (unconditional - handles comment detection, warnings, tracking)
+  hooks.event = async ({ event }) => {
+    if (event.type !== "file.edited") return;
+    const filePath = (event as { type: string; properties: { file: string } })
+      .properties.file;
+    if (!filePath) return;
 
-      // Analyze path for tracking and classification
-      const pathAnalysis = analyzePath(filePath, input.worktree);
+    // Analyze path for tracking and classification
+    const pathAnalysis = analyzePath(filePath, input.worktree);
 
-      // Check for .kb edit (loud warning) — gated on guidance.warnOnKbEdits
-      if (pathAnalysis.isUnderKb && cfg.guidance.warnOnKbEdits) {
-        hasRecentKbEdit = true;
-        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+    // Check for .kb edit (loud warning) — gated on guidance.warnOnKbEdits
+    if (pathAnalysis.isUnderKb && cfg.guidance.warnOnKbEdits) {
+      hasRecentKbEdit = true;
+      logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+      getSessionTracker().recordWarning(
+        "kb-edit",
+        filePath,
+        `Manual .kb edit: ${filePath}`,
+      );
+    }
+
+    // Lint requirement docs for anti-patterns
+    if (pathAnalysis.kind === "requirement") {
+      const lintWarnings = lintRequirementDoc(filePath, input.worktree);
+      for (const warning of lintWarnings) {
         getSessionTracker().recordWarning(
-          "kb-edit",
+          warning.category,
           filePath,
-          `Manual .kb edit: ${filePath}`,
+          warning.message,
         );
       }
+    }
 
-      // Lint requirement docs for anti-patterns
-      if (pathAnalysis.kind === "requirement") {
-        const lintWarnings = lintRequirementDoc(filePath, input.worktree);
-        for (const warning of lintWarnings) {
-          getSessionTracker().recordWarning(
-            warning.category,
-            filePath,
-            warning.message,
-          );
-        }
-      }
+    // Track recent edits
+    const now = Date.now();
+    recentEdits.push({
+      path: filePath,
+      kind: pathAnalysis.kind,
+      timestamp: now,
+    });
 
-      // Track recent edits
-      const now = Date.now();
-      recentEdits.push({
-        path: filePath,
-        kind: pathAnalysis.kind,
-        timestamp: now,
+    // Keep only recent edits
+    if (recentEdits.length > MAX_RECENT_EDITS) {
+      recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
+    }
+
+    // Analyze code files for durable knowledge comments (gated on commentDetection)
+    if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
+      const resolvedPath =
+        input.worktree && !filePath.startsWith("/")
+          ? `${input.worktree}/${filePath}`
+          : filePath;
+
+      const suggestion = analyzeCodeFile(resolvedPath, {
+        minLines: cfg.guidance.commentDetection.minLines,
       });
 
-      // Keep only recent edits
-      if (recentEdits.length > MAX_RECENT_EDITS) {
-        recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
+      if (suggestion) {
+        // Always update the suggestion for the current edit context
+        recentCommentSuggestion = suggestion;
+
+        // Check for dedupe on warnings only
+        const dedupeKey = `${filePath}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
+        if (!seenFingerprints.has(dedupeKey)) {
+          seenFingerprints.add(dedupeKey);
+
+          // Map suggestion type to warning category
+          const warningCategory: WarningCategory =
+            suggestion.suggestionType === "fact"
+              ? "long-comment-missed-fact"
+              : suggestion.suggestionType === "adr"
+                ? "long-comment-missed-adr"
+                : "missing-traceability";
+
+          logger.info(
+            `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${filePath}`,
+          );
+          getSessionTracker().recordWarning(
+            warningCategory,
+            filePath,
+            `Consider routing this ${suggestion.suggestionType} knowledge to Kibi instead of inline comments: ${suggestion.reasoning}`,
+          );
+        }
+      } else {
+        // Clear stale suggestion when no durable knowledge detected
+        recentCommentSuggestion = null;
       }
+    } else {
+      // Clear suggestion for non-code files
+      recentCommentSuggestion = null;
+    }
 
-      // Only schedule sync for relevant files (not .kb)
-      if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
+    // Only schedule sync for relevant files (not .kb) when sync is enabled
+    if (!cfg.sync.enabled) return;
+    if (!fileFilter.shouldHandleFile(filePath, input.worktree)) return;
 
-      // Determine targeted checks based on edit type (gated on guidance.targetedChecks.enabled)
-      let checkRules: string[] | undefined;
-      if (cfg.guidance.targetedChecks.enabled) {
-        if (
-          ["requirement", "scenario", "test", "adr", "fact"].includes(
-            pathAnalysis.kind,
-          )
-        ) {
+    // Determine targeted checks based on edit type (gated on guidance.targetedChecks.enabled)
+    let checkRules: string[] | undefined;
+    if (cfg.guidance.targetedChecks.enabled) {
+      if (pathAnalysis.kind === "requirement") {
+        // Must-priority requirements get elevated validation
+        if (isMustPriorityRequirement(filePath, input.worktree)) {
+          checkRules = [
+            "required-fields",
+            "no-dangling-refs",
+            "must-priority-coverage",
+          ];
+          logger.info(
+            `kibi-opencode: must-priority requirement detected, scheduling elevated checks for ${filePath}`,
+          );
+        } else {
           checkRules = ["required-fields", "no-dangling-refs"];
         }
+      } else if (
+        ["scenario", "test", "adr", "fact"].includes(pathAnalysis.kind)
+      ) {
+        checkRules = ["required-fields", "no-dangling-refs"];
       }
+    }
 
-      logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-      scheduler?.scheduleSync("file.edited", filePath, checkRules);
-    };
-  }
+    logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
+    scheduler?.scheduleSync("file.edited", filePath, checkRules);
+  };
 
   // Setup prompt injection hook
   if (cfg.prompt.enabled) {
@@ -225,6 +289,7 @@ const kibiOpencodePlugin: Plugin = async (
           recentEdits,
           workspaceHealth,
           hasRecentKbEdit,
+          recentCommentSuggestion,
         });
         output.system.length = 0;
         output.system.push(injected);
