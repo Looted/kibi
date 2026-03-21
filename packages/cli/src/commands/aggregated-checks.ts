@@ -40,10 +40,9 @@ export async function runAggregatedChecks(
     const result = await prolog.query(query);
 
     if (!result.success) {
-      console.warn(
-        "Aggregated checks query failed, falling back to individual checks",
+      throw new Error(
+        `Aggregated checks query failed: ${result.error || "Unknown error"}`,
       );
-      return [];
     }
 
     let violationsDict: Record<string, JsonViolation[]>;
@@ -58,8 +57,9 @@ export async function runAggregatedChecks(
       }
       violationsDict = parsed as Record<string, JsonViolation[]>;
     } catch (parseError) {
-      console.warn("Failed to parse violations JSON:", parseError);
-      return [];
+      throw new Error(
+        `Failed to parse violations JSON: ${parseError instanceof Error ? parseError.message : String(parseError)}`,
+      );
     }
 
     for (const ruleViolations of Object.values(violationsDict)) {
@@ -79,7 +79,7 @@ export async function runAggregatedChecks(
 
     return violations;
   } catch (error) {
-    console.warn("Error running aggregated checks:", error);
-    return [];
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error running aggregated checks: ${message}`);
   }
 }
