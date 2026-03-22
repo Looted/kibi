@@ -16,7 +16,7 @@
     },
     "packages/cli": {
       "name": "kibi-cli",
-      "version": "0.2.3",
+      "version": "0.2.7",
       "bin": {
         "kibi": "bin/kibi",
       },
@@ -27,17 +27,21 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-core": "^0.1.7",
+        "kibi-core": "^0.1.10",
         "ts-morph": "^23.0.0",
+      },
+      "devDependencies": {
+        "@types/node": "latest",
+        "typescript": "^5.7.0",
       },
     },
     "packages/core": {
       "name": "kibi-core",
-      "version": "0.1.8",
+      "version": "0.1.10",
     },
     "packages/mcp": {
       "name": "kibi-mcp",
-      "version": "0.2.4",
+      "version": "0.3.3",
       "bin": {
         "kibi-mcp": "bin/kibi-mcp",
       },
@@ -49,8 +53,8 @@
         "fast-glob": "^3.2.12",
         "gray-matter": "^4.0.3",
         "js-yaml": "^4.1.0",
-        "kibi-cli": "^0.2.3",
-        "kibi-core": "^0.1.8",
+        "kibi-cli": "^0.2.7",
+        "kibi-core": "^0.1.10",
         "mcpcat": "^0.1.12",
         "ts-morph": "^23.0.0",
         "zod": "^4.3.6",
@@ -58,21 +62,23 @@
       "devDependencies": {
         "@types/bun": "latest",
         "@types/node": "latest",
+        "typescript": "^5.7.0",
       },
     },
     "packages/opencode": {
       "name": "kibi-opencode",
-      "version": "0.1.0",
+      "version": "0.5.0",
       "dependencies": {
         "@opencode-ai/plugin": "^1.2.26",
       },
       "devDependencies": {
+        "@types/node": "latest",
         "typescript": "^5.0.0",
       },
     },
     "packages/vscode": {
       "name": "kibi-vscode",
-      "version": "0.2.0",
+      "version": "0.2.2",
       "dependencies": {
         "js-yaml": "^4.1.0",
       },
