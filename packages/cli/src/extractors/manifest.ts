@@ -62,6 +62,7 @@ interface ManifestSymbol {
   id?: string;
   title?: string;
   source?: string;
+  sourceFile?: string;
   status?: string;
   tags?: string[];
   owner?: string;
@@ -155,7 +156,7 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
           text_ref: symbol.text_ref,
         },
         relationships,
-        sourceFile: symbol.source,
+        sourceFile: symbol.sourceFile ?? symbol.source,
       };
     });
   } catch (error) {
