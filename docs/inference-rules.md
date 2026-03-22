@@ -1,6 +1,6 @@
 # Inference Rules (Phase 1)
 
-Kibi includes deterministic derived predicates for internal analysis and automation. These predicates are no longer part of the public four-tool MCP surface.
+Kibi includes deterministic derived predicates for internal analysis and automation. These predicates are not exposed as a raw public inference surface.
 
 ## Core Predicates (`packages/core/src/kb.pl`)
 
@@ -19,11 +19,16 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `adr_chain(AnyId, Chain)`
 - `contradicting_reqs(ReqA, ReqB, Reason)`
 
-These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the public four-tool interface instead:
+These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the curated public surface instead:
 
+- `kb_search`
 - `kb_query`
+- `kb_status`
+- `kb_find_gaps`
+- `kb_coverage`
+- `kb_graph`
 - `kb_upsert`
 - `kb_delete`
 - `kb_check`
 
-If deeper inference needs to be re-exposed in the future, it should be documented explicitly as a separate product decision rather than silently expanding the public MCP surface.
+If deeper inference needs to be re-exposed in the future, it should be documented explicitly as a separate product decision rather than silently expanding the curated public surface.

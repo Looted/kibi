@@ -234,6 +234,11 @@ if (RUN_NODE_TEST_SUITE) {
                     const toolNames = tools.map((t) => t.name);
                     assert.deepStrictEqual(toolNames, [
                       "kb_query",
+                      "kb_search",
+                      "kb_status",
+                      "kb_find_gaps",
+                      "kb_coverage",
+                      "kb_graph",
                       "kb_upsert",
                       "kb_delete",
                       "kb_check",

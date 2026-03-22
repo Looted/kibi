@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
  *
  * Policy requirements:
  * 1. Agent-visible guidance must never instruct direct `kibi` CLI commands
- * 2. Guidance should explicitly prefer public MCP tools (kb_query, kb_upsert, kb_delete, kb_check)
+ * 2. Guidance should explicitly prefer the curated public MCP tools
  * 3. Bootstrap guidance should say to ask user/operator for setup if /init-kibi is insufficient
  * 4. /init-kibi is the only allowed kibi-related command in agent-facing content
  */
@@ -83,7 +83,7 @@ describe("agent surface policy", () => {
       const content = fs.readFileSync(fullPath, "utf-8");
 
       for (const cmd of forbiddenCommands) {
-        const msg = `${relativePath} contains forbidden CLI command "${cmd}". Agents must use MCP tools (kb_query, kb_upsert, kb_delete, kb_check) only. Only "/init-kibi" is allowed as an agent-facing command reference.`;
+        const msg = `${relativePath} contains forbidden CLI command "${cmd}". Agents must use the curated public MCP tools only. Only "/init-kibi" is allowed as an agent-facing command reference.`;
         assert.ok(!content.includes(cmd), msg);
       }
     });
@@ -123,6 +123,10 @@ describe("agent surface policy", () => {
     const content = fs.readFileSync(promptPath, "utf-8");
 
     // Should mention MCP tools
+    assert.ok(
+      content.includes("kb_search"),
+      "prompt.ts should reference kb_search MCP tool",
+    );
     assert.ok(
       content.includes("kb_query"),
       "prompt.ts should reference kb_query MCP tool",
