@@ -7,7 +7,7 @@ This document provides guidelines for AI agents working on the kibi codebase.
 **Kibi** is a repo-local, per-branch, queryable long-term memory for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts—along with typed relationships between them.
 
 The KB is accessible via:
-- **CLI**: `kibi` command-line tool
+- **CLI**: `kibi` command-line tool for humans/operators and automation
 - **MCP Server**: For LLM agent integration via stdio (JSON-RPC)
 
 ---
@@ -52,32 +52,17 @@ Kibi supports 8 entity types:
 
 ## Querying Kibi
 
-### CLI Queries
+### MCP Tool Queries (Preferred)
 
-```bash
-# List all requirements
-kibi query req --format table
-
-# Query specific entity by ID
-kibi query req --id REQ-001
-
-# Query by tag
-kibi query test --tag sample
-
-# List all scenarios
-kibi query scenario
-
-# JSON output (default)
-kibi query adr --format json
-```
-
-### MCP Tool Queries
+Agents should use MCP tools for all KB interactions. For initial repository setup, use the `/init-kibi` slash command in OpenCode.
 
 Available MCP tools:
 - `kb_query` - Query entities by type, ID, tags, and source file
 - `kb_upsert` - Insert or update entities
 - `kb_delete` - Delete entities by ID
 - `kb_check` - Validate KB integrity
+
+If the KB needs setup or repair beyond what `/init-kibi` provides, ask the user/operator to handle it outside the agent session.
 
 ---
 
@@ -89,8 +74,8 @@ Available MCP tools:
 
 When you encounter code that is not obvious about its intent on first sight:
 
-1. **Query kibi first** instead of grepping the project
-2. If kibi query returns nothing:
+1. **Query Kibi first** with `kb_query` instead of grepping the project
+2. If `kb_query` returns nothing:
    - **a)** Do the research yourself (read code, understand context)
    - **Update kibi** with your findings (create/update entities, relationships)
    - **b)** If the query mechanism itself is lacking, **report it to the user** so kibi can be improved
@@ -186,13 +171,13 @@ Record uncertainty in gap reports, not speculative entities.
    ---
    ```
 
-3. Run `kibi sync` to import the entity into the KB
+3. The entity will be synced to the KB by git hooks or operator-initiated sync.
 
 ### Updating an Entity
 
 1. Edit the Markdown file
 2. Update `updated_at` timestamp
-3. Run `kibi sync` to sync changes
+3. The changes will be synced by git hooks or operator-initiated sync.
 
 ### Linking Entities
 
@@ -205,31 +190,26 @@ links:
 
 ---
 
-## Quick Reference
+## Quick Reference for Agents
 
-```bash
-# Initialize KB with hooks
-kibi init --hooks
+### MCP Tools
 
-# Verify environment
-kibi doctor
-
-# Sync entities from documents
-kibi sync
-
-# Query entities
-kibi query <type> [--id ID] [--tag TAG] [--format json|table]
-
-# Validate KB
-kibi check
-
-# List branch KBs
-kibi branch --list
-
-# Clean up stale branch KBs
-kibi gc --dry-run
-kibi gc --force
+```text
+kb_query(type, id, tags, sourceFile, limit, offset)
+kb_upsert(type, id, properties, relationships)
+kb_delete(ids)
+kb_check(rules)
 ```
+
+### Slash Commands (OpenCode)
+
+- `/init-kibi` - Bootstrap Kibi in the current repository
+
+### Setup/Repair Escalation
+
+If the KB needs initialization, repair, or configuration beyond `/init-kibi`:
+1. Ask the user/operator to run the appropriate CLI commands
+2. Do not attempt to run `kibi` CLI commands yourself
 
 ---
 
@@ -238,7 +218,7 @@ kibi gc --force
 - `.kb/` is repo-local and per-branch
 - KBs are copied from `main` on new branch creation
 - Git hooks automate KB sync on branch checkout/merge
-- Run `kibi doctor` if you encounter environment issues
+- If you encounter KB setup issues, ask the user/operator to run the appropriate Kibi diagnostics outside the agent session
 
 
 ## Staged Symbol Traceability (Agent Workflow)
@@ -260,41 +240,22 @@ When implementing code changes, an agent should:
 
    You can link to multiple requirements:
    ```typescript
-   export class MyClass { } // implements REQ-001, REQ-002
+   export class MyClass() { } // implements REQ-001, REQ-002
    ```
 
-2. **Verify traceability before committing:**
-   ```bash
-   kibi check --staged
-   ```
-
-   This command scans only files staged for commit and reports any new or modified symbols that do not have a requirement link.
+2. **Git hooks enforce traceability automatically:**
+   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links. This happens automatically on commit - you do not need to run validation manually.
 
 3. **Handle violations:**
-   If `kibi check --staged` reports violations, the agent must:
-   - Add appropriate `implements REQ-xxx` directives
-   - Or use `--dry-run` to understand what would be blocked
+   If commit is blocked due to missing requirement links:
+   - Add appropriate `implements REQ-xxx` directives to your code
+   - Or ask the user/operator to review if the traceability rules need adjustment
 
 
-### CLI Flags for Staged Checking
-
-
-- `--staged` – Only check staged files (not whole repo)
-- `--min-links <N>` – Minimum number of requirement links per symbol (default: 1)
-- `--kb-path <path>` – Path to KB directory (optional)
-- `--rules <rule1,rule2>` – Comma-separated list of rules to run (optional)
-- `--dry-run` – Show what would be blocked, but do not block commit
-
-
-### Integration with Git Hooks
-
-
-When `kibi init` is run (hooks are installed by default), a pre-commit hook is installed. This hook automatically runs `kibi check --staged` before every commit. If any staged code symbols are missing requirement links, commit will be blocked with a clear error message.
 
 ### Configuration
 
-
-> **Note:** The `.kibi/traceability.json` configuration file is not yet implemented. Use CLI flags (`--min-links`) to customize enforcement.
+> **Note:** The `.kibi/traceability.json` configuration file is not yet implemented. Traceability enforcement is handled automatically by git hooks.
 
 The following schema is planned for a future release:
 

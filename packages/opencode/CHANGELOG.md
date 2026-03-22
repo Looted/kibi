@@ -1,5 +1,16 @@
 # kibi-opencode
 
+## Unreleased
+
+### Patch Changes
+
+- Clarify MCP-only agent guidance policy per ADR-016 thin-bridge behavior
+
+  - README now describes agent-visible guidance as public MCP tools and sanctioned slash commands
+  - Internal maintenance uses background sync operations; agents do NOT run sync commands directly
+  - Architecture section emphasizes thin-bridge separation: agents use MCP tools while internal processes handle sync
+  - Wording consistently reflects that all agent interaction occurs via MCP surface, not CLI
+
 ## 0.5.0
 
 ### Minor Changes

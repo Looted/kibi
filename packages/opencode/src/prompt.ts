@@ -1,5 +1,5 @@
 import type { CommentAnalysisResult } from "./comment-analysis.js";
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
 import type { PathKind } from "./path-kind.js";
@@ -17,7 +17,7 @@ export interface PromptContext {
 /**
  * Build prompt guidance block based on path kind.
  */
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 function buildContextualGuidance(context: PromptContext): string {
   const parts: string[] = [SENTINEL];
 
@@ -25,7 +25,7 @@ function buildContextualGuidance(context: PromptContext): string {
     parts.push(`
 ⚠️  **WARNING: Do not edit .kb/** files manually.**
 
-The Kibi knowledge base is managed through MCP and CLI tools. Direct manual edits to files under .kb/** can cause inconsistencies and should be avoided.
+The Kibi knowledge base is managed through public MCP tools and internal maintenance flows. Direct manual edits to files under .kb/** can cause inconsistencies and should be avoided.
 
 Instead:
 - Use kb_upsert to create/update entities
@@ -38,10 +38,11 @@ Instead:
     parts.push(`
 🔧 **Bootstrap required**
 
-This repository does not appear to have Kibi initialized. Consider running:
-- \`/init-kibi\` for retroactive bootstrap of existing repos
-- \`kibi init\` for new repos
-- \`kibi doctor\` to verify your environment
+This repository does not appear to have Kibi initialized. Agents should:
+- Use \`/init-kibi\` for retroactive bootstrap of existing repos (preferred MCP command)
+- Ask the user/operator to run setup or repair outside this session if \`/init-kibi\` is insufficient
+
+Do not run \`kibi\` CLI commands directly; use the MCP tools (kb_query, kb_upsert, kb_delete, kb_check).
 `);
   }
 
@@ -142,7 +143,7 @@ Preferred structure:
 
 When editing KB documentation:
 1. **Maintain traceability** - Link entities using relationships: specified_by (req→scenario), verified_by (req→test), etc.
-2. **Validate** - Run \`kibi check\` after making changes to catch integrity issues.
+2. **Validate** - Use \`kb_check\` after making changes to catch integrity issues.
 3. **Follow entity patterns** - Ensure each entity has proper frontmatter with required fields.
 `);
   }
@@ -165,6 +166,8 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 4. **Validate**: Run kb_check after KB mutations to catch violations early.
 
 **Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+
+Do not invoke Kibi CLI commands directly from the agent.
 
 Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization workflow.`);
   }
@@ -193,6 +196,8 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 4. **Validate**: Run kb_check after KB mutations to catch violations early.
 
 **Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+
+Do not invoke Kibi CLI commands directly from the agent.
 
 Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization workflow.`;
 
