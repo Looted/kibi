@@ -4,7 +4,7 @@ title: OpenCode plugin enforces Kibi-first behaviors
 type: scenario
 status: active
 created_at: 2026-03-17T00:00:00Z
-updated_at: 2026-03-17T00:00:00Z
+updated_at: 2026-03-22T00:00:00Z
 source: docs/plans/2026-03-17-opencode-kibi-enforcement-plan.md
 priority: must
 tags:
@@ -32,11 +32,11 @@ An AI agent is working on code changes and Kibi documentation in an OpenCode ses
 5. Agent adds a long explanatory comment to a code file.
 6. Plugin detects comment pattern and suggests routing to FACT, ADR, or REQ as appropriate.
 7. Agent attempts to edit a file under `.kb/relationships/`.
-8. Plugin emits loud warning via log and prompt injection, directing agent to MCP/CLI tools.
+8. Plugin emits loud warning via log and prompt injection, directing agent to MCP tools (`kb_query`, `kb_upsert`, `kb_delete`, `kb_check`).
 9. Agent creates a new requirement with `priority: must`.
-10. Plugin runs targeted background check: `kibi check --rules must-priority-coverage,no-dangling-refs`.
+10. Plugin runs targeted background validation (`kb_check` with specific rules like `must-priority-coverage,no-dangling-refs`).
 11. Agent attempts to create a new repo without Kibi initialized.
-12. Plugin detects missing `.kb/config.json` and injects bootstrap guidance for `/init-kibi`.
+12. Plugin detects missing `.kb/config.json` and injects bootstrap guidance for `/init-kibi` slash command, escalating to operator if further setup is needed.
 
 ### Expected Outcomes
 

@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions
 
-This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. It's accessible via the `kibi` CLI and MCP Server for agent integration.
+This repository uses **Kibi** - a repo-local, per-branch, queryable long-term memory for software projects. Kibi stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts with typed relationships between them. The CLI is for humans/operators, while agents should use the MCP server.
 
 Please follow the comprehensive guidelines and rules defined in [AGENTS.md](../AGENTS.md).
 
@@ -27,9 +27,6 @@ bun run build
 
 # Run full test suite
 bun run test
-
-# Verify environment
-kibi doctor
 ```
 
 ---
@@ -108,9 +105,11 @@ bun run format     # Biome format --write
 
 When working on this codebase:
 
-1. **Query Kibi first** - Use `kibi query` or MCP tools before grepping the project
-2. **Document intent** - Route explanations to KB entities via `kibi upsert`, not inline comments
+1. **Query Kibi first** - Use MCP tools (`kb_query`) before grepping the project
+2. **Document intent** - Route explanations to KB entities via `kb_upsert`, not inline comments
 3. **Link during work** - Create relationships: `implements` (symbol→req), `covered_by` (symbol→test), `verified_by` (req→test)
-4. **Validate** - Run `kibi check` after KB mutations to catch violations
+4. **Validate** - Run `kb_check` after KB mutations to catch violations
+5. **Use `/init-kibi`** - For initial repository setup, use the `/init-kibi` slash command in OpenCode
+6. **Escalate setup issues** - If the KB needs setup or repair beyond `/init-kibi`, ask the user/operator to handle it
 
 For detailed guidelines on entity types, relationships, and best practices, see [AGENTS.md](../AGENTS.md).

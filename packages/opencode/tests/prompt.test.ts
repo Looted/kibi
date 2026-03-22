@@ -105,6 +105,82 @@ describe("prompt", () => {
     );
   });
 
+  test("guidance must NOT contain forbidden kibi CLI commands", () => {
+    const result = injectPrompt("", baseConfig);
+
+    // Forbidden CLI commands - agents should use MCP tools only
+    const forbiddenCommands = [
+      "kibi sync",
+      "kibi init",
+      "kibi doctor",
+      "kibi query",
+      "kibi upsert",
+      "kibi check",
+      "kibi branch",
+      "kibi gc",
+    ];
+
+    for (const cmd of forbiddenCommands) {
+      assert.ok(
+        !result.includes(cmd),
+        `Prompt should NOT contain forbidden CLI command "${cmd}" - agents must use MCP tools only`,
+      );
+    }
+  });
+
+  test("bootstrap guidance must NOT contain kibi init or kibi doctor", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [],
+      workspaceHealth: {
+        needsBootstrap: true,
+        missingConfig: true,
+        missingDocDirs: [],
+        hasKbEvidence: false,
+      },
+    });
+
+    assert.ok(
+      result.includes("Bootstrap required"),
+      "Should include bootstrap guidance",
+    );
+    assert.ok(
+      result.includes("/init-kibi"),
+      "Should include /init-kibi command",
+    );
+    assert.ok(
+      !result.includes("kibi init"),
+      "Should NOT contain 'kibi init' CLI command",
+    );
+    assert.ok(
+      !result.includes("kibi doctor"),
+      "Should NOT contain 'kibi doctor' CLI command",
+    );
+    assert.ok(
+      result.includes("kb_query") ||
+        result.includes("kb_upsert") ||
+        result.includes("kb_check") ||
+        result.includes("kb_delete"),
+      "Should reference MCP tools",
+    );
+  });
+
+  test("KB doc edit guidance must NOT contain 'kibi check' CLI", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [
+        { path: "documentation/scenarios/SCEN-001.md", kind: "scenario" },
+      ],
+    });
+
+    assert.ok(
+      result.includes("Kibi documentation changes detected"),
+      "Should include KB doc guidance",
+    );
+    assert.ok(
+      !result.includes("kibi check"),
+      "Should NOT contain 'kibi check' CLI command - use kb_check MCP tool",
+    );
+  });
+
   test("guidance prefers Kibi over inline comments", () => {
     const result = injectPrompt("", baseConfig);
 
@@ -189,8 +265,8 @@ describe("prompt", () => {
       "Should include bootstrap guidance",
     );
     assert.ok(
-      result.includes("/init-kibi") || result.includes("kibi init"),
-      "Should include bootstrap commands",
+      result.includes("/init-kibi"),
+      "Should include bootstrap command",
     );
   });
 

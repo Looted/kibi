@@ -29,10 +29,10 @@ The plugin provides context-aware prompt guidance based on recent edits and work
 
 ### Targeted Validation Checks
 
-After KB-document edits, the plugin queues targeted `kibi check` rules to run after sync:
+After KB-document edits, the plugin queues targeted validation rules to run via background sync operations:
 
-- **Must-priority requirement edits**: `kibi check --rules required-fields,no-dangling-refs,must-priority-coverage`
-- **Other requirement/scenario/test/ADR/fact edits**: `kibi check --rules required-fields,no-dangling-refs`
+- **Must-priority requirement edits**: elevated validation including coverage checks
+- **Other requirement/scenario/test/ADR/fact edits**: standard validation for required fields and dangling references
 
 The plugin inspects requirement frontmatter to detect `priority: must` and schedules elevated validation for critical requirements. Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
 
@@ -42,7 +42,7 @@ When `guidance.warnOnKbEdits` is enabled (default: `true`), manual edits to file
 
 - Logs warning immediately
 - Injects prompt guidance discouraging manual `.kb` edits
-- Directs agents toward MCP/CLI tools (`kb_upsert`, `kb_query`, etc.)
+- Directs agents toward public MCP tools (`kb_upsert`, `kb_query`, etc.)
 
 ### Session Tracking and Pattern Detection
 
@@ -96,9 +96,9 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 OpenCode exposes Kibi MCP prompts as slash commands. The `/init-kibi` command runs the retroactive bootstrap workflow using only public MCP tools.
 
-### Debounced Sync
+### Background Sync Operations
 
-Automatically runs `kibi sync` after relevant file edits:
+Internal maintenance automatically syncs the knowledge base after relevant file edits:
 
 - Single-flight scheduler (no overlapping syncs)
 - Debounce window (default: 2000ms)
@@ -183,10 +183,10 @@ This repository's OpenCode setup dogfoods local built artifacts. `opencode.json`
 
 ## Architecture
 
-This is a thin bridge layer:
+This is a thin bridge layer per ADR-016:
 
-- Reuses `kibi` CLI for sync operations
-- Reuses existing MCP tools (`kb_query`, `kb_check`, etc.)
+- **Agent-visible guidance**: Public MCP tools (`kb_query`, `kb_upsert`, `kb_check`, etc.) and sanctioned slash commands (`/init-kibi`)
+- **Internal maintenance**: Background sync operations handle KB synchronization; agents do NOT run sync commands directly
 - Does NOT own KB storage, parsing, or validation
 
 ### Future: File-Context Virtual Injection
