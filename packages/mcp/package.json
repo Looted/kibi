@@ -40,7 +40,8 @@
   },
   "devDependencies": {
     "@types/bun": "latest",
-    "@types/node": "latest"
+    "@types/node": "latest",
+    "typescript": "^5.9.3"
   },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
