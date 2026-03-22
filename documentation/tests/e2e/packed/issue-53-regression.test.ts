@@ -194,7 +194,7 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
-        "installed kibi-mcp should list only the 4 public tools",
+        "installed kibi-mcp should list only the curated public tools",
         { timeout: 30000 },
         async () => {
           const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {

@@ -1,9 +1,9 @@
 ---
 id: TEST-005
-title: MCP server responds to the 4 public tools with valid JSON-RPC format
+title: MCP server responds to the curated public tools with valid JSON-RPC format
 status: active
 created_at: 2026-02-18T13:12:25.000Z
-updated_at: 2026-02-18T13:12:25.000Z
+updated_at: 2026-03-22T00:00:00Z
 priority: must
 tags:
   - mcp
@@ -15,6 +15,6 @@ links:
 ---
 
 Starts `kibi-mcp` in a test environment. Sends `tools/list` and asserts:
-- Response has `result.tools` array with exactly 4 entries
+- Response has `result.tools` array with the curated public tool set
 - Each tool has `name`, `description`, `inputSchema`
-- Tool names are exactly `kb_upsert`, `kb_query`, `kb_delete`, `kb_check`
+- Tool names are exactly `kb_query`, `kb_search`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`, `kb_upsert`, `kb_delete`, `kb_check`

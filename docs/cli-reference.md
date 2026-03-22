@@ -39,19 +39,21 @@ Extracts entities and relationships from project documents and updates the knowl
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
 
-## `kibi query <type>`
+## `kibi query [type]`
 
 Queries entities from the knowledge base.
 
 **Syntax:**
 ```bash
-kibi query <type> [--id ID] [--tag TAG] [--format json|table] [--limit N] [--offset N]
+kibi query [type] [--id ID] [--tag TAG] [--source PATH] [--relationships ID] [--format json|table] [--limit N] [--offset N]
 ```
 
 **Arguments:**
-- `<type>` - Entity type to query (req, scenario, test, adr, flag, event, symbol, fact)
+- `[type]` - Optional entity type to query (req, scenario, test, adr, flag, event, symbol, fact)
 - `--id ID` - Query by exact entity ID
 - `--tag TAG` - Filter by tag
+- `--source PATH` - Filter by source file path substring
+- `--relationships ID` - Return relationships for a specific entity ID
 - `--format json|table` - Output format (default: json)
 - `--limit N` - Maximum number of results to return (default: 100)
 - `--offset N` - Number of results to skip (pagination)
@@ -66,6 +68,12 @@ kibi query test --id TEST-001
 
 # Find all entities with "security" tag
 kibi query req --tag security --format table
+
+# Find entities linked to a source file path
+kibi query symbol --source src/auth/login.ts --format table
+
+# Show relationships for one entity
+kibi query --relationships REQ-001
 
 # Get paginated results
 kibi query scenario --limit 10 --offset 0
@@ -100,13 +108,22 @@ Reports the current KB snapshot, branch, and freshness state.
 kibi status [--format json|table]
 ```
 
-## `kibi gaps <type>`
+## `kibi gaps [type]`
 
 Runs curated missing/present relationship analysis.
 
 **Syntax:**
 ```bash
-kibi gaps <type> [--missing-rel RELS] [--present-rel RELS] [--tag TAGS] [--source PATH] [--format json|table]
+kibi gaps [type] [--missing-rel RELS] [--present-rel RELS] [--tag TAGS] [--source PATH] [--limit N] [--offset N] [--format json|table]
+```
+
+**Examples:**
+```bash
+# Requirements missing scenarios or tests
+kibi gaps req --missing-rel specified_by,verified_by --format table
+
+# Source-linked gap analysis
+kibi gaps req --source src/auth --missing-rel verified_by --format table
 ```
 
 ## `kibi coverage`
@@ -115,7 +132,7 @@ Generates curated coverage reports.
 
 **Syntax:**
 ```bash
-kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--format json|table]
+kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--limit N] [--offset N] [--format json|table]
 ```
 
 **Notes:**
@@ -129,6 +146,15 @@ Runs bounded graph traversal from one or more seed IDs.
 **Syntax:**
 ```bash
 kibi graph --from IDS [--relationships RELS] [--direction outgoing|incoming|both] [--depth N] [--entity-types TYPES] [--max-nodes N] [--max-edges N] [--format json|table]
+```
+
+**Examples:**
+```bash
+# Follow requirement links outward
+kibi graph --from REQ-001 --direction outgoing --depth 2 --format table
+
+# Inspect both incoming and outgoing relationships
+kibi graph --from REQ-001,TEST-001 --direction both --depth 2 --format json
 ```
 
 ## `kibi check`
@@ -146,6 +172,8 @@ Validates knowledge base integrity and runs inference rules.
 - `--staged` - Only check staged files (not whole repo)
 - `--kb-path <path>` - Path to KB directory (optional)
 - `--rules <rule1,rule2>` - Comma-separated list of rules to run (optional)
+- `--min-links <N>` - Minimum requirement links per symbol for staged traceability (default: 1)
+- `--dry-run` - Show staged-traceability effects without modifying files
 
 **Examples:**
 ```bash
@@ -181,7 +209,7 @@ kibi doctor
 **Common Issues Found:**
 - SWI-Prolog not found → See [install guide](install.md)
 - `.kb/` missing → Run `kibi init`
-- Git hooks missing → Run `kibi init` or `kibi init --hooks`
+- Git hooks missing → Run `kibi init`
 - Config invalid → Check `.kb/config.json` syntax
 
 ## `kibi gc`
@@ -208,7 +236,7 @@ kibi gc --force
 
 **Notes:**
 - Use `--dry-run` first to see what would be deleted
-- Stale = branch exists in `.kb/branches/` but not in `git branch -r`
+- Stale = branch exists in `.kb/branches/` but not in local `git branch` output
 
 ## `kibi branch`
 
@@ -216,21 +244,27 @@ Lists and manages branch knowledge bases.
 
 **Syntax:**
 ```bash
-kibi branch [--list]
+kibi branch ensure [--from <branch>]
 ```
 
+**Arguments:**
+- `ensure` - Ensure the active branch has a branch-local KB snapshot
+
 **Flags:**
-- `--list` - List all branch KBs (default behavior)
+- `--from <branch>` - Copy the new branch KB from an existing branch KB instead of creating an empty one
 
 **Behavior:**
-- Lists all branch KBs in `.kb/branches/`
-- Default branch resolution order: `.kb/config.json` `defaultBranch` → `origin/HEAD` → `main`
-- On new branch checkout: copies from default branch (if exists) or creates fresh KB
+- Ensures the active git branch has a KB under `.kb/branches/<branch>`
+- Creates an empty branch KB by default when one does not exist
+- If `--from` is supplied and that branch KB exists, copies from it instead
 
 **Examples:**
 ```bash
-# List all branch KBs
-kibi branch --list
+# Ensure the current branch has a KB
+kibi branch ensure
+
+# Seed the current branch KB from another branch KB
+kibi branch ensure --from main
 ```
 
 ## Staged Symbol Traceability

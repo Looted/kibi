@@ -96,6 +96,15 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 OpenCode exposes Kibi MCP prompts as slash commands. The `/init-kibi` command runs the retroactive bootstrap workflow using only public MCP tools.
 
+### Discovery-first MCP guidance
+
+Agent-visible guidance is intentionally limited to the curated public MCP surface:
+
+- Discovery/reporting: `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`
+- Mutation/validation: `kb_upsert`, `kb_delete`, `kb_check`
+
+The plugin guidance prefers `kb_search` for broad discovery, then `kb_query` for exact/source-linked follow-up.
+
 ### Background Sync Operations
 
 Internal maintenance automatically syncs the knowledge base after relevant file edits:
@@ -186,6 +195,7 @@ This repository's OpenCode setup dogfoods local built artifacts. `opencode.json`
 This is a thin bridge layer per ADR-016:
 
 - **Agent-visible guidance**: Public MCP tools (`kb_query`, `kb_upsert`, `kb_check`, etc.) and sanctioned slash commands (`/init-kibi`)
+- **Discovery-first workflow**: Agents are guided to use `kb_search` first, then `kb_query`, then reporting tools like `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph` when needed
 - **Internal maintenance**: Background sync operations handle KB synchronization; agents do NOT run sync commands directly
 - Does NOT own KB storage, parsing, or validation
 

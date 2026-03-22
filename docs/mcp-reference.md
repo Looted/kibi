@@ -21,6 +21,15 @@ Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and o
 **Returns:**
 Array of matching entities with deterministic ordering.
 
+**Example:**
+```json
+{
+  "type": "req",
+  "sourceFile": "src/auth/login.ts",
+  "limit": 20
+}
+```
+
 ### `kb_search`
 
 Search entities by metadata and markdown body text for exploratory discovery.
@@ -34,12 +43,26 @@ Search entities by metadata and markdown body text for exploratory discovery.
 **Returns:**
 Ranked results with match reasons and optional snippets.
 
+**Example:**
+```json
+{
+  "query": "login flow",
+  "type": "req",
+  "limit": 10
+}
+```
+
 ### `kb_status`
 
 Return branch, snapshot, and freshness metadata for the attached KB.
 
 **Returns:**
 Branch name, snapshot ID, sync state, dirty flag, and KB path metadata.
+
+**Example:**
+```json
+{}
+```
 
 ### `kb_find_gaps`
 
@@ -55,6 +78,15 @@ Run curated missing/present relationship analysis over KB entities.
 
 **Returns:**
 Matching rows, relationship counts, and status metadata.
+
+**Example:**
+```json
+{
+  "type": "req",
+  "missingRelationships": ["specified_by", "verified_by"],
+  "sourceFile": "src/auth"
+}
+```
 
 ### `kb_coverage`
 
@@ -72,6 +104,15 @@ Coverage summary rows and status metadata.
 
 For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`.
 
+**Example:**
+```json
+{
+  "by": "req",
+  "includePassing": false,
+  "includeTransitive": true
+}
+```
+
 ### `kb_graph`
 
 Run bounded graph traversal from one or more seed IDs.
@@ -86,6 +127,17 @@ Run bounded graph traversal from one or more seed IDs.
 
 **Returns:**
 Nodes, edges, truncation flag, and status metadata.
+
+**Example:**
+```json
+{
+  "seedIds": ["REQ-001"],
+  "direction": "both",
+  "depth": 2,
+  "maxNodes": 100,
+  "maxEdges": 200
+}
+```
 
 ### `kb_upsert`
 
@@ -115,7 +167,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 Run KB validation rules after mutations.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `no-dangling-refs`, `no-cycles`, `required-fields`, `symbol-coverage`)
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`)
 
 **Returns:**
 Validation report with any violations found and suggested fixes.
@@ -129,7 +181,7 @@ Validation report with any violations found and suggested fixes.
 ## Branch Behavior
 
 - The server attaches to the active git branch automatically at startup.
-- If the active branch KB does not exist, the server attempts to create it from an existing template branch KB (`develop` first, then `main`).
+- If the active branch KB does not exist, the server copies from the previously active branch KB when available; otherwise it creates an empty branch KB.
 - Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
 - You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
 - Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
