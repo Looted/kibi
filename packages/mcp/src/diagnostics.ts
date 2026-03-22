@@ -106,6 +106,47 @@ export interface ToolCallPayload {
   telemetry: Record<string, unknown> | null;
 }
 
+// implements REQ-002
+export function deriveDiagnosticFields(
+  toolName: string,
+  args: Record<string, unknown>,
+  telemetry: Record<string, unknown> | null,
+  result: unknown,
+): Record<string, unknown> {
+  const fields: Record<string, unknown> = {
+    telemetry_status: telemetry ? "provided" : "missing",
+  };
+
+  const structuredContent =
+    result && typeof result === "object" && "structuredContent" in result
+      ? (result as { structuredContent?: Record<string, unknown> }).structuredContent
+      : undefined;
+
+  if (toolName === "kb_query" || toolName === "kb_search") {
+    const resultCount = Number(structuredContent?.count ?? 0);
+    fields.result_count = resultCount;
+    fields.zero_results = resultCount === 0;
+    fields.result_summary =
+      resultCount === 0 ? "0 results" : `${resultCount} results`;
+  }
+
+  if (toolName === "kb_check") {
+    const violationCount = Number(structuredContent?.count ?? 0);
+    fields.violation_count = violationCount;
+    fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
+    fields.result_summary =
+      violationCount === 0
+        ? "0 violations"
+        : `${violationCount} violations`;
+  }
+
+  if (!fields.result_summary) {
+    fields.result_summary = `${toolName} completed`;
+  }
+
+  return fields;
+}
+
 /**
  * Extract business args and telemetry from tool call arguments.
  */

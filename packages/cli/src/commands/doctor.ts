@@ -250,7 +250,7 @@ function checkGitHooks(): {
   return {
     passed: false,
     message: "Partially installed",
-    remediation: "Run: kibi init --hooks",
+    remediation: "Run: kibi init",
   };
 }
 
@@ -279,7 +279,7 @@ function checkPreCommitHook(): {
     return {
       passed: false,
       message: "Not installed",
-      remediation: "Run: kibi init --hooks",
+      remediation: "Run: kibi init",
     };
   }
 
@@ -298,7 +298,7 @@ function checkPreCommitHook(): {
       return {
         passed: false,
         message: "pre-commit hook installed but does not invoke kibi",
-        remediation: "Run: kibi init --hooks to install recommended hooks",
+        remediation: "Run: kibi init to install recommended hooks",
       };
     }
 
@@ -316,7 +316,7 @@ function checkPreCommitHook(): {
         message:
           "Installed and executable (uses legacy 'kibi check' — consider running 'kibi init' to update hooks to use '--staged')",
         remediation:
-          "Run: kibi init --hooks to update git hooks to the latest template",
+          "Run: kibi init to update git hooks to the latest template",
       };
     }
 
@@ -329,7 +329,7 @@ function checkPreCommitHook(): {
     return {
       passed: false,
       message: "Unable to check hook permissions or read content",
-      remediation: "Run: kibi init --hooks",
+      remediation: "Run: kibi init",
     };
   }
 }
@@ -359,7 +359,7 @@ function checkPostRewriteHook(): {
     return {
       passed: false,
       message: "Not installed",
-      remediation: "Run: kibi init --hooks",
+      remediation: "Run: kibi init",
     };
   }
 
@@ -376,7 +376,7 @@ function checkPostRewriteHook(): {
       return {
         passed: false,
         message: "post-rewrite hook installed but does not invoke kibi",
-        remediation: "Run: kibi init --hooks to install recommended hooks",
+        remediation: "Run: kibi init to install recommended hooks",
       };
     }
 
@@ -396,7 +396,7 @@ function checkPostRewriteHook(): {
     return {
       passed: false,
       message: "Unable to check hook permissions or read content",
-      remediation: "Run: kibi init --hooks",
+      remediation: "Run: kibi init",
     };
   }
 }

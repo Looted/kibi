@@ -20,7 +20,8 @@
       "kibi-cli/schemas/relationship": [
         "../cli/dist/public/schemas/relationship"
       ],
-      "kibi-cli/schemas": ["../cli/dist/public/schemas"]
+      "kibi-cli/schemas": ["../cli/dist/public/schemas"],
+      "kibi-cli/search-ranking": ["../cli/dist/search-ranking"]
     }
   },
   "include": ["src/**/*"],

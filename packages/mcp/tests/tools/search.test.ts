@@ -1,0 +1,105 @@
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import type { PrologProcess } from "kibi-cli/prolog";
+import { handleKbSearch } from "../../src/tools/search.js";
+
+describe("MCP search tool handler", () => {
+  let workspaceRoot: string;
+  const originalWorkspace = process.env.KIBI_WORKSPACE;
+
+  beforeEach(async () => {
+    workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-search-"));
+    process.env.KIBI_WORKSPACE = workspaceRoot;
+    await fs.mkdir(path.join(workspaceRoot, "documentation", "requirements"), {
+      recursive: true,
+    });
+  });
+
+  afterEach(async () => {
+    if (originalWorkspace === undefined) {
+      Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
+    } else {
+      process.env.KIBI_WORKSPACE = originalWorkspace;
+    }
+    await fs.rm(workspaceRoot, { recursive: true, force: true });
+  });
+
+  test("ranks exact title matches ahead of markdown body matches", async () => {
+    await fs.writeFile(
+      path.join(workspaceRoot, "documentation", "requirements", "REQ-001.md"),
+      "---\nid: REQ-001\ntitle: OAuth login flow\nstatus: open\n---\n\nThe login body mentions approval.\n",
+    );
+
+    await fs.writeFile(
+      path.join(workspaceRoot, "documentation", "requirements", "REQ-002.md"),
+      "---\nid: REQ-002\ntitle: Session refresh\nstatus: open\n---\n\nThis markdown body talks about OAuth login flow in prose.\n",
+    );
+
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[REQ-001,req,[title="OAuth login flow",status=open,source="documentation/requirements/REQ-001.md"]],[REQ-002,req,[title="Session refresh",status=open,source="documentation/requirements/REQ-002.md"]]]',
+      },
+    }));
+
+    const prolog = { query } as unknown as PrologProcess;
+    const result = await handleKbSearch(prolog, { query: "OAuth login flow" });
+
+    expect(result.structuredContent?.count).toBe(2);
+    expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-001");
+    expect(result.structuredContent?.results[0]?.reasons).toContain(
+      "exact title match",
+    );
+  });
+
+  test("searches markdown bodies but does not search raw code bodies", async () => {
+    await fs.writeFile(
+      path.join(workspaceRoot, "documentation", "requirements", "REQ-003.md"),
+      "---\nid: REQ-003\ntitle: Searchable markdown\nstatus: open\nsource: documentation/requirements/REQ-003.md\n---\n\nThe body mentions latent discovery token.\n",
+    );
+
+    await fs.mkdir(path.join(workspaceRoot, "src"), { recursive: true });
+    await fs.writeFile(
+      path.join(workspaceRoot, "src", "hidden.ts"),
+      "export const secret = 'latent discovery token';\n",
+    );
+
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[REQ-003,req,[title="Searchable markdown",status=open,source="documentation/requirements/REQ-003.md"]],[SYM-hidden,symbol,[title="hidden",status=active,source="src/hidden.ts"]]]',
+      },
+    }));
+
+    const prolog = { query } as unknown as PrologProcess;
+    const result = await handleKbSearch(prolog, {
+      query: "latent discovery token",
+    });
+
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-003");
+  });
+
+  test("falls back to metadata matches when markdown source is missing", async () => {
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[REQ-404,req,[title="Missing source fallback",status=open,source="documentation/requirements/MISSING.md"]]]',
+      },
+    }));
+
+    const prolog = { query } as unknown as PrologProcess;
+    const result = await handleKbSearch(prolog, {
+      query: "Missing source fallback",
+    });
+
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-404");
+    expect(result.content[0]?.text).toContain("REQ-404");
+  });
+});

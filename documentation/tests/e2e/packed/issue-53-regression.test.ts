@@ -194,7 +194,7 @@ if (RUN_NODE_TEST_SUITE) {
       );
 
       it(
-        "installed kibi-mcp should list only the 4 public tools",
+        "installed kibi-mcp should list only the curated public tools",
         { timeout: 30000 },
         async () => {
           const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
@@ -246,15 +246,20 @@ if (RUN_NODE_TEST_SUITE) {
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
                 "kb_check",
+                "kb_coverage",
                 "kb_delete",
+                "kb_find_gaps",
+                "kb_graph",
                 "kb_query",
+                "kb_search",
+                "kb_status",
                 "kb_upsert",
               ];
 
               assert.deepStrictEqual(
                 toolNames,
                 expectedTools,
-                `MCP should expose exactly the 4 public tools, got: ${toolNames.join(", ")}`,
+                `MCP should expose the curated public tool surface, got: ${toolNames.join(", ")}`,
               );
 
               resolve();
