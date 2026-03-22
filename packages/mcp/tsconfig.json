@@ -9,6 +9,7 @@
     "outDir": "./dist",
     "rootDir": "src",
     "baseUrl": ".",
+    "types": ["node"],
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
       "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
