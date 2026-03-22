@@ -116,6 +116,27 @@ export interface CheckResult {
   };
 }
 
+function formatViolationText(violations: Violation[]): string {
+  if (violations.length === 0) {
+    return "No violations found";
+  }
+
+  const details = violations.map((violation) => {
+    const parts = [
+      violation.rule,
+      violation.entityId,
+      violation.source ?? "unknown-source",
+      violation.description,
+    ];
+    if (violation.suggestion) {
+      parts.push(`Suggestion: ${violation.suggestion}`);
+    }
+    return `- ${parts.join(" | ")}`;
+  });
+
+  return `${violations.length} violations found\n${details.join("\n")}`;
+}
+
 // implements REQ-002
 function loadChecksConfig(workspaceRoot: string): ChecksConfig {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
@@ -231,10 +252,7 @@ export async function handleKbCheck(
       suggestion: v.suggestion,
     }));
 
-    const summary =
-      aggregatedViolations.length === 0
-        ? "No violations found"
-        : `${aggregatedViolations.length} violations found`;
+    const summary = formatViolationText(aggregatedViolations);
 
     return {
       content: [

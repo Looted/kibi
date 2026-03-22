@@ -192,7 +192,17 @@ if (RUN_NODE_TEST_SUITE) {
       assert.ok(Array.isArray(tools));
       assert.deepStrictEqual(
         (tools as Array<{ name: string }>).map((tool) => tool.name),
-        ["kb_query", "kb_upsert", "kb_delete", "kb_check"],
+        [
+          "kb_query",
+          "kb_search",
+          "kb_status",
+          "kb_find_gaps",
+          "kb_coverage",
+          "kb_graph",
+          "kb_upsert",
+          "kb_delete",
+          "kb_check",
+        ],
       );
 
       const callLine = JSON.parse(

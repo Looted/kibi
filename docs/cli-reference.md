@@ -77,6 +77,60 @@ kibi query scenario --limit 10 --offset 10
 - Results are deterministically ordered
 - Type, ID, and tag filters can be combined
 
+## `kibi search <query>`
+
+Searches entity metadata and markdown body text for exploratory discovery.
+
+**Syntax:**
+```bash
+kibi search <query> [--type TYPE] [--format json|table] [--limit N] [--offset N]
+```
+
+**Notes:**
+- Searches markdown-backed knowledge and metadata
+- Does not search raw code file bodies
+- Use `kibi query` for exact follow-up lookups
+
+## `kibi status`
+
+Reports the current KB snapshot, branch, and freshness state.
+
+**Syntax:**
+```bash
+kibi status [--format json|table]
+```
+
+## `kibi gaps <type>`
+
+Runs curated missing/present relationship analysis.
+
+**Syntax:**
+```bash
+kibi gaps <type> [--missing-rel RELS] [--present-rel RELS] [--tag TAGS] [--source PATH] [--format json|table]
+```
+
+## `kibi coverage`
+
+Generates curated coverage reports.
+
+**Syntax:**
+```bash
+kibi coverage [--by req|symbol|type] [--tag TAGS] [--include-passing] [--no-include-transitive] [--format json|table]
+```
+
+**Notes:**
+- Requirement coverage summaries distinguish evaluated must-priority requirements from `not_applicable` rows.
+- `--include-passing` adds fully covered rows back into the result set.
+
+## `kibi graph`
+
+Runs bounded graph traversal from one or more seed IDs.
+
+**Syntax:**
+```bash
+kibi graph --from IDS [--relationships RELS] [--direction outgoing|incoming|both] [--depth N] [--entity-types TYPES] [--max-nodes N] [--max-edges N] [--format json|table]
+```
+
 ## `kibi check`
 
 Validates knowledge base integrity and runs inference rules.

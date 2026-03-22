@@ -3,7 +3,7 @@ id: REQ-opencode-kibi-plugin-v1
 title: "OpenCode Kibi Plugin v1: Prompt Guidance, Debounced Sync, Non-blocking UX"
 status: open
 created_at: 2026-03-13T00:00:00Z
-updated_at: 2026-03-22T00:00:00Z
+updated_at: 2026-03-22T12:30:00Z
 source: packages/opencode/
 priority: must
 owner: opencode-team
@@ -36,7 +36,7 @@ The OpenCode Kibi Plugin v1 must:
    - Requirement completeness (separate SCEN/TEST)
    - FACT-first domain knowledge routing
    - ADR chain awareness
-6. Emit loud warnings when agents attempt manual edits under `.kb/**`, directing them toward public MCP tools (`kb_query`, `kb_upsert`, `kb_delete`, `kb_check`).
+6. Emit loud warnings when agents attempt manual edits under `.kb/**`, directing them toward public MCP tools (`kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`, `kb_upsert`, `kb_delete`, `kb_check`).
 7. Detect and warn on invalid Kibi authoring patterns, such as embedded scenarios/tests in requirements.
 8. Run targeted validation checks after relevant KB-document edits as a background behavior (e.g., `kb_check` with specific rules like `must-priority-coverage,no-dangling-refs`).
 9. Detect uninitialized or weakly bootstrapped repos and nudge toward `/init-kibi` slash command, escalating to the user/operator if further setup is needed.
