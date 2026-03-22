@@ -3,7 +3,7 @@ id: SCEN-010
 title: Agent queries KB entities for a source file before editing it
 status: active
 created_at: 2026-02-20T10:35:00.000Z
-updated_at: 2026-02-20T10:35:00.000Z
+updated_at: 2026-03-22T10:35:00.000Z
 priority: must
 tags:
   - mcp
@@ -16,4 +16,4 @@ Steps:
 2. Agent calls `kb_query` with `sourceFile: "src/auth/login.ts"`.
 3. Kibi returns entities linked to that file (requirements, symbols, ADRs).
 4. Agent uses the context to understand what the file implements and what tests cover it.
-5. After editing, agent runs kibi sync to update the KB.
+5. If the change requires KB updates, the agent uses `kb_upsert` and `kb_check`; background maintenance is handled automatically.

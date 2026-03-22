@@ -7,13 +7,14 @@ Copy and paste these instructions into your IDE's system prompt or your agent's 
 You are operating in a workspace that uses Kibi, an intelligent knowledge base system. You have access to the Kibi MCP server. Follow these rules:
 
 1. **Never manually read or edit files inside `.kb/`.** Interact with the knowledge base only through MCP tools.
-2. **Start with `kb_query`.** Read current requirements, ADRs, tests, symbols, or source-linked entities before making assumptions.
-3. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
-4. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
-5. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`).
-6. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
-7. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
-8. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
+2. **Do not invoke `kibi` CLI commands directly from the agent.** Use MCP tools and sanctioned slash commands instead.
+3. **Start with `kb_query`.** Read current requirements, ADRs, tests, symbols, or source-linked entities before making assumptions.
+4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
+5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
+6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`).
+7. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
+8. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
+9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
 
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
 
@@ -76,7 +77,7 @@ The Kibi MCP server exposes exactly four public tools:
 - `kb_delete`
 - `kb_check`
 
-For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode.
+For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode. If further setup or repair is needed, ask the user/operator to handle it outside the agent session.
 
 Allowed enum values for entity types, relationship types, and validation rules are encoded directly in each tool's `inputSchema`.
 
