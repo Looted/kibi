@@ -77,6 +77,181 @@ const BASE_TOOLS = [
     },
   },
   {
+    name: "kb_search",
+    description:
+      "Search KB entities for discovery using metadata and markdown body text. Use for exploratory lookup before exact follow-up with kb_query. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      required: ["query"],
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "Free-text query for metadata and markdown body discovery. Example: 'OAuth login flow'.",
+        },
+        type: {
+          type: "string",
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
+          description:
+            "Optional entity type filter to narrow discovery. Example: 'req'.",
+        },
+        limit: {
+          type: "integer",
+          default: 20,
+          description:
+            "Optional max rows to return after ranking. Default: 20.",
+        },
+        offset: {
+          type: "integer",
+          default: 0,
+          description:
+            "Optional zero-based pagination offset. Default: 0.",
+        },
+      },
+    },
+  },
+  {
+    name: "kb_status",
+    description:
+      "Report current branch, snapshot, and freshness metadata for the attached KB. Read-only status inspection with no mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
+    name: "kb_find_gaps",
+    description:
+      "Run bulk missing/present relationship analysis over KB entities. Use for questions like which requirements lack scenarios or tests. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: {
+          type: "string",
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
+        },
+        missingRelationships: {
+          type: "array",
+          items: { type: "string" },
+        },
+        presentRelationships: {
+          type: "array",
+          items: { type: "string" },
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+        },
+        sourceFile: {
+          type: "string",
+        },
+        limit: {
+          type: "integer",
+          default: 100,
+        },
+        offset: {
+          type: "integer",
+          default: 0,
+        },
+      },
+    },
+  },
+  {
+    name: "kb_coverage",
+    description:
+      "Generate curated coverage reports for requirements, symbols, or grouped types. Read-only reporting with no mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        by: {
+          type: "string",
+          enum: ["req", "symbol", "type"],
+          default: "req",
+        },
+        tags: {
+          type: "array",
+          items: { type: "string" },
+        },
+        includePassing: {
+          type: "boolean",
+          default: false,
+        },
+        includeTransitive: {
+          type: "boolean",
+          default: true,
+        },
+        limit: {
+          type: "integer",
+          default: 100,
+        },
+        offset: {
+          type: "integer",
+          default: 0,
+        },
+      },
+    },
+  },
+  {
+    name: "kb_graph",
+    description:
+      "Run bounded graph traversal from one or more seed IDs across curated relationship types. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      required: ["seedIds"],
+      properties: {
+        seedIds: {
+          type: "array",
+          items: { type: "string" },
+        },
+        relationships: {
+          type: "array",
+          items: { type: "string" },
+        },
+        direction: {
+          type: "string",
+          enum: ["outgoing", "incoming", "both"],
+          default: "outgoing",
+        },
+        depth: {
+          type: "integer",
+          default: 1,
+          minimum: 1,
+          maximum: 5,
+        },
+        entityTypes: {
+          type: "array",
+          items: { type: "string" },
+        },
+        maxNodes: {
+          type: "integer",
+          default: 200,
+        },
+        maxEdges: {
+          type: "integer",
+          default: 500,
+        },
+      },
+    },
+  },
+  {
     name: "kb_upsert",
     description:
       "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",

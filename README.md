@@ -50,6 +50,11 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 
 ## Installation
 
+Kibi supports two common setups:
+
+- **Global install** for normal use across repositories
+- **Repo-local dogfood workflow** in this repository, where OpenCode and MCP use locally built artifacts
+
 ```bash
 # Using npm (recommended)
 npm install -g kibi-cli kibi-mcp
@@ -76,6 +81,14 @@ Add `kibi-opencode` to your project `opencode.json`:
 ```
 
 OpenCode installs npm plugins declared in `plugin` automatically at startup.
+
+### Repo-local dogfood workflow (this repo)
+
+This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
+
+```bash
+bun run build
+```
 
 ### VS Code MCP
 
@@ -110,11 +123,34 @@ kibi init
 # Parse markdown docs and symbols into branch KB
 kibi sync
 
+# Discover relevant knowledge before exact lookups
+kibi search auth
+
+# Inspect current branch snapshot and freshness
+kibi status
+
 # Run integrity checks
 kibi check
 ```
 
 > **Note:** `kibi init` installs git hooks by default. Hooks automatically sync your KB on branch checkout and merge.
+
+### Typical discovery workflow
+
+```bash
+# Explore the KB first
+kibi search login
+
+# Then follow up with exact/source-linked queries
+kibi query req --source src/auth/login.ts --format table
+
+# Check branch attachment and freshness when needed
+kibi status
+
+# Ask focused reporting questions
+kibi gaps req --missing-rel specified_by,verified_by --format table
+kibi coverage --by req --format table
+```
 
 ## Documentation
 

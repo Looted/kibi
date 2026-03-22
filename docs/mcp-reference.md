@@ -4,7 +4,7 @@ The Kibi Model Context Protocol (MCP) server is the primary interface for LLM ag
 
 ## Public Tools
 
-The public MCP surface is intentionally small. Agents can call exactly four tools:
+The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP.
 
 ### `kb_query`
 
@@ -20,6 +20,124 @@ Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and o
 
 **Returns:**
 Array of matching entities with deterministic ordering.
+
+**Example:**
+```json
+{
+  "type": "req",
+  "sourceFile": "src/auth/login.ts",
+  "limit": 20
+}
+```
+
+### `kb_search`
+
+Search entities by metadata and markdown body text for exploratory discovery.
+
+**Parameters:**
+- `query` (required): Free-text query
+- `type` (optional): Entity type filter
+- `limit` (optional): Maximum number of ranked results
+- `offset` (optional): Number of results to skip
+
+**Returns:**
+Ranked results with match reasons and optional snippets.
+
+**Example:**
+```json
+{
+  "query": "login flow",
+  "type": "req",
+  "limit": 10
+}
+```
+
+### `kb_status`
+
+Return branch, snapshot, and freshness metadata for the attached KB.
+
+**Returns:**
+Branch name, snapshot ID, sync state, dirty flag, and KB path metadata.
+
+**Example:**
+```json
+{}
+```
+
+### `kb_find_gaps`
+
+Run curated missing/present relationship analysis over KB entities.
+
+**Parameters:**
+- `type` (optional): Entity type filter
+- `missingRelationships` (optional): Required-to-be-absent relationship types
+- `presentRelationships` (optional): Required-to-be-present relationship types
+- `tags` (optional): Tag filter
+- `sourceFile` (optional): Source-file substring filter
+- `limit` / `offset` (optional): Pagination controls
+
+**Returns:**
+Matching rows, relationship counts, and status metadata.
+
+**Example:**
+```json
+{
+  "type": "req",
+  "missingRelationships": ["specified_by", "verified_by"],
+  "sourceFile": "src/auth"
+}
+```
+
+### `kb_coverage`
+
+Generate curated coverage reports.
+
+**Parameters:**
+- `by` (optional): `req`, `symbol`, or `type`
+- `tags` (optional): Tag filter
+- `includePassing` (optional): Include fully covered rows in report contexts that support it
+- `includeTransitive` (optional): Include transitive symbol coverage
+- `limit` / `offset` (optional): Pagination controls
+
+**Returns:**
+Coverage summary rows and status metadata.
+
+For requirement coverage, summaries distinguish evaluated must-priority requirements from rows marked `notApplicable`.
+
+**Example:**
+```json
+{
+  "by": "req",
+  "includePassing": false,
+  "includeTransitive": true
+}
+```
+
+### `kb_graph`
+
+Run bounded graph traversal from one or more seed IDs.
+
+**Parameters:**
+- `seedIds` (required): Starting IDs
+- `relationships` (optional): Relationship filter
+- `direction` (optional): `outgoing`, `incoming`, or `both`
+- `depth` (optional): Maximum traversal depth
+- `entityTypes` (optional): Filter returned nodes by type
+- `maxNodes` / `maxEdges` (optional): Traversal bounds
+
+**Returns:**
+Nodes, edges, truncation flag, and status metadata.
+
+**Example:**
+```json
+{
+  "seedIds": ["REQ-001"],
+  "direction": "both",
+  "depth": 2,
+  "maxNodes": 100,
+  "maxEdges": 200
+}
+```
 
 ### `kb_upsert`
 
@@ -49,7 +167,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 Run KB validation rules after mutations.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `no-dangling-refs`, `no-cycles`, `required-fields`, `symbol-coverage`)
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`)
 
 **Returns:**
 Validation report with any violations found and suggested fixes.
@@ -63,17 +181,19 @@ Validation report with any violations found and suggested fixes.
 ## Branch Behavior
 
 - The server attaches to the active git branch automatically at startup.
-- If the active branch KB does not exist, the server attempts to create it from an existing template branch KB (`develop` first, then `main`).
+- If the active branch KB does not exist, the server copies from the previously active branch KB when available; otherwise it creates an empty branch KB.
 - Branch KBs are revalidated and updated automatically on branch change—no server restart is required for normal branch operations.
 - You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
 - Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
 
 ## Recommended Agent Workflow
 
-1. **Gather Context**: Use `kb_query` to inspect existing requirements, ADRs, tests, or symbols.
-2. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
-3. **Validate**: Run `kb_check` after structural changes.
-4. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
+1. **Gather Context**: Use `kb_search` for discovery and `kb_query` for exact follow-up.
+2. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
+3. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+4. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
+5. **Validate**: Run `kb_check` after structural changes.
+6. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
 ## Error Handling
 

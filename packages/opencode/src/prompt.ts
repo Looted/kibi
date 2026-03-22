@@ -28,8 +28,9 @@ function buildContextualGuidance(context: PromptContext): string {
 The Kibi knowledge base is managed through public MCP tools and internal maintenance flows. Direct manual edits to files under .kb/** can cause inconsistencies and should be avoided.
 
 Instead:
+- Use kb_search to discover relevant entities
 - Use kb_upsert to create/update entities
-- Use kb_query to inspect the KB
+- Use kb_query for exact lookup and source-linked follow-up
 - Use kb_check to validate consistency
 `);
   }
@@ -42,7 +43,7 @@ This repository does not appear to have Kibi initialized. Agents should:
 - Use \`/init-kibi\` for retroactive bootstrap of existing repos (preferred MCP command)
 - Ask the user/operator to run setup or repair outside this session if \`/init-kibi\` is insufficient
 
-Do not run \`kibi\` CLI commands directly; use the MCP tools (kb_query, kb_upsert, kb_delete, kb_check).
+Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).
 `);
   }
 
@@ -97,9 +98,11 @@ This ensures behavior is documented and traceable.`;
           routingMessage = `📝 **Code changes detected**
 
 Before implementing or explaining code:
-1. **Query Kibi first** - Run kb_query by sourceFile to find related requirements, ADRs, tests, and symbols.
-2. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-3. **Add traceability** - Add traceability comments to new or modified functions/classes so the pre-commit hook can verify coverage (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python).`;
+1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
+2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
+3. **Check freshness when needed** - Run kb_status if you need branch or stale-state confirmation.
+4. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
+5. **Add traceability** - Add traceability comments to new or modified functions/classes so the pre-commit hook can verify coverage (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python).`;
       }
       parts.push(routingMessage);
     } else {
@@ -107,9 +110,11 @@ Before implementing or explaining code:
 📝 **Code changes detected**
 
 Before implementing or explaining code:
-1. **Query Kibi first** - Run kb_query by sourceFile to find related requirements, ADRs, tests, and symbols.
-2. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-3. **Add traceability** - Add traceability comments to new or modified functions/classes (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python) so the pre-commit hook can verify coverage.
+1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
+2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
+3. **Check freshness when needed** - Run kb_status if you need branch or stale-state confirmation.
+4. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
+5. **Add traceability** - Add traceability comments to new or modified functions/classes (e.g., \`// implements REQ-xxx\` in JS/TS or docstring references in Python) so the pre-commit hook can verify coverage.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
 - \`FACT\` for domain invariants, properties, limits, cardinalities
@@ -151,7 +156,7 @@ When editing KB documentation:
   if (parts.length === 1) {
     parts.push(`This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
-Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not rely on undocumented tools.
+Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
 Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
 
@@ -160,12 +165,14 @@ Run kb_check after KB mutations.
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
 **Kibi-first workflow:**
-1. **Discover**: Run kb_query with filters (sourceFile, type, tags) to find related requirements, ADRs, tests, and symbols.
-2. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
-3. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
-4. **Validate**: Run kb_check after KB mutations to catch violations early.
+1. **Discover**: Run kb_search to find relevant requirements, ADRs, tests, facts, and symbols.
+2. **Confirm**: Run kb_query with sourceFile, id, type, or tags once you know the exact follow-up target.
+3. **Inspect freshness**: Run kb_status when branch or stale-state confidence matters.
+4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
+5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
+6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+**Public Kibi tools only:** kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.
 
 Do not invoke Kibi CLI commands directly from the agent.
 
@@ -181,7 +188,7 @@ Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initializati
 const BASE_GUIDANCE = `${SENTINEL}
 This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
-Before changing behavior: query Kibi by sourceFile, id, type, or tags; do not rely on undocumented tools.
+Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
 Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
 
@@ -190,12 +197,14 @@ Run kb_check after KB mutations.
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
 **Kibi-first workflow:**
-1. **Discover**: Run kb_query with filters (sourceFile, type, tags) to find related requirements, ADRs, tests, and symbols.
-2. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
-3. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
-4. **Validate**: Run kb_check after KB mutations to catch violations early.
+1. **Discover**: Run kb_search to find relevant requirements, ADRs, tests, facts, and symbols.
+2. **Confirm**: Run kb_query with sourceFile, id, type, or tags once you know the exact follow-up target.
+3. **Inspect freshness**: Run kb_status when branch or stale-state confidence matters.
+4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
+5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
+6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_query, kb_upsert, kb_delete, kb_check.
+**Public Kibi tools only:** kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.
 
 Do not invoke Kibi CLI commands directly from the agent.
 

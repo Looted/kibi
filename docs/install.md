@@ -64,6 +64,14 @@ kibi --version
 kibi-mcp --help
 ```
 
+## Development / dogfood workflow for this repository
+
+This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
+
+```bash
+bun run build
+```
+
 ## Troubleshooting Installation
 
 ### Command Not Found
@@ -102,10 +110,23 @@ If you encounter problems with SWI-Prolog:
 
 After installing kibi and verifying SWI-Prolog:
 
-1. Initialize your project: `kibi init`
-2. Verify your environment: `kibi doctor`
+1. Verify your environment: `kibi doctor`
+2. Initialize your project: `kibi init`
 3. Import documentation: `kibi sync`
-4. Validate integrity: `kibi check`
+4. Explore the KB: `kibi search <query>`
+5. Inspect branch freshness: `kibi status`
+6. Validate integrity: `kibi check`
+
+Example:
+
+```bash
+kibi doctor
+kibi init
+kibi sync
+kibi search auth
+kibi status
+kibi check
+```
 
 For more details, see:
 - [Quick Start](../README.md#quick-start) - Brief getting started guide

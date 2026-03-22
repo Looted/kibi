@@ -22,12 +22,18 @@ import { z } from "zod";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
+  deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
+import { handleKbCoverage, type CoverageArgs } from "../tools/coverage.js";
 import { TOOLS } from "../tools-config.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
 import { type DeleteArgs, handleKbDelete } from "../tools/delete.js";
+import { handleKbFindGaps, type FindGapsArgs } from "../tools/find-gaps.js";
+import { handleKbGraph, type GraphArgs } from "../tools/graph.js";
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
+import { handleKbSearch, type SearchArgs } from "../tools/search.js";
+import { handleKbStatus, type StatusArgs } from "../tools/status.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
 import {
   activeBranchName,
@@ -240,6 +246,12 @@ function addTool(
         // Log usage in diagnostic mode
         if (DIAGNOSTIC_MODE_ENABLED) {
           const finishedAt = new Date();
+          const diagnosticFields = deriveDiagnosticFields(
+            name,
+            businessArgs,
+            telemetry,
+            result,
+          );
           appendUsageLogLine({
             timestamp: finishedAt.toISOString(),
             request_id: requestId,
@@ -252,6 +264,7 @@ function addTool(
             duration_ms: finishedAt.getTime() - startedAt.getTime(),
             prolog_pid: prologProcess?.getPid() ?? null,
             active_branch: activeBranchName,
+            ...diagnosticFields,
           });
         }
 
@@ -306,6 +319,7 @@ function addTool(
   );
 }
 
+// implements REQ-002, REQ-013
 export function registerAllTools(server: McpServer): void {
   const toolDef = (name: string) => {
     const t = ACTIVE_TOOLS.find((t) => t.name === name);
@@ -321,6 +335,61 @@ export function registerAllTools(server: McpServer): void {
     async (args) => {
       const prolog = await ensureProlog();
       return handleKbQuery(prolog, args as QueryArgs);
+    },
+  );
+
+  addTool(
+    server,
+    "kb_search",
+    toolDef("kb_search").description,
+    toolDef("kb_search").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbSearch(prolog, args as unknown as SearchArgs);
+    },
+  );
+
+  addTool(
+    server,
+    "kb_status",
+    toolDef("kb_status").description,
+    toolDef("kb_status").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbStatus(prolog, args as StatusArgs);
+    },
+  );
+
+  addTool(
+    server,
+    "kb_find_gaps",
+    toolDef("kb_find_gaps").description,
+    toolDef("kb_find_gaps").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbFindGaps(prolog, args as FindGapsArgs);
+    },
+  );
+
+  addTool(
+    server,
+    "kb_coverage",
+    toolDef("kb_coverage").description,
+    toolDef("kb_coverage").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbCoverage(prolog, args as CoverageArgs);
+    },
+  );
+
+  addTool(
+    server,
+    "kb_graph",
+    toolDef("kb_graph").description,
+    toolDef("kb_graph").inputSchema,
+    async (args) => {
+      const prolog = await ensureProlog();
+      return handleKbGraph(prolog, args as unknown as GraphArgs);
     },
   );
 

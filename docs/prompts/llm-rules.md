@@ -8,7 +8,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 
 1. **Never manually read or edit files inside `.kb/`.** Interact with the knowledge base only through MCP tools.
 2. **Do not invoke `kibi` CLI commands directly from the agent.** Use MCP tools and sanctioned slash commands instead.
-3. **Start with `kb_query`.** Read current requirements, ADRs, tests, symbols, or source-linked entities before making assumptions.
+3. **Start with `kb_search`, then follow with `kb_query`.** Use `kb_search` for discovery, then use `kb_query` for exact IDs, source-linked entities, and precise follow-up.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
 6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`).
@@ -70,9 +70,14 @@ when semantic relationships matter.
 
 ## Public MCP Surface
 
-The Kibi MCP server exposes exactly four public tools:
+The Kibi MCP server exposes a curated public tool surface:
 
+- `kb_search`
 - `kb_query`
+- `kb_status`
+- `kb_find_gaps`
+- `kb_coverage`
+- `kb_graph`
 - `kb_upsert`
 - `kb_delete`
 - `kb_check`
@@ -87,7 +92,8 @@ When you need information about the project:
 
 1. Use `kb_query` with `type` when you know the entity kind.
 2. Use `kb_query` with `id` for exact lookups.
-3. Use `kb_query` with `tags` or `sourceFile` for discovery.
+3. Use `kb_search` for exploratory discovery across metadata and markdown body text.
+4. Use `kb_query` with `tags` or `sourceFile` for precise follow-up once you know what to inspect.
 4. Paginate with `limit` and `offset` for large result sets.
 
 ## Creating and Updating Entities
@@ -125,9 +131,10 @@ Avoid these common mistakes:
 
 ## Before Starting Work
 
-1. Query for related requirements, ADRs, tests, and symbols with `kb_query`.
-2. Identify which entities will need creation or updates.
-3. Confirm exact IDs and relationship endpoints before writing.
+1. Discover related requirements, ADRs, tests, and symbols with `kb_search`.
+2. Confirm exact entities with `kb_query`.
+3. Identify which entities will need creation or updates.
+4. Confirm exact IDs and relationship endpoints before writing.
 
 ## During Development
 
@@ -146,23 +153,26 @@ Avoid these common mistakes:
 ### Creating a New Feature
 
 ```text
-1. Query existing requirements in the feature area with kb_query
-2. Create or update requirements via kb_upsert (include relationship rows)
-3. Run kb_check
+1. Use kb_search to discover existing requirements and related knowledge
+2. Use kb_query to confirm exact IDs and source-linked context
+3. Create or update requirements via kb_upsert (include relationship rows)
+4. Run kb_check
 ```
 
 ### Investigating an Issue
 
 ```text
-1. Use kb_query to find related requirements, ADRs, symbols, and tests
-2. Apply the smallest safe kb_upsert or kb_delete
-3. Run kb_check
+1. Use kb_search to discover related requirements, ADRs, symbols, and tests
+2. Use kb_query to confirm exact follow-up targets
+3. Apply the smallest safe kb_upsert or kb_delete
+4. Run kb_check
 ```
 
 ### Refactoring Code
 
 ```text
-1. Query existing symbol and requirement context with kb_query
-2. Update symbol entities and links via kb_upsert
-3. Run kb_check
+1. Discover symbol and requirement context with kb_search
+2. Confirm exact symbol and requirement targets with kb_query
+3. Update symbol entities and links via kb_upsert
+4. Run kb_check
 ```
