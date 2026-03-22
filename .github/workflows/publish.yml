@@ -296,8 +296,13 @@ jobs:
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
             pkg_name="${output#*=}"
-            echo "Publishing ${pkg_name}..."
-            (cd "${GITHUB_WORKSPACE}/packages/${pkg_dir}" && npm publish --provenance --access public)
+            tarball=$(ls "${GITHUB_WORKSPACE}/packages/${pkg_dir}"/*.tgz 2>/dev/null | head -1)
+            if [ -z "$tarball" ]; then
+              echo "No tarball found for ${pkg_name} in packages/${pkg_dir}/"
+              exit 1
+            fi
+            echo "Publishing ${pkg_name} from tarball: $(basename "$tarball")..."
+            npm publish "$tarball" --provenance --access public
           done <<< "$to_publish"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
