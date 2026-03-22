@@ -71,6 +71,10 @@
     "kibi-core": "^0.1.10",
     "ts-morph": "^23.0.0"
   },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "^5.7.0"
+  },
   "license": "AGPL-3.0-or-later",
   "author": "Piotr Franczyk",
   "repository": {
