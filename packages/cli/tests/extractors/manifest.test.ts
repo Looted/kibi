@@ -214,4 +214,61 @@ symbols:
 
     cleanup();
   });
+
+  test("extracts sourceFile field from manifest", () => {
+    const yaml = `
+symbols:
+  - id: symbol-with-sourcefile
+    title: Symbol With SourceFile
+    sourceFile: src/app.ts
+    status: active
+    links:
+      - REQ-001
+`;
+    const filePath = setupTestFile("test-sourcefile.yaml", yaml);
+
+    const results = extractFromManifest(filePath);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].sourceFile).toBe("src/app.ts");
+
+    cleanup();
+  });
+
+  test("falls back to source field when sourceFile is missing (legacy)", () => {
+    const yaml = `
+symbols:
+  - id: symbol-with-legacy-source
+    title: Symbol With Legacy Source
+    source: src/legacy.ts
+    status: active
+`;
+    const filePath = setupTestFile("test-legacy-source.yaml", yaml);
+
+    const results = extractFromManifest(filePath);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].sourceFile).toBe("src/legacy.ts");
+
+    cleanup();
+  });
+
+  test("prefers sourceFile over source when both are present", () => {
+    const yaml = `
+symbols:
+  - id: symbol-with-both
+    title: Symbol With Both Fields
+    sourceFile: src/correct.ts
+    source: src/wrong.ts
+    status: active
+`;
+    const filePath = setupTestFile("test-both-fields.yaml", yaml);
+
+    const results = extractFromManifest(filePath);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].sourceFile).toBe("src/correct.ts");
+
+    cleanup();
+  });
 });
