@@ -153,10 +153,11 @@ describe("hook contract", () => {
     );
   });
 
-  test("public tools only: mentions kb_query, kb_upsert, kb_delete, kb_check", () => {
+  test("public tools only: mentions curated public MCP tools", () => {
     const result = injectPrompt("", baseConfig);
 
     // Should mention public tools
+    assert.ok(result.includes("kb_search"), "Should mention kb_search");
     assert.ok(result.includes("kb_query"), "Should mention kb_query");
     assert.ok(result.includes("kb_upsert"), "Should mention kb_upsert");
     assert.ok(result.includes("kb_delete"), "Should mention kb_delete");

@@ -17,14 +17,12 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
-  escapeAtomContent,
-  parseEntityFromBinding,
-  parseEntityFromList,
-  parseListOfLists,
-  parsePrologValue,
-  parsePropertyList,
-  splitTopLevel,
-} from "kibi-cli/prolog/codec";
+  VALID_ENTITY_TYPES,
+  loadEntities,
+  paginateResults,
+} from "./entity-query.js";
+
+export { VALID_ENTITY_TYPES } from "./entity-query.js";
 
 export interface QueryArgs {
   type?: string;
@@ -43,17 +41,6 @@ export interface QueryResult {
   };
 }
 
-export const VALID_ENTITY_TYPES = [
-  "req",
-  "scenario",
-  "test",
-  "adr",
-  "flag",
-  "event",
-  "symbol",
-  "fact",
-];
-
 /**
  * Handle kb.query tool calls
  * Reuses query logic from CLI command
@@ -65,76 +52,8 @@ export async function handleKbQuery(
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = args;
 
   try {
-    let results: Record<string, unknown>[] = [];
-
-    // Validate type if provided
-    if (type) {
-      if (!VALID_ENTITY_TYPES.includes(type)) {
-        throw new Error(
-          `Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
-        );
-      }
-    }
-
-    // Build Prolog query
-    let goal: string;
-
-    if (sourceFile) {
-      const safeSource = escapeAtomContent(sourceFile);
-      if (type) {
-        const safeType = escapeAtomContent(type);
-        goal = `findall([Id,'${safeType}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${safeType}', Props)), Results)`;
-      } else {
-        goal = `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
-      }
-    } else if (id && type) {
-      const safeId = escapeAtomContent(id);
-      const safeType = escapeAtomContent(type);
-      goal = `findall(['${safeId}','${safeType}',Props], kb_entity('${safeId}', '${safeType}', Props), Results)`;
-    } else if (id) {
-      const safeId = escapeAtomContent(id);
-      goal = `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
-    } else if (tags && tags.length > 0) {
-      // JS-side fallback until REQ-mcp-tag-filtering-server-side is implemented.
-      if (type) {
-        const safeType = escapeAtomContent(type);
-        goal = `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
-      } else {
-        goal = "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
-      }
-    } else if (type) {
-      const safeType = escapeAtomContent(type);
-      goal = `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
-    } else {
-      goal = "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
-    }
-
-    const queryResult = await prolog.query(goal);
-
-    if (queryResult.success) {
-      if (queryResult.bindings.Results) {
-        const entitiesData = parseListOfLists(queryResult.bindings.Results);
-
-        for (const data of entitiesData) {
-          const entity = parseEntityFromList(data);
-          results.push(entity);
-        }
-      } else if (queryResult.bindings.Result) {
-        const entity = parseEntityFromBinding(queryResult.bindings.Result);
-        results = [entity];
-      }
-    } else {
-      throw new Error(queryResult.error || "Query failed with unknown error");
-    }
-
-    if (tags && tags.length > 0) {
-      results = dedupeEntities(
-        results.filter((entity) => hasAnyTag(entity, tags)),
-      );
-    }
-
-    // Apply pagination
-    const paginated = results.slice(offset, offset + limit);
+    const results = await loadEntities(prolog, { type, id, tags, sourceFile });
+    const paginated = paginateResults(results, limit, offset);
 
     // Build human-readable text with entity IDs and titles
     let text: string;
@@ -169,47 +88,4 @@ export async function handleKbQuery(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Query execution failed: ${message}`);
   }
-}
-
-function hasAnyTag(
-  entity: Record<string, unknown>,
-  requestedTags: string[],
-): boolean {
-  const expected = new Set(requestedTags.map(normalizeTagValue));
-  const rawTags = entity.tags;
-  if (!Array.isArray(rawTags) || rawTags.length === 0) {
-    return false;
-  }
-
-  for (const tag of rawTags) {
-    if (expected.has(normalizeTagValue(tag))) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-function normalizeTagValue(tag: unknown): string {
-  return String(tag).trim();
-}
-
-function dedupeEntities(
-  entities: Record<string, unknown>[],
-): Record<string, unknown>[] {
-  const seen = new Set<string>();
-  const deduped: Record<string, unknown>[] = [];
-
-  for (const entity of entities) {
-    const id = String(entity.id ?? "");
-    const type = String(entity.type ?? "");
-    const key = `${type}::${id}`;
-    if (seen.has(key)) {
-      continue;
-    }
-    seen.add(key);
-    deduped.push(entity);
-  }
-
-  return deduped;
 }
