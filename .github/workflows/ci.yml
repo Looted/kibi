@@ -248,3 +248,39 @@ jobs:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 15
+
+  publish-dry-run:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.6'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build CLI
+        run: bun run build:cli
+
+      - name: Build MCP
+        run: bun run build:mcp
+
+      - name: Pack all packages
+        run: |
+          cd packages/core && npm pack
+          cd ../cli && npm pack
+          cd ../mcp && npm pack
+          cd ../opencode && npm pack
+
+      - name: Verify tarballs exist and are non-empty
+        run: ls -lh packages/*/*.tgz
