@@ -357,7 +357,7 @@ const entities: EntityDef[] = [
     id: "SCEN-002",
     properties: {
       title:
-        "Developer initializes KB on fresh repository with kibi init --hooks",
+        "Developer initializes KB on fresh repository with kibi init",
       status: "passing",
       source: "README.md",
       tags: ["init", "setup"],

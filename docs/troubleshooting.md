@@ -56,9 +56,9 @@ If `kibi doctor` reports missing git hooks:
 
 1. **Reinstall hooks:**
    ```bash
-   kibi init --hooks
+   kibi init
    ```
-   This explicitly reinstalls the hooks (pre-commit, post-checkout, post-merge, post-rewrite).
+   This reinstalls the hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default.
 
 2. **Verify hooks are executable:**
    ```bash
@@ -91,14 +91,14 @@ If git operations don't trigger kibi hooks:
 
 3. **Reinstall hooks:**
    ```bash
-   kibi init --hooks
+   kibi init
    ```
 
 ### Hook Conflicts
 
 If you have existing git hooks that conflict with kibi:
 
-**Warning:** The `--hooks` flag overwrites existing hooks. Make sure to back up your hooks first.
+**Warning:** Re-running `kibi init` overwrites Kibi-managed hooks. Make sure to back up custom hook logic first.
 
 1. **Backup existing hooks:**
    ```bash
@@ -110,7 +110,7 @@ If you have existing git hooks that conflict with kibi:
 
 2. **Install kibi hooks:**
    ```bash
-   kibi init --hooks
+   kibi init
    ```
 
 3. **Manually merge (if needed):**
@@ -191,7 +191,7 @@ For installation issues, see [install guide](install.md).
 |--------|-----------|----------------|
 | KB corruption on upgrade | `kibi doctor` | Delete `.kb/branches` and `kibi sync` |
 | Dangling references | Update source files with correct IDs | Verify and `kibi sync` |
-| Hooks not working | `kibi doctor` | `kibi init --hooks` |
+| Hooks not working | `kibi doctor` | `kibi init` |
 | Sync finds no docs | Check `config.json` paths | Verify files exist at paths |
 | SWI-Prolog errors | Check version | Reinstall SWI-Prolog per [install guide](install.md) |
 

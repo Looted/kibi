@@ -116,7 +116,7 @@ This applies to TypeScript (`.ts`, `.tsx`) and JavaScript (`.js`, `.jsx`) files 
 
 ### How the pre-commit hook works
 
-If you ran `kibi init --hooks`, a pre-commit hook will automatically check your staged changes for missing requirement links. If any new or modified symbols are not linked to a requirement, your commit will be blocked with an error message. To proceed, add the appropriate `implements REQ-xxx` directive to your code.
+If you ran `kibi init`, a pre-commit hook will automatically check your staged changes for missing requirement links. If any new or modified symbols are not linked to a requirement, your commit will be blocked with an error message. To proceed, add the appropriate `implements REQ-xxx` directive to your code.
 
 You can test your staged changes manually with:
 
