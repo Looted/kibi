@@ -49,11 +49,13 @@ describe("prompt", () => {
     assert.equal(result, "hello");
   });
 
-  test("guidance mentions only public Kibi tools", () => {
+  test("guidance mentions curated public Kibi tools", () => {
     const result = injectPrompt("", baseConfig);
 
     // Should mention public tools
+    assert.ok(result.includes("kb_search"), "Should mention kb_search");
     assert.ok(result.includes("kb_query"), "Should mention kb_query");
+    assert.ok(result.includes("kb_status"), "Should mention kb_status");
     assert.ok(result.includes("kb_upsert"), "Should mention kb_upsert");
     assert.ok(result.includes("kb_delete"), "Should mention kb_delete");
     assert.ok(result.includes("kb_check"), "Should mention kb_check");
@@ -156,7 +158,8 @@ describe("prompt", () => {
       "Should NOT contain 'kibi doctor' CLI command",
     );
     assert.ok(
-      result.includes("kb_query") ||
+      result.includes("kb_search") ||
+        result.includes("kb_query") ||
         result.includes("kb_upsert") ||
         result.includes("kb_check") ||
         result.includes("kb_delete"),

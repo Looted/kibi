@@ -20,10 +20,15 @@ import { readFileSync } from "node:fs";
 import { Command } from "commander";
 import { branchEnsureCommand } from "./commands/branch.js";
 import { checkCommand } from "./commands/check.js";
+import { coverageCommand } from "./commands/coverage.js";
 import { doctorCommand } from "./commands/doctor.js";
+import { gapsCommand } from "./commands/gaps.js";
 import { gcCommand } from "./commands/gc.js";
+import { graphCommand } from "./commands/graph.js";
 import { initCommand } from "./commands/init.js";
 import { queryCommand } from "./commands/query.js";
+import { searchCommand } from "./commands/search.js";
+import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
 
 const packageJson = JSON.parse(
@@ -70,6 +75,68 @@ program
   .option("--offset <n>", "Skip results", "0")
   .action(async (type, options) => {
     await queryCommand(type, options);
+  });
+
+program
+  .command("search [query]")
+  .description("Search knowledge base metadata and markdown content")
+  .option("--type <type>", "Filter by entity type")
+  .option("--format <format>", "Output format: json|table", "table")
+  .option("--limit <n>", "Limit results", "20")
+  .option("--offset <n>", "Skip results", "0")
+  .action(async (query, options) => {
+    await searchCommand(query, options);
+  });
+
+program
+  .command("status")
+  .description("Show KB snapshot and freshness metadata")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(async (options) => {
+    await statusCommand(options);
+  });
+
+program
+  .command("gaps [type]")
+  .description("Find entities missing or present on selected relationships")
+  .option("--missing-rel <rels>", "Comma-separated missing relationship filters")
+  .option("--present-rel <rels>", "Comma-separated present relationship filters")
+  .option("--tag <tags>", "Comma-separated tag filter")
+  .option("--source <path>", "Source file substring filter")
+  .option("--limit <n>", "Limit results", "100")
+  .option("--offset <n>", "Skip results", "0")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(async (type, options) => {
+    await gapsCommand(type, options);
+  });
+
+program
+  .command("coverage")
+  .description("Generate curated coverage reports")
+  .option("--by <group>", "Coverage mode: req|symbol|type", "req")
+  .option("--tag <tags>", "Comma-separated tag filter")
+  .option("--include-passing", "Include passing rows", false)
+  .option("--no-include-transitive", "Disable transitive symbol coverage")
+  .option("--limit <n>", "Limit results", "100")
+  .option("--offset <n>", "Skip results", "0")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(async (options) => {
+    await coverageCommand(options);
+  });
+
+program
+  .command("graph")
+  .description("Traverse the KB graph from one or more seed IDs")
+  .option("--from <ids>", "Comma-separated seed IDs")
+  .option("--relationships <rels>", "Comma-separated relationship filter")
+  .option("--direction <direction>", "Direction: outgoing|incoming|both", "outgoing")
+  .option("--depth <n>", "Traversal depth", "1")
+  .option("--entity-types <types>", "Comma-separated entity type filter")
+  .option("--max-nodes <n>", "Maximum node count", "200")
+  .option("--max-edges <n>", "Maximum edge count", "500")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(async (options) => {
+    await graphCommand(options);
   });
 
 program

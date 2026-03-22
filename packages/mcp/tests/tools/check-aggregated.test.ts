@@ -46,6 +46,10 @@ describe("MCP check aggregated path", () => {
     expect(result.structuredContent?.violations[0]?.rule).toBe(
       "required-fields",
     );
+    expect(result.content[0]?.text).toContain("required-fields");
+    expect(result.content[0]?.text).toContain("REQ-001");
+    expect(result.content[0]?.text).toContain("requirements/REQ-001.md");
+    expect(result.content[0]?.text).toContain("Add source to entity definition");
 
     expect(query).toHaveBeenCalledTimes(1);
     const firstCallGoal = (query as unknown as { mock: { calls: string[][] } })

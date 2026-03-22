@@ -241,9 +241,14 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(4);
+    expect(tools.length).toBe(9);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
+      "kb_search",
+      "kb_status",
+      "kb_find_gaps",
+      "kb_coverage",
+      "kb_graph",
       "kb_upsert",
       "kb_delete",
       "kb_check",
@@ -447,7 +452,7 @@ describe("MCP Server", () => {
     const developKb = path.join(tempRoot, ".kb/branches/develop");
     writeEmptyKbSnapshot(developKb);
 
-    const proc = startServer({ cwd: tempRoot });
+    const proc = startServer({ cwd: tempRoot, env: { KIBI_WORKSPACE: tempRoot } });
 
     try {
       await sendRequest(proc, {
@@ -570,9 +575,7 @@ describe("MCP Server", () => {
           30000,
         );
         expect(upsert.error).toBeUndefined();
-        const upsertResult = upsert.result as
-          | Record<string, unknown>
-          | undefined;
+        const upsertResult = upsert.result as Record<string, unknown> | undefined;
         expect(upsertResult?.isError).not.toBe(true);
 
         const queryById = await sendRequest(
@@ -640,6 +643,94 @@ describe("MCP Server", () => {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 180000);
+
+  test("should let kb_status observe MCP writes in the same server session", async () => {
+    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-status-live-"));
+    const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+
+    execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+    execSync('git config user.email "test@example.com"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    execSync('git config user.name "Kibi Test"', {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    execSync(`bun ${kibiBin} init --no-hooks`, {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+    fs.mkdirSync(path.join(tempRoot, "documentation", "requirements"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-BASE.md"),
+      "---\nid: REQ-LIVE-BASE\ntitle: Live session baseline\nstatus: open\n---\n",
+    );
+    execSync(`bun ${kibiBin} sync`, {
+      cwd: tempRoot,
+      stdio: "ignore",
+    });
+
+    const proc = startServer({ cwd: tempRoot });
+
+    try {
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+      proc.stdin?.write(
+        `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+      );
+
+      const before = await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_status",
+          arguments: {},
+        },
+      });
+
+      const beforeResult = before.result as Record<string, unknown> | undefined;
+      const beforeStructured = beforeResult?.structuredContent as Record<string, unknown> | undefined;
+      expect((beforeResult?.isError as boolean | undefined) ?? false).toBe(false);
+      expect(beforeStructured?.dirty).toBe(false);
+      expect(beforeStructured?.syncState).toBe("fresh");
+
+      fs.writeFileSync(
+        path.join(tempRoot, "documentation", "requirements", "REQ-LIVE-001.md"),
+        "---\nid: REQ-LIVE-001\ntitle: Live session status\nstatus: open\n---\n",
+      );
+
+      const after = await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: {
+          name: "kb_status",
+          arguments: {},
+        },
+      });
+
+      const afterResult = after.result as Record<string, unknown> | undefined;
+      const afterStructured = afterResult?.structuredContent as Record<string, unknown> | undefined;
+      expect((afterResult?.isError as boolean | undefined) ?? false).toBe(false);
+      expect(afterStructured?.dirty).toBe(true);
+      expect(afterStructured?.syncState).toBe("stale");
+    } finally {
+      await killServer(proc);
+      fs.rmSync(tempRoot, { recursive: true, force: true });
+    }
+  }, 30000);
 
   test("should create usage.log when --diagnostic-mode is enabled", async () => {
     const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-diag-"));
@@ -732,6 +823,10 @@ describe("MCP Server", () => {
       expect(lastLine.tool).toBe("kb_query");
       expect(lastLine.telemetry).toBeDefined();
       expect(lastLine.telemetry.is_autonomous).toBe(true);
+      expect(lastLine.telemetry_status).toBe("provided");
+      expect(lastLine.result_count).toBe(0);
+      expect(lastLine.zero_results).toBe(true);
+      expect(typeof lastLine.result_summary).toBe("string");
     } finally {
       await killServer(proc);
       fs.rmSync(tempRoot, { recursive: true, force: true });
