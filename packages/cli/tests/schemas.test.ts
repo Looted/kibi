@@ -179,3 +179,108 @@ describe("Changeset Schema", () => {
     expect(validate(cs)).toBe(false);
   });
 });
+
+describe("Future Strict Fact Model Schema (RED: pending implementation)", () => {
+  test("should accept strict fact with future normalized fields (currently fails)", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    // Future strict fact model fields based on design doc
+    const strictFact = {
+      id: "FACT-SESSION-TIMEOUT-30",
+      title: "Session timeout is 30 minutes",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-SESSION-TIMEOUT-30.md",
+      type: "fact",
+      // Future strict fact model fields
+      fact_kind: "property_value", // property_value | observation | constraint | meta
+      subject_key: "user.session",
+      property_key: "timeout_minutes",
+      operator: "eq", // eq | lt | gt | lte | gte | ne | in | not_in
+      value_type: "int", // int | string | bool | float | enum | timestamp
+      value_int: 30,
+      value_string: null,
+      unit: "minutes",
+      scope: "global", // global | tenant | user | session
+      polarity: "positive", // positive | negative
+      canonical_key: "user.session.timeout_minutes.eq.30",
+    };
+
+    // RED TEST: Should validate successfully once strict fact model is implemented.
+    // Currently FAILS because additionalProperties is false and rejects unknown fields.
+    const isValid = validate(strictFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("should accept strict fact with value_string instead of value_int", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const strictFactWithString = {
+      id: "FACT-USER-TYPE-ADMIN",
+      title: "User type can be admin",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-USER-TYPE-ADMIN.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.type",
+      property_key: "allowed_value",
+      operator: "eq",
+      value_type: "string",
+      value_int: null,
+      value_string: "admin",
+      unit: null,
+      scope: "global",
+      polarity: "positive",
+      canonical_key: "user.type.allowed_value.eq.admin",
+    };
+
+    // RED TEST: Should validate successfully once strict fact model is implemented.
+    // Currently FAILS because additionalProperties is false and rejects unknown fields.
+    const isValid = validate(strictFactWithString);
+    expect(isValid).toBe(true);
+  });
+
+  test("should accept observation fact with required observation fields", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const observationFact = {
+      id: "FACT-OBS-SESSION-001",
+      title: "Observed session count on 2024-01-01",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-OBS-SESSION-001.md",
+      type: "fact",
+      fact_kind: "observation",
+      subject_key: "system.sessions",
+      property_key: "active_count",
+      operator: "eq",
+      value_type: "int",
+      value_int: 150,
+      observed_at: "2024-01-01T12:00:00Z",
+      observer: "metrics-collector",
+      confidence: 0.95,
+      sample_size: 1000,
+      scope: "global",
+      polarity: "positive",
+      canonical_key: "system.sessions.active_count.eq.150",
+    };
+
+    // RED TEST: Should validate successfully once strict fact model is implemented.
+    // Currently FAILS because additionalProperties is false and rejects unknown fields.
+    const isValid = validate(observationFact);
+    expect(isValid).toBe(true);
+  });
+});
