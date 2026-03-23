@@ -1134,4 +1134,43 @@ source: custom/REQ-CUSTOM-001.md
     },
     TEST_TIMEOUT_MS,
   );
+
+
+  test(
+    "should detect malformed strict fact when strict-fact-shape rule enabled (RED: pending implementation)",
+    async () => {
+      // RED TEST: Documents expected CLI behavior for future strict-fact-shape rule.
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-MALFORMED-001.md"),
+        `---
+id: FACT-MALFORMED-001
+title: Malformed Fact
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-MALFORMED-001.md
+---
+Content
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-fact-shape"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      // EXPECTED: Should fail once strict-fact-shape rule is implemented
+      expect(status).toBe(1);
+      expect(output).toContain("strict-fact-shape");
+    },
+    TEST_TIMEOUT_MS,
+  );
 });
