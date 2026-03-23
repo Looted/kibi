@@ -5,6 +5,7 @@ import {
   detectEmbeddedEntities,
   extractFromMarkdown,
   inferTypeFromPath,
+  normalizeDateLike,
 } from "../../src/extractors/markdown";
 
 describe("Markdown Extractor", () => {
@@ -448,6 +449,268 @@ links:
         "req",
       );
       expect(result).toContain("test");
+    });
+  });
+
+  describe("normalizeDateLike", () => {
+    test("returns ISO string for Date objects", () => {
+      const date = new Date("2026-03-23T10:00:00Z");
+      const result = normalizeDateLike(date);
+      expect(result).toBe("2026-03-23T10:00:00.000Z");
+    });
+
+    test("returns string as-is for string input", () => {
+      const isoString = "2026-03-23T10:00:00Z";
+      const result = normalizeDateLike(isoString);
+      expect(result).toBe(isoString);
+    });
+
+    test("returns undefined for undefined input", () => {
+      const result = normalizeDateLike(undefined);
+      expect(result).toBeUndefined();
+    });
+
+    test("returns undefined for null input", () => {
+      const result = normalizeDateLike(null);
+      expect(result).toBeUndefined();
+    });
+
+    test("handles Date objects with milliseconds correctly", () => {
+      const date = new Date("2026-03-23T10:00:00.123Z");
+      const result = normalizeDateLike(date);
+      expect(result).toBe("2026-03-23T10:00:00.123Z");
+    });
+  });
+
+  describe("Typed Fact Extraction", () => {
+    test("extracts typed fact with value_int and closed_world", () => {
+      const tempFile = "/tmp/facts/test-typed-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-001
+title: Maximum Retry Attempts
+type: fact
+value_int: 30
+closed_world: true
+---
+# Maximum Retry Attempts
+
+The system allows a maximum of 30 retry attempts.
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.id).toBe("FACT-001");
+        expect(result.entity.title).toBe("Maximum Retry Attempts");
+        expect(result.entity.value_int).toBe(30);
+        expect(result.entity.closed_world).toBe(true);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("normalizes Date objects to ISO strings for timestamps", () => {
+      const tempFile = "/tmp/facts/test-datetime-normalization.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-002
+title: Fact with Dates
+type: fact
+created_at: 2026-03-23T10:00:00Z
+updated_at: 2026-03-23T11:30:00Z
+valid_from: 2026-03-23T00:00:00Z
+valid_to: 2026-12-31T23:59:59Z
+---
+# Fact with Dates
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.created_at).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+        );
+        expect(result.entity.updated_at).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+        );
+        expect(result.entity.valid_from).toBe("2026-03-23T00:00:00.000Z");
+        expect(result.entity.valid_to).toBe("2026-12-31T23:59:59.000Z");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("does not inject null fields for absent value siblings", () => {
+      const tempFile = "/tmp/facts/test-no-null-injection.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-003
+title: Fact with Only value_int
+type: fact
+value_int: 42
+---
+# Fact with Only value_int
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_int).toBe(42);
+        // Should NOT have value_str, value_bool, value_json, value_ref
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_str"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_bool"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_json"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_ref"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts string value correctly", () => {
+      const tempFile = "/tmp/facts/test-value-str.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-004
+title: Fact with String Value
+type: fact
+value_str: "hello world"
+---
+# Fact with String Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_str).toBe("hello world");
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_int"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts boolean value correctly", () => {
+      const tempFile = "/tmp/facts/test-value-bool.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-005
+title: Fact with Boolean Value
+type: fact
+value_bool: false
+---
+# Fact with Boolean Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_bool).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts JSON value correctly", () => {
+      const tempFile = "/tmp/facts/test-value-json.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-006
+title: Fact with JSON Value
+type: fact
+value_json:
+  key: value
+  nested:
+    foo: bar
+---
+# Fact with JSON Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_json).toEqual({
+          key: "value",
+          nested: { foo: "bar" },
+        });
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts reference value correctly", () => {
+      const tempFile = "/tmp/facts/test-value-ref.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-007
+title: Fact with Reference
+type: fact
+value_ref: REQ-001
+---
+# Fact with Reference
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_ref).toBe("REQ-001");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("does not attach typed fact fields to non-fact entities", () => {
+      const tempFile = "/tmp/requirements/test-req-no-fact-fields.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-TEST
+title: Test Requirement
+value_int: 999
+closed_world: true
+---
+# Test Requirement
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("req");
+        // Should NOT have fact-specific fields even if present in frontmatter
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_int"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "closed_world"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
     });
   });
 });
