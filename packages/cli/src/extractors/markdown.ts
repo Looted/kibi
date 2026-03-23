@@ -33,6 +33,15 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  // Typed fact fields - only present when type === 'fact'
+  value_int?: number;
+  value_str?: string;
+  value_bool?: boolean;
+  value_json?: unknown;
+  value_ref?: string;
+  closed_world?: boolean;
+  valid_from?: string;
+  valid_to?: string;
 }
 
 export interface ExtractedRelationship {
@@ -230,21 +239,48 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
       }
     }
 
+    // Build base entity with explicit field list
+    const entity: ExtractedEntity = {
+      id,
+      type,
+      title: data.title,
+      status: data.status || DEFAULT_STATUS_BY_TYPE[String(type)] || "active",
+      created_at:
+        normalizeDateLike(data.created_at) || new Date().toISOString(),
+      updated_at:
+        normalizeDateLike(data.updated_at) || new Date().toISOString(),
+      source: filePath,
+    };
+
+    // Add optional base fields only if present
+    if (data.tags !== undefined) entity.tags = data.tags;
+    if (data.owner !== undefined) entity.owner = data.owner;
+    if (data.priority !== undefined) entity.priority = data.priority;
+    if (data.severity !== undefined) entity.severity = data.severity;
+    if (data.text_ref !== undefined) entity.text_ref = data.text_ref;
+
+    // Add typed fact fields only for fact entities
+    if (type === "fact") {
+      // Only attach value fields that are actually present (no null injection)
+      if (data.value_int !== undefined) entity.value_int = data.value_int;
+      if (data.value_str !== undefined) entity.value_str = data.value_str;
+      if (data.value_bool !== undefined) entity.value_bool = data.value_bool;
+      if (data.value_json !== undefined) entity.value_json = data.value_json;
+      if (data.value_ref !== undefined) entity.value_ref = data.value_ref;
+
+      // Add other fact-specific fields
+      if (data.closed_world !== undefined)
+        entity.closed_world = data.closed_world;
+      if (data.valid_from !== undefined) {
+        entity.valid_from = normalizeDateLike(data.valid_from);
+      }
+      if (data.valid_to !== undefined) {
+        entity.valid_to = normalizeDateLike(data.valid_to);
+      }
+    }
+
     return {
-      entity: {
-        id,
-        type,
-        title: data.title,
-        status: data.status || DEFAULT_STATUS_BY_TYPE[String(type)] || "active",
-        created_at: data.created_at || new Date().toISOString(),
-        updated_at: data.updated_at || new Date().toISOString(),
-        source: filePath,
-        tags: data.tags,
-        owner: data.owner,
-        priority: data.priority,
-        severity: data.severity,
-        text_ref: data.text_ref,
-      },
+      entity,
       relationships,
     };
   } catch (error) {
@@ -315,4 +351,15 @@ function generateId(filePath: string, title: string): string {
   const hash = createHash("sha256");
   hash.update(`${filePath}:${title}`);
   return hash.digest("hex").substring(0, 16);
+}
+
+// implements REQ-007
+export function normalizeDateLike(value: unknown): string | undefined {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  return undefined;
 }
