@@ -11,12 +11,15 @@ VS Code extension for Kibi knowledge base system, providing TreeView visualizati
 
 ## Installation
 
-### From VSIX Package
+### From GitHub Releases
 
-1. Download the latest `kibi-vscode-x.x.x.vsix` file
-2. Open VS Code Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
-3. Run `Extensions: Install from VSIX...`
-4. Select the downloaded VSIX file
+1. Go to the [GitHub Releases](https://github.com/Looted/kibi/releases) page
+2. Download the latest `kibi-vscode-x.x.x.vsix` attached to any release
+3. Install via one of:
+   - **Command Palette**: `Ctrl+Shift+P` → `Extensions: Install from VSIX...` → select the file
+   - **CLI**: `code --install-extension kibi-vscode-x.x.x.vsix`
+
+Every GitHub release includes the latest VS Code extension build as a `.vsix` artifact.
 
 ### Development Installation
 
