@@ -33,6 +33,22 @@ export function toPrologAtom(value: string): string {
 }
 
 /**
+ * Escape a string value for use inside a Prolog double-quoted string literal.
+ * Escapes: backslash, double-quote, newline, carriage-return, tab.
+ * Returns the full quoted literal including surrounding double-quotes.
+ */
+export function toPrologString(value: string): string {
+  // implements REQ-009
+  const escaped = value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
+  return `"${escaped}"`;
+}
+
+/**
  * Escape a string for embedding inside a single-quoted Prolog atom.
  * Alias for escapeAtom for semantic clarity.
  */
@@ -325,26 +341,44 @@ export function parsePrologValue(valueInput: string): unknown {
  * General-purpose split at top level (not inside brackets or quotes).
  * More robust version used by property parsing.
  */
-function splitTopLevelGeneral(str: string, delimiter: string): string[] {
+export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
+  // implements REQ-009
   const results: string[] = [];
   let current = "";
   let depth = 0;
-  let inQuotes = false;
+  let inDoubleQuotes = false;
+  let inSingleQuotes = false;
 
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
     const prevChar = i > 0 ? str[i - 1] : "";
 
-    if (char === '"' && prevChar !== "\\") {
-      inQuotes = !inQuotes;
+    if (char === '"' && !inSingleQuotes && prevChar !== "\\") {
+      inDoubleQuotes = !inDoubleQuotes;
       current += char;
-    } else if (!inQuotes && (char === "[" || char === "(")) {
+    } else if (char === "'" && !inDoubleQuotes && prevChar !== "\\") {
+      inSingleQuotes = !inSingleQuotes;
+      current += char;
+    } else if (
+      !inDoubleQuotes &&
+      !inSingleQuotes &&
+      (char === "[" || char === "(")
+    ) {
       depth++;
       current += char;
-    } else if (!inQuotes && (char === "]" || char === ")")) {
+    } else if (
+      !inDoubleQuotes &&
+      !inSingleQuotes &&
+      (char === "]" || char === ")")
+    ) {
       depth--;
       current += char;
-    } else if (!inQuotes && depth === 0 && char === delimiter) {
+    } else if (
+      !inDoubleQuotes &&
+      !inSingleQuotes &&
+      depth === 0 &&
+      char === delimiter
+    ) {
       if (current) {
         results.push(current);
         current = "";
@@ -501,6 +535,66 @@ function unwrapList(value: string): string {
     return value.slice(1, -1).trim();
   }
   return value;
+}
+
+/**
+ * Parsed violation from Prolog check output.
+ */
+export interface ParsedViolation {
+  rule: string;
+  entityId: string;
+  description: string;
+  suggestion: string;
+  source?: string;
+}
+
+/**
+ * Parse a Prolog list of violation/5 terms into JavaScript objects.
+ * Handles descriptions and suggestions that contain commas or nested parens.
+ * Input: "[violation(rule,'EntityId',\"Desc\",\"Sugg\",'src')]"
+ */
+export function parseViolationRows(raw: string): ParsedViolation[] {
+  // implements REQ-006
+  const trimmed = raw.trim();
+  if (trimmed === "[]" || trimmed.length === 0) {
+    return [];
+  }
+
+  const violations: ParsedViolation[] = [];
+
+  // Unwrap outer list
+  const content =
+    trimmed.startsWith("[") && trimmed.endsWith("]")
+      ? trimmed.slice(1, -1)
+      : trimmed;
+
+  // Split at top-level commas to get individual violation(...) terms
+  const terms = splitTopLevelGeneral(content, ",");
+
+  for (const term of terms) {
+    const t = term.trim();
+    if (!t.startsWith("violation(") || !t.endsWith(")")) continue;
+
+    // Strip "violation(" prefix and trailing ")"
+    const inner = t.slice("violation(".length, -1);
+
+    // Split the 5 arguments at top-level commas
+    const parts = splitTopLevelGeneral(inner, ",");
+    if (parts.length < 4) continue;
+
+    const rule = parts[0].trim().replace(/^'|'$/g, "");
+    const entityId = parts[1].trim().replace(/^'|'$/g, "");
+    const description = parts[2].trim().replace(/^"|"$/g, "");
+    const suggestion = parts[3].trim().replace(/^"|"$/g, "");
+    const source =
+      parts.length >= 5
+        ? parts[4].trim().replace(/^'|'$/g, "") || undefined
+        : undefined;
+
+    violations.push({ rule, entityId, description, suggestion, source });
+  }
+
+  return violations;
 }
 
 /**
