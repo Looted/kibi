@@ -50,7 +50,32 @@
         "symbol",
         "fact"
       ]
-    }
+    },
+    "fact_kind": {
+      "type": "string",
+      "enum": ["subject", "property_value", "observation", "meta"]
+    },
+    "subject_key": { "type": "string" },
+    "property_key": { "type": "string" },
+    "operator": {
+      "type": "string",
+      "enum": ["eq", "neq", "lt", "lte", "gt", "gte"]
+    },
+    "value_type": {
+      "type": "string",
+      "enum": ["string", "int", "number", "bool"]
+    },
+    "value_string": { "type": "string" },
+    "value_int": { "type": "integer" },
+    "value_number": { "type": "number" },
+    "value_bool": { "type": "boolean" },
+    "unit": { "type": "string" },
+    "scope": { "type": "string" },
+    "polarity": { "type": "string", "enum": ["require", "forbid"] },
+    "closed_world": { "type": "boolean" },
+    "valid_from": { "type": "string" },
+    "valid_to": { "type": "string" },
+    "canonical_key": { "type": "string" }
   },
   "required": [
     "id",
@@ -60,6 +85,36 @@
     "updated_at",
     "source",
     "type"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "fact" } }
+      },
+      "then": {},
+      "else": {
+        "not": {
+          "anyOf": [
+            { "required": ["fact_kind"] },
+            { "required": ["subject_key"] },
+            { "required": ["property_key"] },
+            { "required": ["operator"] },
+            { "required": ["value_type"] },
+            { "required": ["value_string"] },
+            { "required": ["value_int"] },
+            { "required": ["value_number"] },
+            { "required": ["value_bool"] },
+            { "required": ["unit"] },
+            { "required": ["scope"] },
+            { "required": ["polarity"] },
+            { "required": ["closed_world"] },
+            { "required": ["valid_from"] },
+            { "required": ["valid_to"] },
+            { "required": ["canonical_key"] }
+          ]
+        }
+      }
+    }
   ],
   "additionalProperties": false
 }

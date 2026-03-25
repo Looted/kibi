@@ -232,6 +232,7 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
  * Parse a single Prolog value, handling typed literals and URIs.
  */
 export function parsePrologValue(valueInput: string): unknown {
+  // implements REQ-009
   const value = valueInput.trim();
 
   // Handle typed literal: ^^("value", type)
@@ -254,12 +255,24 @@ export function parsePrologValue(valueInput: string): unknown {
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
       let literalValue = parts[0].trim();
+      const datatype = parts[1].trim();
 
       if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
         literalValue = literalValue.substring(1, literalValue.length - 1);
       }
 
-      // Handle array notation
+      // Parse typed literals based on datatype
+      if (datatype.includes("#integer")) {
+        return Number.parseInt(literalValue, 10);
+      }
+      if (datatype.includes("#decimal") || datatype.includes("#double")) {
+        return Number.parseFloat(literalValue);
+      }
+      if (datatype.includes("#boolean")) {
+        return literalValue === "true";
+      }
+
+      // Handle array notation for string values
       if (literalValue.startsWith("[") && literalValue.endsWith("]")) {
         const listContent = literalValue.substring(1, literalValue.length - 1);
         if (listContent === "") {

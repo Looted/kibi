@@ -613,6 +613,88 @@ describe("MCP CRUD Tool Handlers", () => {
     });
   });
 
+  describe("typed fact CRUD round-trip", () => {
+    test("should upsert and query typed fact with value_int preserved", async () => {
+      const factId = "crud-fact-int-001";
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: factId,
+        properties: {
+          title: "Session timeout",
+          status: "active",
+          source: "test://crud-typed-fact",
+          fact_kind: "property_value",
+          subject_key: "user.session",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 30,
+        },
+      });
+
+      const queryResult = await handleKbQuery(prolog, { id: factId });
+      expect(queryResult.structuredContent?.entities.length).toBe(1);
+
+      const entity = queryResult.structuredContent?.entities[0] as Record<
+        string,
+        unknown
+      >;
+      expect(entity?.value_int).toBe(30);
+      expect(entity?.value_type).toBe("int");
+      expect(entity?.operator).toBe("eq");
+      expect(entity?.fact_kind).toBe("property_value");
+    });
+
+    test("should upsert and query typed fact with closed_world boolean preserved", async () => {
+      const factId = "crud-fact-closed-001";
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: factId,
+        properties: {
+          title: "Closed world permission",
+          status: "active",
+          source: "test://crud-typed-fact",
+          fact_kind: "property_value",
+          subject_key: "user.permissions",
+          property_key: "admin",
+          operator: "eq",
+          value_type: "bool",
+          value_bool: false,
+          closed_world: true,
+        },
+      });
+
+      const queryResult = await handleKbQuery(prolog, { id: factId });
+      expect(queryResult.structuredContent?.entities.length).toBe(1);
+
+      const entity = queryResult.structuredContent?.entities[0] as Record<
+        string,
+        unknown
+      >;
+      expect(entity?.closed_world).toBe(true);
+      expect(entity?.value_bool).toBe(false);
+      expect(entity?.closed_world).toBeBoolean();
+      expect(entity?.value_bool).toBeBoolean();
+    });
+
+    test("should reject non-fact entity with fact_kind via schema validation", async () => {
+      await expect(
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "crud-req-invalid-factkind",
+          properties: {
+            title: "Invalid req",
+            status: "open",
+            source: "test://crud-typed-fact",
+            fact_kind: "property_value",
+          },
+        }),
+      ).rejects.toThrow();
+    });
+  });
+
   describe("relationship idempotency", () => {
     test("should not create duplicate relationships when inserted twice", async () => {
       // Create entities

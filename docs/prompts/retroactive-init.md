@@ -119,6 +119,8 @@ Follow this tightened bootstrap sequencing:
    This prevents duplicate entity creation in partially-bootstrapped repos.
 
 3. **Create shared facts first** - Extract atomic, contradiction-safe domain facts and create fact entities. Facts represent invariants like "User must have unique email" or "Session expires after 30 minutes". Use `constrains` and `requires_property` relationships to express how requirements interact with facts.
+   - Use `fact_kind: subject` + `fact_kind: property_value` for rules that should block contradictions.
+   - Use `observation` or `meta` for runtime evidence, historical notes, and governance commentary that should not block contradictions.
 
 4. **Create req/scenario/test/symbol entities in small batches** - Process 5-10 entities at a time:
    - Create requirements first with fact relationships
@@ -148,6 +150,7 @@ Follow this tightened bootstrap sequencing:
 
 - **Separate req, scenario, and test entities** - Never embed scenarios or tests inside requirements. Each must be its own entity with proper typed relationships.
 - **Use contradiction-safe modeling** - Represent shared domain invariants as fact entities and express constraints via `constrains` and `requires_property` so contradictions are structural and queryable.
+- **Prefer append-only requirement evolution** - When a rule changes, create a new requirement and connect it with `supersedes` instead of silently rewriting the old requirement in place.
 - **Prefer explicit typed relationships** - Use `specified_by`, `verified_by`, `implements`, `covered_by`, `constrains`, `requires_property`, `constrained_by`, `guards`, `publishes`, `consumes`. Use `relates_to` only as an escape hatch when no other relationship type fits.
 - **Avoid exhaustive symbol extraction** - Focus symbol coverage on stable, behavior-bearing symbols (commands, handlers, services, public modules, entry points, adapters). Helper-level functions rarely need explicit symbol entities.
 

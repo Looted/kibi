@@ -324,6 +324,23 @@ bun test packages/core/tests/schema.plt
 
 **Key principle:** generalized model, staggered enforcement.
 
+### Proposed migration sequencing
+
+#### `bizzwords`
+
+1. Convert one narrow vertical slice first (for example auth, consent, or one game-mode configuration family).
+2. Introduce strict `subject` + `property_value` facts only for that slice.
+3. Keep the rest of the repo on prose or mixed-mode facts until each area is normalized.
+4. Enable stricter migration checks incrementally after each slice demonstrates stable contradiction-safe modeling.
+
+#### `align`
+
+1. Fix schema and relationship-direction mismatches before enabling hard strict checks.
+2. Classify existing facts into `observation` vs `meta` where they are not normative business constraints.
+3. Elevate only a narrow set of real business constraints into strict facts after the data model is clean.
+4. Do not enable hard strict-shape enforcement repo-wide until `fact` usage and relationship directions are repaired.
+5. Preserve mixed-mode KB usefulness during migration so the repo remains queryable while normalization is in flight.
+
 ---
 
 ## Task 11: Release Metadata and Verification

@@ -278,6 +278,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       "required-fields",
       "deprecated-adr-no-successor",
       "domain-contradictions",
+      "strict-fact-shape",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -315,6 +316,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       }
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
+      await runCheck("strict-fact-shape", checkStrictFactShape);
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
@@ -736,6 +738,43 @@ async function checkDomainContradictions(
       suggestion:
         "Supersede one requirement or align both to the same required property",
     });
+  }
+
+  return violations;
+}
+
+async function checkStrictFactShape(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_fact_shape_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    const violationRegex =
+      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
+    let match: RegExpExecArray | null;
+    do {
+      match = violationRegex.exec(violationsStr);
+      if (match) {
+        violations.push({
+          rule: match[1].trim().replace(/^'|'$/g, ""),
+          entityId: match[2].trim(),
+          description: match[3].trim().replace(/^"|"$/g, ""),
+          suggestion: match[4].trim().replace(/^"|"$/g, ""),
+          source: match[5].trim() || undefined,
+        });
+      }
+    } while (match);
   }
 
   return violations;

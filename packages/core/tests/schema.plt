@@ -41,4 +41,141 @@ test(valid_entity) :-
     Props = [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="http://x"],
     validate_entity(req, Props).
 
+% Typed fact validation tests
+
+test(legacy_prose_fact_valid) :-
+    % Legacy prose fact with no fact_kind remains valid
+    Props = [id='FACT-LEGACY', title="Legacy prose fact", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-LEGACY.md"],
+    validate_entity(fact, Props).
+
+test(subject_fact_valid) :-
+    % Subject fact with subject_key is valid
+    Props = [id='FACT-SUBJECT', title="User session subject", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-SUBJECT.md", fact_kind=subject, subject_key="user.session"],
+    validate_entity(fact, Props).
+
+test(property_value_fact_with_int_valid) :-
+    % Property_value fact with value_type="int" and value_int=30 is valid
+    Props = [id='FACT-TIMEOUT', title="Session timeout", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-TIMEOUT.md", fact_kind=property_value, subject_key="user.session", property_key="timeout_minutes", operator=eq, value_type=int, value_int=30],
+    validate_entity(fact, Props).
+
+test(property_value_fact_with_string_valid) :-
+    % Property_value fact with value_type="string" and value_string is valid
+    Props = [id='FACT-ADMIN', title="User type admin", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-ADMIN.md", fact_kind=property_value, subject_key="user.type", property_key="allowed_value", operator=eq, value_type=string, value_string="admin"],
+    validate_entity(fact, Props).
+
+test(property_value_fact_with_number_valid) :-
+    % Property_value fact with value_type="number" and value_number is valid
+    Props = [id='FACT-RATE', title="Rate limit", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-RATE.md", fact_kind=property_value, subject_key="api.client", property_key="rate_limit_rps", operator=eq, value_type=number, value_number=1.5],
+    validate_entity(fact, Props).
+
+test(property_value_fact_with_bool_valid) :-
+    % Property_value fact with value_type="bool" and value_bool is valid
+    Props = [id='FACT-FEATURE', title="Feature enabled", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FEATURE.md", fact_kind=property_value, subject_key="feature.new-ui", property_key="enabled", operator=eq, value_type=bool, value_bool=true],
+    validate_entity(fact, Props).
+
+test(property_value_fact_missing_value_field_invalid) :-
+    % Property_value fact missing the matching value field is invalid
+    Props = [id='FACT-INVALID', title="Missing value", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-INVALID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=int],
+    % No value_int despite value_type=int
+    \+ validate_entity(fact, Props).
+
+test(property_value_fact_mismatched_value_type_invalid) :-
+    % Property_value fact with value_type="string" but value_int present is invalid
+    Props = [id='FACT-MISMATCH', title="Mismatched types", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-MISMATCH.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_int=30],
+    \+ validate_entity(fact, Props).
+
+test(property_value_fact_missing_subject_key_invalid) :-
+    % Property_value fact missing subject_key is invalid
+    Props = [id='FACT-NO-SUBJECT', title="No subject", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-NO-SUBJECT.md", fact_kind=property_value, property_key="name", operator=eq, value_type=int, value_int=30],
+    \+ validate_entity(fact, Props).
+
+test(closed_world_boolean_valid) :-
+    % closed_world=true (boolean atom) is valid
+    Props = [id='FACT-CLOSED', title="Closed world fact", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-CLOSED.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", closed_world=true],
+    validate_entity(fact, Props).
+
+test(observation_fact_valid) :-
+    % Observation facts are allowed and valid
+    Props = [id='FACT-OBS', title="Observation", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-OBS.md", fact_kind=observation, subject_key="system.sessions", property_key="active_count", operator=eq, value_type=int, value_int=150],
+    validate_entity(fact, Props).
+
+test(meta_fact_valid) :-
+    % Meta facts are allowed and valid
+    Props = [id='FACT-META', title="Meta fact", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-META.md", fact_kind=meta, subject_key="fact.schema"],
+    validate_entity(fact, Props).
+
+test(req_with_fact_kind_invalid) :-
+    % Req entities with fact_kind are invalid
+    Props = [id='REQ-001', title="Invalid req", status=open, created_at="2024-01-01", updated_at="2024-01-01", source="reqs/REQ-001.md", fact_kind=property_value],
+    \+ validate_entity(req, Props).
+
+test(req_with_value_int_invalid) :-
+    % Req entities with value_int are invalid
+    Props = [id='REQ-002', title="Invalid req", status=open, created_at="2024-01-01", updated_at="2024-01-01", source="reqs/REQ-002.md", value_int=42],
+    \+ validate_entity(req, Props).
+
+test(unknown_property_invalid) :-
+    % Undeclared properties must fail validation instead of defaulting to atom
+    Props = [id='FACT-UNKNOWN', title="Unknown property", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-UNKNOWN.md", mystery=foo],
+    \+ validate_entity(fact, Props).
+
+test(legacy_fact_invalid_optional_enum_invalid) :-
+    % Legacy facts without fact_kind still reject invalid enum fields when present
+    Props = [id='FACT-LEGACY-INVALID', title="Legacy invalid enum", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-LEGACY-INVALID.md", operator=contains],
+    \+ validate_entity(fact, Props).
+
+test(invalid_fact_kind_enum_invalid) :-
+    % Invalid fact_kind enum value fails
+    Props = [id='FACT-INVALID', title="Invalid kind", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-INVALID.md", fact_kind=invalid_kind],
+    \+ validate_entity(fact, Props).
+
+test(invalid_operator_enum_invalid) :-
+    % Invalid operator enum value fails
+    Props = [id='FACT-INVALID', title="Invalid operator", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-INVALID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=contains, value_type=string, value_string="test"],
+    \+ validate_entity(fact, Props).
+
+test(invalid_value_type_enum_invalid) :-
+    % Invalid value_type enum value fails
+    Props = [id='FACT-INVALID', title="Invalid value type", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-INVALID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=date],
+    \+ validate_entity(fact, Props).
+
+test(invalid_polarity_enum_invalid) :-
+    % Invalid polarity enum value fails for fact entities
+    Props = [id='FACT-INVALID', title="Invalid polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-INVALID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=maybe],
+    \+ validate_entity(fact, Props).
+
+test(observation_fact_invalid_optional_enum_invalid) :-
+    % Observation facts may omit strict fields, but any provided enums must still be valid
+    Props = [id='FACT-OBS-INVALID', title="Observation invalid enum", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-OBS-INVALID.md", fact_kind=observation, subject_key="system.sessions", operator=contains],
+    \+ validate_entity(fact, Props).
+
+test(valid_polarity_require) :-
+    % Valid polarity=require is accepted
+    Props = [id='FACT-REQ', title="Required polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-REQ.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=require],
+    validate_entity(fact, Props).
+
+test(valid_polarity_forbid) :-
+    % Valid polarity=forbid is accepted
+    Props = [id='FACT-FORBID', title="Forbidden polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FORBID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=forbid],
+    validate_entity(fact, Props).
+
+% Strict-lane pairing validation tests for constrains/requires_property
+
+:- dynamic test_subject_fact/1.
+:- dynamic test_property_fact/1.
+
+setup_strict_lane_tests :-
+    retractall(test_subject_fact(_)),
+    retractall(test_property_fact(_)),
+    assert(test_subject_fact([id='FACT-SUBJECT-SL', title="Test subject", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="test", fact_kind=subject, subject_key="test.subject"])),
+    assert(test_property_fact([id='FACT-PROP-SL', title="Test property", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="test", fact_kind=property_value, subject_key="test.subject", property_key="value", operator=eq, value_type=string, value_string="test"])).
+
+test(constrains_to_subject_fact_valid, [setup(setup_strict_lane_tests)]) :-
+    test_subject_fact(Props),
+    validate_entity(fact, Props).
+
+test(requires_property_to_property_value_fact_valid, [setup(setup_strict_lane_tests)]) :-
+    test_property_fact(Props),
+    validate_entity(fact, Props).
+
 :- end_tests(schema).

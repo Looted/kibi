@@ -31,6 +31,26 @@ export interface BaseEntity {
   text_ref?: string;
 }
 
+// Typed fact fields per proposal
+export interface FactFields {
+  fact_kind?: "subject" | "property_value" | "observation" | "meta";
+  subject_key?: string;
+  property_key?: string;
+  operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+  value_type?: "string" | "int" | "number" | "bool";
+  value_string?: string;
+  value_int?: number;
+  value_number?: number;
+  value_bool?: boolean;
+  unit?: string;
+  scope?: string;
+  polarity?: "require" | "forbid";
+  closed_world?: boolean;
+  valid_from?: string;
+  valid_to?: string;
+  canonical_key?: string;
+}
+
 export type Requirement = BaseEntity & { type: "req" };
 export type Scenario = BaseEntity & { type: "scenario" };
 export type TestEntity = BaseEntity & { type: "test" };
@@ -38,7 +58,7 @@ export type ADR = BaseEntity & { type: "adr" };
 export type Flag = BaseEntity & { type: "flag" };
 export type Event = BaseEntity & { type: "event" };
 export type Symbol = BaseEntity & { type: "symbol" };
-export type Fact = BaseEntity & { type: "fact" };
+export type Fact = BaseEntity & FactFields & { type: "fact" };
 
 export type Entity =
   | Requirement

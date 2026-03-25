@@ -108,6 +108,11 @@
               "type": "boolean",
               "description": "Detect contradictions between requirements constraining the same fact",
               "default": true
+            },
+            "strict-fact-shape": {
+              "type": "boolean",
+              "description": "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -150,7 +155,8 @@
           "no-cycles": true,
           "required-fields": true,
           "deprecated-adr-no-successor": true,
-          "domain-contradictions": true
+          "domain-contradictions": true,
+          "strict-fact-shape": false
         },
         "symbolTraceability": {
           "requireAdr": false

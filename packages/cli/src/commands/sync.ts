@@ -217,28 +217,26 @@ export async function syncCommand(
       }
     }
 
-    if (validateOnly) {
-      if (errors.length > 0) {
-        for (const err of errors) {
-          console.error(`${err.file}: ${err.message}`);
+    if (!validateOnly) {
+      for (const file of manifestFiles) {
+        try {
+          await refreshManifestCoordinates(file, process.cwd());
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          console.warn(
+            `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
+          );
         }
-        console.error(`FAILED: ${errors.length} errors found`);
-        process.exit(1);
-      } else {
-        console.log(`OK: Validation passed (${results.length} entities)`);
-        process.exit(0);
       }
     }
 
-    for (const file of manifestFiles) {
-      try {
-        await refreshManifestCoordinates(file, process.cwd());
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(
-          `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
-        );
+    if (validateOnly && errors.length > 0 && results.length === 0) {
+      for (const err of errors) {
+        console.error(`${err.file}: ${err.message}`);
       }
+      console.error(`FAILED: ${errors.length} errors found`);
+      process.exit(1);
     }
 
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
@@ -326,6 +324,23 @@ export async function syncCommand(
         await persistRelationships(prolog, results, validRelationships);
 
       const kbModified = entitiesModified || relationshipsModified;
+
+      if (validateOnly) {
+        await prolog.query("kb_detach");
+        await prolog.terminate();
+        cleanupStaging(stagingPath);
+
+        if (errors.length > 0) {
+          for (const err of errors) {
+            console.error(`${err.file}: ${err.message}`);
+          }
+          console.error(`FAILED: ${errors.length} errors found`);
+          process.exit(1);
+        }
+
+        console.log(`OK: Validation passed (${entityCount} entities)`);
+        process.exit(0);
+      }
 
       if (kbModified) {
         prolog.invalidateCache();
