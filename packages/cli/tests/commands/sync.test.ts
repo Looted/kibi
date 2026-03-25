@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { toPrologString } from "../../dist/prolog/codec.js";
 
 describe("kibi sync", () => {
   const TEST_TIMEOUT_MS = 20000;
@@ -775,5 +776,25 @@ canonical_key: user.type.allowed_value.eq.admin
       },
       TEST_TIMEOUT_MS,
     );
+  });
+
+  describe("persistEntities — string escaping", () => {
+    test("toPrologString handles backslash in title", () => {
+      // Regression: persistence previously only escaped " not \
+      const title = "C:\\Users\\foo";
+      expect(toPrologString(title)).toBe('"C:\\\\Users\\\\foo"');
+    });
+
+    test("toPrologString handles newline in source path", () => {
+      const source = "docs/foo\nbar.md";
+      expect(toPrologString(source)).toBe('"docs/foo\\nbar.md"');
+    });
+  });
+
+  describe("serializeTypedFactFields — integer guard", () => {
+    test("Number.isInteger correctly identifies integers vs floats", () => {
+      expect(Number.isInteger(3.5)).toBe(false);
+      expect(Number.isInteger(3)).toBe(true);
+    });
   });
 });
