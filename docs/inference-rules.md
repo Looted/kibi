@@ -19,6 +19,21 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `adr_chain(AnyId, Chain)`
 - `contradicting_reqs(ReqA, ReqB, Reason)`
 
+## Requirement contradiction semantics
+
+`contradicting_reqs/3` uses strict requirement semantics only for current requirements.
+
+- `current_req/1` excludes deprecated and superseded requirements.
+- A contradiction requires both requirements to:
+  - `constrains` the same `fact_kind=subject` fact (matched by `subject_key`)
+  - `requires_property` a `fact_kind=property_value` fact for that same subject
+- `observation` and `meta` facts are excluded from contradiction inference.
+- Conflict classes currently covered:
+  - exact-value conflicts like `eq pending` vs `eq granted`
+  - numeric range gaps like `lte 2` vs `gte 3`
+  - polarity conflicts like `require` vs `forbid` on the same normalized tuple
+- Scope and validity windows only conflict when they intersect.
+
 These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the curated public surface instead:
 
 - `kb_search`
@@ -30,5 +45,13 @@ These predicates remain useful for product features, automation, and future inte
 - `kb_upsert`
 - `kb_delete`
 - `kb_check`
+
+## Migration-oriented validation rule
+
+- `strict-fact-shape`
+  - checks only facts that already declare `fact_kind`
+  - ignores legacy prose facts without `fact_kind`
+  - is intended for migration auditing and is safe to keep disabled by default while older repos are being normalized
+  - can be opted into explicitly through CLI/MCP rule selection when a repo is ready to inspect or enforce strict fact shape
 
 If deeper inference needs to be re-exposed in the future, it should be documented explicitly as a separate product decision rather than silently expanding the curated public surface.

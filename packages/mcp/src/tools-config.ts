@@ -113,8 +113,7 @@ const BASE_TOOLS = [
         offset: {
           type: "integer",
           default: 0,
-          description:
-            "Optional zero-based pagination offset. Default: 0.",
+          description: "Optional zero-based pagination offset. Default: 0.",
         },
       },
     },
@@ -254,7 +253,7 @@ const BASE_TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -414,10 +413,11 @@ const BASE_TOOLS = [
               "required-fields",
               "deprecated-adr-no-successor",
               "domain-contradictions",
+              "strict-fact-shape",
             ],
           },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape. If omitted, server runs all.",
         },
       },
     },

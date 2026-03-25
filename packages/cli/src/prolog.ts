@@ -473,10 +473,18 @@ export class PrologProcess {
       };
     }
 
+    if (stdout.includes("__KIBI_FALSE__")) {
+      return {
+        success: false,
+        bindings: {},
+        error: "Query returned false",
+      };
+    }
+
     return {
       success: false,
       bindings: {},
-      error: "Query failed",
+      error: `Query failed - stdout: ${stdout.substring(0, 200)}, stderr: ${stderr.substring(0, 200)}`,
     };
   }
 

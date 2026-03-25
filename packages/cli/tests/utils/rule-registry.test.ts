@@ -67,6 +67,15 @@ describe("rule-registry constants", () => {
     }
   });
 
+  test("strict-fact-shape rule exists and is disabled by default", () => {
+    const rule = RULES.find((r) => r.name === "strict-fact-shape");
+    expect(rule).toBeDefined();
+    expect(rule?.defaultEnabled).toBe(false);
+    expect(rule?.category).toBe("integrity");
+    expect(rule?.description).toContain("fact");
+    expect(RULE_NAMES.has("strict-fact-shape")).toBe(true);
+  });
+
   test("RULE_NAMES is a proper Set for O(1) lookups", () => {
     expect(RULE_NAMES.has).toBeInstanceOf(Function);
     expect(RULE_NAMES.add).toBeInstanceOf(Function);
@@ -91,15 +100,19 @@ describe("rule-registry constants", () => {
 });
 
 describe("getEffectiveRules", () => {
-  test("returns all rules when no config and no CLI filter provided", () => {
+  test("returns all enabled-by-default rules when no config and no CLI filter provided", () => {
     const result = getEffectiveRules();
 
     expect(result).toBeInstanceOf(Set);
-    expect(result.size).toBe(RULES.length);
+    // Only rules with defaultEnabled: true should be in the result
+    const enabledByDefaultCount = RULES.filter((r) => r.defaultEnabled).length;
+    expect(result.size).toBe(enabledByDefaultCount);
 
     for (const rule of RULES) {
       if (rule.defaultEnabled) {
         expect(result.has(rule.name)).toBe(true);
+      } else {
+        expect(result.has(rule.name)).toBe(false);
       }
     }
   });
@@ -192,9 +205,16 @@ describe("getEffectiveRules", () => {
       "must-priority-coverage,no-dangling-refs",
     );
 
-    // must-priority-coverage is disabled in config, so CLI filter can't enable it
-    expect(result.has("must-priority-coverage")).toBe(false);
+    // Explicit CLI --rules should opt in to requested rules even if config disables them
+    expect(result.has("must-priority-coverage")).toBe(true);
     expect(result.has("no-dangling-refs")).toBe(true);
+  });
+
+  test("CLI rules can explicitly opt into strict-fact-shape", () => {
+    const result = getEffectiveRules(undefined, "strict-fact-shape");
+
+    expect(result.size).toBe(1);
+    expect(result.has("strict-fact-shape")).toBe(true);
   });
 
   test("config takes precedence over defaults (config override precedence)", () => {
@@ -242,7 +262,7 @@ describe("getEffectiveRules", () => {
     const allRules = RULES.map((r) => r.name).join(",");
     const result = getEffectiveRules(undefined, allRules);
 
-    expect(result.size).toBe(RULES.filter((r) => r.defaultEnabled).length);
+    expect(result.size).toBe(RULES.length);
   });
 
   test("returns Set (immutable behavior)", () => {
@@ -264,20 +284,20 @@ describe("getEffectiveRules", () => {
     expect(result.has("symbol-coverage")).toBe(true);
   });
 
-  test("CLI rules filter is intersection with config-enabled rules", () => {
+  test("CLI rules filter explicitly opts into requested rules", () => {
     const configRules = {
       "must-priority-coverage": false,
       "symbol-coverage": true,
       "no-cycles": true,
     };
 
-    // Even though CLI includes must-priority-coverage, config disables it
+    // Explicit CLI --rules should opt in to requested rules even if config disables them
     const result = getEffectiveRules(
       configRules,
       "must-priority-coverage,no-cycles",
     );
 
-    expect(result.has("must-priority-coverage")).toBe(false);
+    expect(result.has("must-priority-coverage")).toBe(true);
     expect(result.has("no-cycles")).toBe(true);
   });
 });
@@ -559,7 +579,7 @@ describe("edge cases and boundary conditions", () => {
     const allRules = RULES.map((r) => r.name).join(",");
     const result = getEffectiveRules(configRules, allRules);
 
-    expect(result.has("must-priority-coverage")).toBe(false);
+    expect(result.has("must-priority-coverage")).toBe(true);
     expect(result.has("symbol-coverage")).toBe(true);
   });
 

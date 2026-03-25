@@ -45,7 +45,7 @@ Kibi supports 8 entity types:
 | `guards` | flag → symbol/event/req | Flag guards entity |
 | `publishes` | symbol → event | Symbol publishes event |
 | `consumes` | symbol → event | Symbol consumes event |
-| `supersedes` | adr → adr | ADR supersedes prior ADR |
+| `supersedes` | adr → adr, req → req | ADR or requirement supersedes prior one |
 | `relates_to` | any → any | Generic relationship |
 
 ---
@@ -142,6 +142,12 @@ Record uncertainty in gap reports, not speculative entities.
 
 *Rationale:* The KB should contain verified knowledge, not guesses; speculative entries introduce noise and reduce trust in the system.
 
+### Strict Fact Modeling for Normative Requirements
+Use the strict fact lane when a requirement should participate in contradiction blocking: link the req to a `fact_kind=subject` fact via `constrains` and to a `fact_kind=property_value` fact via `requires_property`. Use `observation` and `meta` for non-blocking evidence and governance notes.
+
+### Prefer Append-Only Requirement Evolution
+When requirement semantics change, create a new requirement and link the old one with `supersedes` rather than assuming a plain upsert replaces earlier strict-fact semantics.
+
 ---
 
 ## Documentation Workflow
@@ -186,6 +192,16 @@ Use the `links` field in frontmatter to declare relationships:
 links:
   - REQ-001  # This entity relates to REQ-001
   - ADR-005  # This entity relates to ADR-005
+```
+
+Plain string `links` import as generic `relates_to` edges only. When contradiction-safe semantics matter, prefer typed links such as:
+
+```yaml
+links:
+  - type: constrains
+    target: FACT-SESSION
+  - type: requires_property
+    target: FACT-SESSION-MAX-AGE-30-MINUTES
 ```
 
 ---

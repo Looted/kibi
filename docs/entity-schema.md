@@ -134,6 +134,64 @@ relationship:
 
 > **Rule:** Never embed scenarios or tests inside requirement records. Always create separate files for each entity and link them with explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`). Plain string `links` are generic `relates_to` only.
 
+**Strict Fact Modeling (Normative Lane):**
+
+- New contradiction-sensitive requirements should use the strict fact lane:
+  - one `fact_kind: subject` fact linked via `constrains`
+  - one `fact_kind: property_value` fact linked via `requires_property`
+- For v1, the supported evolution path is append-only: create a new requirement and link it to the prior one with `supersedes`.
+- Plain requirement upserts do **not** automatically replace older `constrains` / `requires_property` semantics.
+- Use `observation` and `meta` facts for runtime evidence, historical notes, and governance context that should not participate in contradiction blocking.
+
+**Canonical Contradiction-Safe Example:**
+
+```yaml
+# documentation/facts/FACT-USER-ROLE.md
+---
+id: FACT-USER-ROLE
+title: User Role Assignment
+status: active
+created_at: 2026-03-24T00:00:00Z
+updated_at: 2026-03-24T00:00:00Z
+source: documentation/facts/FACT-USER-ROLE.md
+fact_kind: subject
+subject_key: user.role_assignment
+---
+
+# documentation/facts/FACT-LIMIT-3.md
+---
+id: FACT-LIMIT-3
+title: Maximum of Three
+status: active
+created_at: 2026-03-24T00:00:00Z
+updated_at: 2026-03-24T00:00:00Z
+source: documentation/facts/FACT-LIMIT-3.md
+fact_kind: property_value
+subject_key: user.role_assignment
+property_key: max_roles
+operator: lte
+value_type: int
+value_int: 3
+---
+
+# documentation/requirements/REQ-019.md
+---
+id: REQ-019
+title: Users can now have 3 roles
+status: open
+created_at: 2026-02-20T13:06:00Z
+updated_at: 2026-03-24T00:00:00Z
+source: documentation/requirements/REQ-019.md
+links:
+  - type: constrains
+    target: FACT-USER-ROLE
+  - type: requires_property
+    target: FACT-LIMIT-3
+  - type: supersedes
+    target: REQ-018
+---
+```
+
 **Invalid Example (Prohibited):**
 
 ```yaml
@@ -335,6 +393,17 @@ tags:
 ```
 
 #### Fact (`fact`)
+
+Facts support two authoring lanes:
+
+- **Strict lane** for normative, contradiction-sensitive knowledge
+  - `subject`: requires `subject_key`
+  - `property_value`: requires `subject_key`, `property_key`, `operator`, `value_type`, and exactly one value field
+- **Context lane** for non-blocking knowledge
+  - `observation`
+  - `meta`
+
+Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
 `fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, and property values). Requirements can link to facts using `constrains` and `requires_property` so contradictions become structural and queryable.
 

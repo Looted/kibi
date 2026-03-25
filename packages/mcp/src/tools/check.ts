@@ -57,6 +57,7 @@ const ALL_RULES = [
   "symbol-traceability",
   "deprecated-adr-no-successor",
   "domain-contradictions",
+  "strict-fact-shape",
 ] as const;
 
 const RULE_NAMES = new Set<string>(ALL_RULES);
@@ -69,7 +70,9 @@ interface ChecksConfig {
 }
 
 const DEFAULT_CHECKS_CONFIG: ChecksConfig = {
-  rules: Object.fromEntries(ALL_RULES.map((rule) => [rule, true])),
+  rules: Object.fromEntries(
+    ALL_RULES.map((rule) => [rule, rule !== "strict-fact-shape"]),
+  ),
   symbolTraceability: {
     requireAdr: false,
   },
@@ -167,8 +170,12 @@ function loadChecksConfig(workspaceRoot: string): ChecksConfig {
     const parsedSt = parsed.checks?.symbolTraceability;
     const normalizedSt = { ...DEFAULT_CHECKS_CONFIG.symbolTraceability };
     if (parsedSt && typeof parsedSt === "object") {
-      if (typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean") {
-        normalizedSt.requireAdr = (parsedSt as { requireAdr: boolean }).requireAdr;
+      if (
+        typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean"
+      ) {
+        normalizedSt.requireAdr = (
+          parsedSt as { requireAdr: boolean }
+        ).requireAdr;
       }
     }
 
@@ -186,23 +193,16 @@ function getEffectiveRules(
   configRules: Record<string, boolean>,
   requestedRules?: string[],
 ): Set<string> {
+  if (requestedRules && requestedRules.length > 0) {
+    return new Set(requestedRules.filter((rule) => RULE_NAMES.has(rule)));
+  }
+
   const effective = new Set<string>();
 
   for (const rule of ALL_RULES) {
     const enabled = configRules[rule] ?? true;
     if (enabled) {
       effective.add(rule);
-    }
-  }
-
-  if (requestedRules && requestedRules.length > 0) {
-    const allowed = new Set(
-      requestedRules.filter((rule) => RULE_NAMES.has(rule)),
-    );
-    for (const rule of Array.from(effective)) {
-      if (!allowed.has(rule)) {
-        effective.delete(rule);
-      }
     }
   }
 

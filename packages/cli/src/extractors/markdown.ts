@@ -18,7 +18,38 @@
 
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
+import Ajv from "ajv";
 import matter from "gray-matter";
+import entitySchema from "../schemas/entity.schema.json" assert {
+  type: "json",
+};
+
+// Typed fact field constants for extraction
+const FACT_STRING_FIELDS = [
+  "fact_kind",
+  "subject_key",
+  "property_key",
+  "operator",
+  "value_type",
+  "value_string",
+  "unit",
+  "scope",
+  "polarity",
+  "valid_from",
+  "valid_to",
+  "canonical_key",
+] as const;
+
+const FACT_NUMBER_FIELDS = ["value_int", "value_number"] as const;
+const FACT_BOOLEAN_FIELDS = ["value_bool", "closed_world"] as const;
+const FACT_ONLY_FIELDS = [
+  ...FACT_STRING_FIELDS,
+  ...FACT_NUMBER_FIELDS,
+  ...FACT_BOOLEAN_FIELDS,
+] as const;
+
+const ajv = new Ajv({ strict: false, allErrors: true });
+const validateExtractedEntity = ajv.compile(entitySchema);
 
 export interface ExtractedEntity {
   id: string;
@@ -34,14 +65,22 @@ export interface ExtractedEntity {
   severity?: string;
   text_ref?: string;
   // Typed fact fields - only present when type === 'fact'
+  fact_kind?: "subject" | "property_value" | "observation" | "meta";
+  subject_key?: string;
+  property_key?: string;
+  operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+  value_type?: "string" | "int" | "number" | "bool";
+  value_string?: string;
   value_int?: number;
-  value_str?: string;
+  value_number?: number;
   value_bool?: boolean;
-  value_json?: unknown;
-  value_ref?: string;
+  unit?: string;
+  scope?: string;
+  polarity?: "require" | "forbid";
   closed_world?: boolean;
   valid_from?: string;
   valid_to?: string;
+  canonical_key?: string;
 }
 
 export interface ExtractedRelationship {
@@ -259,24 +298,64 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
     if (data.severity !== undefined) entity.severity = data.severity;
     if (data.text_ref !== undefined) entity.text_ref = data.text_ref;
 
+    if (type !== "fact") {
+      const invalidFactField = FACT_ONLY_FIELDS.find(
+        (field) => data[field] !== undefined,
+      );
+      if (invalidFactField) {
+        throw new FrontmatterError(
+          `Fact-only fields are only allowed on type: fact (found ${invalidFactField})`,
+          filePath,
+          {
+            classification: "Fact Field on Non-Fact Entity",
+            hint: "Remove fact-only fields or change the entity type to fact.",
+          },
+        );
+      }
+    }
+
     // Add typed fact fields only for fact entities
     if (type === "fact") {
-      // Only attach value fields that are actually present (no null injection)
-      if (data.value_int !== undefined) entity.value_int = data.value_int;
-      if (data.value_str !== undefined) entity.value_str = data.value_str;
-      if (data.value_bool !== undefined) entity.value_bool = data.value_bool;
-      if (data.value_json !== undefined) entity.value_json = data.value_json;
-      if (data.value_ref !== undefined) entity.value_ref = data.value_ref;
+      // String fields
+      for (const field of FACT_STRING_FIELDS) {
+        if (data[field] !== undefined) {
+          // Normalize date fields
+          if (field === "valid_from" || field === "valid_to") {
+            (entity as unknown as Record<string, unknown>)[field] =
+              normalizeDateLike(data[field]);
+          } else {
+            (entity as unknown as Record<string, unknown>)[field] = data[field];
+          }
+        }
+      }
 
-      // Add other fact-specific fields
-      if (data.closed_world !== undefined)
-        entity.closed_world = data.closed_world;
-      if (data.valid_from !== undefined) {
-        entity.valid_from = normalizeDateLike(data.valid_from);
+      // Number fields
+      for (const field of FACT_NUMBER_FIELDS) {
+        if (data[field] !== undefined) {
+          (entity as unknown as Record<string, unknown>)[field] = data[field];
+        }
       }
-      if (data.valid_to !== undefined) {
-        entity.valid_to = normalizeDateLike(data.valid_to);
+
+      // Boolean fields
+      for (const field of FACT_BOOLEAN_FIELDS) {
+        if (data[field] !== undefined) {
+          (entity as unknown as Record<string, unknown>)[field] = data[field];
+        }
       }
+    }
+
+    if (!validateExtractedEntity(entity)) {
+      const messages = (validateExtractedEntity.errors || [])
+        .map((e) => `${e.instancePath || "root"}: ${e.message}`)
+        .join("; ");
+      throw new FrontmatterError(
+        `Entity validation failed: ${messages}`,
+        filePath,
+        {
+          classification: "Entity Validation Error",
+          hint: "Fix the entity fields so they match the public schema.",
+        },
+      );
     }
 
     return {
