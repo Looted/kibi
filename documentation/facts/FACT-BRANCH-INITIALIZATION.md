@@ -6,6 +6,8 @@ created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
 source: documentation/facts/FACT-BRANCH-INITIALIZATION.md
 tags: [branching, initialization]
+fact_kind: subject
+subject_key: kibi.branch.initialization
 ---
 
 When a branch KB is missing, initialization logic creates it automatically.
