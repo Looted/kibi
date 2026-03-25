@@ -23,14 +23,12 @@ import type {
   ExtractionResult,
 } from "../../extractors/markdown.js";
 import type { PrologProcess } from "../../prolog.js";
-import { toPrologAtom } from "../../prolog/codec.js";
+import { toPrologAtom, toPrologString } from "../../prolog/codec.js";
 
 // Field categorization for typed fact serialization
+// NOTE: base entity fields (status, owner, priority, severity) are NOT listed here —
+// they are emitted in the base props block above. Only fact-specific atom fields go here.
 const ATOM_FIELDS = new Set([
-  "status",
-  "owner",
-  "priority",
-  "severity",
   "fact_kind",
   "operator",
   "value_type",
@@ -55,12 +53,11 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   const fields: string[] = [];
   const entityRecord = entity as unknown as Record<string, unknown>;
 
-  // String fields (quoted)
+  // String fields (safely escaped double-quoted Prolog strings)
   for (const field of STRING_FIELDS) {
     const value = entityRecord[field];
     if (value !== undefined && value !== null) {
-      const strValue = String(value).replace(/"/g, '\\"');
-      fields.push(`${field}="${strValue}"`);
+      fields.push(`${field}=${toPrologString(String(value))}`);
     }
   }
 
@@ -72,10 +69,13 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
     }
   }
 
-  // Number fields (unquoted)
+  // Number fields (unquoted); value_int must be a true integer
   for (const field of NUMBER_FIELDS) {
     const value = entityRecord[field];
     if (value !== undefined && value !== null && typeof value === "number") {
+      if (field === "value_int" && !Number.isInteger(value)) {
+        continue; // silently drop non-integer value_int
+      }
       fields.push(`${field}=${value}`);
     }
   }
@@ -127,12 +127,12 @@ export async function persistEntities(
   for (const { entity } of results) {
     try {
       const props = [
-        `id='${entity.id}'`,
-        `title="${entity.title.replace(/"/g, '\\"')}"`,
+        `id=${toPrologAtom(entity.id)}`,
+        `title=${toPrologString(entity.title)}`,
         `status=${toPrologAtom(entity.status)}`,
-        `created_at="${entity.created_at}"`,
-        `updated_at="${entity.updated_at}"`,
-        `source="${entity.source.replace(/"/g, '\\"')}"`,
+        `created_at=${toPrologString(entity.created_at)}`,
+        `updated_at=${toPrologString(entity.updated_at)}`,
+        `source=${toPrologString(entity.source)}`,
       ];
 
       if (entity.tags && entity.tags.length > 0) {
@@ -144,7 +144,8 @@ export async function persistEntities(
         props.push(`priority=${toPrologAtom(entity.priority)}`);
       if (entity.severity)
         props.push(`severity=${toPrologAtom(entity.severity)}`);
-      if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
+      if (entity.text_ref)
+        props.push(`text_ref=${toPrologString(entity.text_ref)}`);
 
       // Add typed fact fields for fact entities
       if (entity.type === "fact") {
