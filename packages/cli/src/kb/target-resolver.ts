@@ -288,6 +288,7 @@ export function resolveDefaultBranch(
  * Resolve complete KB target with all components.
  */
 export function resolveKbTarget(options?: {
+  // implements REQ-012, REQ-008
   workspaceRoot?: string;
   branch?: string;
   config?: { defaultBranch?: string };
@@ -304,8 +305,7 @@ export function resolveKbTarget(options?: {
     const branchResult = resolveActiveBranch(workspaceRoot);
     if ("error" in branchResult) {
       throw new Error(
-        `Failed to resolve active branch: ${branchResult.error}. ` +
-          `Ensure you are in a git repository with a valid branch checked out.`,
+        `Failed to resolve active branch: ${branchResult.error}. Ensure you are in a git repository with a valid branch checked out.`,
       );
     }
     branch = branchResult.branch;

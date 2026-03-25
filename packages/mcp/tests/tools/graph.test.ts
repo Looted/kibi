@@ -9,8 +9,18 @@ describe("MCP graph tool handler", () => {
       bindings: {
         JsonString: JSON.stringify({
           nodes: [
-            { id: "REQ-001", type: "req", title: "User authentication", status: "open" },
-            { id: "SCEN-001", type: "scenario", title: "Login flow", status: "active" },
+            {
+              id: "REQ-001",
+              type: "req",
+              title: "User authentication",
+              status: "open",
+            },
+            {
+              id: "SCEN-001",
+              type: "scenario",
+              title: "Login flow",
+              status: "active",
+            },
           ],
           edges: [{ type: "specified_by", from: "REQ-001", to: "SCEN-001" }],
           truncated: false,

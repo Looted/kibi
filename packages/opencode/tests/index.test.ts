@@ -4,7 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
-import { resetSessionTracker, getSessionTracker } from "../src/session-tracker";
+import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -2079,13 +2079,15 @@ import datetime
       // First edit
       await eventHook(mockEvent);
 
-      const warningsAfterFirstEdit = getSessionTracker().generateSummary().totalWarnings;
+      const warningsAfterFirstEdit =
+        getSessionTracker().generateSummary().totalWarnings;
 
       // Second edit (same file, same content)
       await eventHook(mockEvent);
 
       // Dedupe should prevent the second edit from adding another warning
-      const warningsAfterSecondEdit = getSessionTracker().generateSummary().totalWarnings;
+      const warningsAfterSecondEdit =
+        getSessionTracker().generateSummary().totalWarnings;
       assert.equal(
         warningsAfterSecondEdit,
         warningsAfterFirstEdit,

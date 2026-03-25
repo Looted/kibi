@@ -15,11 +15,11 @@ describe("workspace utilities", () => {
   beforeEach(() => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-workspace-test-"));
     // Clear relevant env vars
-    delete process.env.KIBI_WORKSPACE;
-    delete process.env.KIBI_PROJECT_ROOT;
-    delete process.env.KIBI_ROOT;
-    delete process.env.KIBI_KB_PATH;
-    delete process.env.KB_PATH;
+    process.env.KIBI_WORKSPACE = undefined;
+    process.env.KIBI_PROJECT_ROOT = undefined;
+    process.env.KIBI_ROOT = undefined;
+    process.env.KIBI_KB_PATH = undefined;
+    process.env.KB_PATH = undefined;
   });
 
   afterEach(() => {

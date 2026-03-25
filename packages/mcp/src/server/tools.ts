@@ -25,15 +25,15 @@ import {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
-import { handleKbCoverage, type CoverageArgs } from "../tools/coverage.js";
 import { TOOLS } from "../tools-config.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
+import { type CoverageArgs, handleKbCoverage } from "../tools/coverage.js";
 import { type DeleteArgs, handleKbDelete } from "../tools/delete.js";
-import { handleKbFindGaps, type FindGapsArgs } from "../tools/find-gaps.js";
-import { handleKbGraph, type GraphArgs } from "../tools/graph.js";
+import { type FindGapsArgs, handleKbFindGaps } from "../tools/find-gaps.js";
+import { type GraphArgs, handleKbGraph } from "../tools/graph.js";
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
-import { handleKbSearch, type SearchArgs } from "../tools/search.js";
-import { handleKbStatus, type StatusArgs } from "../tools/status.js";
+import { type SearchArgs, handleKbSearch } from "../tools/search.js";
+import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
 import {
   activeBranchName,

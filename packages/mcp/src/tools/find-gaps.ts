@@ -1,5 +1,9 @@
 import type { PrologProcess } from "kibi-cli/prolog";
-import { runJsonModuleQuery, toPrologAtom, toPrologList } from "./core-module.js";
+import {
+  runJsonModuleQuery,
+  toPrologAtom,
+  toPrologList,
+} from "./core-module.js";
 import { validateEntityType } from "./entity-query.js";
 
 export interface FindGapsArgs {
@@ -31,7 +35,9 @@ export async function handleKbFindGaps(
   const offset = args.offset ?? 0;
 
   try {
-    const payload = await runJsonModuleQuery<FindGapsResult["structuredContent"]>(
+    const payload = await runJsonModuleQuery<
+      FindGapsResult["structuredContent"]
+    >(
       prolog,
       "discovery.pl",
       `discovery:find_gaps_json(${toPrologAtom(args.type)}, ${toPrologList(args.missingRelationships)}, ${toPrologList(args.presentRelationships)}, ${toPrologList(args.tags)}, ${toPrologAtom(args.sourceFile)}, ${limit}, ${offset}, JsonString)`,
