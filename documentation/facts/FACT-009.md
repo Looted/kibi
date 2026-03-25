@@ -10,6 +10,7 @@ tags:
   - github-actions
   - npm
   - ci-cd
+fact_kind: observation
 ---
 
 The GitHub Actions workflow `.github/workflows/publish.yml` automates npm package publishing:
