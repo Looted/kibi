@@ -6,6 +6,12 @@ created_at: 2026-02-20T14:25:00Z
 updated_at: 2026-02-20T14:25:00Z
 source: documentation/facts/FACT-KB-REPO-LOCAL.md
 tags: [core, storage]
+fact_kind: property_value
+subject_key: kibi.kb.scope
+property_key: storage_location
+operator: eq
+value_type: string
+value_string: repo_local
 ---
 
 The knowledge base must be local to a single git repository.
