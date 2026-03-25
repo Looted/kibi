@@ -1280,3 +1280,17 @@ Legacy prose fact without strict shape
     TEST_TIMEOUT_MS,
   );
 });
+
+import { parseViolationRows } from "../../src/prolog/codec";
+
+describe("parseViolationRows — via check integration", () => {
+  test("correctly parses violation with comma in description", () => {
+    const raw =
+      "[violation(strict-fact-shape,'FACT-ARC-018',\"Missing required fields: subject_key, property_key\",\"Add the missing fields\",'documentation/facts/FACT-ARC-018.md')]";
+    const result = parseViolationRows(raw);
+    expect(result).toHaveLength(1);
+    expect(result[0].description).toBe(
+      "Missing required fields: subject_key, property_key",
+    );
+  });
+});

@@ -19,7 +19,11 @@
 import * as path from "node:path";
 import { extractFromManifest } from "../extractors/manifest.js";
 import { PrologProcess } from "../prolog.js";
-import { escapeAtom } from "../prolog/codec.js";
+import {
+  escapeAtom,
+  parseTriples,
+  parseViolationRows,
+} from "../prolog/codec.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
@@ -728,7 +732,7 @@ async function checkDomainContradictions(
     return violations;
   }
 
-  const rows = parseTripleRows(result.bindings.Rows);
+  const rows = parseTriples(result.bindings.Rows);
 
   for (const [reqA, reqB, reason] of rows) {
     violations.push({
@@ -760,21 +764,9 @@ async function checkStrictFactShape(
 
   const violationsStr = result.bindings.Violations as string;
   if (violationsStr && violationsStr !== "[]") {
-    const violationRegex =
-      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
-    let match: RegExpExecArray | null;
-    do {
-      match = violationRegex.exec(violationsStr);
-      if (match) {
-        violations.push({
-          rule: match[1].trim().replace(/^'|'$/g, ""),
-          entityId: match[2].trim(),
-          description: match[3].trim().replace(/^"|"$/g, ""),
-          suggestion: match[4].trim().replace(/^"|"$/g, ""),
-          source: match[5].trim() || undefined,
-        });
-      }
-    } while (match);
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
   }
 
   return violations;
@@ -834,44 +826,10 @@ async function checkSymbolTraceability(
 
   const violationsStr = result.bindings.Violations as string;
   if (violationsStr && violationsStr !== "[]") {
-    const violationRegex =
-      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
-    let match: RegExpExecArray | null;
-    do {
-      match = violationRegex.exec(violationsStr);
-      if (match) {
-        violations.push({
-          rule: match[1].trim().replace(/^'|'$/g, ""),
-          entityId: match[2].trim(),
-          description: match[3].trim().replace(/^"|"$/g, ""),
-          suggestion: match[4].trim().replace(/^"|"$/g, ""),
-          source: match[5].trim() || undefined,
-        });
-      }
-    } while (match);
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
   }
 
   return violations;
-}
-
-function parseTripleRows(raw: string): Array<[string, string, string]> {
-  const cleaned = raw.trim();
-  if (cleaned === "[]" || cleaned.length === 0) {
-    return [];
-  }
-
-  const rows: Array<[string, string, string]> = [];
-  const rowRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
-  let match: RegExpExecArray | null;
-  do {
-    match = rowRegex.exec(cleaned);
-    if (match) {
-      rows.push([
-        match[1].trim().replace(/^'|'$/g, ""),
-        match[2].trim().replace(/^'|'$/g, ""),
-        match[3].trim().replace(/^'|'$/g, ""),
-      ]);
-    }
-  } while (match);
-  return rows;
 }
