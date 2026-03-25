@@ -1,11 +1,11 @@
 ---
-id: FACT-ARC-019
+id: FACT-ARC-020
 title: Fabric.js Canvas Abstraction
 status: active
 tags: [architecture, canvas, fabric-js]
 source: memory-bank/systemPatterns.md
 created_at: 2026-02-20T21:42:12Z
-updated_at: 2026-02-20T21:42:12Z
+updated_at: 2026-03-25T00:00:00Z
 fact_kind: meta
 ---
 

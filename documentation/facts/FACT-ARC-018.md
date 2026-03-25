@@ -1,11 +1,11 @@
 ---
-id: FACT-ARC-017
+id: FACT-ARC-018
 title: State Management with RxJS and Signals
 status: active
 tags: [architecture, state-management, signals, rxjs]
 source: memory-bank/systemPatterns.md
 created_at: 2026-02-20T21:42:12Z
-updated_at: 2026-02-20T21:42:12Z
+updated_at: 2026-03-25T00:00:00Z
 fact_kind: meta
 ---
 
