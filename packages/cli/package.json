@@ -58,6 +58,10 @@
     "./diagnostics": {
       "types": "./dist/diagnostics.d.ts",
       "default": "./dist/diagnostics.js"
+    },
+    "./search-ranking": {
+      "types": "./dist/search-ranking.d.ts",
+      "default": "./dist/search-ranking.js"
     }
   },
   "types": "./dist/cli.d.ts",

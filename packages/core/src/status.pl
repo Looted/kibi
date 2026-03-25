@@ -48,7 +48,7 @@ synced_at(DataFile, SyncedAt) :-
     !,
     time_file(DataFile, Timestamp),
     format_time(atom(SyncedAt), '%FT%TZ', Timestamp).
-synced_at(_, '').
+synced_at(_, @(null)).
 
 freshness_state(DataFile, true, stale) :-
     exists_file(DataFile),
