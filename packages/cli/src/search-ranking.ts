@@ -33,7 +33,9 @@ export async function rankEntities(
     if (leftType !== rightType) {
       return leftType.localeCompare(rightType);
     }
-    return String(left.entity.id ?? "").localeCompare(String(right.entity.id ?? ""));
+    return String(left.entity.id ?? "").localeCompare(
+      String(right.entity.id ?? ""),
+    );
   });
 
   return matches;
@@ -80,13 +82,17 @@ async function rankEntity(
   }
 
   const metadataFields = [type, source, owner, priority, severity];
-  const metadataMatched = metadataFields.some((field) => normalize(field).includes(normalizedQuery));
+  const metadataMatched = metadataFields.some((field) =>
+    normalize(field).includes(normalizedQuery),
+  );
   if (metadataMatched) {
     score += 20;
     reasons.push("metadata match");
   }
 
-  const matchingTags = tags.filter((tag) => normalize(tag).includes(normalizedQuery));
+  const matchingTags = tags.filter((tag) =>
+    normalize(tag).includes(normalizedQuery),
+  );
   if (matchingTags.length > 0) {
     score += 30;
     reasons.push("tag match");
@@ -129,6 +135,7 @@ async function rankEntity(
 }
 
 export async function loadMarkdownBody(
+  // implements REQ-007, REQ-mcp-search-discovery
   source: string,
   workspaceRoot: string,
 ): Promise<string | null> {
@@ -143,7 +150,9 @@ export async function loadMarkdownBody(
 
   // Resolve to absolute path; relative paths are resolved against workspaceRoot.
   const resolved = path.resolve(
-    path.isAbsolute(normalizedSource) ? normalizedSource : path.join(workspaceRoot, normalizedSource),
+    path.isAbsolute(normalizedSource)
+      ? normalizedSource
+      : path.join(workspaceRoot, normalizedSource),
   );
 
   // Reject paths that escape the workspace root to prevent path traversal.
@@ -181,5 +190,7 @@ function buildSnippet(bodyText: string, query: string): string | undefined {
     return undefined;
   }
 
-  return matchedLine.length > 160 ? `${matchedLine.slice(0, 157)}...` : matchedLine;
+  return matchedLine.length > 160
+    ? `${matchedLine.slice(0, 157)}...`
+    : matchedLine;
 }

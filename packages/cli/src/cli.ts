@@ -99,8 +99,14 @@ program
 program
   .command("gaps [type]")
   .description("Find entities missing or present on selected relationships")
-  .option("--missing-rel <rels>", "Comma-separated missing relationship filters")
-  .option("--present-rel <rels>", "Comma-separated present relationship filters")
+  .option(
+    "--missing-rel <rels>",
+    "Comma-separated missing relationship filters",
+  )
+  .option(
+    "--present-rel <rels>",
+    "Comma-separated present relationship filters",
+  )
   .option("--tag <tags>", "Comma-separated tag filter")
   .option("--source <path>", "Source file substring filter")
   .option("--limit <n>", "Limit results", "100")
@@ -129,7 +135,11 @@ program
   .description("Traverse the KB graph from one or more seed IDs")
   .option("--from <ids>", "Comma-separated seed IDs")
   .option("--relationships <rels>", "Comma-separated relationship filter")
-  .option("--direction <direction>", "Direction: outgoing|incoming|both", "outgoing")
+  .option(
+    "--direction <direction>",
+    "Direction: outgoing|incoming|both",
+    "outgoing",
+  )
   .option("--depth <n>", "Traversal depth", "1")
   .option("--entity-types <types>", "Comma-separated entity type filter")
   .option("--max-nodes <n>", "Maximum node count", "200")

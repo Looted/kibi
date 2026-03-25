@@ -452,7 +452,10 @@ describe("MCP Server", () => {
     const developKb = path.join(tempRoot, ".kb/branches/develop");
     writeEmptyKbSnapshot(developKb);
 
-    const proc = startServer({ cwd: tempRoot, env: { KIBI_WORKSPACE: tempRoot } });
+    const proc = startServer({
+      cwd: tempRoot,
+      env: { KIBI_WORKSPACE: tempRoot },
+    });
 
     try {
       await sendRequest(proc, {
@@ -575,7 +578,9 @@ describe("MCP Server", () => {
           30000,
         );
         expect(upsert.error).toBeUndefined();
-        const upsertResult = upsert.result as Record<string, unknown> | undefined;
+        const upsertResult = upsert.result as
+          | Record<string, unknown>
+          | undefined;
         expect(upsertResult?.isError).not.toBe(true);
 
         const queryById = await sendRequest(
@@ -645,7 +650,9 @@ describe("MCP Server", () => {
   }, 180000);
 
   test("should let kb_status observe MCP writes in the same server session", async () => {
-    const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-status-live-"));
+    const tempRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-status-live-"),
+    );
     const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
     execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
@@ -701,8 +708,12 @@ describe("MCP Server", () => {
       });
 
       const beforeResult = before.result as Record<string, unknown> | undefined;
-      const beforeStructured = beforeResult?.structuredContent as Record<string, unknown> | undefined;
-      expect((beforeResult?.isError as boolean | undefined) ?? false).toBe(false);
+      const beforeStructured = beforeResult?.structuredContent as
+        | Record<string, unknown>
+        | undefined;
+      expect((beforeResult?.isError as boolean | undefined) ?? false).toBe(
+        false,
+      );
       expect(beforeStructured?.dirty).toBe(false);
       expect(beforeStructured?.syncState).toBe("fresh");
 
@@ -722,8 +733,12 @@ describe("MCP Server", () => {
       });
 
       const afterResult = after.result as Record<string, unknown> | undefined;
-      const afterStructured = afterResult?.structuredContent as Record<string, unknown> | undefined;
-      expect((afterResult?.isError as boolean | undefined) ?? false).toBe(false);
+      const afterStructured = afterResult?.structuredContent as
+        | Record<string, unknown>
+        | undefined;
+      expect((afterResult?.isError as boolean | undefined) ?? false).toBe(
+        false,
+      );
       expect(afterStructured?.dirty).toBe(true);
       expect(afterStructured?.syncState).toBe("stale");
     } finally {

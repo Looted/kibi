@@ -55,7 +55,8 @@ function renderToolsDoc(): string {
   return lines.join("\n");
 }
 
-export const PROMPTS = [ // implements REQ-002, REQ-013, REQ-mcp-search-discovery
+export const PROMPTS = [
+  // implements REQ-002, REQ-013, REQ-mcp-search-discovery
   {
     name: "init-kibi",
     description: "Bootstrap Kibi on an existing repository with zero entities.",
@@ -221,7 +222,7 @@ function registerDocResources(): DocResource[] {
     "## Discover before mutating",
     '1. `kb_search` with `{ "query": "login flow" }` to discover related requirements, tests, and ADRs',
     '2. `kb_query` with `{ "type": "req", "sourceFile": "src/auth/login.ts" }` for exact follow-up',
-    '3. `kb_status` with `{}` when branch attachment or freshness confidence matters',
+    "3. `kb_status` with `{}` when branch attachment or freshness confidence matters",
     "",
     "## Model requirements as reusable facts",
     '1. `kb_query` with `{ "type": "fact" }` to find existing fact IDs before creating new ones',

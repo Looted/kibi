@@ -31,7 +31,9 @@ export async function handleKbCoverage(
   const includeTransitive = args.includeTransitive ?? true;
 
   try {
-    const payload = await runJsonModuleQuery<CoverageResult["structuredContent"]>(
+    const payload = await runJsonModuleQuery<
+      CoverageResult["structuredContent"]
+    >(
       prolog,
       "discovery.pl",
       `discovery:coverage_report_json('${by}', ${toPrologList(args.tags)}, ${includePassing}, ${includeTransitive}, ${limit}, ${offset}, JsonString)`,

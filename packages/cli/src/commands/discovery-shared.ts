@@ -24,15 +24,20 @@ export async function withAttachedBranchProlog<T>(
 
     let branch: string;
     try {
-      branch = process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+      branch =
+        process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
     } catch {
       branch = process.env.KIBI_BRANCH || "main";
     }
 
     const kbPath = path.join(process.cwd(), ".kb/branches", branch);
-    const attachResult = await prolog.query(`kb_attach('${escapeAtom(kbPath)}')`);
+    const attachResult = await prolog.query(
+      `kb_attach('${escapeAtom(kbPath)}')`,
+    );
     if (!attachResult.success) {
-      throw new Error(`Failed to attach KB: ${attachResult.error || "Unknown error"}`);
+      throw new Error(
+        `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
+      );
     }
     attached = true;
 
@@ -58,7 +63,7 @@ export async function withPrologProcess<T>(
   const prolog = new PrologProcess({ timeout: 120000 });
   try {
     await prolog.start();
-    ;(prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
+    (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
@@ -95,7 +100,9 @@ export async function runJsonModuleQuery<T>(
   errorLabel: string,
   kbPath?: string,
 ): Promise<T> {
-  const modulePath = escapeAtom(resolveCoreModulePath(fileName).replace(/\\/g, "/"));
+  const modulePath = escapeAtom(
+    resolveCoreModulePath(fileName).replace(/\\/g, "/"),
+  );
   const wrappedGoal = kbPath
     ? `(use_module('${modulePath}'), kb_attach('${escapeAtom(kbPath)}'), ${goal}, kb_detach)`
     : `(use_module('${modulePath}'), ${goal})`;
@@ -144,7 +151,10 @@ function renderDiscoveryTable(structured: unknown): string | null {
     return renderSearchTable(payload);
   }
 
-  if (typeof payload.branch === "string" && typeof payload.syncState === "string") {
+  if (
+    typeof payload.branch === "string" &&
+    typeof payload.syncState === "string"
+  ) {
     return renderStatusTable(payload);
   }
 
@@ -152,7 +162,11 @@ function renderDiscoveryTable(structured: unknown): string | null {
     return renderGraphTable(payload);
   }
 
-  if (Array.isArray(payload.rows) && payload.summary && typeof payload.summary === "object") {
+  if (
+    Array.isArray(payload.rows) &&
+    payload.summary &&
+    typeof payload.summary === "object"
+  ) {
     return renderCoverageTable(payload);
   }
 
@@ -174,7 +188,9 @@ function renderSearchTable(payload: Record<string, unknown>): string {
   for (const row of rows) {
     const match = row as Record<string, unknown>;
     const entity = (match.entity ?? {}) as Record<string, unknown>;
-    const reasons = Array.isArray(match.reasons) ? match.reasons.join(", ") : "";
+    const reasons = Array.isArray(match.reasons)
+      ? match.reasons.join(", ")
+      : "";
     table.push([
       stringifyCell(entity.id),
       stringifyCell(entity.type),
@@ -230,7 +246,9 @@ function renderGapsTable(payload: Record<string, unknown>): string {
     ]);
   }
 
-  return [`Gap rows: ${stringifyCell(payload.count)}`, table.toString()].join("\n");
+  return [`Gap rows: ${stringifyCell(payload.count)}`, table.toString()].join(
+    "\n",
+  );
 }
 
 function renderCoverageTable(payload: Record<string, unknown>): string {
@@ -246,10 +264,20 @@ function renderCoverageTable(payload: Record<string, unknown>): string {
   }
 
   const firstRow = rows[0] as Record<string, unknown> | undefined;
-  const isRequirementCoverage = firstRow && Object.hasOwn(firstRow, "scenarioCount");
+  const isRequirementCoverage =
+    firstRow && Object.hasOwn(firstRow, "scenarioCount");
   const table = isRequirementCoverage
     ? new Table({
-        head: ["ID", "Status", "Priority", "Coverage", "Scen", "Tests", "Symbols", "Gaps"],
+        head: [
+          "ID",
+          "Status",
+          "Priority",
+          "Coverage",
+          "Scen",
+          "Tests",
+          "Symbols",
+          "Gaps",
+        ],
         colWidths: [20, 12, 12, 18, 8, 8, 10, 28],
         wordWrap: true,
       })

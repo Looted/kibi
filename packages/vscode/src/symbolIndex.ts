@@ -43,6 +43,7 @@ export interface SymbolIndex {
 }
 
 export function buildIndex(
+  // implements REQ-vscode-traceability
   manifestPath: string,
   workspaceRoot: string,
 ): SymbolIndex {
@@ -176,7 +177,6 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
     const sourceLineMatch = trimmed.match(/^sourceLine:\s*(\d+)$/);
     if (sourceLineMatch) {
       current.sourceLine = Number(sourceLineMatch[1]);
-      continue;
     }
   }
 
@@ -186,6 +186,7 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
 
 /** Run `kibi query --relationships <id> --format json` and return the parsed result. */
 export function queryRelationshipsViaCli(
+  // implements REQ-vscode-traceability
   symbolId: string,
   workspaceRoot: string,
 ): Array<{ type: string; from: string; to: string }> {
