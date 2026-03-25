@@ -13,6 +13,7 @@ links:
   - ADR-013
   - ADR-014
   - FACT-POL-027
+fact_kind: meta
 ---
 
 # Fact: Kibi npm Package Matrix

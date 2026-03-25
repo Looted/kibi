@@ -15,6 +15,7 @@ links:
   - ADR-013
   - ADR-014
   - FACT-034
+fact_kind: meta
 ---
 
 The repository's own OpenCode setup does not consume the published `kibi-mcp` or `kibi-opencode` packages.
