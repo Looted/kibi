@@ -17,7 +17,11 @@
 */
 import Ajv from "ajv";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { escapeAtom, toPrologAtom } from "kibi-cli/prolog/codec";
+import {
+  escapeAtom,
+  toPrologAtom,
+  toPrologString,
+} from "kibi-cli/prolog/codec";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
@@ -283,15 +287,15 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     } else if (ATOM_FIELDS.includes(key) && typeof value === "string") {
       prologValue = toPrologAtom(value);
     } else if (STRING_FIELDS.includes(key) && typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "number") {
       prologValue = String(value);
     } else if (typeof value === "boolean") {
       prologValue = value ? "true" : "false";
     } else {
-      prologValue = `"${escapeQuotes(String(value))}"`;
+      prologValue = `${toPrologString(String(value))}`;
     }
 
     pairs.push(`${key}=${prologValue}`);
@@ -313,11 +317,11 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
     let prologValue: string;
 
     if (typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "number") {
       prologValue = String(value);
     } else {
-      prologValue = `"${escapeQuotes(String(value))}"`;
+      prologValue = `${toPrologString(String(value))}`;
     }
 
     pairs.push(`${key}=${prologValue}`);
@@ -425,13 +429,6 @@ async function recordRelationshipAudit(
       `Failed to record relationship audit entry ${from}->${to}: ${result.error || "Unknown error"}`,
     );
   }
-}
-
-/**
- * Escape double quotes in strings for Prolog
- */
-function escapeQuotes(str: string): string {
-  return str.replace(/"/g, '\\"');
 }
 
 /**
