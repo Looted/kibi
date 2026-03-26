@@ -20,9 +20,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv from "ajv";
 import matter from "gray-matter";
-import entitySchema from "../schemas/entity.schema.json" assert {
-  type: "json",
-};
+import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
 const FACT_STRING_FIELDS = [
