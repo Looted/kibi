@@ -41,6 +41,7 @@ import {
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
+import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import {
   type ChecksConfig,
   RULES,
@@ -346,16 +347,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     console.error(`Error: ${message}`);
     process.exit(1);
   } finally {
-    if (prolog) {
-      if (attached) {
-        try {
-          await prolog.query("kb_detach");
-        } catch {}
-      }
-      try {
-        await prolog.terminate();
-      } catch {}
-    }
+    await safeCleanupProlog(prolog);
   }
 }
 

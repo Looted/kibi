@@ -2,6 +2,7 @@ import path from "node:path";
 import Table from "cli-table3";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
+import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import { getCurrentBranch } from "./init-helpers.js";
 
 export interface DiscoveryCommandOptions {
@@ -43,16 +44,7 @@ export async function withAttachedBranchProlog<T>(
 
     return await callback(prolog);
   } finally {
-    if (prolog) {
-      if (attached) {
-        try {
-          await prolog.query("kb_detach");
-        } catch {}
-      }
-      try {
-        await prolog.terminate();
-      } catch {}
-    }
+    await safeCleanupProlog(prolog);
   }
 }
 
@@ -69,9 +61,7 @@ export async function withPrologProcess<T>(
     );
     return await callback(prolog);
   } finally {
-    try {
-      await prolog.terminate();
-    } catch {}
+    await safeCleanupProlog(prolog);
   }
 }
 

@@ -30,6 +30,7 @@ import {
 import relationshipSchema from "../public/schemas/relationship.js";
 import { VALID_ENTITY_TYPES } from "../query/service.js";
 import { resolveActiveBranch } from "../utils/branch-resolver.js";
+import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 
 const REL_TYPES = relationshipSchema.properties.type.enum;
 
@@ -213,16 +214,7 @@ export async function queryCommand(
     console.error(`Error: ${message}`);
     process.exitCode = 1;
   } finally {
-    if (prolog) {
-      if (attached) {
-        try {
-          await prolog.query("kb_detach");
-        } catch {}
-      }
-      try {
-        await prolog.terminate();
-      } catch {}
-    }
+    await safeCleanupProlog(prolog);
   }
 }
 
