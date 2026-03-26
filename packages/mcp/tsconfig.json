@@ -21,7 +21,8 @@
         "../cli/dist/public/schemas/relationship"
       ],
       "kibi-cli/schemas": ["../cli/dist/public/schemas"],
-      "kibi-cli/search-ranking": ["../cli/dist/search-ranking"]
+      "kibi-cli/search-ranking": ["../cli/dist/search-ranking"],
+      "kibi-cli/public/check-types": ["../cli/dist/public/check-types"]
     }
   },
   "include": ["src/**/*"],

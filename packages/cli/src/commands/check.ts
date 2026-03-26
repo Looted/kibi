@@ -45,8 +45,11 @@ import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import {
   type ChecksConfig,
   RULES,
+  type Violation,
   getEffectiveRules,
 } from "../utils/rule-registry.js";
+
+export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
 import { discoverSourceFiles } from "./sync/discovery.js";
@@ -58,14 +61,6 @@ export interface CheckOptions {
   staged?: boolean;
   minLinks?: string | number;
   dryRun?: boolean;
-}
-
-export interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
 }
 
 // implements REQ-006
