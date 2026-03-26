@@ -35,7 +35,10 @@ interface InitOptions {
   hooks?: boolean;
 }
 
-export async function initCommand(options: InitOptions): Promise<void> {
+// implements REQ-003
+export async function initCommand(
+  options: InitOptions,
+): Promise<{ exitCode: number }> {
   const kbDir = path.join(process.cwd(), ".kb");
   const kbExists = existsSync(kbDir);
 
@@ -58,7 +61,7 @@ export async function initCommand(options: InitOptions): Promise<void> {
     } else {
       console.error("Error: Failed to resolve the active git branch.");
       console.error(result.error);
-      process.exit(1);
+      return { exitCode: 1 };
     }
   } else {
     currentBranch = result.branch;
@@ -91,9 +94,9 @@ export async function initCommand(options: InitOptions): Promise<void> {
     console.log("  1. Run 'kibi doctor' to verify setup");
     console.log("  2. Run 'kibi sync' to extract entities from documents");
 
-    process.exit(0);
+    return { exitCode: 0 };
   } catch (error) {
     console.error("Error during initialization:", error);
-    process.exit(1);
+    return { exitCode: 1 };
   }
 }

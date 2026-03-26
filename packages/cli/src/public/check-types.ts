@@ -1,0 +1,37 @@
+/*
+ Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ Copyright (C) 2026 Piotr Franczyk
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * Public re-export barrel for shared check types.
+ * Import from "kibi-cli/public/check-types" in MCP or external consumers.
+ */
+export type {
+  ChecksConfig,
+  RuleDefinition,
+  SymbolTraceabilityOptions,
+  Violation,
+} from "../utils/rule-registry.js";
+
+export {
+  DEFAULT_CHECKS_CONFIG,
+  RULE_NAMES,
+  RULES,
+  getEffectiveRules,
+  mergeChecksConfig,
+  validateRuleName,
+} from "../utils/rule-registry.js";

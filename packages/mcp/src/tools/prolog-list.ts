@@ -15,6 +15,8 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+import { splitTopLevel } from "kibi-cli/prolog/codec";
+
 // implements REQ-002
 export function parseAtomList(raw: string): string[] {
   const trimmed = raw.trim();
@@ -100,59 +102,6 @@ function unwrapList(value: string): string {
     return value.slice(1, -1).trim();
   }
   return value;
-}
-
-function splitTopLevel(input: string, delimiter: string): string[] {
-  const parts: string[] = [];
-  let current = "";
-  let depth = 0;
-  let inDoubleQuotes = false;
-  let inSingleQuotes = false;
-
-  for (let i = 0; i < input.length; i++) {
-    const ch = input[i];
-    const prev = i > 0 ? input[i - 1] : "";
-
-    if (ch === '"' && !inSingleQuotes && prev !== "\\") {
-      inDoubleQuotes = !inDoubleQuotes;
-      current += ch;
-      continue;
-    }
-
-    if (ch === "'" && !inDoubleQuotes && prev !== "\\") {
-      inSingleQuotes = !inSingleQuotes;
-      current += ch;
-      continue;
-    }
-
-    if (!inSingleQuotes && !inDoubleQuotes && (ch === "[" || ch === "(")) {
-      depth++;
-      current += ch;
-      continue;
-    }
-
-    if (!inSingleQuotes && !inDoubleQuotes && (ch === "]" || ch === ")")) {
-      depth--;
-      current += ch;
-      continue;
-    }
-
-    if (!inSingleQuotes && !inDoubleQuotes && depth === 0 && ch === delimiter) {
-      if (current.length > 0) {
-        parts.push(current);
-      }
-      current = "";
-      continue;
-    }
-
-    current += ch;
-  }
-
-  if (current.length > 0) {
-    parts.push(current);
-  }
-
-  return parts;
 }
 
 function stripQuotes(value: string): string {
