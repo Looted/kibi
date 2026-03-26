@@ -15,6 +15,7 @@ kb_status_json(JsonString) :-
 
 status_meta_dict(StatusDict) :-
     attached_kb_info(Branch, KbPath, DataFile),
+    !,
     snapshot_id(SnapshotId),
     synced_at(DataFile, SyncedAt),
     freshness_state(DataFile, Dirty, SyncState),
@@ -26,6 +27,18 @@ status_meta_dict(StatusDict) :-
         syncState: SyncState,
         kbPath: KbPath,
         lastSyncSource: persisted
+    }.
+status_meta_dict(StatusDict) :-
+    % Fallback for non-standard KB paths (e.g. temp dirs in tests)
+    ( kb:kb_attached(KbPath) -> true ; KbPath = unknown ),
+    StatusDict = _{
+        branch: unknown,
+        snapshotId: unknown,
+        syncedAt: null,
+        dirty: false,
+        syncState: unknown,
+        kbPath: KbPath,
+        lastSyncSource: unknown
     }.
 
 attached_kb_info(Branch, KbPath, DataFile) :-
@@ -81,7 +94,7 @@ workspace_source_changed(SnapshotTime) :-
     ),
     !.
 
-documentation_tree_changed(SnapshotTime) :-
+documentation_tree_changed(_SnapshotTime) :-
     attached_workspace_root(WorkspaceRoot),
     documentation_markdown_untracked(WorkspaceRoot),
     !.
