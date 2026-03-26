@@ -25,7 +25,8 @@ interface DoctorCheck {
   check: () => { passed: boolean; message: string; remediation?: string };
 }
 
-export async function doctorCommand(): Promise<void> {
+// implements REQ-003
+export async function doctorCommand(): Promise<{ exitCode: number }> {
   const checks: DoctorCheck[] = [
     {
       name: "SWI-Prolog",
@@ -78,11 +79,10 @@ export async function doctorCommand(): Promise<void> {
 
   if (allPassed) {
     console.log("All checks passed! Your environment is ready.");
-    process.exit(0);
-  } else {
-    console.log("Some checks failed. Please address the issues above.");
-    process.exit(1);
+    return { exitCode: 0 };
   }
+  console.log("Some checks failed. Please address the issues above.");
+  return { exitCode: 1 };
 }
 
 function checkSWIProlog(): {

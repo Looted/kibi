@@ -68,12 +68,17 @@ export class SyncError extends Error {
 }
 
 // implements REQ-003, REQ-007
+export interface SyncResult extends SyncSummary {
+  exitCode?: number;
+}
+
+// implements REQ-003, REQ-007
 export async function syncCommand(
   options: {
     validateOnly?: boolean;
     rebuild?: boolean;
   } = {},
-): Promise<SyncSummary> {
+): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
   const startTime = Date.now();
@@ -114,10 +119,8 @@ export async function syncCommand(
     currentBranch = branchResult.branch;
 
     if (process.env.KIBI_DEBUG) {
-      try {
-        // eslint-disable-next-line no-console
-        console.log("[kibi-debug] currentBranch:", currentBranch);
-      } catch {}
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] currentBranch:", currentBranch);
     }
 
     const config = loadSyncConfig(process.cwd());
@@ -127,12 +130,10 @@ export async function syncCommand(
       await discoverSourceFiles(process.cwd(), paths);
 
     if (process.env.KIBI_DEBUG) {
-      try {
-        // eslint-disable-next-line no-console
-        console.log("[kibi-debug] markdownFiles:", markdownFiles.length);
-        // eslint-disable-next-line no-console
-        console.log("[kibi-debug] manifestFiles:", manifestFiles.length);
-      } catch {}
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] markdownFiles:", markdownFiles.length);
+      // eslint-disable-next-line no-console
+      console.log("[kibi-debug] manifestFiles:", manifestFiles.length);
     }
 
     const sourceFiles = [...markdownFiles, ...manifestFiles].sort();
@@ -236,7 +237,18 @@ export async function syncCommand(
         console.error(`${err.file}: ${err.message}`);
       }
       console.error(`FAILED: ${errors.length} errors found`);
-      process.exit(1);
+      return {
+        branch: currentBranch,
+        commit: getCurrentCommit(),
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        relationshipCount: 0,
+        success: false,
+        published: false,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+        exitCode: 1,
+      };
     }
 
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
@@ -258,7 +270,18 @@ export async function syncCommand(
       });
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
-      process.exit(0);
+      return {
+        branch: currentBranch,
+        commit: getCurrentCommit(),
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        relationshipCount: 0,
+        success: true,
+        published: false,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+        exitCode: 0,
+      };
     }
 
     const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
@@ -335,11 +358,33 @@ export async function syncCommand(
             console.error(`${err.file}: ${err.message}`);
           }
           console.error(`FAILED: ${errors.length} errors found`);
-          process.exit(1);
+          return {
+            branch: currentBranch,
+            commit: getCurrentCommit(),
+            timestamp: new Date().toISOString(),
+            entityCounts,
+            relationshipCount: 0,
+            success: false,
+            published: false,
+            failures: diagnostics,
+            durationMs: Date.now() - startTime,
+            exitCode: 1,
+          };
         }
 
         console.log(`OK: Validation passed (${entityCount} entities)`);
-        process.exit(0);
+        return {
+          branch: currentBranch,
+          commit: getCurrentCommit(),
+          timestamp: new Date().toISOString(),
+          entityCounts,
+          relationshipCount: 0,
+          success: true,
+          published: false,
+          failures: diagnostics,
+          durationMs: Date.now() - startTime,
+          exitCode: 0,
+        };
       }
 
       if (kbModified) {
@@ -405,7 +450,7 @@ export async function syncCommand(
       };
 
       console.log(formatSyncSummary(summary));
-      return summary;
+      return { ...summary, exitCode: 0 };
     } catch (error) {
       cleanupStaging(stagingPath);
       throw error;

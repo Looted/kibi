@@ -56,7 +56,7 @@ interface QueryOptions {
 export async function queryCommand(
   type: string | undefined,
   options: QueryOptions,
-): Promise<void> {
+): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
   let attached = false;
   try {
@@ -85,7 +85,7 @@ export async function queryCommand(
           `Error: Failed to resolve active branch:\n${branchResult.error}`,
         );
         await prolog.terminate();
-        process.exit(1);
+        return { exitCode: 1 };
       }
     } else {
       currentBranch = branchResult.branch;
@@ -99,7 +99,7 @@ export async function queryCommand(
       console.error(
         `Error: Failed to attach KB: ${attachResult.error || "Unknown error"}`,
       );
-      process.exit(1);
+      return { exitCode: 1 };
     }
     attached = true;
 
@@ -138,8 +138,7 @@ export async function queryCommand(
         console.error(
           `Error: Invalid type '${type}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}`,
         );
-        process.exitCode = 1;
-        return;
+        return { exitCode: 1 };
       }
 
       let goal: string;
@@ -186,8 +185,7 @@ export async function queryCommand(
       console.error(
         "Error: Must specify entity type, --source, or --relationships option",
       );
-      process.exitCode = 1;
-      return;
+      return { exitCode: 1 };
     }
 
     const limit = Number.parseInt(options.limit || "100");
@@ -200,7 +198,7 @@ export async function queryCommand(
       } else {
         console.log("No entities found");
       }
-      return;
+      return { exitCode: 0 };
     }
 
     // Format output
@@ -209,10 +207,11 @@ export async function queryCommand(
     } else {
       console.log(JSON.stringify(paginated, null, 2));
     }
+    return { exitCode: 0 };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
-    process.exitCode = 1;
+    return { exitCode: 1 };
   } finally {
     await safeCleanupProlog(prolog);
   }
