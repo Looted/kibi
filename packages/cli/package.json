@@ -56,6 +56,10 @@
     "./search-ranking": {
       "types": "./dist/search-ranking.d.ts",
       "default": "./dist/search-ranking.js"
+    },
+    "./public/check-types": {
+      "types": "./dist/public/check-types.d.ts",
+      "default": "./dist/public/check-types.js"
     }
   },
   "types": "./dist/cli.d.ts",

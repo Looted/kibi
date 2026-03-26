@@ -19,6 +19,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import {
+  type ChecksConfig,
+  DEFAULT_CHECKS_CONFIG,
+  RULE_NAMES,
+  type Violation,
+} from "kibi-cli/public/check-types";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 const require = createRequire(import.meta.url);
@@ -46,44 +52,6 @@ function resolveChecksPlPath(): string {
 
 export interface CheckArgs {
   rules?: string[];
-}
-
-const ALL_RULES = [
-  "must-priority-coverage",
-  "no-dangling-refs",
-  "no-cycles",
-  "required-fields",
-  "symbol-coverage",
-  "symbol-traceability",
-  "deprecated-adr-no-successor",
-  "domain-contradictions",
-  "strict-fact-shape",
-] as const;
-
-const RULE_NAMES = new Set<string>(ALL_RULES);
-
-interface ChecksConfig {
-  rules: Record<string, boolean>;
-  symbolTraceability: {
-    requireAdr: boolean;
-  };
-}
-
-const DEFAULT_CHECKS_CONFIG: ChecksConfig = {
-  rules: Object.fromEntries(
-    ALL_RULES.map((rule) => [rule, rule !== "strict-fact-shape"]),
-  ),
-  symbolTraceability: {
-    requireAdr: false,
-  },
-};
-
-interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
 }
 
 interface Diagnostic {
@@ -199,7 +167,7 @@ function getEffectiveRules(
 
   const effective = new Set<string>();
 
-  for (const rule of ALL_RULES) {
+  for (const rule of RULE_NAMES) {
     const enabled = configRules[rule] ?? true;
     if (enabled) {
       effective.add(rule);

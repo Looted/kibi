@@ -32,6 +32,15 @@ export interface SymbolTraceabilityOptions {
   requireAdr: boolean;
 }
 
+/** A single KB check violation. */
+export interface Violation {
+  rule: string;
+  entityId: string;
+  description: string;
+  suggestion?: string;
+  source?: string;
+}
+
 export interface ChecksConfig {
   rules: Record<string, boolean>;
   symbolTraceability: SymbolTraceabilityOptions;
