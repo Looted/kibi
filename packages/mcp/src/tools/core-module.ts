@@ -27,7 +27,9 @@ export function resolveCorePlPath(fileName: string): string {
     if (existsSync(installedPath)) {
       return installedPath;
     }
-  } catch {}
+  } catch {
+    // require.resolve not available or package not installed
+  }
 
   const localPath = path.join(process.cwd(), "packages/core/src", fileName);
   if (existsSync(localPath)) {

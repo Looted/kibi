@@ -40,7 +40,9 @@ function resolveChecksPlPath(): string {
     if (existsSync(installedChecksPl)) {
       return installedChecksPl;
     }
-  } catch {}
+  } catch {
+    // require.resolve not available or package not installed
+  }
 
   const localChecksPl = path.join(process.cwd(), "packages/core/src/checks.pl");
   if (existsSync(localChecksPl)) {
