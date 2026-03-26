@@ -72,7 +72,7 @@ function readJsonIfExists(filePath: string): unknown | null {
   } catch (err: unknown) {
     const msg =
       err && typeof err === "object" && "message" in err
-        ? (err as any).message
+        ? (err as { message: string }).message
         : String(err);
     logger.warn(`Failed to read/parse config ${filePath}: ${msg}`);
     return null;
@@ -185,10 +185,6 @@ export function loadConfig(projectDir = process.cwd()): KibiConfig {
   if (projectObj) merged = { ...merged, ...projectObj };
 
   const validated = validateAndMerge(merged);
-  if (!validated) {
-    logger.warn("Configuration invalid, falling back to defaults");
-    return DEFAULTS;
-  }
   return validated;
 }
 

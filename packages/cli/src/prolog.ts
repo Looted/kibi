@@ -27,6 +27,7 @@ const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 export function resolveKbPlPath(): string {
+  // implements REQ-009
   const overrideKbPath = process.env.KIBI_KB_PL_PATH;
   if (overrideKbPath && existsSync(overrideKbPath)) {
     return overrideKbPath;
@@ -35,7 +36,9 @@ export function resolveKbPlPath(): string {
   try {
     const installedKbPl = require.resolve("kibi-core/src/kb.pl");
     if (existsSync(installedKbPl)) return installedKbPl;
-  } catch {}
+  } catch {
+    // require.resolve not available or package not installed
+  }
 
   const startDirs = [importMetaDir, process.cwd()];
   for (const startDir of startDirs) {

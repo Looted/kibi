@@ -82,6 +82,7 @@ function rangesIntersect(
 }
 
 export function extractSymbolsFromStagedFile(
+  // implements REQ-008
   stagedFile: StagedFile,
   manifestLookup?: ManifestLookup,
 ): ExtractedSymbol[] {
@@ -163,7 +164,9 @@ export function extractSymbolsFromStagedFile(
         ),
         reqLinks: mergedReqLinks,
       });
-    } catch {}
+    } catch {
+      // skip: individual declaration extraction may fail on malformed AST nodes
+    }
   }
 
   // Classes
@@ -204,7 +207,9 @@ export function extractSymbolsFromStagedFile(
         ),
         reqLinks: mergedReqLinks,
       });
-    } catch {}
+    } catch {
+      // skip: individual declaration extraction may fail on malformed AST nodes
+    }
   }
 
   // Enums
@@ -240,7 +245,9 @@ export function extractSymbolsFromStagedFile(
         ),
         reqLinks: mergedReqLinks,
       });
-    } catch {}
+    } catch {
+      // skip: individual declaration extraction may fail on malformed AST nodes
+    }
   }
 
   // Variable statements (exported)
@@ -277,7 +284,9 @@ export function extractSymbolsFromStagedFile(
           ),
           reqLinks: mergedReqLinks,
         });
-      } catch {}
+      } catch {
+        // skip: individual declaration extraction may fail on malformed AST nodes
+      }
     }
   }
 
@@ -313,9 +322,7 @@ function resolveSymbolId(
   // First, check the provided manifest lookup if available
   if (manifestLookup) {
     // Normalize the source file path for consistent lookup
-    const normalizedSource = filePath.startsWith("/")
-      ? filePath
-      : `${filePath}`;
+    const normalizedSource = filePath;
     const lookupKey = `${normalizedSource}:${name}`;
     const entry = manifestLookup.get(lookupKey);
     if (entry) {
