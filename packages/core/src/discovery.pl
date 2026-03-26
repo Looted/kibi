@@ -369,7 +369,7 @@ edge_step(Current, Relationships, both, Edge, Next) :-
 relationship_allowed([], Type) :-
     relationship_type(Type).
 relationship_allowed(Relationships, Type) :-
-    memberchk(Type, Relationships).
+    member(Type, Relationships).
 
 keep_entity_type([], _Id).
 keep_entity_type(EntityTypes, Id) :-
