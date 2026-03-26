@@ -7,7 +7,7 @@ import {
   parsePrologValue,
   parsePropertyList,
   splitTopLevel,
-} from "../../../cli/src/prolog/codec.js";
+} from "kibi-cli/prolog/codec";
 import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";
 
 describe("MCP kb.query Parsing Functions", () => {
