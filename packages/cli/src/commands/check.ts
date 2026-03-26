@@ -41,11 +41,15 @@ import {
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
+import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import {
   type ChecksConfig,
   RULES,
+  type Violation,
   getEffectiveRules,
 } from "../utils/rule-registry.js";
+
+export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
 import { discoverSourceFiles } from "./sync/discovery.js";
@@ -59,16 +63,10 @@ export interface CheckOptions {
   dryRun?: boolean;
 }
 
-export interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
-}
-
 // implements REQ-006
-export async function checkCommand(options: CheckOptions): Promise<void> {
+export async function checkCommand(
+  options: CheckOptions,
+): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
   let attached = false;
   try {
@@ -136,7 +134,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         const stagedFiles = getStagedFiles();
         if (!stagedFiles || stagedFiles.length === 0) {
           console.log("No staged files found.");
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
@@ -159,9 +157,9 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
             console.log();
           }
           if (options.dryRun) {
-            process.exit(0);
+            return { exitCode: 0 };
           }
-          process.exit(1);
+          return { exitCode: 1 };
         }
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
         for (const f of codeFiles) {
@@ -181,12 +179,12 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           console.log(
             "No exported symbols or markdown entities found in staged files.",
           );
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         if (allSymbols.length === 0) {
           console.log("✓ No violations found in staged files.");
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         // Create temp KB
@@ -207,14 +205,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           console.log(violationsFormatted);
           await cleanupTempKb(tempCtx.tempDir);
           if (options.dryRun) {
-            process.exit(0);
+            return { exitCode: 0 };
           }
-          process.exit(1);
+          return { exitCode: 1 };
         }
 
         console.log("✓ No violations found in staged symbols.");
         await cleanupTempKb(tempCtx.tempDir);
-        process.exit(0);
+        return { exitCode: 0 };
       } catch (err) {
         console.error(
           `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
@@ -222,9 +220,11 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         if (tempCtx) {
           try {
             await cleanupTempKb(tempCtx.tempDir);
-          } catch {}
+          } catch {
+            // best-effort: temp directory may already be cleaned up
+          }
         }
-        process.exit(1);
+        return { exitCode: 1 };
       }
     }
 
@@ -237,7 +237,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     if (!attachResult.success) {
       await prolog.terminate();
       console.error(`Error: Failed to attach KB: ${attachResult.error}`);
-      process.exit(1);
+      return { exitCode: 1 };
     }
     attached = true;
 
@@ -324,7 +324,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
-      process.exit(0);
+      return { exitCode: 0 };
     }
 
     console.log(`Found ${violations.length} violation(s):`);
@@ -340,22 +340,13 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       console.log();
     }
 
-    process.exit(1);
+    return { exitCode: 1 };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
-    process.exit(1);
+    return { exitCode: 1 };
   } finally {
-    if (prolog) {
-      if (attached) {
-        try {
-          await prolog.query("kb_detach");
-        } catch {}
-      }
-      try {
-        await prolog.terminate();
-      } catch {}
-    }
+    await safeCleanupProlog(prolog);
   }
 }
 

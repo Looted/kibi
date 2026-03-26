@@ -57,68 +57,6 @@ export function escapeAtomContent(value: string): string {
 }
 
 /**
- * Split a string by delimiter at the top level (not inside brackets or quotes).
- * This is the general-purpose version that splits at depth 0.
- */
-export function splitTopLevel(str: string, delimiter: string): string[] {
-  const results: string[] = [];
-  let current = "";
-  let depth = 0;
-  let inDoubleQuotes = false;
-  let inSingleQuotes = false;
-
-  for (let i = 0; i < str.length; i++) {
-    const char = str[i];
-    const prev = i > 0 ? str[i - 1] : "";
-
-    if (char === '"' && !inSingleQuotes && prev !== "\\") {
-      inDoubleQuotes = !inDoubleQuotes;
-      current += char;
-      continue;
-    }
-
-    if (char === "'" && !inDoubleQuotes && prev !== "\\") {
-      inSingleQuotes = !inSingleQuotes;
-      current += char;
-      continue;
-    }
-
-    if (!inSingleQuotes && !inDoubleQuotes && (char === "[" || char === "(")) {
-      depth++;
-      current += char;
-      continue;
-    }
-
-    if (!inSingleQuotes && !inDoubleQuotes && (char === "]" || char === ")")) {
-      depth--;
-      current += char;
-      continue;
-    }
-
-    if (
-      !inSingleQuotes &&
-      !inDoubleQuotes &&
-      depth === 0 &&
-      char === delimiter
-    ) {
-      if (current.length > 0) {
-        results.push(current);
-      }
-      current = "";
-      continue;
-    }
-
-    current += char;
-  }
-
-  if (current.length > 0) {
-    results.push(current);
-  }
-
-  return results;
-}
-
-/**
  * Parse a Prolog list of lists into a JavaScript array.
  * Input: "[[a,b,c],[d,e,f]]"
  * Output: [["a", "b", "c"], ["d", "e", "f"]]
@@ -393,6 +331,15 @@ export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   }
 
   return results;
+}
+
+/**
+ * Split a string by delimiter at the top level (not inside brackets or quotes).
+ * @see splitTopLevelGeneral
+ */
+export function splitTopLevel(str: string, delimiter: string): string[] {
+  // implements REQ-009
+  return splitTopLevelGeneral(str, delimiter);
 }
 
 /**
