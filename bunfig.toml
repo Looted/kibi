@@ -1,4 +1,8 @@
 [test]
+# Default timeout for all tests and hooks (ms). Prolog subprocess startup takes ~5-10s;
+# 30s covers the worst case without hanging indefinitely. The root `bun run test` script
+# passes --timeout 120000 explicitly which overrides this for the full suite.
+timeout = 30000
 # Coverage is only collected when --coverage flag is passed (e.g. via test:coverage:unit).
 # Normal `bun test` and `bun run test:unit` runs are unaffected.
 coverageReporter = ["text", "lcov"]
