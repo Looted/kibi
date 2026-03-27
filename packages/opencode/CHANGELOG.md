@@ -1,5 +1,26 @@
 # kibi-opencode
 
+## 0.5.2
+
+### Patch Changes
+
+- 7bd2adf: Internal code quality improvements and refactoring.
+
+  - Deduplicate `splitTopLevel` into single canonical function in `codec.ts`.
+  - Deduplicate `Violation`, `ChecksConfig`, and rule definitions between CLI and MCP.
+  - Extract `safeCleanupProlog` helper to eliminate duplicated teardown patterns.
+  - Replace `process.exit()` with return values in CLI command handlers.
+  - Remove dead code (`target-resolver.ts`), annotate empty catch blocks, remove unreachable code paths.
+  - Add `toPrologString` helper, `parseViolationRows`, export `splitTopLevelGeneral` from codec.
+  - Clean narration comments across all packages.
+
+- 7bd2adf: Add typed fact schema, semantic contradiction model, and discovery bundle tools.
+
+  - **Typed facts**: New `fact_kind` field (subject, property_value, observation, meta) with schema validation, preserved through CLI/MCP sync and query round-trips.
+  - **Discovery bundle**: `kb_search`, `kb_find_gaps`, `kb_coverage`, `kb_graph` tools across MCP and CLI. Richer `kb_check` summaries and improved diagnostic usage logging.
+  - **Agent guidance**: Updated to prefer discovery-first workflows (`kb_search` → `kb_query`), MCP-only policy aligned with ADR-016 thin-bridge architecture.
+  - **Strict-fact validation**: Append-only requirement supersession and migration guidance for strict fact adoption.
+
 ## Unreleased
 
 ### Patch Changes
