@@ -234,9 +234,28 @@ function findNamedDeclaration(
       return internalCandidates[0];
     }
 
+    // Third pass: unique class methods
+    const methodCandidates: Array<{
+      node: NamedDeclarationCandidate;
+      getNameNode: () => Node;
+    }> = [];
+
+    for (const cls of sourceFile.getClasses()) {
+      for (const method of cls.getMethods()) {
+        if (method.getName() !== title) continue;
+        const nameNode = method.getNameNode();
+        if (!nameNode) continue;
+        methodCandidates.push({ node: method as unknown as NamedDeclarationCandidate, getNameNode: () => nameNode });
+      }
+    }
+
+    // Fail closed: only return if exactly one unique match
+    if (methodCandidates.length === 1) {
+      return methodCandidates[0];
+    }
+
     return null;
   }
-
   candidates.sort(
     (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
   );
