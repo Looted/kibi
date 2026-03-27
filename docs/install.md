@@ -117,6 +117,7 @@ After installing kibi and verifying SWI-Prolog:
 5. Inspect branch freshness: `kibi status`
 6. Validate integrity: `kibi check`
 
+See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
 Example:
 
 ```bash

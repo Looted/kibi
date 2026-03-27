@@ -26,7 +26,7 @@ export function resolveCorePlPath(fileName: string): string {
   }
 
   throw new Error(
-    `Root-consistency error: resolveKbPlPath() resolved to '${kbPlPath}' but sibling '${fileName}' not found at '${sibling}'`
+    `Root-consistency error: resolveKbPlPath() resolved to '${kbPlPath}' but sibling '${fileName}' not found at '${sibling}'`,
   );
 }
 

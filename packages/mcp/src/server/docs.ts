@@ -49,9 +49,11 @@ function renderToolsDoc(): string {
     const required = Array.isArray(tool.inputSchema?.required)
       ? tool.inputSchema.required.join(", ")
       : "none";
-    lines.push(`| ${tool.name} | ${tool.description} | ${required} |`);
   }
-
+  lines.push("");
+  lines.push(
+    "Modeling note: Prefer query-first discovery; create `fact` entities before `req` entities and express semantics via `constrains` + `requires_property`.",
+  );
   return lines.join("\n");
 }
 
@@ -145,6 +147,8 @@ export const PROMPTS = [
       "- Run `kb_check` after meaningful mutations to catch integrity issues early.",
       "- Prefer explicit IDs and enum values to avoid invalid parameters.",
       "- Assume every write can affect downstream traceability queries.",
+      "- Model requirements by first creating/reusing fact entities, then express req semantics with `constrains` + `requires_property` relationships (create-before-link).",
+      "- flag gates runtime/config behavior; use `fact` with `fact_kind: observation` or `meta` for bug and workaround notes.",
     ].join("\n"),
   },
   {
@@ -153,7 +157,6 @@ export const PROMPTS = [
       "Step-by-step call order for discovery, mutation, and verification.",
     text: [
       "# kibi-mcp Workflow",
-      "",
       "Follow this sequence for reliable operation:",
       "",
       "1. **Discover first**: Call `kb_search` for exploratory discovery, then `kb_query` to confirm exact current state before mutation.",
@@ -230,6 +233,13 @@ function registerDocResources(): DocResource[] {
     "3. `kb_upsert` for the req entity and include `relationships` with `constrains` and `requires_property`",
     "4. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
     '5. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }` for targeted validation',
+    "",
+    "Note: Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link). Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug and workaround notes.",
+    "",
+    "## Find missing coverage",
+    '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',
+    "",
+    "## Find missing coverage",
     "",
     "## Find missing coverage",
     '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',

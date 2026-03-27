@@ -205,3 +205,9 @@ Start by performing an evidence inventory:
 5. Note any issue tracker references or ticket systems
 
 Then propose the candidate fact entities you intend to create, followed by one small, reviewable batch of upserts (facts + 1-2 reqs + their scenarios/tests) using the tool examples above. Do not run `kb_upsert` until a human confirms the proposed batch.
+
+### Entity Choice for Bugs and Workarounds
+
+**Do NOT create a `flag` for bugs or workarounds without an actual gate:** The `flag` entity is for runtime/config gates only (feature flags, kill-switches, deferred capabilities). Never create a flag entity just to document a bug or workaround.
+
+**Use `fact` with observation/meta for bug/workaround notes:** When documenting bugs, incidents, or workarounds, create a `fact` entity with `fact_kind: observation` or `meta`. This keeps non-blocking evidence separate from contradiction-sensitive facts.

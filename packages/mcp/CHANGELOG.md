@@ -1,5 +1,53 @@
 # kibi-mcp
 
+## 0.5.0
+
+### Minor Changes
+
+- 7bd2adf: Add typed fact schema, semantic contradiction model, and discovery bundle tools.
+
+  - **Typed facts**: New `fact_kind` field (subject, property_value, observation, meta) with schema validation, preserved through CLI/MCP sync and query round-trips.
+  - **Discovery bundle**: `kb_search`, `kb_find_gaps`, `kb_coverage`, `kb_graph` tools across MCP and CLI. Richer `kb_check` summaries and improved diagnostic usage logging.
+  - **Agent guidance**: Updated to prefer discovery-first workflows (`kb_search` → `kb_query`), MCP-only policy aligned with ADR-016 thin-bridge architecture.
+  - **Strict-fact validation**: Append-only requirement supersession and migration guidance for strict fact adoption.
+
+### Patch Changes
+
+- 7bd2adf: Bug fixes and Node.js v24 compatibility.
+
+  - **Node 24**: Replace deprecated `import ... assert` with `import ... with` per TC39 Import Attributes proposal.
+  - **Core**: Use `member/2` instead of `memberchk/2` in `relationship_allowed`; make `status_meta_dict` resilient to non-standard KB paths.
+  - **CLI**: Fix staged traceability check to resolve symbol IDs from `symbols.yaml` using both `sourceFile` and legacy `source` fields.
+  - **MCP**: Replace `escapeQuotes` with `toPrologString` for safe Prolog string encoding.
+  - **Persistence**: Remove duplicate `ATOM_FIELDS`, add `value_int` integer guard, use `toPrologString` for safe escaping.
+  - **Check**: Replace fragile regex violation parsers with `parseViolationRows` from codec.
+  - **Tests**: Isolate workspace test from rogue `/tmp/.git`, add 30s timeout to `beforeAll` hooks to prevent flaky timeouts.
+
+- 7bd2adf: Internal code quality improvements and refactoring.
+
+  - Deduplicate `splitTopLevel` into single canonical function in `codec.ts`.
+  - Deduplicate `Violation`, `ChecksConfig`, and rule definitions between CLI and MCP.
+  - Extract `safeCleanupProlog` helper to eliminate duplicated teardown patterns.
+  - Replace `process.exit()` with return values in CLI command handlers.
+  - Remove dead code (`target-resolver.ts`), annotate empty catch blocks, remove unreachable code paths.
+  - Add `toPrologString` helper, `parseViolationRows`, export `splitTopLevelGeneral` from codec.
+  - Clean narration comments across all packages.
+
+- 30e5f68: Clarified entity modeling guidance across documentation, especially distinguishing `flag` (runtime/config gate) from `fact` (bug/workaround records). Aligned MCP runtime self-documentation with canonical guidance.
+- 12f8293: Fix MCP discovery and checks module resolution for installed package layouts
+
+  Unify `resolveCorePlPath()` to derive peer Prolog modules (discovery.pl, checks.pl)
+  from `path.dirname(resolveKbPlPath())` instead of using an independent `require.resolve()`
+  call that can resolve to a different physical `kibi-core` tree in nested `node_modules`
+  layouts. This fixes `kb_graph`, `kb_coverage`, and `kb_find_gaps` failing with
+  `discovery.pl` module-load errors when npm hoists packages into separate trees.
+
+- Updated dependencies [7bd2adf]
+- Updated dependencies [7bd2adf]
+- Updated dependencies [7bd2adf]
+  - kibi-core@0.3.0
+  - kibi-cli@0.4.0
+
 ## 0.3.3
 
 ### Patch Changes

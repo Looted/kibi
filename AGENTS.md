@@ -22,10 +22,10 @@ Kibi supports 8 entity types:
 | `scenario` | BDD behavior | SCEN-XXX | draft, active, deprecated |
 | `test` | Unit/integration/e2e test | TEST-XXX | passing, failing, skipped, pending |
 | `adr` | Architecture Decision Record | ADR-XXX | proposed, accepted, deprecated, superseded |
-| `flag` | Feature flag | FLAG-XXX | active, inactive, deprecated |
-| `event` | Domain/system event | EVT-XXX | active, deprecated |
-| `symbol` | Code symbol (function/class/module) | Varies | active, deprecated, removed |
-| `fact` | Atomic domain fact | FACT-XXX | active, deprecated |
+| `flag` | Feature flag / runtime config gate | FLAG-XXX | active, inactive, deprecated |
+| `event` | Domain event | EVT-XXX | active, deprecated |
+| `symbol` | Code symbol (function, class, module) | SYM-XXX | active, deprecated |
+| `fact` | Atomic domain fact; use observation/meta for bug and workaround notes | FACT-XXX | active, deprecated |
 
 ---
 
@@ -148,6 +148,24 @@ Use the strict fact lane when a requirement should participate in contradiction 
 ### Prefer Append-Only Requirement Evolution
 When requirement semantics change, create a new requirement and link the old one with `supersedes` rather than assuming a plain upsert replaces earlier strict-fact semantics.
 
+### Entity Choice for Bug and Workaround Documentation
+
+When documenting bugs, incidents, or workarounds:
+  - Create a `fact` entity with `fact_kind: observation` or `fact_kind: meta`
+  - Do NOT create a `flag` entity unless there is an actual runtime/config gate
+  - Use `relates_to` to link the fact to related requirements, tests, or ADRs
+
+When a bug is temporarily mitigated by a feature gate:
+  - Create TWO records: `fact` (describes the issue/workaround) + `flag` (the gate)
+  - Link them with `relates_to` since no typed relationship exists for this case
+
+**Canonical mapping:**
+  - `flag` = runtime/config gate (includes kill-switches, deferred capabilities)
+  - `fact` (observation/meta) = bug records, incident notes, workarounds
+  - `req` = intended/corrected behavior
+  - `test` = executable verification/reproduction
+  - `adr` = durable design rationale
+
 ---
 
 ## Documentation Workflow
@@ -162,6 +180,8 @@ When requirement semantics change, create a new requirement and link the old one
    - Flags: `documentation/flags/FLAG-XXX.md`
    - Events: `documentation/events/EVT-XXX.md`
    - Facts: `documentation/facts/FACT-XXX.md`
+
+> **Entity Choice Decision**: Use `flag` only for actual runtime gates. For bug/workaround documentation, use `fact` with `fact_kind: observation` or `meta` instead.
 
 2. Include frontmatter with required fields:
    ```yaml
@@ -226,6 +246,16 @@ kb_check(rules)
 If the KB needs initialization, repair, or configuration beyond `/init-kibi`:
 1. Ask the user/operator to run the appropriate CLI commands
 2. Do not attempt to run `kibi` CLI commands yourself
+
+### Entity Choice Quick Reference
+
+- `flag` — Runtime/config gate (NOT for bug records)
+- `fact` — Domain facts; use `observation`/`meta` for bugs/workarounds
+- `req` — Intended behavior
+- `test` — Executable verification
+- `adr` — Durable design decisions
+
+**Rule**: Bug mitigated by a gate? Create both: `fact` (issue) + `flag` (gate).
 
 ---
 

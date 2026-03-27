@@ -338,9 +338,12 @@ This requirement is intentionally not must-priority.
           "node_modules",
           "kibi-core",
         );
-        fs.mkdirSync(join(sandbox.npmPrefix, "node_modules", "kibi-mcp", "node_modules"), {
-          recursive: true,
-        });
+        fs.mkdirSync(
+          join(sandbox.npmPrefix, "node_modules", "kibi-mcp", "node_modules"),
+          {
+            recursive: true,
+          },
+        );
         fs.cpSync(topLevelCoreDir, nestedCoreDir, { recursive: true });
 
         const mcp = await startMcpServer(sandbox);
@@ -539,7 +542,9 @@ This requirement is intentionally not must-priority.
           "kibi-core",
           "schema",
         );
-        fs.cpSync(topCoreSchema, join(isolatedDir, "schema"), { recursive: true });
+        fs.cpSync(topCoreSchema, join(isolatedDir, "schema"), {
+          recursive: true,
+        });
 
         const brokenEnv = {
           ...sandbox.env,
@@ -584,7 +589,8 @@ This requirement is intentionally not must-priority.
           });
 
           const hasError =
-            graphResult.error !== undefined || graphResult.result?.isError === true;
+            graphResult.error !== undefined ||
+            graphResult.result?.isError === true;
           const errorText = JSON.stringify(graphResult);
           assert.ok(
             hasError ||
