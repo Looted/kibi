@@ -15,4 +15,5 @@ links:
 
 When enabled: replaces manual `symbols.yaml` maintenance with automatic symbol
 extraction using the SCIP protocol. Requires language-specific indexers (scip-typescript,
-scip-python, etc.). Deferred behind this flag until tooling matures.
+scip-python, etc.). This is a runtime/config gate for SCIP-based symbol extraction.
+Deferred until tooling matures.

@@ -15,4 +15,5 @@ links:
 ---
 
 When enabled: adds a webview panel with an interactive graph of entity relationships
-using D3 or a similar library. Deferred to v1.
+using D3 or a similar library. This is a runtime/config gate for the VS Code extension
+full feature set. Deferred to v1.

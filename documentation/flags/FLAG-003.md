@@ -14,4 +14,5 @@ links:
 ---
 
 When enabled: serves a local web UI (`kibi serve`) for browsing and editing
-KB entities in a browser. Useful for non-VS Code users.
+KB entities in a browser. This is a runtime/config gate for the web-based UI.
+Useful for non-VS Code users.

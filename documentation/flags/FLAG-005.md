@@ -14,5 +14,5 @@ links:
 ---
 
 When enabled: a CI step parses coverage reports (lcov, cobertura) and upserts
-`covered_by` relationships into the KB. Enables automatic coverage traceability
-without manual `links` maintenance.
+`covered_by` relationships into the KB. This is a runtime/config gate for automatic
+coverage traceability without manual `links` maintenance.
