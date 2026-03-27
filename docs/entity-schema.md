@@ -492,7 +492,6 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
-| affects             | adr                  | symbol/component     | ADR affects symbol/component                      |
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
@@ -575,17 +574,6 @@ relationship:
   source: https://example.com/fixtures/adrs/ADR-001
 ```
 
-**affects**
-```yaml
-# adr ADR-001 affects symbol SYMBOL-001
-relationship:
-  type: affects
-  source: ADR-001
-  target: SYMBOL-001
-  created_at: 2026-02-17T13:40:00Z
-  created_by: architect
-  source: https://example.com/fixtures/adrs/ADR-001
-```
 
 **guards**
 ```yaml
