@@ -82,6 +82,17 @@ Add `kibi-opencode` to your project `opencode.json`:
 
 OpenCode installs npm plugins declared in `plugin` automatically at startup.
 
+### VS Code Extension
+
+The Kibi VS Code extension provides a TreeView explorer for your knowledge base and built-in MCP integration.
+
+Download the latest `.vsix` from [GitHub Releases](https://github.com/Looted/kibi/releases), then install it:
+
+- **Command Palette**: `Ctrl+Shift+P` → `Extensions: Install from VSIX...` → select the file
+- **CLI**: `code --install-extension kibi-vscode-x.x.x.vsix`
+
+Every GitHub release includes the latest VS Code extension build as a `.vsix` artifact.
+
 ### Repo-local dogfood workflow (this repo)
 
 This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:

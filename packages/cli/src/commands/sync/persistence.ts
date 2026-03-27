@@ -18,11 +18,78 @@
 
 import * as path from "node:path";
 import type {
+  ExtractedEntity,
   ExtractedRelationship,
   ExtractionResult,
 } from "../../extractors/markdown.js";
 import type { PrologProcess } from "../../prolog.js";
-import { toPrologAtom } from "../../prolog/codec.js";
+import { toPrologAtom, toPrologString } from "../../prolog/codec.js";
+
+// Field categorization for typed fact serialization
+// NOTE: base entity fields (status, owner, priority, severity) are NOT listed here —
+// they are emitted in the base props block above. Only fact-specific atom fields go here.
+const ATOM_FIELDS = new Set([
+  "fact_kind",
+  "operator",
+  "value_type",
+  "polarity",
+]);
+// Typed fact fields only (exclude base entity fields like id, title, etc.)
+const STRING_FIELDS = new Set([
+  "subject_key",
+  "property_key",
+  "value_string",
+  "unit",
+  "scope",
+  "valid_from",
+  "valid_to",
+  "canonical_key",
+]);
+const NUMBER_FIELDS = new Set(["value_int", "value_number"]);
+const BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
+
+// Serialize typed fact fields from entity
+function serializeTypedFactFields(entity: ExtractedEntity): string[] {
+  const fields: string[] = [];
+  const entityRecord = entity as unknown as Record<string, unknown>;
+
+  // String fields (safely escaped double-quoted Prolog strings)
+  for (const field of STRING_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null) {
+      fields.push(`${field}=${toPrologString(String(value))}`);
+    }
+  }
+
+  // Atom fields (possibly unquoted if simple)
+  for (const field of ATOM_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null) {
+      fields.push(`${field}=${toPrologAtom(String(value))}`);
+    }
+  }
+
+  // Number fields (unquoted); value_int must be a true integer
+  for (const field of NUMBER_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null && typeof value === "number") {
+      if (field === "value_int" && !Number.isInteger(value)) {
+        continue; // silently drop non-integer value_int
+      }
+      fields.push(`${field}=${value}`);
+    }
+  }
+
+  // Boolean fields (true/false atoms)
+  for (const field of BOOLEAN_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null && typeof value === "boolean") {
+      fields.push(`${field}=${value}`);
+    }
+  }
+
+  return fields;
+}
 
 export interface PersistenceResult {
   entityCount: number;
@@ -31,6 +98,7 @@ export interface PersistenceResult {
 }
 
 export async function persistEntities(
+  // implements REQ-009
   prolog: PrologProcess,
   results: ExtractionResult[],
   entityIds: Set<string>,
@@ -59,12 +127,12 @@ export async function persistEntities(
   for (const { entity } of results) {
     try {
       const props = [
-        `id='${entity.id}'`,
-        `title="${entity.title.replace(/"/g, '\\"')}"`,
+        `id=${toPrologAtom(entity.id)}`,
+        `title=${toPrologString(entity.title)}`,
         `status=${toPrologAtom(entity.status)}`,
-        `created_at="${entity.created_at}"`,
-        `updated_at="${entity.updated_at}"`,
-        `source="${entity.source.replace(/"/g, '\\"')}"`,
+        `created_at=${toPrologString(entity.created_at)}`,
+        `updated_at=${toPrologString(entity.updated_at)}`,
+        `source=${toPrologString(entity.source)}`,
       ];
 
       if (entity.tags && entity.tags.length > 0) {
@@ -76,18 +144,28 @@ export async function persistEntities(
         props.push(`priority=${toPrologAtom(entity.priority)}`);
       if (entity.severity)
         props.push(`severity=${toPrologAtom(entity.severity)}`);
-      if (entity.text_ref) props.push(`text_ref="${entity.text_ref}"`);
+      if (entity.text_ref)
+        props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+
+      // Add typed fact fields for fact entities
+      if (entity.type === "fact") {
+        const factFields = serializeTypedFactFields(entity);
+        props.push(...factFields);
+      }
 
       const propsList = `[${props.join(", ")}]`;
       const goal = `kb_assert_entity(${entity.type}, ${propsList})`;
       const result = await prolog.query(goal);
-      if (result.success) {
-        entityCount++;
-        kbModified = true;
+      if (!result.success) {
+        throw new Error(
+          result.error || `kb_assert_entity failed for ${entity.id}`,
+        );
       }
+      entityCount++;
+      kbModified = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      console.warn(`Warning: Failed to upsert entity ${entity.id}: ${message}`);
+      throw new Error(`Failed to upsert entity ${entity.id}: ${message}`);
     }
   }
 

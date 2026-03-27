@@ -6,10 +6,14 @@
     kb_save/0,
     with_kb_mutex/1,
     kb_assert_entity/2,
+    kb_assert_entity_no_audit/2,
+    kb_log_entity_upsert/2,
     kb_retract_entity/1,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
+    kb_assert_relationship_no_audit/4,
+    kb_log_relationship_upsert/4,
     kb_relationship/3,
     transitively_implements/2,
     transitively_depends/2,
@@ -27,6 +31,7 @@
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
     contradicting_reqs/3,
+    check_req_contradiction/1,
     normalize_term_atom/2,
     changeset/4, % Export for testing
     kb_uri/1
@@ -238,16 +243,24 @@ load_kb_pl_files(Directory) :-
     ).
 
 %% kb_assert_entity(+Type, +Properties)
-% Assert an entity into the KB with validation and audit logging.
+% Assert an entity into the KB with audit logging.
 % Properties is a list of Key=Value pairs.
 kb_assert_entity(Type, Props) :-
+    kb_assert_entity_no_audit(Type, Props),
+    kb_log_entity_upsert(Type, Props).
+
+%% kb_assert_entity_no_audit(+Type, +Properties)
+% Assert an entity RDF payload without recording audit side effects.
+% Used by write-gated MCP transactions so failed contradiction checks do not
+% leave partial audit residue.
+kb_assert_entity_no_audit(Type, Props) :-
     % Validate entity
     validate_entity(Type, Props),
     % Extract ID
     memberchk(id=Id, Props),
     % Get current graph
     kb_graph(Graph),
-    % Execute with mutex protection
+    % Execute RDF operations with mutex protection
     with_kb_mutex((
         % Create entity URI using prefix notation for namespace expansion
         format(atom(EntityURI), 'kb:entity/~w', [Id]),
@@ -260,8 +273,14 @@ kb_assert_entity(Type, Props) :-
         forall(
             member(Key=Value, Props),
             store_property(EntityURI, Key, Value, Graph)
-        ),
-        % Log to audit
+        )
+    )).
+
+%% kb_log_entity_upsert(+Type, +Properties)
+% Append the audit entry for a successfully committed entity upsert.
+kb_log_entity_upsert(Type, Props) :-
+    memberchk(id=Id, Props),
+    with_kb_mutex((
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
         assert_changeset(TS, upsert, Id, Type-Props)
@@ -347,7 +366,15 @@ source_value_atom(Value, Atom) :-
 
 %% kb_assert_relationship(+Type, +From, +To, +Metadata)
 % Assert a relationship between two entities with validation.
-kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
+kb_assert_relationship(RelType, FromId, ToId, Metadata) :-
+    kb_assert_relationship_no_audit(RelType, FromId, ToId, Metadata),
+    kb_log_relationship_upsert(RelType, FromId, ToId, Metadata).
+
+%% kb_assert_relationship_no_audit(+Type, +From, +To, +Metadata)
+% Assert a relationship RDF payload without recording audit side effects.
+% Used by write-gated MCP transactions so failed contradiction checks do not
+% leave partial audit residue.
+kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
     % Validate entities exist and relationship is valid
     % Use once/1 to keep this predicate deterministic even if the store
@@ -355,7 +382,11 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
     once(kb_entity(FromId, FromType, _)),
     once(kb_entity(ToId, ToType, _)),
     validate_relationship(RelType, FromType, ToType),
-    % Execute with mutex protection
+    % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
+    % via validateStrictLanePairing() before the transaction begins.
+    % Prolog-level validation is deferred to avoid potential issues with
+    % rdf_transaction visibility and nondeterminism inside transactions.
+    % Execute RDF operations with mutex protection
     with_kb_mutex((
         % Create entity URIs
         atom_concat('kb:entity/', FromId, FromURI),
@@ -366,13 +397,55 @@ kb_assert_relationship(RelType, FromId, ToId, _Metadata) :-
         % Upsert semantics: ensure the exact triple isn't duplicated.
         rdf_retractall(FromURI, RelURI, ToURI, Graph),
         % Assert relationship triple
-        rdf_assert(FromURI, RelURI, ToURI, Graph),
-        % Log to audit
+        rdf_assert(FromURI, RelURI, ToURI, Graph)
+    )).
+
+%% kb_log_relationship_upsert(+Type, +From, +To, +Metadata)
+% Append the audit entry for a successfully committed relationship upsert.
+kb_log_relationship_upsert(RelType, FromId, ToId, _Metadata) :-
+    with_kb_mutex((
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
         format(atom(RelId), '~w->~w', [FromId, ToId]),
         assert_changeset(TS, upsert_rel, RelId, RelType-[from=FromId, to=ToId])
     )).
+
+%% validate_strict_lane_pairing(+RelType, +FromId, +ToId)
+% Validate that constrains/requires_property relationships target facts
+% with the correct fact_kind for strict-lane semantics.
+% constrains targets must be subject facts (or legacy facts without fact_kind);
+% requires_property targets must be property_value, observation, or meta facts
+% (or legacy facts without fact_kind).
+% implements REQ-011
+validate_strict_lane_pairing(constrains, _FromId, ToId) :-
+    !,
+    (   % Allow: no fact_kind (legacy), subject, observation, or meta
+        kb_entity(ToId, fact, Props),
+        (   \+ memberchk(fact_kind=_, Props)
+        ->  true  % Legacy fact without fact_kind - allowed
+        ;   memberchk(fact_kind=KindRaw, Props),
+            normalize_term_atom(KindRaw, Kind),
+            memberchk(Kind, [subject, observation, meta])
+        )
+    ->  true
+    ;   format(atom(Msg), 'constrains target ~w must be a subject, observation, or meta fact', [ToId]),
+        throw(error(validation_error(Msg), Msg))
+    ).
+validate_strict_lane_pairing(requires_property, _FromId, ToId) :-
+    !,
+    (   % Allow: no fact_kind (legacy), property_value, observation, or meta
+        kb_entity(ToId, fact, Props),
+        (   \+ memberchk(fact_kind=_, Props)
+        ->  true  % Legacy fact without fact_kind - allowed
+        ;   memberchk(fact_kind=KindRaw, Props),
+            normalize_term_atom(KindRaw, Kind),
+            memberchk(Kind, [property_value, observation, meta])
+        )
+    ->  true
+    ;   format(atom(Msg), 'requires_property target ~w must be a property_value, observation, or meta fact', [ToId]),
+        throw(error(validation_error(Msg), Msg))
+    ).
+validate_strict_lane_pairing(_, _, _).
 
 %% kb_relationship(?Type, ?From, ?To)
 % Query relationships from the KB.
@@ -393,17 +466,30 @@ kb_relationship(RelType, FromId, ToId) :-
 % Store a property as an RDF triple with appropriate datatype.
 % All values are stored as typed string literals to avoid URI interpretation issues.
 % Uses prefix notation (kb:Key) to enable proper namespace expansion.
+% Typed fact fields (value_int, value_number, value_bool, closed_world) are stored
+% with their appropriate XSD datatypes for round-trip preservation.
 store_property(EntityURI, Key, Value, Graph) :-
     % Build property URI using prefix notation for namespace expansion
     format(atom(PropURI), 'kb:~w', [Key]),
-    % Always convert to literal (never store as URI/resource)
-    value_to_literal(Value, Literal),
+    % Convert to literal with key-aware typing for typed fact fields
+    value_to_literal(Key, Value, Literal),
     rdf_assert(EntityURI, PropURI, Literal, Graph).
 
-%% value_to_literal(+Value, -Literal)
+%% value_to_literal(+Key, +Value, -Literal)
 % Convert Prolog value to RDF literal with appropriate datatype.
-value_to_literal(Value, Literal) :-
-    (   string(Value)
+% Key-aware: typed fact fields get specific XSD datatypes.
+value_to_literal(Key, Value, Literal) :-
+    % Typed fact fields with specific XSD datatypes
+    (   Key == value_int, integer(Value)
+    ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#integer'
+    ;   Key == value_number, number(Value)
+    ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#decimal'
+    ;   Key == value_bool, (Value == true ; Value == false)
+    ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#boolean'
+    ;   Key == closed_world, (Value == true ; Value == false)
+    ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#boolean'
+    % Default: string or atom values as XSD string
+    ;   string(Value)
     ->  Literal = Value^^'http://www.w3.org/2001/XMLSchema#string'
     ;   is_list(Value)
     ->  format(atom(ListStr), '~w', [Value]),
@@ -674,18 +760,217 @@ current_req(Id) :-
     \+ kb_relationship(supersedes, _, Id).
 
 %% contradicting_reqs(-ReqA, -ReqB, -Reason)
-% Two current requirements contradict if they constrain the same fact
-% but require different properties.
+% Two current requirements contradict if they constrain facts that have
+% semantic conflicts (same subject/property but incompatible values or polarities).
+% Checks in order of specificity: polarity conflicts, then value conflicts.
 contradicting_reqs(ReqA, ReqB, Reason) :-
     current_req(ReqA),
     current_req(ReqB),
     ReqA @< ReqB,
-    kb_relationship(constrains, ReqA, FactId),
-    kb_relationship(constrains, ReqB, FactId),
-    kb_relationship(requires_property, ReqA, PropA),
-    kb_relationship(requires_property, ReqB, PropB),
-    PropA \= PropB,
-    format(atom(Reason), 'Conflict on ~w: ~w vs ~w', [FactId, PropA, PropB]).
+    req_conflict(ReqA, ReqB, Reason).
+
+%% ------------------------------------------------------------------
+%% Semantic Contradiction Helpers (Task 4)
+%% ------------------------------------------------------------------
+
+%% req_conflict(+ReqA, +ReqB, -Reason)
+% Detects conflicts between requirements via shared subject facts and
+% incompatible property_value facts linked through requires_property.
+req_conflict(ReqA, ReqB, Reason) :-
+    kb_relationship(constrains, ReqA, SubjectFactA),
+    kb_relationship(constrains, ReqB, SubjectFactB),
+    fact_subject_key(SubjectFactA, SubjectKey),
+    fact_subject_key(SubjectFactB, SubjectKey),
+    effective_req_property_fact(ReqA, SubjectKey, FactA, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA, ValidFromA, ValidToA),
+    effective_req_property_fact(ReqB, SubjectKey, FactB, PropertyKey, OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, ValidFromB, ValidToB),
+    FactA \= FactB,
+    scope_intersects(ScopeA, ScopeB),
+    intervals_overlap(ValidFromA, ValidToA, ValidFromB, ValidToB),
+    (   polarity_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, ScopeA, PolarityA,
+                          OpB, ValTypeB, ValB, UnitB, ScopeB, PolarityB, Reason)
+    ;   property_conflict(SubjectKey, PropertyKey, OpA, ValTypeA, ValA, UnitA, PolarityA,
+                          OpB, ValTypeB, ValB, UnitB, PolarityB, Reason)
+    ).
+
+%% fact_subject_key(+FactId, -SubjectKey)
+% Extract the normalized subject key for strict subject facts.
+fact_subject_key(FactId, SubjectKey) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, Kind),
+    Kind = subject,
+    memberchk(subject_key=SubjectRaw, Props),
+    normalize_term_atom(SubjectRaw, SubjectKey).
+
+%% fact_property_tuple(+FactId, -Subject, -Property, -Op, -ValType, -Value, -Unit, -Scope, -Polarity)
+% Extract typed property_value fact properties with defaults.
+fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, Polarity) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, Kind),
+    Kind = property_value,
+    memberchk(subject_key=SubjectRaw, Props),
+    normalize_term_atom(SubjectRaw, Subject),
+    memberchk(property_key=PropertyRaw, Props),
+    normalize_term_atom(PropertyRaw, Property),
+    ( memberchk(operator=OpRaw, Props) -> normalize_term_atom(OpRaw, Op) ; Op = eq ),
+    ( memberchk(value_type=ValTypeRaw, Props) -> normalize_term_atom(ValTypeRaw, ValType) ; ValType = string ),
+    value_from_props(Props, ValType, Value),
+    ( memberchk(unit=UnitRaw, Props) -> normalize_term_atom(UnitRaw, Unit) ; Unit = '' ),
+    ( memberchk(scope=ScopeRaw, Props) -> normalize_term_atom(ScopeRaw, Scope) ; Scope = '' ),
+    ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = require ).
+
+%% fact_valid_interval(+FactId, -ValidFrom, -ValidTo)
+% Extract optional validity bounds for property_value facts.
+fact_valid_interval(FactId, ValidFrom, ValidTo) :-
+    kb_entity(FactId, fact, Props),
+    ( memberchk(valid_from=FromRaw, Props) -> normalize_term_atom(FromRaw, ValidFrom) ; ValidFrom = '' ),
+    ( memberchk(valid_to=ToRaw, Props) -> normalize_term_atom(ToRaw, ValidTo) ; ValidTo = '' ).
+
+%% effective_req_property(+ReqId, -SubjectKey, -PropertyKey, -Operator, -ValueType, -Value, -Unit, -Scope, -Polarity)
+% Effective strict property constraint for a current requirement.
+effective_req_property(ReqId, SubjectKey, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity) :-
+    effective_req_property_fact(ReqId, SubjectKey, _FactId, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity, _ValidFrom, _ValidTo).
+
+%% effective_req_property_fact(+ReqId, -SubjectKey, -FactId, -PropertyKey, -Operator, -ValueType, -Value, -Unit, -Scope, -Polarity, -ValidFrom, -ValidTo)
+% Internal helper retaining the source property fact and validity window.
+effective_req_property_fact(ReqId, SubjectKey, FactId, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity, ValidFrom, ValidTo) :-
+    kb_relationship(constrains, ReqId, SubjectFactId),
+    fact_subject_key(SubjectFactId, SubjectKey),
+    kb_relationship(requires_property, ReqId, FactId),
+    fact_property_tuple(FactId, PropertySubjectKey, PropertyKey, Operator, ValueType, Value, Unit, Scope, Polarity),
+    PropertySubjectKey = SubjectKey,
+    fact_valid_interval(FactId, ValidFrom, ValidTo).
+
+%% value_from_props(+Props, +ValType, -Value)
+% Extract the appropriate value field based on value_type.
+% Handles RDF literal values (^^(Value, Type)) by unwrapping them.
+value_from_props(Props, string, Value) :- memberchk(value_string=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+value_from_props(Props, int, Value) :- memberchk(value_int=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+value_from_props(Props, number, Value) :- memberchk(value_number=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+value_from_props(Props, bool, Value) :- memberchk(value_bool=ValueRaw, Props), !, unwrap_rdf_value(ValueRaw, Value).
+value_from_props(_, _, '').
+
+%% unwrap_rdf_value(+Raw, -Value)
+% Unwrap RDF literal ^^(Value, Type) to raw value.
+unwrap_rdf_value(^^(Value, _Type), Value) :- !.
+unwrap_rdf_value(Value, Value).
+
+%% polarity_conflict(..., -Reason)
+% Detect require vs forbid only when the rest of the normalized tuple matches.
+polarity_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, ScopeA, require,
+                  OpB, TypeB, ValB, UnitB, ScopeB, forbid, Reason) :-
+    compatible_types(TypeA, TypeB),
+    unit_compatible(UnitA, UnitB),
+    scope_intersects(ScopeA, ScopeB),
+    OpA == OpB,
+    same_value(TypeA, ValA, TypeB, ValB),
+    !,
+    format(atom(Reason), 'Polarity conflict on ~w.~w: ~w ~w vs forbid', [Subject, Property, OpA, ValA]).
+polarity_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, ScopeA, forbid,
+                  OpB, TypeB, ValB, UnitB, ScopeB, require, Reason) :-
+    compatible_types(TypeA, TypeB),
+    unit_compatible(UnitA, UnitB),
+    scope_intersects(ScopeA, ScopeB),
+    OpA == OpB,
+    same_value(TypeA, ValA, TypeB, ValB),
+    !,
+    format(atom(Reason), 'Polarity conflict on ~w.~w: forbid vs ~w ~w', [Subject, Property, OpB, ValB]).
+
+%% property_conflict(..., -Reason)
+% Detect value conflicts between two property constraints on the same subject/property.
+property_conflict(Subject, Property, OpA, TypeA, ValA, UnitA, Polarity,
+                  OpB, TypeB, ValB, UnitB, Polarity, Reason) :-
+    unit_compatible(UnitA, UnitB),
+    compatible_types(TypeA, TypeB),
+    values_conflict(OpA, ValA, OpB, ValB, TypeA),
+    format(atom(Reason), 'Value conflict on ~w.~w: ~w ~w vs ~w ~w', [Subject, Property, OpA, ValA, OpB, ValB]).
+
+%% compatible_types(+TypeA, +TypeB)
+% Types are compatible if they are the same or both numeric.
+compatible_types(T, T) :- !.
+compatible_types(int, number) :- !.
+compatible_types(number, int) :- !.
+
+%% unit_compatible(+UnitA, +UnitB)
+% Units are compatible when equal or when one side is unspecified.
+unit_compatible('', _) :- !.
+unit_compatible(_, '') :- !.
+unit_compatible(Unit, Unit).
+
+%% scope_intersects(+ScopeA, +ScopeB)
+% Scopes intersect when equal or when one side is unspecified.
+scope_intersects('', _) :- !.
+scope_intersects(_, '') :- !.
+scope_intersects(Scope, Scope).
+
+%% intervals_overlap(+FromA, +ToA, +FromB, +ToB)
+% Validity windows overlap unless one ends strictly before the other begins.
+intervals_overlap(FromA, ToA, FromB, ToB) :-
+    \+ interval_ends_before(ToA, FromB),
+    \+ interval_ends_before(ToB, FromA).
+
+interval_ends_before('', _) :-
+    fail.
+interval_ends_before(_, '') :-
+    fail.
+interval_ends_before(To, From) :-
+    To @< From.
+
+%% same_value(+TypeA, +ValA, +TypeB, +ValB)
+% Compare scalar values with numeric coercion for int/number pairs.
+same_value(TypeA, ValA, TypeB, ValB) :-
+    (   is_numeric_type(TypeA),
+        is_numeric_type(TypeB)
+    ->  ValA =:= ValB
+    ;   ValA == ValB
+    ).
+
+%% values_conflict(+OpA, +ValA, +OpB, +ValB, +Type)
+% Detect specific value conflicts based on operators and types.
+
+% Exact value conflict: eq X vs eq Y where X \= Y
+values_conflict(eq, ValA, eq, ValB, Type) :-
+    \+ same_value(Type, ValA, Type, ValB).
+
+% Eq/neq conflict on the same scalar value.
+values_conflict(eq, ValA, neq, ValB, Type) :-
+    same_value(Type, ValA, Type, ValB).
+values_conflict(neq, ValA, eq, ValB, Type) :-
+    same_value(Type, ValA, Type, ValB).
+
+% Numeric gap conflict: lte X vs gte Y where X < Y
+values_conflict(lte, ValA, gte, ValB, Type) :-
+    is_numeric_type(Type),
+    ValA < ValB.
+values_conflict(gte, ValB, lte, ValA, Type) :-
+    is_numeric_type(Type),
+    ValA < ValB.
+
+% Also catch lt/gt variants
+values_conflict(lt, ValA, gt, ValB, Type) :-
+    is_numeric_type(Type),
+    ValA =< ValB.
+values_conflict(gt, ValB, lt, ValA, Type) :-
+    is_numeric_type(Type),
+    ValA =< ValB.
+values_conflict(lt, ValA, gte, ValB, Type) :-
+    is_numeric_type(Type),
+    ValA =< ValB.
+values_conflict(gte, ValB, lt, ValA, Type) :-
+    is_numeric_type(Type),
+    ValA =< ValB.
+values_conflict(lte, ValA, gt, ValB, Type) :-
+    is_numeric_type(Type),
+    ValA < ValB.
+values_conflict(gt, ValB, lte, ValA, Type) :-
+    is_numeric_type(Type),
+    ValA < ValB.
+
+%% is_numeric_type(+Type)
+% True for numeric value types.
+is_numeric_type(int).
+is_numeric_type(number).
 
 normalize_term_atom(Val^^_Type, Atom) :-
     !,
@@ -781,3 +1066,57 @@ changed_symbol_violation(Symbol, MinLinks, Count, File, Line, Col, Name) :-
     ->  File = FileRaw, Name = NameRaw
     ;   File = '', Line = 0, Col = 0, Name = ''
     ).
+
+%% check_req_contradiction(+ReqId)
+% Validates that a requirement has no contradictions with current requirements.
+% Called within a transaction after asserting entity and relationships.
+% Throws error(kb_contradiction(Details)) if contradictions are found.
+% implements REQ-011
+% This predicate first checks if the new requirement supersedes the specific
+% conflicting requirement(s). Only direct supersedes edges from the new req
+% to the conflicting req allow the write - unrelated supersedes edges do not
+% mask conflicts.
+check_req_contradiction(ReqId) :-
+    % Collect all contradictions involving this requirement
+    findall(Reason-OtherReq, (
+        contradicting_reqs(ReqId, OtherReq, Reason)
+    ;   contradicting_reqs(OtherReq, ReqId, Reason)
+    ), AllPairs),
+    AllPairs \= [],
+    !,
+    % Filter out contradictions where ReqId directly supersedes the conflicting requirement
+    % Only the specific supersedes edge from new req -> conflicting req allows the write
+    exclude(superseded_by_contradiction(ReqId), AllPairs, ValidPairs),
+    ValidPairs \= [],
+    !,
+    % Build actionable error message
+    build_contradiction_message(ReqId, ValidPairs, Message),
+    throw(error(kb_contradiction(ValidPairs), Message)).
+check_req_contradiction(_) :-
+    % No contradictions found
+    true.
+
+%% supersedes_mask(+ReqId, +Reason-OtherReq)
+% True when ReqId supersedes OtherReq, meaning this specific contradiction is allowed.
+% Only direct supersedes edges from the new requirement to the conflicting
+% requirement mask the conflict - unrelated supersedes edges do not.
+% implements REQ-011
+superseded_by_contradiction(ReqId, _-OtherReq) :-
+    kb_relationship(supersedes, ReqId, OtherReq).
+
+%% build_contradiction_message(+ReqId, +Pairs, -Message)
+% Build an actionable error message for contradictions.
+% Message includes conflicting req IDs, subject/property details, and remediation hints.
+% implements REQ-011
+build_contradiction_message(ReqId, Pairs, Message) :-
+    format(atom(Header), 'Contradiction detected for requirement ~w:', [ReqId]),
+    build_contradiction_details(Pairs, Details),
+    Remedy = '\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.',
+    atom_concat(Header, Details, Temp),
+    atom_concat(Temp, Remedy, Message).
+
+build_contradiction_details([], '').
+build_contradiction_details([Reason-OtherReq|Rest], Details) :-
+    format(atom(Line), '\n  - Conflicts with ~w: ~w', [OtherReq, Reason]),
+    build_contradiction_details(Rest, RestDetails),
+    atom_concat(Line, RestDetails, Details).

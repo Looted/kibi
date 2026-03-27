@@ -5,6 +5,7 @@ import {
   detectEmbeddedEntities,
   extractFromMarkdown,
   inferTypeFromPath,
+  normalizeDateLike,
 } from "../../src/extractors/markdown";
 
 describe("Markdown Extractor", () => {
@@ -448,6 +449,581 @@ links:
         "req",
       );
       expect(result).toContain("test");
+    });
+  });
+
+  describe("normalizeDateLike", () => {
+    test("returns ISO string for Date objects", () => {
+      const date = new Date("2026-03-23T10:00:00Z");
+      const result = normalizeDateLike(date);
+      expect(result).toBe("2026-03-23T10:00:00.000Z");
+    });
+
+    test("returns string as-is for string input", () => {
+      const isoString = "2026-03-23T10:00:00Z";
+      const result = normalizeDateLike(isoString);
+      expect(result).toBe(isoString);
+    });
+
+    test("returns undefined for undefined input", () => {
+      const result = normalizeDateLike(undefined);
+      expect(result).toBeUndefined();
+    });
+
+    test("returns undefined for null input", () => {
+      const result = normalizeDateLike(null);
+      expect(result).toBeUndefined();
+    });
+
+    test("handles Date objects with milliseconds correctly", () => {
+      const date = new Date("2026-03-23T10:00:00.123Z");
+      const result = normalizeDateLike(date);
+      expect(result).toBe("2026-03-23T10:00:00.123Z");
+    });
+  });
+
+  describe("Typed Fact Extraction", () => {
+    test("extracts typed fact with value_int and closed_world", () => {
+      const tempFile = "/tmp/facts/test-typed-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-001
+title: Maximum Retry Attempts
+type: fact
+value_int: 30
+closed_world: true
+---
+# Maximum Retry Attempts
+
+The system allows a maximum of 30 retry attempts.
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.id).toBe("FACT-001");
+        expect(result.entity.title).toBe("Maximum Retry Attempts");
+        expect(result.entity.value_int).toBe(30);
+        expect(result.entity.closed_world).toBe(true);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("normalizes Date objects to ISO strings for timestamps", () => {
+      const tempFile = "/tmp/facts/test-datetime-normalization.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-002
+title: Fact with Dates
+type: fact
+created_at: 2026-03-23T10:00:00Z
+updated_at: 2026-03-23T11:30:00Z
+valid_from: 2026-03-23T00:00:00Z
+valid_to: 2026-12-31T23:59:59Z
+---
+# Fact with Dates
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.created_at).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+        );
+        expect(result.entity.updated_at).toMatch(
+          /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/,
+        );
+        expect(result.entity.valid_from).toBe("2026-03-23T00:00:00.000Z");
+        expect(result.entity.valid_to).toBe("2026-12-31T23:59:59.000Z");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("does not inject null fields for absent value siblings", () => {
+      const tempFile = "/tmp/facts/test-no-null-injection.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-003
+title: Fact with Only value_int
+type: fact
+value_int: 42
+---
+# Fact with Only value_int
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_int).toBe(42);
+        // Should NOT have absent value siblings or legacy fact fields
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_string"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_bool"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_number"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_str"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_json"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_ref"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("ignores legacy value_str field", () => {
+      const tempFile = "/tmp/facts/test-value-str.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-004
+title: Fact with String Value
+type: fact
+value_str: "hello world"
+---
+# Fact with String Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_str"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_int"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts boolean value correctly", () => {
+      const tempFile = "/tmp/facts/test-value-bool.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-005
+title: Fact with Boolean Value
+type: fact
+value_bool: false
+---
+# Fact with Boolean Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_bool).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("ignores legacy value_json field", () => {
+      const tempFile = "/tmp/facts/test-value-json.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-006
+title: Fact with JSON Value
+type: fact
+value_json:
+  key: value
+  nested:
+    foo: bar
+---
+# Fact with JSON Value
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_json"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("ignores legacy value_ref field", () => {
+      const tempFile = "/tmp/facts/test-value-ref.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-007
+title: Fact with Reference
+type: fact
+value_ref: REQ-001
+---
+# Fact with Reference
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_ref"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects fact-only fields on non-fact entities", () => {
+      const tempFile = "/tmp/requirements/test-req-no-fact-fields.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-TEST
+title: Test Requirement
+value_int: 999
+closed_world: true
+---
+# Test Requirement
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Fact Field on Non-Fact Entity");
+        expect(fe.message).toContain(
+          "Fact-only fields are only allowed on type: fact",
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts property_value fact with all proposal-aligned fields", () => {
+      const tempFile = "/tmp/facts/test-strict-property-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-SESSION-TIMEOUT-30
+title: Session timeout is 30 minutes
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.session
+property_key: timeout_minutes
+operator: eq
+value_type: int
+value_int: 30
+unit: minutes
+scope: global
+polarity: require
+closed_world: true
+valid_from: 2026-03-23T00:00:00Z
+valid_to: 2026-12-31T23:59:59Z
+canonical_key: user.session.timeout_minutes.eq.30
+---
+# Session timeout is 30 minutes
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("property_value");
+        expect(result.entity.subject_key).toBe("user.session");
+        expect(result.entity.property_key).toBe("timeout_minutes");
+        expect(result.entity.operator).toBe("eq");
+        expect(result.entity.value_type).toBe("int");
+        expect(result.entity.value_int).toBe(30);
+        expect(result.entity.unit).toBe("minutes");
+        expect(result.entity.scope).toBe("global");
+        expect(result.entity.polarity).toBe("require");
+        expect(result.entity.closed_world).toBe(true);
+        expect(result.entity.valid_from).toBe("2026-03-23T00:00:00.000Z");
+        expect(result.entity.valid_to).toBe("2026-12-31T23:59:59.000Z");
+        expect(result.entity.canonical_key).toBe(
+          "user.session.timeout_minutes.eq.30",
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts property_value fact with value_string", () => {
+      const tempFile = "/tmp/facts/test-value-string-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-USER-TYPE-ADMIN
+title: User type can be admin
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.type
+property_key: allowed_value
+operator: eq
+value_type: string
+value_string: admin
+scope: global
+polarity: require
+canonical_key: user.type.allowed_value.eq.admin
+---
+# User type can be admin
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("property_value");
+        expect(result.entity.value_type).toBe("string");
+        expect(result.entity.value_string).toBe("admin");
+        expect(result.entity.value_int).toBeUndefined();
+        expect(result.entity.canonical_key).toBe(
+          "user.type.allowed_value.eq.admin",
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts property_value fact with value_number", () => {
+      const tempFile = "/tmp/facts/test-value-number-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-RATE-LIMIT-1-5
+title: Rate limit is 1.5 requests per second
+type: fact
+status: active
+fact_kind: property_value
+subject_key: api.client
+property_key: rate_limit_rps
+operator: eq
+value_type: number
+value_number: 1.5
+unit: requests_per_second
+scope: global
+polarity: require
+canonical_key: api.client.rate_limit_rps.eq.1.5
+---
+# Rate limit is 1.5 requests per second
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("property_value");
+        expect(result.entity.value_type).toBe("number");
+        expect(result.entity.value_number).toBe(1.5);
+        expect(result.entity.value_int).toBeUndefined();
+        expect(result.entity.canonical_key).toBe(
+          "api.client.rate_limit_rps.eq.1.5",
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts property_value fact with value_bool", () => {
+      const tempFile = "/tmp/facts/test-value-bool-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-FEATURE-ENABLED
+title: Feature is enabled
+type: fact
+status: active
+fact_kind: property_value
+subject_key: feature.new-ui
+property_key: enabled
+operator: eq
+value_type: bool
+value_bool: true
+scope: global
+polarity: require
+canonical_key: feature.new-ui.enabled.eq.true
+---
+# Feature is enabled
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("property_value");
+        expect(result.entity.value_type).toBe("bool");
+        expect(result.entity.value_bool).toBe(true);
+        expect(result.entity.canonical_key).toBe(
+          "feature.new-ui.enabled.eq.true",
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts subject fact with subject_key only", () => {
+      const tempFile = "/tmp/facts/test-subject-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-USER-SESSION
+title: User session subject
+type: fact
+status: active
+fact_kind: subject
+subject_key: user.session
+---
+# User session subject
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("subject");
+        expect(result.entity.subject_key).toBe("user.session");
+        expect(result.entity.property_key).toBeUndefined();
+        expect(result.entity.value_int).toBeUndefined();
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts observation fact", () => {
+      const tempFile = "/tmp/facts/test-observation-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-OBS-SESSION-001
+title: Observed session count
+type: fact
+status: active
+fact_kind: observation
+subject_key: system.sessions
+property_key: active_count
+operator: eq
+value_type: int
+value_int: 150
+scope: global
+polarity: require
+---
+# Observed session count
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("observation");
+        expect(result.entity.subject_key).toBe("system.sessions");
+        expect(result.entity.value_int).toBe(150);
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("extracts meta fact", () => {
+      const tempFile = "/tmp/facts/test-meta-fact.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-META-001
+title: Meta fact about facts
+type: fact
+status: active
+fact_kind: meta
+subject_key: fact.schema
+---
+# Meta fact about facts
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.type).toBe("fact");
+        expect(result.entity.fact_kind).toBe("meta");
+        expect(result.entity.subject_key).toBe("fact.schema");
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("does not inject null fields for absent typed fact siblings", () => {
+      const tempFile = "/tmp/facts/test-no-null-typed-fact-fields.md";
+      mkdirSync("/tmp/facts", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: FACT-PARTIAL-001
+title: Partial fact with only some fields
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.name
+value_int: 42
+---
+# Partial fact
+`,
+      );
+
+      try {
+        const result = extractFromMarkdown(tempFile);
+        expect(result.entity.value_int).toBe(42);
+        expect(result.entity.subject_key).toBe("user.name");
+        // Should NOT have property_key, operator, value_type, etc.
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "property_key"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "operator"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_type"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "value_string"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "unit"),
+        ).toBe(false);
+        expect(
+          Object.prototype.hasOwnProperty.call(result.entity, "closed_world"),
+        ).toBe(false);
+      } finally {
+        unlinkSync(tempFile);
+      }
     });
   });
 });

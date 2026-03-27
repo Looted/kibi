@@ -50,7 +50,7 @@ status: active
     );
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  });
+  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {

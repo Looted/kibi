@@ -19,7 +19,11 @@
 import * as path from "node:path";
 import { extractFromManifest } from "../extractors/manifest.js";
 import { PrologProcess } from "../prolog.js";
-import { escapeAtom } from "../prolog/codec.js";
+import {
+  escapeAtom,
+  parseTriples,
+  parseViolationRows,
+} from "../prolog/codec.js";
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
@@ -37,11 +41,15 @@ import {
   validateStagedSymbols,
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
+import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
 import {
   type ChecksConfig,
   RULES,
+  type Violation,
   getEffectiveRules,
 } from "../utils/rule-registry.js";
+
+export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
 import { discoverSourceFiles } from "./sync/discovery.js";
@@ -55,16 +63,10 @@ export interface CheckOptions {
   dryRun?: boolean;
 }
 
-export interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
-}
-
 // implements REQ-006
-export async function checkCommand(options: CheckOptions): Promise<void> {
+export async function checkCommand(
+  options: CheckOptions,
+): Promise<{ exitCode: number }> {
   let prolog: PrologProcess | null = null;
   let attached = false;
   try {
@@ -132,7 +134,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         const stagedFiles = getStagedFiles();
         if (!stagedFiles || stagedFiles.length === 0) {
           console.log("No staged files found.");
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
@@ -155,9 +157,9 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
             console.log();
           }
           if (options.dryRun) {
-            process.exit(0);
+            return { exitCode: 0 };
           }
-          process.exit(1);
+          return { exitCode: 1 };
         }
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
         for (const f of codeFiles) {
@@ -177,12 +179,12 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           console.log(
             "No exported symbols or markdown entities found in staged files.",
           );
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         if (allSymbols.length === 0) {
           console.log("✓ No violations found in staged files.");
-          process.exit(0);
+          return { exitCode: 0 };
         }
 
         // Create temp KB
@@ -203,14 +205,14 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
           console.log(violationsFormatted);
           await cleanupTempKb(tempCtx.tempDir);
           if (options.dryRun) {
-            process.exit(0);
+            return { exitCode: 0 };
           }
-          process.exit(1);
+          return { exitCode: 1 };
         }
 
         console.log("✓ No violations found in staged symbols.");
         await cleanupTempKb(tempCtx.tempDir);
-        process.exit(0);
+        return { exitCode: 0 };
       } catch (err) {
         console.error(
           `Error running staged validation: ${err instanceof Error ? err.message : String(err)}`,
@@ -218,9 +220,11 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
         if (tempCtx) {
           try {
             await cleanupTempKb(tempCtx.tempDir);
-          } catch {}
+          } catch {
+            // best-effort: temp directory may already be cleaned up
+          }
         }
-        process.exit(1);
+        return { exitCode: 1 };
       }
     }
 
@@ -233,7 +237,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
     if (!attachResult.success) {
       await prolog.terminate();
       console.error(`Error: Failed to attach KB: ${attachResult.error}`);
-      process.exit(1);
+      return { exitCode: 1 };
     }
     attached = true;
 
@@ -278,6 +282,7 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       "required-fields",
       "deprecated-adr-no-successor",
       "domain-contradictions",
+      "strict-fact-shape",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -315,10 +320,11 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       }
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
+      await runCheck("strict-fact-shape", checkStrictFactShape);
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
-      process.exit(0);
+      return { exitCode: 0 };
     }
 
     console.log(`Found ${violations.length} violation(s):`);
@@ -334,22 +340,13 @@ export async function checkCommand(options: CheckOptions): Promise<void> {
       console.log();
     }
 
-    process.exit(1);
+    return { exitCode: 1 };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${message}`);
-    process.exit(1);
+    return { exitCode: 1 };
   } finally {
-    if (prolog) {
-      if (attached) {
-        try {
-          await prolog.query("kb_detach");
-        } catch {}
-      }
-      try {
-        await prolog.terminate();
-      } catch {}
-    }
+    await safeCleanupProlog(prolog);
   }
 }
 
@@ -726,7 +723,7 @@ async function checkDomainContradictions(
     return violations;
   }
 
-  const rows = parseTripleRows(result.bindings.Rows);
+  const rows = parseTriples(result.bindings.Rows);
 
   for (const [reqA, reqB, reason] of rows) {
     violations.push({
@@ -736,6 +733,31 @@ async function checkDomainContradictions(
       suggestion:
         "Supersede one requirement or align both to the same required property",
     });
+  }
+
+  return violations;
+}
+
+async function checkStrictFactShape(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_fact_shape_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
   }
 
   return violations;
@@ -795,44 +817,10 @@ async function checkSymbolTraceability(
 
   const violationsStr = result.bindings.Violations as string;
   if (violationsStr && violationsStr !== "[]") {
-    const violationRegex =
-      /violation\(([^,]+),'?([^',]+)'?,([^,]+),([^,]+),'?([^']*)'?\)/g;
-    let match: RegExpExecArray | null;
-    do {
-      match = violationRegex.exec(violationsStr);
-      if (match) {
-        violations.push({
-          rule: match[1].trim().replace(/^'|'$/g, ""),
-          entityId: match[2].trim(),
-          description: match[3].trim().replace(/^"|"$/g, ""),
-          suggestion: match[4].trim().replace(/^"|"$/g, ""),
-          source: match[5].trim() || undefined,
-        });
-      }
-    } while (match);
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
   }
 
   return violations;
-}
-
-function parseTripleRows(raw: string): Array<[string, string, string]> {
-  const cleaned = raw.trim();
-  if (cleaned === "[]" || cleaned.length === 0) {
-    return [];
-  }
-
-  const rows: Array<[string, string, string]> = [];
-  const rowRegex = /\[([^,]+),([^,]+),([^\]]+)\]/g;
-  let match: RegExpExecArray | null;
-  do {
-    match = rowRegex.exec(cleaned);
-    if (match) {
-      rows.push([
-        match[1].trim().replace(/^'|'$/g, ""),
-        match[2].trim().replace(/^'|'$/g, ""),
-        match[3].trim().replace(/^'|'$/g, ""),
-      ]);
-    }
-  } while (match);
-  return rows;
 }

@@ -37,7 +37,7 @@ Initial body.
     );
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  });
+  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {
@@ -74,7 +74,9 @@ Changed after sync.
   }, 15000);
 
   test("reports fresh status immediately after sync with absolute source paths", () => {
-    const freshDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-status-fresh-"));
+    const freshDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-fresh-"),
+    );
 
     try {
       execSync("git init -b main", { cwd: freshDir, stdio: "pipe" });
@@ -136,7 +138,9 @@ status: open
   }, 15000);
 
   test("reports stale status after deleting a synced source file", () => {
-    removeSync(path.join(tmpDir, "documentation", "requirements", "REQ-001.md"));
+    removeSync(
+      path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+    );
 
     const output = execSync(`bun ${kibiBin} status --format json`, {
       cwd: tmpDir,

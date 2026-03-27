@@ -6,6 +6,8 @@ created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
 source: documentation/facts/FACT-RELATIONSHIP-AUDIT-METADATA.md
 tags: [schema, audit]
+fact_kind: subject
+subject_key: kibi.relationship.audit_metadata
 ---
 
 Each relationship carries provenance metadata for auditing.

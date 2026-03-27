@@ -105,6 +105,7 @@ describe("kibi init", () => {
     expect(config.checks.rules["required-fields"]).toBe(true);
     expect(config.checks.rules["deprecated-adr-no-successor"]).toBe(true);
     expect(config.checks.rules["domain-contradictions"]).toBe(true);
+    expect(config.checks.rules["strict-fact-shape"]).toBe(false); // disabled by default
     expect(config.checks.symbolTraceability).toBeDefined();
     expect(config.checks.symbolTraceability.requireAdr).toBe(false);
   });

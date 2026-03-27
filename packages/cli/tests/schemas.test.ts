@@ -179,3 +179,353 @@ describe("Changeset Schema", () => {
     expect(validate(cs)).toBe(false);
   });
 });
+
+describe("Typed Fact Schema", () => {
+  test("accepts legacy prose fact without fact_kind", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const legacyFact = {
+      id: "FACT-LEGACY-001",
+      title: "Legacy prose fact",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-LEGACY-001.md",
+      type: "fact",
+    };
+
+    const isValid = validate(legacyFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts subject fact with subject_key", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const subjectFact = {
+      id: "FACT-USER-SESSION",
+      title: "User session subject",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-USER-SESSION.md",
+      type: "fact",
+      fact_kind: "subject",
+      subject_key: "user.session",
+    };
+
+    const isValid = validate(subjectFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts property_value fact with value_int", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const propertyFact = {
+      id: "FACT-SESSION-TIMEOUT-30",
+      title: "Session timeout is 30 minutes",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-SESSION-TIMEOUT-30.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.session",
+      property_key: "timeout_minutes",
+      operator: "eq",
+      value_type: "int",
+      value_int: 30,
+      unit: "minutes",
+      scope: "global",
+      polarity: "require",
+      closed_world: true,
+      valid_from: "2024-01-01T00:00:00Z",
+      valid_to: "2024-12-31T23:59:59Z",
+      canonical_key: "user.session.timeout_minutes.eq.30",
+    };
+
+    const isValid = validate(propertyFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts property_value fact with value_string", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const propertyFact = {
+      id: "FACT-USER-TYPE-ADMIN",
+      title: "User type can be admin",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-USER-TYPE-ADMIN.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.type",
+      property_key: "allowed_value",
+      operator: "eq",
+      value_type: "string",
+      value_string: "admin",
+      scope: "global",
+      polarity: "require",
+      canonical_key: "user.type.allowed_value.eq.admin",
+    };
+
+    const isValid = validate(propertyFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts property_value fact with value_number", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const propertyFact = {
+      id: "FACT-RATE-LIMIT-1-5",
+      title: "Rate limit is 1.5 requests per second",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-RATE-LIMIT-1-5.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "api.client",
+      property_key: "rate_limit_rps",
+      operator: "eq",
+      value_type: "number",
+      value_number: 1.5,
+      unit: "requests_per_second",
+      scope: "global",
+      polarity: "require",
+      canonical_key: "api.client.rate_limit_rps.eq.1.5",
+    };
+
+    const isValid = validate(propertyFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts property_value fact with value_bool", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const propertyFact = {
+      id: "FACT-FEATURE-FLAG-ON",
+      title: "Feature flag is enabled",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-FEATURE-FLAG-ON.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "feature.new-ui",
+      property_key: "enabled",
+      operator: "eq",
+      value_type: "bool",
+      value_bool: true,
+      scope: "global",
+      polarity: "require",
+      canonical_key: "feature.new-ui.enabled.eq.true",
+    };
+
+    const isValid = validate(propertyFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts observation fact with observation fields", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const observationFact = {
+      id: "FACT-OBS-SESSION-001",
+      title: "Observed session count",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-OBS-SESSION-001.md",
+      type: "fact",
+      fact_kind: "observation",
+      subject_key: "system.sessions",
+      property_key: "active_count",
+      operator: "eq",
+      value_type: "int",
+      value_int: 150,
+      scope: "global",
+      polarity: "require",
+    };
+
+    const isValid = validate(observationFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("accepts meta fact", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const metaFact = {
+      id: "FACT-META-001",
+      title: "Meta fact about facts",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-META-001.md",
+      type: "fact",
+      fact_kind: "meta",
+      subject_key: "fact.schema",
+    };
+
+    const isValid = validate(metaFact);
+    expect(isValid).toBe(true);
+  });
+
+  test("rejects non-fact entity with fact_kind", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const reqWithFactKind = {
+      id: "REQ-001",
+      title: "Requirement with fact_kind",
+      status: "open",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "reqs/REQ-001.md",
+      type: "req",
+      fact_kind: "property_value",
+    };
+
+    const isValid = validate(reqWithFactKind);
+    expect(isValid).toBe(false);
+  });
+
+  test("rejects non-fact entity with value_int", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const reqWithValueInt = {
+      id: "REQ-002",
+      title: "Requirement with value_int",
+      status: "open",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "reqs/REQ-002.md",
+      type: "req",
+      value_int: 42,
+    };
+
+    const isValid = validate(reqWithValueInt);
+    expect(isValid).toBe(false);
+  });
+
+  test("rejects invalid fact_kind enum value", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const factWithInvalidKind = {
+      id: "FACT-INVALID",
+      title: "Invalid fact kind",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-INVALID.md",
+      type: "fact",
+      fact_kind: "invalid_kind",
+    };
+
+    const isValid = validate(factWithInvalidKind);
+    expect(isValid).toBe(false);
+  });
+
+  test("rejects invalid operator enum value", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const factWithInvalidOperator = {
+      id: "FACT-INVALID",
+      title: "Invalid operator",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-INVALID.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user",
+      property_key: "name",
+      operator: "contains",
+    };
+
+    const isValid = validate(factWithInvalidOperator);
+    expect(isValid).toBe(false);
+  });
+
+  test("rejects invalid value_type enum value", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const factWithInvalidValueType = {
+      id: "FACT-INVALID",
+      title: "Invalid value type",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-INVALID.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user",
+      property_key: "name",
+      value_type: "date",
+    };
+
+    const isValid = validate(factWithInvalidValueType);
+    expect(isValid).toBe(false);
+  });
+
+  test("rejects invalid polarity enum value", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(entitySchema as any);
+
+    const factWithInvalidPolarity = {
+      id: "FACT-INVALID",
+      title: "Invalid polarity",
+      status: "active",
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+      source: "facts/FACT-INVALID.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user",
+      property_key: "name",
+      polarity: "maybe",
+    };
+
+    const isValid = validate(factWithInvalidPolarity);
+    expect(isValid).toBe(false);
+  });
+});

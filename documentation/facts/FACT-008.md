@@ -9,6 +9,7 @@ tags:
   - deployment
   - npm
   - package-naming
+fact_kind: observation
 ---
 
 Kibi packages are published to npm as unscoped names:

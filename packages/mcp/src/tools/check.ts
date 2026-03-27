@@ -19,6 +19,12 @@ import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import {
+  type ChecksConfig,
+  DEFAULT_CHECKS_CONFIG,
+  RULE_NAMES,
+  type Violation,
+} from "kibi-cli/public/check-types";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
 const require = createRequire(import.meta.url);
@@ -34,7 +40,9 @@ function resolveChecksPlPath(): string {
     if (existsSync(installedChecksPl)) {
       return installedChecksPl;
     }
-  } catch {}
+  } catch {
+    // require.resolve not available or package not installed
+  }
 
   const localChecksPl = path.join(process.cwd(), "packages/core/src/checks.pl");
   if (existsSync(localChecksPl)) {
@@ -46,41 +54,6 @@ function resolveChecksPlPath(): string {
 
 export interface CheckArgs {
   rules?: string[];
-}
-
-const ALL_RULES = [
-  "must-priority-coverage",
-  "no-dangling-refs",
-  "no-cycles",
-  "required-fields",
-  "symbol-coverage",
-  "symbol-traceability",
-  "deprecated-adr-no-successor",
-  "domain-contradictions",
-] as const;
-
-const RULE_NAMES = new Set<string>(ALL_RULES);
-
-interface ChecksConfig {
-  rules: Record<string, boolean>;
-  symbolTraceability: {
-    requireAdr: boolean;
-  };
-}
-
-const DEFAULT_CHECKS_CONFIG: ChecksConfig = {
-  rules: Object.fromEntries(ALL_RULES.map((rule) => [rule, true])),
-  symbolTraceability: {
-    requireAdr: false,
-  },
-};
-
-interface Violation {
-  rule: string;
-  entityId: string;
-  description: string;
-  suggestion?: string;
-  source?: string;
 }
 
 interface Diagnostic {
@@ -167,8 +140,12 @@ function loadChecksConfig(workspaceRoot: string): ChecksConfig {
     const parsedSt = parsed.checks?.symbolTraceability;
     const normalizedSt = { ...DEFAULT_CHECKS_CONFIG.symbolTraceability };
     if (parsedSt && typeof parsedSt === "object") {
-      if (typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean") {
-        normalizedSt.requireAdr = (parsedSt as { requireAdr: boolean }).requireAdr;
+      if (
+        typeof (parsedSt as { requireAdr?: unknown }).requireAdr === "boolean"
+      ) {
+        normalizedSt.requireAdr = (
+          parsedSt as { requireAdr: boolean }
+        ).requireAdr;
       }
     }
 
@@ -186,23 +163,16 @@ function getEffectiveRules(
   configRules: Record<string, boolean>,
   requestedRules?: string[],
 ): Set<string> {
+  if (requestedRules && requestedRules.length > 0) {
+    return new Set(requestedRules.filter((rule) => RULE_NAMES.has(rule)));
+  }
+
   const effective = new Set<string>();
 
-  for (const rule of ALL_RULES) {
+  for (const rule of RULE_NAMES) {
     const enabled = configRules[rule] ?? true;
     if (enabled) {
       effective.add(rule);
-    }
-  }
-
-  if (requestedRules && requestedRules.length > 0) {
-    const allowed = new Set(
-      requestedRules.filter((rule) => RULE_NAMES.has(rule)),
-    );
-    for (const rule of Array.from(effective)) {
-      if (!allowed.has(rule)) {
-        effective.delete(rule);
-      }
     }
   }
 

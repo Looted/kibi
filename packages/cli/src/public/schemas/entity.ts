@@ -16,6 +16,12 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+// Typed fact field enums per proposal
+type FactKind = "subject" | "property_value" | "observation" | "meta";
+type Operator = "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
+type ValueType = "string" | "int" | "number" | "bool";
+type Polarity = "require" | "forbid";
+
 const entitySchema = {
   $id: "entity.schema.json",
   title: "Entity",
@@ -69,6 +75,26 @@ const entitySchema = {
         "fact",
       ],
     },
+    // Typed fact fields - only valid when type === "fact"
+    fact_kind: {
+      type: "string",
+      enum: ["subject", "property_value", "observation", "meta"],
+    },
+    subject_key: { type: "string" },
+    property_key: { type: "string" },
+    operator: { type: "string", enum: ["eq", "neq", "lt", "lte", "gt", "gte"] },
+    value_type: { type: "string", enum: ["string", "int", "number", "bool"] },
+    value_string: { type: "string" },
+    value_int: { type: "integer" },
+    value_number: { type: "number" },
+    value_bool: { type: "boolean" },
+    unit: { type: "string" },
+    scope: { type: "string" },
+    polarity: { type: "string", enum: ["require", "forbid"] },
+    closed_world: { type: "boolean" },
+    valid_from: { type: "string" },
+    valid_to: { type: "string" },
+    canonical_key: { type: "string" },
   },
   required: [
     "id",
@@ -78,6 +104,38 @@ const entitySchema = {
     "updated_at",
     "source",
     "type",
+  ],
+  allOf: [
+    // Forbid fact-only fields on non-fact entities
+    {
+      if: {
+        properties: { type: { const: "fact" } },
+      },
+      // Fact entities can have fact fields (no restriction)
+      // Non-fact entities cannot have fact fields
+      else: {
+        not: {
+          anyOf: [
+            { required: ["fact_kind"] },
+            { required: ["subject_key"] },
+            { required: ["property_key"] },
+            { required: ["operator"] },
+            { required: ["value_type"] },
+            { required: ["value_string"] },
+            { required: ["value_int"] },
+            { required: ["value_number"] },
+            { required: ["value_bool"] },
+            { required: ["unit"] },
+            { required: ["scope"] },
+            { required: ["polarity"] },
+            { required: ["closed_world"] },
+            { required: ["valid_from"] },
+            { required: ["valid_to"] },
+            { required: ["canonical_key"] },
+          ],
+        },
+      },
+    },
   ],
   additionalProperties: false,
 };

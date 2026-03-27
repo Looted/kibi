@@ -68,15 +68,6 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should detect must-priority requirement with scenario but no test", async () => {
-    const relationship = {
-      type: "specified_by",
-      from: "req-must-001",
-      to: "scenario-001",
-      created_at: new Date().toISOString(),
-      created_by: "test",
-      source: "test://check-test",
-    };
-
     await handleKbUpsert(prolog, {
       type: "scenario",
       id: "scenario-001",
@@ -85,7 +76,24 @@ describe("MCP Check Tool Handler", () => {
         status: "open",
         source: "test://check-test",
       },
-      relationships: [relationship],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-must-001",
+      properties: {
+        title: "Must-priority requirement",
+        status: "open",
+        priority: "must",
+        source: "test://check-test",
+      },
+      relationships: [
+        {
+          type: "specified_by",
+          from: "req-must-001",
+          to: "scenario-001",
+        },
+      ],
     });
 
     const result = await handleKbCheck(prolog, {});
@@ -100,11 +108,33 @@ describe("MCP Check Tool Handler", () => {
   });
 
   test("should pass must-priority coverage with both scenario and test", async () => {
-    const relationship = {
-      type: "validates",
-      from: "test-001",
-      to: "req-must-001",
-    };
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-001",
+      properties: {
+        title: "Scenario for must req",
+        status: "open",
+        source: "test://check-test",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-must-001",
+      properties: {
+        title: "Must-priority requirement",
+        status: "open",
+        priority: "must",
+        source: "test://check-test",
+      },
+      relationships: [
+        {
+          type: "specified_by",
+          from: "req-must-001",
+          to: "scenario-001",
+        },
+      ],
+    });
 
     await handleKbUpsert(prolog, {
       type: "test",
@@ -114,7 +144,13 @@ describe("MCP Check Tool Handler", () => {
         status: "passing",
         source: "test://check-test",
       },
-      relationships: [relationship],
+      relationships: [
+        {
+          type: "validates",
+          from: "test-001",
+          to: "req-must-001",
+        },
+      ],
     });
 
     const result = await handleKbCheck(prolog, {});
@@ -180,8 +216,8 @@ describe("MCP Check Tool Handler", () => {
   test("should run no-cycles rule without errors", async () => {
     const relationship = {
       type: "depends_on",
-      from: "req-nocycle-a",
-      to: "req-nocycle-b",
+      from: "req-nocycle-b",
+      to: "req-nocycle-a",
     };
 
     await handleKbUpsert(prolog, {
@@ -502,7 +538,7 @@ describe("MCP Check Tool Handler", () => {
       expect(violation).toBeUndefined();
     } finally {
       if (originalWorkspace === undefined) {
-        delete process.env.KIBI_WORKSPACE;
+        process.env.KIBI_WORKSPACE = "";
       } else {
         process.env.KIBI_WORKSPACE = originalWorkspace;
       }
@@ -571,7 +607,108 @@ describe("MCP Check Tool Handler", () => {
       expect(violation?.description).toMatch(/ADR/i);
     } finally {
       if (originalWorkspace === undefined) {
-        delete process.env.KIBI_WORKSPACE;
+        process.env.KIBI_WORKSPACE = "";
+      } else {
+        process.env.KIBI_WORKSPACE = originalWorkspace;
+      }
+    }
+  }, 15000);
+
+  test("should pass well-formed strict facts with strict-fact-shape rule", async () => {
+    // Create a well-formed subject fact
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-WELLFORMED-MCP-001",
+      properties: {
+        title: "Well-formed Subject Fact",
+        status: "active",
+        source: "test://strict-fact-shape",
+        fact_kind: "subject",
+        subject_key: "user.profile",
+      },
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-fact-shape"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "FACT-WELLFORMED-MCP-001",
+    );
+    expect(violation).toBeUndefined();
+  }, 15000);
+
+  test("should not flag legacy facts without fact_kind with strict-fact-shape rule", async () => {
+    // Create a legacy fact without fact_kind (should not be flagged)
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-LEGACY-MCP-001",
+      properties: {
+        title: "Legacy Prose Fact",
+        status: "active",
+        source: "test://strict-fact-shape",
+        // No fact_kind - legacy prose fact
+      },
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-fact-shape"],
+    });
+
+    expect(result.structuredContent).toBeDefined();
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "FACT-LEGACY-MCP-001",
+    );
+    expect(violation).toBeUndefined();
+  }, 15000);
+
+  test("should allow explicit strict-fact-shape opt-in even when disabled by config", async () => {
+    const originalWorkspace = process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = testKbPath;
+
+    try {
+      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+      await fs.writeFile(
+        path.join(testKbPath, ".kb", "config.json"),
+        JSON.stringify(
+          {
+            checks: {
+              rules: {
+                "strict-fact-shape": false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      await prolog.query("kb_detach");
+      await fs.writeFile(
+        path.join(testKbPath, "strict-fact-optin.pl"),
+        "entity(fact, 'FACT-CHECK-STRICT-001', 'Malformed strict fact', [id='FACT-CHECK-STRICT-001', title='Malformed strict fact', status=active, source='test://strict-fact-check', fact_kind=subject]).\n",
+      );
+      const attachResult = await prolog.query(`kb_attach('${testKbPath}')`);
+      expect(attachResult.success).toBe(true);
+
+      const result = await handleKbCheck(prolog, {
+        rules: ["strict-fact-shape"],
+      });
+
+      const violation = result.structuredContent?.violations.find(
+        (v) =>
+          v.rule === "strict-fact-shape" &&
+          v.entityId === "FACT-CHECK-STRICT-001",
+      );
+
+      expect(violation).toBeDefined();
+    } finally {
+      await prolog.query("kb_detach");
+      const reattachResult = await prolog.query(`kb_attach('${testKbPath}')`);
+      expect(reattachResult.success).toBe(true);
+      if (originalWorkspace === undefined) {
+        process.env.KIBI_WORKSPACE = "";
       } else {
         process.env.KIBI_WORKSPACE = originalWorkspace;
       }

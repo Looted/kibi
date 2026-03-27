@@ -45,7 +45,7 @@ status: open
     );
 
     execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-  });
+  }, 30000); // kibi init + sync can take ~10s; allow 30s for slower CI environments
 
   afterAll(() => {
     if (tmpDir && existsSync(tmpDir)) {
@@ -79,10 +79,12 @@ status: open
     expect(result.rows[0]?.id).toBe("REQ-001");
     expect(result.rows[0]?.gaps).toContain("missing_scenario_and_test");
     expect(result.rows.some((row) => row.id === "REQ-002")).toBe(true);
-    expect(result.rows.find((row) => row.id === "REQ-002")?.evaluated).toBe(false);
-    expect(result.rows.find((row) => row.id === "REQ-002")?.coverageStatus).toBe(
-      "not_applicable",
+    expect(result.rows.find((row) => row.id === "REQ-002")?.evaluated).toBe(
+      false,
     );
+    expect(
+      result.rows.find((row) => row.id === "REQ-002")?.coverageStatus,
+    ).toBe("not_applicable");
   });
 
   test("shows table output by default and exposes no-include-transitive option", () => {

@@ -9,6 +9,7 @@ tags:
   - kb-sync
   - improvement
   - relationships
+fact_kind: observation
 ---
 
 KB sync now uses a two-pass approach for relationship assertion:

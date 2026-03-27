@@ -44,7 +44,9 @@ describe("MCP coverage tool handler", () => {
     const result = await handleKbCoverage(prolog, { by: "req" });
 
     expect(result.structuredContent?.summary.total).toBe(2);
-    expect(result.structuredContent?.rows[0]?.gaps).toContain("missing_scenario");
+    expect(result.structuredContent?.rows[0]?.gaps).toContain(
+      "missing_scenario",
+    );
     expect(result.content[0]?.text).toContain("fully covered");
   });
 
@@ -52,7 +54,10 @@ describe("MCP coverage tool handler", () => {
     const query = mock(async () => ({
       success: true,
       bindings: {
-        JsonString: JSON.stringify({ summary: { total: 0, fullyCovered: 0 }, rows: [] }),
+        JsonString: JSON.stringify({
+          summary: { total: 0, fullyCovered: 0 },
+          rows: [],
+        }),
       },
     }));
 
@@ -64,6 +69,8 @@ describe("MCP coverage tool handler", () => {
     });
 
     expect(query).toHaveBeenCalledTimes(1);
-    expect(String(query.mock.calls[0]?.[0] ?? "")).toContain(", false, false, 100, 0, JsonString)");
+    expect(String(query.mock.calls[0]?.[0] ?? "")).toContain(
+      ", false, false, 100, 0, JsonString)",
+    );
   });
 });

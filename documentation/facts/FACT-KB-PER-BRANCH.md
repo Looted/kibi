@@ -6,6 +6,7 @@ created_at: 2026-02-20T14:25:00Z
 updated_at: 2026-02-20T14:25:00Z
 source: documentation/facts/FACT-KB-PER-BRANCH.md
 tags: [core, branching]
+fact_kind: meta
 ---
 
 The knowledge base must maintain separate state for each git branch.

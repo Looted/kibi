@@ -36,6 +36,24 @@ const packageJson = JSON.parse(
 ) as { version?: string };
 const VERSION = packageJson.version ?? "0.1.0";
 
+/** All command handlers return this instead of calling process.exit(). */
+export interface CommandResult {
+  exitCode?: number;
+}
+
+// implements REQ-003
+/** Wraps an async command handler to apply its returned exitCode to process.exitCode. */
+function withExitCode<TArgs extends unknown[]>(
+  fn: (...args: TArgs) => Promise<CommandResult | undefined>,
+): (...args: TArgs) => Promise<void> {
+  return async (...args: TArgs) => {
+    const result = await fn(...args);
+    if (result && typeof result.exitCode === "number") {
+      process.exitCode = result.exitCode;
+    }
+  };
+}
+
 const program = new Command();
 
 program
@@ -47,9 +65,11 @@ program
   .command("init")
   .description("Initialize .kb/ directory")
   .option("--no-hooks", "Do not install git hooks (hooks installed by default)")
-  .action(async (options) => {
-    await initCommand(options);
-  });
+  .action(
+    withExitCode(async (options: Parameters<typeof initCommand>[0]) => {
+      return initCommand(options);
+    }),
+  );
 
 program
   .command("sync")
@@ -59,9 +79,11 @@ program
     "--rebuild",
     "Rebuild branch snapshot from scratch (discards current KB)",
   )
-  .action(async (options) => {
-    await syncCommand(options);
-  });
+  .action(
+    withExitCode(async (options: Parameters<typeof syncCommand>[0]) => {
+      return syncCommand(options);
+    }),
+  );
 
 program
   .command("query [type]")
@@ -73,9 +95,16 @@ program
   .option("--format <format>", "Output format: json|table", "json")
   .option("--limit <n>", "Limit results", "100")
   .option("--offset <n>", "Skip results", "0")
-  .action(async (type, options) => {
-    await queryCommand(type, options);
-  });
+  .action(
+    withExitCode(
+      async (
+        type: Parameters<typeof queryCommand>[0],
+        options: Parameters<typeof queryCommand>[1],
+      ) => {
+        return queryCommand(type, options);
+      },
+    ),
+  );
 
 program
   .command("search [query]")
@@ -99,8 +128,14 @@ program
 program
   .command("gaps [type]")
   .description("Find entities missing or present on selected relationships")
-  .option("--missing-rel <rels>", "Comma-separated missing relationship filters")
-  .option("--present-rel <rels>", "Comma-separated present relationship filters")
+  .option(
+    "--missing-rel <rels>",
+    "Comma-separated missing relationship filters",
+  )
+  .option(
+    "--present-rel <rels>",
+    "Comma-separated present relationship filters",
+  )
   .option("--tag <tags>", "Comma-separated tag filter")
   .option("--source <path>", "Source file substring filter")
   .option("--limit <n>", "Limit results", "100")
@@ -129,7 +164,11 @@ program
   .description("Traverse the KB graph from one or more seed IDs")
   .option("--from <ids>", "Comma-separated seed IDs")
   .option("--relationships <rels>", "Comma-separated relationship filter")
-  .option("--direction <direction>", "Direction: outgoing|incoming|both", "outgoing")
+  .option(
+    "--direction <direction>",
+    "Direction: outgoing|incoming|both",
+    "outgoing",
+  )
   .option("--depth <n>", "Traversal depth", "1")
   .option("--entity-types <types>", "Comma-separated entity type filter")
   .option("--max-nodes <n>", "Maximum node count", "200")
@@ -155,9 +194,11 @@ program
     "1",
   )
   .option("--dry-run", "Do not modify files; only print what would happen")
-  .action(async (options) => {
-    await checkCommand(options);
-  });
+  .action(
+    withExitCode(async (options: Parameters<typeof checkCommand>[0]) => {
+      return checkCommand(options);
+    }),
+  );
 
 program
   .command("gc")
@@ -172,9 +213,7 @@ program
 program
   .command("doctor")
   .description("Diagnose KB setup and configuration")
-  .action(async () => {
-    await doctorCommand();
-  });
+  .action(withExitCode(async () => doctorCommand()));
 
 program
   .command("branch")
@@ -187,4 +226,11 @@ program
     }
   });
 
-program.parse(process.argv);
+program
+  .parseAsync(process.argv)
+  .then(() => process.exit(process.exitCode ?? 0))
+  .catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(message);
+    process.exit(1);
+  });

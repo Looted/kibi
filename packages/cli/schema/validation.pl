@@ -17,7 +17,9 @@ validate_entity(Type, Props) :-
     % required properties present
     forall(required_property(Type, P), memberchk(P=_Val, Props)),
     % all properties have correct types
-    forall(member(Key=Val, Props), validate_property_type(Type, Key, Val)).
+    forall(member(Key=Val, Props), validate_property_type(Type, Key, Val)),
+    % validate entity-specific shape constraints
+    validate_entity_shape(Type, Props).
 
 % validate_relationship(+RelType, +From, +To)
 % From and To are pairs Type=Id or structures type(Type) - allow Type or Type=Id
@@ -33,9 +35,8 @@ type_of(Type, Type) :- atom(Type), entity_type(Type), !.
 type_of(Type=_Id, Type) :- atom(Type), entity_type(Type), !.
 
 % validate_property_type(+EntityType, +Prop, +Value)
-validate_property_type(_Type, Prop, Value) :-
-    % find declared property type, default to atom
-    ( entity_property(_Any, Prop, Kind) -> true ; Kind = atom ),
+validate_property_type(Type, Prop, Value) :-
+    entity_property(Type, Prop, Kind),
     check_kind(Kind, Value), !.
 
 % check_kind(Kind, Value) succeeds if Value matches Kind
@@ -44,6 +45,116 @@ check_kind(string, V) :- string(V).
 check_kind(datetime, V) :- string(V). % accept ISO strings for now
 check_kind(list, V) :- is_list(V).
 check_kind(uri, V) :- string(V).
+check_kind(integer, V) :- integer(V).
+check_kind(number, V) :- number(V).
+check_kind(boolean, true).
+check_kind(boolean, false).
 
 % Fallback false
 check_kind(_, _) :- fail.
+
+% validate_entity_shape(+Type, +Props)
+% Validates entity-specific shape constraints (e.g., strict fact shapes)
+validate_entity_shape(fact, Props) :-
+    !,
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props),
+    ( memberchk(fact_kind=RawKind, Props) -> validate_fact_shape(RawKind, Props) ; true ).
+validate_entity_shape(Type, Props) :-
+    Type \= fact,
+    % Non-fact entities cannot have fact-only fields
+    forall(member(Key=_Val, Props), \+ is_fact_only_field(Key)).
+
+% is_fact_only_field(+Key) - true if Key is a fact-specific field
+is_fact_only_field(fact_kind).
+is_fact_only_field(subject_key).
+is_fact_only_field(property_key).
+is_fact_only_field(operator).
+is_fact_only_field(value_type).
+is_fact_only_field(value_string).
+is_fact_only_field(value_int).
+is_fact_only_field(value_number).
+is_fact_only_field(value_bool).
+is_fact_only_field(unit).
+is_fact_only_field(scope).
+is_fact_only_field(polarity).
+is_fact_only_field(closed_world).
+is_fact_only_field(valid_from).
+is_fact_only_field(valid_to).
+is_fact_only_field(canonical_key).
+
+% validate_fact_shape(+Kind, +Props)
+validate_fact_shape(subject, Props) :-
+    memberchk(subject_key=_Val, Props),
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props).
+validate_fact_shape(property_value, Props) :-
+    memberchk(subject_key=_Subject, Props),
+    memberchk(property_key=_Property, Props),
+    memberchk(operator=Op, Props),
+    valid_operator(Op),
+    memberchk(value_type=VT, Props),
+    valid_value_type(VT),
+    exactly_one_value_field(Props),
+    value_type_matches_field(VT, Props),
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props).
+validate_fact_shape(observation, Props) :-
+    % Observation facts are allowed but don't require full strict property tuple yet
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props).
+validate_fact_shape(meta, Props) :-
+    % Meta facts are allowed but don't require full strict property tuple yet
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props).
+validate_fact_shape(Kind, _Props) :-
+    % Unknown fact_kind values fail validation
+    \+ memberchk(Kind, [subject, property_value, observation, meta]),
+    fail.
+
+% valid_operator(+Op)
+valid_operator(eq).
+valid_operator(neq).
+valid_operator(lt).
+valid_operator(lte).
+valid_operator(gt).
+valid_operator(gte).
+
+% valid_value_type(+VT)
+valid_value_type(string).
+valid_value_type(int).
+valid_value_type(number).
+valid_value_type(bool).
+
+% valid_polarity_in_props(+Props)
+% Validates polarity if present; succeeds if no polarity in props
+valid_polarity_in_props(Props) :-
+    ( memberchk(polarity=P, Props) -> valid_polarity(P) ; true ).
+
+% valid_optional_fact_enums(+Props)
+% Validates enum-typed fact fields whenever they are present
+valid_optional_fact_enums(Props) :-
+    ( memberchk(operator=Op, Props) -> valid_operator(Op) ; true ),
+    ( memberchk(value_type=VT, Props) -> valid_value_type(VT) ; true ).
+
+% valid_polarity(+P)
+valid_polarity(require).
+valid_polarity(forbid).
+
+% exactly_one_value_field(+Props)
+exactly_one_value_field(Props) :-
+    findall(F, (member(F=_, Props), is_value_field(F)), Fields),
+    length(Fields, 1).
+
+% is_value_field(+Field)
+is_value_field(value_string).
+is_value_field(value_int).
+is_value_field(value_number).
+is_value_field(value_bool).
+
+% value_type_matches_field(+ValueType, +Props)
+% Ensures that value_type matches the actual value field present
+value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
+value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
+value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
+value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
