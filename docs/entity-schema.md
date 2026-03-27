@@ -14,11 +14,41 @@ Kibi supports eight entity types:
 | scenario | BDD scenario describing user behavior (Given/When/Then)            |
 | test     | Unit, integration, or e2e test case                                |
 | adr      | Architecture Decision Record documenting technical choices         |
-| flag     | Feature flag controlling functionality rollout                     |
-| event    | Domain or system event published/consumed by components            |
-| symbol   | Abstract code symbol (function, class, module) - language-agnostic |
-| fact     | Atomic domain fact used to model concepts, invariants, and properties |
+| MQ|       | flag     | Runtime or config gate (feature flag, kill-switch, deferred capability) |
+| HX|       | event    | Domain or system event published/consumed by components            |
+| MN|       | symbol   | Abstract code symbol (function, class, module) - language-agnostic |
+| JZ|       | fact     | Atomic domain fact; use observation/meta for bug and workaround notes |
 
+
+---
+
+## Entity Choice: When to Use Each Type
+
+This section provides guidance on selecting the appropriate entity type for your documentation needs.
+
+### Decision Table
+
+| What you are documenting | Entity Type | Notes |
+|--------------------------|-------------|-------|
+| Intended or corrected behavior | `req` | Requirements specify what the system should do |
+| Bug, incident, or workaround | `fact` (observation/meta) | Use `fact_kind: observation` or `meta` for non-blocking evidence |
+| Runtime/config gate controlling feature access | `flag` | Feature flags, kill-switches, deferred capabilities |
+| Executable verification or reproduction | `test` | Unit, integration, or e2e tests |
+| Technical decision or tradeoff rationale | `adr` | Architecture Decision Records |
+
+### Important Rules
+
+**Do NOT create a `flag` for bugs or workarounds unless there is an actual runtime/config gate.** Use `fact` with `fact_kind: observation` or `meta` instead.
+
+**When a bug is mitigated by a feature gate:** Create TWO records - a `fact` describing the issue and a `flag` representing the gate. Link them with `relates_to` since no typed relationship exists for this case.
+
+### Canonical Mapping Summary
+
+- `flag` = Runtime/config gate (includes kill-switches, deferred capabilities) - NOT for bug records
+- `fact` (observation/meta) = Bug records, incident notes, workarounds
+- `req` = Intended/corrected behavior
+- `test` = Executable verification/reproduction
+- `adr` = Durable design rationale
 ---
 
 ### Common Properties (All Entities)
