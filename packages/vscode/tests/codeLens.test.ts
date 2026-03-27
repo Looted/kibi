@@ -284,6 +284,72 @@ describe("KibiCodeLensProvider – provideCodeLenses", () => {
     expect(lenses).toBeNull();
   });
 
+  test("internal helper function entry produces CodeLens at correct line", () => {
+    const testFile = path.join(tmpDir, "src", "linker.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// linker\n", "utf8");
+
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-INT-001",
+        title: "mergeStaticLinks",
+        sourceFile: "src/linker.ts",
+        sourceLine: 42,
+        links: ["REQ-010"],
+      },
+    ]);
+
+    const provider = makeProvider(tmpDir);
+    const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
+
+    expect(lenses?.length).toBe(1);
+    if (!lenses) throw new Error("lenses is null");
+    // sourceLine=42 → 0-based line 41
+    expect(
+      getRange(lenses[0] as InstanceType<typeof MockCodeLens>).start.line,
+    ).toBe(41);
+  });
+
+  test("class method entry produces CodeLens at correct line", () => {
+    const testFile = path.join(tmpDir, "src", "codeLensProvider.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// provider\n", "utf8");
+
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-METHOD-001",
+        title: "provideCodeLenses",
+        sourceFile: "src/codeLensProvider.ts",
+        sourceLine: 78,
+        links: ["REQ-vscode-codelens"],
+      },
+      {
+        id: "SYM-METHOD-002",
+        title: "resolveCodeLens",
+        sourceFile: "src/codeLensProvider.ts",
+        sourceLine: 115,
+        links: ["REQ-vscode-codelens"],
+      },
+    ]);
+
+    const provider = makeProvider(tmpDir);
+    const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
+
+    expect(lenses?.length).toBe(2);
+    if (!lenses) throw new Error("lenses is null");
+
+    // sourceLine=78 → 0-based line 77
+    expect(
+      getRange(lenses[0] as InstanceType<typeof MockCodeLens>).start.line,
+    ).toBe(77);
+
+    // sourceLine=115 → 0-based line 114
+    expect(
+      getRange(lenses[1] as InstanceType<typeof MockCodeLens>).start.line,
+    ).toBe(114);
+  });
+
+
   test("returns null when symbols.yaml is malformed", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
