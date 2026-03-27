@@ -1,10 +1,7 @@
 import { existsSync } from "node:fs";
-import { createRequire } from "node:module";
 import path from "node:path";
-import { PrologProcess } from "kibi-cli/prolog";
+import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 import { escapeAtomContent } from "kibi-cli/prolog/codec";
-
-const require = createRequire(import.meta.url);
 
 type PrologQueryLike = {
   query: (goal: string) => Promise<{
@@ -22,21 +19,15 @@ export function resolveCorePlPath(fileName: string): string {
     return override;
   }
 
-  try {
-    const installedPath = require.resolve(`kibi-core/src/${fileName}`);
-    if (existsSync(installedPath)) {
-      return installedPath;
-    }
-  } catch {
-    // require.resolve not available or package not installed
+  const kbPlPath = resolveKbPlPath();
+  const sibling = path.join(path.dirname(kbPlPath), fileName);
+  if (existsSync(sibling)) {
+    return sibling;
   }
 
-  const localPath = path.join(process.cwd(), "packages/core/src", fileName);
-  if (existsSync(localPath)) {
-    return localPath;
-  }
-
-  throw new Error(`Unable to resolve core module path for ${fileName}`);
+  throw new Error(
+    `Root-consistency error: resolveKbPlPath() resolved to '${kbPlPath}' but sibling '${fileName}' not found at '${sibling}'`
+  );
 }
 
 // implements REQ-002, REQ-013
