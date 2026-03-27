@@ -14,4 +14,5 @@ links:
 ---
 
 When enabled: allows entities from a remote kibi KB to be referenced (read-only)
-in the local KB. Supports monorepo-to-monorepo and cross-team traceability links.
+in the local KB. This is a runtime/config gate for cross-repository federation.
+Supports monorepo-to-monorepo and cross-team traceability links.
