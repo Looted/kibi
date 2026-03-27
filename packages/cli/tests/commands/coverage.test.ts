@@ -85,6 +85,13 @@ status: open
     expect(
       result.rows.find((row) => row.id === "REQ-002")?.coverageStatus,
     ).toBe("not_applicable");
+
+    // Stabilize JSON contract for packed parity checks
+    const req1Row = result.rows.find((row) => row.id === "REQ-001");
+    expect(req1Row?.gaps).toContain("missing_scenario_and_test");
+    expect(req1Row?.coverageStatus).not.toBe("fully_covered");
+    const req2Row = result.rows.find((row) => row.id === "REQ-002");
+    expect(req2Row?.coverageStatus).toBe("not_applicable");
   });
 
   test("shows table output by default and exposes no-include-transitive option", () => {
