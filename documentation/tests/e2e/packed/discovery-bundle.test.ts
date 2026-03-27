@@ -549,9 +549,9 @@ This requirement is intentionally not must-priority.
         const brokenEnv = {
           ...sandbox.env,
           KIBI_KB_PL_PATH: join(isolatedSrc, "kb.pl"),
-          KIBI_DISCOVERY_PL_PATH: undefined,
-          KIBI_CHECKS_PL_PATH: undefined,
         };
+        delete brokenEnv.KIBI_DISCOVERY_PL_PATH;
+        delete brokenEnv.KIBI_CHECKS_PL_PATH;
 
         const proc = spawn("node", [sandbox.kibiMcpBin], {
           cwd: sandbox.repoDir,
