@@ -58,5 +58,9 @@ priority: must
     };
     expect(result.count).toBe(1);
     expect(result.rows[0]?.id).toBe("REQ-001");
+
+    // Stabilize JSON contract for packed parity checks
+    const rowIds = result.rows.map((row) => row.id).sort();
+    expect(rowIds).toEqual(["REQ-001"]);
   });
 });
