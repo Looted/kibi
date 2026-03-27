@@ -326,6 +326,23 @@ This requirement is intentionally not must-priority.
           graphCliJson.nodes.some((node) => node.id === "SCEN-DISC-001"),
         );
 
+        const nestedCoreDir = join(
+          sandbox.npmPrefix,
+          "node_modules",
+          "kibi-mcp",
+          "node_modules",
+          "kibi-core",
+        );
+        const topLevelCoreDir = join(
+          sandbox.npmPrefix,
+          "node_modules",
+          "kibi-core",
+        );
+        fs.mkdirSync(join(sandbox.npmPrefix, "node_modules", "kibi-mcp", "node_modules"), {
+          recursive: true,
+        });
+        fs.cpSync(topLevelCoreDir, nestedCoreDir, { recursive: true });
+
         const mcp = await startMcpServer(sandbox);
         try {
           const searchMcp = await sendMcpRequest(mcp, {
@@ -494,6 +511,87 @@ This requirement is intentionally not must-priority.
           assert.strictEqual(lastLine.telemetry_status, "provided");
           assert.ok(typeof lastLine.result_count === "number");
           assert.ok(typeof lastLine.result_summary === "string");
+        } finally {
+          await stopProcess(proc);
+        }
+      },
+    );
+
+    it(
+      "fails closed when isolated core root is missing discovery.pl sibling",
+      { timeout: 120000 },
+      async () => {
+        if (!hasProlog) return;
+
+        const isolatedDir = join(sandbox.repoDir, "isolated-broken-core");
+        const isolatedSrc = join(isolatedDir, "src");
+        fs.mkdirSync(isolatedSrc, { recursive: true });
+        const topCoreSrc = join(
+          sandbox.npmPrefix,
+          "node_modules",
+          "kibi-core",
+          "src",
+        );
+        fs.copyFileSync(join(topCoreSrc, "kb.pl"), join(isolatedSrc, "kb.pl"));
+        const topCoreSchema = join(
+          sandbox.npmPrefix,
+          "node_modules",
+          "kibi-core",
+          "schema",
+        );
+        fs.cpSync(topCoreSchema, join(isolatedDir, "schema"), { recursive: true });
+
+        const brokenEnv = {
+          ...sandbox.env,
+          KIBI_KB_PL_PATH: join(isolatedSrc, "kb.pl"),
+          KIBI_DISCOVERY_PL_PATH: undefined,
+          KIBI_CHECKS_PL_PATH: undefined,
+        };
+
+        const proc = spawn("node", [sandbox.kibiMcpBin], {
+          cwd: sandbox.repoDir,
+          env: brokenEnv,
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+
+        await sendMcpRequest(proc, {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "broken-core-e2e", version: "1.0.0" },
+          },
+        });
+        proc.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+
+        try {
+          const graphResult = await sendMcpRequest(proc, {
+            jsonrpc: "2.0",
+            id: 2,
+            method: "tools/call",
+            params: {
+              name: "kb_graph",
+              arguments: {
+                seedIds: ["REQ-DISC-001"],
+                relationships: ["specified_by"],
+                depth: 1,
+              },
+            },
+          });
+
+          const hasError =
+            graphResult.error !== undefined || graphResult.result?.isError === true;
+          const errorText = JSON.stringify(graphResult);
+          assert.ok(
+            hasError ||
+              errorText.includes("root-consistency") ||
+              errorText.includes("discovery.pl"),
+            `Expected root-consistency or discovery.pl error, got: ${errorText.slice(0, 500)}`,
+          );
         } finally {
           await stopProcess(proc);
         }
