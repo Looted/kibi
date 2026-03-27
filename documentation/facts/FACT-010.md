@@ -9,6 +9,7 @@ tags:
   - deployment
   - github-actions
   - release-management
+fact_kind: observation
 ---
 
 The npm publishing workflow is configured to trigger automatically on pushes to the `master` branch:

@@ -137,6 +137,8 @@ jobs:
         run: bun run build:cli
       - name: Build MCP package
         run: bun run build:mcp
+      - name: Build and package VS Code extension
+        run: bun run --cwd packages/vscode package
       - name: Pack packages
         run: |
           cd packages/core && npm pack
@@ -152,6 +154,12 @@ jobs:
             packages/cli/*.tgz
             packages/mcp/*.tgz
             packages/opencode/*.tgz
+          retention-days: 1
+      - name: Upload VS Code extension VSIX
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-vsix
+          path: packages/vscode/*.vsix
           retention-days: 1
       - name: Determine packages to publish
         id: check-packages
@@ -184,7 +192,7 @@ jobs:
                 cli) check_package "kibi-cli" "cli" ;;
                 mcp) check_package "kibi-mcp" "mcp" ;;
                 opencode) check_package "kibi-opencode" "opencode" ;;
-                vscode) echo "kibi-vscode is published to VS Code Marketplace, not npm" ;;
+                vscode) echo "kibi-vscode is distributed via VSIX on GitHub Releases, not npm" ;;
                 *) echo "Unknown package: $pkg" ;;
               esac
             done
@@ -330,9 +338,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: versioned-packages
+      - name: Download VS Code extension VSIX
+        uses: actions/download-artifact@v4
+        with:
+          name: vscode-vsix
+          path: packages/vscode
       - name: Create GitHub releases
         run: |
           to_publish="${{ needs.build-and-check.outputs.to_publish }}"
+          vsix_file=$(ls -1 packages/vscode/*.vsix 2>/dev/null | head -1)
           while IFS= read -r output; do
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
@@ -349,6 +363,13 @@ jobs:
               --notes "$notes" \
               --target "$GITHUB_SHA" \
               || echo "Release $tag already exists, skipping"
+
+            # Attach VS Code extension VSIX to every release
+            if [ -n "$vsix_file" ]; then
+              echo "Attaching VSIX: $(basename "$vsix_file") to $tag"
+              gh release upload "$tag" "$vsix_file" --clobber \
+                || echo "Failed to attach VSIX to $tag, skipping"
+            fi
           done <<< "$to_publish"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

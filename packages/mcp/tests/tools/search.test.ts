@@ -10,7 +10,9 @@ describe("MCP search tool handler", () => {
   const originalWorkspace = process.env.KIBI_WORKSPACE;
 
   beforeEach(async () => {
-    workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-search-"));
+    workspaceRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), "kibi-mcp-search-"),
+    );
     process.env.KIBI_WORKSPACE = workspaceRoot;
     await fs.mkdir(path.join(workspaceRoot, "documentation", "requirements"), {
       recursive: true,

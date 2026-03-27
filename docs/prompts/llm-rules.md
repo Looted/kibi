@@ -16,6 +16,16 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 8. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
 9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
 
+### Strict Fact Authoring Heuristic
+
+- If a requirement is normative and should participate in contradiction blocking, model it with:
+  - a `fact_kind: subject` fact linked via `constrains`
+  - a `fact_kind: property_value` fact linked via `requires_property`
+- If the knowledge is runtime evidence, historical context, governance commentary, or a bug record, use `observation` or `meta` facts instead.
+- New requirement semantics should evolve append-only: create a new req and link it with `supersedes`.
+- Reject-on-write contradiction checks use this strict lane and treat `supersedes` as the supported escape hatch.
+- Legacy prose facts may remain during migration, but `strict-fact-shape` should be treated as an explicit migration rule, not an always-on default for old repos.
+
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
 
 **Valid Example (Golden Path):**
@@ -128,6 +138,7 @@ Avoid these common mistakes:
 - **Don't fire `kb_upsert` in parallel** - This causes lock contention. Always execute upserts sequentially.
 - **Don't use tags as multi-ID lookup** - Tags are for categorization, not for querying multiple specific entities.
 - **Don't create relationships to non-existent entities** - Always confirm target entities exist before linking.
+- **Don't use `relates_to` for contradiction-safe requirement/fact modeling** - use `constrains` and `requires_property`.
 
 ## Before Starting Work
 

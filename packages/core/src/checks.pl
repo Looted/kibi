@@ -14,6 +14,7 @@
     check_required_fields/1,        % Returns list of missing required field violations
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_domain_contradictions/1,  % Returns list of contradiction violations
+    check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     run_checks_json/0               % Entry point for JSON output
 ]).
 
@@ -45,6 +46,7 @@ check_all(ViolationsDict) :-
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
     check_domain_contradictions(Contradictions),
+    check_strict_fact_shape(StrictFactShape),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -53,7 +55,8 @@ check_all(ViolationsDict) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
-        domain_contradictions: Contradictions
+        domain_contradictions: Contradictions,
+        strict_fact_shape: StrictFactShape
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -334,6 +337,95 @@ deprecated_adr_violation(violation(
     ;   Source = ""
     ).
 
+%% check_strict_fact_shape(-Violations)
+% Finds all strict facts (with fact_kind) that have malformed shape.
+% Only checks facts with fact_kind present; legacy facts without fact_kind are ignored.
+% implements REQ-006
+check_strict_fact_shape(Violations) :-
+    findall(
+        Violation,
+        strict_fact_shape_violation(Violation),
+        Violations0
+    ),
+    sort(Violations0, Violations).
+
+strict_fact_shape_violation(violation(
+    'strict-fact-shape',
+    FactId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=RawKind, Props),  % Only check facts with fact_kind
+    normalize_term_atom(RawKind, Kind),   % Handle typed literals like ^^(subject, xsd:string)
+    
+    % Check for malformed shape based on fact kind
+    (   Kind = subject
+    ->  (   memberchk(subject_key=_, Props)
+        ->  fail  % Well-formed, no violation
+        ;   Description = "Subject fact missing required field: subject_key",
+            Suggestion = "Add subject_key to define the subject domain key"
+        )
+    ;   Kind = property_value
+    ->  findall(Msg, property_value_shape_error(Props, Msg), Errors),
+        (   Errors = []
+        ->  fail  % Well-formed, no violation
+        ;   Errors = [First|_],
+            Description = First,
+            Suggestion = "Ensure property_value facts have subject_key, property_key, operator, value_type, and exactly one value field"
+        )
+    ;   Kind = observation
+    ->  fail  % Observation facts have no required fields beyond fact_kind
+    ;   Kind = meta
+    ->  fail  % Meta facts have no required fields beyond fact_kind
+    ;   % Unknown fact_kind - report as malformed
+        format(string(Description), "Unknown fact_kind: ~w", [Kind]),
+        Suggestion = "Use one of: subject, property_value, observation, meta"
+    ),
+    
+    (   memberchk(source=Source0, Props)
+    ->  normalize_term_atom(Source0, Source)
+    ;   Source = ""
+    ).
+
+% property_value_shape_error(+Props, -ErrorMsg)
+% Returns an error message if the property_value fact has a shape error.
+property_value_shape_error(Props, "Property value fact missing required field: subject_key") :-
+    \+ memberchk(subject_key=_, Props).
+property_value_shape_error(Props, "Property value fact missing required field: property_key") :-
+    memberchk(subject_key=_, Props),
+    \+ memberchk(property_key=_, Props).
+property_value_shape_error(Props, "Property value fact missing required field: operator") :-
+    memberchk(property_key=_, Props),
+    \+ memberchk(operator=_, Props).
+property_value_shape_error(Props, "Property value fact missing required field: value_type") :-
+    memberchk(operator=_, Props),
+    \+ memberchk(value_type=_, Props).
+property_value_shape_error(Props, "Property value fact missing value field (value_string, value_int, value_number, or value_bool)") :-
+    memberchk(value_type=_, Props),
+    \+ (memberchk(value_string=_, Props); memberchk(value_int=_, Props); 
+        memberchk(value_number=_, Props); memberchk(value_bool=_, Props)).
+property_value_shape_error(Props, "Property value fact has multiple value fields (should have exactly one)") :-
+    findall(F, (member(F=_, Props), is_value_field(F)), Fields),
+    length(Fields, Count),
+    Count > 1.
+property_value_shape_error(Props, "Property value fact value_type does not match value field") :-
+    memberchk(value_type=VT, Props),
+    \+ value_type_matches_field(VT, Props).
+
+% is_value_field(+Field)
+is_value_field(value_string).
+is_value_field(value_int).
+is_value_field(value_number).
+is_value_field(value_bool).
+
+% value_type_matches_field(+ValueType, +Props)
+value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
+value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
+value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
+value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+
 %% check_domain_contradictions(-Violations)
 % Finds all pairs of requirements with contradicting required properties.
 check_domain_contradictions(Violations) :-
@@ -398,6 +490,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_required_fields(RequiredFields),
     check_deprecated_adrs(DeprecatedADRs),
     check_domain_contradictions(Contradictions),
+    check_strict_fact_shape(StrictFactShape),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -406,7 +499,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         no_cycles: Cycles,
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
-        domain_contradictions: Contradictions
+        domain_contradictions: Contradictions,
+        strict_fact_shape: StrictFactShape
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

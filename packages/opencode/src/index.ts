@@ -1,3 +1,4 @@
+import * as path from "node:path";
 import {
   type CommentAnalysisResult,
   analyzeCodeFile,
@@ -5,7 +6,6 @@ import {
 import * as config from "./config.js";
 import * as fileFilter from "./file-filter.js";
 import * as logger from "./logger.js";
-import * as path from "node:path";
 import { type PathKind, analyzePath } from "./path-kind.js";
 import { injectPrompt } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";

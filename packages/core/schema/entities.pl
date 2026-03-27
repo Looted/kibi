@@ -29,6 +29,24 @@ entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
 
+% Typed fact fields - only valid for fact entities
+entity_property(fact, fact_kind, atom).
+entity_property(fact, subject_key, string).
+entity_property(fact, property_key, string).
+entity_property(fact, operator, atom).
+entity_property(fact, value_type, atom).
+entity_property(fact, value_string, string).
+entity_property(fact, value_int, integer).
+entity_property(fact, value_number, number).
+entity_property(fact, value_bool, boolean).
+entity_property(fact, unit, string).
+entity_property(fact, scope, string).
+entity_property(fact, polarity, atom).
+entity_property(fact, closed_world, boolean).
+entity_property(fact, valid_from, datetime).
+entity_property(fact, valid_to, datetime).
+entity_property(fact, canonical_key, string).
+
 % Required properties for all entity types
 required_property(Type, id) :- entity_type(Type).
 required_property(Type, title) :- entity_type(Type).

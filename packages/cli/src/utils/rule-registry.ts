@@ -32,6 +32,15 @@ export interface SymbolTraceabilityOptions {
   requireAdr: boolean;
 }
 
+/** A single KB check violation. */
+export interface Violation {
+  rule: string;
+  entityId: string;
+  description: string;
+  suggestion?: string;
+  source?: string;
+}
+
 export interface ChecksConfig {
   rules: Record<string, boolean>;
   symbolTraceability: SymbolTraceabilityOptions;
@@ -42,6 +51,7 @@ export interface ChecksConfig {
  * When adding a new rule, add it here.
  */
 export const RULES: readonly RuleDefinition[] = [
+  // implements REQ-006
   {
     name: "must-priority-coverage",
     description:
@@ -95,6 +105,13 @@ export const RULES: readonly RuleDefinition[] = [
     defaultEnabled: true,
     category: "integrity",
   },
+  {
+    name: "strict-fact-shape",
+    description:
+      "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
+    defaultEnabled: false,
+    category: "integrity",
+  },
 ] as const;
 
 /**
@@ -118,10 +135,20 @@ export const DEFAULT_CHECKS_CONFIG: ChecksConfig = {
  * @param cliRules Optional comma-separated list from --rules CLI flag
  * @returns Set of rule names that should run
  */
+// implements REQ-006
 export function getEffectiveRules(
   configRules?: Record<string, boolean>,
   cliRules?: string,
 ): Set<string> {
+  if (cliRules) {
+    return new Set(
+      cliRules
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => RULE_NAMES.has(s)),
+    );
+  }
+
   // Start with all known rules
   const effective = new Set<string>();
 
@@ -130,21 +157,6 @@ export function getEffectiveRules(
     const enabled = configRules?.[rule.name] ?? rule.defaultEnabled;
     if (enabled) {
       effective.add(rule.name);
-    }
-  }
-
-  // CLI --rules is an intersection filter (narrows to specified rules)
-  if (cliRules) {
-    const allowed = new Set(
-      cliRules
-        .split(",")
-        .map((s) => s.trim())
-        .filter((s) => RULE_NAMES.has(s)),
-    );
-    for (const rule of effective) {
-      if (!allowed.has(rule)) {
-        effective.delete(rule);
-      }
     }
   }
 

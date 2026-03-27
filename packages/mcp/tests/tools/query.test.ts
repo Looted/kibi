@@ -7,7 +7,7 @@ import {
   parsePrologValue,
   parsePropertyList,
   splitTopLevel,
-} from "../../../cli/src/prolog/codec.js";
+} from "kibi-cli/prolog/codec";
 import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";
 
 describe("MCP kb.query Parsing Functions", () => {
@@ -64,6 +64,48 @@ describe("MCP kb.query Parsing Functions", () => {
         "tag2",
       ]);
       expect(parsePrologValue('^^("[]", "list")')).toEqual([]);
+    });
+
+    test("should parse XSD integer typed literals", () => {
+      expect(
+        parsePrologValue(
+          '^^("42", "http://www.w3.org/2001/XMLSchema#integer")',
+        ),
+      ).toBe(42);
+      expect(
+        parsePrologValue('^^("0", "http://www.w3.org/2001/XMLSchema#integer")'),
+      ).toBe(0);
+      expect(
+        parsePrologValue(
+          '^^("-10", "http://www.w3.org/2001/XMLSchema#integer")',
+        ),
+      ).toBe(-10);
+    });
+
+    test("should parse XSD decimal typed literals", () => {
+      expect(
+        parsePrologValue(
+          '^^("3.14", "http://www.w3.org/2001/XMLSchema#decimal")',
+        ),
+      ).toBe(3.14);
+      expect(
+        parsePrologValue(
+          '^^("-0.5", "http://www.w3.org/2001/XMLSchema#double")',
+        ),
+      ).toBe(-0.5);
+    });
+
+    test("should parse XSD boolean typed literals", () => {
+      expect(
+        parsePrologValue(
+          '^^("true", "http://www.w3.org/2001/XMLSchema#boolean")',
+        ),
+      ).toBe(true);
+      expect(
+        parsePrologValue(
+          '^^("false", "http://www.w3.org/2001/XMLSchema#boolean")',
+        ),
+      ).toBe(false);
     });
 
     test("should parse lists", () => {

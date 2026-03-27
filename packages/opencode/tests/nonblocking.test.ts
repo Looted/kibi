@@ -1,5 +1,5 @@
-import { strict as assert } from "node:assert";
 import { describe, test } from "bun:test";
+import { strict as assert } from "node:assert";
 import { DEFAULTS } from "../src/config";
 import * as logger from "../src/logger";
 import { createSyncScheduler } from "../src/scheduler";
@@ -26,7 +26,10 @@ describe("non-blocking UX", () => {
     afterSchedule = true;
 
     // Confirm we did not block waiting for sync to complete
-    assert.ok(afterSchedule, "code after onFileEdited should execute synchronously");
+    assert.ok(
+      afterSchedule,
+      "code after onFileEdited should execute synchronously",
+    );
 
     // Wait for sync to actually fire
     await new Promise((r) => setTimeout(r, 100));
@@ -58,6 +61,10 @@ describe("non-blocking UX", () => {
     await new Promise((r) => setTimeout(r, 50));
 
     // In compat mode without explicit hint enable, tool.execute.after should be ignored
-    assert.equal(syncRuns, 0, "compat mode should not trigger sync via tool.execute.after");
+    assert.equal(
+      syncRuns,
+      0,
+      "compat mode should not trigger sync via tool.execute.after",
+    );
   });
 });

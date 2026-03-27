@@ -65,6 +65,7 @@ export function computeShardPath(kbRoot: string, entityId: string): string {
  * Throws on parse errors.
  */
 export function readShard(shardPath: string): RelationshipRecord[] {
+  // implements REQ-005
   if (!fs.existsSync(shardPath)) {
     return [];
   }
@@ -110,7 +111,7 @@ export function readShard(shardPath: string): RelationshipRecord[] {
     // Handle created_at - YAML may auto-convert ISO dates to Date objects
     let createdAt: string;
     if (rec.created_at instanceof Date) {
-      createdAt = rec.created_at.toISOString().replace(/\.000Z$/, 'Z');
+      createdAt = rec.created_at.toISOString().replace(/\.000Z$/, "Z");
     } else if (typeof rec.created_at === "string" && rec.created_at) {
       createdAt = rec.created_at;
     } else {
@@ -199,7 +200,7 @@ function serializeToYAML(records: RelationshipRecord[]): string {
     }
   }
 
-  return lines.join("\n") + "\n";
+  return `${lines.join("\n")}\n`;
 }
 
 /**
@@ -310,14 +311,13 @@ export function relationshipIdFor(
   return `rel-${hash.slice(0, 12)}`;
 }
 
-
-
 /**
  * Merges existing and incoming relationship records.
  * Deduplicates by (type, from, to) tuple.
  * On conflict, keeps the record with newer created_at timestamp.
  */
 export function mergeRecords(
+  // implements REQ-005
   existing: RelationshipRecord[],
   incoming: RelationshipRecord[],
 ): RelationshipRecord[] {

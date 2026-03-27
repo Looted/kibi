@@ -6,6 +6,8 @@ created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
 source: documentation/facts/FACT-INFERENCE-DETERMINISTIC.md
 tags: [inference, determinism]
+fact_kind: subject
+subject_key: kibi.inference.deterministic
 ---
 
 Inference outputs are deterministic for the same graph state and query inputs.

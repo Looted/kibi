@@ -231,6 +231,7 @@ export async function refreshCoordinatesForSymbolId(
 }
 
 export function resolveManifestPath(workspaceRoot: string): string {
+  // implements REQ-002, REQ-013
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
   if (existsSync(configPath)) {
     try {
@@ -250,7 +251,9 @@ export function resolveManifestPath(workspaceRoot: string): string {
           ? config.symbolsManifest
           : path.resolve(workspaceRoot, config.symbolsManifest);
       }
-    } catch {}
+    } catch {
+      // config file missing or malformed; fall through to defaults
+    }
   }
 
   const candidates = [

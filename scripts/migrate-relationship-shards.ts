@@ -154,7 +154,11 @@ function parseYamlSimple(content: string): Record<string, unknown> {
           currentSymbol.relationships = currentRelationships;
           inRelationships = true;
           relIndent = indent;
-        } else if (inRelationships && currentRelationships && indent > relIndent + 2) {
+        } else if (
+          inRelationships &&
+          currentRelationships &&
+          indent > relIndent + 2
+        ) {
           // Continuation property of the current relationship entry
           // (indented deeper than the `- ` item, e.g. `        target: ADR-002`)
           const rel = currentRelationships[currentRelationships.length - 1];
@@ -402,7 +406,7 @@ function writeShard(shardPath: string, records: RelationshipRecord[]): void {
     }
   }
 
-  writeFileSync(shardPath, yamlLines.join("\n") + "\n", "utf8");
+  writeFileSync(shardPath, `${yamlLines.join("\n")}\n`, "utf8");
 }
 
 async function migrate(): Promise<void> {
@@ -465,7 +469,7 @@ async function migrate(): Promise<void> {
     if (!shardGroups.has(shardPath)) {
       shardGroups.set(shardPath, []);
     }
-    shardGroups.get(shardPath)!.push(record);
+    shardGroups.get(shardPath)?.push(record);
   }
 
   // 4. Write shards

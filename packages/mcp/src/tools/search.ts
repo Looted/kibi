@@ -1,12 +1,12 @@
 import type { PrologProcess } from "kibi-cli/prolog";
 import type { SearchMatch } from "kibi-cli/search-ranking";
 import { rankEntities } from "kibi-cli/search-ranking";
+import { resolveWorkspaceRoot } from "../workspace.js";
 import {
   loadEntities,
   paginateResults,
   validateEntityType,
 } from "./entity-query.js";
-import { resolveWorkspaceRoot } from "../workspace.js";
 
 export interface SearchArgs {
   query: string;
@@ -32,7 +32,9 @@ export async function handleKbSearch(
   const trimmedQuery = query.trim();
 
   if (!trimmedQuery) {
-    throw new Error("Search execution failed: query must be a non-empty string");
+    throw new Error(
+      "Search execution failed: query must be a non-empty string",
+    );
   }
 
   validateEntityType(type);

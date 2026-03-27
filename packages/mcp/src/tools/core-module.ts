@@ -27,7 +27,9 @@ export function resolveCorePlPath(fileName: string): string {
     if (existsSync(installedPath)) {
       return installedPath;
     }
-  } catch {}
+  } catch {
+    // require.resolve not available or package not installed
+  }
 
   const localPath = path.join(process.cwd(), "packages/core/src", fileName);
   if (existsSync(localPath)) {
@@ -44,9 +46,13 @@ export async function runJsonModuleQuery<T>(
   goal: string,
   errorLabel: string,
 ): Promise<T> {
-  const modulePath = escapeAtomContent(resolveCorePlPath(fileName).replace(/\\/g, "/"));
+  const modulePath = escapeAtomContent(
+    resolveCorePlPath(fileName).replace(/\\/g, "/"),
+  );
   if (!(prolog instanceof PrologProcess)) {
-    const mockedResult = await prolog.query(`(use_module('${modulePath}'), ${goal})`);
+    const mockedResult = await prolog.query(
+      `(use_module('${modulePath}'), ${goal})`,
+    );
     if (!mockedResult.success) {
       throw new Error(
         `${errorLabel} query failed: ${mockedResult.error || "Unknown error"}`,
@@ -73,7 +79,9 @@ export async function runJsonModuleQuery<T>(
     : await runInteractiveModuleQuery(prolog, modulePath, goal, errorLabel);
 
   if (!result.success) {
-    throw new Error(`${errorLabel} query failed: ${result.error || "Unknown error"}`);
+    throw new Error(
+      `${errorLabel} query failed: ${result.error || "Unknown error"}`,
+    );
   }
 
   const rawJson = result.bindings.JsonString;

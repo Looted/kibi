@@ -119,7 +119,8 @@ export function deriveDiagnosticFields(
 
   const structuredContent =
     result && typeof result === "object" && "structuredContent" in result
-      ? (result as { structuredContent?: Record<string, unknown> }).structuredContent
+      ? (result as { structuredContent?: Record<string, unknown> })
+          .structuredContent
       : undefined;
 
   if (toolName === "kb_query" || toolName === "kb_search") {
@@ -135,9 +136,7 @@ export function deriveDiagnosticFields(
     fields.violation_count = violationCount;
     fields.requested_rules = Array.isArray(args.rules) ? args.rules : [];
     fields.result_summary =
-      violationCount === 0
-        ? "0 violations"
-        : `${violationCount} violations`;
+      violationCount === 0 ? "0 violations" : `${violationCount} violations`;
   }
 
   if (!fields.result_summary) {

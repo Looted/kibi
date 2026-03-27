@@ -768,6 +768,8 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-USER-ROLE.md
+fact_kind: subject
+subject_key: user.role_assignment
 ---
 `,
       );
@@ -781,6 +783,12 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-LIMIT-2.md
+fact_kind: property_value
+subject_key: user.role_assignment
+property_key: max_roles
+operator: eq
+value_type: int
+value_int: 2
 ---
 `,
       );
@@ -794,6 +802,12 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-LIMIT-3.md
+fact_kind: property_value
+subject_key: user.role_assignment
+property_key: max_roles
+operator: eq
+value_type: int
+value_int: 3
 ---
 `,
       );
@@ -842,7 +856,7 @@ links:
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("domain-contradictions");
-      expect(output).toContain("FACT-USER-ROLE");
+      expect(output).toContain("user.role_assignment.max_roles");
     },
     TEST_TIMEOUT_MS,
   );
@@ -865,6 +879,8 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-USER-ROLE.md
+fact_kind: subject
+subject_key: user.role_assignment
 ---
 `,
       );
@@ -878,6 +894,12 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-LIMIT-2.md
+fact_kind: property_value
+subject_key: user.role_assignment
+property_key: max_roles
+operator: eq
+value_type: int
+value_int: 2
 ---
 `,
       );
@@ -891,6 +913,12 @@ status: active
 created_at: 2026-02-20T10:00:00.000Z
 updated_at: 2026-02-20T10:00:00.000Z
 source: facts/FACT-LIMIT-3.md
+fact_kind: property_value
+subject_key: user.role_assignment
+property_key: max_roles
+operator: eq
+value_type: int
+value_int: 3
 ---
 `,
       );
@@ -1134,4 +1162,135 @@ source: custom/REQ-CUSTOM-001.md
     },
     TEST_TIMEOUT_MS,
   );
+
+  test(
+    "should run strict-fact-shape rule without errors",
+    async () => {
+      // Create a valid KB and test that the strict-fact-shape rule can run
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(factDir, { recursive: true });
+
+      // Create a valid legacy fact (no fact_kind - should not trigger violation)
+      writeFileSync(
+        path.join(factDir, "FACT-LEGACY-001.md"),
+        `---
+id: FACT-LEGACY-001
+title: Legacy Fact
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-LEGACY-001.md
+---
+Content
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      // Run check with strict-fact-shape rule - should pass with no violations
+      // since there are no malformed strict facts (only a legacy fact without fact_kind)
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-fact-shape"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      // Rule should be recognized and run without error
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "should not flag well-formed strict facts with strict-fact-shape rule",
+    async () => {
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(factDir, { recursive: true });
+
+      // Create a well-formed strict fact
+      writeFileSync(
+        path.join(factDir, "FACT-WELLFORMED-001.md"),
+        `---
+id: FACT-WELLFORMED-001
+title: Well-formed Subject Fact
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-WELLFORMED-001.md
+fact_kind: subject
+subject_key: user.profile
+---
+Content
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-fact-shape"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "should not flag legacy facts without fact_kind when strict-fact-shape enabled",
+    async () => {
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(factDir, { recursive: true });
+
+      // Create a legacy fact without fact_kind (should not be flagged)
+      writeFileSync(
+        path.join(factDir, "FACT-LEGACY-001.md"),
+        `---
+id: FACT-LEGACY-001
+title: Legacy Fact
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-LEGACY-001.md
+---
+Legacy prose fact without strict shape
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-fact-shape"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+});
+
+import { parseViolationRows } from "../../src/prolog/codec";
+
+describe("parseViolationRows — via check integration", () => {
+  test("correctly parses violation with comma in description", () => {
+    const raw =
+      "[violation(strict-fact-shape,'FACT-ARC-018',\"Missing required fields: subject_key, property_key\",\"Add the missing fields\",'documentation/facts/FACT-ARC-018.md')]";
+    const result = parseViolationRows(raw);
+    expect(result).toHaveLength(1);
+    expect(result[0].description).toBe(
+      "Missing required fields: subject_key, property_key",
+    );
+  });
 });

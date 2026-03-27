@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { toPrologString } from "../../dist/prolog/codec.js";
 
 describe("kibi sync", () => {
   const TEST_TIMEOUT_MS = 20000;
@@ -541,5 +542,259 @@ invalid: yaml: [
       },
       TEST_TIMEOUT_MS,
     );
+
+    test(
+      "validate-only returns non-zero for malformed typed fact scalar fields",
+      async () => {
+        const factsDir = path.join(tmpDir, "documentation/facts");
+        mkdirSync(factsDir, { recursive: true });
+        writeFileSync(
+          path.join(factsDir, "FACT-INVALID-TYPED-SCALAR.md"),
+          `---
+id: FACT-INVALID-TYPED-SCALAR
+title: Invalid typed scalar fact
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.session
+property_key: timeout_minutes
+operator: eq
+value_type: int
+value_int: "30"
+---
+# Invalid typed scalar fact
+`,
+        );
+
+        try {
+          execSync(`bun ${kibiBin} sync --validate-only`, {
+            cwd: tmpDir,
+            encoding: "utf8",
+            stdio: "pipe",
+          });
+          throw new Error("Should have failed");
+        } catch (error: unknown) {
+          const execError = error as {
+            status?: number;
+            stderr?: { toString(): string };
+          };
+          expect(execError.status).toBe(1);
+          const stderr = execError.stderr?.toString() ?? "";
+          expect(stderr).toContain("FACT-INVALID-TYPED-SCALAR.md");
+          expect(stderr).toContain("Entity validation failed");
+          expect(stderr).toContain("/value_int: must be integer");
+          expect(stderr).toContain("FAILED");
+        }
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "validate-only reuses Prolog strict fact-shape validation",
+      async () => {
+        const factsDir = path.join(tmpDir, "documentation/facts");
+        mkdirSync(factsDir, { recursive: true });
+        writeFileSync(
+          path.join(factsDir, "FACT-MISSING-VALUE-FIELD.md"),
+          `---
+id: FACT-MISSING-VALUE-FIELD
+title: Missing value field fact
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.session
+property_key: timeout_minutes
+operator: eq
+value_type: int
+---
+# Missing value field fact
+`,
+        );
+
+        try {
+          execSync(`bun ${kibiBin} sync --validate-only`, {
+            cwd: tmpDir,
+            encoding: "utf8",
+            stdio: "pipe",
+          });
+          throw new Error("Should have failed");
+        } catch (error: unknown) {
+          const execError = error as {
+            status?: number;
+            stderr?: { toString(): string };
+          };
+          expect(execError.status).toBe(1);
+          const stderr = execError.stderr?.toString() ?? "";
+          expect(stderr).toContain(
+            "Failed to upsert entity FACT-MISSING-VALUE-FIELD",
+          );
+        }
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
+
+  describe("Typed Fact Round-trip", () => {
+    test(
+      "syncs and queries typed fact with value_int",
+      async () => {
+        const factsDir = path.join(tmpDir, "documentation/facts");
+        mkdirSync(factsDir, { recursive: true });
+
+        writeFileSync(
+          path.join(factsDir, "FACT-SESSION-TIMEOUT-30.md"),
+          `---
+id: FACT-SESSION-TIMEOUT-30
+title: Session timeout is 30 minutes
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.session
+property_key: timeout_minutes
+operator: eq
+value_type: int
+value_int: 30
+unit: minutes
+scope: global
+polarity: require
+closed_world: true
+valid_from: 2026-03-23T00:00:00Z
+canonical_key: user.session.timeout_minutes.eq.30
+---
+# Session timeout
+`,
+        );
+
+        // Sync
+        execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+        // Query and verify
+        const output = execSync(
+          `bun ${kibiBin} query fact --id FACT-SESSION-TIMEOUT-30 --format json`,
+          { cwd: tmpDir, encoding: "utf8", stdio: "pipe" },
+        );
+
+        const result = JSON.parse(output);
+        expect(result).toHaveLength(1);
+        const fact = result[0];
+        expect(fact.id).toBe("FACT-SESSION-TIMEOUT-30");
+        expect(fact.fact_kind).toBe("property_value");
+        expect(fact.value_int).toBe(30);
+        expect(fact.closed_world).toBe(true);
+        expect(fact.valid_from).toMatch(/^2026-03-23T00:00:00/);
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "syncs and queries typed fact with value_number",
+      async () => {
+        const factsDir = path.join(tmpDir, "documentation/facts");
+        mkdirSync(factsDir, { recursive: true });
+
+        writeFileSync(
+          path.join(factsDir, "FACT-RATE-LIMIT.md"),
+          `---
+id: FACT-RATE-LIMIT
+title: Rate limit is 1.5 requests per second
+type: fact
+status: active
+fact_kind: property_value
+subject_key: api.client
+property_key: rate_limit_rps
+operator: eq
+value_type: number
+value_number: 1.5
+unit: requests_per_second
+scope: global
+polarity: require
+canonical_key: api.client.rate_limit_rps.eq.1.5
+---
+# Rate limit
+`,
+        );
+
+        // Sync
+        execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+        // Query and verify
+        const output = execSync(
+          `bun ${kibiBin} query fact --id FACT-RATE-LIMIT --format json`,
+          { cwd: tmpDir, encoding: "utf8", stdio: "pipe" },
+        );
+
+        const result = JSON.parse(output);
+        expect(result).toHaveLength(1);
+        const fact = result[0];
+        expect(fact.value_number).toBe(1.5);
+        expect(fact.value_int).toBeUndefined();
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "syncs and queries typed fact with value_string",
+      async () => {
+        const factsDir = path.join(tmpDir, "documentation/facts");
+        mkdirSync(factsDir, { recursive: true });
+
+        writeFileSync(
+          path.join(factsDir, "FACT-USER-TYPE.md"),
+          `---
+id: FACT-USER-TYPE
+title: User type can be admin
+type: fact
+status: active
+fact_kind: property_value
+subject_key: user.type
+property_key: allowed_value
+operator: eq
+value_type: string
+value_string: admin
+scope: global
+polarity: require
+canonical_key: user.type.allowed_value.eq.admin
+---
+# User type
+`,
+        );
+
+        // Sync
+        execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+        // Query and verify
+        const output = execSync(
+          `bun ${kibiBin} query fact --id FACT-USER-TYPE --format json`,
+          { cwd: tmpDir, encoding: "utf8", stdio: "pipe" },
+        );
+
+        const result = JSON.parse(output);
+        expect(result).toHaveLength(1);
+        const fact = result[0];
+        expect(fact.value_string).toBe("admin");
+        expect(fact.value_int).toBeUndefined();
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
+
+  describe("persistEntities — string escaping", () => {
+    test("toPrologString handles backslash in title", () => {
+      // Regression: persistence previously only escaped " not \
+      const title = "C:\\Users\\foo";
+      expect(toPrologString(title)).toBe('"C:\\\\Users\\\\foo"');
+    });
+
+    test("toPrologString handles newline in source path", () => {
+      const source = "docs/foo\nbar.md";
+      expect(toPrologString(source)).toBe('"docs/foo\\nbar.md"');
+    });
+  });
+
+  describe("serializeTypedFactFields — integer guard", () => {
+    test("Number.isInteger correctly identifies integers vs floats", () => {
+      expect(Number.isInteger(3.5)).toBe(false);
+      expect(Number.isInteger(3)).toBe(true);
+    });
   });
 });

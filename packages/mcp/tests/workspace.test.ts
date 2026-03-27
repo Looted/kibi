@@ -10,20 +10,35 @@ import {
 
 describe("workspace utilities", () => {
   let tempDir: string;
+  let isolationRoot: string;
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
-    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-workspace-test-"));
+    // Create tempDir inside a dedicated subdirectory to isolate upward traversal
+    // from any .git/.kb that may exist in os.tmpdir() itself (e.g. /tmp/.git)
+    isolationRoot = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-workspace-test-"),
+    );
+    tempDir = path.join(isolationRoot, "workspace");
+    fs.mkdirSync(tempDir);
+    // Remove any stale .git/.kb left in os.tmpdir() by prior test runs to prevent
+    // findUpwards from traversing above our tempDir and hitting them
+    for (const marker of [".git", ".kb"]) {
+      const stale = path.join(os.tmpdir(), marker);
+      if (fs.existsSync(stale)) {
+        fs.rmSync(stale, { recursive: true, force: true });
+      }
+    }
     // Clear relevant env vars
-    delete process.env.KIBI_WORKSPACE;
-    delete process.env.KIBI_PROJECT_ROOT;
-    delete process.env.KIBI_ROOT;
-    delete process.env.KIBI_KB_PATH;
-    delete process.env.KB_PATH;
+    process.env.KIBI_WORKSPACE = undefined;
+    process.env.KIBI_PROJECT_ROOT = undefined;
+    process.env.KIBI_ROOT = undefined;
+    process.env.KIBI_KB_PATH = undefined;
+    process.env.KB_PATH = undefined;
   });
 
   afterEach(() => {
-    fs.rmSync(tempDir, { recursive: true, force: true });
+    fs.rmSync(isolationRoot, { recursive: true, force: true });
     // Restore original environment
     for (const key in process.env) {
       delete process.env[key];

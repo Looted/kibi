@@ -13,7 +13,8 @@ export interface EntityQueryArgs {
   sourceFile?: string;
 }
 
-export const VALID_ENTITY_TYPES = [ // implements REQ-002
+export const VALID_ENTITY_TYPES = [
+  // implements REQ-002
   "req",
   "scenario",
   "test",
@@ -108,11 +109,7 @@ export async function loadEntities(
 }
 
 // implements REQ-002
-export function paginateResults<T>(
-  results: T[],
-  limit = 100,
-  offset = 0,
-): T[] {
+export function paginateResults<T>(results: T[], limit = 100, offset = 0): T[] {
   return results.slice(offset, offset + limit);
 }
 

@@ -6,6 +6,8 @@ created_at: 2026-02-20T14:40:00Z
 updated_at: 2026-02-20T14:40:00Z
 source: documentation/facts/FACT-AUDIT-APPEND-ONLY.md
 tags: [audit, history]
+fact_kind: subject
+subject_key: kibi.audit.append_only
 ---
 
 Audit history is append-only to preserve write provenance.

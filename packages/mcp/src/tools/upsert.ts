@@ -17,7 +17,11 @@
 */
 import Ajv from "ajv";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { escapeAtom, toPrologAtom } from "kibi-cli/prolog/codec";
+import {
+  escapeAtom,
+  toPrologAtom,
+  toPrologString,
+} from "kibi-cli/prolog/codec";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
@@ -41,7 +45,6 @@ export interface UpsertResult {
     created: number;
     updated: number;
     relationships_created: number;
-    contradiction_pairs_detected?: number;
   };
 }
 
@@ -112,6 +115,12 @@ export async function handleKbUpsert(
     }
   }
 
+  validateRelationshipSources(id, relationships);
+
+  // Validate strict-lane fact_kind pairing for constrains/requires_property
+  // implements REQ-011
+  await validateStrictLanePairing(prolog, relationships);
+
   let created = 0;
   let updated = 0;
   let relationshipsCreated = 0;
@@ -139,31 +148,48 @@ export async function handleKbUpsert(
         const to = rel.to as string;
         const metadata = buildRelationshipMetadata(rel);
         relationshipGoals.push(
-          `kb_assert_relationship(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`,
+          `kb_assert_relationship_no_audit(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`,
         );
       }
 
       // Build atomic transaction goal wrapping entity + all relationships
+      // For requirements, also include contradiction check within the transaction
       // implements REQ-002, REQ-011
       let transactionGoal: string;
+      const needsContradictionCheck =
+        type === "req" && !args._skipContradictionCheck;
+
       if (relationshipGoals.length === 0) {
         // Simple case: just entity
-        transactionGoal = `rdf_transaction((kb_assert_entity(${type}, ${props})))`;
+        if (needsContradictionCheck) {
+          transactionGoal = `rdf_transaction((kb_assert_entity_no_audit(${type}, ${props}), check_req_contradiction('${escapeAtom(id)}')))`;
+        } else {
+          transactionGoal = `rdf_transaction((kb_assert_entity_no_audit(${type}, ${props})))`;
+        }
       } else {
         // Entity + relationships in one transaction
         const goals = [
-          `kb_assert_entity(${type}, ${props})`,
+          `kb_assert_entity_no_audit(${type}, ${props})`,
           ...relationshipGoals,
         ].join(", ");
-        transactionGoal = `rdf_transaction((${goals}))`;
+        if (needsContradictionCheck) {
+          transactionGoal = `rdf_transaction((${goals}, check_req_contradiction('${escapeAtom(id)}')))`;
+        } else {
+          transactionGoal = `rdf_transaction((${goals}))`;
+        }
       }
 
       const txResult = await prolog.query(transactionGoal);
 
       if (!txResult.success) {
-        throw new Error(
-          `Failed to upsert entity ${id}: ${txResult.error || "Unknown error"} (goal: ${transactionGoal})`,
-        );
+        // Format error message without exposing raw transaction goal
+        const formattedError = formatUpsertError(id, txResult.error);
+        throw new Error(formattedError);
+      }
+
+      await recordEntityAudit(prolog, type, entity);
+      for (const rel of relationships) {
+        await recordRelationshipAudit(prolog, rel);
       }
 
       // Update counters
@@ -185,11 +211,6 @@ export async function handleKbUpsert(
       );
     }
 
-    let contradictionPairsDetected: number | undefined;
-    if (type === "req" && !args._skipContradictionCheck) {
-      contradictionPairsDetected = await detectContradictionPairs(prolog, id);
-    }
-
     if (type === "symbol") {
       try {
         await refreshCoordinatesForSymbolId(id);
@@ -207,17 +228,13 @@ export async function handleKbUpsert(
       content: [
         {
           type: "text",
-          text:
-            contradictionPairsDetected && contradictionPairsDetected > 0
-              ? `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s). Contradiction probe detected ${contradictionPairsDetected} potential conflict pair(s).`
-              : `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s).`,
+          text: `Upserted ${id} (${created > 0 ? "created" : "updated"}) with ${relationshipsCreated} relationship(s).`,
         },
       ],
       structuredContent: {
         created,
         updated,
         relationships_created: relationshipsCreated,
-        contradiction_pairs_detected: contradictionPairsDetected,
       },
     };
   } catch (error) {
@@ -226,32 +243,29 @@ export async function handleKbUpsert(
   }
 }
 
-async function detectContradictionPairs(
-  prolog: PrologProcess,
-  reqId: string,
-): Promise<number> {
-  const escaped = escapeAtom(reqId);
-  const goal = `aggregate_all(count, (contradicting_reqs(A, B, _), (A = '${escaped}' ; B = '${escaped}' ; A = 'file:///${escaped}' ; B = 'file:///${escaped}')), Count)`;
-  const result = await prolog.query(goal);
-  if (!result.success) {
-    return 0;
-  }
-  const raw = result.bindings.Count;
-  const count = Number(raw);
-  return Number.isFinite(count) ? count : 0;
-}
-
 /**
  * Build Prolog property list from entity object
  * Returns simple Key=Value format without typed literals
  * Example output: "[id='test-1', title=\"Test\", status=active]"
+ * implements REQ-002
  */
 function buildPropertyList(entity: Record<string, unknown>): string {
   const pairs: string[] = [];
 
   // Defined internally to ensure thread safety and avoid initialization order issues.
   // Using simple arrays instead of Sets is performant enough for small lists and avoids Set allocation overhead.
-  const ATOM_FIELDS = ["status", "owner", "priority", "severity"];
+  // implements REQ-002
+  const ATOM_FIELDS = [
+    "status",
+    "owner",
+    "priority",
+    "severity",
+    // Typed fact enum fields must be atoms for Prolog validation
+    "fact_kind",
+    "operator",
+    "value_type",
+    "polarity",
+  ];
   const STRING_FIELDS = [
     "id",
     "title",
@@ -273,15 +287,15 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     } else if (ATOM_FIELDS.includes(key) && typeof value === "string") {
       prologValue = toPrologAtom(value);
     } else if (STRING_FIELDS.includes(key) && typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "number") {
       prologValue = String(value);
     } else if (typeof value === "boolean") {
       prologValue = value ? "true" : "false";
     } else {
-      prologValue = `"${escapeQuotes(String(value))}"`;
+      prologValue = `${toPrologString(String(value))}`;
     }
 
     pairs.push(`${key}=${prologValue}`);
@@ -303,11 +317,11 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
     let prologValue: string;
 
     if (typeof value === "string") {
-      prologValue = `"${escapeQuotes(value)}"`;
+      prologValue = `${toPrologString(value)}`;
     } else if (typeof value === "number") {
       prologValue = String(value);
     } else {
-      prologValue = `"${escapeQuotes(String(value))}"`;
+      prologValue = `${toPrologString(String(value))}`;
     }
 
     pairs.push(`${key}=${prologValue}`);
@@ -317,8 +331,151 @@ function buildRelationshipMetadata(rel: Record<string, unknown>): string {
 }
 
 /**
- * Escape double quotes in strings for Prolog
+ * Ensure all relationship rows belong to the entity being upserted.
+ * Rejects foreign-source relationship writes in the same request.
+ * implements REQ-002, REQ-011
  */
-function escapeQuotes(str: string): string {
-  return str.replace(/"/g, '\\"');
+function validateRelationshipSources(
+  entityId: string,
+  relationships: Array<Record<string, unknown>>,
+): void {
+  for (const rel of relationships) {
+    if (rel.from !== entityId) {
+      throw new Error(
+        `Relationship source must match the upserted entity ${entityId}; received from=${String(rel.from)}`,
+      );
+    }
+  }
+}
+
+/**
+ * Validate strict-lane fact_kind pairing for constrains/requires_property relationships.
+ * constrains targets must be subject, observation, or meta facts (or legacy without fact_kind).
+ * requires_property targets must be property_value, observation, or meta facts (or legacy without fact_kind).
+ * implements REQ-011
+ */
+async function validateStrictLanePairing(
+  prolog: PrologProcess,
+  relationships: Array<Record<string, unknown>>,
+): Promise<void> {
+  // implements REQ-011
+  for (const rel of relationships) {
+    if (rel.type === "constrains") {
+      const targetId = rel.to as string;
+      // Reject if target is a fact with fact_kind=property_value.
+      // Allow: legacy (no fact_kind), subject, observation, meta, or non-existent
+      // (non-existent targets are caught by relationship type validation elsewhere).
+      const rejectResult = await prolog.query(
+        `once((kb_entity('${escapeAtom(targetId)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, property_value)))`,
+      );
+      if (rejectResult.success) {
+        throw new Error(
+          `Relationship 'constrains' requires target '${targetId}' to be a subject, observation, or meta fact. Property_value facts cannot be direct targets of constrains relationships.`,
+        );
+      }
+    } else if (rel.type === "requires_property") {
+      const targetId = rel.to as string;
+      // Reject if target is a fact with fact_kind=subject.
+      // Allow: legacy (no fact_kind), property_value, observation, meta, or non-existent.
+      const rejectResult = await prolog.query(
+        `once((kb_entity('${escapeAtom(targetId)}', fact, _SlpProps), memberchk(fact_kind=_SlpFK, _SlpProps), normalize_term_atom(_SlpFK, subject)))`,
+      );
+      if (rejectResult.success) {
+        throw new Error(
+          `Relationship 'requires_property' requires target '${targetId}' to be a property_value, observation, or meta fact. Subject facts cannot be direct targets of requires_property relationships.`,
+        );
+      }
+    }
+  }
+}
+
+/**
+ * Record audit entry for a successfully committed entity mutation.
+ * Called only after the RDF transaction succeeds.
+ * implements REQ-011
+ */
+async function recordEntityAudit(
+  prolog: PrologProcess,
+  type: string,
+  entity: Record<string, unknown>,
+): Promise<void> {
+  const props = buildPropertyList(entity);
+  const result = await prolog.query(`kb_log_entity_upsert(${type}, ${props})`);
+  if (!result.success) {
+    throw new Error(
+      `Failed to record audit entry for ${String(entity.id)}: ${result.error || "Unknown error"}`,
+    );
+  }
+}
+
+/**
+ * Record audit entry for a successfully committed relationship mutation.
+ * Called only after the RDF transaction succeeds.
+ * implements REQ-011
+ */
+async function recordRelationshipAudit(
+  prolog: PrologProcess,
+  rel: Record<string, unknown>,
+): Promise<void> {
+  const relType = rel.type as string;
+  const from = rel.from as string;
+  const to = rel.to as string;
+  const metadata = buildRelationshipMetadata(rel);
+  const result = await prolog.query(
+    `kb_log_relationship_upsert(${relType}, '${escapeAtom(from)}', '${escapeAtom(to)}', ${metadata})`,
+  );
+  if (!result.success) {
+    throw new Error(
+      `Failed to record relationship audit entry ${from}->${to}: ${result.error || "Unknown error"}`,
+    );
+  }
+}
+
+/**
+ * Format upsert error message for user-facing display.
+ * Removes raw transaction goals and extracts meaningful contradiction details.
+ * implements REQ-011
+ */
+function formatUpsertError(
+  entityId: string,
+  rawError: string | undefined,
+): string {
+  if (!rawError) {
+    return `Failed to upsert entity ${entityId}: Unknown error`;
+  }
+
+  // Check for contradiction error - Prolog returns kb_contradiction([...]) term
+  // Try to extract readable details from the term
+  const contradictionMatch = rawError.match(
+    /kb_contradiction\(\s*\[([^\]]+)\]\s*\)/,
+  );
+  if (contradictionMatch) {
+    // Extract individual conflict details from the list
+    const details = contradictionMatch[1];
+    // Parse out readable parts - each entry is like 'Reason'-'ReqId'
+    const conflicts: string[] = [];
+    const conflictRegex = /'([^']+)'-'([^']+)'/g;
+    let execResult: RegExpExecArray | null = conflictRegex.exec(details);
+    while (execResult !== null) {
+      const reason = execResult[1];
+      const otherReq = execResult[2];
+      conflicts.push(`  - Conflicts with ${otherReq}: ${reason}`);
+      execResult = conflictRegex.exec(details);
+    }
+
+    if (conflicts.length > 0) {
+      const uniqueConflicts = [...new Set(conflicts)];
+      return `Contradiction detected for requirement ${entityId}:\n${uniqueConflicts.join("\n")}\n\nTo resolve:\n  1. Add a supersedes relationship from the new requirement to the conflicting one, OR\n  2. Deprecate the conflicting requirement before creating the new one.`;
+    }
+
+    return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.`;
+  }
+
+  // Check for RDF transaction error
+  if (rawError.includes("rdf_transaction")) {
+    return `Failed to upsert entity ${entityId}: Transaction failed`;
+  }
+
+  // Default: return cleaned error without raw goal
+  return `Failed to upsert entity ${entityId}: ${rawError}`;
 }
