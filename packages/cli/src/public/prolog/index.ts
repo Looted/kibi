@@ -16,4 +16,4 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export { PrologProcess } from "../../prolog.js";
+export { PrologProcess, resolveKbPlPath } from "../../prolog.js";

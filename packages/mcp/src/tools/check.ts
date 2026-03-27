@@ -16,7 +16,6 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { existsSync, readFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
@@ -26,31 +25,7 @@ import {
   type Violation,
 } from "kibi-cli/public/check-types";
 import { resolveWorkspaceRoot } from "../workspace.js";
-
-const require = createRequire(import.meta.url);
-
-function resolveChecksPlPath(): string {
-  const overrideChecksPath = process.env.KIBI_CHECKS_PL_PATH;
-  if (overrideChecksPath && existsSync(overrideChecksPath)) {
-    return overrideChecksPath;
-  }
-
-  try {
-    const installedChecksPl = require.resolve("kibi-core/src/checks.pl");
-    if (existsSync(installedChecksPl)) {
-      return installedChecksPl;
-    }
-  } catch {
-    // require.resolve not available or package not installed
-  }
-
-  const localChecksPl = path.join(process.cwd(), "packages/core/src/checks.pl");
-  if (existsSync(localChecksPl)) {
-    return localChecksPl;
-  }
-
-  throw new Error("Unable to resolve checks.pl path");
-}
+import { resolveCorePlPath } from "./core-module.js";
 
 export interface CheckArgs {
   rules?: string[];
@@ -251,7 +226,7 @@ async function runAggregatedChecks(
 ): Promise<Violation[]> {
   const violations: Violation[] = [];
 
-  const checksPlPath = resolveChecksPlPath();
+  const checksPlPath = resolveCorePlPath("checks.pl");
   const normalizedChecksPlPath = checksPlPath.replace(/\\/g, "/");
   const checksPlPathEscaped = normalizedChecksPlPath.replace(/'/g, "''");
 

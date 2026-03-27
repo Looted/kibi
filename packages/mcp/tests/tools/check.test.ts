@@ -1,10 +1,12 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import process from "node:process";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
+import { resolveCorePlPath } from "../../src/tools/core-module.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 
 describe("MCP Check Tool Handler", () => {
@@ -715,3 +717,67 @@ describe("MCP Check Tool Handler", () => {
     }
   }, 15000);
 });
+
+describe("kb_check resolveCorePlPath integration", () => {
+  const savedEnv: Record<string, string | undefined> = {};
+
+  afterEach(() => {
+    // Restore env overrides
+    for (const key of ["KIBI_CHECKS_PL_PATH", "KIBI_KB_PL_PATH"]) {
+      if (savedEnv[key] === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = savedEnv[key];
+      }
+      delete savedEnv[key];
+    }
+  });
+
+  test("KIBI_CHECKS_PL_PATH explicit override is used by resolveCorePlPath", () => {
+    // Arrange: create a temp file as the explicit override
+    const tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-check-override-"));
+    try {
+      const overridePath = path.join(tmpDir, "checks.pl");
+      writeFileSync(overridePath, "% override checks\n");
+
+      savedEnv["KIBI_CHECKS_PL_PATH"] = process.env.KIBI_CHECKS_PL_PATH;
+      process.env.KIBI_CHECKS_PL_PATH = overridePath;
+
+      // Import resolveCorePlPath to verify it returns the override
+      const result = resolveCorePlPath("checks.pl");
+
+
+      expect(result).toBe(overridePath);
+      expect(existsSync(result)).toBe(true);
+    } finally {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("KIBI_KB_PL_PATH alone causes checks.pl sibling derivation", () => {
+    // Arrange: create an isolated core copy with kb.pl and checks.pl siblings
+    const coreDir = mkdtempSync(path.join(os.tmpdir(), "kibi-check-sibling-"));
+    try {
+      mkdirSync(path.join(coreDir, "src"), { recursive: true });
+      const kbPath = path.join(coreDir, "src", "kb.pl");
+      const checksPath = path.join(coreDir, "src", "checks.pl");
+      writeFileSync(kbPath, "% kb\n");
+      writeFileSync(checksPath, "% checks sibling\n");
+
+      savedEnv["KIBI_KB_PL_PATH"] = process.env.KIBI_KB_PL_PATH;
+      process.env.KIBI_KB_PL_PATH = kbPath;
+      // Ensure no CHECKS override overrides our test
+      savedEnv["KIBI_CHECKS_PL_PATH"] = process.env.KIBI_CHECKS_PL_PATH;
+      delete process.env.KIBI_CHECKS_PL_PATH;
+
+      const result = resolveCorePlPath("checks.pl");
+
+
+      expect(result).toBe(checksPath);
+      expect(existsSync(result)).toBe(true);
+    } finally {
+      rmSync(coreDir, { recursive: true, force: true });
+    }
+  });
+});
+
