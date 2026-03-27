@@ -1,8 +1,21 @@
-import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+} from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import process from "node:process";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
@@ -746,7 +759,6 @@ describe("kb_check resolveCorePlPath integration", () => {
       // Import resolveCorePlPath to verify it returns the override
       const result = resolveCorePlPath("checks.pl");
 
-
       expect(result).toBe(overridePath);
       expect(existsSync(result)).toBe(true);
     } finally {
@@ -772,7 +784,6 @@ describe("kb_check resolveCorePlPath integration", () => {
 
       const result = resolveCorePlPath("checks.pl");
 
-
       expect(result).toBe(checksPath);
       expect(existsSync(result)).toBe(true);
     } finally {
@@ -780,4 +791,3 @@ describe("kb_check resolveCorePlPath integration", () => {
     }
   });
 });
-

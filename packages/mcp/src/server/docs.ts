@@ -52,11 +52,10 @@ function renderToolsDoc(): string {
   }
   lines.push("");
   lines.push(
-    "Modeling note: Prefer query-first discovery; create `fact` entities before `req` entities and express semantics via `constrains` + `requires_property`."
+    "Modeling note: Prefer query-first discovery; create `fact` entities before `req` entities and express semantics via `constrains` + `requires_property`.",
   );
   return lines.join("\n");
 }
-
 
 export const PROMPTS = [
   // implements REQ-002, REQ-013, REQ-mcp-search-discovery

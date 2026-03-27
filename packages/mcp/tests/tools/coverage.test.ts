@@ -108,7 +108,11 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "REQ-118-COV-1",
-      properties: { title: "Issue 118 coverage req 1", status: "open", priority: "must" },
+      properties: {
+        title: "Issue 118 coverage req 1",
+        status: "open",
+        priority: "must",
+      },
     });
     await handleKbUpsert(prolog, {
       type: "req",
@@ -130,7 +134,11 @@ describe("kb_coverage isolated-core regression (issue #118)", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "REQ-118-COV-1",
-      properties: { title: "Issue 118 coverage req 1", status: "open", priority: "must" },
+      properties: {
+        title: "Issue 118 coverage req 1",
+        status: "open",
+        priority: "must",
+      },
       relationships: [
         { type: "specified_by", from: "REQ-118-COV-1", to: "SCEN-118-COV-1" },
         { type: "verified_by", from: "REQ-118-COV-1", to: "TEST-118-COV-1" },
