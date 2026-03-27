@@ -74,5 +74,10 @@ status: active
     expect(result.nodes.map((node) => node.id)).toContain("REQ-001");
     expect(result.nodes.map((node) => node.id)).toContain("SCEN-001");
     expect(result.edges[0]?.type).toBe("specified_by");
+
+    // Stabilize JSON contract for packed parity checks
+    const nodeIds = result.nodes.map((node) => node.id).sort();
+    expect(nodeIds).toEqual(["REQ-001", "SCEN-001"]);
+    expect(result.edges.length).toBe(1);
   });
 });

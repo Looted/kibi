@@ -14,6 +14,10 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
 import { handleKbGraph } from "../../src/tools/graph.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
+import {
+  setupIsolatedCore,
+  type IsolatedCoreFixture,
+} from "./discovery-root-fixture.js";
 
 describe("MCP graph tool handler", () => {
   test("returns bounded traversal results", async () => {
@@ -142,5 +146,73 @@ describe("kb_graph multi-relationship integration", () => {
       depth: 1,
     });
     expect(reversed.structuredContent?.edges?.length).toBe(2);
+  });
+});
+
+describe("kb_graph isolated-core regression (issue #118)", () => {
+  let prolog: RealPrologProcess;
+  let fixture: IsolatedCoreFixture;
+
+  beforeAll(async () => {
+    fixture = setupIsolatedCore();
+    prolog = new RealPrologProcess();
+    await prolog.start();
+    await prolog.query(
+      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
+    );
+    await prolog.query(`kb_attach('${fixture.kbDataDir}')`);
+  });
+
+  afterAll(async () => {
+    if (prolog?.isRunning()) {
+      await prolog.query("kb_detach");
+      await prolog.terminate();
+    }
+    fixture.cleanup();
+  });
+
+  test("graph succeeds from isolated core root with repeated calls", async () => {
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-118-GRAPH",
+      properties: { title: "Issue 118 graph regression", status: "open" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "SCEN-118-GRAPH",
+      properties: { title: "Issue 118 graph scenario", status: "active" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "TEST-118-GRAPH",
+      properties: { title: "Issue 118 graph test", status: "passing" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-118-GRAPH",
+      properties: { title: "Issue 118 graph regression", status: "open" },
+      relationships: [
+        { type: "specified_by", from: "REQ-118-GRAPH", to: "SCEN-118-GRAPH" },
+        { type: "verified_by", from: "REQ-118-GRAPH", to: "TEST-118-GRAPH" },
+      ],
+    });
+
+    const result1 = await handleKbGraph(prolog, {
+      seedIds: ["REQ-118-GRAPH"],
+      relationships: ["specified_by", "verified_by"],
+      direction: "outgoing",
+      depth: 1,
+    });
+    expect(result1.structuredContent?.nodes.length).toBe(3);
+    expect(result1.structuredContent?.edges.length).toBe(2);
+
+    const result2 = await handleKbGraph(prolog, {
+      seedIds: ["REQ-118-GRAPH"],
+      relationships: ["specified_by", "verified_by"],
+      direction: "outgoing",
+      depth: 1,
+    });
+    expect(result2.structuredContent?.nodes.length).toBe(3);
+    expect(result2.structuredContent?.edges.length).toBe(2);
   });
 });
