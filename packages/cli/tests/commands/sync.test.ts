@@ -797,4 +797,64 @@ canonical_key: user.type.allowed_value.eq.admin
       expect(Number.isInteger(3)).toBe(true);
     });
   });
+
+  describe("symbol coordinate refresh — internal declaration shapes (regression)", () => {
+    test(
+      "sync reaches failed=0 for exported, non-exported, and class-method symbols",
+      async () => {
+        // Create a TypeScript source file with all three declaration shapes
+        const srcDir = path.join(tmpDir, "src");
+        mkdirSync(srcDir, { recursive: true });
+
+        writeFileSync(
+          path.join(srcDir, "server.ts"),
+          `// implements REQ-001
+export function startServer(port: number): void {
+  console.log('listening on', port);
+}
+
+function parseSymbolsManifest(raw: string): unknown {
+  return JSON.parse(raw);
+}
+
+export class ServerManager {
+  mergeStaticLinks(base: string[], extra: string[]): string[] {
+    return [...base, ...extra];
+  }
+}
+`,
+        );
+
+        // Write a symbols.yaml pointing to those symbols
+        const docDir = path.join(tmpDir, "documentation");
+        mkdirSync(docDir, { recursive: true });
+        writeFileSync(
+          path.join(docDir, "symbols.yaml"),
+          `symbols:
+  - id: SYM-start-server
+    title: startServer
+    status: active
+    sourceFile: src/server.ts
+  - id: SYM-parse-manifest
+    title: parseSymbolsManifest
+    status: active
+    sourceFile: src/server.ts
+  - id: SYM-merge-static-links
+    title: mergeStaticLinks
+    status: active
+    sourceFile: src/server.ts
+`,
+        );
+
+        const output = execSync(`bun ${kibiBin} sync`, {
+          cwd: tmpDir,
+          encoding: "utf8",
+        });
+
+        // All three symbols must resolve — no failures
+        expect(output).toMatch(/failed=0/);
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
 });
