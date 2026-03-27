@@ -25,13 +25,16 @@ Kibi provides concrete, day-to-day benefits for developers and teams:
 
 - **Architectural Constraints** — Link code to ADRs. Know what constraints apply to each symbol and verify architecture decisions are honored.
 
-- **Feature Flag Blast Radius** — See what code depends on a flag before toggling it. Understand the impact of enabling or disabling a feature.
+- **Feature Flag Blast Radius** — See what code depends on a runtime/config gate before toggling it. Understand the impact of enabling or disabling a feature.
 
 - **Event-Driven Architecture** — Map who publishes and consumes each domain event. Trace event flows and identify couplings across the system.
 
 - **Branch-Local Memory** — Every git branch keeps its own KB snapshot. Switch contexts without losing traceability or polluting other branches.
 
 For OpenCode users, bootstrap an existing repo with `/init-kibi`.
+
+
+> **Entity Modeling Note:** Use `flag` for runtime/config gates only. Document bugs and workarounds as `fact` entities with `fact_kind: observation` or `meta`. See [Entity Schema](docs/entity-schema.md) and [AGENTS.md](AGENTS.md) for the canonical guidance.
 
 ## Key Components
 

@@ -13,4 +13,4 @@ links:
   - req-001
 ---
 
-Description: Toggle to enable/disable password reset flows during deploys.
+Description: Runtime/config gate to enable/disable password reset flows during deploys.

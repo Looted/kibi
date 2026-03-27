@@ -187,3 +187,16 @@ Avoid these common mistakes:
 3. Update symbol entities and links via kb_upsert
 4. Run kb_check
 ```
+
+### Entity Choice for Bug and Workaround Documentation
+
+**Flag is for runtime/config gating only:** The `flag` entity represents a runtime or config gate (feature flags, kill-switches, deferred capabilities). Do NOT create a `flag` for bugs or workarounds unless there is an actual gate controlling access.
+
+**Bug/workaround notes belong in observation/meta facts:** When documenting bugs, incidents, or workarounds, use a `fact` entity with `fact_kind: observation` or `meta`. These fact kinds are excluded from contradiction inference, making them appropriate for non-blocking evidence. Do NOT use a `flag` entity for observation or meta facts.
+
+**Canonical mapping:**
+- `flag` = runtime/config gate (NOT for bug records)
+- `fact` (observation/meta) = bug records, incident notes, workarounds
+- `req` = intended/corrected behavior
+- `test` = executable verification
+- `adr` = durable design rationale

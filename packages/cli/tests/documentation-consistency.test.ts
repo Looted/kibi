@@ -45,3 +45,112 @@ describe("documentation consistency", () => {
     expect(mismatches).toHaveLength(0);
   });
 });
+
+// --- Flag / Fact canonical wording regression tests ---
+
+const ROOT = path.resolve(import.meta.dir, "../../..");
+const DOCS = path.resolve(ROOT, "docs");
+
+function readDoc(relPath: string): string {
+  return fs.readFileSync(path.join(ROOT, relPath), "utf8");
+}
+
+describe("flag and fact canonical wording", () => {
+  test("docs must not describe 'bug' as an entity type", () => {
+    const filesToCheck = [
+      "AGENTS.md",
+      "docs/entity-schema.md",
+      "docs/inference-rules.md",
+      "docs/prompts/llm-rules.md",
+      "docs/prompts/retroactive-init.md",
+      "README.md",
+      "docs/mcp-reference.md",
+      "docs/cli-reference.md",
+    ];
+    const pseudoTypePatterns = [
+      // Patterns that would suggest 'bug' is an entity type
+      /type:\s*bug/i,
+      /entity type.*bug/i,
+      /bug.*entity type/i,
+      /\btype: "bug"/i,
+      /\btype:\s*'bug'/i,
+    ];
+    const violations: string[] = [];
+    for (const f of filesToCheck) {
+      let content: string;
+      try {
+        content = readDoc(f);
+      } catch {
+        continue;
+      }
+      for (const pat of pseudoTypePatterns) {
+        if (pat.test(content)) {
+          violations.push(`${f}: matched pattern ${pat}`);
+        }
+      }
+    }
+    expect(violations).toHaveLength(0);
+  });
+
+  test("docs must not describe 'workaround' as an entity type", () => {
+    const filesToCheck = [
+      "AGENTS.md",
+      "docs/entity-schema.md",
+      "docs/prompts/llm-rules.md",
+      "docs/prompts/retroactive-init.md",
+    ];
+    const pseudoTypePatterns = [
+      /type:\s*workaround/i,
+      /entity type.*workaround/i,
+      /workaround.*entity type/i,
+      /\btype: "workaround"/i,
+    ];
+    const violations: string[] = [];
+    for (const f of filesToCheck) {
+      let content: string;
+      try {
+        content = readDoc(f);
+      } catch {
+        continue;
+      }
+      for (const pat of pseudoTypePatterns) {
+        if (pat.test(content)) {
+          violations.push(`${f}: matched pattern ${pat}`);
+        }
+      }
+    }
+    expect(violations).toHaveLength(0);
+  });
+
+  test("AGENTS.md must list all eight canonical entity types", () => {
+    const content = readDoc("AGENTS.md");
+    const requiredTypes = [
+      "req",
+      "scenario",
+      "test",
+      "adr",
+      "flag",
+      "event",
+      "symbol",
+      "fact",
+    ];
+    const missing = requiredTypes.filter((t) => !content.includes(`\`${t}\``));
+    expect(missing).toHaveLength(0);
+  });
+
+  test("docs/entity-schema.md must list all eight canonical entity types", () => {
+    const content = readDoc("docs/entity-schema.md");
+    const requiredTypes = [
+      "req",
+      "scenario",
+      "test",
+      "adr",
+      "flag",
+      "event",
+      "symbol",
+      "fact",
+    ];
+    const missing = requiredTypes.filter((t) => !content.includes(t));
+    expect(missing).toHaveLength(0);
+  });
+});

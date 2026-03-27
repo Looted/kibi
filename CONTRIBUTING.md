@@ -90,6 +90,13 @@ Use the following prefixes:
 - [ ] Tests added for new features
 - [ ] Commit messages follow conventions
 
+### KB Modeling Note
+
+When documenting issues or workarounds in the KB:
+
+- Use `fact` with `fact_kind: observation` or `meta` for bug records and workaround notes
+- Use `flag` only for actual runtime/config gates (not for bug records)
+- See [Entity Schema](docs/entity-schema.md) and [AGENTS.md](AGENTS.md) for the canonical entity-choice guidance
 ---
 
 Clear, practical, and ready for contributors.

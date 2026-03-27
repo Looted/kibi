@@ -195,6 +195,7 @@ Validation report with any violations found and suggested fixes.
 5. **Validate**: Run `kb_check` after structural changes.
 6. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
+**Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`.
 ## Error Handling
 
 The MCP server returns structured errors for:
