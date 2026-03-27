@@ -23,6 +23,8 @@ Kibi supports 8 entity types:
 | `test` | Unit/integration/e2e test | TEST-XXX | passing, failing, skipped, pending |
 | `adr` | Architecture Decision Record | ADR-XXX | proposed, accepted, deprecated, superseded |
 | `flag` | Feature flag / runtime config gate | FLAG-XXX | active, inactive, deprecated |
+| `event` | Domain event | EVT-XXX | active, deprecated |
+| `symbol` | Code symbol (function, class, module) | SYM-XXX | active, deprecated |
 | `fact` | Atomic domain fact; use observation/meta for bug and workaround notes | FACT-XXX | active, deprecated |
 
 ---

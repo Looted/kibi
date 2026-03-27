@@ -76,7 +76,11 @@ describe("kb_find_gaps isolated-core regression (issue #118)", () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "REQ-118-GAPS-1",
-      properties: { title: "Issue 118 gaps req 1", status: "open", priority: "must" },
+      properties: {
+        title: "Issue 118 gaps req 1",
+        status: "open",
+        priority: "must",
+      },
     });
     await handleKbUpsert(prolog, {
       type: "req",

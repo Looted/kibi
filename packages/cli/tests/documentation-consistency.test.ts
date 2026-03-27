@@ -124,16 +124,33 @@ describe("flag and fact canonical wording", () => {
 
   test("AGENTS.md must list all eight canonical entity types", () => {
     const content = readDoc("AGENTS.md");
-    const requiredTypes = ["req", "scenario", "test", "adr", "flag", "event", "symbol", "fact"];
+    const requiredTypes = [
+      "req",
+      "scenario",
+      "test",
+      "adr",
+      "flag",
+      "event",
+      "symbol",
+      "fact",
+    ];
     const missing = requiredTypes.filter((t) => !content.includes(`\`${t}\``));
     expect(missing).toHaveLength(0);
   });
 
   test("docs/entity-schema.md must list all eight canonical entity types", () => {
     const content = readDoc("docs/entity-schema.md");
-    const requiredTypes = ["req", "scenario", "test", "adr", "flag", "event", "symbol", "fact"];
+    const requiredTypes = [
+      "req",
+      "scenario",
+      "test",
+      "adr",
+      "flag",
+      "event",
+      "symbol",
+      "fact",
+    ];
     const missing = requiredTypes.filter((t) => !content.includes(t));
     expect(missing).toHaveLength(0);
   });
 });
-
