@@ -35,7 +35,9 @@ Extracts entities and relationships from project documents and updates the knowl
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
 
 **Notes:**
-- Supports these entity types: req, scenario, test, adr, flag, event, fact
+- Supports these entity types: req, scenario, test, adr, flag, event, symbol, fact
+- **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`.
+- Symbol manifests must be in YAML format
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
 
