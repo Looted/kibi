@@ -737,10 +737,14 @@ describe("kb_check resolveCorePlPath integration", () => {
   afterEach(() => {
     // Restore env overrides
     for (const key of ["KIBI_CHECKS_PL_PATH", "KIBI_KB_PL_PATH"]) {
+      if (!Object.hasOwn(savedEnv, key)) {
+        // This key was never snapshotted for this test; leave process.env as-is.
+        continue;
+      }
       if (savedEnv[key] === undefined) {
         delete process.env[key];
       } else {
-        process.env[key] = savedEnv[key];
+        process.env[key] = savedEnv[key]!;
       }
       delete savedEnv[key];
     }
