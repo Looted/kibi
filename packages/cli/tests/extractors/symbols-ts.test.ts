@@ -49,11 +49,10 @@ describe("symbols-ts matcher guardrails", () => {
    * This guards against accidental resolution of the wrong symbol when both
    * exported and internal declarations share the same name.
    *
-   * RED PHASE: The current implementation only scans exported declarations.
-   * When an internal-then-exported pair exists, if the scanner is ever
-   * extended to look at internals first, this test locks the priority rule.
-   * Additionally this test verifies that coordinates are generated AND that
-   * they point to the exported symbol's line, not the internal one.
+   * The matcher now prefers exported declarations first, and only falls back
+   * to unique internal functions or class methods when no matching export
+   * is found. When an internal-then-exported pair exists, this test locks
+   * in the priority rule that the exported declaration must win.
    */
   test("exportedWinsOverInternal: exported declaration coordinates are returned when both exported and internal exist", async () => {
     // Internal `foo` is on line 3; exported `foo` is on line 5
@@ -92,10 +91,10 @@ describe("symbols-ts matcher guardrails", () => {
    * `bar`, the matcher MUST return no coordinates (fail closed).  Resolving
    * ambiguously to one of them would produce silently wrong coordinates.
    *
-   * RED PHASE: The current scanner ignores non-exported declarations, so it
-   * returns nothing today.  This test locks that behaviour so that if the
-   * scanner is later extended to consider internal declarations, it must also
-   * implement the fail-closed rule before coordinates are emitted.
+   * The matcher now scans non-exported top-level functions, but when multiple
+   * internal declarations share the same title and there is no exported
+   * declaration to disambiguate, it must treat the match as ambiguous and
+   * emit no coordinates. This test locks in that fail-closed behaviour.
    */
   test("ambiguousInternalTitlesFailClosed: no coordinates generated when title is ambiguous among internal declarations", async () => {
     const source = [

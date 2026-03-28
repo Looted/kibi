@@ -245,7 +245,7 @@ function findNamedDeclaration(
         if (method.getName() !== title) continue;
         const nameNode = method.getNameNode();
         if (!nameNode) continue;
-        methodCandidates.push({ node: method as unknown as NamedDeclarationCandidate, getNameNode: () => nameNode });
+        methodCandidates.push({ node: method, getNameNode: () => nameNode });
       }
     }
 
