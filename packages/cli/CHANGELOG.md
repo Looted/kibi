@@ -1,5 +1,16 @@
 # kibi-cli
 
+## 0.4.1
+
+### Patch Changes
+
+- c8761a9: Add fallback support for unique non-exported top-level functions and class methods during symbol coordinate refresh. Resolves symbols that were previously reported as failed.
+- 46baebc: Export resolveKbPlPath from kibi-cli public prolog surface
+
+  Add `resolveKbPlPath` to the public `kibi-cli/prolog` export so that `kibi-mcp`
+  can import it without breaking against older `kibi-cli` versions that do not
+  expose this symbol.
+
 ## 0.4.0
 
 ### Minor Changes
