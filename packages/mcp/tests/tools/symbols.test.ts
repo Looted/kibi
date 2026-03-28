@@ -296,3 +296,110 @@ symbols:
   // and cannot be easily mocked. They are omitted to avoid test complexity.
   // The function is tested indirectly via integration/e2e tests.
 });
+
+// ---------------------------------------------------------------------------
+// Regression: internal symbol coordinate refresh (non-exported + class method)
+// ---------------------------------------------------------------------------
+
+const INTERNAL_TEST_ROOT = path.join(
+  __dirname,
+  "../../../.tmp/symbols-internal-refresh",
+);
+const INTERNAL_MANIFEST_PATH = path.join(INTERNAL_TEST_ROOT, "symbols.yaml");
+const INTERNAL_SRC_PATH = path.join(INTERNAL_TEST_ROOT, "src", "server.ts");
+
+function writeInternalRefreshFixture() {
+  if (fs.existsSync(INTERNAL_TEST_ROOT)) {
+    fs.rmSync(INTERNAL_TEST_ROOT, { recursive: true, force: true });
+  }
+  fs.mkdirSync(path.join(INTERNAL_TEST_ROOT, "src"), { recursive: true });
+
+  // Source file with all three declaration shapes
+  fs.writeFileSync(
+    INTERNAL_SRC_PATH,
+    [
+      "// implements REQ-001",
+      "export function startServer(port: number): void {",
+      "  console.log('listening on', port);",
+      "}",
+      "",
+      "function parseSymbolsManifest(raw: string): unknown {",
+      "  return JSON.parse(raw);",
+      "}",
+      "",
+      "export class ServerManager {",
+      "  mergeStaticLinks(base: string[], extra: string[]): string[] {",
+      "    return [...base, ...extra];",
+      "  }",
+      "}",
+    ].join("\n"),
+    "utf-8",
+  );
+
+  // Manifest with all three symbols (no coordinates yet)
+  fs.writeFileSync(
+    INTERNAL_MANIFEST_PATH,
+    [
+      "symbols:",
+      "  - id: SYM-start-server",
+      "    title: startServer",
+      "    status: active",
+      "    sourceFile: src/server.ts",
+      "  - id: SYM-parse-manifest",
+      "    title: parseSymbolsManifest",
+      "    status: active",
+      "    sourceFile: src/server.ts",
+      "  - id: SYM-merge-static-links",
+      "    title: mergeStaticLinks",
+      "    status: active",
+      "    sourceFile: src/server.ts",
+    ].join("\n"),
+    "utf-8",
+  );
+}
+
+describe("refreshCoordinatesForSymbolId — internal declaration shapes (regression)", () => {
+  beforeEach(() => {
+    writeInternalRefreshFixture();
+  });
+
+  it("should resolve coordinates for exported function (startServer)", async () => {
+    const result = await refreshCoordinatesForSymbolId(
+      "SYM-start-server",
+      INTERNAL_TEST_ROOT,
+    );
+    expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(true);
+
+    const updated = fs.readFileSync(INTERNAL_MANIFEST_PATH, "utf-8");
+    expect(updated).toContain("sourceLine:");
+    expect(updated).toContain("coordinatesGeneratedAt:");
+  });
+
+  it("should resolve coordinates for non-exported helper (parseSymbolsManifest)", async () => {
+    const result = await refreshCoordinatesForSymbolId(
+      "SYM-parse-manifest",
+      INTERNAL_TEST_ROOT,
+    );
+    expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(true);
+
+    const updated = fs.readFileSync(INTERNAL_MANIFEST_PATH, "utf-8");
+    expect(updated).toContain("sourceLine:");
+    expect(updated).toContain("coordinatesGeneratedAt:");
+  });
+
+  it("should resolve coordinates for class method (mergeStaticLinks)", async () => {
+    const result = await refreshCoordinatesForSymbolId(
+      "SYM-merge-static-links",
+      INTERNAL_TEST_ROOT,
+    );
+    expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(true);
+
+    const updated = fs.readFileSync(INTERNAL_MANIFEST_PATH, "utf-8");
+    expect(updated).toContain("sourceLine:");
+    expect(updated).toContain("coordinatesGeneratedAt:");
+  });
+});
+

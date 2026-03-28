@@ -154,3 +154,17 @@ describe("flag and fact canonical wording", () => {
     expect(missing).toHaveLength(0);
   });
 });
+
+// Regression tests for stale symbol aliases
+describe("symbols.yaml regression", () => {
+  test("SYM-KibiMCPServer must not be present", () => {
+    const syms = fs.readFileSync(path.join(DOCS_ROOT, "symbols.yaml"), "utf8");
+    expect(syms.includes("SYM-KibiMCPServer")).toBe(false);
+  });
+
+  test("title: startServer appears exactly once (canonical SYM-010)", () => {
+    const syms = fs.readFileSync(path.join(DOCS_ROOT, "symbols.yaml"), "utf8");
+    const matches = syms.match(/^\s*title:\s*startServer$/gm) || [];
+    expect(matches.length).toBe(1);
+  });
+});

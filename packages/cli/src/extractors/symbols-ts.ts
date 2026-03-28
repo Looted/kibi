@@ -214,8 +214,48 @@ function findNamedDeclaration(
     }
   }
 
-  if (candidates.length === 0) return null;
+  if (candidates.length === 0) {
+    // Second pass: unique non-exported top-level functions only
+    const internalCandidates: Array<{
+      node: NamedDeclarationCandidate;
+      getNameNode: () => Node;
+    }> = [];
 
+    for (const decl of sourceFile.getFunctions()) {
+      if (decl.isExported()) continue; // Already scanned in first pass
+      if (decl.getName() !== title) continue;
+      const nameNode = decl.getNameNode();
+      if (!nameNode) continue;
+      internalCandidates.push({ node: decl, getNameNode: () => nameNode });
+    }
+
+    // Fail closed: only return if exactly one unique match
+    if (internalCandidates.length === 1) {
+      return internalCandidates[0];
+    }
+
+    // Third pass: unique class methods
+    const methodCandidates: Array<{
+      node: NamedDeclarationCandidate;
+      getNameNode: () => Node;
+    }> = [];
+
+    for (const cls of sourceFile.getClasses()) {
+      for (const method of cls.getMethods()) {
+        if (method.getName() !== title) continue;
+        const nameNode = method.getNameNode();
+        if (!nameNode) continue;
+        methodCandidates.push({ node: method, getNameNode: () => nameNode });
+      }
+    }
+
+    // Fail closed: only return if exactly one unique match
+    if (methodCandidates.length === 1) {
+      return methodCandidates[0];
+    }
+
+    return null;
+  }
   candidates.sort(
     (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
   );
