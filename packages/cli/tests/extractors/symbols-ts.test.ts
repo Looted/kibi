@@ -161,4 +161,78 @@ describe("symbols-ts matcher guardrails", () => {
     expect(result.coordinatesGeneratedAt).toBeUndefined();
     expect(result.sourceLine).toBeUndefined();
   });
+
+  test("uniqueNonExportedHelperGetsCoordinates: unique non-exported helper receives coordinates", async () => {
+    const source = [
+      "// file with only non-exported helper",
+      "",
+      "function uniqueHelper() { return 'helper'; }",
+    ].join("\n");
+
+    sourceFilePath = path.join(tmpDir, "unique-helper.ts");
+    fs.writeFileSync(sourceFilePath, source, "utf8");
+
+    const entry: ManifestSymbolEntry = {
+      id: "SYM-uniqueHelper",
+      title: "uniqueHelper",
+      sourceFile: sourceFilePath,
+    };
+
+    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
+
+    // Coordinates must be generated
+    expect(result.coordinatesGeneratedAt).toBeDefined();
+    // The function is on line 3 (1-based)
+    expect(result.sourceLine).toBe(3);
+  });
+
+  test("uniqueClassMethodGetsCoordinates: unique class method receives coordinates", async () => {
+    const source = [
+      "// file with a single class and unique method",
+      "class MyClass {",
+      "  uniqueMethod() { return 'method'; }",
+      "}",
+    ].join("\n");
+
+    sourceFilePath = path.join(tmpDir, "class-method.ts");
+    fs.writeFileSync(sourceFilePath, source, "utf8");
+
+    const entry: ManifestSymbolEntry = {
+      id: "SYM-uniqueMethod",
+      title: "uniqueMethod",
+      sourceFile: sourceFilePath,
+    };
+
+    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
+
+    // Coordinates must be generated for the class method
+    expect(result.coordinatesGeneratedAt).toBeDefined();
+    // method is on line 3 (1-based)
+    expect(result.sourceLine).toBe(3);
+  });
+
+  test("privateClassMethodGetsCoordinates: private class method receives coordinates", async () => {
+    const source = [
+      "// file with a class that has a private method",
+      "class Provider {",
+      "  private mergeStaticLinks() { return true; }",
+      "}",
+    ].join("\n");
+
+    sourceFilePath = path.join(tmpDir, "private-class-method.ts");
+    fs.writeFileSync(sourceFilePath, source, "utf8");
+
+    const entry: ManifestSymbolEntry = {
+      id: "SYM-mergeStaticLinks",
+      title: "mergeStaticLinks",
+      sourceFile: sourceFilePath,
+    };
+
+    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
+
+    // Coordinates must be generated for the private class method
+    expect(result.coordinatesGeneratedAt).toBeDefined();
+    // private method is on line 3 (1-based)
+    expect(result.sourceLine).toBe(3);
+  });
 });
