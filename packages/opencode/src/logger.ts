@@ -50,5 +50,16 @@ export function warn(msg: string): void {
 
 // implements REQ-opencode-kibi-plugin-v1
 export function error(msg: string): void {
+  // Always emit to console for user visibility
   console.error("[kibi-opencode]", msg);
+  // Also emit to structured logs if client is available
+  if (client) {
+    client.app.log({
+      body: {
+        service: "kibi-opencode",
+        level: "error",
+        message: msg,
+      },
+    });
+}
 }
