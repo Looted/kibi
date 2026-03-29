@@ -224,7 +224,7 @@ const kibiOpencodePlugin: Plugin = async (
                 ? "long-comment-missed-adr"
                 : "missing-traceability";
 
-          logger.info(
+          logger.warn(
             `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${filePath}`,
           );
           getSessionTracker().recordWarning(

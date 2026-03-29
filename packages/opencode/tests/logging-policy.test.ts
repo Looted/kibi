@@ -318,4 +318,208 @@ describe("logging policy", () => {
       assert.equal(consoleWarnCalls.length, 0, "empty logSummary must not call console.warn");
     });
   });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  describe(".kb edit and comment-hint silence policy", () => {
+    test(".kb edit detection produces zero console.log/warn output", async () => {
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kb-edit-silence-"));
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false } }, null, 2),
+      );
+
+      logger.setClient({ app: { log: async () => {} } });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: { app: { log: async () => {} } },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: ".kb/config.json" },
+        },
+      });
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, ".kb edit must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, ".kb edit must not call console.warn");
+
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      resetSessionTracker();
+    });
+
+    test("comment-analysis hint produces zero console.log/warn output", async () => {
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-comment-hint-silence-"));
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          { enabled: true, sync: { enabled: false }, guidance: { commentDetection: { enabled: true, minLines: 3 } } },
+          null,
+          2,
+        ),
+      );
+
+      // Create Python file with durable-knowledge docstring
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(path.join(srcDir, "models.py"), [`"""`, `User accounts must have unique email addresses.`, `Each user can have at most 5 active sessions.`, `Sessions expire after 30 minutes of inactivity.`, `"""`, ``, `class User:`, `    pass`, ``].join("\n"));
+
+      logger.setClient({ app: { log: async () => {} } });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: { app: { log: async () => {} } },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/models.py" },
+        },
+      });
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "comment hint must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "comment hint must not call console.warn");
+
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      resetSessionTracker();
+    });
+
+    test(".kb edit routes through structured warn channel", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kb-edit-channel-"));
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false } }, null, 2),
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: ".kb/config.json" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      const warnLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.level === "warn" && typeof body.message === "string" && body.message.includes(".kb edit detected");
+      });
+
+      assert.ok(warnLogs.length >= 1, ".kb edit detection must emit structured warn log");
+
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      resetSessionTracker();
+    });
+
+    test("comment-analysis hint routes through structured warn channel", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-comment-hint-channel-"));
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          { enabled: true, sync: { enabled: false }, guidance: { commentDetection: { enabled: true, minLines: 3 } } },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(path.join(srcDir, "models.py"), [`"""`, `User accounts must have unique email addresses.`, `Each user can have at most 5 active sessions.`, `Sessions expire after 30 minutes of inactivity.`, `"""`, ``, `class User:`, `    pass`, ``].join("\n"));
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/models.py" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      const warnLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.level === "warn" && typeof body.message === "string" && body.message.includes("detected durable");
+      });
+
+      assert.ok(warnLogs.length >= 1, "comment-analysis hint must emit structured warn log");
+
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      resetSessionTracker();
+    });
+  });
 });
