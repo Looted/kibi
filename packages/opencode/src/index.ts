@@ -26,7 +26,9 @@ import * as fs from "node:fs";
 export interface PluginInput {
   worktree: string;
   directory: string;
-  client?: { app: { log: (payload: Record<string, unknown>) => Promise<void> } };
+  client?: {
+    app: { log: (payload: Record<string, unknown>) => Promise<void> };
+  };
 }
 
 interface OpencodeEventPayload {
@@ -114,6 +116,13 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   // Check workspace health for bootstrap nudges
+
+  // Inject structured logger client so startup/hook messages route to
+  // client.app.log() instead of console when the host provides a client.
+  if (input.client) {
+    logger.setClient(input.client);
+  }
+
   const workspaceHealth = checkWorkspaceHealth(input.worktree);
   if (workspaceHealth.needsBootstrap) {
     logger.error("kibi-opencode: workspace needs Kibi bootstrap");
@@ -131,12 +140,6 @@ const kibiOpencodePlugin: Plugin = async (
       tracker.logSummary();
       tracker.reset();
     }
-  }
-
-  // Inject structured logger client so startup/hook messages route to
-  // client.app.log() instead of console when the host provides a client.
-  if (input.client) {
-    logger.setClient(input.client);
   }
 
   logger.info("kibi-opencode: setting up hooks");
