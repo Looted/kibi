@@ -1,5 +1,11 @@
 # kibi-opencode
 
+## 0.5.3
+
+### Patch Changes
+
+- b543f92: Quieter terminal behavior: normal-operation logs now route through structured `client.app.log()` instead of `console.log`/`console.warn`. Error-class events (bootstrap-needed, sync/check failure, hook/init failure) remain visible in terminal. Preserved error visibility and hook compatibility for prompt injection.
+
 ## 0.5.2
 
 ### Patch Changes
