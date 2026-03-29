@@ -12,13 +12,14 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DEFAULTS, isPluginEnabled, loadConfig } from "../src/config";
+import * as logger from "../src/logger";
 
 describe("config loader", () => {
   let tmpBase: string;
   let home: string;
   let projDir: string;
   let origHome: string | undefined;
-  let consoleWarnSpy: ReturnType<typeof spyOn>;
+  let loggerWarnSpy: ReturnType<typeof spyOn>;
   let consoleErrorSpy: ReturnType<typeof spyOn>;
   let homedirSpy: ReturnType<typeof spyOn>;
 
@@ -34,12 +35,12 @@ describe("config loader", () => {
     process.env.HOME = home;
     homedirSpy = spyOn(os, "homedir").mockReturnValue(home);
 
-    consoleWarnSpy = spyOn(console, "warn");
+    loggerWarnSpy = spyOn(logger, "warn");
     consoleErrorSpy = spyOn(console, "error");
   });
 
   beforeEach(() => {
-    consoleWarnSpy.mockClear();
+    loggerWarnSpy.mockClear();
     consoleErrorSpy.mockClear();
   });
 
@@ -92,7 +93,7 @@ describe("config loader", () => {
     );
     const c = loadConfig(projDir);
     expect(c).toEqual(DEFAULTS);
-    expect(consoleWarnSpy).toHaveBeenCalled();
+    expect(loggerWarnSpy).toHaveBeenCalled();
   });
 
   test("enabled false disables plugin", () => {
@@ -102,7 +103,7 @@ describe("config loader", () => {
     );
     const c = loadConfig(projDir);
     expect(isPluginEnabled(c)).toBe(false);
-    expect(consoleWarnSpy).not.toHaveBeenCalled();
+    expect(loggerWarnSpy).not.toHaveBeenCalled();
     expect(consoleErrorSpy).not.toHaveBeenCalled();
   });
 
@@ -113,6 +114,6 @@ describe("config loader", () => {
     );
     const c = loadConfig(projDir);
     expect(c.prompt.hookMode).toBe(DEFAULTS.prompt.hookMode);
-    expect(consoleWarnSpy).toHaveBeenCalled();
+    expect(loggerWarnSpy).toHaveBeenCalled();
   });
 });
