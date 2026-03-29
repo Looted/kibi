@@ -150,6 +150,19 @@ Config files (project overrides global):
 
 Per ADR-016, prompt text injection uses only `experimental.chat.system.transform`. The `chat.params` hook is reserved for model option enrichment (temperature, topP, etc.) and never carries prompt text.
 
+### Logging Policy
+
+The plugin follows a **silent-except-errors** policy for terminal output:
+
+| Channel | Terminal | Structured log |
+|---------|----------|---------------|
+| Normal operation (sync success, guidance injection, session summaries) | No | Yes, via `client.app.log()` |
+| Error-class events (bootstrap-needed, sync/check failure, hook/init failure) | Yes, via `console.error` | Yes, via `client.app.log()` |
+
+Routine diagnostics route through [`client.app.log()`](https://opencode.ai/docs/plugins/) and never appear in the terminal. Only error-class events break terminal silence. This keeps the developer's workspace clean while preserving full visibility in structured logs for debugging.
+
+The `experimental.chat.system.transform` hook handles prompt injection (see [Hook Policy](#hook-policy)). The `chat.params` hook is compatibility-only and never carries prompt text.
+
 ### Hook Modes
 
 - `auto`: Use `experimental.chat.system.transform` (primary); `chat.params` is a no-op registration for host compatibility
