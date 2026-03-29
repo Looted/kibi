@@ -281,8 +281,17 @@ const kibiOpencodePlugin: Plugin = async (
           hasRecentKbEdit,
           recentCommentSuggestion,
         });
-        output.system.length = 0;
-        output.system.push(injected);
+        // Append-only: preserve existing system entries
+        if (injected === currentSystem) {
+          return;
+        }
+        const last =
+          output.system.length > 0
+            ? output.system[output.system.length - 1]
+            : undefined;
+        if (last !== injected) {
+          output.system.push(injected);
+        }
       };
     }
 

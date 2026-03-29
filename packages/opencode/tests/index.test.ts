@@ -816,8 +816,9 @@ with normal content.
 
       await transformHook(mockInput, mockOutput);
 
-      assert.ok(mockOutput.system.length > 0);
-      assert.notEqual(mockOutput.system[0], "original system prompt");
+      assert.ok(mockOutput.system.length > 1);
+      assert.equal(mockOutput.system[0], "original system prompt");
+      assert.ok(mockOutput.system.some((s: string) => s !== "original system prompt"));
     });
 
     it("creates system.transform hook when hookMode is system-transform", async () => {
@@ -1814,9 +1815,9 @@ class User:
 
       await transformHook(mockInput, mockOutput);
 
-      assert.ok(mockOutput.system.length > 0);
+      assert.ok(mockOutput.system.length > 1);
       assert.ok(
-        mockOutput.system[0].includes("kibi-opencode"),
+        mockOutput.system.some((s: string) => s.includes("kibi-opencode")),
         "Prompt should contain kibi-opencode",
       );
     });
@@ -1891,9 +1892,9 @@ import psycopg2
 
       await transformHook(mockInput, mockOutput);
 
-      assert.ok(mockOutput.system.length > 0);
+      assert.ok(mockOutput.system.length > 1);
       assert.ok(
-        mockOutput.system[0].includes("kibi-opencode"),
+        mockOutput.system.some((s: string) => s.includes("kibi-opencode")),
         "Prompt should contain kibi-opencode",
       );
     });
@@ -2165,7 +2166,7 @@ import datetime
       const outputAfterCode = { system: ["base system prompt"] };
       await transformHook({}, outputAfterCode);
       assert.ok(
-        outputAfterCode.system[0].includes("Durable knowledge detected"),
+        outputAfterCode.system.some((s: string) => s.includes("Durable knowledge detected")),
         "Prompt should contain durable knowledge guidance after code file edit",
       );
 
@@ -2183,7 +2184,7 @@ import datetime
       const outputAfterKbDoc = { system: ["base system prompt"] };
       await transformHook({}, outputAfterKbDoc);
       assert.ok(
-        !outputAfterKbDoc.system[0].includes("Durable knowledge detected"),
+        !outputAfterKbDoc.system.some((s: string) => s.includes("Durable knowledge detected")),
         "Prompt should not contain durable knowledge guidance after switching to KB doc",
       );
     });
