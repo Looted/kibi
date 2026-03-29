@@ -7,7 +7,7 @@ import * as config from "./config.js";
 import * as fileFilter from "./file-filter.js";
 import * as logger from "./logger.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
-import { injectPrompt } from "./prompt.js";
+import { buildPrompt, SENTINEL } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
@@ -117,8 +117,9 @@ const kibiOpencodePlugin: Plugin = async (
 
   // Check workspace health for bootstrap nudges
 
-  // Inject structured logger client so startup/hook messages route to
-  // client.app.log() instead of console when the host provides a client.
+  // Reset the logger client first to avoid leaking a previous invocation's
+  // client into this instance, then set the new one if provided.
+  logger.resetClient();
   if (input.client) {
     logger.setClient(input.client);
   }
@@ -277,23 +278,23 @@ const kibiOpencodePlugin: Plugin = async (
 
     if (hookMode === "system-transform" || hookMode === "auto") {
       hooks["experimental.chat.system.transform"] = async (_input, output) => {
-        const currentSystem = output.system.join("\n");
-        const injected = injectPrompt(currentSystem, cfg, {
+        // Skip if sentinel already present in any existing entry
+        if (output.system.some((entry: string) => entry.includes(SENTINEL))) {
+          return;
+        }
+        // Build only the guidance block and append it; existing entries are preserved
+        const guidance = buildPrompt({
           recentEdits,
           workspaceHealth,
           hasRecentKbEdit,
           recentCommentSuggestion,
         });
-        // Append-only: preserve existing system entries
-        if (injected === currentSystem) {
-          return;
-        }
         const last =
           output.system.length > 0
             ? output.system[output.system.length - 1]
             : undefined;
-        if (last !== injected) {
-          output.system.push(injected);
+        if (last !== guidance) {
+          output.system.push(guidance);
         }
       };
     }
