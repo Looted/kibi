@@ -236,7 +236,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
     if (exitCode === 0) {
       logger.info(`sync.succeeded ${JSON.stringify(meta)}`);
     } else {
-      logger.warn(`sync.failed ${JSON.stringify(meta)}`);
+      logger.error(`sync.failed ${JSON.stringify(meta)}`);
     }
 
     this.onRunComplete?.(meta);

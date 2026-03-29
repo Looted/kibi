@@ -116,7 +116,7 @@ const kibiOpencodePlugin: Plugin = async (
   // Check workspace health for bootstrap nudges
   const workspaceHealth = checkWorkspaceHealth(input.worktree);
   if (workspaceHealth.needsBootstrap) {
-    logger.warn("kibi-opencode: workspace needs Kibi bootstrap");
+    logger.error("kibi-opencode: workspace needs Kibi bootstrap");
     getSessionTracker().recordWarning(
       "bootstrap-needed",
       input.worktree,
