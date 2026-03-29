@@ -187,4 +187,135 @@ describe("logging policy", () => {
       assert.doesNotThrow(() => logger.warn("fallback warn"));
     });
   });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  describe("scheduler silence policy", () => {
+    test("scheduler sync produces zero console.log/warn output", async () => {
+      const scheduler = require("../src/scheduler") as {
+        createSyncScheduler: (opts: any) => any,
+      };
+      const { DEFAULTS } = require("../src/config");
+
+      logger.setClient({
+        app: {
+          log: async () => {},
+        },
+      });
+
+      const sched = scheduler.createSyncScheduler({
+        worktree: process.cwd(),
+        config: { ...DEFAULTS, sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 } },
+        runSync: async () => ({ exitCode: 0 }),
+      });
+
+      sched.onFileEdited("documentation/requirements/REQ-001.md");
+      await new Promise((r) => setTimeout(r, 50));
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "scheduler must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "scheduler must not call console.warn");
+    });
+
+    test("scheduler check failure produces zero console.log/warn output", async () => {
+      const scheduler = require("../src/scheduler") as {
+        createSyncScheduler: (opts: any) => any,
+      };
+      const { DEFAULTS } = require("../src/config");
+
+      logger.setClient({
+        app: {
+          log: async () => {},
+        },
+      });
+
+      const sched = scheduler.createSyncScheduler({
+        worktree: process.cwd(),
+        config: { ...DEFAULTS, sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 } },
+        runSync: async () => ({ exitCode: 0 }),
+        runCheck: async () => ({ exitCode: 1 }),
+      });
+
+      sched.scheduleSync("file.edited", "documentation/requirements/REQ-001.md", ["required-fields"]);
+      await new Promise((r) => setTimeout(r, 50));
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "scheduler check failure must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "scheduler check failure must not call console.warn");
+    });
+  });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  describe("session-summary silence policy", () => {
+    test("logSummary produces zero console.log/warn output", () => {
+      const { SessionTracker } = require("../src/session-tracker") as {
+        SessionTracker: new () => any,
+      };
+
+      logger.setClient({
+        app: {
+          log: async () => {},
+        },
+      });
+
+      const tracker = new SessionTracker();
+      tracker.recordWarning("kb-edit", "/file1.ts", "W1");
+      tracker.recordWarning("kb-edit", "/file2.ts", "W2");
+      tracker.recordWarning("kb-edit", "/file3.ts", "W3");
+      tracker.logSummary();
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "logSummary must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "logSummary must not call console.warn");
+    });
+
+    test("recordWarning produces zero console.log/warn output", () => {
+      const { SessionTracker } = require("../src/session-tracker") as {
+        SessionTracker: new () => any,
+      };
+
+      logger.setClient({
+        app: {
+          log: async () => {},
+        },
+      });
+
+      const tracker = new SessionTracker();
+      tracker.recordWarning("missing-traceability", "/file.ts", "Test");
+      tracker.recordWarning("bootstrap-needed", "/file.ts", "Bootstrap");
+      tracker.recordWarning("kb-edit", "/file.ts", "KB edit");
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "recordWarning must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "recordWarning must not call console.warn");
+    });
+
+    test("empty logSummary produces zero console.log/warn output", () => {
+      const { SessionTracker } = require("../src/session-tracker") as {
+        SessionTracker: new () => any,
+      };
+
+      logger.setClient({
+        app: {
+          log: async () => {},
+        },
+      });
+
+      const tracker = new SessionTracker();
+      tracker.logSummary();
+
+      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
+      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+
+      assert.equal(consoleLogCalls.length, 0, "empty logSummary must not call console.log");
+      assert.equal(consoleWarnCalls.length, 0, "empty logSummary must not call console.warn");
+    });
+  });
 });
