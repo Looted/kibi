@@ -178,7 +178,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
         const checkResult = await this.runCheck(this.worktree, checkRules);
         checkExitCode = checkResult.exitCode;
         if (checkExitCode !== 0) {
-          logger.warn(
+          logger.error(
             `check.failed ${JSON.stringify({ rules: checkRules, exitCode: checkExitCode })}`,
           );
         } else {
@@ -236,7 +236,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
     if (exitCode === 0) {
       logger.info(`sync.succeeded ${JSON.stringify(meta)}`);
     } else {
-      logger.warn(`sync.failed ${JSON.stringify(meta)}`);
+      logger.error(`sync.failed ${JSON.stringify(meta)}`);
     }
 
     this.onRunComplete?.(meta);

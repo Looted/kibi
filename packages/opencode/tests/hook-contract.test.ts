@@ -173,4 +173,51 @@ describe("hook contract", () => {
       "Should NOT mention kb_coverage_report",
     );
   });
+
+  test("system.transform appends to existing entries (not replace)", async () => {
+    const dir = makeProjectDir("system-transform");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const transform = hooks["experimental.chat.system.transform"];
+    assert.ok(transform, "system.transform hook should exist");
+
+    const output = { system: ["existing-prompt-a", "existing-prompt-b"] } as any;
+    await transform({} as any, output);
+
+    // Original entries must still be present
+    assert.ok(
+      output.system.includes("existing-prompt-a"),
+      "original entry 'existing-prompt-a' must be preserved",
+    );
+    assert.ok(
+      output.system.includes("existing-prompt-b"),
+      "original entry 'existing-prompt-b' must be preserved",
+    );
+    // Appended entry should contain the sentinel
+    const appendedEntry = output.system.find(
+      (s: string) => s !== "existing-prompt-a" && s !== "existing-prompt-b",
+    );
+    assert.ok(appendedEntry, "an appended entry should exist");
+    assert.ok(
+      appendedEntry.includes(SENTINEL),
+      "appended entry should contain the Kibi sentinel",
+    );
+    // Total should be 3 (2 original + 1 appended)
+    assert.equal(output.system.length, 3, "should have 3 entries total");
+  });
+
+  test("chat.params does not modify system array", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const chatParams = hooks["chat.params"];
+    assert.ok(chatParams, "chat.params hook should exist");
+
+    const output = {} as any;
+    await chatParams({} as any, output);
+
+    // chat.params must not touch any system-related data
+    assert.ok(
+      !("system" in output),
+      "chat.params must not create a system property",
+    );
+  });
 });

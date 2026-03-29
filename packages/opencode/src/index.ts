@@ -7,7 +7,7 @@ import * as config from "./config.js";
 import * as fileFilter from "./file-filter.js";
 import * as logger from "./logger.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
-import { injectPrompt } from "./prompt.js";
+import { buildPrompt, SENTINEL } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
@@ -26,6 +26,9 @@ import * as fs from "node:fs";
 export interface PluginInput {
   worktree: string;
   directory: string;
+  client?: {
+    app: { log: (payload: Record<string, unknown>) => Promise<void> };
+  };
 }
 
 interface OpencodeEventPayload {
@@ -113,9 +116,17 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   // Check workspace health for bootstrap nudges
+
+  // Reset the logger client first to avoid leaking a previous invocation's
+  // client into this instance, then set the new one if provided.
+  logger.resetClient();
+  if (input.client) {
+    logger.setClient(input.client);
+  }
+
   const workspaceHealth = checkWorkspaceHealth(input.worktree);
   if (workspaceHealth.needsBootstrap) {
-    logger.warn("kibi-opencode: workspace needs Kibi bootstrap");
+    logger.error("kibi-opencode: workspace needs Kibi bootstrap");
     getSessionTracker().recordWarning(
       "bootstrap-needed",
       input.worktree,
@@ -217,7 +228,7 @@ const kibiOpencodePlugin: Plugin = async (
                 ? "long-comment-missed-adr"
                 : "missing-traceability";
 
-          logger.info(
+          logger.warn(
             `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${filePath}`,
           );
           getSessionTracker().recordWarning(
@@ -267,15 +278,24 @@ const kibiOpencodePlugin: Plugin = async (
 
     if (hookMode === "system-transform" || hookMode === "auto") {
       hooks["experimental.chat.system.transform"] = async (_input, output) => {
-        const currentSystem = output.system.join("\n");
-        const injected = injectPrompt(currentSystem, cfg, {
+        // Skip if sentinel already present in any existing entry
+        if (output.system.some((entry: string) => entry.includes(SENTINEL))) {
+          return;
+        }
+        // Build only the guidance block and append it; existing entries are preserved
+        const guidance = buildPrompt({
           recentEdits,
           workspaceHealth,
           hasRecentKbEdit,
           recentCommentSuggestion,
         });
-        output.system.length = 0;
-        output.system.push(injected);
+        const last =
+          output.system.length > 0
+            ? output.system[output.system.length - 1]
+            : undefined;
+        if (last !== guidance) {
+          output.system.push(guidance);
+        }
       };
     }
 
