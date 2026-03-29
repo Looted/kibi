@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
+import * as logger from "../src/logger";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -16,6 +17,7 @@ describe("index kibiOpencodePlugin", () => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
     worktree = tmpDir;
     resetSessionTracker();
+    logger.resetClient();
   });
 
   afterEach(() => {
@@ -23,6 +25,7 @@ describe("index kibiOpencodePlugin", () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
     resetSessionTracker();
+    logger.resetClient();
   });
 
   describe("plugin setup and config disabled", () => {
