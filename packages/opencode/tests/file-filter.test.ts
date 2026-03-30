@@ -76,7 +76,6 @@ describe("stripToRoot", () => {
 // implements REQ-opencode-kibi-plugin-v1
 describe("getKbExistenceTargets normalization contract", () => {
   let tmpDir: string;
-  let origDir: string;
 
   // Helpers for creating temp config
   const makeConfig = (paths: Record<string, string>) => {
