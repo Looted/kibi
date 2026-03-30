@@ -143,6 +143,116 @@ describe("index kibiOpencodePlugin", () => {
     });
   });
 
+    // implements REQ-opencode-kibi-plugin-v1
+    it("does not record bootstrap-needed when configured sync paths exist", async () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            paths: {
+              requirements: "kibi-docs/requirements/**/*.md",
+              scenarios: "kibi-docs/scenarios/**/*.md",
+              tests: "kibi-docs/tests/**/*.md",
+              adr: "kibi-docs/adr/**/*.md",
+              flags: "kibi-docs/flags/**/*.md",
+              events: "kibi-docs/events/**/*.md",
+              facts: "kibi-docs/facts/**/*.md",
+              symbols: "kibi-docs/symbols.yaml",
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create all custom directories and symbols file
+      const customDirs = [
+        "kibi-docs/requirements",
+        "kibi-docs/scenarios",
+        "kibi-docs/tests",
+        "kibi-docs/adr",
+        "kibi-docs/flags",
+        "kibi-docs/events",
+        "kibi-docs/facts",
+      ];
+      for (const dir of customDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "kibi-docs", "symbols.yaml"),
+        "[]",
+      );
+
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const tracker = getSessionTracker();
+      const summary = tracker.generateSummary();
+      assert.equal(
+        summary.warningsByCategory["bootstrap-needed"],
+        0,
+        "Should not record bootstrap-needed warning when all configured paths exist",
+      );
+    });
+
+    // implements REQ-opencode-kibi-plugin-v1
+    it("records bootstrap-needed when a configured target is missing", async () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            paths: {
+              requirements: "kibi-docs/requirements/**/*.md",
+              scenarios: "kibi-docs/scenarios/**/*.md",
+              tests: "kibi-docs/tests/**/*.md",
+              adr: "kibi-docs/adr/**/*.md",
+              flags: "kibi-docs/flags/**/*.md",
+              events: "kibi-docs/events/**/*.md",
+              facts: "kibi-docs/facts/**/*.md",
+              symbols: "kibi-docs/symbols.yaml",
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create only ONE directory (requirements), leave all others missing
+      fs.mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
+        recursive: true,
+      });
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const tracker = getSessionTracker();
+      const summary = tracker.generateSummary();
+      assert.equal(
+        summary.warningsByCategory["bootstrap-needed"],
+        1,
+        "Should record exactly one bootstrap-needed warning when targets are missing",
+      );
+
+      // Plugin continues with non-blocking behavior
+      assert.ok(typeof hooks === "object");
+    });
+
   describe("session summary and logging", () => {
     it("checks session expiry when session summary is enabled", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");

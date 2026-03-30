@@ -53,16 +53,17 @@ if (RUN_NODE_TEST_SUITE) {
 
     it(
       "plugin package can be loaded",
+      { timeout: 30000 },
       async () => {
         const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
         const pkg = await import(distIndex);
         assert.ok(pkg.default !== undefined);
       },
-      { timeout: 30000 },
     );
 
     it(
       "plugin exports required functions",
+      { timeout: 30000 },
       async () => {
         const distRoot = join(REPO_ROOT, "packages/opencode/dist");
         const { injectPrompt, buildPrompt } = await import(
@@ -82,11 +83,11 @@ if (RUN_NODE_TEST_SUITE) {
         assert.ok(typeof shouldHandleFile === "function");
         assert.ok(typeof createSyncScheduler === "function");
       },
-      { timeout: 30000 },
     );
 
     it(
       "plugin root exports only loader-safe plugin function",
+      { timeout: 30000 },
       async () => {
         const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
         const pkg = await import(distIndex);
@@ -106,11 +107,11 @@ if (RUN_NODE_TEST_SUITE) {
           }
         }
       },
-      { timeout: 30000 },
     );
 
     it(
       "relevant file triggers sync eligibility",
+      { timeout: 30000 },
       async () => {
         const { shouldHandleFile } = await import(
           join(REPO_ROOT, "packages/opencode/dist/file-filter.js")
@@ -121,11 +122,11 @@ if (RUN_NODE_TEST_SUITE) {
         );
         assert.equal(result, true);
       },
-      { timeout: 30000 },
     );
 
     it(
       "irrelevant file does not trigger sync",
+      { timeout: 30000 },
       async () => {
         const { shouldHandleFile } = await import(
           join(REPO_ROOT, "packages/opencode/dist/file-filter.js")
@@ -133,7 +134,117 @@ if (RUN_NODE_TEST_SUITE) {
         const result = shouldHandleFile("src/main.ts", tmpDir);
         assert.equal(result, false);
       },
+    );
+
+    // implements REQ-opencode-kibi-plugin-v1
+    it(
+      "does not emit bootstrap warning for healthy relocated paths",
       { timeout: 30000 },
+      async () => {
+        const healthyDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-healthy-"));
+        try {
+          mkdirSync(join(healthyDir, ".kb"), { recursive: true });
+          writeFileSync(
+            join(healthyDir, ".kb", "config.json"),
+            JSON.stringify({
+              paths: {
+                requirements: "kibi-docs/requirements/**/*.md",
+                scenarios: "kibi-docs/scenarios/**/*.md",
+                tests: "kibi-docs/tests/**/*.md",
+                adr: "kibi-docs/adr/**/*.md",
+                flags: "kibi-docs/flags/**/*.md",
+                events: "kibi-docs/events/**/*.md",
+                facts: "kibi-docs/facts/**/*.md",
+                symbols: "kibi-docs/symbols.yaml",
+              },
+            }),
+          );
+
+          const customDirs = [
+            "kibi-docs/requirements",
+            "kibi-docs/scenarios",
+            "kibi-docs/tests",
+            "kibi-docs/adr",
+            "kibi-docs/flags",
+            "kibi-docs/events",
+            "kibi-docs/facts",
+          ];
+          for (const dir of customDirs) {
+            mkdirSync(join(healthyDir, dir), { recursive: true });
+          }
+          writeFileSync(join(healthyDir, "kibi-docs", "symbols.yaml"), "[]");
+
+          const { getSessionTracker, resetSessionTracker } = await import(
+            join(REPO_ROOT, "packages/opencode/dist/session-tracker.js")
+          );
+          resetSessionTracker();
+
+          const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+          const pkg = await import(distIndex);
+          const plugin = pkg.default;
+          await plugin({ directory: healthyDir, worktree: healthyDir });
+
+          const summary = getSessionTracker().generateSummary();
+          assert.equal(
+            summary.warningsByCategory["bootstrap-needed"],
+            0,
+            "Should not emit bootstrap warning for healthy relocated paths",
+          );
+        } finally {
+          rmSync(healthyDir, { recursive: true, force: true });
+        }
+      },
+    );
+
+    // implements REQ-opencode-kibi-plugin-v1
+    it(
+      "emits bootstrap warning when configured target is missing",
+      { timeout: 30000 },
+      async () => {
+        const missingDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-missing-"));
+        try {
+          mkdirSync(join(missingDir, ".kb"), { recursive: true });
+          writeFileSync(
+            join(missingDir, ".kb", "config.json"),
+            JSON.stringify({
+              paths: {
+                requirements: "kibi-docs/requirements/**/*.md",
+                scenarios: "kibi-docs/scenarios/**/*.md",
+                tests: "kibi-docs/tests/**/*.md",
+                adr: "kibi-docs/adr/**/*.md",
+                flags: "kibi-docs/flags/**/*.md",
+                events: "kibi-docs/events/**/*.md",
+                facts: "kibi-docs/facts/**/*.md",
+                symbols: "kibi-docs/symbols.yaml",
+              },
+            }),
+          );
+
+          // Create only ONE directory (requirements), leave all others missing
+          mkdirSync(join(missingDir, "kibi-docs", "requirements"), {
+            recursive: true,
+          });
+
+          const { getSessionTracker, resetSessionTracker } = await import(
+            join(REPO_ROOT, "packages/opencode/dist/session-tracker.js")
+          );
+          resetSessionTracker();
+
+          const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+          const pkg = await import(distIndex);
+          const plugin = pkg.default;
+          await plugin({ directory: missingDir, worktree: missingDir });
+
+          const summary = getSessionTracker().generateSummary();
+          assert.equal(
+            summary.warningsByCategory["bootstrap-needed"],
+            1,
+            "Should emit bootstrap warning when configured targets are missing",
+          );
+        } finally {
+          rmSync(missingDir, { recursive: true, force: true });
+        }
+      },
     );
   });
 }
