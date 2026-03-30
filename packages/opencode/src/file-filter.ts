@@ -23,16 +23,17 @@ try {
   };
 }
 
-// Local copy of DEFAULT_SYNC_PATHS to avoid cross-package TS rootDir issues
+// Local copy of DEFAULT_CONFIG.paths to avoid cross-package TS rootDir issues.
+// Must stay in sync with DEFAULT_CONFIG.paths in packages/cli/src/utils/config.ts.
 const DEFAULT_SYNC_PATHS = {
-  requirements: "requirements/**/*.md",
-  scenarios: "scenarios/**/*.md",
-  tests: "tests/**/*.md",
-  adr: "adr/**/*.md",
-  flags: "flags/**/*.md",
-  events: "events/**/*.md",
-  facts: "facts/**/*.md",
-  symbols: "symbols.yaml",
+  requirements: "documentation/requirements/**/*.md",
+  scenarios: "documentation/scenarios/**/*.md",
+  tests: "documentation/tests/**/*.md",
+  adr: "documentation/adr/**/*.md",
+  flags: "documentation/flags/**/*.md",
+  events: "documentation/events/**/*.md",
+  facts: "documentation/facts/**/*.md",
+  symbols: "documentation/symbols.yaml",
 };
 
 function loadSyncConfigLocal(cwd = process.cwd()) {

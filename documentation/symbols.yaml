@@ -226,11 +226,11 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 71
+    sourceLine: 72
     sourceColumn: 16
-    sourceEndLine: 86
+    sourceEndLine: 102
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-29T20:23:22.686Z'
+    coordinatesGeneratedAt: '2026-03-30T09:23:50.000Z'
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
