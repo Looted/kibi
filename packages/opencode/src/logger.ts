@@ -1,6 +1,6 @@
 // implements REQ-opencode-kibi-plugin-v1
 
-interface PluginClient {
+export interface PluginClient {
   app: {
     log: (payload: Record<string, unknown>) => Promise<void>;
   };
@@ -21,13 +21,15 @@ export function resetClient(): void {
 // implements REQ-opencode-kibi-plugin-v1
 export function info(msg: string): void {
   if (client) {
-    client.app.log({
-      body: {
-        service: "kibi-opencode",
-        level: "info",
-        message: msg,
-      },
-    });
+    void client.app
+      .log({
+        body: {
+          service: "kibi-opencode",
+          level: "info",
+          message: msg,
+        },
+      })
+      .catch(console.error);
     return;
   }
   // Fallback when no client is available (e.g. during tests or early init)
@@ -36,13 +38,15 @@ export function info(msg: string): void {
 // implements REQ-opencode-kibi-plugin-v1
 export function warn(msg: string): void {
   if (client) {
-    client.app.log({
-      body: {
-        service: "kibi-opencode",
-        level: "warn",
-        message: msg,
-      },
-    });
+    void client.app
+      .log({
+        body: {
+          service: "kibi-opencode",
+          level: "warn",
+          message: msg,
+        },
+      })
+      .catch(console.error);
     return;
   }
   // Fallback when no client is available
@@ -54,12 +58,14 @@ export function error(msg: string): void {
   console.error("[kibi-opencode]", msg);
   // Also emit to structured logs if client is available
   if (client) {
-    client.app.log({
-      body: {
-        service: "kibi-opencode",
-        level: "error",
-        message: msg,
-      },
-    });
-}
+    void client.app
+      .log({
+        body: {
+          service: "kibi-opencode",
+          level: "error",
+          message: msg,
+        },
+      })
+      .catch(console.error);
+  }
 }
