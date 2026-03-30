@@ -23,16 +23,17 @@ try {
   };
 }
 
-// Local copy of DEFAULT_SYNC_PATHS to avoid cross-package TS rootDir issues
+// Local copy of DEFAULT_CONFIG.paths to avoid cross-package TS rootDir issues.
+// Must stay in sync with DEFAULT_CONFIG.paths in packages/cli/src/utils/config.ts.
 const DEFAULT_SYNC_PATHS = {
-  requirements: "requirements/**/*.md",
-  scenarios: "scenarios/**/*.md",
-  tests: "tests/**/*.md",
-  adr: "adr/**/*.md",
-  flags: "flags/**/*.md",
-  events: "events/**/*.md",
-  facts: "facts/**/*.md",
-  symbols: "symbols.yaml",
+  requirements: "documentation/requirements/**/*.md",
+  scenarios: "documentation/scenarios/**/*.md",
+  tests: "documentation/tests/**/*.md",
+  adr: "documentation/adr/**/*.md",
+  flags: "documentation/flags/**/*.md",
+  events: "documentation/events/**/*.md",
+  facts: "documentation/facts/**/*.md",
+  symbols: "documentation/symbols.yaml",
 };
 
 function loadSyncConfigLocal(cwd = process.cwd()) {
@@ -58,6 +59,61 @@ function loadSyncConfigLocal(cwd = process.cwd()) {
 export function loadKbSyncPaths(cwd = process.cwd()) {
   const cfg = loadSyncConfigLocal(cwd);
   return cfg.paths ?? DEFAULT_SYNC_PATHS;
+}
+
+// implements REQ-opencode-kibi-plugin-v1
+export interface KbExistenceTarget {
+  key: string;
+  relativePath: string;
+  kind: "dir" | "file";
+}
+
+// implements REQ-opencode-kibi-plugin-v1
+export function getKbExistenceTargets(
+  cwd = process.cwd(),
+): KbExistenceTarget[] {
+  const paths = loadKbSyncPaths(cwd);
+  const keys = [
+    "requirements",
+    "scenarios",
+    "tests",
+    "adr",
+    "flags",
+    "events",
+    "facts",
+    "symbols",
+  ] as const;
+  const targets: KbExistenceTarget[] = [];
+  for (const key of keys) {
+    const raw = paths[key];
+    if (!raw) continue;
+    const isFile = raw.endsWith(".yaml") || raw.endsWith(".yml");
+    if (isFile) {
+      targets.push({ key, relativePath: raw, kind: "file" });
+    } else {
+      // Contract: trim trailing slashes → normalizePattern → strip first glob segment
+      const trimmed = raw.replace(/\/+$/, "");
+      const normalized = normalizePattern(trimmed);
+      const relativePath = normalized ? stripToRoot(normalized) : ".";
+      targets.push({ key, relativePath, kind: "dir" });
+    }
+  }
+  return targets;
+}
+
+// implements REQ-opencode-kibi-plugin-v1
+/** Strip the first path segment containing a glob character and everything
+ *  after it, returning the directory root to check with existsSync.
+ */
+export function stripToRoot(p: string): string {
+  const segments = p.split("/");
+  const rootSegments: string[] = [];
+  for (const seg of segments) {
+    if (seg.includes("*") || seg.includes("?") || seg.includes("[")) break;
+    rootSegments.push(seg);
+  }
+  const result = rootSegments.join("/");
+  return result || ".";
 }
 
 function normalizePattern(p: string | undefined): string | null {

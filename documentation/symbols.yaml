@@ -1,9 +1,9 @@
 # symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
 #   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
-# Run `kibi sync` or call the `kb.symbols.refresh` MCP tool to refresh coordinates.
+# Run `kibi sync` or call the `kb_symbols_refresh` MCP tool to refresh coordinates.
 symbols:
   - id: SYM-001
     title: PrologProcess
@@ -216,3 +216,33 @@ symbols:
     sourceEndLine: 185
     sourceEndColumn: 1
     coordinatesGeneratedAt: '2026-03-28T11:20:40.127Z'
+  - id: SYM-getKbExistenceTargets
+    title: getKbExistenceTargets
+    sourceFile: packages/opencode/src/file-filter.ts
+    links:
+      - REQ-opencode-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 72
+    sourceColumn: 16
+    sourceEndLine: 102
+    sourceEndColumn: 1
+    coordinatesGeneratedAt: '2026-03-30T09:23:50.000Z'
+  - id: SYM-checkWorkspaceHealth
+    title: checkWorkspaceHealth
+    sourceFile: packages/opencode/src/workspace-health.ts
+    links:
+      - REQ-opencode-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 30
+    sourceColumn: 16
+    sourceEndLine: 86
+    sourceEndColumn: 1
+    coordinatesGeneratedAt: '2026-03-29T20:24:42.644Z'
