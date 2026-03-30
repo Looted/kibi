@@ -21,8 +21,11 @@ describe("workspace-health checkWorkspaceHealth", () => {
   });
 
   it("detects missing .kb/config.json", () => {
-    // Create the rest of the standard documentation dirs and symbols file so nothing is missing
+    // Create ALL standard documentation dirs and symbols file so missingDocDirs stays empty,
+    // isolating the missing-config behaviour under test.
     const otherDocDirs = [
+      "documentation/requirements",
+      "documentation/scenarios",
       "documentation/tests",
       "documentation/adr",
       "documentation/flags",
