@@ -564,4 +564,66 @@ describe("prompt", () => {
       "Should mention KB entity types",
     );
   });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  test("omits bootstrap guidance when relocated sync paths are healthy", () => {
+    // Relocated-path workspaces (e.g. kibi-docs/* custom sync paths) that are
+    // correctly configured should not trigger bootstrap nagging.
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "kibi-docs/src/main.ts", kind: "code" }],
+      workspaceHealth: {
+        needsBootstrap: false,
+        missingConfig: false,
+        missingDocDirs: [],
+        hasKbEvidence: true,
+      },
+    });
+
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      !result.includes("Bootstrap required"),
+      "Should NOT include bootstrap guidance when needsBootstrap is false",
+    );
+    assert.ok(
+      !result.includes("/init-kibi"),
+      "Should NOT mention /init-kibi when relocated paths are healthy",
+    );
+    assert.ok(
+      !result.includes("kibi init"),
+      "Should NOT contain 'kibi init' CLI command",
+    );
+    assert.ok(
+      !result.includes("kibi doctor"),
+      "Should NOT contain 'kibi doctor' CLI command",
+    );
+  });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  test("includes bootstrap guidance when relocated config points at a missing target", () => {
+    // When relocated-path config exists but target is missing, needsBootstrap
+    // is true and the prompt should nudge toward /init-kibi (MCP only).
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [],
+      workspaceHealth: {
+        needsBootstrap: true,
+        missingConfig: true,
+        missingDocDirs: [],
+        hasKbEvidence: false,
+      },
+    });
+
+    assert.ok(result.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      result.includes("/init-kibi"),
+      "Should include /init-kibi bootstrap command",
+    );
+    assert.ok(
+      !result.includes("kibi init"),
+      "Should NOT contain 'kibi init' CLI command",
+    );
+    assert.ok(
+      !result.includes("kibi doctor"),
+      "Should NOT contain 'kibi doctor' CLI command",
+    );
+  });
 });
