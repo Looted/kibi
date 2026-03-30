@@ -21,6 +21,19 @@ describe("workspace-health checkWorkspaceHealth", () => {
   });
 
   it("detects missing .kb/config.json", () => {
+    // Create the rest of the standard documentation dirs and symbols file so nothing is missing
+    const otherDocDirs = [
+      "documentation/tests",
+      "documentation/adr",
+      "documentation/flags",
+      "documentation/events",
+      "documentation/facts",
+    ];
+    for (const dir of otherDocDirs) {
+      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+    }
+    fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]");
+
     const result = checkWorkspaceHealth(tmpDir);
     assert.equal(result.missingConfig, true);
     assert.equal(result.needsBootstrap, true);
@@ -104,5 +117,181 @@ describe("workspace-health checkWorkspaceHealth", () => {
   it("detects no Kibi evidence when .kb directory is absent", () => {
     const result = checkWorkspaceHealth(tmpDir);
     assert.equal(result.hasKbEvidence, false);
+  });
+
+  it("does not need bootstrap when configured sync paths exist outside documentation", () => {
+    // Create .kb/config.json with custom paths under kibi-docs/
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify({
+        paths: {
+          requirements: "kibi-docs/requirements/**/*.md",
+          scenarios: "kibi-docs/scenarios/**/*.md",
+          tests: "kibi-docs/tests/**/*.md",
+          adr: "kibi-docs/adr/**/*.md",
+          flags: "kibi-docs/flags/**/*.md",
+          events: "kibi-docs/events/**/*.md",
+          facts: "kibi-docs/facts/**/*.md",
+          symbols: "kibi-docs/symbols.yaml",
+        },
+      }),
+    );
+
+    // Create all custom directories and the symbols file
+    const customDirs = [
+      "kibi-docs/requirements",
+      "kibi-docs/scenarios",
+      "kibi-docs/tests",
+      "kibi-docs/adr",
+      "kibi-docs/flags",
+      "kibi-docs/events",
+      "kibi-docs/facts",
+    ];
+    for (const dir of customDirs) {
+      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+    }
+    fs.writeFileSync(path.join(tmpDir, "kibi-docs", "symbols.yaml"), "[]");
+
+    const result = checkWorkspaceHealth(tmpDir);
+    // With the fix: custom paths exist, so no doc dirs should be missing
+    assert.equal(
+      result.missingDocDirs.length,
+      0,
+      `Expected no missing dirs but got: ${result.missingDocDirs.join(", ")}`,
+    );
+    assert.equal(result.needsBootstrap, false);
+  });
+
+  it("uses configured sync targets when a relocated path is missing", () => {
+    // Create .kb/config.json with custom paths but do NOT create the directories
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify({
+        paths: {
+          requirements: "kibi-docs/requirements/**/*.md",
+          scenarios: "kibi-docs/scenarios/**/*.md",
+          tests: "kibi-docs/tests/**/*.md",
+          adr: "kibi-docs/adr/**/*.md",
+          flags: "kibi-docs/flags/**/*.md",
+          events: "kibi-docs/events/**/*.md",
+          facts: "kibi-docs/facts/**/*.md",
+          symbols: "kibi-docs/symbols.yaml",
+        },
+      }),
+    );
+    // Only create one of the custom dirs
+    fs.mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
+      recursive: true,
+    });
+
+    const result = checkWorkspaceHealth(tmpDir);
+    // With the fix: missing dirs should be the custom paths that don't exist
+    assert.ok(result.missingDocDirs.length > 0);
+    assert.ok(
+      result.missingDocDirs.some((d) => d.includes("kibi-docs")),
+      `Expected kibi-docs paths in missing but got: ${result.missingDocDirs.join(", ")}`,
+    );
+    assert.ok(
+      !result.missingDocDirs.includes("kibi-docs/requirements"),
+      "requirements dir was created, should not be missing",
+    );
+  });
+
+  it("honors symbols.yaml relocation in config", () => {
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify({
+        paths: {
+          requirements: "requirements/**/*.md",
+          scenarios: "scenarios/**/*.md",
+          tests: "tests/**/*.md",
+          adr: "adr/**/*.md",
+          flags: "flags/**/*.md",
+          events: "events/**/*.md",
+          facts: "facts/**/*.md",
+          symbols: "data/symbols.yaml",
+        },
+      }),
+    );
+
+    // Create standard dirs
+    for (const dir of [
+      "requirements",
+      "scenarios",
+      "tests",
+      "adr",
+      "flags",
+      "events",
+      "facts",
+    ]) {
+      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+    }
+    // Create relocated symbols file at data/symbols.yaml
+    fs.mkdirSync(path.join(tmpDir, "data"), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, "data", "symbols.yaml"), "[]");
+
+    const result = checkWorkspaceHealth(tmpDir);
+    // symbols.yaml at data/ should not be missing
+    assert.ok(
+      !result.missingDocDirs.some((d) => d.includes("symbols")),
+      `symbols should not be missing but got: ${result.missingDocDirs.join(", ")}`,
+    );
+  });
+
+  it("merges partial path overrides and normalizes trailing slashes", () => {
+    // Create .kb/config.json with partial overrides (only requirements and scenarios)
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify({
+        paths: {
+          // include trailing slashes to ensure normalization is handled
+          requirements: "kibi-docs/requirements/",
+          scenarios: "kibi-docs/scenarios/",
+        },
+      }),
+    );
+
+    // Create the overridden dirs with trailing slashes in name (filesystem ignores slash)
+    fs.mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(tmpDir, "kibi-docs", "scenarios"), {
+      recursive: true,
+    });
+    // Do NOT create the rest of the default documentation dirs or symbols file; they should be reported missing
+    const result = checkWorkspaceHealth(tmpDir);
+    // The health check should normalize the configured paths and not report them missing
+    assert.ok(
+      !result.missingDocDirs.some((d) => d.includes("kibi-docs/requirements")),
+      `requirements override should not be missing but got: ${result.missingDocDirs.join(", ")}`,
+    );
+    assert.ok(
+      !result.missingDocDirs.some((d) => d.includes("kibi-docs/scenarios")),
+      `scenarios override should not be missing but got: ${result.missingDocDirs.join(", ")}`,
+    );
+
+    // Default documentation dirs and symbols.yaml that were not created should be reported missing
+    const expectedMissing = [
+      "tests",
+      "adr",
+      "flags",
+      "events",
+      "facts",
+      "symbols.yaml",
+    ];
+    for (const e of expectedMissing) {
+      assert.ok(
+        result.missingDocDirs.some((d) => d.includes(e)),
+        `Expected ${e} to be reported missing but it was not. Missing list: ${result.missingDocDirs.join(", ")}`,
+      );
+    }
   });
 });

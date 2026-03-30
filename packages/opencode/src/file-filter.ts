@@ -60,6 +60,61 @@ export function loadKbSyncPaths(cwd = process.cwd()) {
   return cfg.paths ?? DEFAULT_SYNC_PATHS;
 }
 
+// implements REQ-opencode-kibi-plugin-v1
+export interface KbExistenceTarget {
+  key: string;
+  relativePath: string;
+  kind: "dir" | "file";
+}
+
+// implements REQ-opencode-kibi-plugin-v1
+export function getKbExistenceTargets(
+  cwd = process.cwd(),
+): KbExistenceTarget[] {
+  const paths = loadKbSyncPaths(cwd);
+  const keys = [
+    "requirements",
+    "scenarios",
+    "tests",
+    "adr",
+    "flags",
+    "events",
+    "facts",
+    "symbols",
+  ] as const;
+  const targets: KbExistenceTarget[] = [];
+  for (const key of keys) {
+    const raw = paths[key];
+    if (!raw) continue;
+    const isFile = raw.endsWith(".yaml") || raw.endsWith(".yml");
+    if (isFile) {
+      targets.push({ key, relativePath: raw, kind: "file" });
+    } else {
+      // Contract: trim trailing slashes → normalizePattern → strip first glob segment
+      const trimmed = raw.replace(/\/+$/, "");
+      const normalized = normalizePattern(trimmed);
+      const relativePath = normalized ? stripToRoot(normalized) : ".";
+      targets.push({ key, relativePath, kind: "dir" });
+    }
+  }
+  return targets;
+}
+
+// implements REQ-opencode-kibi-plugin-v1
+/** Strip the first path segment containing a glob character and everything
+ *  after it, returning the directory root to check with existsSync.
+ */
+export function stripToRoot(p: string): string {
+  const segments = p.split("/");
+  const rootSegments: string[] = [];
+  for (const seg of segments) {
+    if (seg.includes("*") || seg.includes("?") || seg.includes("[")) break;
+    rootSegments.push(seg);
+  }
+  const result = rootSegments.join("/");
+  return result || ".";
+}
+
 function normalizePattern(p: string | undefined): string | null {
   if (!p) return null;
   // preserve explicit globs containing '*' or '/**'
