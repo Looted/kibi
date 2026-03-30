@@ -65,8 +65,6 @@ mock.module("vscode", () => getVscodeMockModule());
 
 const { KibiTreeDataProvider } = await import("../src/treeProvider");
 
-type TreeProviderInstance = InstanceType<typeof KibiTreeDataProvider>;
-
 let tmpDir: string;
 
 function writeJson(filePath: string, value: unknown) {

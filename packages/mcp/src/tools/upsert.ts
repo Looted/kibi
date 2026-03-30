@@ -277,6 +277,7 @@ function buildPropertyList(entity: Record<string, unknown>): string {
 
   for (const [key, value] of Object.entries(entity)) {
     if (key === "type") continue;
+    if (value === undefined || value === null) continue;
 
     let prologValue: string;
 
