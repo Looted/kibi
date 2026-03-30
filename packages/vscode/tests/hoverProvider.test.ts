@@ -8,11 +8,9 @@ import {
   test,
 } from "bun:test";
 // Import real implementations BEFORE mock.module intercepts them
-const {
-  buildHoverMarkdown: realBuildHoverMarkdown,
-  categorizeEntities: realCategorizeEntities,
-  formatLensTitle: realFormatLensTitle,
-} = await import("../src/helpers?real");
+const { buildHoverMarkdown: realBuildHoverMarkdown } = await import(
+  "../src/helpers?real"
+);
 import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 
 type MockMarkdownString = { value: string; isTrusted?: boolean };

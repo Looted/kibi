@@ -8,7 +8,7 @@ type QueryResult = {
   error?: string;
 };
 
-const initialKibiMcpDebug = process.env.KIBI_MCP_DEBUG ?? "";
+const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
 
 function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
@@ -31,7 +31,11 @@ function createMockProlog(
 
 afterEach(() => {
   mock.restore();
-  process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
+  if (initialKibiMcpDebug === undefined) {
+    delete process.env.KIBI_MCP_DEBUG;
+  } else {
+    process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
+  }
 });
 
 describe("handleKbUpsert", () => {
@@ -347,7 +351,7 @@ describe("handleKbUpsert", () => {
     expect(transactionGoal).toContain("value_int=30");
     expect(transactionGoal).toContain("closed_world=false");
     expect(transactionGoal).toContain('tags=["alpha","beta"]');
-    expect(transactionGoal).toContain('owner="undefined"');
+    expect(transactionGoal).not.toContain("owner=");
     expect(transactionGoal).toContain('text_ref="docs/requirements.md#L1"');
   });
 
