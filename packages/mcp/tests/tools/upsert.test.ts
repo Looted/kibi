@@ -739,6 +739,8 @@ describe("handleKbUpsert", () => {
     mock.module("../../src/tools/symbols.js", () => ({
       refreshCoordinatesForSymbolId,
     }));
+    process.env.KIBI_MCP_DEBUG = "1";
+    const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('SYM-REFRESH-001', _, _))") {
@@ -772,6 +774,7 @@ describe("handleKbUpsert", () => {
     expect(refreshCoordinatesForSymbolId).toHaveBeenCalledWith(
       "SYM-REFRESH-001",
     );
+    expect(warnSpy).not.toHaveBeenCalled();
     expect(result.structuredContent?.created).toBe(1);
   });
 
