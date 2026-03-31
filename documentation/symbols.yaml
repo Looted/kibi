@@ -1,9 +1,9 @@
 # symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
+# GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
 #   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
-# Run `kibi sync` or call the `kb_symbols_refresh` MCP tool to refresh coordinates.
+# Run `kibi sync` or call the `kb.symbols.refresh` MCP tool to refresh coordinates.
 symbols:
   - id: SYM-001
     title: PrologProcess
@@ -20,7 +20,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 576
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.173Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:46.625Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -36,7 +36,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 244
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.274Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:46.728Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -49,7 +49,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.275Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:46.729Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -65,7 +65,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 219
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.353Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:46.811Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -81,7 +81,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 1002
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.481Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:46.978Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -94,7 +94,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 176
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.536Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.049Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -107,7 +107,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 57
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.707Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.276Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -123,7 +123,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 1002
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.707Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.276Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -138,7 +138,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 106
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.708Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.277Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -170,7 +170,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.710Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.278Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -185,7 +185,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 334
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-28T18:53:57.821Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.387Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -230,7 +230,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 102
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-30T09:23:50.000Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.464Z'
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
@@ -241,8 +241,8 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
-    sourceLine: 30
+    sourceLine: 31
     sourceColumn: 16
-    sourceEndLine: 86
+    sourceEndLine: 87
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-29T20:24:42.644Z'
+    coordinatesGeneratedAt: '2026-03-31T09:19:47.531Z'
