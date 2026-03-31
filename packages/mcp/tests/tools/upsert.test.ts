@@ -31,6 +31,9 @@ function createMockProlog(
 
 afterEach(() => {
   mock.restore();
+  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+    console.error("[KIBI-DIAG] upsert.test.ts: afterEach completed, mock.restore() called");
+  }
   if (initialKibiMcpDebug === undefined) {
     delete process.env.KIBI_MCP_DEBUG;
   } else {
@@ -736,6 +739,9 @@ describe("handleKbUpsert", () => {
       refreshed: true,
       found: true,
     }));
+    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+      console.error("[KIBI-DIAG] upsert.test.ts: installing mock.module for symbols.js");
+    }
     mock.module("../../src/tools/symbols.js", () => ({
       refreshCoordinatesForSymbolId,
     }));
@@ -782,6 +788,9 @@ describe("handleKbUpsert", () => {
     const refreshCoordinatesForSymbolId = mock(async () => {
       throw "refresh blew up";
     });
+    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+      console.error("[KIBI-DIAG] upsert.test.ts: installing mock.module for symbols.js");
+    }
     mock.module("../../src/tools/symbols.js", () => ({
       refreshCoordinatesForSymbolId,
     }));
