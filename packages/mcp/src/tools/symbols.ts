@@ -172,11 +172,38 @@ export async function refreshCoordinatesForSymbolId(
   symbolId: string,
   workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
+  // implements REQ-vscode-traceability
   const manifestPath = resolveManifestPath(workspaceRoot);
+  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+    console.error(
+      "[KIBI-DIAG] symbols.ts: refreshCoordinatesForSymbolId called",
+    );
+    console.error("[KIBI-DIAG] symbols.ts: symbolId:", symbolId);
+    console.error("[KIBI-DIAG] symbols.ts: workspaceRoot:", workspaceRoot);
+    try {
+      const resolvedManifest = resolveManifestPath(workspaceRoot);
+      console.error(
+        "[KIBI-DIAG] symbols.ts: resolved manifestPath:",
+        resolvedManifest,
+      );
+      console.error(
+        "[KIBI-DIAG] symbols.ts: manifest exists:",
+        existsSync(resolvedManifest),
+      );
+    } catch (e) {
+      console.error("[KIBI-DIAG] symbols.ts: manifest resolution error:", e);
+    }
+  }
   const rawContent = readFileSync(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
 
   if (!isRecord(parsed) || !Array.isArray(parsed.symbols)) {
+    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+      console.error("[KIBI-DIAG] symbols.ts: returning:", {
+        refreshed: false,
+        found: false,
+      });
+    }
     return { refreshed: false, found: false };
   }
 
@@ -188,6 +215,12 @@ export async function refreshCoordinatesForSymbolId(
 
   const index = symbols.findIndex((entry) => entry.id === symbolId);
   if (index < 0) {
+    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+      console.error("[KIBI-DIAG] symbols.ts: returning:", {
+        refreshed: false,
+        found: false,
+      });
+    }
     return { refreshed: false, found: false };
   }
 
@@ -227,6 +260,12 @@ export async function refreshCoordinatesForSymbolId(
     writeFileSync(manifestPath, nextContent, "utf8");
   }
 
+  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
+    console.error("[KIBI-DIAG] symbols.ts: returning:", {
+      refreshed,
+      found: true,
+    });
+  }
   return { refreshed, found: true };
 }
 
