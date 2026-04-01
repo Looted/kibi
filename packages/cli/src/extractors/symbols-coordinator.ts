@@ -42,25 +42,12 @@ export async function enrichSymbolCoordinates(
 ): Promise<ManifestSymbolEntry[]> {
   // implements REQ-vscode-traceability
   const output = entries.map((entry) => ({ ...entry }));
-  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error("[KIBI-DIAG] coordinator.ts: enrichSymbolCoordinates called");
-    console.error("[KIBI-DIAG] coordinator.ts: workspaceRoot:", workspaceRoot);
-    console.error("[KIBI-DIAG] coordinator.ts: entries count:", entries.length);
-  }
 
   const tsIndices: number[] = [];
   const tsEntries: ManifestSymbolEntry[] = [];
 
   for (let index = 0; index < output.length; index++) {
     const entry = output[index];
-    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-      console.error(
-        "[KIBI-DIAG] coordinator.ts: processing entry:",
-        entry.id,
-        "sourceFile:",
-        entry.sourceFile,
-      );
-    }
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
     if (!resolved) continue;
 
@@ -87,12 +74,6 @@ export async function enrichSymbolCoordinates(
     }
   }
 
-  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error(
-      "[KIBI-DIAG] coordinator.ts: returning enriched count:",
-      output.filter((e) => e.sourceLine !== undefined).length,
-    );
-  }
   return output;
 }
 

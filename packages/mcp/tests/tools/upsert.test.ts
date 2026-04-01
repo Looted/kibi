@@ -32,13 +32,8 @@ function createMockProlog(
 afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
-  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error(
-      "[KIBI-DIAG] upsert.test.ts: afterEach completed, mock.restore() called",
-    );
-  }
   if (initialKibiMcpDebug === undefined) {
-    delete process.env.KIBI_MCP_DEBUG;
+    process.env.KIBI_MCP_DEBUG = undefined;
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }
