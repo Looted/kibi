@@ -10,7 +10,6 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
-  readFileSync,
   readdirSync,
   statSync,
   writeFileSync,
@@ -48,7 +47,8 @@ function log(message: string): void {
  */
 export function resolveOpencodeTarball(
   repoRoot: string = REPO_ROOT,
-WW|): TarballResult { // implements REQ-opencode-kibi-plugin-v1
+): TarballResult {
+  // implements REQ-opencode-kibi-plugin-v1
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
   if (tarballEnv) {
@@ -95,9 +95,9 @@ WW|): TarballResult { // implements REQ-opencode-kibi-plugin-v1
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
-      `npm pack failed in ${opencodeDir}: ${err.message}` +
-        (err.stderr ? `\nstderr: ${err.stderr.toString()}` : "") +
-        (err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""),
+      `npm pack failed in ${opencodeDir}: ${err.message}${
+        err.stderr ? `\nstderr: ${err.stderr.toString()}` : ""
+      }${err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""}`,
     );
   }
 
@@ -120,7 +120,8 @@ WW|): TarballResult { // implements REQ-opencode-kibi-plugin-v1
  *
  * Creates a temporary directory with a minimal package.json.
  */
-export function createIsolatedInstall(prefix?: string): IsolatedInstall { // implements REQ-opencode-kibi-plugin-v1
+export function createIsolatedInstall(prefix?: string): IsolatedInstall {
+  // implements REQ-opencode-kibi-plugin-v1
   const tmpDir = mkdtempSync(
     join(prefix || tmpdir(), "kibi-opencode-packed-e2e-"),
   );
@@ -151,7 +152,8 @@ export function createIsolatedInstall(prefix?: string): IsolatedInstall { // imp
 export function installOpencodeTarball(
   installDir: string,
   tarballPath: string,
-): void { // implements REQ-opencode-kibi-plugin-v1
+): void {
+  // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
   try {
     execFileSync(
@@ -165,9 +167,9 @@ export function installOpencodeTarball(
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
-      `npm install failed for ${tarballPath} in ${installDir}: ${err.message}` +
-        (err.stderr ? `\nstderr: ${err.stderr.toString()}` : "") +
-        (err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""),
+      `npm install failed for ${tarballPath} in ${installDir}: ${err.message}${
+        err.stderr ? `\nstderr: ${err.stderr.toString()}` : ""
+      }${err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""}`,
     );
   }
   log("  ✓ Installed");

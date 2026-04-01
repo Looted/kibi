@@ -199,7 +199,7 @@ Disable specific features while keeping others:
 }
 ```
 
-MX|## Dogfooding
+## Dogfooding
 
 This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
 
