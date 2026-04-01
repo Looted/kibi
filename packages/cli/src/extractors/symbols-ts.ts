@@ -63,13 +63,6 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
   // implements REQ-vscode-traceability
-  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error(
-      "[KIBI-DIAG] symbols-ts.ts: enrichSymbolCoordinatesWithTsMorph called",
-    );
-    console.error("[KIBI-DIAG] symbols-ts.ts: entries count:", entries.length);
-    console.error("[KIBI-DIAG] symbols-ts.ts: workspaceRoot:", workspaceRoot);
-  }
   const project = new Project({
     skipAddingFilesFromTsConfig: true,
   });
@@ -80,49 +73,18 @@ export async function enrichSymbolCoordinatesWithTsMorph(
     try {
       const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
       if (!resolved) {
-        if (
-          process.env.CI === "true" ||
-          process.env.GITHUB_ACTIONS === "true"
-        ) {
-          console.error(
-            "[KIBI-DIAG] symbols-ts.ts: branch: no-resolved-path for entry:",
-            entry.id,
-            "title:",
-            entry.title,
-          );
-        }
         enriched.push(entry);
         continue;
       }
 
       const sourceFile = getOrAddSourceFile(project, sourceFileCache, resolved);
       if (!sourceFile) {
-        if (
-          process.env.CI === "true" ||
-          process.env.GITHUB_ACTIONS === "true"
-        ) {
-          console.error(
-            "[KIBI-DIAG] symbols-ts.ts: branch: no-sourceFile for entry:",
-            entry.id,
-            "title:",
-            entry.title,
-          );
-        }
         enriched.push(entry);
         continue;
       }
 
       const match = findNamedDeclaration(sourceFile, entry.title);
       if (!match) {
-        if (
-          process.env.CI === "true" ||
-          process.env.GITHUB_ACTIONS === "true"
-        ) {
-          console.error(
-            "[KIBI-DIAG] symbols-ts.ts: branch: not-found for title:",
-            entry.title,
-          );
-        }
         enriched.push(entry);
         continue;
       }
@@ -133,14 +95,6 @@ export async function enrichSymbolCoordinatesWithTsMorph(
       const startLc = sourceFile.getLineAndColumnAtPos(nameStart);
       const endLc = sourceFile.getLineAndColumnAtPos(end);
 
-      if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-        console.error(
-          "[KIBI-DIAG] symbols-ts.ts: branch: exported-match for title:",
-          entry.title,
-          "sourceLine:",
-          startLc.line,
-        );
-      }
       const coordinates: SymbolCoordinates = {
         sourceLine: startLc.line,
         sourceColumn: Math.max(0, startLc.column - 1),

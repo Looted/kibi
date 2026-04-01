@@ -178,12 +178,6 @@ describe("resolveManifestPath - additional coverage", () => {
 });
 
 describe("refreshCoordinatesForSymbolId", () => {
-  if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error("[KIBI-DIAG] symbols.test.ts: refreshCoordinatesForSymbolId describe block starting");
-    console.error("[KIBI-DIAG] symbols.test.ts: refreshCoordinatesForSymbolId appears mocked:", "mock" in refreshCoordinatesForSymbolId);
-    console.error("[KIBI-DIAG] symbols.test.ts: REFRESH_TEST_ROOT:", REFRESH_TEST_ROOT);
-    console.error("[KIBI-DIAG] symbols.test.ts: REFRESH_MANIFEST_PATH:", REFRESH_MANIFEST_PATH);
-  }
   beforeEach(() => {
     emptyDirSync(REFRESH_TEST_ROOT);
   });
@@ -408,4 +402,3 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     expect(updated).toContain("coordinatesGeneratedAt:");
   });
 });
-
