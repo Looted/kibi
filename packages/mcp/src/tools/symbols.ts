@@ -80,6 +80,7 @@ const SOURCE_EXTENSIONS = new Set([
 export async function handleKbSymbolsRefresh(
   args: SymbolsRefreshArgs,
 ): Promise<SymbolsRefreshResult> {
+  // implements REQ-vscode-traceability
   const dryRun = args.dryRun === true;
   const workspaceRoot = resolveWorkspaceRoot();
   const manifestPath = resolveManifestPath(workspaceRoot);
@@ -172,6 +173,7 @@ export async function refreshCoordinatesForSymbolId(
   symbolId: string,
   workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
+  // implements REQ-vscode-traceability
   const manifestPath = resolveManifestPath(workspaceRoot);
   const rawContent = readFileSync(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);

@@ -1,0 +1,105 @@
+import { describe, expect, test } from "bun:test";
+import { RelationshipCache } from "../src/relationshipCache";
+
+describe("RelationshipCache", () => {
+  test("get() returns undefined for missing key", () => {
+    const cache = new RelationshipCache();
+    expect(cache.get("nonexistent")).toBeUndefined();
+  });
+
+  test("set() stores and get() retrieves a value", () => {
+    const cache = new RelationshipCache();
+    const entry = {
+      data: [{ type: "implements", from: "SYM-001", to: "REQ-001" }],
+      timestamp: Date.now(),
+    };
+    cache.set("SYM-001", entry);
+    expect(cache.get("SYM-001")).toEqual(entry);
+  });
+
+  test("set() overwrites existing key", () => {
+    const cache = new RelationshipCache();
+    const first = {
+      data: [{ type: "implements", from: "SYM-001", to: "REQ-001" }],
+      timestamp: 1000,
+    };
+    const second = {
+      data: [{ type: "relates_to", from: "SYM-001", to: "REQ-002" }],
+      timestamp: 2000,
+    };
+    cache.set("SYM-001", first);
+    cache.set("SYM-001", second);
+    expect(cache.get("SYM-001")).toEqual(second);
+  });
+
+  test("clear() removes all cache and inflight entries", () => {
+    const cache = new RelationshipCache();
+    cache.set("key1", { data: [], timestamp: 1 });
+    cache.set("key2", { data: [], timestamp: 2 });
+    cache.setInflight("key1", Promise.resolve([]));
+
+    cache.clear();
+
+    expect(cache.get("key1")).toBeUndefined();
+    expect(cache.get("key2")).toBeUndefined();
+    expect(cache.getInflight("key1")).toBeUndefined();
+  });
+
+  test("multiple set/get cycles work independently", () => {
+    const cache = new RelationshipCache();
+    const entryA = {
+      data: [{ type: "implements", from: "SYM-A", to: "REQ-A" }],
+      timestamp: 100,
+    };
+    const entryB = {
+      data: [{ type: "implements", from: "SYM-B", to: "REQ-B" }],
+      timestamp: 200,
+    };
+
+    cache.set("A", entryA);
+    cache.set("B", entryB);
+
+    expect(cache.get("A")).toEqual(entryA);
+    expect(cache.get("B")).toEqual(entryB);
+  });
+
+  test("getInflight() returns undefined when no inflight request", () => {
+    const cache = new RelationshipCache();
+    expect(cache.getInflight("missing")).toBeUndefined();
+  });
+
+  test("setInflight() stores and getInflight() retrieves a promise", async () => {
+    const cache = new RelationshipCache();
+    const promise = Promise.resolve([
+      { type: "implements", from: "SYM-001", to: "REQ-001" },
+    ]);
+    cache.setInflight("SYM-001", promise);
+
+    const retrieved = cache.getInflight("SYM-001");
+    expect(retrieved).toBeDefined();
+    const result = await retrieved!;
+    expect(result).toEqual([
+      { type: "implements", from: "SYM-001", to: "REQ-001" },
+    ]);
+  });
+
+  test("deleteInflight() removes an inflight entry", () => {
+    const cache = new RelationshipCache();
+    cache.setInflight("key", Promise.resolve([]));
+    expect(cache.getInflight("key")).toBeDefined();
+
+    cache.deleteInflight("key");
+
+    expect(cache.getInflight("key")).toBeUndefined();
+  });
+
+  test("deleteInflight() on nonexistent key does not throw", () => {
+    const cache = new RelationshipCache();
+    expect(() => cache.deleteInflight("nope")).not.toThrow();
+  });
+
+  test("getTTL() returns 30000", () => {
+    const cache = new RelationshipCache();
+    expect(cache.getTTL()).toBe(30000);
+  });
+});

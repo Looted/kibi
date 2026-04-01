@@ -62,13 +62,13 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
+  // implements REQ-vscode-traceability
   const project = new Project({
     skipAddingFilesFromTsConfig: true,
   });
   const sourceFileCache = new Map<string, SourceFile>();
 
   const enriched: ManifestSymbolEntry[] = [];
-
   for (const entry of entries) {
     try {
       const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
