@@ -26,6 +26,8 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
+let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
+
 export interface UpsertArgs {
   /** Entity type (req, scenario, test, adr, flag, event, symbol, fact) */
   type: string;
@@ -213,7 +215,7 @@ export async function handleKbUpsert(
 
     if (type === "symbol") {
       try {
-        await refreshCoordinatesForSymbolId(id);
+        await refreshCoordinatesForSymbolIdImpl(id);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         if (process.env.KIBI_MCP_DEBUG) {
@@ -242,6 +244,15 @@ export async function handleKbUpsert(
     throw new Error(`Upsert execution failed: ${message}`);
   }
 }
+
+export const __test__ = {
+  // implements REQ-vscode-traceability
+  setRefreshCoordinatesForSymbolIdForTests(
+    fn: typeof refreshCoordinatesForSymbolId | undefined,
+  ) {
+    refreshCoordinatesForSymbolIdImpl = fn ?? refreshCoordinatesForSymbolId;
+  },
+};
 
 /**
  * Build Prolog property list from entity object
@@ -277,6 +288,7 @@ function buildPropertyList(entity: Record<string, unknown>): string {
 
   for (const [key, value] of Object.entries(entity)) {
     if (key === "type") continue;
+    if (value === undefined || value === null) continue;
 
     let prologValue: string;
 

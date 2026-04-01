@@ -185,3 +185,11 @@ export function formatViolations(violations: Violation[]): string {
   }
   return lines.join("\n");
 }
+
+// Test helpers for edge-case coverage
+export const __test__ = {
+  unquoteAtom,
+  splitTopLevelComma,
+  splitTopLevelLists,
+  parsePrologListOfLists,
+};

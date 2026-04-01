@@ -34,16 +34,38 @@ interface EntityCacheEntry {
   timestamp: number;
 }
 
+// implements REQ-vscode-traceability
+interface HoverProviderDeps {
+  execCli(command: string, options?: any): string;
+  buildMarkdown(
+    symbol: { id: string; title: string; file: string; line: number },
+    entities: EntityDetails[],
+  ): string;
+}
+
+const defaultDeps: HoverProviderDeps = {
+  execCli: (cmd, opts) => execSync(cmd, opts as any) as unknown as string,
+  buildMarkdown: (sym, ents) => buildHoverMarkdown(sym, ents),
+};
+
+// implements REQ-vscode-traceability
 export class KibiHoverProvider implements vscode.HoverProvider {
   private entityDetailsCache = new Map<string, EntityCacheEntry>();
   private entityInflight = new Map<string, Promise<EntityDetails | null>>();
   private readonly CACHE_TTL = 30_000; // 30 seconds
+  private readonly deps: HoverProviderDeps;
 
   constructor(
     private workspaceRoot: string,
     private symbolIndex: SymbolIndex | null,
     private sharedCache: RelationshipCache,
-  ) {}
+    deps?: Partial<HoverProviderDeps>,
+  ) {
+    this.deps = {
+      ...defaultDeps,
+      ...(deps || {}),
+    };
+  }
 
   async provideHover(
     document: vscode.TextDocument,
@@ -81,8 +103,8 @@ export class KibiHoverProvider implements vscode.HoverProvider {
     const entities = await this.fetchEntityDetails(relationships, token);
     if (token.isCancellationRequested) return null;
 
-    // Build hover markdown using helper function
-    const markdown = buildHoverMarkdown(
+    // Build hover markdown using injected dependency
+    const markdown = this.deps.buildMarkdown(
       {
         id: symbolAtPosition.id,
         title: symbolAtPosition.title,
@@ -135,7 +157,7 @@ export class KibiHoverProvider implements vscode.HoverProvider {
     symbolId: string,
   ): Promise<Array<{ type: string; from: string; to: string }>> {
     try {
-      const output = execSync(
+      const output = this.deps.execCli(
         `bun run packages/cli/bin/kibi query --relationships ${symbolId} --format json`,
         {
           cwd: this.workspaceRoot,
@@ -231,7 +253,7 @@ export class KibiHoverProvider implements vscode.HoverProvider {
       const entityType = typeMap[typePrefix];
       if (!entityType) return null;
 
-      const output = execSync(
+      const output = this.deps.execCli(
         `bun run packages/cli/bin/kibi query ${entityType} --id ${entityId} --format json`,
         {
           cwd: this.workspaceRoot,

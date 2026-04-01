@@ -1,5 +1,13 @@
 # kibi-mcp
 
+## 0.5.1
+
+### Patch Changes
+
+- c0d09e0: Add comprehensive `kb_upsert` unit coverage for validation, encoding, transaction failure handling, and symbol coordinate refresh paths.
+- Updated dependencies [7309d18]
+  - kibi-cli@0.4.2
+
 ## 0.5.0
 
 ### Minor Changes

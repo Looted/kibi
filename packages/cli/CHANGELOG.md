@@ -1,5 +1,11 @@
 # kibi-cli
 
+## 0.4.2
+
+### Patch Changes
+
+- 7309d18: Export `__test__` helpers from `traceability/validate.ts` to enable unit testing of internal Prolog parsing utilities.
+
 ## 0.4.1
 
 ### Patch Changes

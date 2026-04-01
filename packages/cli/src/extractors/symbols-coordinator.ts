@@ -40,6 +40,7 @@ export async function enrichSymbolCoordinates(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
 ): Promise<ManifestSymbolEntry[]> {
+  // implements REQ-vscode-traceability
   const output = entries.map((entry) => ({ ...entry }));
 
   const tsIndices: number[] = [];

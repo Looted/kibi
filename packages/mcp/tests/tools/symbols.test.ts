@@ -402,4 +402,3 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     expect(updated).toContain("coordinatesGeneratedAt:");
   });
 });
-
