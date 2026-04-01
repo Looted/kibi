@@ -199,9 +199,25 @@ Disable specific features while keeping others:
 }
 ```
 
-## Dogfooding
+MX|## Dogfooding
 
 This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
+
+## Troubleshooting
+
+If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
+
+## Architecture
+
+This is a thin bridge layer per ADR-016:
+
+XY|This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
+
+## Troubleshooting
+
+If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
+
+## Architecture
 
 ## Architecture
 

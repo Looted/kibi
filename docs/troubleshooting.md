@@ -181,8 +181,71 @@ This checks:
 - `.kb/` directory existence
 - `config.json` validity
 - Git repository presence
-- Git hooks installation
+XK|- Git hooks installation
 
+## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
+HM|
+
+## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
+
+### Symptom
+
+When launching OpenCode in a workspace that already has `.kb/config.json` pointing at relocated `kibi-docs/*` paths, you see a red error message saying "workspace needs Kibi bootstrap" before the TUI appears.
+
+### Root Cause
+
+Your workspace is healthy—it has:
+- `.kb/config.json` with `kibi-docs/*` paths
+- Populated `kibi-docs/` directories
+- Non-empty `.kb/` directory
+
+The false positive occurs when the **cached `kibi-opencode` plugin** still uses old hardcoded `documentation/*` checks instead of reading your `.kb/config.json`. This happens when:
+1. The published `kibi-opencode` npm package was built before the config-aware fix
+2. OpenCode's plugin cache hasn't been refreshed with the fixed version
+
+### Inspection Commands
+
+Check the cache plugin version:
+```bash
+cat ~/.cache/opencode/node_modules/kibi-opencode/package.json
+```
+
+Check if the cached plugin has the config-aware code:
+```bash
+grep -l "getKbExistenceTargets" ~/.cache/opencode/node_modules/kibi-opencode/dist/workspace-health.js
+```
+If this returns nothing, the cache is stale.
+
+### Recovery
+
+Clear only the `kibi-opencode` plugin cache (not the entire cache):
+```bash
+rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"
+```
+
+Then restart OpenCode. The plugin will reinstall from npm. If the published version is still old, you'll need to wait for a patch release or pin a specific version.
+
+### Verification
+
+After clearing the cache and restarting OpenCode, run from your workspace:
+```bash
+timeout 20s opencode >/tmp/opencode-start.stdout 2>/tmp/opencode-start.stderr
+grep -i "bootstrap" /tmp/opencode-start.stderr
+```
+If the grep returns nothing, the issue is resolved.
+
+### If the Problem Persists
+
+If the false warning returns after clearing the cache, the published npm package may still contain the bug. Check for a newer version:
+```bash
+npm view kibi-opencode versions
+```
+
+If you're on an old version, upgrade when a patch is available. Do not repeatedly clear the cache on the same broken version.
+
+---
+
+## Recovery Steps Summary
 For installation issues, see [install guide](install.md).
 
 ## Recovery Steps Summary
