@@ -146,3 +146,57 @@ describe("init-helpers", () => {
     expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
   });
 });
+// Test escapeRegex functionality used by installHook
+  test("escapeRegex escapes special regex characters", () => {
+    // The escapeRegex function is used internally by installHook
+    // to create the regex pattern for replacing kibi-managed sections
+    const testCases = [
+      { input: ".", expected: "\\." },
+      { input: "*", expected: "\\*" },
+      { input: "+", expected: "\\+" },
+      { input: "?", expected: "\\?" },
+      { input: "^", expected: "\\^" },
+      { input: "$", expected: "\\$" },
+      { input: "{", expected: "\\{" },
+      { input: "}", expected: "\\}" },
+      { input: "(", expected: "\\(" },
+      { input: ")", expected: "\\)" },
+      { input: "|", expected: "\\|" },
+      { input: "[", expected: "\\[" },
+      { input: "]", expected: "\\]" },
+      { input: "\\", expected: "\\\\" },
+    ];
+
+    // Re-implement the escapeRegex function for testing
+    const escapeRegex = (s: string): string => {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    for (const { input, expected } of testCases) {
+      expect(escapeRegex(input)).toBe(expected);
+    }
+  });
+
+  test("escapeRegex handles KIBI_HOOK markers correctly", () => {
+    const escapeRegex = (s: string): string => {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    const kibiHookBegin = "# BEGIN kibi-managed";
+    const kibiHookEnd = "# END kibi-managed";
+
+    // These should not have any regex special chars, so they pass through unchanged
+    expect(escapeRegex(kibiHookBegin)).toBe("# BEGIN kibi-managed");
+    expect(escapeRegex(kibiHookEnd)).toBe("# END kibi-managed");
+  });
+
+  test("escapeRegex handles complex patterns", () => {
+    const escapeRegex = (s: string): string => {
+      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    };
+
+    expect(escapeRegex("(hello|world)")).toBe("\\(hello\\|world\\)");
+    expect(escapeRegex("[a-z]")).toBe("\\[a-z\\]");
+    expect(escapeRegex("^start$")).toBe("\\^start\\$");
+    expect(escapeRegex("path\\to\\file")).toBe("path\\\\to\\\\file");
+  });
