@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { handleKbUpsert } from "../../src/tools/upsert.js";
+import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
 
 type QueryResult = {
   success: boolean;
@@ -31,8 +31,11 @@ function createMockProlog(
 
 afterEach(() => {
   mock.restore();
+  __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
   if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.error("[KIBI-DIAG] upsert.test.ts: afterEach completed, mock.restore() called");
+    console.error(
+      "[KIBI-DIAG] upsert.test.ts: afterEach completed, mock.restore() called",
+    );
   }
   if (initialKibiMcpDebug === undefined) {
     delete process.env.KIBI_MCP_DEBUG;
@@ -739,12 +742,9 @@ describe("handleKbUpsert", () => {
       refreshed: true,
       found: true,
     }));
-    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-      console.error("[KIBI-DIAG] upsert.test.ts: installing mock.module for symbols.js");
-    }
-    mock.module("../../src/tools/symbols.js", () => ({
+    __test__.setRefreshCoordinatesForSymbolIdForTests(
       refreshCoordinatesForSymbolId,
-    }));
+    );
     process.env.KIBI_MCP_DEBUG = "1";
     const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
@@ -788,12 +788,9 @@ describe("handleKbUpsert", () => {
     const refreshCoordinatesForSymbolId = mock(async () => {
       throw "refresh blew up";
     });
-    if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-      console.error("[KIBI-DIAG] upsert.test.ts: installing mock.module for symbols.js");
-    }
-    mock.module("../../src/tools/symbols.js", () => ({
+    __test__.setRefreshCoordinatesForSymbolIdForTests(
       refreshCoordinatesForSymbolId,
-    }));
+    );
     process.env.KIBI_MCP_DEBUG = "1";
     const warnSpy = spyOn(console, "warn").mockImplementation(() => {});
 
