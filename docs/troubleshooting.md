@@ -181,11 +181,9 @@ This checks:
 - `.kb/` directory existence
 - `config.json` validity
 - Git repository presence
-XK|- Git hooks installation
+- Git hooks installation
 
 ## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
-HM|
-
 ## OpenCode shows "workspace needs Kibi bootstrap" before the TUI
 
 ### Symptom
