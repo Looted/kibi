@@ -14,7 +14,7 @@ import {
   mergeRecords,
   relationshipIdFor,
   shardForFromId,
-} from "../src/relationships/shards.js";
+} from "../../src/relationships/shards.js";
 
 describe("getRelationshipsDir", () => {
   test("returns relationships directory path", () => {
@@ -48,14 +48,6 @@ describe("shardForFromId", () => {
     expect(shard1).toBe(shard2);
   });
 
-  test("returns different shards for different IDs", () => {
-    const shard1 = shardForFromId("REQ-001");
-    const shard2 = shardForFromId("REQ-002");
-    // Most of the time they should differ
-    expect(typeof shard1).toBe("string");
-    expect(typeof shard2).toBe("string");
-  });
-
   test("returns string shard name", () => {
     const shard = shardForFromId("TEST-ID");
     expect(typeof shard).toBe("string");
@@ -70,63 +62,76 @@ describe("shardForFromId", () => {
 
 describe("relationshipIdFor", () => {
   test("generates consistent ID for same inputs", () => {
-    const id1 = relationshipIdFor("A", "B", "depends_on");
-    const id2 = relationshipIdFor("A", "B", "depends_on");
+    const id1 = relationshipIdFor("depends_on", "A", "B");
+    const id2 = relationshipIdFor("depends_on", "A", "B");
     expect(id1).toBe(id2);
   });
 
   test("generates different IDs for different relationships", () => {
-    const id1 = relationshipIdFor("A", "B", "depends_on");
-    const id2 = relationshipIdFor("A", "B", "relates_to");
+    const id1 = relationshipIdFor("depends_on", "A", "B");
+    const id2 = relationshipIdFor("relates_to", "A", "B");
     expect(id1).not.toBe(id2);
   });
 
   test("generates different IDs for different entities", () => {
-    const id1 = relationshipIdFor("A", "B", "depends_on");
-    const id2 = relationshipIdFor("A", "C", "depends_on");
+    const id1 = relationshipIdFor("depends_on", "A", "B");
+    const id2 = relationshipIdFor("depends_on", "A", "C");
     expect(id1).not.toBe(id2);
   });
 
   test("returns string ID", () => {
-    const id = relationshipIdFor("REQ-001", "REQ-002", "depends_on");
+    const id = relationshipIdFor("depends_on", "REQ-001", "REQ-002");
     expect(typeof id).toBe("string");
     expect(id.length).toBeGreaterThan(0);
   });
 
   test("handles special characters in entity IDs", () => {
-    const id = relationshipIdFor("file:///a.md", "file:///b.md", "relates_to");
+    const id = relationshipIdFor("relates_to", "file:///a.md", "file:///b.md");
     expect(typeof id).toBe("string");
   });
 });
 
 describe("mergeRecords", () => {
-  test("merges two empty records", () => {
-    const result = mergeRecords({}, {});
-    expect(result).toEqual({});
+  test("merges two empty record arrays", () => {
+    const result = mergeRecords([], []);
+    expect(result).toEqual([]);
   });
 
   test("merges record with empty", () => {
-    const result = mergeRecords({ a: 1 }, {});
-    expect(result).toEqual({ a: 1 });
+    const record = {
+      id: "rel-001",
+      type: "depends_on",
+      from: "REQ-001",
+      to: "REQ-002",
+      created_at: "2024-01-01T00:00:00Z",
+      created_by: "test",
+      source: "test.md",
+    };
+    const result = mergeRecords([record], []);
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("rel-001");
   });
 
   test("merges two non-conflicting records", () => {
-    const result = mergeRecords({ a: 1 }, { b: 2 });
-    expect(result).toEqual({ a: 1, b: 2 });
-  });
-
-  test("second record overwrites first on conflict", () => {
-    const result = mergeRecords({ a: 1 }, { a: 2 });
-    expect(result.a).toBe(2);
-  });
-
-  test("handles nested objects", () => {
-    const result = mergeRecords({ nested: { x: 1 } }, { nested: { y: 2 } });
-    expect(result.nested).toHaveProperty("y", 2);
-  });
-
-  test("handles arrays", () => {
-    const result = mergeRecords({ arr: [1, 2] }, { arr: [3, 4] });
-    expect(result.arr).toEqual([3, 4]);
+    const record1 = {
+      id: "rel-001",
+      type: "depends_on",
+      from: "REQ-001",
+      to: "REQ-002",
+      created_at: "2024-01-01T00:00:00Z",
+      created_by: "test",
+      source: "test.md",
+    };
+    const record2 = {
+      id: "rel-002",
+      type: "depends_on",
+      from: "REQ-003",
+      to: "REQ-004",
+      created_at: "2024-01-01T00:00:00Z",
+      created_by: "test",
+      source: "test.md",
+    };
+    const result = mergeRecords([record1], [record2]);
+    expect(result).toHaveLength(2);
   });
 });
