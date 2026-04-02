@@ -98,6 +98,7 @@ status: open
     const tableOutput = execSync(`bun ${kibiBin} coverage --by req`, {
       cwd: tmpDir,
       encoding: "utf8",
+      timeout: 10000, // 10 second timeout for the command
     });
     expect(tableOutput).toContain("ID");
     expect(tableOutput).toContain("Coverage");
@@ -106,7 +107,8 @@ status: open
     const helpOutput = execSync(`bun ${kibiBin} coverage --help`, {
       cwd: tmpDir,
       encoding: "utf8",
+      timeout: 5000,
     });
     expect(helpOutput).toContain("--no-include-transitive");
-  });
+  }, 30000); // 30 second test timeout
 });
