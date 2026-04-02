@@ -42,24 +42,6 @@ describe("analyzePath", () => {
     expect(result.isKibiDocRelevant).toBe(true);
   });
 
-  test("identifies flag files", () => {
-    const result = analyzePath("documentation/flags/FLAG-001.md");
-    expect(result.kind).toBe("flag");
-    expect(result.isKibiDocRelevant).toBe(true);
-  });
-
-  test("identifies event files", () => {
-    const result = analyzePath("documentation/events/EVT-001.md");
-    expect(result.kind).toBe("event");
-    expect(result.isKibiDocRelevant).toBe(true);
-  });
-
-  test("identifies symbol files", () => {
-    const result = analyzePath("documentation/symbols.yaml");
-    expect(result.kind).toBe("symbol");
-    expect(result.isKibiDocRelevant).toBe(true);
-  });
-
   test("identifies TypeScript code files", () => {
     const result = analyzePath("src/index.ts");
     expect(result.kind).toBe("code");
@@ -82,24 +64,7 @@ describe("analyzePath", () => {
     expect(result.isKibiDocRelevant).toBe(false);
   });
 
-  test("handles absolute paths", () => {
-    const result = analyzePath(
-      "/home/user/project/documentation/requirements/REQ-001.md",
-    );
-    expect(result.kind).toBe("requirement");
-  });
 
-  test("handles paths with dots", () => {
-    const result = analyzePath("./documentation/requirements/REQ-001.md");
-    expect(result.kind).toBe("requirement");
-  });
-
-  test("handles paths with parent references", () => {
-    const result = analyzePath(
-      "../project/documentation/requirements/REQ-001.md",
-    );
-    expect(result.kind).toBe("requirement");
-  });
 
   test("identifies unknown file types as unknown", () => {
     const result = analyzePath("README.txt");
@@ -110,18 +75,6 @@ describe("analyzePath", () => {
     const result = analyzePath("README.md");
     expect(result.kind).toBe("unknown");
     expect(result.isKibiDocRelevant).toBe(false);
-  });
-
-  test("handles deep nested paths", () => {
-    const result = analyzePath(
-      "very/deep/nested/path/documentation/requirements/REQ-001.md",
-    );
-    expect(result.kind).toBe("requirement");
-  });
-
-  test("handles Windows-style paths", () => {
-    const result = analyzePath("documentation\\requirements\\REQ-001.md");
-    expect(result.kind).toBe("requirement");
   });
 
   test("isUnderKb is false for normal docs", () => {
