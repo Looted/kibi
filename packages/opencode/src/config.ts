@@ -36,6 +36,15 @@ export interface KibiConfig {
       enabled: boolean;
       logIntervalMs: number;
     };
+    smartEnforcement: {
+      enabled: boolean;
+      mode: "advisory" | "strict";
+      preflightTtlMs: number;
+      idleResetMs: number;
+      degradedMode: "warn-once" | "structured-only";
+      requireRootKbForStrict: boolean;
+      completionReminder: boolean;
+    };
   };
   logLevel: string;
 }
@@ -59,6 +68,15 @@ const DEFAULTS: KibiConfig = {
     sessionSummary: {
       enabled: true,
       logIntervalMs: 30 * 60 * 1000, // 30 minutes
+    },
+    smartEnforcement: {
+      enabled: true,
+      mode: "advisory",
+      preflightTtlMs: 600000, // 10 minutes
+      idleResetMs: 1800000, // 30 minutes
+      degradedMode: "warn-once",
+      requireRootKbForStrict: true,
+      completionReminder: true,
     },
   },
   logLevel: "info",
@@ -161,6 +179,29 @@ function validateAndMerge(obj: unknown): KibiConfig {
         out.guidance.sessionSummary.enabled = ss.enabled;
       if (typeof ss.logIntervalMs === "number")
         out.guidance.sessionSummary.logIntervalMs = ss.logIntervalMs;
+    }
+
+    if (g.smartEnforcement && typeof g.smartEnforcement === "object") {
+      const se = g.smartEnforcement as Record<string, unknown>;
+      out.guidance.smartEnforcement = {
+        ...DEFAULTS.guidance.smartEnforcement,
+      };
+      if (typeof se.enabled === "boolean")
+        out.guidance.smartEnforcement.enabled = se.enabled;
+      if (se.mode === "advisory" || se.mode === "strict")
+        out.guidance.smartEnforcement.mode = se.mode;
+      if (typeof se.preflightTtlMs === "number")
+        out.guidance.smartEnforcement.preflightTtlMs = se.preflightTtlMs;
+      if (typeof se.idleResetMs === "number")
+        out.guidance.smartEnforcement.idleResetMs = se.idleResetMs;
+      if (se.degradedMode === "warn-once" || se.degradedMode === "structured-only")
+        out.guidance.smartEnforcement.degradedMode = se.degradedMode;
+      if (typeof se.requireRootKbForStrict === "boolean")
+        out.guidance.smartEnforcement.requireRootKbForStrict =
+          se.requireRootKbForStrict;
+      if (typeof se.completionReminder === "boolean")
+        out.guidance.smartEnforcement.completionReminder =
+          se.completionReminder;
     }
   }
 
