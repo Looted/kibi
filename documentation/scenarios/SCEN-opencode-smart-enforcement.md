@@ -26,7 +26,7 @@ The OpenCode Kibi Plugin must adjust its guidance based on the repository's Kibi
 **Then** it must correctly classify the posture as:
 - `root_active` if `.kb/config.json` is at the repo root.
 - `root_partial` if root `.kb/config.json` exists but configured KB targets are missing.
-- `root_uninitialized` if no root `.kb/config.json` exists but the root declares Kibi intent.
+- `root_uninitialized` if no root `.kb/config.json` exists but the root declares Kibi intent; agents should use `/init-kibi` for retroactive bootstrap.
 - `vendored_only` if only vendored Kibi markers are present under nested/vendor paths.
 - `hybrid_root_plus_vendored` if a root `.kb/config.json` coexists with vendored Kibi markers.
 - `maintenance_degraded` as an overlay when maintenance execution is unavailable or disabled.

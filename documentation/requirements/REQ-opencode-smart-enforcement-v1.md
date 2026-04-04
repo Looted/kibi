@@ -3,7 +3,7 @@ id: REQ-opencode-smart-enforcement-v1
 title: "OpenCode Smart Enforcement: Posture-Aware Guidance and Risk Classification"
 status: open
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-03T00:00:00Z
+updated_at: 2026-04-05T00:00:00Z
 source: documentation/requirements/REQ-opencode-smart-enforcement-v1.md
 priority: must
 owner: opencode-team
@@ -29,7 +29,7 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
 1. **Posture-Aware Enforcement**: The plugin must detect the current workspace posture and adjust guidance accordingly:
    - `root_active`: Kibi is initialized at the repo root; full enforcement enabled.
    - `root_partial`: Root `.kb/config.json` exists but configured KB targets are incomplete; advisory guidance only.
-   - `root_uninitialized`: No root `.kb/config.json`, but the root declares Kibi intent; bootstrap guidance only.
+   - `root_uninitialized`: No root `.kb/config.json`, but the root declares Kibi intent; initialization guidance only (e.g., `/init-kibi`).
    - `vendored_only`: Kibi is only present in vendored dependencies; limited advisory guidance.
    - `hybrid_root_plus_vendored`: Root `.kb/config.json` exists alongside vendored Kibi trees; the root remains authoritative.
    - `maintenance_degraded` overlay: maintenance execution is unavailable or disabled; guidance must degrade without pretending hooks/checks ran.
@@ -54,4 +54,15 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
    - Git worktree changes.
    - Changes to `.kb/config.json` or posture-relevant files.
 
+7. **Effective-Mode Decision Table**: The plugin must compute the effective enforcement mode from config, posture, and runtime overlay:
+   - `advisory` config → always `advisory`.
+   - `strict` config + `requireRootKbForStrict=true` → `strict` only for `root_active` and `hybrid_root_plus_vendored`; otherwise `advisory`.
+   - `strict` config + `requireRootKbForStrict=false` → `strict` for all postures.
+   - `maintenanceDegraded=true` (static or runtime) → overrides to `advisory` regardless of config.
+
+8. **Guidance Block Definition**: A single injected guidance block consists of the `<!-- kibi-opencode -->` sentinel plus at most one contextual block. The combined output must never exceed 5 bullet points or 120 words. Multiple candidate messages must be combined or priority-selected into this single block.
+
+9. **Prompt-Visible Completion Reminder**: When `guidance.smartEnforcement.completionReminder` is enabled and the current risk class is `behavior_candidate`, `traceability_candidate`, or `req_policy_candidate`, the plugin must append exactly one visible reminder (`Run \`kb_check\` before completing this task.`) to the guidance block per cache window. The reminder must be suppressed when `maintenanceDegraded` is active and must emit a matching structured `smart_enforcement_completion_reminder` log.
+
+10. **Runtime Maintenance Overlay**: The plugin must maintain a session-local runtime overlay that latches when sync is disabled, the scheduler cannot be created, or a sync/check run fails. The merged `maintenanceDegraded` state (static posture OR runtime overlay) must drive: (a) degraded-mode prompt text in `warn-once` mode, (b) skip of targeted validation checks, (c) suppression of the completion reminder, and (d) exposure in all structured smart-enforcement logs.
 6. **MCP-Only Surface Preservation**: All smart enforcement guidance must use MCP-only terminology, never suggesting CLI commands to the agent.

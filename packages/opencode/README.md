@@ -24,7 +24,10 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 
 - **Repo posture detection**: distinguishes `root_active`, `root_partial`, `root_uninitialized`, `vendored_only`, and `hybrid_root_plus_vendored`
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
-- **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges
+- **Effective mode gating**: `strict` is only possible for `root_active` and `hybrid_root_plus_vendored` when `requireRootKbForStrict` is enabled; `maintenanceDegraded` overrides everything back to `advisory`
+- **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
+- **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible `kb_check` reminder exactly once per cached context
+- **Runtime maintenance overlay**: static `maintenanceDegraded` from posture is merged with a latched runtime overlay (sync disabled/unavailable/failing) so degraded state is consistently reflected in prompts, logs, and mode decisions
 - **Advisory in editor, hard in hooks**: OpenCode guidance remains non-blocking; git hooks and KB validation checks stay the durable enforcement boundary
 - **Structured observability**: posture, risk, cache, degraded-mode, targeted-check, and guidance events flow through structured plugin logs
 
