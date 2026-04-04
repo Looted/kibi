@@ -36,6 +36,8 @@ const POST_CHECKOUT_HOOK = `#!/bin/sh
 # post-checkout hook for kibi
 # Parameters: old_ref new_ref branch_flag
 # branch_flag is 1 for branch checkout, 0 for file checkout
+# Refresh branch/worktree assumptions after checkout so advisory plugin state
+# starts from synced KB data instead of stale in-memory cache assumptions.
 
 old_ref=$1
 new_ref=$2
@@ -57,6 +59,7 @@ fi
 const POST_MERGE_HOOK = `#!/bin/sh
 # post-merge hook for kibi
 # Parameter: squash_flag (not used)
+# Refresh KB state after merge so branch-level assumptions remain current.
 
 kibi sync
 `;
@@ -75,7 +78,8 @@ fi
 
 const PRE_COMMIT_HOOK = `#!/bin/sh
 # pre-commit hook for kibi
-# Blocks commits if kibi check finds violations
+# Hard enforcement boundary: commits are blocked only here via kibi check.
+# The OpenCode plugin remains advisory and must not replace this gate.
 
 set -e
 kibi check --staged
