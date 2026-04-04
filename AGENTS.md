@@ -64,6 +64,13 @@ Available MCP tools:
 
 If the KB needs setup or repair beyond what `/init-kibi` provides, ask the user/operator to handle it outside the agent session.
 
+### OpenCode Smart-Enforcement Expectations
+
+- OpenCode guidance is **posture-aware** and **low-token**. In `vendored_only` or safe docs/test edits, you may see little or no Kibi guidance.
+- The absence of a prompt does **not** mean Kibi rules are disabled. Git hooks and `kb_check`-backed validation remain the hard enforcement layer.
+- Agent-visible guidance stays **MCP-only**: use `kb_search`, `kb_query`, `kb_upsert`, `kb_delete`, `kb_check`, `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
+- Treat prompt guidance as advisory workflow help; treat hooks/checks as the authoritative boundary.
+
 ---
 
 ## Rules for Agents

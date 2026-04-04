@@ -12,6 +12,9 @@ tags:
   - opencode
   - kibi-first
   - guidance
+links:
+  - type: relates_to
+    target: SCEN-opencode-smart-enforcement
 ---
 
 ## Scenario

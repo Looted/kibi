@@ -112,4 +112,11 @@ When working on this codebase:
 5. **Use `/init-kibi`** - For initial repository setup, use the `/init-kibi` slash command in OpenCode
 6. **Escalate setup issues** - If the KB needs setup or repair beyond `/init-kibi`, ask the user/operator to handle it
 
+### OpenCode Smart-Enforcement Notes
+
+- Prompt guidance is posture-aware and intentionally low-noise: safe docs/test edits may not trigger any Kibi-specific prompt block.
+- `vendored_only` repos should not be treated as operational Kibi roots just because they contain nested `kibi/` source trees.
+- OpenCode guidance is advisory; hook/check failures remain the real hard gate.
+- Keep agent-facing guidance MCP-only; do not direct agents toward CLI maintenance workflows.
+
 For detailed guidelines on entity types, relationships, and best practices, see [AGENTS.md](../AGENTS.md).
