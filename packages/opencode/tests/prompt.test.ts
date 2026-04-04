@@ -20,6 +20,15 @@ const baseConfig: KibiConfig = {
     commentDetection: { enabled: true, minLines: 6 },
     targetedChecks: { enabled: true },
     sessionSummary: { enabled: true, logIntervalMs: 1800000 },
+    smartEnforcement: {
+      enabled: true,
+      mode: "advisory",
+      preflightTtlMs: 600000,
+      idleResetMs: 1800000,
+      degradedMode: "warn-once",
+      requireRootKbForStrict: true,
+      completionReminder: true,
+    },
   },
   logLevel: "info",
 };
@@ -234,6 +243,7 @@ describe("prompt", () => {
       result.includes(SENTINEL),
       "Contextual guidance must include sentinel",
     );
+    // Single-block policy: only WARNING block, no general workflow
     assert.ok(result.includes("WARNING"), "Should include .kb edit warning");
   });
 
@@ -369,7 +379,7 @@ describe("prompt", () => {
     );
   });
 
-  test("contextual guidance with no specific edits includes general workflow", () => {
+  test("contextual guidance with no specific edits returns sentinel only", () => {
     const result = injectPrompt("hello", baseConfig, {
       recentEdits: [],
     });
@@ -377,20 +387,8 @@ describe("prompt", () => {
       result.includes(SENTINEL),
       "Contextual guidance must include sentinel",
     );
-    assert.ok(
-      result.includes("Kibi-first workflow"),
-      "Should include general workflow guidance",
-    );
-    assert.ok(result.includes("Discover"), "Should include Discover step");
-    assert.ok(
-      result.includes("Document intent"),
-      "Should include Document intent step",
-    );
-    assert.ok(
-      result.includes("Link during work"),
-      "Should include Link during work step",
-    );
-    assert.ok(result.includes("Validate"), "Should include Validate step");
+    // Single-block policy: no risk class = no guidance block, just sentinel
+    assert.ok(result.trim().endsWith(SENTINEL), "Result should end with sentinel");
   });
 
   test("injectPrompt skips when plugin disabled", () => {
@@ -417,20 +415,68 @@ describe("prompt", () => {
     assert.ok(p.includes("Public Kibi tools only"));
   });
 
-  test("buildPrompt with empty context returns general workflow guidance", () => {
+  test("buildPrompt with empty context returns sentinel only (single-block policy)", () => {
     const p = buildPrompt({ recentEdits: [] });
     assert.ok(p.includes(SENTINEL));
-    assert.ok(p.includes("Kibi-first workflow"));
-    assert.ok(p.includes("Discover"));
+    // Single-block policy: no risk class = no guidance block, just sentinel
+    assert.equal(p.trim(), SENTINEL);
   });
 
-  test("contextual guidance combines multiple conditions", () => {
+  test("vendored_only posture suppresses operational guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "vendored_only",
+      riskClass: "behavior_candidate",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("safe_docs_only risk injects no discovery guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "README.md", kind: "unknown" }],
+      posture: "root_active",
+      riskClass: "safe_docs_only",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("safe_test_only risk injects no discovery guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.test.ts", kind: "test" }],
+      posture: "root_active",
+      riskClass: "safe_test_only",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("smart-enforcement guidance respects the token budget", () => {
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("contextual guidance selects single highest-priority block", () => {
+    // Single-block policy: only the highest priority block is returned
+    // Priority: manual_kb_edit > posture > risk_class > safe/none
     const result = injectPrompt("hello", baseConfig, {
       recentEdits: [
         { path: "src/foo.ts", kind: "code" },
         { path: "documentation/scenarios/SCEN-001.md", kind: "scenario" },
       ],
-      hasRecentKbEdit: true,
+      hasRecentKbEdit: true, // Highest priority
       workspaceHealth: {
         needsBootstrap: true,
         missingConfig: true,
@@ -439,18 +485,12 @@ describe("prompt", () => {
       },
     });
     assert.ok(result.includes(SENTINEL), "Must include sentinel");
-    assert.ok(result.includes("WARNING"), "Should include .kb edit warning");
+    // Single-block: only manual_kb_edit warning should appear (highest priority)
+    assert.ok(result.includes("WARNING"), "Should include .kb edit warning (highest priority)");
+    // These should NOT appear because single-block only returns highest priority
     assert.ok(
-      result.includes("Bootstrap required"),
-      "Should include bootstrap guidance",
-    );
-    assert.ok(
-      result.includes("Code changes detected"),
-      "Should include code guidance",
-    );
-    assert.ok(
-      result.includes("Kibi documentation changes detected"),
-      "Should include KB doc guidance (no requirement edits)",
+      !result.includes("Bootstrap required"),
+      "Should NOT include bootstrap when .kb edit warning takes priority",
     );
   });
 
