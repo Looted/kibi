@@ -46,6 +46,18 @@ describe("path-kind analyzePath", () => {
     assert.equal(result.isKibiDocRelevant, true);
   });
 
+  it("classifies code-adjacent test patterns as test", () => {
+    for (const testPath of [
+      "src/foo.test.ts",
+      "src/bar.spec.tsx",
+      "tests/unit/auth.test.js",
+      "src/__tests__/login.py",
+    ]) {
+      const result = analyzePath(testPath, cwd);
+      assert.equal(result.kind, "test", `Expected ${testPath} to be test`);
+    }
+  });
+
   it("classifies ADR files", () => {
     const result = analyzePath("documentation/adr/ADR-001.md", cwd);
     assert.equal(result.kind, "adr");
@@ -60,13 +72,19 @@ describe("path-kind analyzePath", () => {
 
   it("classifies event files as fact", () => {
     const result = analyzePath("documentation/events/EVT-001.md", cwd);
-    assert.equal(result.kind, "fact");
+    assert.equal(result.kind, "event");
     assert.equal(result.isKibiDocRelevant, true);
   });
 
-  it("classifies flag files as fact", () => {
+  it("classifies flag files as flag", () => {
     const result = analyzePath("documentation/flags/FLAG-001.md", cwd);
-    assert.equal(result.kind, "fact");
+    assert.equal(result.kind, "flag");
+    assert.equal(result.isKibiDocRelevant, true);
+  });
+
+  it("classifies symbols manifest as symbol", () => {
+    const result = analyzePath("documentation/symbols.yaml", cwd);
+    assert.equal(result.kind, "symbol");
     assert.equal(result.isKibiDocRelevant, true);
   });
 

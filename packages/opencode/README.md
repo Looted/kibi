@@ -18,6 +18,16 @@ Or via OpenCode's plugin system in `opencode.json`:
 
 ## Features
 
+### Smart Enforcement
+
+The plugin now uses a posture-aware, low-token smart-enforcement model before emitting any guidance:
+
+- **Repo posture detection**: distinguishes `root_active`, `root_partial`, `root_uninitialized`, `vendored_only`, and `hybrid_root_plus_vendored`
+- **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
+- **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges
+- **Advisory in editor, hard in hooks**: OpenCode guidance remains non-blocking; git hooks and KB validation checks stay the durable enforcement boundary
+- **Structured observability**: posture, risk, cache, degraded-mode, targeted-check, and guidance events flow through structured plugin logs
+
 ### Dynamic Contextual Guidance
 
 The plugin provides context-aware prompt guidance based on recent edits and workspace state:
@@ -144,11 +154,20 @@ Config files (project overrides global):
 | `guidance.targetedChecks.enabled` | boolean | `true` | Enable post-sync targeted validation checks |
 | `guidance.sessionSummary.enabled` | boolean | `true` | Enable periodic session summary logs |
 | `guidance.sessionSummary.logIntervalMs` | number | `1800000` | Session summary interval (30 min) |
+| `guidance.smartEnforcement.enabled` | boolean | `true` | Enable posture-aware, risk-aware guidance routing |
+| `guidance.smartEnforcement.mode` | string | `"advisory"` | Smart-enforcement mode: `advisory` or `strict` |
+| `guidance.smartEnforcement.preflightTtlMs` | number | `600000` | Guidance/cache TTL for repeated prompt suppression |
+| `guidance.smartEnforcement.idleResetMs` | number | `1800000` | Idle window before smart-enforcement state resets |
+| `guidance.smartEnforcement.degradedMode` | string | `"warn-once"` | Degraded-mode logging policy: `warn-once` or `structured-only` |
+| `guidance.smartEnforcement.requireRootKbForStrict` | boolean | `true` | Only allow strict behavior for authoritative root KB postures |
+| `guidance.smartEnforcement.completionReminder` | boolean | `true` | Emit a single completion-time KB check reminder for risky edits |
 | `logLevel` | string | `"info"` | Log level: `debug`, `info`, `warn`, `error` |
 
 ### Hook Policy
 
 Per ADR-016, prompt text injection uses only `experimental.chat.system.transform`. The `chat.params` hook is reserved for model option enrichment (temperature, topP, etc.) and never carries prompt text.
+
+Smart enforcement keeps the plugin advisory-only: prompt injection can warn, explain, or remind, but it does not block the editor. Hard failures still belong to CLI hooks (`pre-commit`) and explicit check commands.
 
 ### Logging Policy
 
@@ -206,18 +225,6 @@ This repository's OpenCode setup dogfoods local built artifacts. `opencode.json`
 ## Troubleshooting
 
 If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
-
-## Architecture
-
-This is a thin bridge layer per ADR-016:
-
-XY|This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
-
-## Troubleshooting
-
-If you see a false "workspace needs Kibi bootstrap" warning even though your workspace is already initialized with `.kb/config.json` pointing at relocated `kibi-docs/*` paths, this indicates a stale plugin cache. See [the main troubleshooting docs](../../docs/troubleshooting.md#opencode-shows-workspace-needs-kibi-bootstrap-before-the-tui) for recovery steps.
-
-## Architecture
 
 ## Architecture
 

@@ -2,6 +2,7 @@ import fs from "node:fs";
 // implements REQ-opencode-kibi-plugin-v1
 import path from "node:path";
 import { getKbExistenceTargets } from "./file-filter.js";
+import { detectPosture } from "./repo-posture.js";
 
 export interface WorkspaceHealth {
   needsBootstrap: boolean;
@@ -9,7 +10,6 @@ export interface WorkspaceHealth {
   missingDocDirs: string[];
   hasKbEvidence: boolean;
 }
-
 
 const KB_CONFIG_FILE = ".kb/config.json";
 // Fallback defaults used when .kb/config.json does not exist
@@ -27,8 +27,13 @@ const KIBI_DOC_DIRS = [
 // implements REQ-opencode-kibi-plugin-v1
 /**
  * Analyze workspace health for Kibi bootstrap and initialization.
+ * Uses detectPosture() for root-scoped classification and delegates
+ * bootstrap-needs to the posture result.
  */
 export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
+  // Use posture detection for root-scoped classification
+  const posture = detectPosture(cwd);
+
   const configPath = path.join(cwd, KB_CONFIG_FILE);
   const missingConfig = !fs.existsSync(configPath);
 
@@ -75,8 +80,14 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // If missing config or more than 2 doc dirs are missing, suggest bootstrap
-  const needsBootstrap = missingConfig || missingDocDirs.length > 2;
+  // Delegate needsBootstrap to posture detection:
+  // - root_uninitialized → true
+  // - root_partial → true
+  // - vendored_only → false (nested tree handles its own KB)
+  // - root_active / hybrid_root_plus_vendored → false
+  // BUT also keep the doc-dir threshold for cases where posture says active
+  // but many doc dirs are missing (legacy compat)
+  const needsBootstrap = posture.needsBootstrap;
 
   return {
     needsBootstrap,

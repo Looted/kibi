@@ -1,4 +1,4 @@
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
@@ -40,12 +40,25 @@ function serializeKey(key: CacheKey): string {
  *
  * v1: in-memory only, no disk persistence.
  */
-export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
+export class GuidanceCache {
+  // implements REQ-opencode-kibi-plugin-v1
   private entries = new Map<string, CacheEntry>();
   private ttlMs: number;
+  private idleResetMs: number;
+  private lastTouchedAt: number;
 
-  constructor(ttlMs = 600000) {
+  constructor(ttlMs = 600000, idleResetMs = Number.POSITIVE_INFINITY) {
     this.ttlMs = ttlMs;
+    this.idleResetMs = idleResetMs;
+    this.lastTouchedAt = Date.now();
+  }
+
+  setTtlMs(ttlMs: number): void {
+    this.ttlMs = ttlMs;
+  }
+
+  setIdleResetMs(idleResetMs: number): void {
+    this.idleResetMs = idleResetMs;
   }
 
   /**
@@ -53,9 +66,11 @@ export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
    * and is still within the TTL window.
    */
   isSatisfied(key: CacheKey): boolean {
+    this.resetIfIdle();
     const serialized = serializeKey(key);
     const entry = this.entries.get(serialized);
     if (!entry) return false;
+    this.lastTouchedAt = Date.now();
     return !this.isExpired(entry);
   }
 
@@ -63,11 +78,13 @@ export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
    * Record that a preflight has been satisfied for the given key.
    */
   recordSatisfied(key: CacheKey, preflightType: string): void {
+    this.resetIfIdle();
     const serialized = serializeKey(key);
     this.entries.set(serialized, {
       satisfiedAt: Date.now(),
       preflightType,
     });
+    this.lastTouchedAt = Date.now();
   }
 
   /**
@@ -75,12 +92,14 @@ export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
    */
   invalidate(): void {
     this.entries.clear();
+    this.lastTouchedAt = Date.now();
   }
 
   /**
    * Invalidate all entries matching a specific posture.
    */
   invalidateForPosture(posture: RepoPosture): void {
+    this.resetIfIdle();
     for (const [serialized] of this.entries) {
       // Key format: workspaceRoot\0branch\0posture\0riskClass\0fileBucket
       const parts = serialized.split("\0");
@@ -88,30 +107,35 @@ export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
         this.entries.delete(serialized);
       }
     }
+    this.lastTouchedAt = Date.now();
   }
 
   /**
    * Invalidate all entries matching a specific branch.
    */
   invalidateForBranch(branch: string): void {
+    this.resetIfIdle();
     for (const [serialized] of this.entries) {
       const parts = serialized.split("\0");
       if (parts[1] === branch) {
         this.entries.delete(serialized);
       }
     }
+    this.lastTouchedAt = Date.now();
   }
 
   /**
    * Invalidate all entries matching a specific workspace root.
    */
   invalidateForWorkspace(workspaceRoot: string): void {
+    this.resetIfIdle();
     for (const [serialized] of this.entries) {
       const parts = serialized.split("\0");
       if (parts[0] === workspaceRoot) {
         this.entries.delete(serialized);
       }
     }
+    this.lastTouchedAt = Date.now();
   }
 
   /**
@@ -127,19 +151,36 @@ export class GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
   private isExpired(entry: CacheEntry): boolean {
     return Date.now() - entry.satisfiedAt > this.ttlMs;
   }
+
+  private resetIfIdle(): void {
+    const now = Date.now();
+    if (now - this.lastTouchedAt > this.idleResetMs) {
+      this.entries.clear();
+    }
+    this.lastTouchedAt = now;
+  }
 }
 
 // ── Singleton ───────────────────────────────────────────────────────
 
 let globalCache: GuidanceCache | null = null;
 
-export function getGuidanceCache(ttlMs?: number): GuidanceCache { // implements REQ-opencode-kibi-plugin-v1
+export function getGuidanceCache(
+  ttlMs?: number,
+  idleResetMs?: number,
+): GuidanceCache {
+  // implements REQ-opencode-kibi-plugin-v1
   if (!globalCache) {
-    globalCache = new GuidanceCache(ttlMs);
+    globalCache = new GuidanceCache(ttlMs, idleResetMs);
+  } else {
+    if (typeof ttlMs === "number") globalCache.setTtlMs(ttlMs);
+    if (typeof idleResetMs === "number")
+      globalCache.setIdleResetMs(idleResetMs);
   }
   return globalCache;
 }
 
-export function resetGuidanceCache(ttlMs?: number): void { // implements REQ-opencode-kibi-plugin-v1
-  globalCache = new GuidanceCache(ttlMs);
+export function resetGuidanceCache(ttlMs?: number, idleResetMs?: number): void {
+  // implements REQ-opencode-kibi-plugin-v1
+  globalCache = new GuidanceCache(ttlMs, idleResetMs);
 }
