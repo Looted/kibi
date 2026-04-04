@@ -12,7 +12,7 @@ const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
 const MAX_BULLETS = 5;
-const MAX_WORDS = 120;
+const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
 function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
@@ -69,6 +69,12 @@ export interface PromptContext {
   branch?: string;
   /** Whether to append completion reminder for risky classes */
   completionReminder?: boolean;
+  /** Merged maintenance-degraded state (static + runtime overlay) */
+  maintenanceDegraded?: boolean;
+  /** Degraded-mode logging policy */
+  degradedMode?: "warn-once" | "structured-only";
+  /** Whether to show the degraded advisory block this invocation */
+  showDegradedAdvisory?: boolean;
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -137,13 +143,17 @@ Root .kb/config.json exists but some configured KB targets are missing. Guidance
 /**
  * Build prompt guidance block based on posture, risk class, and cache state.
  */
-// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 function buildContextualGuidance(context: PromptContext): string {
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
+  const showDegraded =
+    context.showDegradedAdvisory === true &&
+    context.maintenanceDegraded === true &&
+    context.degradedMode === "warn-once";
 
   // Cache check: skip repeated guidance if recently satisfied
-  if (context.cache && context.workspaceRoot && context.branch && riskClass) {
+  // Allow degraded advisory to bypass cache so it is always visible
+  if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
@@ -160,8 +170,8 @@ function buildContextualGuidance(context: PromptContext): string {
   // Priority order (highest wins): manual_kb_edit > posture > risk_class > safe/none
   let selectedBlock: string | null = null;
 
-  // Priority 1: vendored_only → sentinel only
-  if (posture === "vendored_only") {
+  // Priority 1: vendored_only → sentinel only (unless degraded advisory forced)
+  if (posture === "vendored_only" && !showDegraded) {
     return SENTINEL;
   }
 
@@ -229,8 +239,21 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     }
   }
 
+  // Inject degraded advisory block for warn-once mode
+  if (showDegraded) {
+    const advisory = `⚠️  **Maintenance degraded**
+
+The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory.`;
+    if (selectedBlock) {
+      selectedBlock = `${advisory}\n\n${selectedBlock}`;
+    } else {
+      selectedBlock = advisory;
+    }
+  }
+
   // Record cache after generating (advisory, non-blocking)
-  if (context.cache && context.workspaceRoot && context.branch && riskClass) {
+  // Do not cache degraded-advisory-only emissions
+  if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
@@ -246,6 +269,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
   if (
     selectedBlock &&
     context.completionReminder === true &&
+    !context.maintenanceDegraded &&
     riskClass &&
     REMINDER_RISK_CLASSES.includes(riskClass) &&
     posture !== "root_uninitialized" &&

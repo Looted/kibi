@@ -824,30 +824,25 @@ describe("logging policy", () => {
       const tmpDir = fs.mkdtempSync(
         path.join(os.tmpdir(), "kibi-reminder-channel-"),
       );
-      const opencodeDir = path.join(tmpDir, ".opencode");
-      fs.mkdirSync(opencodeDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(opencodeDir, "kibi.json"),
-        JSON.stringify(
-          {
-            enabled: true,
-            prompt: { enabled: true, hookMode: "auto" },
-            sync: { enabled: false },
-            guidance: {
-              smartEnforcement: { completionReminder: true },
-            },
-          },
-          null,
-          2,
-        ),
-      );
+      // Ensure KB is initialized so posture is root_active and risky guidance can include reminder
       // Ensure KB is initialized so posture is root_active and risky guidance can include reminder
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(kbDir, { recursive: true });
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
-        JSON.stringify({ maintenance: { enabled: false } }, null, 2),
+        JSON.stringify({}, null, 2),
       );
+      // Create default KB directories so targets resolve and posture becomes root_active
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -884,6 +879,8 @@ describe("logging policy", () => {
       }
 
       await new Promise((r) => setTimeout(r, 20));
+      require("node:fs").writeFileSync("/tmp/applogs.json", JSON.stringify(appLogCalls.map((p) => p.body), null, 2));
+      console.log("APPLOGS:", JSON.stringify(appLogCalls.map((p) => p.body), null, 2));
 
       // Check if any info log contains the completion reminder event
       const reminderLogs = appLogCalls.filter((p) => {

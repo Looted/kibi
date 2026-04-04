@@ -2721,4 +2721,143 @@ import datetime
       );
     });
   });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("runtime degraded overlay", () => {
+    it("latches sync_disabled when sync.enabled=false", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      // Force root_active posture so only sync_disabled is latched
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ maintenance: { enabled: false } }, null, 2),
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for sync_disabled",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.overlay_cause, "sync_disabled");
+      assert.equal(first?.runtime_degraded, true);
+    });
+
+    it("latches non_authoritative_posture for root_uninitialized", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for non_authoritative_posture",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.runtime_degraded, true);
+    });
+  });
+
 });

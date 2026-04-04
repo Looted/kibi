@@ -804,4 +804,80 @@ describe("prompt", () => {
         `Expected <= 5 bullets, got ${bullets.length}`,
       );
     });
+    test("maintenanceDegraded suppresses completion reminder for behavior_candidate", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+        maintenanceDegraded: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when maintenanceDegraded");
+    });
+
+    test("degradedMode=warn-once adds degraded advisory block", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(
+        p.includes("maintenance degraded") || p.includes("degraded"),
+        "Should include degraded advisory for warn-once",
+      );
+    });
+
+    test("degradedMode=structured-only adds no degraded prompt copy", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "structured-only",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(!p.includes("maintenance degraded"), "Should NOT include degraded prompt copy for structured-only");
+    });
+
+    test("degraded advisory can appear even when cache-hit would otherwise suppress guidance", () => {
+      const cache = new GuidanceCache(600000);
+      const key: CacheKey = {
+        workspaceRoot: "/ws",
+        branch: "main",
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        fileBucket: "code",
+      };
+      cache.recordSatisfied(key, "guidance");
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+        cache,
+        workspaceRoot: "/ws",
+        branch: "main",
+      });
+      assert.ok(
+        p.includes("degraded") || p.includes("advisory"),
+        "Degraded advisory should bypass cache-hit suppression",
+      );
+    });
+
+    test("degraded advisory block stays within budget", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      const words = p.split(/\s+/).filter(Boolean).length;
+      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-"));
+      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+      assert.ok(bullets.length <= 5, `Expected <= 5 bullets, got ${bullets.length}`);
+    });
   });
