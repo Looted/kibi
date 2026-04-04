@@ -293,3 +293,129 @@ describe("effective mode preserves non-blocking behavior", () => {
     }
   });
 });
+
+import { buildPrompt, SENTINEL } from "../src/prompt";
+
+describe("smart enforcement contract matrix", () => {
+  describe("single-block prompt policy", () => {
+    it("returns full base guidance when no context matches", () => {
+      const p = buildPrompt();
+      assert.ok(p.includes(SENTINEL), "Should include sentinel in base guidance");
+      assert.ok(p.includes("kb_search"), "Base guidance should mention kb_search");
+    });
+
+    it("returns exactly one contextual block plus sentinel for code edits", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+      });
+      const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+      assert.equal(blocks.length, 1, "Should emit exactly one contextual block");
+    });
+
+    it("combines degraded advisory and guidance into a single block", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(p.includes("Maintenance degraded"), "Should include degraded advisory");
+      assert.ok(p.includes("Code changes detected"), "Should include guidance");
+      const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+      assert.equal(blocks.length, 1, "Degraded advisory + guidance must be one block");
+    });
+
+    it("never exceeds 120 words or 5 bullets total", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+        completionReminder: true,
+      });
+      const words = p.split(/\s+/).filter(Boolean).length;
+      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-")).length;
+      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+      assert.ok(bullets <= 5, `Expected <= 5 bullets, got ${bullets}`);
+    });
+  });
+
+  describe("completion-reminder visibility contract", () => {
+    it("appends kb_check reminder for behavior_candidate when enabled", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+      });
+      assert.ok(
+        p.includes("Run `kb_check` before completing this task."),
+        "Should include completion reminder for risky code edits",
+      );
+    });
+
+    it("suppresses completion reminder when maintenanceDegraded is active", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+        maintenanceDegraded: true,
+      });
+      assert.ok(!p.includes("kb_check"), "Should suppress reminder when degraded");
+    });
+
+    it("suppresses completion reminder for safe edits even when enabled", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "docs/readme.md", kind: "docs" }],
+        posture: "root_active",
+        riskClass: "safe_docs_only",
+        completionReminder: true,
+      });
+      assert.ok(!p.includes("kb_check"), "Should suppress reminder for safe edits");
+    });
+  });
+
+  describe("runtime overlay policy integration", () => {
+    it("effective mode falls back to advisory when maintenanceDegraded is true", () => {
+      assert.equal(
+        computeEffectiveMode(
+          makeInputs({ mode: "strict", posture: "root_active", maintenanceDegraded: true }),
+        ),
+        "advisory",
+      );
+    });
+
+    it("degraded advisory is injected in warn-once mode", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(
+        p.includes("Maintenance degraded") || p.includes("maintenance degraded"),
+        "Should inject degraded advisory in warn-once mode",
+      );
+    });
+
+    it("degraded advisory is suppressed in structured-only mode", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "structured-only",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(
+        !p.includes("maintenance degraded"),
+        "Should NOT inject degraded prompt copy in structured-only mode",
+      );
+    });
+  });
+});

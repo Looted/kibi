@@ -4,7 +4,7 @@ title: Smart Enforcement Verification and Surface Policy
 type: test
 status: passing
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-03T00:00:00Z
+updated_at: 2026-04-05T00:00:00Z
 source: documentation/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -49,10 +49,9 @@ tags:
 
 ### MCP-Only Surface Preservation
 
-- **Policy Test** (`packages/opencode/tests/agent-surface-policy.test.ts`): Scans all smart enforcement guidance candidates for:
-  - Forbidden CLI command patterns (e.g., `kibi sync`, `kibi query`).
-  - Required MCP tool terminology (e.g., `kb_query`, `kb_upsert`).
-  - Presence of bootstrap nudges for `/init-kibi`.
+  - Forbidden CLI command patterns (e.g., direct \`kibi\` CLI invocations).
+  - Required MCP tool terminology (e.g., \`kb_query\`, \`kb_upsert\`).
+  - Presence of retroactive bootstrap guidance (\`/init-kibi\`).
 
 ### Integration Verification
 
@@ -60,3 +59,21 @@ tags:
   - Posture-aware guidance injection.
   - Advisory-by-default behavior (toasts/prompts) doesn't block the editor.
   - Background sync and validation tasks remain non-blocking.
+
+
+### Effective Mode and Runtime Overlay
+
+- **Policy Test** (`packages/opencode/tests/smart-enforcement-policy.test.ts`): Validates the effective-mode decision table:
+  - `advisory` config always yields `advisory`.
+  - `strict` + `requireRootKbForStrict=true` yields `strict` only for `root_active` and `hybrid_root_plus_vendored`.
+  - `maintenanceDegraded=true` (static or runtime) overrides everything to `advisory`.
+- **Integration Tests** (`packages/opencode/tests/index.test.ts`, `packages/opencode/tests/scheduler.test.ts`): Verify that the runtime maintenance overlay latches on sync disabled, scheduler unavailable, or check failures, and that the merged degraded state is reflected in logs and prompt decisions.
+
+### Single-Block Prompt Policy and Completion Reminder
+
+- **Unit Test** (`packages/opencode/tests/prompt.test.ts`): Asserts that injected guidance never exceeds:
+  - 1 contextual guidance block per prompt injection (sentinel + at most one block).
+  - 5 bullet points or 120 words total for the combined sentinel + block output.
+  - Degraded advisory and completion-reminder text are folded into the single block rather than appended as separate blocks.
+- **Policy Test** (`packages/opencode/tests/smart-enforcement-policy.test.ts`): Centralized contract matrix verifying the interaction of effective mode, single-block guidance outcome, completion-reminder visibility, and runtime overlay behavior.
+- **Logging Test** (`packages/opencode/tests/logging-policy.test.ts`): Confirms the completion reminder emits exactly one matching structured `smart_enforcement_completion_reminder` log per risky context and is suppressed when `maintenanceDegraded` is active.
