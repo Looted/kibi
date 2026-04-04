@@ -93,6 +93,12 @@ export interface Hooks {
 
 export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
 
+interface RuntimeDegradedOverlay {
+  degraded: boolean;
+  primaryCause?: "sync_disabled" | "scheduler_unavailable" | "scheduler_sync_failed" | "scheduler_check_failed" | "non_authoritative_posture";
+  causes: string[];
+}
+
 /**
  * Lint requirement documents for embedded scenarios/tests and oversized content.
  */
@@ -207,19 +213,59 @@ const kibiOpencodePlugin: Plugin = async (
     configFingerprint,
   });
 
-  // Compute effective smart-enforcement mode from config + posture
-  const effectiveMode: EffectiveMode = computeEffectiveMode({
-    mode: cfg.guidance.smartEnforcement.mode,
-    requireRootKbForStrict: cfg.guidance.smartEnforcement.requireRootKbForStrict,
-    posture: posture.state,
-    maintenanceDegraded: posture.maintenanceDegraded,
-  });
+  // Session-local runtime degraded overlay (latched, never cleared)
+  let runtimeOverlay: RuntimeDegradedOverlay = { degraded: false, causes: [] };
+  let degradedWarnedOnce = false;
+
+  function latchRuntimeDegraded(
+    cause: NonNullable<RuntimeDegradedOverlay["primaryCause"]>,
+  ): void {
+    if (!runtimeOverlay.degraded) {
+      runtimeOverlay.degraded = true;
+      runtimeOverlay.primaryCause = cause;
+      runtimeOverlay.causes.push(cause);
+      logger.info("smart-enforcement.degraded", {
+        event: "smart_enforcement_degraded",
+        overlay_cause: cause,
+        runtime_degraded: true,
+        static_degraded: posture.maintenanceDegraded,
+        merged_degraded: posture.maintenanceDegraded || true,
+      });
+    } else if (!runtimeOverlay.causes.includes(cause)) {
+      runtimeOverlay.causes.push(cause);
+    }
+  }
+
+  function getMaintenanceDegraded(): boolean {
+    return posture.maintenanceDegraded || runtimeOverlay.degraded;
+  }
+
+  function getEffectiveMode(): EffectiveMode {
+    return computeEffectiveMode({
+      mode: cfg.guidance.smartEnforcement.mode,
+      requireRootKbForStrict: cfg.guidance.smartEnforcement.requireRootKbForStrict,
+      posture: posture.state,
+      maintenanceDegraded: getMaintenanceDegraded(),
+    });
+  }
+  // Compute effective smart-enforcement mode from config + posture + runtime overlay
+  const effectiveMode: EffectiveMode = getEffectiveMode();
+
+  // Latch startup-level runtime degraded causes
+  if (posture.state === "vendored_only" || posture.state === "root_uninitialized" || posture.state === "root_partial") {
+    latchRuntimeDegraded("non_authoritative_posture");
+  }
+  if (!cfg.sync.enabled) {
+    latchRuntimeDegraded("sync_disabled");
+  }
+
+  const maintenanceDegraded = getMaintenanceDegraded();
 
   logger.info("smart-enforcement.posture", {
     event: "smart_enforcement_posture",
     posture: posture.state,
     posture_state: posture.state,
-    maintenance_state: posture.maintenanceDegraded
+    maintenance_state: maintenanceDegraded
       ? "maintenance_degraded"
       : "maintenance_available",
     needs_bootstrap: workspaceHealth.needsBootstrap,
@@ -227,6 +273,10 @@ const kibiOpencodePlugin: Plugin = async (
     reason_code: posture.reason,
     smart_enforcement_mode: cfg.guidance.smartEnforcement.mode,
     effective_mode: effectiveMode,
+    static_degraded: posture.maintenanceDegraded,
+    runtime_degraded: runtimeOverlay.degraded,
+    merged_degraded: maintenanceDegraded,
+    overlay_cause: runtimeOverlay.primaryCause ?? null,
     branch: currentBranch,
   });
 
@@ -245,11 +295,24 @@ const kibiOpencodePlugin: Plugin = async (
   // Create scheduler only if sync is enabled
   let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
   if (cfg.sync.enabled) {
-    const schedulerOpts: SchedulerOptions = {
-      worktree: input.worktree,
-      config: cfg,
-    };
-    scheduler = createSyncScheduler(schedulerOpts);
+    try {
+      const schedulerOpts: SchedulerOptions = {
+        worktree: input.worktree,
+        config: cfg,
+        onRunComplete: (meta) => {
+          if (meta.exitCode !== 0) {
+            latchRuntimeDegraded("scheduler_sync_failed");
+          }
+          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+            latchRuntimeDegraded("scheduler_check_failed");
+          }
+        },
+      };
+      scheduler = createSyncScheduler(schedulerOpts);
+    } catch {
+      latchRuntimeDegraded("scheduler_unavailable");
+      scheduler = null;
+    }
   }
 
   hooks.event = async ({ event }) => {
@@ -306,7 +369,7 @@ const kibiOpencodePlugin: Plugin = async (
       path_kind: pathAnalysis.kind,
       risk_class: effectiveRiskClass,
       posture_state: posture.state,
-      maintenance_state: posture.maintenanceDegraded
+      maintenance_state: getMaintenanceDegraded()
         ? "maintenance_degraded"
         : "maintenance_available",
       under_kb: pathAnalysis.isUnderKb,
@@ -314,6 +377,10 @@ const kibiOpencodePlugin: Plugin = async (
       posture: posture.state,
       reason_code: effectiveRiskClass,
       effective_mode: effectiveMode,
+      static_degraded: posture.maintenanceDegraded,
+      runtime_degraded: runtimeOverlay.degraded,
+      merged_degraded: getMaintenanceDegraded(),
+      overlay_cause: runtimeOverlay.primaryCause ?? null,
     });
 
     const now = Date.now();
@@ -390,10 +457,7 @@ const kibiOpencodePlugin: Plugin = async (
         );
       }
 
-      if (
-        posture.state === "vendored_only" ||
-        posture.state === "root_uninitialized"
-      ) {
+      if (getMaintenanceDegraded()) {
         const logFn =
           cfg.guidance.smartEnforcement.degradedMode === "warn-once"
             ? logger.warn
@@ -405,15 +469,19 @@ const kibiOpencodePlugin: Plugin = async (
           posture: posture.state,
           posture_state: posture.state,
           maintenance_state: "maintenance_degraded",
-          reason: "non_authoritative_posture",
-          reason_code: "non_authoritative_posture",
+          reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: getMaintenanceDegraded(),
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
       }
 
       if (
+        !getMaintenanceDegraded() &&
         cfg.sync.enabled &&
-        posture.state !== "vendored_only" &&
-        posture.state !== "root_uninitialized" &&
+        scheduler &&
         fileFilter.shouldHandleFile(filePath, input.worktree)
       ) {
         let checkRules: string[] | undefined;
@@ -440,6 +508,10 @@ const kibiOpencodePlugin: Plugin = async (
           guidance_action: "targeted_checks",
           effective_mode: effectiveMode,
           rules: checkRules ?? [],
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: getMaintenanceDegraded(),
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
         logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
         scheduler?.scheduleSync("file.edited", filePath, checkRules);
@@ -448,10 +520,7 @@ const kibiOpencodePlugin: Plugin = async (
     }
 
     if (effectiveRiskClass === "kb_doc_structural") {
-      if (
-        posture.state === "vendored_only" ||
-        posture.state === "root_uninitialized"
-      ) {
+      if (getMaintenanceDegraded()) {
         const logFn =
           cfg.guidance.smartEnforcement.degradedMode === "warn-once"
             ? logger.warn
@@ -463,15 +532,19 @@ const kibiOpencodePlugin: Plugin = async (
           posture: posture.state,
           posture_state: posture.state,
           maintenance_state: "maintenance_degraded",
-          reason: "non_authoritative_posture",
-          reason_code: "non_authoritative_posture",
+          reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: getMaintenanceDegraded(),
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
       }
 
       if (
+        !getMaintenanceDegraded() &&
         cfg.sync.enabled &&
-        posture.state !== "vendored_only" &&
-        posture.state !== "root_uninitialized" &&
+        scheduler &&
         fileFilter.shouldHandleFile(filePath, input.worktree)
       ) {
         let checkRules: string[] | undefined;
@@ -487,12 +560,17 @@ const kibiOpencodePlugin: Plugin = async (
           guidance_action: "targeted_checks",
           effective_mode: effectiveMode,
           rules: checkRules ?? [],
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: getMaintenanceDegraded(),
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
         logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
         scheduler?.scheduleSync("file.edited", filePath, checkRules);
       }
       return;
     }
+
 
     if (
       effectiveRiskClass === "behavior_candidate" ||
@@ -549,6 +627,13 @@ const kibiOpencodePlugin: Plugin = async (
         if (output.system.some((entry: string) => entry.includes(SENTINEL))) {
           return;
         }
+
+        const maintenanceDegraded = getMaintenanceDegraded();
+        const showDegradedAdvisory =
+          maintenanceDegraded &&
+          cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
+          !degradedWarnedOnce;
+
         // Build only the guidance block and append it; existing entries are preserved
         const guidance = buildPrompt({
           recentEdits,
@@ -560,7 +645,11 @@ const kibiOpencodePlugin: Plugin = async (
           cache,
           workspaceRoot: input.worktree,
           completionReminder: cfg.guidance.smartEnforcement.completionReminder,
+          maintenanceDegraded,
+          degradedMode: cfg.guidance.smartEnforcement.degradedMode,
+          showDegradedAdvisory,
         });
+
         logger.info("smart-enforcement.guidance", {
           event: "smart_enforcement_guidance",
           emitted: guidance.trim() !== "" && guidance.trim() !== SENTINEL,
@@ -572,10 +661,19 @@ const kibiOpencodePlugin: Plugin = async (
               : "skip",
           risk_class: lastRiskClass,
           recent_edits: recentEdits.length,
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: maintenanceDegraded,
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
+
         // Emit completion-reminder log only when prompt-visible reminder text is present
         const REMINDER_TEXT = "Run `kb_check` before completing this task.";
-        if (cfg.guidance.smartEnforcement.completionReminder && guidance.includes(REMINDER_TEXT)) {
+        if (
+          cfg.guidance.smartEnforcement.completionReminder &&
+          !maintenanceDegraded &&
+          guidance.includes(REMINDER_TEXT)
+        ) {
           logger.info("smart-enforcement.completion-reminder", {
             event: "smart_enforcement_completion_reminder",
             risk_class: lastRiskClass,
@@ -583,8 +681,18 @@ const kibiOpencodePlugin: Plugin = async (
             posture_state: posture.state,
             guidance_action: "completion_reminder",
             reminder: "kb_check",
+            static_degraded: posture.maintenanceDegraded,
+            runtime_degraded: runtimeOverlay.degraded,
+            merged_degraded: maintenanceDegraded,
+            overlay_cause: runtimeOverlay.primaryCause ?? null,
           });
         }
+
+        // Latch degraded advisory warning-once state
+        if (showDegradedAdvisory && guidance.includes("Maintenance degraded")) {
+          degradedWarnedOnce = true;
+        }
+
         const last =
           output.system.length > 0
             ? output.system[output.system.length - 1]
