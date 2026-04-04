@@ -117,6 +117,12 @@ export function deriveDiagnosticFields(
     telemetry_status: telemetry ? "provided" : "missing",
   };
 
+  if (telemetry) {
+    fields.telemetry_is_autonomous = telemetry.is_autonomous ?? null;
+    fields.telemetry_confidence_score = telemetry.confidence_score ?? null;
+    fields.telemetry_attempt_number = telemetry.attempt_number ?? null;
+  }
+
   const structuredContent =
     result && typeof result === "object" && "structuredContent" in result
       ? (result as { structuredContent?: Record<string, unknown> })
