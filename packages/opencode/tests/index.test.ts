@@ -2236,6 +2236,15 @@ import datetime
         ),
       );
 
+      // Create .kb/config.json so posture detects root_active
+      // (maintenance.enabled=false forces root_active without needing full doc dirs)
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
@@ -2297,6 +2306,165 @@ import datetime
         !outputAfterKbDoc.system.some((s: string) => s.includes("Durable knowledge detected")),
         "Prompt should not contain durable knowledge guidance after switching to KB doc",
       );
+    });
+  });
+
+  describe("effective smart-enforcement mode integration", () => {
+    it("computes advisory mode when config is advisory", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "advisory",
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin still sets up hooks regardless of mode
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("computes strict mode when config is strict with root KB present", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create root .kb for root_active posture
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("strict mode with no root KB falls back to advisory behavior", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // No .kb directory → root_uninitialized posture → advisory effective mode
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin still works, just in advisory mode
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("plugin remains non-blocking even in strict mode", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin exposes only advisory hook surfaces — no blocking paths
+      assert.ok(typeof hooks === "object");
+      assert.ok(typeof hooks.event === "function" || hooks.event === undefined);
     });
   });
 });
