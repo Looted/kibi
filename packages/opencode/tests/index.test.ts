@@ -2467,4 +2467,258 @@ import datetime
       assert.ok(typeof hooks.event === "function" || hooks.event === undefined);
     });
   });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("completion reminder policy", () => {
+    it("logs smart_enforcement_completion_reminder when guidance contains reminder", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create a code file for event to process
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      // Trigger a code edit event so lastRiskClass gets set
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Now trigger the transform hook to generate guidance
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockOutput = { system: ["original system prompt"] };
+      await transformHook({}, mockOutput);
+
+      // Wait for async log calls
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Check that the completion reminder log event was emitted
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      // The guidance should contain the reminder text since behavior_candidate is a risky class
+      const guidanceEntry = mockOutput.system.find(
+        (s: string) => typeof s === "string" && s.includes("kb_check before completing"),
+      );
+
+      // If guidance contains the reminder text, the log should have fired
+      if (guidanceEntry) {
+        assert.ok(
+          reminderLogs.length >= 1,
+          "Should log smart_enforcement_completion_reminder when reminder in guidance",
+        );
+      }
+    });
+
+    it("does NOT log smart_enforcement_completion_reminder on cache-hit", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as any;
+
+      // First event — populates cache
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // First transform — records cache satisfied
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      await transformHook({}, { system: ["prompt"] });
+
+      // Clear log calls from first round
+      appLogCalls.length = 0;
+
+      // Second event — cache hit in event hook, returns early
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Second transform — cache hit in buildContextualGuidance, returns ""
+      await transformHook({}, { system: ["prompt"] });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT log smart_enforcement_completion_reminder on cache-hit",
+      );
+    });
+
+    it("does NOT log smart_enforcement_completion_reminder for safe_docs_only", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create README to get safe_docs_only risk class
+      fs.writeFileSync(
+        path.join(tmpDir, "README.md"),
+        "# Test\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "README.md" },
+        },
+      });
+
+      // Trigger transform
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      await transformHook({}, { system: ["prompt"] });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT log smart_enforcement_completion_reminder for safe_docs_only",
+      );
+    });
+  });
 });

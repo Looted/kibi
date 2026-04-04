@@ -534,18 +534,6 @@ const kibiOpencodePlugin: Plugin = async (
         recentCommentSuggestion = null;
       }
 
-      if (cfg.guidance.smartEnforcement.completionReminder) {
-        logger.info("smart-enforcement.completion-reminder", {
-          event: "smart_enforcement_completion_reminder",
-          file: filePath,
-          risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
-          effective_mode: effectiveMode,
-          guidance_action: "completion_reminder",
-          reminder: "kb_check",
-        });
-      }
       return;
     }
 
@@ -571,7 +559,7 @@ const kibiOpencodePlugin: Plugin = async (
           riskClass: lastRiskClass ?? undefined,
           cache,
           workspaceRoot: input.worktree,
-          branch: currentBranch,
+          completionReminder: cfg.guidance.smartEnforcement.completionReminder,
         });
         logger.info("smart-enforcement.guidance", {
           event: "smart_enforcement_guidance",
@@ -585,6 +573,18 @@ const kibiOpencodePlugin: Plugin = async (
           risk_class: lastRiskClass,
           recent_edits: recentEdits.length,
         });
+        // Emit completion-reminder log only when prompt-visible reminder text is present
+        const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+        if (cfg.guidance.smartEnforcement.completionReminder && guidance.includes(REMINDER_TEXT)) {
+          logger.info("smart-enforcement.completion-reminder", {
+            event: "smart_enforcement_completion_reminder",
+            risk_class: lastRiskClass,
+            posture: posture.state,
+            posture_state: posture.state,
+            guidance_action: "completion_reminder",
+            reminder: "kb_check",
+          });
+        }
         const last =
           output.system.length > 0
             ? output.system[output.system.length - 1]

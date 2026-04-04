@@ -67,6 +67,8 @@ export interface PromptContext {
   workspaceRoot?: string;
   /** Branch for cache key */
   branch?: string;
+  /** Whether to append completion reminder for risky classes */
+  completionReminder?: boolean;
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -237,6 +239,19 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       fileBucket: deriveFileBucket(context.recentEdits[0]?.kind ?? "unknown"),
     };
     context.cache.recordSatisfied(key, "guidance");
+  }
+
+  // Append completion reminder for risky classes when enabled
+  const REMINDER_RISK_CLASSES: RiskClass[] = ["behavior_candidate", "traceability_candidate", "req_policy_candidate"];
+  if (
+    selectedBlock &&
+    context.completionReminder === true &&
+    riskClass &&
+    REMINDER_RISK_CLASSES.includes(riskClass) &&
+    posture !== "root_uninitialized" &&
+    posture !== "root_partial"
+  ) {
+    selectedBlock = `${selectedBlock}\n- Run \`kb_check\` before completing this task.`;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)

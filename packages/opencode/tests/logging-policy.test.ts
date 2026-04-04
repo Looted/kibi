@@ -729,4 +729,259 @@ describe("logging policy", () => {
       resetSessionTracker();
     });
   });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("completion reminder silence policy", () => {
+    test("completion reminder produces zero console.log/warn output", async () => {
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-silence-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: { completionReminder: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create code file
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      logger.setClient({ app: { log: async () => {} } });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: { app: { log: async () => {} } },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Also trigger the transform hook which emits the reminder log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
+
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "completion reminder must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "completion reminder must not call console.warn",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("completion reminder routes through structured info channel", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-channel-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: { completionReminder: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+      // Ensure KB is initialized so posture is root_active and risky guidance can include reminder
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ maintenance: { enabled: false } }, null, 2),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Trigger the transform hook which conditionally emits the reminder log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Check if any info log contains the completion reminder event
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return (
+          body.event === "smart_enforcement_completion_reminder"
+        );
+      });
+
+      // Reminder should be emitted via structured info log for risky code edits
+      assert.ok(
+        reminderLogs.length >= 1,
+        "completion reminder should emit structured log for risky code edit",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("no completion reminder log for safe_docs_only edit", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-safe-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: { completionReminder: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      fs.writeFileSync(
+        path.join(tmpDir, "README.md"),
+        "# Test\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "README.md" },
+        },
+      });
+
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT emit completion reminder log for safe_docs_only",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+  });
 });
