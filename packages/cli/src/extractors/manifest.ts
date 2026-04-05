@@ -79,86 +79,100 @@ interface ManifestFile {
   symbols?: ManifestSymbol[];
 }
 
-// implements REQ-007
-export function extractFromManifest(filePath: string): ExtractionResult[] {
-  try {
-    const content = readFileSync(filePath, "utf8");
-    const manifest = parseYAML(content) as ManifestFile;
+function extractRelationships(
+  id: string,
+  symbol: ManifestSymbol,
+): ExtractedRelationship[] {
+  const relationships: ExtractedRelationship[] = [];
 
-    if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
-      throw new ManifestError("No symbols array found in manifest", filePath);
+  if (Array.isArray(symbol.links)) {
+    for (const link of symbol.links) {
+      if (typeof link === "string") {
+        relationships.push({
+          type: "implements",
+          from: id,
+          to: link,
+        });
+      } else if (link !== null && typeof link === "object") {
+        const typedLink = link as { type?: unknown; target?: unknown };
+        if (
+          typeof typedLink.type === "string" &&
+          typeof typedLink.target === "string"
+        ) {
+          relationships.push({
+            type: typedLink.type,
+            from: id,
+            to: typedLink.target,
+          });
+        }
+      }
+    }
+  }
+
+  if (Array.isArray(symbol.relationships)) {
+    for (const rel of symbol.relationships) {
+      if (
+        rel &&
+        typeof rel.type === "string" &&
+        typeof rel.target === "string"
+      ) {
+        relationships.push({
+          type: rel.type,
+          from: id,
+          to: rel.target,
+        });
+      }
+    }
+  }
+
+  return relationships;
+}
+
+function extractFromParsedManifest(
+  manifest: ManifestFile,
+  filePath: string,
+): ExtractionResult[] {
+  if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
+    throw new ManifestError("No symbols array found in manifest", filePath);
+  }
+
+  return manifest.symbols.map((symbol) => {
+    if (!symbol.title) {
+      throw new ManifestError("Missing required field: title", filePath);
     }
 
-    return manifest.symbols.map((symbol) => {
-      if (!symbol.title) {
-        throw new ManifestError("Missing required field: title", filePath);
-      }
+    const id = symbol.id || generateId(filePath, symbol.title);
 
-      const id = symbol.id || generateId(filePath, symbol.title);
-      const relationships: ExtractedRelationship[] = [];
+    return {
+      entity: {
+        id,
+        type: "symbol",
+        title: symbol.title,
+        status: symbol.status || "active",
+        created_at: symbol.created_at || new Date().toISOString(),
+        updated_at: symbol.updated_at || new Date().toISOString(),
+        source: filePath,
+        tags: symbol.tags,
+        owner: symbol.owner,
+        priority: symbol.priority,
+        severity: symbol.severity,
+        text_ref: symbol.text_ref,
+      },
+      relationships: extractRelationships(id, symbol),
+      sourceFile: symbol.sourceFile ?? symbol.source,
+    };
+  });
+}
 
-      // Extract relationships from links field
-      // Supports both simple strings (treated as implements) and typed objects
-      if (Array.isArray(symbol.links)) {
-        for (const link of symbol.links) {
-          if (typeof link === "string") {
-            relationships.push({
-              type: "implements",
-              from: id,
-              to: link,
-            });
-          } else if (link !== null && typeof link === "object") {
-            const typedLink = link as { type?: unknown; target?: unknown };
-            if (
-              typeof typedLink.type === "string" &&
-              typeof typedLink.target === "string"
-            ) {
-              relationships.push({
-                type: typedLink.type,
-                from: id,
-                to: typedLink.target,
-              });
-            }
-          }
-        }
-      }
+// implements REQ-007
+export function extractFromManifestString(
+  content: string,
+  filePath: string,
+): ExtractionResult[] {
+  try {
+    const manifest = parseYAML(content) as ManifestFile;
 
-      // Extract relationships from relationships field
-      if (Array.isArray(symbol.relationships)) {
-        for (const rel of symbol.relationships) {
-          if (
-            rel &&
-            typeof rel.type === "string" &&
-            typeof rel.target === "string"
-          ) {
-            relationships.push({
-              type: rel.type,
-              from: id,
-              to: rel.target,
-            });
-          }
-        }
-      }
-
-      return {
-        entity: {
-          id,
-          type: "symbol",
-          title: symbol.title,
-          status: symbol.status || "active",
-          created_at: symbol.created_at || new Date().toISOString(),
-          updated_at: symbol.updated_at || new Date().toISOString(),
-          source: filePath,
-          tags: symbol.tags,
-          owner: symbol.owner,
-          priority: symbol.priority,
-          severity: symbol.severity,
-          text_ref: symbol.text_ref,
-        },
-        relationships,
-        sourceFile: symbol.sourceFile ?? symbol.source,
-      };
-    });
+    return extractFromParsedManifest(manifest, filePath);
   } catch (error) {
     if (error instanceof ManifestError) {
       throw error;
@@ -173,6 +187,11 @@ export function extractFromManifest(filePath: string): ExtractionResult[] {
 
     throw error;
   }
+}
+
+export function extractFromManifest(filePath: string): ExtractionResult[] {
+  const content = readFileSync(filePath, "utf8");
+  return extractFromManifestString(content, filePath);
 }
 
 function generateId(filePath: string, title: string): string {
