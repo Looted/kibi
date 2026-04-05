@@ -1,3 +1,5 @@
+import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
+import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
@@ -162,7 +164,7 @@ function buildContextualGuidance(context: PromptContext): string {
       fileBucket: deriveFileBucket(context.recentEdits[0]?.kind ?? "unknown"),
     };
     if (context.cache.isSatisfied(key)) {
-      return ""; // skip guidance — recently satisfied
+      return SENTINEL; // skip guidance — recently satisfied
     }
   }
 
@@ -236,6 +238,27 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       selectedBlock = GUIDANCE_BY_RISK.req_policy_candidate;
     } else if (kbDocEdits.length > 0) {
       selectedBlock = GUIDANCE_BY_RISK.kb_doc_structural;
+    }
+  }
+
+  // Source-linked micro-brief: prepend existing KB links for code risk classes
+  if (
+    selectedBlock &&
+    (riskClass === "behavior_candidate" || riskClass === "traceability_candidate") &&
+    context.workspaceRoot &&
+    context.recentEdits[0]?.path
+  ) {
+    try {
+      const editedPath = context.recentEdits[0].path;
+      const absEdited = path.isAbsolute(editedPath)
+        ? editedPath
+        : path.join(context.workspaceRoot, editedPath);
+      const linkedIds = getSourceLinkedRequirementIds(context.workspaceRoot, absEdited);
+      if (linkedIds.length >= 1 && linkedIds.length <= 3) {
+        selectedBlock = `- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock}`;
+      }
+    } catch {
+      // Non-fatal: source-linked brief is best-effort
     }
   }
 

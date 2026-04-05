@@ -13,10 +13,16 @@ import { SENTINEL, buildPrompt } from "./prompt.js";
 import { detectPosture } from "./repo-posture.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
-import { type SchedulerOptions, createSyncScheduler as importedCreateSyncScheduler } from "./scheduler.js";
+import {
+  type SchedulerOptions,
+  createSyncScheduler as importedCreateSyncScheduler,
+} from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { checkWorkspaceHealth } from "./workspace-health.js";
-import { computeEffectiveMode, type EffectiveMode } from "./smart-enforcement.js";
+import {
+  computeEffectiveMode,
+  type EffectiveMode,
+} from "./smart-enforcement.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -50,6 +56,17 @@ function readConfigFingerprint(cwd: string): string {
     return fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf-8");
   } catch {
     return "missing";
+  }
+}
+
+function readMaintenanceModeEnabled(cwd: string): boolean {
+  try {
+    const raw = JSON.parse(
+      fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf-8"),
+    ) as { maintenance?: { enabled?: boolean } };
+    return raw?.maintenance?.enabled === true;
+  } catch {
+    return false;
   }
 }
 
@@ -95,7 +112,12 @@ export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
 
 interface RuntimeDegradedOverlay {
   degraded: boolean;
-  primaryCause?: "sync_disabled" | "scheduler_unavailable" | "scheduler_sync_failed" | "scheduler_check_failed" | "non_authoritative_posture";
+  primaryCause?:
+    | "sync_disabled"
+    | "scheduler_unavailable"
+    | "scheduler_sync_failed"
+    | "scheduler_check_failed"
+    | "non_authoritative_posture";
   causes: string[];
 }
 
@@ -214,7 +236,10 @@ const kibiOpencodePlugin: Plugin = async (
   });
 
   // Session-local runtime degraded overlay (latched, never cleared)
-  let runtimeOverlay: RuntimeDegradedOverlay = { degraded: false, causes: [] };
+  const runtimeOverlay: RuntimeDegradedOverlay = {
+    degraded: false,
+    causes: [],
+  };
   let degradedWarnedOnce = false;
 
   function latchRuntimeDegraded(
@@ -247,7 +272,8 @@ const kibiOpencodePlugin: Plugin = async (
   function getEffectiveMode(): EffectiveMode {
     return computeEffectiveMode({
       mode: cfg.guidance.smartEnforcement.mode,
-      requireRootKbForStrict: cfg.guidance.smartEnforcement.requireRootKbForStrict,
+      requireRootKbForStrict:
+        cfg.guidance.smartEnforcement.requireRootKbForStrict,
       posture: posture.state,
       maintenanceDegraded: getMaintenanceDegraded(),
     });
@@ -255,7 +281,11 @@ const kibiOpencodePlugin: Plugin = async (
   // Compute effective smart-enforcement mode from config + posture + runtime overlay
 
   // Latch startup-level runtime degraded causes
-  if (posture.state === "vendored_only" || posture.state === "root_uninitialized" || posture.state === "root_partial") {
+  if (
+    posture.state === "vendored_only" ||
+    posture.state === "root_uninitialized" ||
+    posture.state === "root_partial"
+  ) {
     latchRuntimeDegraded("non_authoritative_posture");
   }
   if (!cfg.sync.enabled) {
@@ -295,8 +325,12 @@ const kibiOpencodePlugin: Plugin = async (
   const seenFingerprints = new Set<string>(); // For deduplication
   let lastRiskClass: RiskClass | null = null;
 
-  const createSyncScheduler =
-    (globalThis as any).__kibi_test_scheduler_factory ?? importedCreateSyncScheduler;
+  const createSyncScheduler: typeof importedCreateSyncScheduler =
+    (
+      globalThis as {
+        __kibi_test_scheduler_factory?: typeof importedCreateSyncScheduler;
+      }
+    ).__kibi_test_scheduler_factory ?? importedCreateSyncScheduler;
 
   // Create scheduler only if sync is enabled
   let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
@@ -328,6 +362,7 @@ const kibiOpencodePlugin: Plugin = async (
     if (!filePath) return;
 
     const pathAnalysis = analyzePath(filePath, input.worktree);
+    const maintenanceModeEnabled = readMaintenanceModeEnabled(input.worktree);
 
     let fileContent = "";
     try {
@@ -388,6 +423,61 @@ const kibiOpencodePlugin: Plugin = async (
       merged_degraded: getMaintenanceDegraded(),
       overlay_cause: runtimeOverlay.primaryCause ?? null,
     });
+
+    const targetedChecksBlocked =
+      maintenanceModeEnabled ||
+      posture.maintenanceDegraded ||
+      runtimeOverlay.primaryCause === "sync_disabled" ||
+      runtimeOverlay.primaryCause === "scheduler_unavailable" ||
+      runtimeOverlay.primaryCause === "scheduler_sync_failed" ||
+      runtimeOverlay.primaryCause === "scheduler_check_failed";
+
+    if (
+      !targetedChecksBlocked &&
+      cfg.sync.enabled &&
+      scheduler &&
+      cfg.guidance.targetedChecks.enabled
+    ) {
+      const traceabilityRules =
+        effectiveRiskClass === "traceability_candidate"
+          ? ["symbol-traceability"]
+          : null;
+      const kbStructuralRules =
+        effectiveRiskClass === "kb_doc_structural" &&
+        fileFilter.shouldHandleFile(filePath, input.worktree)
+          ? [
+              "required-fields",
+              "no-dangling-refs",
+              ...(pathAnalysis.kind === "fact" ? ["strict-fact-shape"] : []),
+            ]
+          : null;
+
+      const checkRules = traceabilityRules ?? kbStructuralRules;
+      if (checkRules) {
+        logger.info("smart-enforcement.targeted-checks", {
+          event: "smart_enforcement_targeted_checks",
+          file: filePath,
+          risk_class: effectiveRiskClass,
+          posture: posture.state,
+          posture_state: posture.state,
+          guidance_action: "targeted_checks",
+          effective_mode: getEffectiveMode(),
+          rules: checkRules,
+          static_degraded: posture.maintenanceDegraded,
+          runtime_degraded: runtimeOverlay.degraded,
+          merged_degraded: getMaintenanceDegraded(),
+          overlay_cause: runtimeOverlay.primaryCause ?? null,
+        });
+        logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
+        scheduler.scheduleSync(
+          effectiveRiskClass === "traceability_candidate"
+            ? "smart-enforcement.traceability"
+            : "smart-enforcement.kb-doc",
+          filePath,
+          checkRules,
+        );
+      }
+    }
 
     const now = Date.now();
 
@@ -478,7 +568,8 @@ const kibiOpencodePlugin: Plugin = async (
             ? "maintenance_degraded"
             : "maintenance_available",
           reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
-          reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          reason_code:
+            runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: getMaintenanceDegraded(),
@@ -495,7 +586,7 @@ const kibiOpencodePlugin: Plugin = async (
       ) {
         let checkRules: string[] | undefined;
         if (cfg.guidance.targetedChecks.enabled) {
-        if (hasMustPriority && getEffectiveMode() === "strict") {
+          if (hasMustPriority && getEffectiveMode() === "strict") {
             checkRules = [
               "required-fields",
               "no-dangling-refs",
@@ -522,8 +613,16 @@ const kibiOpencodePlugin: Plugin = async (
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
-        logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-        scheduler?.scheduleSync("file.edited", filePath, checkRules);
+        scheduler?.scheduleSync(
+          "file.edited",
+          filePath,
+          checkRules,
+        );
+        scheduler?.scheduleSync(
+          "smart-enforcement.traceability",
+          filePath,
+          checkRules,
+        );
       }
       return;
     }
@@ -544,7 +643,8 @@ const kibiOpencodePlugin: Plugin = async (
             ? "maintenance_degraded"
             : "maintenance_available",
           reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
-          reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
+          reason_code:
+            runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: getMaintenanceDegraded(),
@@ -553,36 +653,8 @@ const kibiOpencodePlugin: Plugin = async (
         });
       }
 
-      if (
-        !getMaintenanceDegraded() &&
-        cfg.sync.enabled &&
-        scheduler &&
-        fileFilter.shouldHandleFile(filePath, input.worktree)
-      ) {
-        let checkRules: string[] | undefined;
-        if (cfg.guidance.targetedChecks.enabled) {
-          checkRules = ["required-fields", "no-dangling-refs"];
-        }
-        logger.info("smart-enforcement.targeted-checks", {
-          event: "smart_enforcement_targeted_checks",
-          file: filePath,
-          risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
-          guidance_action: "targeted_checks",
-          effective_mode: getEffectiveMode(),
-          rules: checkRules ?? [],
-          static_degraded: posture.maintenanceDegraded,
-          runtime_degraded: runtimeOverlay.degraded,
-          merged_degraded: getMaintenanceDegraded(),
-          overlay_cause: runtimeOverlay.primaryCause ?? null,
-        });
-        logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-        scheduler?.scheduleSync("file.edited", filePath, checkRules);
-      }
       return;
     }
-
 
     if (
       effectiveRiskClass === "behavior_candidate" ||

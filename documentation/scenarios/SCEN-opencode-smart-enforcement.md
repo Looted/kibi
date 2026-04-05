@@ -4,7 +4,7 @@ title: Smart Enforcement Posture and Risk Classification
 type: scenario
 status: draft
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-03T00:00:00Z
+updated_at: 2026-04-05T01:00:00Z
 source: documentation/scenarios/SCEN-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -66,3 +66,21 @@ The OpenCode Kibi Plugin must adjust its guidance based on the repository's Kibi
 **When** the plugin attempts to detect posture
 **Then** it must fail gracefully, preserving the underlying posture decision
 **And** apply `maintenance_degraded` as an overlay until the user/operator repairs setup outside the agent session.
+### Targeted Validation Routing
+
+**Given** the posture is `root_active` and targeted checks are enabled
+**When** an agent edits a code file classified as `traceability_candidate`
+**Then** the plugin must schedule a sync with reason `smart-enforcement.traceability` and rule `symbol-traceability`.
+
+**When** an agent edits a fact KB document
+**Then** the plugin must include `strict-fact-shape` along with `required-fields` and `no-dangling-refs` in the scheduled validation.
+
+### Source-Linked Micro-Brief Guidance
+
+**Given** the posture is `root_active`
+**When** an agent edits a code file that has existing requirement links in `documentation/symbols.yaml`
+**And** the action is classified as `behavior_candidate` or `traceability_candidate`
+**Then** the injected guidance must prepend `- Existing Kibi links: REQ-001, REQ-002` (up to 3 IDs) to the risk-class guidance.
+
+**When** the same action is performed again and the context is cached
+**Then** the guidance must be suppressed (including the micro-brief) to minimize noise.

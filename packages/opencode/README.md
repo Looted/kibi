@@ -24,6 +24,7 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 
 - **Repo posture detection**: distinguishes `root_active`, `root_partial`, `root_uninitialized`, `vendored_only`, and `hybrid_root_plus_vendored`
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
+- **Source-linked micro-briefs**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
 - **Effective mode gating**: `strict` is only possible for `root_active` and `hybrid_root_plus_vendored` when `requireRootKbForStrict` is enabled; `maintenanceDegraded` overrides everything back to `advisory`
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
 - **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible `kb_check` reminder exactly once per cached context
@@ -44,8 +45,10 @@ The plugin provides context-aware prompt guidance based on recent edits and work
 
 After KB-document edits, the plugin queues targeted validation rules to run via background sync operations:
 
-- **Must-priority requirement edits**: elevated validation including coverage checks
-- **Other requirement/scenario/test/ADR/fact edits**: standard validation for required fields and dangling references
+- **Must-priority requirement edits**: elevated validation including coverage checks (`must-priority-coverage`)
+- **Traceability candidate code edits**: schedules `symbol-traceability` via reason `smart-enforcement.traceability`
+- **Fact KB doc edits**: includes `strict-fact-shape` validation alongside standard structural checks
+- **Other requirement/scenario/test/ADR/fact edits**: standard validation for `required-fields` and `no-dangling-refs`
 
 The plugin inspects requirement frontmatter to detect `priority: must` and schedules elevated validation for critical requirements. Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
 
