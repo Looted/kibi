@@ -368,7 +368,7 @@ This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over 
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
-Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
+Keep changed symbols traceable: for test and e2e code, prefer durable symbol/test/requirement relationships (e.g. via \`symbols.yaml\`); inline \`// implements REQ-xxx\` comments remain optional and backward-compatible for quick code-only changes.
 
 Run kb_check after KB mutations.
 
