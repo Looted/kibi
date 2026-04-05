@@ -3,13 +3,72 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import type { ExtractionResult } from "../../src/extractors/markdown.js";
+import { PrologProcess } from "../../src/prolog.js";
+import { toPrologAtom } from "../../src/prolog/codec.js";
 import type { ExtractedSymbol } from "../../src/traceability/symbol-extract.js";
 import {
   cleanupTempKb,
   consultOverlay,
   createOverlayFacts,
   createTempKb,
+  projectStagedEntities,
 } from "../../src/traceability/temp-kb.js";
+import { validateStagedSymbols } from "../../src/traceability/validate.js";
+
+const FIXED_TIMESTAMP = "2026-04-05T00:00:00.000Z";
+
+function makeExtractionResult(options: {
+  id: string;
+  type: string;
+  title: string;
+  status: string;
+  source: string;
+  relationships?: ExtractionResult["relationships"];
+}): ExtractionResult {
+  return {
+    entity: {
+      id: options.id,
+      type: options.type,
+      title: options.title,
+      status: options.status,
+      created_at: FIXED_TIMESTAMP,
+      updated_at: FIXED_TIMESTAMP,
+      source: options.source,
+    },
+    relationships: options.relationships ?? [],
+  };
+}
+
+async function querySucceeds(
+  prolog: PrologProcess,
+  goal: string,
+): Promise<boolean> {
+  const result = await prolog.query(goal);
+  return result.success;
+}
+
+async function seedBaseKb(
+  kbPath: string,
+  results: ExtractionResult[],
+): Promise<void> {
+  const prolog = new PrologProcess({ timeout: 120000 });
+  await prolog.start();
+
+  try {
+    const attachResult = await prolog.query(
+      `kb_attach(${toPrologAtom(kbPath)})`,
+    );
+    expect(attachResult.success).toBe(true);
+
+    await projectStagedEntities(prolog, results);
+
+    const detachResult = await prolog.query("kb_detach");
+    expect(detachResult.success).toBe(true);
+  } finally {
+    await prolog.terminate();
+  }
+}
 
 describe("temp-kb", () => {
   let baseKbDir: string;
@@ -210,6 +269,213 @@ describe("temp-kb", () => {
         await expect(consultOverlay(ctx)).rejects.toThrow(
           "Failed to consult overlay facts",
         );
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+  });
+
+  describe("projectStagedEntities", () => {
+    it("asserts staged entities and relationships into the temp KB", async () => {
+      const ctx = await createTempKb(baseKbDir);
+
+      try {
+        const stagedResults: ExtractionResult[] = [
+          makeExtractionResult({
+            id: "REQ-LOGIN",
+            type: "req",
+            title: "Login requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-LOGIN.md",
+            relationships: [
+              { type: "verified_by", from: "REQ-LOGIN", to: "TEST-LOGIN" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "TEST-LOGIN",
+            type: "test",
+            title: "Login test",
+            status: "passing",
+            source: "documentation/tests/TEST-LOGIN.md",
+            relationships: [
+              { type: "validates", from: "TEST-LOGIN", to: "REQ-LOGIN" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "SYM-LOGIN",
+            type: "symbol",
+            title: "loginFlow",
+            status: "active",
+            source: "documentation/symbols.yaml",
+            relationships: [
+              { type: "implements", from: "SYM-LOGIN", to: "REQ-LOGIN" },
+              { type: "covered_by", from: "SYM-LOGIN", to: "TEST-LOGIN" },
+            ],
+          }),
+        ];
+
+        await projectStagedEntities(ctx.prolog, stagedResults);
+
+        expect(
+          await querySucceeds(ctx.prolog, "kb_entity('REQ-LOGIN', req, _)"),
+        ).toBe(true);
+        expect(
+          await querySucceeds(ctx.prolog, "kb_entity('TEST-LOGIN', test, _)"),
+        ).toBe(true);
+        expect(
+          await querySucceeds(ctx.prolog, "kb_entity('SYM-LOGIN', symbol, _)"),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(verified_by, 'REQ-LOGIN', 'TEST-LOGIN')",
+          ),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(validates, 'TEST-LOGIN', 'REQ-LOGIN')",
+          ),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(implements, 'SYM-LOGIN', 'REQ-LOGIN')",
+          ),
+        ).toBe(true);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(covered_by, 'SYM-LOGIN', 'TEST-LOGIN')",
+          ),
+        ).toBe(true);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
+    it("retracts stale copied-base relationships before reasserting the staged snapshot", async () => {
+      await seedBaseKb(baseKbDir, [
+        makeExtractionResult({
+          id: "REQ-LOGIN",
+          type: "req",
+          title: "Old login requirement",
+          status: "open",
+          source: "documentation/requirements/REQ-LOGIN.md",
+          relationships: [
+            { type: "verified_by", from: "REQ-LOGIN", to: "TEST-OLD" },
+          ],
+        }),
+        makeExtractionResult({
+          id: "TEST-OLD",
+          type: "test",
+          title: "Old login test",
+          status: "passing",
+          source: "documentation/tests/TEST-OLD.md",
+        }),
+      ]);
+
+      const ctx = await createTempKb(baseKbDir);
+
+      try {
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(verified_by, 'REQ-LOGIN', 'TEST-OLD')",
+          ),
+        ).toBe(true);
+
+        await projectStagedEntities(ctx.prolog, [
+          makeExtractionResult({
+            id: "REQ-LOGIN",
+            type: "req",
+            title: "New login requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-LOGIN.md",
+            relationships: [
+              { type: "verified_by", from: "REQ-LOGIN", to: "TEST-NEW" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "TEST-NEW",
+            type: "test",
+            title: "New login test",
+            status: "passing",
+            source: "documentation/tests/TEST-NEW.md",
+          }),
+        ]);
+
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(verified_by, 'REQ-LOGIN', 'TEST-OLD')",
+          ),
+        ).toBe(false);
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(verified_by, 'REQ-LOGIN', 'TEST-NEW')",
+          ),
+        ).toBe(true);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
+    it("keeps inline overlay requirement facts layered on top of projected entities", async () => {
+      const ctx = await createTempKb(baseKbDir);
+
+      try {
+        await projectStagedEntities(ctx.prolog, [
+          makeExtractionResult({
+            id: "REQ-KB",
+            type: "req",
+            title: "KB requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-KB.md",
+          }),
+          makeExtractionResult({
+            id: "TEST-LOGIN",
+            type: "test",
+            title: "Projected login test",
+            status: "passing",
+            source: "documentation/tests/TEST-LOGIN.md",
+            relationships: [
+              { type: "validates", from: "TEST-LOGIN", to: "REQ-KB" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "SYM-LOGIN",
+            type: "symbol",
+            title: "loginFlow",
+            status: "active",
+            source: "documentation/symbols.yaml",
+            relationships: [
+              { type: "covered_by", from: "SYM-LOGIN", to: "TEST-LOGIN" },
+            ],
+          }),
+        ]);
+
+        const overlayFacts = createOverlayFacts([
+          {
+            id: "SYM-LOGIN",
+            name: "loginFlow",
+            kind: "function",
+            location: { file: "src/login.ts", startLine: 10, endLine: 20 },
+            hunkRanges: [],
+            reqLinks: ["REQ-INLINE"],
+          },
+        ]);
+
+        await Bun.write(ctx.overlayPath, overlayFacts);
+        await consultOverlay(ctx);
+
+        const violations = await validateStagedSymbols({
+          minLinks: 2,
+          prolog: ctx.prolog,
+        });
+
+        expect(violations).toEqual([]);
       } finally {
         await cleanupTempKb(ctx.tempDir);
       }
