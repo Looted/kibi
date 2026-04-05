@@ -32,7 +32,7 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
    - `root_uninitialized`: No root `.kb/config.json`, but the root declares Kibi intent; initialization guidance only (e.g., `/init-kibi`).
    - `vendored_only`: Kibi is only present in vendored dependencies; limited advisory guidance.
    - `hybrid_root_plus_vendored`: Root `.kb/config.json` exists alongside vendored Kibi trees; the root remains authoritative.
-   - `maintenance_degraded` overlay: maintenance execution is unavailable or disabled; guidance must degrade without pretending hooks/checks ran.
+   - `maintenanceDegraded` overlay: maintenance execution is unavailable or disabled; guidance must degrade without pretending hooks/checks ran.
 
 2. **Risk Classification**: Every proposed edit or action must be classified to determine the enforcement level:
    - `safe_docs_only`: Edits to non-KB documentation; low enforcement.

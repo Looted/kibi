@@ -57,6 +57,20 @@ describe("GuidanceCache", () => {
 
       expect(shortCache.isSatisfied(makeKey())).toBe(false);
     });
+    test("returns false after idle reset", () => {
+      const idleCache = new GuidanceCache(600000, 1); // 1ms idle reset
+      idleCache.recordSatisfied(makeKey(), "preflight");
+      expect(idleCache.isSatisfied(makeKey())).toBe(true);
+
+      // Wait past the idle window
+      const start = Date.now();
+      while (Date.now() - start < 5) {
+        // busy-wait 5ms
+      }
+
+      // After idle period, any cache operation should trigger reset
+      expect(idleCache.isSatisfied(makeKey())).toBe(false);
+    });
 
     test("differentiates by workspaceRoot", () => {
       cache.recordSatisfied(makeKey({ workspaceRoot: "/ws/a" }), "preflight");

@@ -2794,6 +2794,9 @@ import datetime
       const first = degradedLogs[0]?.body as Record<string, unknown>;
       assert.equal(first?.overlay_cause, "sync_disabled");
       assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+      assert.equal(first?.overlay_cause, "sync_disabled");
+      assert.equal(first?.runtime_degraded, true);
     });
 
     it("latches non_authoritative_posture for root_uninitialized", async () => {
@@ -2857,6 +2860,299 @@ import datetime
 
       const first = degradedLogs[0]?.body as Record<string, unknown>;
       assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+    });
+
+    it("latches scheduler_unavailable when createSyncScheduler throws", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      (globalThis as any).__kibi_test_scheduler_factory = () => {
+        throw new Error("scheduler creation failure");
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_unavailable",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.overlay_cause, "scheduler_unavailable");
+      assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+
+    it("latches scheduler_sync_failed when onRunComplete has non-zero exitCode", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_sync_failed",
+      );
+
+      const causes = degradedLogs.map(
+        (p) => (p.body as Record<string, unknown>).overlay_cause,
+      );
+      assert.ok(causes.includes("scheduler_sync_failed"));
+
+      const syncFailed = degradedLogs.find(
+        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_sync_failed",
+      );
+      assert.equal((syncFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+
+    it("latches scheduler_check_failed when onRunComplete has non-zero checkExitCode", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      capturedOnRunComplete?.({ exitCode: 0, checkExitCode: 1 });
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_check_failed",
+      );
+
+      const causes = degradedLogs.map(
+        (p) => (p.body as Record<string, unknown>).overlay_cause,
+      );
+      assert.ok(causes.includes("scheduler_check_failed"));
+
+      const checkFailed = degradedLogs.find(
+        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_check_failed",
+      );
+      assert.equal((checkFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
     });
   });
 
