@@ -188,18 +188,10 @@ export function detectEmbeddedEntities(
 }
 
 // implements REQ-007, REQ-004
-export function extractFromMarkdown(filePath: string): ExtractionResult {
-  let content: string;
-  try {
-    content = readFileSync(filePath, "utf8");
-  } catch (error) {
-    throw new FrontmatterError(
-      `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
-      filePath,
-      { classification: "File Read Error" },
-    );
-  }
-
+function extractFromMarkdownContent(
+  content: string,
+  filePath: string,
+): ExtractionResult {
   try {
     const { data } = matter(content);
 
@@ -411,6 +403,30 @@ export function extractFromMarkdown(filePath: string): ExtractionResult {
 
     throw error;
   }
+}
+
+// implements REQ-007, REQ-004
+export function extractFromMarkdownString(
+  content: string,
+  filePath: string,
+): ExtractionResult {
+  return extractFromMarkdownContent(content, filePath);
+}
+
+// implements REQ-007, REQ-004
+export function extractFromMarkdown(filePath: string): ExtractionResult {
+  let content: string;
+  try {
+    content = readFileSync(filePath, "utf8");
+  } catch (error) {
+    throw new FrontmatterError(
+      `Failed to read file: ${error instanceof Error ? error.message : String(error)}`,
+      filePath,
+      { classification: "File Read Error" },
+    );
+  }
+
+  return extractFromMarkdownContent(content, filePath);
 }
 
 export function inferTypeFromPath(filePath: string): string | null {

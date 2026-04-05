@@ -18,6 +18,10 @@
 
 import * as path from "node:path";
 import { extractFromManifestString } from "../extractors/manifest.js";
+import {
+  extractFromMarkdownString,
+  type ExtractionResult,
+} from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
@@ -36,6 +40,7 @@ import {
   consultOverlay,
   createOverlayFacts,
   createTempKb,
+  projectStagedEntities,
 } from "../traceability/temp-kb.js";
 import {
   formatViolations as formatStagedViolations,
@@ -63,10 +68,12 @@ export interface CheckOptions {
   dryRun?: boolean;
 }
 
-function buildManifestLookup(
-  stagedFiles: ReturnType<typeof getStagedFiles>,
-): ManifestLookup {
+function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
+  manifestLookup: ManifestLookup;
+  manifestResults: ExtractionResult[];
+} {
   const manifestLookup: ManifestLookup = new Map();
+  const manifestResults: ExtractionResult[] = [];
   const stagedManifestFiles = stagedFiles.filter(
     (file) =>
       file.content !== undefined &&
@@ -88,6 +95,11 @@ function buildManifestLookup(
         manifestFile.path,
       );
       for (const entry of entries) {
+        manifestResults.push({
+          entity: entry.entity,
+          relationships: entry.relationships,
+        });
+
         const sourceFile =
           entry.sourceFile || entry.entity.source || manifestFile.path;
         const key = `${sourceFile}:${entry.entity.title}`;
@@ -110,7 +122,7 @@ function buildManifestLookup(
     }
   }
 
-  return manifestLookup;
+  return { manifestLookup, manifestResults };
 }
 
 // implements REQ-006
@@ -157,7 +169,8 @@ export async function checkCommand(
           return { exitCode: 0 };
         }
 
-        const manifestLookup = buildManifestLookup(stagedFiles);
+        const { manifestLookup, manifestResults } =
+          buildManifestLookup(stagedFiles);
 
         const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
@@ -197,9 +210,18 @@ export async function checkCommand(
           }
         }
 
-        if (allSymbols.length === 0 && markdownFiles.length === 0) {
+        const markdownResults: ExtractionResult[] = markdownFiles.map((file) =>
+          extractFromMarkdownString(file.content ?? "", file.path),
+        );
+
+        const stagedEntityResults: ExtractionResult[] = [
+          ...manifestResults,
+          ...markdownResults,
+        ];
+
+        if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(
-            "No exported symbols or markdown entities found in staged files.",
+            "No exported symbols or staged entities found in staged files.",
           );
           return { exitCode: 0 };
         }
@@ -211,6 +233,10 @@ export async function checkCommand(
 
         // Create temp KB
         tempCtx = await createTempKb(resolvedKbPath);
+
+        if (stagedEntityResults.length > 0) {
+          await projectStagedEntities(tempCtx.prolog, stagedEntityResults);
+        }
 
         const overlayFacts = createOverlayFacts(allSymbols);
         const fs = await import("node:fs/promises");
