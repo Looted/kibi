@@ -8,7 +8,7 @@
     check_all_json/1,               % Returns all violations as JSON string
     check_must_priority_coverage/1, % Returns list of must-priority violations
     check_symbol_coverage/1,        % Returns list of uncovered symbols
-    check_symbol_traceability/2,    % Returns list of symbols lacking direct traceability (ReqAdr option)
+    check_symbol_traceability/2,    % Returns list of symbols lacking requirement traceability (ReqAdr option)
     check_no_dangling_refs/1,       % Returns list of dangling ref violations
     check_no_cycles/1,              % Returns list of cycle violations
     check_required_fields/1,        % Returns list of missing required field violations
@@ -106,8 +106,8 @@ symbol_coverage_violation(SymbolId, violation(
     violation_source(SymbolId, symbol, Source).
 
 %% check_symbol_traceability(+RequireAdr, -Violations)
-% Finds all symbols lacking direct traceability:
-% - Every symbol must have at least one direct 'implements' relationship to a requirement
+% Finds all symbols lacking supported requirement traceability:
+% - Every symbol must have at least one supported requirement traceability path
 % - If RequireAdr=true, the symbol must also have at least one 'constrained_by' relationship to an ADR
 check_symbol_traceability(RequireAdr, Violations) :-
     findall(
@@ -125,8 +125,8 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
-    % Check if symbol has direct implements to a requirement
-    (   kb_relationship(implements, SymbolId, ReqId),
+    % Check if symbol has a supported requirement traceability path
+    (   transitively_implements(SymbolId, ReqId),
         kb_entity(ReqId, req, _)
     ->  HasReq = true
     ;   HasReq = false
@@ -142,11 +142,11 @@ symbol_traceability_violation(RequireAdr, violation(
     ),
     % Determine what is missing
     (   HasReq = false, HasAdr = false, RequireAdr = true ->
-        Description = "Symbol has no direct requirement link and no ADR constraint.",
-        Suggestion = "Add 'implements: REQ-xxx' and 'constrained_by: ADR-xxx' in symbols.yaml."
+        Description = "Symbol has no supported requirement traceability path and no ADR constraint.",
+        Suggestion = "Add a direct 'implements: REQ-xxx' link or a test-backed 'covered_by' + 'validates'/'verified_by' path, and add 'constrained_by: ADR-xxx' in symbols.yaml."
     ;   HasReq = false ->
-        Description = "Symbol has no direct requirement link.",
-        Suggestion = "Add 'implements: REQ-xxx' in symbols.yaml."
+        Description = "Symbol has no supported requirement traceability path.",
+        Suggestion = "Add a direct 'implements: REQ-xxx' link or a test-backed 'covered_by' + 'validates'/'verified_by' path."
     ;   HasAdr = false ->
         Description = "Symbol has no ADR constraint.",
         Suggestion = "Add 'constrained_by: ADR-xxx' in symbols.yaml."
