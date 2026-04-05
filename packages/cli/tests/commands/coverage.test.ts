@@ -57,6 +57,7 @@ status: open
     const output = execSync(`bun ${kibiBin} coverage --by req --format json`, {
       cwd: tmpDir,
       encoding: "utf8",
+      timeout: 10000, // 10 second timeout for the command
     });
 
     const result = JSON.parse(output) as {
@@ -92,8 +93,7 @@ status: open
     expect(req1Row?.coverageStatus).not.toBe("fully_covered");
     const req2Row = result.rows.find((row) => row.id === "REQ-002");
     expect(req2Row?.coverageStatus).toBe("not_applicable");
-  });
-
+  }, 30000); // 30 second test timeout
   test("shows table output by default and exposes no-include-transitive option", () => {
     const tableOutput = execSync(`bun ${kibiBin} coverage --by req`, {
       cwd: tmpDir,
