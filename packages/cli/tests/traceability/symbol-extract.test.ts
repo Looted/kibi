@@ -3,12 +3,20 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Project } from "ts-morph";
+import { extractFromManifestString } from "../../src/extractors/manifest";
+
+type ManifestLookupRelationship = { type: string; to: string };
+type ManifestLookupValue = {
+  id: string;
+  relationships: ManifestLookupRelationship[];
+};
 
 const SYMBOL_EXTRACT_URL = new URL(
   "../../src/traceability/symbol-extract.js",
   import.meta.url,
 ).href;
 const tempDirs: string[] = [];
+const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
 
 function loadSymbolExtractModule(tag: string) {
   return import(`${SYMBOL_EXTRACT_URL}?case=${tag}-${Math.random()}`);
@@ -31,6 +39,40 @@ function makeStagedFile(
     hunkRanges: [{ start: 1, end: 20 }],
     status,
   };
+}
+
+function createManifestLookupFromString(content: string, manifestPath: string) {
+  const entries = extractFromManifestString(content, manifestPath);
+
+  return new Map<string, ManifestLookupValue>([
+    [
+      `${MANIFEST_SENTINEL_PREFIX}${manifestPath}`,
+      {
+        id: manifestPath,
+        relationships: [],
+      },
+    ],
+    ...entries.map((entry): [string, ManifestLookupValue] => {
+      const sourceFile =
+        entry.sourceFile ?? entry.entity.source ?? manifestPath;
+      return [
+        `${sourceFile}:${entry.entity.title}`,
+        {
+          id: entry.entity.id,
+          relationships: entry.relationships
+            .filter(
+              (relationship) =>
+                relationship.type === "implements" ||
+                relationship.type === "covered_by",
+            )
+            .map((relationship) => ({
+              type: relationship.type,
+              to: relationship.to,
+            })),
+        },
+      ];
+    }),
+  ]);
 }
 
 beforeEach(() => {
@@ -182,6 +224,98 @@ describe("symbol-extract (real integration)", () => {
 
     expect(symbols[0]?.reqLinks).toEqual(["REQ-ONLY"]);
   });
+
+  it("preserves typed relationships from staged manifests while inline implements override manifest req links", async () => {
+    const { extractSymbolsFromStagedFile } = await loadSymbolExtractModule(
+      "staged-manifest-relationships",
+    );
+
+    const dir = makeTempDir("symbol-extract-staged-manifest-");
+    const srcDir = join(dir, "src");
+    mkdirSync(srcDir, { recursive: true });
+    const filePath = join(srcDir, "feature.ts");
+
+    writeFileSync(
+      join(srcDir, "symbols.yaml"),
+      [
+        "symbols:",
+        "  - id: SYM-DISK-FN",
+        "    title: featureFn",
+        `    sourceFile: \"${filePath}\"`,
+        "    links:",
+        "      - REQ-DISK-FN",
+        "      - type: covered_by",
+        "        target: TEST-DISK-FN",
+        "  - id: SYM-DISK-VAR",
+        "    title: diskOnlyVar",
+        `    sourceFile: \"${filePath}\"`,
+        "    links:",
+        "      - REQ-DISK-VAR",
+      ].join("\n"),
+    );
+
+    const manifestLookup = createManifestLookupFromString(
+      [
+        "symbols:",
+        "  - id: SYM-STAGED-FN",
+        "    title: featureFn",
+        `    sourceFile: \"${filePath}\"`,
+        "    links:",
+        "      - REQ-MANIFEST-FN",
+        "      - type: covered_by",
+        "        target: TEST-MANIFEST-FN",
+        "  - id: SYM-STAGED-CLS",
+        "    title: FeatureClass",
+        `    sourceFile: \"${filePath}\"`,
+        "    relationships:",
+        "      - type: covered_by",
+        "        target: TEST-MANIFEST-CLS",
+        "      - type: implements",
+        "        target: REQ-MANIFEST-CLS",
+      ].join("\n"),
+      join(srcDir, "symbols.yaml"),
+    );
+
+    const symbols = extractSymbolsFromStagedFile(
+      makeStagedFile(
+        filePath,
+        [
+          "// implements: REQ-INLINE-FN",
+          "export function featureFn() {}",
+          "export class FeatureClass {}",
+          "export const diskOnlyVar = 1;",
+        ].join("\n"),
+        "A",
+      ),
+      manifestLookup,
+    );
+
+    expect(symbols).toHaveLength(3);
+    expect(symbols[0]).toMatchObject({
+      id: "SYM-STAGED-FN",
+      name: "featureFn",
+      reqLinks: ["REQ-INLINE-FN"],
+      relationships: [
+        { type: "implements", to: "REQ-MANIFEST-FN" },
+        { type: "covered_by", to: "TEST-MANIFEST-FN" },
+      ],
+    });
+    expect(symbols[1]).toMatchObject({
+      id: "SYM-STAGED-CLS",
+      name: "FeatureClass",
+      reqLinks: ["REQ-MANIFEST-CLS"],
+      relationships: [
+        { type: "covered_by", to: "TEST-MANIFEST-CLS" },
+        { type: "implements", to: "REQ-MANIFEST-CLS" },
+      ],
+    });
+    expect(symbols[2]).toMatchObject({
+      name: "diskOnlyVar",
+      reqLinks: [],
+    });
+    expect(symbols[2]?.id).toHaveLength(16);
+    expect(symbols[2]?.id).not.toBe("SYM-DISK-VAR");
+  });
 });
 
 describe("symbol-extract (cache and failure branches)", () => {
@@ -235,7 +369,13 @@ describe("symbol-extract (cache and failure branches)", () => {
       status: "A" as const,
     };
     const manifestLookup = new Map([
-      ["src/cache.ts:lookupFn", { id: "SYM-CACHE", links: ["REQ-CACHE"] }],
+      [
+        "src/cache.ts:lookupFn",
+        {
+          id: "SYM-CACHE",
+          relationships: [{ type: "implements", to: "REQ-CACHE" }],
+        },
+      ],
     ]);
 
     expect(

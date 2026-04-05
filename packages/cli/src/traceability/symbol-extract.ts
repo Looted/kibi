@@ -3,6 +3,12 @@ import { Project, ScriptKind, type SourceFile } from "ts-morph";
 import { extractFromManifest } from "../extractors/manifest.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
+type TraceabilityRelationship = { type: string; to: string };
+const TRACEABILITY_RELATIONSHIP_TYPES = new Set(["implements", "covered_by"]);
+const REQUIREMENT_ID_PATTERN = /^[A-Z][A-Z0-9\-_]*$/;
+const LOCAL_MANIFEST_NAMES = ["symbols.yaml", "symbols.yml"];
+const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
+
 export interface ExtractedSymbol {
   id: string;
   name: string;
@@ -14,14 +20,145 @@ export interface ExtractedSymbol {
   };
   hunkRanges: HunkRange[]; // intersecting hunks from staged file
   reqLinks: string[]; // requirement IDs from directive comments
+  relationships?: TraceabilityRelationship[];
 }
 
 export interface ManifestLookupEntry {
   id: string;
-  links?: string[];
+  relationships?: TraceabilityRelationship[];
 }
 
 export type ManifestLookup = Map<string, ManifestLookupEntry>;
+
+export function createManifestLookupSentinelKey(manifestPath: string): string {
+  // implements REQ-008
+  return `${MANIFEST_SENTINEL_PREFIX}${manifestPath}`;
+}
+
+function getCandidateManifestPaths(filePath: string): string[] {
+  const dir = filePath.substring(0, filePath.lastIndexOf("/"));
+  if (!dir) {
+    return [];
+  }
+
+  return LOCAL_MANIFEST_NAMES.map((manifestName) => `${dir}/${manifestName}`);
+}
+
+function createHashFallbackId(filePath: string, name: string): string {
+  const h = createHash("sha256");
+  h.update(`${filePath}:${name}`);
+  return h.digest("hex").slice(0, 16);
+}
+
+function filterTraceabilityRelationships(
+  relationships: TraceabilityRelationship[] | undefined,
+): TraceabilityRelationship[] {
+  if (!relationships?.length) {
+    return [];
+  }
+
+  return relationships.filter((relationship) =>
+    TRACEABILITY_RELATIONSHIP_TYPES.has(relationship.type),
+  );
+}
+
+function getRequirementLinks(
+  relationships: TraceabilityRelationship[] | undefined,
+): string[] {
+  return filterTraceabilityRelationships(relationships)
+    .filter(
+      (relationship) =>
+        relationship.type === "implements" &&
+        REQUIREMENT_ID_PATTERN.test(relationship.to),
+    )
+    .map((relationship) => relationship.to);
+}
+
+function resolveSymbolTraceability(
+  filePath: string,
+  name: string,
+  manifestLookup?: ManifestLookup,
+): { id: string; relationships?: TraceabilityRelationship[] } {
+  if (manifestLookup) {
+    const lookupKey = `${filePath}:${name}`;
+    const entry = manifestLookup.get(lookupKey);
+    if (entry) {
+      return {
+        id: entry.id,
+        relationships: filterTraceabilityRelationships(entry.relationships),
+      };
+    }
+  }
+
+  const candidateManifestPaths = getCandidateManifestPaths(filePath);
+  if (
+    manifestLookup &&
+    candidateManifestPaths.some((manifestPath) =>
+      manifestLookup.has(createManifestLookupSentinelKey(manifestPath)),
+    )
+  ) {
+    return { id: createHashFallbackId(filePath, name) };
+  }
+
+  for (const manifestPath of candidateManifestPaths) {
+    try {
+      const ents = extractFromManifest(manifestPath);
+      for (const e of ents) {
+        if (e.entity.title === name) {
+          return {
+            id: e.entity.id,
+            relationships: filterTraceabilityRelationships(
+              e.relationships.map((relationship) => ({
+                type: relationship.type,
+                to: relationship.to,
+              })),
+            ),
+          };
+        }
+      }
+    } catch {
+      // ignore - no local manifest or parse error
+    }
+  }
+
+  return { id: createHashFallbackId(filePath, name) };
+}
+
+function buildSymbolResult(
+  stagedFile: StagedFile,
+  name: string,
+  kind: ExtractedSymbol["kind"],
+  span: { startLine: number; endLine: number },
+  inlineReqLinks: string[],
+  manifestLookup?: ManifestLookup,
+): ExtractedSymbol {
+  const { id, relationships } = resolveSymbolTraceability(
+    stagedFile.path,
+    name,
+    manifestLookup,
+  );
+  const manifestReqLinks = getRequirementLinks(relationships);
+  const mergedReqLinks =
+    inlineReqLinks.length > 0 ? inlineReqLinks : manifestReqLinks;
+
+  return {
+    id,
+    name,
+    kind,
+    location: {
+      file: stagedFile.path,
+      startLine: span.startLine,
+      endLine: span.endLine,
+    },
+    hunkRanges: intersectingHunks(
+      span.startLine,
+      span.endLine,
+      stagedFile.hunkRanges,
+    ),
+    reqLinks: mergedReqLinks,
+    relationships,
+  };
+}
 
 // Simple in-memory cache keyed by blob sha with 30s TTL
 const sourceFileCache = new Map<
@@ -140,30 +277,16 @@ export function extractSymbolsFromStagedFile(
           .map((d) => d.getFullText())
           .join("\n")}`,
       );
-      const { id, reqLinks: manifestLinks } = resolveSymbolId(
-        stagedFile.path,
-        name,
-        manifestLookup,
-      );
-      // Merge manifest links with inline directive links (manifest links as fallback)
-      const mergedReqLinks =
-        reqLinks.length > 0 ? reqLinks : (manifestLinks ?? []);
-      results.push({
-        id,
-        name,
-        kind: "function",
-        location: {
-          file: stagedFile.path,
-          startLine: span.startLine,
-          endLine: span.endLine,
-        },
-        hunkRanges: intersectingHunks(
-          span.startLine,
-          span.endLine,
-          stagedFile.hunkRanges,
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "function",
+          span,
+          reqLinks,
+          manifestLookup,
         ),
-        reqLinks: mergedReqLinks,
-      });
+      );
     } catch {
       // skip: individual declaration extraction may fail on malformed AST nodes
     }
@@ -183,30 +306,16 @@ export function extractSymbolsFromStagedFile(
           .map((d) => d.getFullText())
           .join("\n")}`,
       );
-      const { id, reqLinks: manifestLinks } = resolveSymbolId(
-        stagedFile.path,
-        name,
-        manifestLookup,
-      );
-      // Merge manifest links with inline directive links (manifest links as fallback)
-      const mergedReqLinks =
-        reqLinks.length > 0 ? reqLinks : (manifestLinks ?? []);
-      results.push({
-        id,
-        name,
-        kind: "class",
-        location: {
-          file: stagedFile.path,
-          startLine: span.startLine,
-          endLine: span.endLine,
-        },
-        hunkRanges: intersectingHunks(
-          span.startLine,
-          span.endLine,
-          stagedFile.hunkRanges,
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "class",
+          span,
+          reqLinks,
+          manifestLookup,
         ),
-        reqLinks: mergedReqLinks,
-      });
+      );
     } catch {
       // skip: individual declaration extraction may fail on malformed AST nodes
     }
@@ -221,30 +330,16 @@ export function extractSymbolsFromStagedFile(
       const end = en.getEnd();
       const span = getSpan(start, end);
       const reqLinks = parseReqDirectives(en.getText());
-      const { id, reqLinks: manifestLinks } = resolveSymbolId(
-        stagedFile.path,
-        name,
-        manifestLookup,
-      );
-      // Merge manifest links with inline directive links (manifest links as fallback)
-      const mergedReqLinks =
-        reqLinks.length > 0 ? reqLinks : (manifestLinks ?? []);
-      results.push({
-        id,
-        name,
-        kind: "enum",
-        location: {
-          file: stagedFile.path,
-          startLine: span.startLine,
-          endLine: span.endLine,
-        },
-        hunkRanges: intersectingHunks(
-          span.startLine,
-          span.endLine,
-          stagedFile.hunkRanges,
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "enum",
+          span,
+          reqLinks,
+          manifestLookup,
         ),
-        reqLinks: mergedReqLinks,
-      });
+      );
     } catch {
       // skip: individual declaration extraction may fail on malformed AST nodes
     }
@@ -260,30 +355,16 @@ export function extractSymbolsFromStagedFile(
         const end = decl.getEnd();
         const span = getSpan(start, end);
         const reqLinks = parseReqDirectives(decl.getText());
-        const { id, reqLinks: manifestLinks } = resolveSymbolId(
-          stagedFile.path,
-          name,
-          manifestLookup,
-        );
-        // Merge manifest links with inline directive links (manifest links as fallback)
-        const mergedReqLinks =
-          reqLinks.length > 0 ? reqLinks : (manifestLinks ?? []);
-        results.push({
-          id,
-          name,
-          kind: "variable",
-          location: {
-            file: stagedFile.path,
-            startLine: span.startLine,
-            endLine: span.endLine,
-          },
-          hunkRanges: intersectingHunks(
-            span.startLine,
-            span.endLine,
-            stagedFile.hunkRanges,
+        results.push(
+          buildSymbolResult(
+            stagedFile,
+            name,
+            "variable",
+            span,
+            reqLinks,
+            manifestLookup,
           ),
-          reqLinks: mergedReqLinks,
-        });
+        );
       } catch {
         // skip: individual declaration extraction may fail on malformed AST nodes
       }
@@ -312,50 +393,4 @@ function intersectingHunks(
     if (rangesIntersect(startLine, endLine, h.start, h.end)) out.push(h);
   }
   return out;
-}
-
-function resolveSymbolId(
-  filePath: string,
-  name: string,
-  manifestLookup?: ManifestLookup,
-): { id: string; reqLinks?: string[] } {
-  // First, check the provided manifest lookup if available
-  if (manifestLookup) {
-    // Normalize the source file path for consistent lookup
-    const normalizedSource = filePath;
-    const lookupKey = `${normalizedSource}:${name}`;
-    const entry = manifestLookup.get(lookupKey);
-    if (entry) {
-      return { id: entry.id, reqLinks: entry.links };
-    }
-  }
-
-  // Fallback: attempt to read manifest entries from a local symbols.yaml (best-effort)
-  try {
-    // Try to find a symbols.yaml in the same directory as the file
-    const dir = filePath.substring(0, filePath.lastIndexOf("/"));
-    if (dir) {
-      const manifestPath = `${dir}/symbols.yaml`;
-      const ents = extractFromManifest(manifestPath);
-      for (const e of ents) {
-        if (e.entity.title === name) {
-          // Extract requirement links from relationships
-          const reqLinks = e.relationships
-            .filter(
-              (r) =>
-                r.type === "implements" && r.to.match(/^[A-Z][A-Z0-9\-_]*$/),
-            )
-            .map((r) => r.to);
-          return { id: e.entity.id, reqLinks };
-        }
-      }
-    }
-  } catch {
-    // ignore - no local manifest or parse error
-  }
-
-  // Final fallback: deterministic id: sha(file:path:name)
-  const h = createHash("sha256");
-  h.update(`${filePath}:${name}`);
-  return { id: h.digest("hex").slice(0, 16) };
 }

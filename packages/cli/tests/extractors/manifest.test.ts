@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   ManifestError,
   extractFromManifest,
+  extractFromManifestString,
 } from "../../src/extractors/manifest";
 
 const TEST_DIR = join(process.cwd(), "test-tmp");
@@ -96,6 +97,42 @@ symbols:
     });
 
     cleanup();
+  });
+
+  test("extracts typed relationships from manifest strings", () => {
+    const results = extractFromManifestString(
+      `
+symbols:
+  - id: symbol-auth-service
+    title: Auth service
+    sourceFile: src/auth-service.ts
+    status: active
+    relationships:
+      - type: covered_by
+        target: TEST-042
+      - type: implements
+        target: REQ-001
+`,
+      "src/symbols.yaml",
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0]).toMatchObject({
+      sourceFile: "src/auth-service.ts",
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-auth-service",
+          to: "TEST-042",
+        },
+        {
+          type: "implements",
+          from: "symbol-auth-service",
+          to: "REQ-001",
+        },
+      ],
+    });
+    expect(results[0]?.entity.source).toBe("src/symbols.yaml");
   });
 
   test("generates consistent content-based IDs", () => {
