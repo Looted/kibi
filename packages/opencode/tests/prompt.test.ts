@@ -1,10 +1,13 @@
 /// <reference types="bun-types" />
-import { describe, test } from "bun:test";
+import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { KibiConfig } from "../src/config";
 import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
 import { GuidanceCache } from "../src/guidance-cache";
 import type { CacheKey } from "../src/guidance-cache";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 const baseConfig: KibiConfig = {
   enabled: true,
@@ -881,3 +884,308 @@ describe("prompt", () => {
       assert.ok(bullets.length <= 5, `Expected <= 5 bullets, got ${bullets.length}`);
     });
   });
+
+// ── Source-linked micro-brief contract (Task 1 TDD lock-in) ───────────
+// These tests define the contract for Task 2 implementation.
+// Expected to FAIL until runtime source-linked guidance is implemented.
+describe("source-linked micro-brief contract", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-source-linked-"));
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+  });
+
+  /** Helper to write a symbols.yaml with the given entries */
+  function writeSymbolsYaml(
+    entries: Array<{
+      id: string;
+      sourceFile: string;
+      links: string[];
+      relationships?: Array<{ type: string; target: string }>;
+    }>,
+  ) {
+    const docDir = path.join(tmpDir, "documentation");
+    fs.mkdirSync(docDir, { recursive: true });
+    const yamlContent =
+      entries
+        .map((e) => {
+          let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n    links:\n`;
+          for (const link of e.links) {
+            entry += `      - ${link}\n`;
+          }
+          if (e.relationships) {
+            entry += `    relationships:\n`;
+            for (const rel of e.relationships) {
+              entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
+            }
+          }
+          return entry;
+        })
+        .join("\n");
+    fs.writeFileSync(path.join(docDir, "symbols.yaml"), yamlContent);
+  }
+
+  test("includes source-linked brief for code edit with concrete symbols.yaml mapping", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+          "REQ-opencode-agent-mcp-only",
+        ],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+          { type: "implements", target: "REQ-opencode-kibi-plugin-v1" },
+          { type: "implements", target: "REQ-opencode-agent-mcp-only" },
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    // Should include source-linked brief with at most 3 REQ IDs
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief bullet for mapped file",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-smart-enforcement-v1"),
+      "Should include first requirement ID",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-kibi-plugin-v1"),
+      "Should include second requirement ID",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-agent-mcp-only"),
+      "Should include third requirement ID",
+    );
+
+    // The brief line should contain at most 3 REQ IDs
+    const briefLine = p
+      .split("\n")
+      .find((l) => l.includes("- Existing Kibi links:"));
+    assert.ok(briefLine, "Should find the brief line");
+    const briefReqIds = briefLine.match(/REQ-[A-Za-z0-9_-]+/g);
+    assert.ok(
+      briefReqIds && briefReqIds.length <= 3,
+      `Source-linked brief should have at most 3 IDs, got ${briefReqIds?.length ?? 0}`,
+    );
+  });
+
+  test("omits source-linked brief for code edit without symbols.yaml mapping", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/some-other-file.ts", kind: "code" },
+      ],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    // Should NOT include any source-linked brief or fallback text
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Should NOT include source-linked brief for unmapped file",
+    );
+    assert.ok(
+      !p.includes("No Kibi links found"),
+      "Should NOT include fallback text when no hits",
+    );
+    assert.ok(
+      !p.includes("no source links"),
+      "Should NOT include any no-hit filler text",
+    );
+  });
+
+  test("source-linked brief caps at 3 requirement IDs even when more exist", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-classifyRisk",
+        sourceFile: "packages/opencode/src/risk-classifier.ts",
+        links: [
+          "REQ-first",
+          "REQ-second",
+          "REQ-third",
+          "REQ-fourth",
+          "REQ-fifth",
+        ],
+        relationships: [
+          { type: "implements", target: "REQ-first" },
+          { type: "implements", target: "REQ-second" },
+          { type: "implements", target: "REQ-third" },
+          { type: "implements", target: "REQ-fourth" },
+          { type: "implements", target: "REQ-fifth" },
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/risk-classifier.ts", kind: "code" },
+      ],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
+    const briefLine = p
+      .split("\n")
+      .find((l) => l.includes("- Existing Kibi links:"));
+    assert.ok(briefLine, "Should find the brief line");
+    const briefReqIds = briefLine.match(/REQ-[A-Za-z0-9_-]+/g);
+    assert.equal(
+      briefReqIds?.length ?? 0,
+      3,
+      `Source-linked brief should cap at exactly 3 IDs, got ${briefReqIds?.length ?? 0}`,
+    );
+  });
+
+  test("source-linked brief respects prompt budget (<=120 words, <=5 bullets)", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+          "REQ-opencode-agent-mcp-only",
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("source-linked brief does not appear for non-code risk classes", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-someReq",
+        sourceFile: "documentation/requirements/REQ-001.md",
+        links: ["REQ-some-other"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Source-linked brief should NOT appear for requirement edits",
+    );
+  });
+
+  test("completion reminder still works alongside source-linked brief", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should still include completion reminder alongside source-linked brief",
+    );
+  });
+
+  test("cache behavior remains intact with source-linked brief", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: tmpDir,
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: tmpDir,
+      branch: "main",
+    });
+
+    // Cache hit should suppress guidance (existing behavior preserved)
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Cache hit should suppress source-linked brief",
+    );
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "Cache hit should return sentinel only",
+    );
+  });
+});

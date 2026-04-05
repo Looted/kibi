@@ -4,7 +4,7 @@ title: Smart Enforcement Verification and Surface Policy
 type: test
 status: passing
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-05T00:00:00Z
+updated_at: 2026-04-05T01:00:00Z
 source: documentation/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -77,3 +77,19 @@ tags:
   - Degraded advisory and completion-reminder text are folded into the single block rather than appended as separate blocks.
 - **Policy Test** (`packages/opencode/tests/smart-enforcement-policy.test.ts`): Centralized contract matrix verifying the interaction of effective mode, single-block guidance outcome, completion-reminder visibility, and runtime overlay behavior.
 - **Logging Test** (`packages/opencode/tests/logging-policy.test.ts`): Confirms the completion reminder emits exactly one matching structured `smart_enforcement_completion_reminder` log per risky context and is suppressed when `maintenanceDegraded` is active.
+### Source-Linked Micro-Brief Verification
+
+- **Unit Test** (`packages/opencode/tests/source-linked-guidance.test.ts`): Verifies synchronization with `documentation/symbols.yaml` and ID resolution:
+  - Extracts up to 3 deduped REQ IDs.
+  - Prioritizes `implements` relationships.
+  - Falls back to static `links`.
+  - Handles both YAML formats (array and `{ symbols: [...] }`).
+- **Unit Test** (`packages/opencode/tests/prompt.test.ts`): Asserts that the micro-brief is prepended to `behavior_candidate` and `traceability_candidate` guidance.
+- **Integration Test** (`packages/opencode/tests/index.test.ts`): Confirms that micro-briefs are only shown for concrete hits and suppressed on cache hits.
+
+### Targeted Validation Routing Verification
+
+- **Integration Test** (`packages/opencode/tests/index.test.ts`): Verifies specific rule scheduling:
+  - `traceability_candidate` triggers `symbol-traceability` with reason `smart-enforcement.traceability`.
+  - Fact KB document edits trigger `strict-fact-shape` along with structural checks.
+- **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.
