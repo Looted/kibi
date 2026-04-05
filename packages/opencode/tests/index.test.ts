@@ -3205,6 +3205,8 @@ import datetime
             scenarios: "documentation/scenarios/**/*.md",
             tests: "documentation/tests/**/*.md",
             adr: "documentation/adr/**/*.md",
+            flags: "documentation/flags/**/*.md",
+            events: "documentation/events/**/*.md",
             facts: "documentation/facts/**/*.md",
           },
         }),
@@ -3215,6 +3217,8 @@ import datetime
         "documentation/scenarios",
         "documentation/tests",
         "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
         "documentation/facts",
       ];
       for (const dir of docDirs) {
