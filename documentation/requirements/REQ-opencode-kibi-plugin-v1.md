@@ -23,6 +23,8 @@ links:
     target: ADR-016
   - type: relates_to
     target: ADR-018
+  - type: relates_to
+    target: REQ-opencode-smart-enforcement-v1
 ---
 
 The OpenCode Kibi Plugin v1 must:

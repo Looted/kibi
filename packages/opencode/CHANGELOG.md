@@ -1,5 +1,40 @@
 # kibi-opencode
 
+## 0.5.4
+
+### Patch Changes
+
+- c144ac2: Fix false bootstrap warnings for configured repos and add packed-artifact verification
+
+  This release fixes the false "workspace needs Kibi bootstrap" warning that appeared for workspaces already configured with `.kb/config.json` pointing at relocated `kibi-docs/*` paths.
+
+  **Bug fix:**
+
+  - The `checkWorkspaceHealth` function now correctly reads `.kb/config.json` to determine expected directory paths, instead of using hardcoded `documentation/*` paths that caused false positives for relocated documentation setups.
+
+  **Prevention:**
+
+  - Added packed-artifact regression tests (`documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts`) that verify healthy relocated paths don't emit warnings and missing targets still emit exactly one real warning.
+  - Added release-gate step in `.github/workflows/publish.yml` to validate the actual npm tarball behavior before publishing, preventing future source/dist/tarball drift.
+  - Updated `test:e2e:local` to rebuild `packages/opencode/dist` before running tests, ensuring dogfood always uses fresh builds.
+
+  **Troubleshooting:**
+
+  - Added documentation for cache recovery in `docs/troubleshooting.md` and `packages/opencode/README.md`.
+  - Users experiencing this issue should clear the stale plugin cache: `rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"`
+
+- Add source-linked micro-briefs and complete targeted-check routing for traceability and fact edits.
+
+  - Source-linked guidance: when 1-3 concrete requirement links exist in `documentation/symbols.yaml`, risky code edits now prepend `- Existing Kibi links: REQ-...` to the contextual guidance block.
+  - Targeted validation routing: `traceability_candidate` code edits schedule `symbol-traceability`, and fact KB-doc edits include `strict-fact-shape` alongside the standard structural checks.
+  - Keeps the plugin advisory-only; all enforcement remains non-blocking in the editor.
+
+- 49fcad9: Harden OpenCode smart enforcement with posture-aware guidance, deterministic risk routing, structured observability, and an explicit advisory-vs-hook boundary.
+
+  - `kibi-opencode`: adds repo-posture detection, risky-edit classification, smart-enforcement cache/config, posture-aware prompt injection, effective-mode gating, single-block prompt budget, prompt-visible completion reminders, runtime maintenance overlay, selective event routing, and structured smart-enforcement logs.
+  - `kibi-cli`: documents and tests hooks as the hard enforcement boundary while preserving branch/post-merge refresh behavior.
+  - `kibi-mcp`: enriches diagnostic usage fields so rollout telemetry remains queryable without changing the public MCP surface.
+
 ## 0.5.3
 
 ### Patch Changes

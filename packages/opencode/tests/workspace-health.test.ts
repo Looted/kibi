@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { checkWorkspaceHealth } from "../src/workspace-health";
+import { createTempRepoFromFixture } from "./test-fixture-helpers";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -295,6 +296,27 @@ describe("workspace-health checkWorkspaceHealth", () => {
         result.missingDocDirs.some((d) => d.includes(e)),
         `Expected ${e} to be reported missing but it was not. Missing list: ${result.missingDocDirs.join(", ")}`,
       );
+    }
+  });
+
+  it("uses fixture-backed vendored-only posture without bootstrap", () => {
+    const repo = createTempRepoFromFixture("vendored-only");
+    try {
+      const result = checkWorkspaceHealth(repo.path);
+      assert.equal(result.needsBootstrap, false);
+    } finally {
+      repo.cleanup();
+    }
+  });
+
+  it("uses fixture-backed hybrid posture with healthy root", () => {
+    const repo = createTempRepoFromFixture("hybrid-root-plus-vendored");
+    try {
+      const result = checkWorkspaceHealth(repo.path);
+      assert.equal(result.needsBootstrap, false);
+      assert.equal(result.missingConfig, false);
+    } finally {
+      repo.cleanup();
     }
   });
 });

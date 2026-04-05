@@ -157,3 +157,62 @@ describe("sync scheduler", () => {
     assert.equal(runs, 1);
   });
 });
+  test("onRunComplete exposes sync failure via exitCode", async () => {
+    const clock = createFakeClock();
+    const completions: SyncRunMetadata[] = [];
+
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      onRunComplete: (meta) => completions.push(meta),
+      runSync: async () => {
+        return { exitCode: 1 };
+      },
+    });
+
+    scheduler.onFileEdited("documentation/requirements/REQ-005.md");
+    clock.advance(100);
+    await flushAsync();
+
+    assert.equal(completions.length, 1);
+    assert.equal(completions[0]?.exitCode, 1);
+  });
+
+  test("onRunComplete exposes check failure via checkExitCode", async () => {
+    const clock = createFakeClock();
+    const completions: SyncRunMetadata[] = [];
+
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      onRunComplete: (meta) => completions.push(meta),
+      runSync: async () => {
+        return { exitCode: 0 };
+      },
+      runCheck: async () => {
+        return { exitCode: 1 };
+      },
+    });
+
+    scheduler.scheduleSync("file.edited", "documentation/requirements/REQ-006.md", [
+      "required-fields",
+    ]);
+    clock.advance(100);
+    await flushAsync();
+
+    assert.equal(completions.length, 1);
+    assert.equal(completions[0]?.exitCode, 0);
+    assert.equal(completions[0]?.checkExitCode, 1);
+  });

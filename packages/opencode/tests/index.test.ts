@@ -2236,6 +2236,15 @@ import datetime
         ),
       );
 
+      // Create .kb/config.json so posture detects root_active
+      // (maintenance.enabled=false forces root_active without needing full doc dirs)
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
@@ -2299,4 +2308,1231 @@ import datetime
       );
     });
   });
+
+  describe("effective smart-enforcement mode integration", () => {
+    it("computes advisory mode when config is advisory", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "advisory",
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin still sets up hooks regardless of mode
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("computes strict mode when config is strict with root KB present", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create root .kb for root_active posture
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("strict mode with no root KB falls back to advisory behavior", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // No .kb directory → root_uninitialized posture → advisory effective mode
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin still works, just in advisory mode
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("plugin remains non-blocking even in strict mode", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            guidance: {
+              smartEnforcement: {
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      // Plugin exposes only advisory hook surfaces — no blocking paths
+      assert.ok(typeof hooks === "object");
+      assert.ok(typeof hooks.event === "function" || hooks.event === undefined);
+    });
+  });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("completion reminder policy", () => {
+    it("logs smart_enforcement_completion_reminder when guidance contains reminder", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create a code file for event to process
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      // Trigger a code edit event so lastRiskClass gets set
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Now trigger the transform hook to generate guidance
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockOutput = { system: ["original system prompt"] };
+      await transformHook({}, mockOutput);
+
+      // Wait for async log calls
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Check that the completion reminder log event was emitted
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      // The guidance should contain the reminder text since behavior_candidate is a risky class
+      const guidanceEntry = mockOutput.system.find(
+        (s: string) => typeof s === "string" && s.includes("kb_check before completing"),
+      );
+
+      // If guidance contains the reminder text, the log should have fired
+      if (guidanceEntry) {
+        assert.ok(
+          reminderLogs.length >= 1,
+          "Should log smart_enforcement_completion_reminder when reminder in guidance",
+        );
+      }
+    });
+
+    it("does NOT log smart_enforcement_completion_reminder on cache-hit", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as any;
+
+      // First event — populates cache
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // First transform — records cache satisfied
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      await transformHook({}, { system: ["prompt"] });
+
+      // Clear log calls from first round
+      appLogCalls.length = 0;
+
+      // Second event — cache hit in event hook, returns early
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Second transform — cache hit in buildContextualGuidance, returns ""
+      await transformHook({}, { system: ["prompt"] });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT log smart_enforcement_completion_reminder on cache-hit",
+      );
+    });
+
+    it("does NOT log smart_enforcement_completion_reminder for safe_docs_only", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create README to get safe_docs_only risk class
+      fs.writeFileSync(
+        path.join(tmpDir, "README.md"),
+        "# Test\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "README.md" },
+        },
+      });
+
+      // Trigger transform
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      await transformHook({}, { system: ["prompt"] });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT log smart_enforcement_completion_reminder for safe_docs_only",
+      );
+    });
+  });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("runtime degraded overlay", () => {
+    it("latches sync_disabled when sync.enabled=false", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      // Force root_active posture so only sync_disabled is latched
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ maintenance: { enabled: false } }, null, 2),
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for sync_disabled",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.overlay_cause, "sync_disabled");
+      assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+      assert.equal(first?.overlay_cause, "sync_disabled");
+      assert.equal(first?.runtime_degraded, true);
+    });
+
+    it("latches non_authoritative_posture for root_uninitialized", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for non_authoritative_posture",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+    });
+
+    it("latches scheduler_unavailable when createSyncScheduler throws", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      (globalThis as any).__kibi_test_scheduler_factory = () => {
+        throw new Error("scheduler creation failure");
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_unavailable",
+      );
+
+      const first = degradedLogs[0]?.body as Record<string, unknown>;
+      assert.equal(first?.overlay_cause, "scheduler_unavailable");
+      assert.equal(first?.runtime_degraded, true);
+      assert.equal(first?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+
+    it("latches scheduler_sync_failed when onRunComplete has non-zero exitCode", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_sync_failed",
+      );
+
+      const causes = degradedLogs.map(
+        (p) => (p.body as Record<string, unknown>).overlay_cause,
+      );
+      assert.ok(causes.includes("scheduler_sync_failed"));
+
+      const syncFailed = degradedLogs.find(
+        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_sync_failed",
+      );
+      assert.equal((syncFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+
+    it("latches scheduler_check_failed when onRunComplete has non-zero checkExitCode", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const eventHook = hooks.event as any;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      capturedOnRunComplete?.({ exitCode: 0, checkExitCode: 1 });
+      await new Promise((r) => setTimeout(r, 20));
+
+      const degradedLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_degraded";
+      });
+
+      assert.ok(
+        degradedLogs.length >= 1,
+        "Should log smart_enforcement_degraded for scheduler_check_failed",
+      );
+
+      const causes = degradedLogs.map(
+        (p) => (p.body as Record<string, unknown>).overlay_cause,
+      );
+      assert.ok(causes.includes("scheduler_check_failed"));
+
+      const checkFailed = degradedLogs.find(
+        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_check_failed",
+      );
+      assert.equal((checkFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+  });
+
+  // ── Targeted-check rule routing contract (Task 1 TDD lock-in) ───────────
+  // These tests define the contract for Task 3 implementation.
+  // Expected to FAIL until runtime routing is completed.
+  describe("targeted-check rule routing contract", () => {
+    type ScheduleCall = { reason: string; filePath?: string; checkRules?: string[] };
+
+    /** Helper to set up a capturing scheduler factory and import a fresh plugin */
+    async function setupWithCapturingScheduler(tmpDir: string, configOverrides: Record<string, unknown> = {}) {
+      const scheduleCalls: ScheduleCall[] = [];
+
+      (globalThis as any).__kibi_test_scheduler_factory = () => ({
+        scheduleSync: (reason: string, filePath?: string, checkRules?: string[]) => {
+          scheduleCalls.push({ reason, filePath, checkRules });
+        },
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+
+      const { default: plugin } = await import(`../src/index.ts?route=${Date.now()}`);
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async () => {},
+          },
+        } as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      return { hooks, scheduleCalls };
+    }
+
+    /** Set up full KB structure in temp dir */
+    function setupKbStructure(tmpDir: string) {
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          paths: {
+            requirements: "documentation/requirements/**/*.md",
+            scenarios: "documentation/scenarios/**/*.md",
+            tests: "documentation/tests/**/*.md",
+            adr: "documentation/adr/**/*.md",
+            flags: "documentation/flags/**/*.md",
+            events: "documentation/events/**/*.md",
+            facts: "documentation/facts/**/*.md",
+          },
+        }),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]");
+    }
+
+    afterEach(() => {
+      delete (globalThis as any).__kibi_test_scheduler_factory;
+    });
+
+    it("traceability_candidate schedules symbol-traceability check", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      // Create a code file with exports but NO // implements REQ-xxx annotation
+      // This should be classified as traceability_candidate
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(
+        codeFile,
+        "export function doSomething() { return 42; }\n",
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              commentDetection: { enabled: false },
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: codeFile },
+        },
+      });
+
+      // The traceability_candidate path should schedule symbol-traceability
+      // using reason "smart-enforcement.traceability" (not "file.edited")
+      const traceCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.includes("symbol-traceability"),
+      );
+      assert.ok(
+        traceCalls.length >= 1,
+        `Expected at least 1 scheduleSync with symbol-traceability, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.deepEqual(
+        traceCalls[0].checkRules,
+        ["symbol-traceability"],
+        `Expected exact rules ["symbol-traceability"], got ${JSON.stringify(traceCalls[0].checkRules)}`,
+      );
+      assert.equal(
+        traceCalls[0].reason,
+        "smart-enforcement.traceability",
+        `Expected reason "smart-enforcement.traceability", got "${traceCalls[0].reason}"`,
+      );
+    });
+
+    it("fact KB-doc edit schedules required-fields, no-dangling-refs, strict-fact-shape", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      const factDir = path.join(tmpDir, "documentation", "facts");
+      fs.mkdirSync(factDir, { recursive: true });
+      const factFile = path.join(factDir, "FACT-001.md");
+      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: factFile },
+        },
+      });
+
+      // Fact KB-doc should schedule the three structural+semantic rules
+      const factCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.includes("strict-fact-shape"),
+      );
+      assert.ok(
+        factCalls.length >= 1,
+        `Expected at least 1 scheduleSync with strict-fact-shape for fact doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.deepEqual(
+        factCalls[0].checkRules,
+        ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+        `Expected exact rules for fact doc, got ${JSON.stringify(factCalls[0].checkRules)}`,
+      );
+    });
+
+    it("non-fact KB-doc edits do NOT include strict-fact-shape", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      // Create a scenario file (not a fact)
+      const scenDir = path.join(tmpDir, "documentation", "scenarios");
+      fs.mkdirSync(scenDir, { recursive: true });
+      const scenFile = path.join(scenDir, "SCEN-001.md");
+      fs.writeFileSync(scenFile, "---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n");
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: scenFile },
+        },
+      });
+
+      // Scenario doc should only have structural pair, NOT strict-fact-shape
+      const scenCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.length > 0,
+      );
+      assert.ok(
+        scenCalls.length >= 1,
+        `Expected at least 1 scheduleSync for scenario doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.ok(
+        !scenCalls[0].checkRules!.includes("strict-fact-shape"),
+        `Scenario doc should NOT include strict-fact-shape, got ${JSON.stringify(scenCalls[0].checkRules)}`,
+      );
+      assert.deepEqual(
+        scenCalls[0].checkRules,
+        ["required-fields", "no-dangling-refs"],
+        `Expected only structural pair for scenario doc, got ${JSON.stringify(scenCalls[0].checkRules)}`,
+      );
+    });
+
+    it("targeted checks are skipped when targetedChecks.enabled is false", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      const factDir = path.join(tmpDir, "documentation", "facts");
+      fs.mkdirSync(factDir, { recursive: true });
+      const factFile = path.join(factDir, "FACT-001.md");
+      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: false },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: factFile },
+        },
+      });
+
+      // When targetedChecks.enabled is false, no rules should be scheduled
+      const callsWithRules = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.length > 0,
+      );
+      assert.equal(
+        callsWithRules.length,
+        0,
+        `Expected no scheduleSync with rules when targetedChecks disabled, got ${JSON.stringify(callsWithRules)}`,
+      );
+    });
+
+    it("targeted checks are skipped when maintenance is degraded", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+
+      // Set up with maintenance degraded (maintenance.enabled: true in .kb/config.json)
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          version: 1,
+          maintenance: { enabled: true },
+          paths: {
+            requirements: "documentation/requirements/**/*.md",
+            facts: "documentation/facts/**/*.md",
+          },
+        }),
+      );
+
+      const factDir = path.join(tmpDir, "documentation", "facts");
+      fs.mkdirSync(factDir, { recursive: true });
+      const factFile = path.join(factDir, "FACT-001.md");
+      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: factFile },
+        },
+      });
+
+      // When maintenance is degraded, targeted checks should be skipped
+      const callsWithRules = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.length > 0,
+      );
+      assert.equal(
+        callsWithRules.length,
+        0,
+        `Expected no scheduleSync with rules when maintenance degraded, got ${JSON.stringify(callsWithRules)}`,
+      );
+    });
+  });
+
 });

@@ -14,9 +14,9 @@ describe("logging policy", () => {
   const logger = require("../src/logger") as {
     setClient: (client: any) => void;
     resetClient: () => void;
-    info: (msg: string) => void;
-    warn: (msg: string) => void;
-    error: (msg: string) => void;
+    info: (msg: string, metadata?: Record<string, unknown>) => void;
+    warn: (msg: string, metadata?: Record<string, unknown>) => void;
+    error: (msg: string, metadata?: Record<string, unknown>) => void;
   };
 
   beforeEach(() => {
@@ -145,6 +145,31 @@ describe("logging policy", () => {
         "warn must not call console.warn",
       );
     });
+
+    test("info includes structured metadata fields", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.info("smart-enforcement.posture", {
+        event: "smart_enforcement_posture",
+        posture: "root_active",
+        cache_hit: false,
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.event, "smart_enforcement_posture");
+      assert.equal(body.posture, "root_active");
+      assert.equal(body.cache_hit, false);
+    });
   });
 
   describe("error uses console.error with prefix", () => {
@@ -175,6 +200,30 @@ describe("logging policy", () => {
         "error must not call console.log or console.warn",
       );
     });
+
+    test("error includes structured metadata for client logs", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.error("test error message", {
+        event: "smart_enforcement_degraded",
+        posture: "vendored_only",
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.level, "error");
+      assert.equal(body.event, "smart_enforcement_degraded");
+      assert.equal(body.posture, "vendored_only");
+    });
   });
 
   describe("backward compatibility without client", () => {
@@ -192,7 +241,7 @@ describe("logging policy", () => {
   describe("scheduler silence policy", () => {
     test("scheduler sync produces zero console.log/warn output", async () => {
       const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any,
+        createSyncScheduler: (opts: any) => any;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -204,23 +253,38 @@ describe("logging policy", () => {
 
       const sched = scheduler.createSyncScheduler({
         worktree: process.cwd(),
-        config: { ...DEFAULTS, sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 } },
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 },
+        },
         runSync: async () => ({ exitCode: 0 }),
       });
 
       sched.onFileEdited("documentation/requirements/REQ-001.md");
       await new Promise((r) => setTimeout(r, 50));
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "scheduler must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "scheduler must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "scheduler must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "scheduler must not call console.warn",
+      );
     });
 
     test("scheduler check failure produces zero console.log/warn output", async () => {
       const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any,
+        createSyncScheduler: (opts: any) => any;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -232,19 +296,38 @@ describe("logging policy", () => {
 
       const sched = scheduler.createSyncScheduler({
         worktree: process.cwd(),
-        config: { ...DEFAULTS, sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 } },
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 5 },
+        },
         runSync: async () => ({ exitCode: 0 }),
         runCheck: async () => ({ exitCode: 1 }),
       });
 
-      sched.scheduleSync("file.edited", "documentation/requirements/REQ-001.md", ["required-fields"]);
+      sched.scheduleSync(
+        "file.edited",
+        "documentation/requirements/REQ-001.md",
+        ["required-fields"],
+      );
       await new Promise((r) => setTimeout(r, 50));
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "scheduler check failure must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "scheduler check failure must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "scheduler check failure must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "scheduler check failure must not call console.warn",
+      );
     });
   });
 
@@ -252,7 +335,7 @@ describe("logging policy", () => {
   describe("session-summary silence policy", () => {
     test("logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any,
+        SessionTracker: new () => any;
       };
 
       logger.setClient({
@@ -267,16 +350,28 @@ describe("logging policy", () => {
       tracker.recordWarning("kb-edit", "/file3.ts", "W3");
       tracker.logSummary();
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "logSummary must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "logSummary must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "logSummary must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "logSummary must not call console.warn",
+      );
     });
 
     test("recordWarning produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any,
+        SessionTracker: new () => any;
       };
 
       logger.setClient({
@@ -290,16 +385,28 @@ describe("logging policy", () => {
       tracker.recordWarning("bootstrap-needed", "/file.ts", "Bootstrap");
       tracker.recordWarning("kb-edit", "/file.ts", "KB edit");
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "recordWarning must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "recordWarning must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "recordWarning must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "recordWarning must not call console.warn",
+      );
     });
 
     test("empty logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any,
+        SessionTracker: new () => any;
       };
 
       logger.setClient({
@@ -311,11 +418,23 @@ describe("logging policy", () => {
       const tracker = new SessionTracker();
       tracker.logSummary();
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "empty logSummary must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "empty logSummary must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "empty logSummary must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "empty logSummary must not call console.warn",
+      );
     });
   });
 
@@ -328,7 +447,9 @@ describe("logging policy", () => {
       const os = require("node:os");
       const path = require("node:path");
 
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kb-edit-silence-"));
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-kb-edit-silence-"),
+      );
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -352,13 +473,27 @@ describe("logging policy", () => {
         },
       });
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, ".kb edit must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, ".kb edit must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        ".kb edit must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        ".kb edit must not call console.warn",
+      );
 
-      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
       resetSessionTracker();
     });
 
@@ -369,13 +504,19 @@ describe("logging policy", () => {
       const os = require("node:os");
       const path = require("node:path");
 
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-comment-hint-silence-"));
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-comment-hint-silence-"),
+      );
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify(
-          { enabled: true, sync: { enabled: false }, guidance: { commentDetection: { enabled: true, minLines: 3 } } },
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { commentDetection: { enabled: true, minLines: 3 } },
+          },
           null,
           2,
         ),
@@ -384,7 +525,20 @@ describe("logging policy", () => {
       // Create Python file with durable-knowledge docstring
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(path.join(srcDir, "models.py"), [`"""`, `User accounts must have unique email addresses.`, `Each user can have at most 5 active sessions.`, `Sessions expire after 30 minutes of inactivity.`, `"""`, ``, `class User:`, `    pass`, ``].join("\n"));
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        [
+          `"""`,
+          `User accounts must have unique email addresses.`,
+          `Each user can have at most 5 active sessions.`,
+          `Sessions expire after 30 minutes of inactivity.`,
+          `"""`,
+          ``,
+          `class User:`,
+          `    pass`,
+          ``,
+        ].join("\n"),
+      );
 
       logger.setClient({ app: { log: async () => {} } });
 
@@ -402,13 +556,27 @@ describe("logging policy", () => {
         },
       });
 
-      const consoleLogCalls = logCalls.filter((c) => c.service === "console.log");
-      const consoleWarnCalls = logCalls.filter((c) => c.service === "console.warn");
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
 
-      assert.equal(consoleLogCalls.length, 0, "comment hint must not call console.log");
-      assert.equal(consoleWarnCalls.length, 0, "comment hint must not call console.warn");
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "comment hint must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "comment hint must not call console.warn",
+      );
 
-      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
       resetSessionTracker();
     });
 
@@ -420,7 +588,9 @@ describe("logging policy", () => {
       const os = require("node:os");
       const path = require("node:path");
 
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-kb-edit-channel-"));
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-kb-edit-channel-"),
+      );
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -454,12 +624,21 @@ describe("logging policy", () => {
 
       const warnLogs = appLogCalls.filter((p) => {
         const body = p.body as Record<string, unknown>;
-        return body.level === "warn" && typeof body.message === "string" && body.message.includes(".kb edit detected");
+        return (
+          body.level === "warn" &&
+          typeof body.message === "string" &&
+          body.message.includes(".kb edit detected")
+        );
       });
 
-      assert.ok(warnLogs.length >= 1, ".kb edit detection must emit structured warn log");
+      assert.ok(
+        warnLogs.length >= 1,
+        ".kb edit detection must emit structured warn log",
+      );
 
-      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
       resetSessionTracker();
     });
 
@@ -471,13 +650,19 @@ describe("logging policy", () => {
       const os = require("node:os");
       const path = require("node:path");
 
-      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-comment-hint-channel-"));
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-comment-hint-channel-"),
+      );
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify(
-          { enabled: true, sync: { enabled: false }, guidance: { commentDetection: { enabled: true, minLines: 3 } } },
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { commentDetection: { enabled: true, minLines: 3 } },
+          },
           null,
           2,
         ),
@@ -485,7 +670,20 @@ describe("logging policy", () => {
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(path.join(srcDir, "models.py"), [`"""`, `User accounts must have unique email addresses.`, `Each user can have at most 5 active sessions.`, `Sessions expire after 30 minutes of inactivity.`, `"""`, ``, `class User:`, `    pass`, ``].join("\n"));
+      fs.writeFileSync(
+        path.join(srcDir, "models.py"),
+        [
+          `"""`,
+          `User accounts must have unique email addresses.`,
+          `Each user can have at most 5 active sessions.`,
+          `Sessions expire after 30 minutes of inactivity.`,
+          `"""`,
+          ``,
+          `class User:`,
+          `    pass`,
+          ``,
+        ].join("\n"),
+      );
 
       const mockClient = {
         app: {
@@ -513,12 +711,271 @@ describe("logging policy", () => {
 
       const warnLogs = appLogCalls.filter((p) => {
         const body = p.body as Record<string, unknown>;
-        return body.level === "warn" && typeof body.message === "string" && body.message.includes("detected durable");
+        return (
+          body.level === "warn" &&
+          typeof body.message === "string" &&
+          body.message.includes("detected durable")
+        );
       });
 
-      assert.ok(warnLogs.length >= 1, "comment-analysis hint must emit structured warn log");
+      assert.ok(
+        warnLogs.length >= 1,
+        "comment-analysis hint must emit structured warn log",
+      );
 
-      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+  });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("completion reminder silence policy", () => {
+    test("completion reminder produces zero console.log/warn output", async () => {
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-silence-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: { completionReminder: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create code file
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      logger.setClient({ app: { log: async () => {} } });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: { app: { log: async () => {} } },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Also trigger the transform hook which emits the reminder log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      const consoleLogCalls = logCalls.filter(
+        (c) => c.service === "console.log",
+      );
+      const consoleWarnCalls = logCalls.filter(
+        (c) => c.service === "console.warn",
+      );
+
+      assert.equal(
+        consoleLogCalls.length,
+        0,
+        "completion reminder must not call console.log",
+      );
+      assert.equal(
+        consoleWarnCalls.length,
+        0,
+        "completion reminder must not call console.warn",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("completion reminder routes through structured info channel", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-channel-"),
+      );
+      // Ensure KB is initialized so posture is root_active and risky guidance can include reminder
+      // Ensure KB is initialized so posture is root_active and risky guidance can include reminder
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      // Create default KB directories so targets resolve and posture becomes root_active
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "foo.ts"),
+        "export function hello() { return 42; }\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/foo.ts" },
+        },
+      });
+
+      // Trigger the transform hook which conditionally emits the reminder log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      // Check if any info log contains the completion reminder event
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return (
+          body.event === "smart_enforcement_completion_reminder"
+        );
+      });
+
+      // Reminder should be emitted via structured info log for risky code edits
+      assert.ok(
+        reminderLogs.length >= 1,
+        "completion reminder should emit structured log for risky code edit",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("no completion reminder log for safe_docs_only edit", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-reminder-safe-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: {
+              smartEnforcement: { completionReminder: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      fs.writeFileSync(
+        path.join(tmpDir, "README.md"),
+        "# Test\n",
+      );
+
+      const mockClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      };
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: mockClient,
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "README.md" },
+        },
+      });
+
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_completion_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT emit completion reminder log for safe_docs_only",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
       resetSessionTracker();
     });
   });

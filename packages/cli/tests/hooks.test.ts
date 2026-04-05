@@ -35,6 +35,26 @@ describe("Git hooks", () => {
     ).toBe(true);
   });
 
+  it("should install pre-commit hook as the hard enforcement boundary", () => {
+    const hookPath = path.join(tmpDir, ".git/hooks/pre-commit");
+    expect(fs.existsSync(hookPath)).toBe(true);
+    const stats = fs.statSync(hookPath);
+    expect((stats.mode & 0o111) !== 0).toBe(true);
+    const content = fs.readFileSync(hookPath, "utf-8");
+    expect(content).toContain("kibi check");
+    expect(content).toContain("Hard enforcement boundary");
+  });
+
+  it("should install post-merge hook that refreshes merge assumptions", () => {
+    const hookPath = path.join(tmpDir, ".git/hooks/post-merge");
+    expect(fs.existsSync(hookPath)).toBe(true);
+    const stats = fs.statSync(hookPath);
+    expect((stats.mode & 0o111) !== 0).toBe(true);
+    const content = fs.readFileSync(hookPath, "utf-8");
+    expect(content).toContain("kibi sync");
+    expect(content).toContain("Refresh KB state after merge");
+  });
+
   it("should install post-checkout hook (duplicate check - verifies content)", () => {
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
     expect(fs.existsSync(hookPath)).toBe(true);

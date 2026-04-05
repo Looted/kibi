@@ -6,6 +6,8 @@ export interface PluginClient {
   };
 }
 
+export type LogMetadata = Record<string, unknown>;
+
 let client: PluginClient | null = null;
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -18,16 +20,25 @@ export function resetClient(): void {
   client = null;
 }
 
+function buildBody(
+  level: "info" | "warn" | "error",
+  message: string,
+  metadata?: LogMetadata,
+): Record<string, unknown> {
+  return {
+    service: "kibi-opencode",
+    level,
+    message,
+    ...(metadata ?? {}),
+  };
+}
+
 // implements REQ-opencode-kibi-plugin-v1
-export function info(msg: string): void {
+export function info(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
       .log({
-        body: {
-          service: "kibi-opencode",
-          level: "info",
-          message: msg,
-        },
+        body: buildBody("info", msg, metadata),
       })
       .catch(console.error);
     return;
@@ -36,15 +47,11 @@ export function info(msg: string): void {
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function warn(msg: string): void {
+export function warn(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
       .log({
-        body: {
-          service: "kibi-opencode",
-          level: "warn",
-          message: msg,
-        },
+        body: buildBody("warn", msg, metadata),
       })
       .catch(console.error);
     return;
@@ -53,18 +60,14 @@ export function warn(msg: string): void {
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function error(msg: string): void {
+export function error(msg: string, metadata?: LogMetadata): void {
   // Always emit to console for user visibility
   console.error("[kibi-opencode]", msg);
   // Also emit to structured logs if client is available
   if (client) {
     void client.app
       .log({
-        body: {
-          service: "kibi-opencode",
-          level: "error",
-          message: msg,
-        },
+        body: buildBody("error", msg, metadata),
       })
       .catch(console.error);
   }
