@@ -80,13 +80,11 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // Delegate needsBootstrap to posture detection:
+  // Delegate needsBootstrap entirely to posture detection:
   // - root_uninitialized → true
   // - root_partial → true
   // - vendored_only → false (nested tree handles its own KB)
   // - root_active / hybrid_root_plus_vendored → false
-  // BUT also keep the doc-dir threshold for cases where posture says active
-  // but many doc dirs are missing (legacy compat)
   const needsBootstrap = posture.needsBootstrap;
 
   return {
