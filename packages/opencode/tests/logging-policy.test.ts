@@ -879,8 +879,6 @@ describe("logging policy", () => {
       }
 
       await new Promise((r) => setTimeout(r, 20));
-      require("node:fs").writeFileSync("/tmp/applogs.json", JSON.stringify(appLogCalls.map((p) => p.body), null, 2));
-      console.log("APPLOGS:", JSON.stringify(appLogCalls.map((p) => p.body), null, 2));
 
       // Check if any info log contains the completion reminder event
       const reminderLogs = appLogCalls.filter((p) => {

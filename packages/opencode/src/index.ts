@@ -13,7 +13,7 @@ import { SENTINEL, buildPrompt } from "./prompt.js";
 import { detectPosture } from "./repo-posture.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
-import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
+import { type SchedulerOptions, createSyncScheduler as importedCreateSyncScheduler } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { checkWorkspaceHealth } from "./workspace-health.js";
 import { computeEffectiveMode, type EffectiveMode } from "./smart-enforcement.js";
@@ -229,7 +229,11 @@ const kibiOpencodePlugin: Plugin = async (
         overlay_cause: cause,
         runtime_degraded: true,
         static_degraded: posture.maintenanceDegraded,
-        merged_degraded: posture.maintenanceDegraded || true,
+        merged_degraded: getMaintenanceDegraded(),
+        maintenance_state: getMaintenanceDegraded()
+          ? "maintenance_degraded"
+          : "maintenance_available",
+        effective_mode: getEffectiveMode(),
       });
     } else if (!runtimeOverlay.causes.includes(cause)) {
       runtimeOverlay.causes.push(cause);
@@ -249,7 +253,6 @@ const kibiOpencodePlugin: Plugin = async (
     });
   }
   // Compute effective smart-enforcement mode from config + posture + runtime overlay
-  const effectiveMode: EffectiveMode = getEffectiveMode();
 
   // Latch startup-level runtime degraded causes
   if (posture.state === "vendored_only" || posture.state === "root_uninitialized" || posture.state === "root_partial") {
@@ -272,7 +275,7 @@ const kibiOpencodePlugin: Plugin = async (
     posture_reason: posture.reason,
     reason_code: posture.reason,
     smart_enforcement_mode: cfg.guidance.smartEnforcement.mode,
-    effective_mode: effectiveMode,
+    effective_mode: getEffectiveMode(),
     static_degraded: posture.maintenanceDegraded,
     runtime_degraded: runtimeOverlay.degraded,
     merged_degraded: maintenanceDegraded,
@@ -291,6 +294,9 @@ const kibiOpencodePlugin: Plugin = async (
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
   let lastRiskClass: RiskClass | null = null;
+
+  const createSyncScheduler =
+    (globalThis as any).__kibi_test_scheduler_factory ?? importedCreateSyncScheduler;
 
   // Create scheduler only if sync is enabled
   let scheduler: ReturnType<typeof createSyncScheduler> | null = null;
@@ -376,7 +382,7 @@ const kibiOpencodePlugin: Plugin = async (
       has_must_priority: hasMustPriority,
       posture: posture.state,
       reason_code: effectiveRiskClass,
-      effective_mode: effectiveMode,
+      effective_mode: getEffectiveMode(),
       static_degraded: posture.maintenanceDegraded,
       runtime_degraded: runtimeOverlay.degraded,
       merged_degraded: getMaintenanceDegraded(),
@@ -468,13 +474,16 @@ const kibiOpencodePlugin: Plugin = async (
           risk_class: effectiveRiskClass,
           posture: posture.state,
           posture_state: posture.state,
-          maintenance_state: "maintenance_degraded",
+          maintenance_state: getMaintenanceDegraded()
+            ? "maintenance_degraded"
+            : "maintenance_available",
           reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
+          effective_mode: getEffectiveMode(),
         });
       }
 
@@ -486,7 +495,7 @@ const kibiOpencodePlugin: Plugin = async (
       ) {
         let checkRules: string[] | undefined;
         if (cfg.guidance.targetedChecks.enabled) {
-          if (hasMustPriority && effectiveMode === "strict") {
+        if (hasMustPriority && getEffectiveMode() === "strict") {
             checkRules = [
               "required-fields",
               "no-dangling-refs",
@@ -506,7 +515,7 @@ const kibiOpencodePlugin: Plugin = async (
           posture: posture.state,
           posture_state: posture.state,
           guidance_action: "targeted_checks",
-          effective_mode: effectiveMode,
+          effective_mode: getEffectiveMode(),
           rules: checkRules ?? [],
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
@@ -531,13 +540,16 @@ const kibiOpencodePlugin: Plugin = async (
           risk_class: effectiveRiskClass,
           posture: posture.state,
           posture_state: posture.state,
-          maintenance_state: "maintenance_degraded",
+          maintenance_state: getMaintenanceDegraded()
+            ? "maintenance_degraded"
+            : "maintenance_available",
           reason: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           reason_code: runtimeOverlay.primaryCause ?? "non_authoritative_posture",
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
+          effective_mode: getEffectiveMode(),
         });
       }
 
@@ -558,7 +570,7 @@ const kibiOpencodePlugin: Plugin = async (
           posture: posture.state,
           posture_state: posture.state,
           guidance_action: "targeted_checks",
-          effective_mode: effectiveMode,
+          effective_mode: getEffectiveMode(),
           rules: checkRules ?? [],
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
