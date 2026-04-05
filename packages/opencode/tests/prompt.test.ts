@@ -89,8 +89,12 @@ describe("prompt", () => {
     const result = injectPrompt("", baseConfig);
 
     assert.ok(
+      result.includes("durable symbol/test/requirement relationships"),
+      "Should mention relationship-first traceability",
+    );
+    assert.ok(
       result.includes("// implements REQ-xxx"),
-      "Should mention traceability comment pattern",
+      "Should mention backward-compatible inline comment pattern",
     );
   });
 
