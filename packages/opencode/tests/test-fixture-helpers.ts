@@ -1,6 +1,10 @@
 import { cpSync, existsSync, mkdtempSync, rmSync } from "fs";
 import { tmpdir } from "os";
-import { join, resolve } from "path";
+import { dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface TempRepo {
   path: string;
