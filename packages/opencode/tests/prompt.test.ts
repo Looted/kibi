@@ -1,8 +1,13 @@
 /// <reference types="bun-types" />
-import { describe, test } from "bun:test";
+import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { KibiConfig } from "../src/config";
 import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
+import { GuidanceCache } from "../src/guidance-cache";
+import type { CacheKey } from "../src/guidance-cache";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 
 const baseConfig: KibiConfig = {
   enabled: true,
@@ -20,6 +25,15 @@ const baseConfig: KibiConfig = {
     commentDetection: { enabled: true, minLines: 6 },
     targetedChecks: { enabled: true },
     sessionSummary: { enabled: true, logIntervalMs: 1800000 },
+    smartEnforcement: {
+      enabled: true,
+      mode: "advisory",
+      preflightTtlMs: 600000,
+      idleResetMs: 1800000,
+      degradedMode: "warn-once",
+      requireRootKbForStrict: true,
+      completionReminder: true,
+    },
   },
   logLevel: "info",
 };
@@ -234,6 +248,7 @@ describe("prompt", () => {
       result.includes(SENTINEL),
       "Contextual guidance must include sentinel",
     );
+    // Single-block policy: only WARNING block, no general workflow
     assert.ok(result.includes("WARNING"), "Should include .kb edit warning");
   });
 
@@ -369,7 +384,7 @@ describe("prompt", () => {
     );
   });
 
-  test("contextual guidance with no specific edits includes general workflow", () => {
+  test("contextual guidance with no specific edits returns sentinel only", () => {
     const result = injectPrompt("hello", baseConfig, {
       recentEdits: [],
     });
@@ -377,20 +392,8 @@ describe("prompt", () => {
       result.includes(SENTINEL),
       "Contextual guidance must include sentinel",
     );
-    assert.ok(
-      result.includes("Kibi-first workflow"),
-      "Should include general workflow guidance",
-    );
-    assert.ok(result.includes("Discover"), "Should include Discover step");
-    assert.ok(
-      result.includes("Document intent"),
-      "Should include Document intent step",
-    );
-    assert.ok(
-      result.includes("Link during work"),
-      "Should include Link during work step",
-    );
-    assert.ok(result.includes("Validate"), "Should include Validate step");
+    // Single-block policy: no risk class = no guidance block, just sentinel
+    assert.ok(result.trim().endsWith(SENTINEL), "Result should end with sentinel");
   });
 
   test("injectPrompt skips when plugin disabled", () => {
@@ -417,20 +420,68 @@ describe("prompt", () => {
     assert.ok(p.includes("Public Kibi tools only"));
   });
 
-  test("buildPrompt with empty context returns general workflow guidance", () => {
+  test("buildPrompt with empty context returns sentinel only (single-block policy)", () => {
     const p = buildPrompt({ recentEdits: [] });
     assert.ok(p.includes(SENTINEL));
-    assert.ok(p.includes("Kibi-first workflow"));
-    assert.ok(p.includes("Discover"));
+    // Single-block policy: no risk class = no guidance block, just sentinel
+    assert.equal(p.trim(), SENTINEL);
   });
 
-  test("contextual guidance combines multiple conditions", () => {
+  test("vendored_only posture suppresses operational guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "vendored_only",
+      riskClass: "behavior_candidate",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("safe_docs_only risk injects no discovery guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "README.md", kind: "unknown" }],
+      posture: "root_active",
+      riskClass: "safe_docs_only",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("safe_test_only risk injects no discovery guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.test.ts", kind: "test" }],
+      posture: "root_active",
+      riskClass: "safe_test_only",
+    });
+    assert.equal(p.trim(), SENTINEL);
+  });
+
+  test("smart-enforcement guidance respects the token budget", () => {
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("contextual guidance selects single highest-priority block", () => {
+    // Single-block policy: only the highest priority block is returned
+    // Priority: manual_kb_edit > posture > risk_class > safe/none
     const result = injectPrompt("hello", baseConfig, {
       recentEdits: [
         { path: "src/foo.ts", kind: "code" },
         { path: "documentation/scenarios/SCEN-001.md", kind: "scenario" },
       ],
-      hasRecentKbEdit: true,
+      hasRecentKbEdit: true, // Highest priority
       workspaceHealth: {
         needsBootstrap: true,
         missingConfig: true,
@@ -439,18 +490,12 @@ describe("prompt", () => {
       },
     });
     assert.ok(result.includes(SENTINEL), "Must include sentinel");
-    assert.ok(result.includes("WARNING"), "Should include .kb edit warning");
+    // Single-block: only manual_kb_edit warning should appear (highest priority)
+    assert.ok(result.includes("WARNING"), "Should include .kb edit warning (highest priority)");
+    // These should NOT appear because single-block only returns highest priority
     assert.ok(
-      result.includes("Bootstrap required"),
-      "Should include bootstrap guidance",
-    );
-    assert.ok(
-      result.includes("Code changes detected"),
-      "Should include code guidance",
-    );
-    assert.ok(
-      result.includes("Kibi documentation changes detected"),
-      "Should include KB doc guidance (no requirement edits)",
+      !result.includes("Bootstrap required"),
+      "Should NOT include bootstrap when .kb edit warning takes priority",
     );
   });
 
@@ -624,6 +669,523 @@ describe("prompt", () => {
     assert.ok(
       !result.includes("kibi doctor"),
       "Should NOT contain 'kibi doctor' CLI command",
+    );
+  });
+});
+
+  // implements REQ-opencode-smart-enforcement-v1
+  describe("completion reminder policy", () => {
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+
+    test("reminder appears for behavior_candidate when completionReminder=true", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+      });
+      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for behavior_candidate");
+    });
+
+    test("reminder appears for traceability_candidate when completionReminder=true", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "traceability_candidate",
+        completionReminder: true,
+      });
+      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for traceability_candidate");
+    });
+
+    test("reminder appears for req_policy_candidate when completionReminder=true", () => {
+      const p = buildPrompt({
+        recentEdits: [
+          { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+        ],
+        posture: "root_active",
+        riskClass: "req_policy_candidate",
+        completionReminder: true,
+      });
+      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for req_policy_candidate");
+    });
+
+    test("reminder does NOT appear for safe_docs_only", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "README.md", kind: "unknown" }],
+        posture: "root_active",
+        riskClass: "safe_docs_only",
+        completionReminder: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for safe_docs_only");
+    });
+
+    test("reminder does NOT appear for safe_test_only", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.test.ts", kind: "test" }],
+        posture: "root_active",
+        riskClass: "safe_test_only",
+        completionReminder: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for safe_test_only");
+    });
+
+    test("reminder does NOT appear for vendored_only posture", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "vendored_only",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for vendored_only");
+    });
+
+    test("reminder does NOT appear for root_uninitialized posture", () => {
+      const p = buildPrompt({
+        recentEdits: [],
+        posture: "root_uninitialized",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for root_uninitialized");
+    });
+
+    test("reminder does NOT appear when completionReminder=false", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: false,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when false");
+    });
+
+    test("reminder does NOT appear when completionReminder is undefined", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when undefined");
+    });
+
+    test("reminder does NOT appear on cache-hit", () => {
+      const cache = new GuidanceCache(600000);
+      const key: CacheKey = {
+        workspaceRoot: "/ws",
+        branch: "main",
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        fileBucket: "code",
+      };
+      cache.recordSatisfied(key, "guidance");
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+        cache,
+        workspaceRoot: "/ws",
+        branch: "main",
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder on cache-hit");
+    });
+
+    test("block with reminder stays within budget (<=120 words, <=5 bullets)", () => {
+      const p = buildPrompt({
+        recentEdits: [
+          { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+        ],
+        posture: "root_active",
+        riskClass: "req_policy_candidate",
+        completionReminder: true,
+      });
+      const words = p.split(/\s+/).filter(Boolean).length;
+      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-"));
+      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+      assert.ok(
+        bullets.length <= 5,
+        `Expected <= 5 bullets, got ${bullets.length}`,
+      );
+    });
+    test("maintenanceDegraded suppresses completion reminder for behavior_candidate", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+        maintenanceDegraded: true,
+      });
+      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when maintenanceDegraded");
+    });
+
+    test("degradedMode=warn-once adds degraded advisory block", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(
+        p.includes("maintenance degraded") || p.includes("degraded"),
+        "Should include degraded advisory for warn-once",
+      );
+    });
+
+    test("degradedMode=structured-only adds no degraded prompt copy", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "structured-only",
+        showDegradedAdvisory: true,
+      });
+      assert.ok(!p.includes("maintenance degraded"), "Should NOT include degraded prompt copy for structured-only");
+    });
+
+    test("degraded advisory can appear even when cache-hit would otherwise suppress guidance", () => {
+      const cache = new GuidanceCache(600000);
+      const key: CacheKey = {
+        workspaceRoot: "/ws",
+        branch: "main",
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        fileBucket: "code",
+      };
+      cache.recordSatisfied(key, "guidance");
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+        cache,
+        workspaceRoot: "/ws",
+        branch: "main",
+      });
+      assert.ok(
+        p.includes("degraded") || p.includes("advisory"),
+        "Degraded advisory should bypass cache-hit suppression",
+      );
+    });
+
+    test("degraded advisory block stays within budget", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        maintenanceDegraded: true,
+        degradedMode: "warn-once",
+        showDegradedAdvisory: true,
+      });
+      const words = p.split(/\s+/).filter(Boolean).length;
+      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-"));
+      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+      assert.ok(bullets.length <= 5, `Expected <= 5 bullets, got ${bullets.length}`);
+    });
+  });
+
+// ── Source-linked micro-brief contract (Task 1 TDD lock-in) ───────────
+// These tests define the contract for Task 2 implementation.
+// Expected to FAIL until runtime source-linked guidance is implemented.
+describe("source-linked micro-brief contract", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-source-linked-"));
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+  });
+
+  /** Helper to write a symbols.yaml with the given entries */
+  function writeSymbolsYaml(
+    entries: Array<{
+      id: string;
+      sourceFile: string;
+      links: string[];
+      relationships?: Array<{ type: string; target: string }>;
+    }>,
+  ) {
+    const docDir = path.join(tmpDir, "documentation");
+    fs.mkdirSync(docDir, { recursive: true });
+    const yamlContent =
+      entries
+        .map((e) => {
+          let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n    links:\n`;
+          for (const link of e.links) {
+            entry += `      - ${link}\n`;
+          }
+          if (e.relationships) {
+            entry += `    relationships:\n`;
+            for (const rel of e.relationships) {
+              entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
+            }
+          }
+          return entry;
+        })
+        .join("\n");
+    fs.writeFileSync(path.join(docDir, "symbols.yaml"), yamlContent);
+  }
+
+  test("includes source-linked brief for code edit with concrete symbols.yaml mapping", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+          "REQ-opencode-agent-mcp-only",
+        ],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+          { type: "implements", target: "REQ-opencode-kibi-plugin-v1" },
+          { type: "implements", target: "REQ-opencode-agent-mcp-only" },
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    // Should include source-linked brief with at most 3 REQ IDs
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief bullet for mapped file",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-smart-enforcement-v1"),
+      "Should include first requirement ID",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-kibi-plugin-v1"),
+      "Should include second requirement ID",
+    );
+    assert.ok(
+      p.includes("REQ-opencode-agent-mcp-only"),
+      "Should include third requirement ID",
+    );
+
+    // The brief line should contain at most 3 REQ IDs
+    const briefLine = p
+      .split("\n")
+      .find((l) => l.includes("- Existing Kibi links:"));
+    assert.ok(briefLine, "Should find the brief line");
+    const briefReqIds = briefLine.match(/REQ-[A-Za-z0-9_-]+/g);
+    assert.ok(
+      briefReqIds && briefReqIds.length <= 3,
+      `Source-linked brief should have at most 3 IDs, got ${briefReqIds?.length ?? 0}`,
+    );
+  });
+
+  test("omits source-linked brief for code edit without symbols.yaml mapping", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/some-other-file.ts", kind: "code" },
+      ],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    // Should NOT include any source-linked brief or fallback text
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Should NOT include source-linked brief for unmapped file",
+    );
+    assert.ok(
+      !p.includes("No Kibi links found"),
+      "Should NOT include fallback text when no hits",
+    );
+    assert.ok(
+      !p.includes("no source links"),
+      "Should NOT include any no-hit filler text",
+    );
+  });
+
+  test("source-linked brief caps at 3 requirement IDs even when more exist", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-classifyRisk",
+        sourceFile: "packages/opencode/src/risk-classifier.ts",
+        links: [
+          "REQ-first",
+          "REQ-second",
+          "REQ-third",
+          "REQ-fourth",
+          "REQ-fifth",
+        ],
+        relationships: [
+          { type: "implements", target: "REQ-first" },
+          { type: "implements", target: "REQ-second" },
+          { type: "implements", target: "REQ-third" },
+          { type: "implements", target: "REQ-fourth" },
+          { type: "implements", target: "REQ-fifth" },
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/risk-classifier.ts", kind: "code" },
+      ],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
+    const briefLine = p
+      .split("\n")
+      .find((l) => l.includes("- Existing Kibi links:"));
+    assert.ok(briefLine, "Should find the brief line");
+    const briefReqIds = briefLine.match(/REQ-[A-Za-z0-9_-]+/g);
+    assert.equal(
+      briefReqIds?.length ?? 0,
+      3,
+      `Source-linked brief should cap at exactly 3 IDs, got ${briefReqIds?.length ?? 0}`,
+    );
+  });
+
+  test("source-linked brief respects prompt budget (<=120 words, <=5 bullets)", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+          "REQ-opencode-agent-mcp-only",
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("source-linked brief does not appear for non-code risk classes", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-someReq",
+        sourceFile: "documentation/requirements/REQ-001.md",
+        links: ["REQ-some-other"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Source-linked brief should NOT appear for requirement edits",
+    );
+  });
+
+  test("completion reminder still works alongside source-linked brief", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should still include completion reminder alongside source-linked brief",
+    );
+  });
+
+  test("cache behavior remains intact with source-linked brief", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: tmpDir,
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: tmpDir,
+      branch: "main",
+    });
+
+    // Cache hit should suppress guidance (existing behavior preserved)
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Cache hit should suppress source-linked brief",
+    );
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "Cache hit should return sentinel only",
     );
   });
 });

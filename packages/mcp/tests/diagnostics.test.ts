@@ -24,6 +24,18 @@ describe("deriveDiagnosticFields", () => {
     const telemetry = { is_autonomous: true };
     const result = deriveDiagnosticFields("kb_query", {}, telemetry, {});
     expect(result.telemetry_status).toBe("provided");
+    expect(result.telemetry_is_autonomous).toBe(true);
+  });
+
+  test("includes telemetry confidence and attempt metadata", () => {
+    const telemetry = {
+      is_autonomous: false,
+      confidence_score: 0.75,
+      attempt_number: 2,
+    };
+    const result = deriveDiagnosticFields("kb_search", {}, telemetry, {});
+    expect(result.telemetry_confidence_score).toBe(0.75);
+    expect(result.telemetry_attempt_number).toBe(2);
   });
 
   test("kb_query: extracts result count", () => {

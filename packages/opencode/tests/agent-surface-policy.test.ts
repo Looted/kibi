@@ -33,11 +33,15 @@ describe("agent surface policy", () => {
     "docs/prompts/llm-rules.md",
     "documentation/requirements/REQ-opencode-kibi-plugin-v1.md",
     "documentation/requirements/REQ-opencode-agent-mcp-only.md",
+    "documentation/requirements/REQ-opencode-smart-enforcement-v1.md",
     "documentation/scenarios/SCEN-010.md",
     "documentation/scenarios/SCEN-opencode-enforcement.md",
     "documentation/scenarios/SCEN-opencode-agent-mcp-only.md",
+    "documentation/scenarios/SCEN-opencode-smart-enforcement.md",
     "documentation/tests/TEST-opencode-kibi-plugin-v1.md",
     "documentation/tests/TEST-opencode-agent-mcp-only.md",
+    "documentation/tests/TEST-opencode-smart-enforcement.md",
+    "documentation/adr/ADR-019.md",
   ];
 
   // Forbidden CLI commands - these should never appear in agent-facing guidance

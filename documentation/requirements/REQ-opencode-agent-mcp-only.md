@@ -22,6 +22,8 @@ links:
     target: SCEN-opencode-agent-mcp-only
   - type: verified_by
     target: TEST-opencode-agent-mcp-only
+  - type: relates_to
+    target: REQ-opencode-smart-enforcement-v1
 ---
 
 The OpenCode agent experience must:

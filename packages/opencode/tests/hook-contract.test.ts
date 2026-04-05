@@ -27,6 +27,15 @@ describe("hook contract", () => {
       commentDetection: { enabled: true, minLines: 6 },
       targetedChecks: { enabled: true },
       sessionSummary: { enabled: true, logIntervalMs: 1800000 },
+      smartEnforcement: {
+        enabled: true,
+        mode: "advisory",
+        preflightTtlMs: 600000,
+        idleResetMs: 1800000,
+        degradedMode: "warn-once",
+        requireRootKbForStrict: true,
+        completionReminder: true,
+      },
     },
     logLevel: "info",
   };
@@ -78,6 +87,16 @@ describe("hook contract", () => {
       "auto mode should register experimental.chat.system.transform",
     );
     assert.ok("chat.params" in hooks, "auto mode should register chat.params");
+  });
+
+  test("plugin remains advisory and only exposes advisory hook surfaces", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    assert.deepEqual(
+      Object.keys(hooks).sort(),
+      ["chat.params", "event", "experimental.chat.system.transform"].sort(),
+      "plugin should expose only advisory/event hook surfaces and no hard gate",
+    );
   });
 
   test("chat-params mode: system.transform absent, chat.params present", async () => {
@@ -180,7 +199,9 @@ describe("hook contract", () => {
     const transform = hooks["experimental.chat.system.transform"];
     assert.ok(transform, "system.transform hook should exist");
 
-    const output = { system: ["existing-prompt-a", "existing-prompt-b"] } as any;
+    const output = {
+      system: ["existing-prompt-a", "existing-prompt-b"],
+    } as any;
     await transform({} as any, output);
 
     // Original entries must still be present
