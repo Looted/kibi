@@ -279,6 +279,39 @@ The `kibi check --staged` command enforces traceability on code before commit.
 **Purpose:**
 Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
 
+**Workflow Options:**
+1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your symbol manifest (e.g., `documentation/symbols.yaml`), link it to a `TEST-*` entity with `covered_by`, and link the test to the requirement with `validates` or `verified_by`. This satisfies the staged check without modifying source code.
+2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-xxx` comment. This remains backward-compatible and useful for quick code-only changes.
+
+**How to use:**
+```bash
+# Check staged files for traceability coverage
+kibi check --staged
+```
+
+This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+
+**Scope Note**: Staged check handles explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
+
+**Inline Directive Syntax (Optional):**
+
+Link a code symbol to a requirement by adding a comment:
+
+```typescript
+export function myFunc() { } // implements REQ-001
+```
+
+Link to multiple requirements:
+
+```typescript
+export class MyClass { } // implements REQ-001, REQ-002
+```
+
+The `kibi check --staged` command enforces traceability on code before commit.
+
+**Purpose:**
+Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
+
 **How to use:**
 ```bash
 # Check staged files for traceability coverage

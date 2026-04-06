@@ -1,5 +1,6 @@
 % PLUnit test suite for kb.pl
 :- use_module('../src/kb.pl').
+:- use_module('../src/checks.pl').
 :- use_module(library(plunit)).
 :- use_module(library(filesex)).
 
@@ -215,6 +216,68 @@ test(transitively_implements_via_test, [setup(setup_kb), cleanup(cleanup_kb)]) :
     kb_assert_relationship(validates, 'test-b', 'req-b', []),
     kb_assert_relationship(covered_by, 'sym-b', 'test-b', []),
     transitively_implements('sym-b', 'req-b').
+
+test(symbol_traceability_accepts_validates_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-trace-validates',
+        title="Req Trace Validates",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-trace-validates',
+        title="Test Trace Validates",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-trace-validates',
+        title="Sym Trace Validates",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(validates, 'test-trace-validates', 'req-trace-validates', []),
+    kb_assert_relationship(covered_by, 'sym-trace-validates', 'test-trace-validates', []),
+    check_symbol_traceability(false, Violations),
+    assertion(Violations == []).
+
+test(symbol_traceability_accepts_verified_by_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-trace-verified',
+        title="Req Trace Verified",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-trace-verified',
+        title="Test Trace Verified",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-trace-verified',
+        title="Sym Trace Verified",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(verified_by, 'req-trace-verified', 'test-trace-verified', []),
+    kb_assert_relationship(covered_by, 'sym-trace-verified', 'test-trace-verified', []),
+    check_symbol_traceability(false, Violations),
+    assertion(Violations == []).
 
 test(transitively_depends, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [

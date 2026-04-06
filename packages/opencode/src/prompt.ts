@@ -1,4 +1,3 @@
-import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
@@ -8,6 +7,7 @@ import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
+import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import type { WorkspaceHealth } from "./workspace-health.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
@@ -100,11 +100,11 @@ Requirement edits need policy alignment. Run kb_check with required-fields and n
 
   behavior_candidate: `📝 **Code changes detected**
 
-Code changes need traceability. Use kb_search for context, add // implements REQ-xxx annotations to new or modified functions/classes.`,
+Code changes need traceability. Use kb_search for context. For test/e2e symbols, prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible.`,
 
   traceability_candidate: `📝 **Code changes detected**
 
-Code changes need traceability. Use kb_search for context, add // implements REQ-xxx annotations.
+Code changes need traceability. Use kb_search for context. For test/e2e symbols, prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible.
 - Durable knowledge comment detected — route to KB instead of inline comments
 - Use kb_upsert for FACT, ADR, or REQ entities as appropriate`,
 
@@ -185,7 +185,13 @@ Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, 
   else {
     // Cache check: skip repeated advisory guidance — only after critical signals are handled above
     // Allow degraded advisory to bypass cache so it is always visible
-    if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
+    if (
+      !showDegraded &&
+      context.cache &&
+      context.workspaceRoot &&
+      context.branch &&
+      riskClass
+    ) {
       const lastEdit = context.recentEdits[context.recentEdits.length - 1];
       const key: CacheKey = {
         workspaceRoot: context.workspaceRoot,
@@ -200,13 +206,20 @@ Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, 
     }
 
     // Priority 5: Risk-class-driven guidance (for non-safe classes)
-    if (riskClass && riskClass !== "safe_docs_only" && riskClass !== "safe_test_only") {
+    if (
+      riskClass &&
+      riskClass !== "safe_docs_only" &&
+      riskClass !== "safe_test_only"
+    ) {
       // For behavior/traceability with comment suggestions, use suggestion guidance
       if (
-        (riskClass === "behavior_candidate" || riskClass === "traceability_candidate") &&
+        (riskClass === "behavior_candidate" ||
+          riskClass === "traceability_candidate") &&
         context.recentCommentSuggestion
       ) {
-        selectedBlock = buildCommentSuggestionGuidance(context.recentCommentSuggestion);
+        selectedBlock = buildCommentSuggestionGuidance(
+          context.recentCommentSuggestion,
+        );
       } else {
         const block = GUIDANCE_BY_RISK[riskClass];
         if (block) selectedBlock = block;
@@ -215,9 +228,20 @@ Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, 
     // Priority 6: Legacy path-kind fallback (when no risk class)
     else if (!riskClass) {
       const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
-      const reqEdits = context.recentEdits.filter((e) => e.kind === "requirement");
+      const reqEdits = context.recentEdits.filter(
+        (e) => e.kind === "requirement",
+      );
       const kbDocEdits = context.recentEdits.filter((e) =>
-        ["requirement", "scenario", "test", "adr", "fact", "flag", "event", "symbol"].includes(e.kind)
+        [
+          "requirement",
+          "scenario",
+          "test",
+          "adr",
+          "fact",
+          "flag",
+          "event",
+          "symbol",
+        ].includes(e.kind),
       );
 
       if (codeEdits.length > 0) {
@@ -231,7 +255,7 @@ Before implementing or explaining code:
 1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-4. **Add traceability** - Add traceability comments to new or modified functions/classes (e.g. \`// implements REQ-xxx\`).
+4. **Add traceability** - For test/e2e symbols, prefer durable symbol/test/requirement relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible for quick code-only changes.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
 - \`FACT\` for domain invariants, properties, limits, cardinalities
@@ -252,7 +276,8 @@ If you're adding long explanatory comments, consider routing that knowledge to:
   // before the first bullet.
   if (
     selectedBlock &&
-    (riskClass === "behavior_candidate" || riskClass === "traceability_candidate") &&
+    (riskClass === "behavior_candidate" ||
+      riskClass === "traceability_candidate") &&
     context.workspaceRoot
   ) {
     try {
@@ -262,14 +287,14 @@ If you're adding long explanatory comments, consider routing that knowledge to:
         const absEdited = path.isAbsolute(editedPath)
           ? editedPath
           : path.join(context.workspaceRoot, editedPath);
-        const linkedIds = getSourceLinkedRequirementIds(context.workspaceRoot, absEdited);
+        const linkedIds = getSourceLinkedRequirementIds(
+          context.workspaceRoot,
+          absEdited,
+        );
         if (linkedIds.length >= 1 && linkedIds.length <= 3) {
           const headerEnd = selectedBlock.indexOf("\n");
           if (headerEnd !== -1) {
-            selectedBlock =
-              selectedBlock.slice(0, headerEnd + 1) +
-              `- Existing Kibi links: ${linkedIds.join(", ")}\n` +
-              selectedBlock.slice(headerEnd + 1);
+            selectedBlock = `${selectedBlock.slice(0, headerEnd + 1)}- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock.slice(headerEnd + 1)}`;
           } else {
             selectedBlock = `${selectedBlock}\n- Existing Kibi links: ${linkedIds.join(", ")}`;
           }
@@ -294,7 +319,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
 
   // Record cache after generating (advisory, non-blocking)
   // Do not cache degraded-advisory-only emissions
-  if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
+  if (
+    !showDegraded &&
+    context.cache &&
+    context.workspaceRoot &&
+    context.branch &&
+    riskClass
+  ) {
     const lastEdit = context.recentEdits[context.recentEdits.length - 1];
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
@@ -307,7 +338,11 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
   }
 
   // Append completion reminder for risky classes when enabled
-  const REMINDER_RISK_CLASSES: RiskClass[] = ["behavior_candidate", "traceability_candidate", "req_policy_candidate"];
+  const REMINDER_RISK_CLASSES: RiskClass[] = [
+    "behavior_candidate",
+    "traceability_candidate",
+    "req_policy_candidate",
+  ];
   if (
     selectedBlock &&
     context.completionReminder === true &&
@@ -325,7 +360,6 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     ? `${SENTINEL}\n\n${enforceBudget(selectedBlock)}`
     : SENTINEL;
 }
-
 
 // ── Comment suggestion guidance (legacy compat) ────────────────────────
 
@@ -363,7 +397,7 @@ Your recent code edit contains a comment that looks like **behavior intent** (sy
 **Action**: Instead of inline comments, route this to a REQ entity:
 - Create \`documentation/requirements/REQ-xxx.md\` with the behavior description
 - Add SCEN and TEST entities for specification and verification
-- Link code to requirements using traceability comments (e.g., \`// implements REQ-xxx\`)
+- Link code to requirements: for test/e2e symbols prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible
 
 This ensures behavior is documented and traceable.`;
     default:
@@ -373,7 +407,7 @@ Before implementing or explaining code:
 1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-4. **Add traceability** - Add traceability comments to new or modified functions/classes so the pre-commit hook can verify coverage (e.g., \`// implements REQ-xxx\`).`;
+4. **Add traceability** - For test/e2e symbols, prefer durable symbol/test/requirement relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible for quick code-only changes.`;
   }
 }
 
@@ -387,7 +421,7 @@ This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over 
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
-Keep changed symbols traceable: add \`// implements REQ-xxx\` to every new or modified function/class so the pre-commit hook can verify coverage.
+Keep changed symbols traceable: for test and e2e code, prefer durable symbol/test/requirement relationships (e.g. via \`symbols.yaml\`); inline \`// implements REQ-xxx\` comments remain optional and backward-compatible for quick code-only changes.
 
 Run kb_check after KB mutations.
 

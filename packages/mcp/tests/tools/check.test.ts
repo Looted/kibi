@@ -6,9 +6,6 @@ import {
   expect,
   test,
 } from "bun:test";
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import {
   existsSync,
   mkdirSync,
@@ -16,6 +13,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
@@ -352,7 +352,6 @@ describe("MCP Check Tool Handler", () => {
   }, 20000);
 
   test("should detect symbol-traceability violations", async () => {
-    // Create a symbol without an implements relationship
     await handleKbUpsert(prolog, {
       type: "symbol",
       id: "symbol-notrace-001",
@@ -361,21 +360,22 @@ describe("MCP Check Tool Handler", () => {
         status: "active",
         source: "test://traceability",
       },
-      // Note: No implements relationship - this should trigger a violation
     });
 
-    // Run check with all rules (includes symbol-traceability)
     const result = await handleKbCheck(prolog, {});
 
     expect(result.structuredContent).toBeDefined();
-    // Look for symbol-traceability violation
     const traceabilityViolation = result.structuredContent?.violations.find(
       (v) =>
         v.rule === "symbol-traceability" && v.entityId === "symbol-notrace-001",
     );
     expect(traceabilityViolation).toBeDefined();
-    // The description should mention the missing requirement link
-    expect(traceabilityViolation?.description).toMatch(/requirement/i);
+    expect(traceabilityViolation?.description).toMatch(
+      /supported requirement traceability path/i,
+    );
+    expect(traceabilityViolation?.suggestion).toMatch(/implements/i);
+    expect(traceabilityViolation?.suggestion).toMatch(/covered_by/i);
+    expect(traceabilityViolation?.suggestion).toMatch(/validates|verified_by/i);
   }, 15000);
 
   test("should pass symbol-traceability when symbol implements requirement", async () => {
@@ -418,6 +418,198 @@ describe("MCP Check Tool Handler", () => {
       (v) => v.entityId === "symbol-trace-pass-001",
     );
     expect(symbolViolation).toBeUndefined();
+  }, 15000);
+
+  test("should pass symbol-traceability when symbol is covered by validating test", async () => {
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-trace-validates-001",
+      properties: {
+        title: "Requirement for validating test traceability",
+        status: "open",
+        source: "test://traceability-validates",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-trace-validates-001",
+      properties: {
+        title: "Validating traceability test",
+        status: "passing",
+        source: "test://traceability-validates",
+      },
+      relationships: [
+        {
+          type: "validates",
+          from: "test-trace-validates-001",
+          to: "req-trace-validates-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-validates-001",
+      properties: {
+        title: "Symbol covered by validating test",
+        status: "active",
+        source: "test://traceability-validates",
+      },
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-trace-validates-001",
+          to: "test-trace-validates-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-validates-001",
+    );
+    expect(symbolViolation).toBeUndefined();
+  }, 15000);
+
+  test("should pass symbol-traceability when requirement is verified by covering test", async () => {
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-trace-verified-001",
+      properties: {
+        title: "Verified traceability test",
+        status: "passing",
+        source: "test://traceability-verified",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-trace-verified-001",
+      properties: {
+        title: "Requirement verified by test traceability",
+        status: "open",
+        source: "test://traceability-verified",
+      },
+      relationships: [
+        {
+          type: "verified_by",
+          from: "req-trace-verified-001",
+          to: "test-trace-verified-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-verified-001",
+      properties: {
+        title: "Symbol covered by verified test",
+        status: "active",
+        source: "test://traceability-verified",
+      },
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-trace-verified-001",
+          to: "test-trace-verified-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-verified-001",
+    );
+    expect(symbolViolation).toBeUndefined();
+  }, 15000);
+
+  test("should still fail symbol-traceability for relates_to requirement links", async () => {
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-trace-relates-001",
+      properties: {
+        title: "Requirement only related to symbol",
+        status: "open",
+        source: "test://traceability-relates",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-relates-001",
+      properties: {
+        title: "Symbol with relates_to only",
+        status: "active",
+        source: "test://traceability-relates",
+      },
+      relationships: [
+        {
+          type: "relates_to",
+          from: "symbol-trace-relates-001",
+          to: "req-trace-relates-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-relates-001",
+    );
+    expect(symbolViolation).toBeDefined();
+    expect(symbolViolation?.description).toMatch(
+      /supported requirement traceability path/i,
+    );
+  }, 15000);
+
+  test("should still fail symbol-traceability when covered test lacks requirement edge", async () => {
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-trace-missing-req-001",
+      properties: {
+        title: "Covered test without req edge",
+        status: "passing",
+        source: "test://traceability-missing-req",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-missing-req-001",
+      properties: {
+        title: "Symbol covered by unlinked test",
+        status: "active",
+        source: "test://traceability-missing-req",
+      },
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-trace-missing-req-001",
+          to: "test-trace-missing-req-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-missing-req-001",
+    );
+    expect(symbolViolation).toBeDefined();
+    expect(symbolViolation?.description).toMatch(
+      /supported requirement traceability path/i,
+    );
   }, 15000);
 
   test("should run symbol-traceability rule without errors when filtering", async () => {
@@ -741,12 +933,13 @@ describe("kb_check resolveCorePlPath integration", () => {
         // This key was never snapshotted for this test; leave process.env as-is.
         continue;
       }
-      if (savedEnv[key] === undefined) {
-        delete process.env[key];
+      const savedValue = savedEnv[key];
+      if (savedValue === undefined) {
+        Reflect.deleteProperty(process.env, key);
       } else {
-        process.env[key] = savedEnv[key]!;
+        process.env[key] = savedValue;
       }
-      delete savedEnv[key];
+      Reflect.deleteProperty(savedEnv, key);
     }
   });
 
@@ -757,7 +950,7 @@ describe("kb_check resolveCorePlPath integration", () => {
       const overridePath = path.join(tmpDir, "checks.pl");
       writeFileSync(overridePath, "% override checks\n");
 
-      savedEnv["KIBI_CHECKS_PL_PATH"] = process.env.KIBI_CHECKS_PL_PATH;
+      savedEnv.KIBI_CHECKS_PL_PATH = process.env.KIBI_CHECKS_PL_PATH;
       process.env.KIBI_CHECKS_PL_PATH = overridePath;
 
       // Import resolveCorePlPath to verify it returns the override
@@ -780,11 +973,11 @@ describe("kb_check resolveCorePlPath integration", () => {
       writeFileSync(kbPath, "% kb\n");
       writeFileSync(checksPath, "% checks sibling\n");
 
-      savedEnv["KIBI_KB_PL_PATH"] = process.env.KIBI_KB_PL_PATH;
+      savedEnv.KIBI_KB_PL_PATH = process.env.KIBI_KB_PL_PATH;
       process.env.KIBI_KB_PL_PATH = kbPath;
       // Ensure no CHECKS override overrides our test
-      savedEnv["KIBI_CHECKS_PL_PATH"] = process.env.KIBI_CHECKS_PL_PATH;
-      delete process.env.KIBI_CHECKS_PL_PATH;
+      savedEnv.KIBI_CHECKS_PL_PATH = process.env.KIBI_CHECKS_PL_PATH;
+      Reflect.deleteProperty(process.env, "KIBI_CHECKS_PL_PATH");
 
       const result = resolveCorePlPath("checks.pl");
 

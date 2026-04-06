@@ -286,7 +286,33 @@ This feature enforces a discipline where every code change must reference a requ
 
 When implementing code changes, an agent should:
 
-1. **Add the `implements REQ-xxx` directive:**
+1. **Prefer relationship-based traceability for test and e2e code:**
+   Instead of inline comments, model the code as a symbol (e.g., in `documentation/symbols.yaml`), link it to a `TEST-*` entity with `covered_by`, and link the test to the requirement with `validates` or `verified_by`. This is the preferred workflow for test and e2e symbols.
+
+2. **Add the `implements REQ-xxx` directive (Optional/Backward-Compatible):**
+   Inline comments remain supported and are useful for quick code-only changes:
+   ```typescript
+   export function myFunc() { } // implements REQ-001
+   ```
+
+   You can link to multiple requirements:
+   ```typescript
+   export class MyClass() { } // implements REQ-001, REQ-002
+   ```
+
+3. **Git hooks enforce traceability automatically:**
+   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links (either via inline comments or explicit KB relationships). This happens automatically on commit.
+
+4. **Handle violations:**
+   If commit is blocked due to missing requirement links:
+   - Add appropriate `implements REQ-xxx` directives to your code
+   - Or create the missing relationship in the KB (e.g., via `kb_upsert`)
+   - Or ask the user/operator to review if the traceability rules need adjustment
+
+**Scope Note**: This workflow applies to explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported; test() callbacks are out of scope for the staged check.
+
+### Configuration
+
    ```typescript
    export function myFunc() { } // implements REQ-001
    ```

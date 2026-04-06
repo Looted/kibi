@@ -124,11 +124,30 @@ When creating or updating entities:
 3. Create relationships during the same `kb_upsert` when possible:
    - `specified_by` for requirement -> scenario
    - `verified_by` or `validates` for requirement/test links
+   - `implements` for symbol -> requirement (Optional/Backward-Compatible shortcut)
+   - `covered_by` for symbol -> test (Preferred workflow for test/e2e traceability)
+   - `constrains` and `requires_property` for requirement/fact modeling
+   - `specified_by` for requirement -> scenario
+   - `verified_by` or `validates` for requirement/test links
    - `implements` for symbol -> requirement
    - `covered_by` for symbol -> test
    - `constrains` and `requires_property` for requirement/fact modeling
 
 **Important:** Execute `kb_upsert` calls sequentially. Do not fire in parallel to avoid lock contention.
+
+### Test/E2E Traceability: Manifest-Based Workflow
+
+For test and e2e symbols, the preferred traceability workflow uses durable KB relationships instead of inline code comments:
+
+1. **Model the code as a symbol** in `documentation/symbols.yaml` (or the configured symbol manifest), with `sourceFile` pointing at the test/e2e file.
+2. **Link symbol → test** using a `covered_by` relationship row during `kb_upsert`.
+3. **Link test → requirement** using `validates` or `verified_by` relationship rows.
+
+This manifest-based approach keeps traceability in the KB where it can be queried and validated, avoiding comment churn in test files.
+
+Inline `// implements REQ-xxx` comments remain **optional and backward-compatible**, especially useful for quick code-only changes, but they are not the preferred path for test/e2e symbols.
+
+> **Scope note:** Automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged validation. Only explicitly modeled symbols participate in the traceability check.
 
 ## Anti-Patterns
 
