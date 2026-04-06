@@ -6,9 +6,6 @@ import {
   expect,
   test,
 } from "bun:test";
-import fs from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import {
   existsSync,
   mkdirSync,
@@ -16,6 +13,9 @@ import {
   rmSync,
   writeFileSync,
 } from "node:fs";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 import { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
