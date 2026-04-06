@@ -41,7 +41,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   if (missingConfig) {
     // No config file: fall back to hardcoded defaults
     for (const docDir of KIBI_DOC_DIRS) {
-      const fullPath = path.join(cwd, docDir);
+      const fullPath = path.resolve(cwd, docDir);
       if (!fs.existsSync(fullPath)) {
         missingDocDirs.push(docDir);
       }
@@ -59,7 +59,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
       // User has custom paths: resolve targets dynamically
       const targets = getKbExistenceTargets(cwd);
       for (const target of targets) {
-        const fullPath = path.join(cwd, target.relativePath);
+        const fullPath = path.resolve(cwd, target.relativePath);
         if (!fs.existsSync(fullPath)) {
           missingDocDirs.push(target.relativePath);
         }
@@ -67,7 +67,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
     } else {
       // Config exists but no custom paths: use hardcoded defaults
       for (const docDir of KIBI_DOC_DIRS) {
-        const fullPath = path.join(cwd, docDir);
+        const fullPath = path.resolve(cwd, docDir);
         if (!fs.existsSync(fullPath)) {
           missingDocDirs.push(docDir);
         }
