@@ -18,11 +18,11 @@ import {
   createSyncScheduler as importedCreateSyncScheduler,
 } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
-import { checkWorkspaceHealth } from "./workspace-health.js";
 import {
-  computeEffectiveMode,
   type EffectiveMode,
+  computeEffectiveMode,
 } from "./smart-enforcement.js";
+import { checkWorkspaceHealth } from "./workspace-health.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -56,17 +56,6 @@ function readConfigFingerprint(cwd: string): string {
     return fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf-8");
   } catch {
     return "missing";
-  }
-}
-
-function readMaintenanceModeEnabled(cwd: string): boolean {
-  try {
-    const raw = JSON.parse(
-      fs.readFileSync(path.join(cwd, ".kb", "config.json"), "utf-8"),
-    ) as { maintenance?: { enabled?: boolean } };
-    return raw?.maintenance?.enabled === true;
-  } catch {
-    return false;
   }
 }
 
@@ -362,7 +351,6 @@ const kibiOpencodePlugin: Plugin = async (
     if (!filePath) return;
 
     const pathAnalysis = analyzePath(filePath, input.worktree);
-    const maintenanceModeEnabled = readMaintenanceModeEnabled(input.worktree);
 
     let fileContent = "";
     try {
@@ -425,8 +413,7 @@ const kibiOpencodePlugin: Plugin = async (
     });
 
     const targetedChecksBlocked =
-      maintenanceModeEnabled ||
-      posture.maintenanceDegraded ||
+      getMaintenanceDegraded() ||
       runtimeOverlay.primaryCause === "sync_disabled" ||
       runtimeOverlay.primaryCause === "scheduler_unavailable" ||
       runtimeOverlay.primaryCause === "scheduler_sync_failed" ||
@@ -507,6 +494,33 @@ const kibiOpencodePlugin: Plugin = async (
       fileBucket: deriveFileBucket(pathAnalysis.kind),
     };
 
+    // Always process manual_kb_edit before cache check — this is a critical safety signal
+    if (effectiveRiskClass === "manual_kb_edit") {
+      hasRecentKbEdit = true;
+      if (cfg.guidance.warnOnKbEdits) {
+        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+        getSessionTracker().recordWarning(
+          "kb-edit",
+          filePath,
+          `Manual .kb edit: ${filePath}`,
+        );
+      }
+      return;
+    }
+
+    // Always emit requirement lint warnings before cache check — these are safety signals
+    if (effectiveRiskClass === "req_policy_candidate") {
+      const lintWarnings = lintRequirementDoc(filePath, input.worktree);
+      for (const warning of lintWarnings) {
+        getSessionTracker().recordWarning(
+          warning.category,
+          filePath,
+          warning.message,
+        );
+      }
+    }
+
+    // Cache check: after critical signals have been emitted
     if (cache.isSatisfied(cacheKey)) {
       logger.info("smart-enforcement.cache", {
         event: "smart_enforcement_cache",
@@ -530,29 +544,7 @@ const kibiOpencodePlugin: Plugin = async (
       posture_state: posture.state,
     });
 
-    if (effectiveRiskClass === "manual_kb_edit") {
-      hasRecentKbEdit = true;
-      if (cfg.guidance.warnOnKbEdits) {
-        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
-        getSessionTracker().recordWarning(
-          "kb-edit",
-          filePath,
-          `Manual .kb edit: ${filePath}`,
-        );
-      }
-      return;
-    }
-
     if (effectiveRiskClass === "req_policy_candidate") {
-      const lintWarnings = lintRequirementDoc(filePath, input.worktree);
-      for (const warning of lintWarnings) {
-        getSessionTracker().recordWarning(
-          warning.category,
-          filePath,
-          warning.message,
-        );
-      }
-
       if (getMaintenanceDegraded()) {
         const logFn =
           cfg.guidance.smartEnforcement.degradedMode === "warn-once"
@@ -613,16 +605,7 @@ const kibiOpencodePlugin: Plugin = async (
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
-        scheduler?.scheduleSync(
-          "file.edited",
-          filePath,
-          checkRules,
-        );
-        scheduler?.scheduleSync(
-          "smart-enforcement.traceability",
-          filePath,
-          checkRules,
-        );
+        scheduler?.scheduleSync("file.edited", filePath, checkRules);
       }
       return;
     }
@@ -728,6 +711,7 @@ const kibiOpencodePlugin: Plugin = async (
           riskClass: lastRiskClass ?? undefined,
           cache,
           workspaceRoot: input.worktree,
+          branch: currentBranch,
           completionReminder: cfg.guidance.smartEnforcement.completionReminder,
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
