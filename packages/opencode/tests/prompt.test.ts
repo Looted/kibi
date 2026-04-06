@@ -1,13 +1,13 @@
 /// <reference types="bun-types" />
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import type { KibiConfig } from "../src/config";
-import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
-import { GuidanceCache } from "../src/guidance-cache";
-import type { CacheKey } from "../src/guidance-cache";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { KibiConfig } from "../src/config";
+import { GuidanceCache } from "../src/guidance-cache";
+import type { CacheKey } from "../src/guidance-cache";
+import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
 
 const baseConfig: KibiConfig = {
   enabled: true,
@@ -397,7 +397,10 @@ describe("prompt", () => {
       "Contextual guidance must include sentinel",
     );
     // Single-block policy: no risk class = no guidance block, just sentinel
-    assert.ok(result.trim().endsWith(SENTINEL), "Result should end with sentinel");
+    assert.ok(
+      result.trim().endsWith(SENTINEL),
+      "Result should end with sentinel",
+    );
   });
 
   test("injectPrompt skips when plugin disabled", () => {
@@ -495,7 +498,10 @@ describe("prompt", () => {
     });
     assert.ok(result.includes(SENTINEL), "Must include sentinel");
     // Single-block: only manual_kb_edit warning should appear (highest priority)
-    assert.ok(result.includes("WARNING"), "Should include .kb edit warning (highest priority)");
+    assert.ok(
+      result.includes("WARNING"),
+      "Should include .kb edit warning (highest priority)",
+    );
     // These should NOT appear because single-block only returns highest priority
     assert.ok(
       !result.includes("Bootstrap required"),
@@ -677,217 +683,260 @@ describe("prompt", () => {
   });
 });
 
-  // implements REQ-opencode-smart-enforcement-v1
-  describe("completion reminder policy", () => {
-    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+// implements REQ-opencode-smart-enforcement-v1
+describe("completion reminder policy", () => {
+  const REMINDER_TEXT = "Run `kb_check` before completing this task.";
 
-    test("reminder appears for behavior_candidate when completionReminder=true", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        completionReminder: true,
-      });
-      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for behavior_candidate");
+  test("reminder appears for behavior_candidate when completionReminder=true", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
     });
-
-    test("reminder appears for traceability_candidate when completionReminder=true", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "traceability_candidate",
-        completionReminder: true,
-      });
-      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for traceability_candidate");
-    });
-
-    test("reminder appears for req_policy_candidate when completionReminder=true", () => {
-      const p = buildPrompt({
-        recentEdits: [
-          { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
-        ],
-        posture: "root_active",
-        riskClass: "req_policy_candidate",
-        completionReminder: true,
-      });
-      assert.ok(p.includes(REMINDER_TEXT), "Should include reminder for req_policy_candidate");
-    });
-
-    test("reminder does NOT appear for safe_docs_only", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "README.md", kind: "unknown" }],
-        posture: "root_active",
-        riskClass: "safe_docs_only",
-        completionReminder: true,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for safe_docs_only");
-    });
-
-    test("reminder does NOT appear for safe_test_only", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.test.ts", kind: "test" }],
-        posture: "root_active",
-        riskClass: "safe_test_only",
-        completionReminder: true,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for safe_test_only");
-    });
-
-    test("reminder does NOT appear for vendored_only posture", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "vendored_only",
-        riskClass: "behavior_candidate",
-        completionReminder: true,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for vendored_only");
-    });
-
-    test("reminder does NOT appear for root_uninitialized posture", () => {
-      const p = buildPrompt({
-        recentEdits: [],
-        posture: "root_uninitialized",
-        riskClass: "behavior_candidate",
-        completionReminder: true,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder for root_uninitialized");
-    });
-
-    test("reminder does NOT appear when completionReminder=false", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        completionReminder: false,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when false");
-    });
-
-    test("reminder does NOT appear when completionReminder is undefined", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when undefined");
-    });
-
-    test("reminder does NOT appear on cache-hit", () => {
-      const cache = new GuidanceCache(600000);
-      const key: CacheKey = {
-        workspaceRoot: "/ws",
-        branch: "main",
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        fileBucket: "code",
-      };
-      cache.recordSatisfied(key, "guidance");
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        completionReminder: true,
-        cache,
-        workspaceRoot: "/ws",
-        branch: "main",
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder on cache-hit");
-    });
-
-    test("block with reminder stays within budget (<=120 words, <=5 bullets)", () => {
-      const p = buildPrompt({
-        recentEdits: [
-          { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
-        ],
-        posture: "root_active",
-        riskClass: "req_policy_candidate",
-        completionReminder: true,
-      });
-      const words = p.split(/\s+/).filter(Boolean).length;
-      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-"));
-      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
-      assert.ok(
-        bullets.length <= 5,
-        `Expected <= 5 bullets, got ${bullets.length}`,
-      );
-    });
-    test("maintenanceDegraded suppresses completion reminder for behavior_candidate", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        completionReminder: true,
-        maintenanceDegraded: true,
-      });
-      assert.ok(!p.includes(REMINDER_TEXT), "Should NOT include reminder when maintenanceDegraded");
-    });
-
-    test("degradedMode=warn-once adds degraded advisory block", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        maintenanceDegraded: true,
-        degradedMode: "warn-once",
-        showDegradedAdvisory: true,
-      });
-      assert.ok(
-        p.includes("maintenance degraded") || p.includes("degraded"),
-        "Should include degraded advisory for warn-once",
-      );
-    });
-
-    test("degradedMode=structured-only adds no degraded prompt copy", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        maintenanceDegraded: true,
-        degradedMode: "structured-only",
-        showDegradedAdvisory: true,
-      });
-      assert.ok(!p.includes("maintenance degraded"), "Should NOT include degraded prompt copy for structured-only");
-    });
-
-    test("degraded advisory can appear even when cache-hit would otherwise suppress guidance", () => {
-      const cache = new GuidanceCache(600000);
-      const key: CacheKey = {
-        workspaceRoot: "/ws",
-        branch: "main",
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        fileBucket: "code",
-      };
-      cache.recordSatisfied(key, "guidance");
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        riskClass: "behavior_candidate",
-        maintenanceDegraded: true,
-        degradedMode: "warn-once",
-        showDegradedAdvisory: true,
-        cache,
-        workspaceRoot: "/ws",
-        branch: "main",
-      });
-      assert.ok(
-        p.includes("degraded") || p.includes("advisory"),
-        "Degraded advisory should bypass cache-hit suppression",
-      );
-    });
-
-    test("degraded advisory block stays within budget", () => {
-      const p = buildPrompt({
-        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
-        posture: "root_active",
-        maintenanceDegraded: true,
-        degradedMode: "warn-once",
-        showDegradedAdvisory: true,
-      });
-      const words = p.split(/\s+/).filter(Boolean).length;
-      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-"));
-      assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
-      assert.ok(bullets.length <= 5, `Expected <= 5 bullets, got ${bullets.length}`);
-    });
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should include reminder for behavior_candidate",
+    );
   });
+
+  test("reminder appears for traceability_candidate when completionReminder=true", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "traceability_candidate",
+      completionReminder: true,
+    });
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should include reminder for traceability_candidate",
+    );
+  });
+
+  test("reminder appears for req_policy_candidate when completionReminder=true", () => {
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+      completionReminder: true,
+    });
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should include reminder for req_policy_candidate",
+    );
+  });
+
+  test("reminder does NOT appear for safe_docs_only", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "README.md", kind: "unknown" }],
+      posture: "root_active",
+      riskClass: "safe_docs_only",
+      completionReminder: true,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder for safe_docs_only",
+    );
+  });
+
+  test("reminder does NOT appear for safe_test_only", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.test.ts", kind: "test" }],
+      posture: "root_active",
+      riskClass: "safe_test_only",
+      completionReminder: true,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder for safe_test_only",
+    );
+  });
+
+  test("reminder does NOT appear for vendored_only posture", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "vendored_only",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder for vendored_only",
+    );
+  });
+
+  test("reminder does NOT appear for root_uninitialized posture", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_uninitialized",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder for root_uninitialized",
+    );
+  });
+
+  test("reminder does NOT appear when completionReminder=false", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: false,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder when false",
+    );
+  });
+
+  test("reminder does NOT appear when completionReminder is undefined", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder when undefined",
+    );
+  });
+
+  test("reminder does NOT appear on cache-hit", () => {
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: "/ws",
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder on cache-hit",
+    );
+  });
+
+  test("block with reminder stays within budget (<=120 words, <=5 bullets)", () => {
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      posture: "root_active",
+      riskClass: "req_policy_candidate",
+      completionReminder: true,
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+  test("maintenanceDegraded suppresses completion reminder for behavior_candidate", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      maintenanceDegraded: true,
+    });
+    assert.ok(
+      !p.includes(REMINDER_TEXT),
+      "Should NOT include reminder when maintenanceDegraded",
+    );
+  });
+
+  test("degradedMode=warn-once adds degraded advisory block", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      maintenanceDegraded: true,
+      degradedMode: "warn-once",
+      showDegradedAdvisory: true,
+    });
+    assert.ok(
+      p.includes("maintenance degraded") || p.includes("degraded"),
+      "Should include degraded advisory for warn-once",
+    );
+  });
+
+  test("degradedMode=structured-only adds no degraded prompt copy", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      maintenanceDegraded: true,
+      degradedMode: "structured-only",
+      showDegradedAdvisory: true,
+    });
+    assert.ok(
+      !p.includes("maintenance degraded"),
+      "Should NOT include degraded prompt copy for structured-only",
+    );
+  });
+
+  test("degraded advisory can appear even when cache-hit would otherwise suppress guidance", () => {
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: "/ws",
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      maintenanceDegraded: true,
+      degradedMode: "warn-once",
+      showDegradedAdvisory: true,
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+    });
+    assert.ok(
+      p.includes("degraded") || p.includes("advisory"),
+      "Degraded advisory should bypass cache-hit suppression",
+    );
+  });
+
+  test("degraded advisory block stays within budget", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      maintenanceDegraded: true,
+      degradedMode: "warn-once",
+      showDegradedAdvisory: true,
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+});
 
 // ── Source-linked micro-brief contract (Task 1 TDD lock-in) ───────────
 // These tests define the contract for Task 2 implementation.
@@ -916,22 +965,21 @@ describe("source-linked micro-brief contract", () => {
   ) {
     const docDir = path.join(tmpDir, "documentation");
     fs.mkdirSync(docDir, { recursive: true });
-    const yamlContent =
-      entries
-        .map((e) => {
-          let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n    links:\n`;
-          for (const link of e.links) {
-            entry += `      - ${link}\n`;
+    const yamlContent = entries
+      .map((e) => {
+        let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n    links:\n`;
+        for (const link of e.links) {
+          entry += `      - ${link}\n`;
+        }
+        if (e.relationships) {
+          entry += "    relationships:\n";
+          for (const rel of e.relationships) {
+            entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }
-          if (e.relationships) {
-            entry += `    relationships:\n`;
-            for (const rel of e.relationships) {
-              entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
-            }
-          }
-          return entry;
-        })
-        .join("\n");
+        }
+        return entry;
+      })
+      .join("\n");
     fs.writeFileSync(path.join(docDir, "symbols.yaml"), yamlContent);
   }
 
@@ -1186,10 +1234,6 @@ describe("source-linked micro-brief contract", () => {
       !p.includes("- Existing Kibi links:"),
       "Cache hit should suppress source-linked brief",
     );
-    assert.equal(
-      p.trim(),
-      SENTINEL,
-      "Cache hit should return sentinel only",
-    );
+    assert.equal(p.trim(), SENTINEL, "Cache hit should return sentinel only");
   });
 });

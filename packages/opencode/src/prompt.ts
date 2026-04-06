@@ -1,4 +1,3 @@
-import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
@@ -8,6 +7,7 @@ import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
+import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import type { WorkspaceHealth } from "./workspace-health.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
@@ -155,7 +155,13 @@ function buildContextualGuidance(context: PromptContext): string {
 
   // Cache check: skip repeated guidance if recently satisfied
   // Allow degraded advisory to bypass cache so it is always visible
-  if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
+  if (
+    !showDegraded &&
+    context.cache &&
+    context.workspaceRoot &&
+    context.branch &&
+    riskClass
+  ) {
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
@@ -196,13 +202,20 @@ This repository does not appear to have Kibi initialized. Agents should:
 Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
   }
   // Priority 5: Risk-class-driven guidance (for non-safe classes)
-  else if (riskClass && riskClass !== "safe_docs_only" && riskClass !== "safe_test_only") {
+  else if (
+    riskClass &&
+    riskClass !== "safe_docs_only" &&
+    riskClass !== "safe_test_only"
+  ) {
     // For behavior/traceability with comment suggestions, use suggestion guidance
     if (
-      (riskClass === "behavior_candidate" || riskClass === "traceability_candidate") &&
+      (riskClass === "behavior_candidate" ||
+        riskClass === "traceability_candidate") &&
       context.recentCommentSuggestion
     ) {
-      selectedBlock = buildCommentSuggestionGuidance(context.recentCommentSuggestion);
+      selectedBlock = buildCommentSuggestionGuidance(
+        context.recentCommentSuggestion,
+      );
     } else {
       const block = GUIDANCE_BY_RISK[riskClass];
       if (block) selectedBlock = block;
@@ -211,9 +224,20 @@ Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, 
   // Priority 6: Legacy path-kind fallback (when no risk class)
   else if (!riskClass) {
     const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
-    const reqEdits = context.recentEdits.filter((e) => e.kind === "requirement");
+    const reqEdits = context.recentEdits.filter(
+      (e) => e.kind === "requirement",
+    );
     const kbDocEdits = context.recentEdits.filter((e) =>
-      ["requirement", "scenario", "test", "adr", "fact", "flag", "event", "symbol"].includes(e.kind)
+      [
+        "requirement",
+        "scenario",
+        "test",
+        "adr",
+        "fact",
+        "flag",
+        "event",
+        "symbol",
+      ].includes(e.kind),
     );
 
     if (codeEdits.length > 0) {
@@ -244,7 +268,8 @@ If you're adding long explanatory comments, consider routing that knowledge to:
   // Source-linked micro-brief: prepend existing KB links for code risk classes
   if (
     selectedBlock &&
-    (riskClass === "behavior_candidate" || riskClass === "traceability_candidate") &&
+    (riskClass === "behavior_candidate" ||
+      riskClass === "traceability_candidate") &&
     context.workspaceRoot &&
     context.recentEdits[0]?.path
   ) {
@@ -253,7 +278,10 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       const absEdited = path.isAbsolute(editedPath)
         ? editedPath
         : path.join(context.workspaceRoot, editedPath);
-      const linkedIds = getSourceLinkedRequirementIds(context.workspaceRoot, absEdited);
+      const linkedIds = getSourceLinkedRequirementIds(
+        context.workspaceRoot,
+        absEdited,
+      );
       if (linkedIds.length >= 1 && linkedIds.length <= 3) {
         selectedBlock = `- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock}`;
       }
@@ -276,7 +304,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
 
   // Record cache after generating (advisory, non-blocking)
   // Do not cache degraded-advisory-only emissions
-  if (!showDegraded && context.cache && context.workspaceRoot && context.branch && riskClass) {
+  if (
+    !showDegraded &&
+    context.cache &&
+    context.workspaceRoot &&
+    context.branch &&
+    riskClass
+  ) {
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
@@ -288,7 +322,11 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
   }
 
   // Append completion reminder for risky classes when enabled
-  const REMINDER_RISK_CLASSES: RiskClass[] = ["behavior_candidate", "traceability_candidate", "req_policy_candidate"];
+  const REMINDER_RISK_CLASSES: RiskClass[] = [
+    "behavior_candidate",
+    "traceability_candidate",
+    "req_policy_candidate",
+  ];
   if (
     selectedBlock &&
     context.completionReminder === true &&
@@ -306,7 +344,6 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     ? `${SENTINEL}\n\n${enforceBudget(selectedBlock)}`
     : SENTINEL;
 }
-
 
 // ── Comment suggestion guidance (legacy compat) ────────────────────────
 
