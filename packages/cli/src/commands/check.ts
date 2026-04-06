@@ -19,8 +19,8 @@
 import * as path from "node:path";
 import { extractFromManifestString } from "../extractors/manifest.js";
 import {
-  extractFromMarkdownString,
   type ExtractionResult,
+  extractFromMarkdownString,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
 import {
@@ -31,8 +31,8 @@ import {
 import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
-  createManifestLookupSentinelKey,
   type ManifestLookup,
+  createManifestLookupSentinelKey,
   extractSymbolsFromStagedFile,
 } from "../traceability/symbol-extract.js";
 import {
