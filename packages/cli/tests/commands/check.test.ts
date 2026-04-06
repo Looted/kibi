@@ -977,47 +977,12 @@ links:
     "--staged passes when symbol is linked in symbols.yaml without inline directives",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
       const srcDir = path.join(tmpDir, "src");
 
+      mkdirSync(reqDocDir, { recursive: true });
       mkdirSync(docDir, { recursive: true });
       mkdirSync(srcDir, { recursive: true });
-
-      // Create requirement
-      writeFileSync(
-        path.join(docDir, "REQ-STAGED-001.md"),
-        `---
-id: REQ-STAGED-001
-title: Staged Test Requirement
-status: open
-priority: must
-created_at: 2026-02-20T10:00:00.000Z
-updated_at: 2026-02-20T10:00:00.000Z
-source: documentation/REQ-STAGED-001.md
----
-`,
-      );
-
-      // Create symbols.yaml with explicit ID and requirement link
-      writeFileSync(
-        path.join(docDir, "symbols.yaml"),
-        `symbols:
-  - id: SYMBOL-STAGED-001
-    title: stagedFunction
-    sourceFile: src/app.ts
-    links:
-      - REQ-STAGED-001
-    status: active
-`,
-      );
-
-      // Create source file (no inline implements directive)
-      writeFileSync(
-        path.join(srcDir, "app.ts"),
-        `export function stagedFunction() {
-  return "hello";
-}
-`,
-      );
 
       // Initialize git and stage files (skip pre-commit hook for initial setup)
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
@@ -1034,6 +999,40 @@ source: documentation/REQ-STAGED-001.md
         stdio: "pipe",
       });
 
+      writeFileSync(
+        path.join(reqDocDir, "REQ-STAGED-001.md"),
+        `---
+id: REQ-STAGED-001
+title: Staged Test Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-STAGED-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-STAGED-001
+    title: stagedFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-STAGED-001
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function stagedFunction() {
+  return "hello";
+}
+`,
+      );
+
       // Modify the source file
       writeFileSync(
         path.join(srcDir, "app.ts"),
@@ -1043,8 +1042,7 @@ source: documentation/REQ-STAGED-001.md
 `,
       );
 
-      // Stage only the source file
-      execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       // Sync KB first
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1068,9 +1066,11 @@ source: documentation/REQ-STAGED-001.md
     async () => {
       const configDir = path.join(tmpDir, ".kb");
       const customDir = path.join(tmpDir, "custom");
+      const reqDocDir = path.join(tmpDir, "documentation/requirements");
       const srcDir = path.join(tmpDir, "src");
 
       mkdirSync(configDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
       mkdirSync(customDir, { recursive: true });
       mkdirSync(srcDir, { recursive: true });
 
@@ -1082,43 +1082,6 @@ source: documentation/REQ-STAGED-001.md
             symbols: "custom/my-symbols.yaml",
           },
         }),
-      );
-
-      // Create requirement
-      writeFileSync(
-        path.join(customDir, "REQ-CUSTOM-001.md"),
-        `---
-id: REQ-CUSTOM-001
-title: Custom Path Requirement
-status: open
-priority: must
-created_at: 2026-02-20T10:00:00.000Z
-updated_at: 2026-02-20T10:00:00.000Z
-source: custom/REQ-CUSTOM-001.md
----
-`,
-      );
-
-      // Create symbols.yaml in custom location
-      writeFileSync(
-        path.join(customDir, "my-symbols.yaml"),
-        `symbols:
-  - id: SYMBOL-CUSTOM-001
-    title: customFunction
-    sourceFile: src/app.ts
-    links:
-      - REQ-CUSTOM-001
-    status: active
-`,
-      );
-
-      // Create source file
-      writeFileSync(
-        path.join(srcDir, "app.ts"),
-        `export function customFunction() {
-  return "custom";
-}
-`,
       );
 
       // Initialize git and stage (skip pre-commit hook for initial setup)
@@ -1136,6 +1099,52 @@ source: custom/REQ-CUSTOM-001.md
         stdio: "pipe",
       });
 
+      writeFileSync(
+        path.join(reqDocDir, "REQ-CUSTOM-001.md"),
+        `---
+id: REQ-CUSTOM-001
+title: Custom Path Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-CUSTOM-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(customDir, "my-symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-CUSTOM-001
+    title: customFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-CUSTOM-001
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(customDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-CUSTOM-001
+    title: customFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-CUSTOM-001
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function customFunction() {
+  return "custom";
+}
+`,
+      );
+
       // Modify and stage
       writeFileSync(
         path.join(srcDir, "app.ts"),
@@ -1144,7 +1153,10 @@ source: custom/REQ-CUSTOM-001.md
 }
 `,
       );
-      execSync("git add src/app.ts", { cwd: tmpDir, stdio: "pipe" });
+      execSync(
+        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        { cwd: tmpDir, stdio: "pipe" },
+      );
 
       // Sync KB
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
@@ -1275,6 +1287,462 @@ Legacy prose fact without strict shape
       const output = stdoutToString(stdout || stderr);
 
       expect(status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  // === Staged E2E Traceability Matrix ===
+  // Each test stages source + manifest + docs in one commit without prior kibi sync.
+  // The staged pipeline must resolve traceability end-to-end.
+
+  test(
+    "staged e2e: covered_by -> validates -> req passes without prior sync",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-E2E-LOGIN.md"),
+        `---
+id: REQ-E2E-LOGIN
+title: E2E Login Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-E2E-LOGIN.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-E2E-LOGIN.md"),
+        `---
+id: TEST-E2E-LOGIN
+title: E2E Login Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-E2E-LOGIN.md
+links:
+  - type: validates
+    target: REQ-E2E-LOGIN
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-E2E-LOGIN
+    title: loginFlow
+    sourceFile: src/login.ts
+    links:
+      - type: covered_by
+        target: TEST-E2E-LOGIN
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "login.ts"),
+        `export function loginFlow() {
+  return "login";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: covered_by -> verified_by <- req passes without prior sync",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-E2E-LOGOUT.md"),
+        `---
+id: REQ-E2E-LOGOUT
+title: E2E Logout Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-E2E-LOGOUT.md
+links:
+  - type: verified_by
+    target: TEST-E2E-LOGOUT
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-E2E-LOGOUT.md"),
+        `---
+id: TEST-E2E-LOGOUT
+title: E2E Logout Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-E2E-LOGOUT.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-E2E-LOGOUT
+    title: logoutFlow
+    sourceFile: src/logout.ts
+    links:
+      - type: covered_by
+        target: TEST-E2E-LOGOUT
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "logout.ts"),
+        `export function logoutFlow() {
+  return "logout";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: covered_by with no req-linked test fails",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-E2E-BARE.md"),
+        `---
+id: TEST-E2E-BARE
+title: Bare Test No Req
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-E2E-BARE.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-E2E-BARE
+    title: bareFunction
+    sourceFile: src/bare.ts
+    links:
+      - type: covered_by
+        target: TEST-E2E-BARE
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "bare.ts"),
+        `export function bareFunction() {
+  return "bare";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).not.toBe(0);
+      expect(output).toContain("Traceability failed");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: relates_to replacing typed link fails",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-E2E-WEAK.md"),
+        `---
+id: REQ-E2E-WEAK
+title: E2E Weak Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-E2E-WEAK.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-E2E-WEAK.md"),
+        `---
+id: TEST-E2E-WEAK
+title: E2E Weak Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-E2E-WEAK.md
+links:
+  - type: relates_to
+    target: REQ-E2E-WEAK
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-E2E-WEAK
+    title: weakFunction
+    sourceFile: src/weak.ts
+    links:
+      - type: covered_by
+        target: TEST-E2E-WEAK
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "weak.ts"),
+        `export function weakFunction() {
+  return "weak";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).not.toBe(0);
+      expect(output).toContain("Traceability failed");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: direct manifest implements link still works (backward compat)",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-E2E-DIRECT.md"),
+        `---
+id: REQ-E2E-DIRECT
+title: E2E Direct Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-E2E-DIRECT.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-E2E-DIRECT
+    title: directFunction
+    sourceFile: src/direct.ts
+    links:
+      - REQ-E2E-DIRECT
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "direct.ts"),
+        `export function directFunction() {
+  return "direct";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: inline comment overlay still works (backward compat)",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-E2E-INLINE.md"),
+        `---
+id: REQ-E2E-INLINE
+title: E2E Inline Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-E2E-INLINE.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "inline.ts"),
+        `// implements REQ-E2E-INLINE
+export function inlineFunc() {}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
       expect(output).toContain("No violations found");
     },
     TEST_TIMEOUT_MS,

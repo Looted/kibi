@@ -241,6 +241,10 @@ export async function checkCommand(
         const overlayFacts = createOverlayFacts(allSymbols);
         const fs = await import("node:fs/promises");
         await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+        await fs.cp(
+          tempCtx.overlayPath,
+          path.join(tempCtx.kbPath, "changed_symbols.pl"),
+        );
         await consultOverlay(tempCtx);
 
         const violationsRaw = await validateStagedSymbols({
