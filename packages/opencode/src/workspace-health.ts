@@ -51,7 +51,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
     let hasUserPaths = false;
     try {
       const raw = JSON.parse(fs.readFileSync(configPath, "utf8"));
-      hasUserPaths = Boolean(raw && raw.paths);
+      hasUserPaths = Boolean(raw?.paths);
     } catch {
       hasUserPaths = false;
     }

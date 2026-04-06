@@ -17,7 +17,11 @@
 */
 
 import * as path from "node:path";
-import { extractFromManifest } from "../extractors/manifest.js";
+import { extractFromManifestString } from "../extractors/manifest.js";
+import {
+  type ExtractionResult,
+  extractFromMarkdownString,
+} from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
 import {
   escapeAtom,
@@ -28,6 +32,7 @@ import { getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
   type ManifestLookup,
+  createManifestLookupSentinelKey,
   extractSymbolsFromStagedFile,
 } from "../traceability/symbol-extract.js";
 import {
@@ -35,6 +40,7 @@ import {
   consultOverlay,
   createOverlayFacts,
   createTempKb,
+  projectStagedEntities,
 } from "../traceability/temp-kb.js";
 import {
   formatViolations as formatStagedViolations,
@@ -52,7 +58,6 @@ import {
 export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
-import { discoverSourceFiles } from "./sync/discovery.js";
 
 export interface CheckOptions {
   fix?: boolean;
@@ -61,6 +66,63 @@ export interface CheckOptions {
   staged?: boolean;
   minLinks?: string | number;
   dryRun?: boolean;
+}
+
+function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
+  manifestLookup: ManifestLookup;
+  manifestResults: ExtractionResult[];
+} {
+  const manifestLookup: ManifestLookup = new Map();
+  const manifestResults: ExtractionResult[] = [];
+  const stagedManifestFiles = stagedFiles.filter(
+    (file) =>
+      file.content !== undefined &&
+      (file.path.endsWith("/symbols.yaml") ||
+        file.path.endsWith("/symbols.yml") ||
+        file.path === "symbols.yaml" ||
+        file.path === "symbols.yml"),
+  );
+
+  for (const manifestFile of stagedManifestFiles) {
+    manifestLookup.set(createManifestLookupSentinelKey(manifestFile.path), {
+      id: manifestFile.path,
+      relationships: [],
+    });
+
+    try {
+      const entries = extractFromManifestString(
+        manifestFile.content ?? "",
+        manifestFile.path,
+      );
+      for (const entry of entries) {
+        manifestResults.push({
+          entity: entry.entity,
+          relationships: entry.relationships,
+        });
+
+        const sourceFile =
+          entry.sourceFile || entry.entity.source || manifestFile.path;
+        const key = `${sourceFile}:${entry.entity.title}`;
+        manifestLookup.set(key, {
+          id: entry.entity.id,
+          relationships: entry.relationships
+            .filter(
+              (relationship) =>
+                relationship.type === "implements" ||
+                relationship.type === "covered_by",
+            )
+            .map((relationship) => ({
+              type: relationship.type,
+              to: relationship.to,
+            })),
+        });
+      }
+    } catch {
+      // Ignore manifest parsing errors
+    }
+  }
+
+  return { manifestLookup, manifestResults };
 }
 
 // implements REQ-006
@@ -101,41 +163,14 @@ export async function checkCommand(
         prolog: PrologProcess;
       } | null = null;
       try {
-        const config = loadConfig(process.cwd());
-
-        const manifestLookup: ManifestLookup = new Map();
-        const { manifestFiles } = await discoverSourceFiles(
-          process.cwd(),
-          config.paths,
-        );
-        for (const manifestPath of manifestFiles) {
-          try {
-            const entries = extractFromManifest(manifestPath);
-            for (const entry of entries) {
-              // Prefer the per-symbol sourceFile; fall back to entity.source or manifest path
-              const sourceFile =
-                entry.sourceFile || entry.entity.source || manifestPath;
-              const key = `${sourceFile}:${entry.entity.title}`;
-              // Extract requirement links (implements relationships to REQ-*)
-              const links = entry.relationships
-                .filter(
-                  (r) =>
-                    r.type === "implements" &&
-                    r.to.match(/^[A-Z][A-Z0-9\-_]*$/),
-                )
-                .map((r) => r.to);
-              manifestLookup.set(key, { id: entry.entity.id, links });
-            }
-          } catch {
-            // Ignore manifest parsing errors
-          }
-        }
-
         const stagedFiles = getStagedFiles();
         if (!stagedFiles || stagedFiles.length === 0) {
           console.log("No staged files found.");
           return { exitCode: 0 };
         }
+
+        const { manifestLookup, manifestResults } =
+          buildManifestLookup(stagedFiles);
 
         const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
@@ -175,9 +210,18 @@ export async function checkCommand(
           }
         }
 
-        if (allSymbols.length === 0 && markdownFiles.length === 0) {
+        const markdownResults: ExtractionResult[] = markdownFiles.map((file) =>
+          extractFromMarkdownString(file.content ?? "", file.path),
+        );
+
+        const stagedEntityResults: ExtractionResult[] = [
+          ...manifestResults,
+          ...markdownResults,
+        ];
+
+        if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(
-            "No exported symbols or markdown entities found in staged files.",
+            "No exported symbols or staged entities found in staged files.",
           );
           return { exitCode: 0 };
         }
@@ -190,9 +234,17 @@ export async function checkCommand(
         // Create temp KB
         tempCtx = await createTempKb(resolvedKbPath);
 
+        if (stagedEntityResults.length > 0) {
+          await projectStagedEntities(tempCtx.prolog, stagedEntityResults);
+        }
+
         const overlayFacts = createOverlayFacts(allSymbols);
         const fs = await import("node:fs/promises");
         await fs.writeFile(tempCtx.overlayPath, overlayFacts, "utf8");
+        await fs.cp(
+          tempCtx.overlayPath,
+          path.join(tempCtx.kbPath, "changed_symbols.pl"),
+        );
         await consultOverlay(tempCtx);
 
         const violationsRaw = await validateStagedSymbols({

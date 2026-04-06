@@ -2,7 +2,13 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import type {
+  ExtractedEntity,
+  ExtractedRelationship,
+  ExtractionResult,
+} from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
+import { toPrologAtom } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -15,6 +21,25 @@ export interface TempKbContext {
 const prologByTempDir = new Map<string, PrologProcess>();
 const cleanupByTempDir = new Map<string, () => void>();
 const cleanedTempDirs = new Set<string>();
+
+const FACT_ATOM_FIELDS = new Set([
+  "fact_kind",
+  "operator",
+  "value_type",
+  "polarity",
+]);
+const FACT_STRING_FIELDS = new Set([
+  "subject_key",
+  "property_key",
+  "value_string",
+  "unit",
+  "scope",
+  "valid_from",
+  "valid_to",
+  "canonical_key",
+]);
+const FACT_NUMBER_FIELDS = new Set(["value_int", "value_number"]);
+const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
 function isTraceEnabled(): boolean {
   return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
@@ -29,6 +54,87 @@ function trace(message: string): void {
 
 function escapePrologAtom(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
+}
+
+function toPrologString(value: string): string {
+  const escaped = value
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r")
+    .replace(/\t/g, "\\t");
+
+  return `"${escaped}"`;
+}
+
+function serializeTypedFactFields(entity: ExtractedEntity): string[] {
+  const fields: string[] = [];
+  const entityRecord = entity as unknown as Record<string, unknown>;
+
+  for (const field of FACT_STRING_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null) {
+      fields.push(`${field}=${toPrologString(String(value))}`);
+    }
+  }
+
+  for (const field of FACT_ATOM_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null) {
+      fields.push(`${field}=${toPrologAtom(String(value))}`);
+    }
+  }
+
+  for (const field of FACT_NUMBER_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null && typeof value === "number") {
+      if (field === "value_int" && !Number.isInteger(value)) {
+        continue;
+      }
+      fields.push(`${field}=${value}`);
+    }
+  }
+
+  for (const field of FACT_BOOLEAN_FIELDS) {
+    const value = entityRecord[field];
+    if (value !== undefined && value !== null && typeof value === "boolean") {
+      fields.push(`${field}=${value}`);
+    }
+  }
+
+  return fields;
+}
+
+function buildEntityAssertionGoal(entity: ExtractedEntity): string {
+  const props = [
+    `id=${toPrologAtom(entity.id)}`,
+    `title=${toPrologString(entity.title)}`,
+    `status=${toPrologAtom(entity.status)}`,
+    `created_at=${toPrologString(entity.created_at)}`,
+    `updated_at=${toPrologString(entity.updated_at)}`,
+    `source=${toPrologString(entity.source)}`,
+  ];
+
+  if (entity.tags && entity.tags.length > 0) {
+    props.push(`tags=[${entity.tags.map(toPrologAtom).join(",")}]`);
+  }
+  if (entity.owner) props.push(`owner=${toPrologAtom(entity.owner)}`);
+  if (entity.priority) props.push(`priority=${toPrologAtom(entity.priority)}`);
+  if (entity.severity) props.push(`severity=${toPrologAtom(entity.severity)}`);
+  if (entity.text_ref)
+    props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+
+  if (entity.type === "fact") {
+    props.push(...serializeTypedFactFields(entity));
+  }
+
+  return `kb_assert_entity(${entity.type}, [${props.join(", ")}])`;
+}
+
+function buildRelationshipAssertionGoal(
+  relationship: ExtractedRelationship,
+): string {
+  return `kb_assert_relationship(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)}, [])`;
 }
 
 function createCleanupHandler(tempDir: string): () => void {
@@ -69,6 +175,7 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
 
   const consultResult = await prolog.query([
     `consult(${escapePrologAtom(ctx.overlayPath)})`,
+    "kb_save",
   ]);
 
   if (!consultResult.success) {
@@ -79,6 +186,45 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
 }
 
 export { consultOverlay };
+
+// implements REQ-014
+export async function projectStagedEntities(
+  prolog: PrologProcess,
+  results: ExtractionResult[],
+): Promise<void> {
+  for (const { entity } of results) {
+    const retractResult = await prolog.query(
+      `kb_retract_entity(${toPrologAtom(entity.id)})`,
+    );
+    if (!retractResult.success) {
+      throw new Error(
+        `Failed to retract staged entity ${entity.id}: ${retractResult.error || "unknown error"}`,
+      );
+    }
+
+    const assertEntityResult = await prolog.query(
+      buildEntityAssertionGoal(entity),
+    );
+    if (!assertEntityResult.success) {
+      throw new Error(
+        `Failed to assert staged entity ${entity.id}: ${assertEntityResult.error || "unknown error"}`,
+      );
+    }
+  }
+
+  for (const { relationships } of results) {
+    for (const relationship of relationships) {
+      const assertRelationshipResult = await prolog.query(
+        buildRelationshipAssertionGoal(relationship),
+      );
+      if (!assertRelationshipResult.success) {
+        throw new Error(
+          `Failed to assert staged relationship ${relationship.type} ${relationship.from} -> ${relationship.to}: ${assertRelationshipResult.error || "unknown error"}`,
+        );
+      }
+    }
+  }
+}
 
 export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
   if (!existsSync(baseKbPath)) {

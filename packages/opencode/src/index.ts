@@ -18,11 +18,11 @@ import {
   createSyncScheduler as importedCreateSyncScheduler,
 } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
-import { checkWorkspaceHealth } from "./workspace-health.js";
 import {
-  computeEffectiveMode,
   type EffectiveMode,
+  computeEffectiveMode,
 } from "./smart-enforcement.js";
+import { checkWorkspaceHealth } from "./workspace-health.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -605,11 +605,7 @@ const kibiOpencodePlugin: Plugin = async (
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
-        scheduler?.scheduleSync(
-          "file.edited",
-          filePath,
-          checkRules,
-        );
+        scheduler?.scheduleSync("file.edited", filePath, checkRules);
       }
       return;
     }
