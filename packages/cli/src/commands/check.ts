@@ -106,8 +106,10 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         }
       } catch (e) {
         // Ignore working-tree manifest parsing errors; staged-only fallback still applies
-        const msg = e instanceof Error ? e.message : String(e);
-        console.debug(`[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`);
+        if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.debug(`[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`);
+        }
       }
     }
   }
