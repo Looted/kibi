@@ -180,7 +180,13 @@ describe("symbol-extract", () => {
     const manifestLookup: ManifestLookup = new Map([
       [
         "src/app/version.ts:APP_VERSION",
-        { id: "SYMBOL-056", links: ["REQ-001", "REQ-022"] },
+        {
+          id: "SYMBOL-056",
+          relationships: [
+            { type: "implements", to: "REQ-001" },
+            { type: "implements", to: "REQ-022" },
+          ],
+        },
       ],
     ]);
     const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
@@ -198,8 +204,14 @@ describe("symbol-extract", () => {
 
   it("manifest lookup distinguishes symbols by sourceFile not just title", () => {
     const manifestLookup: ManifestLookup = new Map([
-      ["src/a/helper.ts:helper", { id: "SYM-A", links: ["REQ-A"] }],
-      ["src/b/helper.ts:helper", { id: "SYM-B", links: ["REQ-B"] }],
+      [
+        "src/a/helper.ts:helper",
+        { id: "SYM-A", relationships: [{ type: "implements", to: "REQ-A" }] },
+      ],
+      [
+        "src/b/helper.ts:helper",
+        { id: "SYM-B", relationships: [{ type: "implements", to: "REQ-B" }] },
+      ],
     ]);
     const stagedA: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "src/a/helper.ts",
@@ -224,7 +236,13 @@ describe("symbol-extract", () => {
 
   it("inline directive links take precedence over manifest links", () => {
     const manifestLookup: ManifestLookup = new Map([
-      ["file.ts:foo", { id: "SYM-001", links: ["REQ-MANIFEST"] }],
+      [
+        "file.ts:foo",
+        {
+          id: "SYM-001",
+          relationships: [{ type: "implements", to: "REQ-MANIFEST" }],
+        },
+      ],
     ]);
     const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "file.ts",
