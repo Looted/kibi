@@ -175,6 +175,7 @@ async function consultOverlay(ctx: TempKbContext): Promise<void> {
 
   const consultResult = await prolog.query([
     `consult(${escapePrologAtom(ctx.overlayPath)})`,
+    "kb_save",
   ]);
 
   if (!consultResult.success) {
