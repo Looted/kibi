@@ -1747,6 +1747,93 @@ export function inlineFunc() {}
     },
     TEST_TIMEOUT_MS,
   );
+
+  test(
+    "--staged resolves symbol ID from working-tree manifest when only code is staged (no symbols.yaml staged)",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(docDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Write requirement and symbols.yaml, commit them (not staged)
+      writeFileSync(
+        path.join(reqDocDir, "REQ-WT-001.md"),
+        `---
+id: REQ-WT-001
+title: Working Tree Manifest Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-WT-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "wt-app.ts"),
+        `export function wtFunction() {
+  return "v1";
+}
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-WT-001
+    title: wtFunction
+    sourceFile: src/wt-app.ts
+    links:
+      - REQ-WT-001
+    status: active
+`,
+      );
+
+      // Commit everything including symbols.yaml — this is the "working tree" state
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "initial with symbols" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Sync KB so the requirement is known to Prolog
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      // Now modify ONLY the code file (do not touch symbols.yaml)
+      writeFileSync(
+        path.join(srcDir, "wt-app.ts"),
+        `export function wtFunction() {
+  return "v2";
+}
+`,
+      );
+
+      // Stage only the code file, NOT symbols.yaml
+      execSync("git add src/wt-app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      // Run staged check — should resolve SYMBOL-WT-001 from the working-tree manifest
+      // and pass without falling back to a content-hash-based ID
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
 });
 
 import { parseViolationRows } from "../../src/prolog/codec";

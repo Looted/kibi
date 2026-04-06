@@ -16,8 +16,9 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { existsSync } from "node:fs";
 import * as path from "node:path";
-import { extractFromManifestString } from "../extractors/manifest.js";
+import { extractFromManifest, extractFromManifestString } from "../extractors/manifest.js";
 import {
   type ExtractionResult,
   extractFromMarkdownString,
@@ -74,6 +75,45 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
 } {
   const manifestLookup: ManifestLookup = new Map();
   const manifestResults: ExtractionResult[] = [];
+
+  // Pre-populate lookup from working-tree manifests so that code-only changes
+  // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
+  // and relationships already defined on disk.
+  const config = loadConfig(process.cwd());
+  const symbolsRelPath = config.paths.symbols;
+  if (symbolsRelPath) {
+    const absSymbolsPath = path.resolve(process.cwd(), symbolsRelPath);
+    if (existsSync(absSymbolsPath)) {
+      try {
+        const entries = extractFromManifest(absSymbolsPath);
+        for (const entry of entries) {
+          const sourceFile =
+            entry.sourceFile || entry.entity.source || absSymbolsPath;
+          const key = `${sourceFile}:${entry.entity.title}`;
+          manifestLookup.set(key, {
+            id: entry.entity.id,
+            relationships: entry.relationships
+              .filter(
+                (relationship) =>
+                  relationship.type === "implements" ||
+                  relationship.type === "covered_by",
+              )
+              .map((relationship) => ({
+                type: relationship.type,
+                to: relationship.to,
+              })),
+          });
+        }
+      } catch (e) {
+        // Ignore working-tree manifest parsing errors; staged-only fallback still applies
+        if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.debug(`[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`);
+        }
+      }
+    }
+  }
+
   const stagedManifestFiles = stagedFiles.filter(
     (file) =>
       file.content !== undefined &&
