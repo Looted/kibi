@@ -153,27 +153,6 @@ function buildContextualGuidance(context: PromptContext): string {
     context.maintenanceDegraded === true &&
     context.degradedMode === "warn-once";
 
-  // Cache check: skip repeated guidance if recently satisfied
-  // Allow degraded advisory to bypass cache so it is always visible
-  if (
-    !showDegraded &&
-    context.cache &&
-    context.workspaceRoot &&
-    context.branch &&
-    riskClass
-  ) {
-    const key: CacheKey = {
-      workspaceRoot: context.workspaceRoot,
-      branch: context.branch,
-      posture,
-      riskClass,
-      fileBucket: deriveFileBucket(context.recentEdits[0]?.kind ?? "unknown"),
-    };
-    if (context.cache.isSatisfied(key)) {
-      return SENTINEL; // skip guidance — recently satisfied
-    }
-  }
-
   // ── Single-block priority selection ──
   // Priority order (highest wins): manual_kb_edit > posture > risk_class > safe/none
   let selectedBlock: string | null = null;
@@ -183,15 +162,16 @@ function buildContextualGuidance(context: PromptContext): string {
     return SENTINEL;
   }
 
+  // Priority 2: manual_kb_edit — always fires, never cache-suppressed
   if (context.hasRecentKbEdit || riskClass === "manual_kb_edit") {
     selectedBlock = GUIDANCE_BY_RISK.manual_kb_edit;
   }
-  // Priority 3: Posture warnings for non-active states
+  // Priority 3: Posture warnings for non-active states — not cache-suppressed
   else if (posture === "root_uninitialized" || posture === "root_partial") {
     const postureBlock = postureGuidance(posture);
     if (postureBlock) selectedBlock = postureBlock;
   }
-  // Priority 4: Legacy workspace health bootstrap (only when no posture)
+  // Priority 4: Legacy workspace health bootstrap (only when no posture) — not cache-suppressed
   else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
@@ -201,51 +181,75 @@ This repository does not appear to have Kibi initialized. Agents should:
 
 Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
   }
-  // Priority 5: Risk-class-driven guidance (for non-safe classes)
-  else if (
-    riskClass &&
-    riskClass !== "safe_docs_only" &&
-    riskClass !== "safe_test_only"
-  ) {
-    // For behavior/traceability with comment suggestions, use suggestion guidance
+  // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
+  else {
+    // Cache check: skip repeated advisory guidance — only after critical signals are handled above
+    // Allow degraded advisory to bypass cache so it is always visible
     if (
-      (riskClass === "behavior_candidate" ||
-        riskClass === "traceability_candidate") &&
-      context.recentCommentSuggestion
+      !showDegraded &&
+      context.cache &&
+      context.workspaceRoot &&
+      context.branch &&
+      riskClass
     ) {
-      selectedBlock = buildCommentSuggestionGuidance(
-        context.recentCommentSuggestion,
-      );
-    } else {
-      const block = GUIDANCE_BY_RISK[riskClass];
-      if (block) selectedBlock = block;
+      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+      const key: CacheKey = {
+        workspaceRoot: context.workspaceRoot,
+        branch: context.branch,
+        posture,
+        riskClass,
+        fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
+      };
+      if (context.cache.isSatisfied(key)) {
+        return SENTINEL; // skip guidance — recently satisfied
+      }
     }
-  }
-  // Priority 6: Legacy path-kind fallback (when no risk class)
-  else if (!riskClass) {
-    const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
-    const reqEdits = context.recentEdits.filter(
-      (e) => e.kind === "requirement",
-    );
-    const kbDocEdits = context.recentEdits.filter((e) =>
-      [
-        "requirement",
-        "scenario",
-        "test",
-        "adr",
-        "fact",
-        "flag",
-        "event",
-        "symbol",
-      ].includes(e.kind),
-    );
 
-    if (codeEdits.length > 0) {
-      const suggestion = context.recentCommentSuggestion;
-      if (suggestion) {
-        selectedBlock = buildCommentSuggestionGuidance(suggestion);
+    // Priority 5: Risk-class-driven guidance (for non-safe classes)
+    if (
+      riskClass &&
+      riskClass !== "safe_docs_only" &&
+      riskClass !== "safe_test_only"
+    ) {
+      // For behavior/traceability with comment suggestions, use suggestion guidance
+      if (
+        (riskClass === "behavior_candidate" ||
+          riskClass === "traceability_candidate") &&
+        context.recentCommentSuggestion
+      ) {
+        selectedBlock = buildCommentSuggestionGuidance(
+          context.recentCommentSuggestion,
+        );
       } else {
-        selectedBlock = `📝 **Code changes detected**
+        const block = GUIDANCE_BY_RISK[riskClass];
+        if (block) selectedBlock = block;
+      }
+    }
+    // Priority 6: Legacy path-kind fallback (when no risk class)
+    else if (!riskClass) {
+      const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
+      const reqEdits = context.recentEdits.filter(
+        (e) => e.kind === "requirement",
+      );
+      const kbDocEdits = context.recentEdits.filter((e) =>
+        [
+          "requirement",
+          "scenario",
+          "test",
+          "adr",
+          "fact",
+          "flag",
+          "event",
+          "symbol",
+        ].includes(e.kind),
+      );
+
+      if (codeEdits.length > 0) {
+        const suggestion = context.recentCommentSuggestion;
+        if (suggestion) {
+          selectedBlock = buildCommentSuggestionGuidance(suggestion);
+        } else {
+          selectedBlock = `📝 **Code changes detected**
 
 Before implementing or explaining code:
 1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
@@ -257,33 +261,44 @@ If you're adding long explanatory comments, consider routing that knowledge to:
 - \`FACT\` for domain invariants, properties, limits, cardinalities
 - \`ADR\` for technical decisions, tradeoffs, rationale
 - \`REQ\` for system behavior requirements`;
+        }
+      } else if (reqEdits.length > 0) {
+        selectedBlock = GUIDANCE_BY_RISK.req_policy_candidate;
+      } else if (kbDocEdits.length > 0) {
+        selectedBlock = GUIDANCE_BY_RISK.kb_doc_structural;
       }
-    } else if (reqEdits.length > 0) {
-      selectedBlock = GUIDANCE_BY_RISK.req_policy_candidate;
-    } else if (kbDocEdits.length > 0) {
-      selectedBlock = GUIDANCE_BY_RISK.kb_doc_structural;
     }
   }
 
-  // Source-linked micro-brief: prepend existing KB links for code risk classes
+  // Source-linked micro-brief: insert after header line for code risk classes
+  // Inserting after the header (not prepending before it) preserves the header
+  // under enforceBudget's trimming logic, which only collects non-bullet lines
+  // before the first bullet.
   if (
     selectedBlock &&
     (riskClass === "behavior_candidate" ||
       riskClass === "traceability_candidate") &&
-    context.workspaceRoot &&
-    context.recentEdits[0]?.path
+    context.workspaceRoot
   ) {
     try {
-      const editedPath = context.recentEdits[0].path;
-      const absEdited = path.isAbsolute(editedPath)
-        ? editedPath
-        : path.join(context.workspaceRoot, editedPath);
-      const linkedIds = getSourceLinkedRequirementIds(
-        context.workspaceRoot,
-        absEdited,
-      );
-      if (linkedIds.length >= 1 && linkedIds.length <= 3) {
-        selectedBlock = `- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock}`;
+      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+      if (lastEdit?.path) {
+        const editedPath = lastEdit.path;
+        const absEdited = path.isAbsolute(editedPath)
+          ? editedPath
+          : path.join(context.workspaceRoot, editedPath);
+        const linkedIds = getSourceLinkedRequirementIds(
+          context.workspaceRoot,
+          absEdited,
+        );
+        if (linkedIds.length >= 1 && linkedIds.length <= 3) {
+          const headerEnd = selectedBlock.indexOf("\n");
+          if (headerEnd !== -1) {
+            selectedBlock = `${selectedBlock.slice(0, headerEnd + 1)}- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock.slice(headerEnd + 1)}`;
+          } else {
+            selectedBlock = `${selectedBlock}\n- Existing Kibi links: ${linkedIds.join(", ")}`;
+          }
+        }
       }
     } catch {
       // Non-fatal: source-linked brief is best-effort
@@ -311,12 +326,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.branch &&
     riskClass
   ) {
+    const lastEdit = context.recentEdits[context.recentEdits.length - 1];
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
       posture,
       riskClass,
-      fileBucket: deriveFileBucket(context.recentEdits[0]?.kind ?? "unknown"),
+      fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
     };
     context.cache.recordSatisfied(key, "guidance");
   }
