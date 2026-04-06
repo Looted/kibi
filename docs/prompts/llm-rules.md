@@ -124,6 +124,11 @@ When creating or updating entities:
 3. Create relationships during the same `kb_upsert` when possible:
    - `specified_by` for requirement -> scenario
    - `verified_by` or `validates` for requirement/test links
+   - `implements` for symbol -> requirement (Optional/Backward-Compatible shortcut)
+   - `covered_by` for symbol -> test (Preferred workflow for test/e2e traceability)
+   - `constrains` and `requires_property` for requirement/fact modeling
+   - `specified_by` for requirement -> scenario
+   - `verified_by` or `validates` for requirement/test links
    - `implements` for symbol -> requirement
    - `covered_by` for symbol -> test
    - `constrains` and `requires_property` for requirement/fact modeling
