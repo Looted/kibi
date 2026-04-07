@@ -80,12 +80,12 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // Delegate needsBootstrap entirely to posture detection:
-  // - root_uninitialized → true
-  // - root_partial → true
-  // - vendored_only → false (nested tree handles its own KB)
-  // - root_active / hybrid_root_plus_vendored → false
-  const needsBootstrap = posture.needsBootstrap;
+  // Restore lenient threshold for repos that have a config but are missing a few dirs.
+  // Uninitialized repos always need bootstrap; partial repos fall back to the legacy
+  // >2 missing dirs threshold so small gaps (e.g. unused flags/events) do not nag.
+  const needsBootstrap =
+    posture.state === "root_uninitialized" ||
+    (posture.state === "root_partial" && missingDocDirs.length > 2);
 
   return {
     needsBootstrap,
