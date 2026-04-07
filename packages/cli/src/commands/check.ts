@@ -29,7 +29,7 @@ import {
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
-import { getStagedFiles } from "../traceability/git-staged.js";
+import { getStagedFiles, shouldLogTraceDebug } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
   type ManifestLookup,
@@ -104,9 +104,12 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
               })),
           });
         }
+        if (shouldLogTraceDebug()) {
+          console.debug(`[kibi] seeded ${entries.length} entries from working-tree manifest ${absSymbolsPath}`);
+        }
       } catch (e) {
         // Ignore working-tree manifest parsing errors; staged-only fallback still applies
-        if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
+        if (shouldLogTraceDebug()) {
           const msg = e instanceof Error ? e.message : String(e);
           console.debug(`[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`);
         }

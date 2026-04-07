@@ -75,7 +75,7 @@ const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
 
 const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
-function shouldLogTraceDebug(): boolean {
+export function shouldLogTraceDebug(): boolean {
   return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
 }
 
