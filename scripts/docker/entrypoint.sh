@@ -181,7 +181,7 @@ run_integration_tests() {
 # Function to run unit tests
 run_unit_tests() {
     echo "🧪 Running Unit tests..."
-    bun test --timeout=120000 packages/
+    bun test packages/
 }
 
 # Main dispatch
