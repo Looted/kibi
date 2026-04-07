@@ -107,6 +107,7 @@ describe("discovery-shared", () => {
   });
 
   afterEach(() => {
+    mock.restore();
     logSpy.mockRestore();
     setBranch(originalBranch);
   });

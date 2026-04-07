@@ -1,3 +1,4 @@
+/// <reference path="../../../types/bun-test.d.ts" />
 import { afterEach, beforeEach, describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
 import fs from "node:fs";
@@ -143,115 +144,177 @@ describe("index kibiOpencodePlugin", () => {
     });
   });
 
-    // implements REQ-opencode-kibi-plugin-v1
-    it("does not record bootstrap-needed when configured sync paths exist", async () => {
-      const kbDir = path.join(tmpDir, ".kb");
-      fs.mkdirSync(kbDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(kbDir, "config.json"),
-        JSON.stringify(
-          {
-            paths: {
-              requirements: "kibi-docs/requirements/**/*.md",
-              scenarios: "kibi-docs/scenarios/**/*.md",
-              tests: "kibi-docs/tests/**/*.md",
-              adr: "kibi-docs/adr/**/*.md",
-              flags: "kibi-docs/flags/**/*.md",
-              events: "kibi-docs/events/**/*.md",
-              facts: "kibi-docs/facts/**/*.md",
-              symbols: "kibi-docs/symbols.yaml",
-            },
+  // implements REQ-opencode-kibi-plugin-v1
+  it("does not record bootstrap-needed when configured sync paths exist", async () => {
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify(
+        {
+          paths: {
+            requirements: "kibi-docs/requirements/**/*.md",
+            scenarios: "kibi-docs/scenarios/**/*.md",
+            tests: "kibi-docs/tests/**/*.md",
+            adr: "kibi-docs/adr/**/*.md",
+            flags: "kibi-docs/flags/**/*.md",
+            events: "kibi-docs/events/**/*.md",
+            facts: "kibi-docs/facts/**/*.md",
+            symbols: "kibi-docs/symbols.yaml",
           },
-          null,
-          2,
-        ),
-      );
+        },
+        null,
+        2,
+      ),
+    );
 
-      // Create all custom directories and symbols file
-      const customDirs = [
-        "kibi-docs/requirements",
-        "kibi-docs/scenarios",
-        "kibi-docs/tests",
-        "kibi-docs/adr",
-        "kibi-docs/flags",
-        "kibi-docs/events",
-        "kibi-docs/facts",
-      ];
-      for (const dir of customDirs) {
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
-      }
-      fs.writeFileSync(
-        path.join(tmpDir, "kibi-docs", "symbols.yaml"),
-        "[]",
-      );
+    // Create all custom directories and symbols file
+    const customDirs = [
+      "kibi-docs/requirements",
+      "kibi-docs/scenarios",
+      "kibi-docs/tests",
+      "kibi-docs/adr",
+      "kibi-docs/flags",
+      "kibi-docs/events",
+      "kibi-docs/facts",
+    ];
+    for (const dir of customDirs) {
+      fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+    }
+    fs.writeFileSync(path.join(tmpDir, "kibi-docs", "symbols.yaml"), "[]");
 
-      await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
-      });
-
-      const tracker = getSessionTracker();
-      const summary = tracker.generateSummary();
-      assert.equal(
-        summary.warningsByCategory["bootstrap-needed"],
-        0,
-        "Should not record bootstrap-needed warning when all configured paths exist",
-      );
+    await kibiOpencodePlugin({
+      directory: tmpDir,
+      worktree: worktree,
+      client: null as any,
+      project: null as any,
+      serverUrl: null as any,
+      $: {} as any,
     });
 
-    // implements REQ-opencode-kibi-plugin-v1
-    it("records bootstrap-needed when a configured target is missing", async () => {
-      const kbDir = path.join(tmpDir, ".kb");
-      fs.mkdirSync(kbDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(kbDir, "config.json"),
-        JSON.stringify(
-          {
-            paths: {
-              requirements: "kibi-docs/requirements/**/*.md",
-              scenarios: "kibi-docs/scenarios/**/*.md",
-              tests: "kibi-docs/tests/**/*.md",
-              adr: "kibi-docs/adr/**/*.md",
-              flags: "kibi-docs/flags/**/*.md",
-              events: "kibi-docs/events/**/*.md",
-              facts: "kibi-docs/facts/**/*.md",
-              symbols: "kibi-docs/symbols.yaml",
-            },
+    const tracker = getSessionTracker();
+    const summary = tracker.generateSummary();
+    assert.equal(
+      summary.warningsByCategory["bootstrap-needed"],
+      0,
+      "Should not record bootstrap-needed warning when all configured paths exist",
+    );
+  });
+
+  it("does not record bootstrap-needed when configured sync paths are absolute and exist", async () => {
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+
+    const absoluteDocsRoot = path.join(tmpDir, "kibi-docs");
+    const toPosix = (p: string) => p.split(path.sep).join("/");
+
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify(
+        {
+          paths: {
+            requirements: toPosix(
+              path.join(absoluteDocsRoot, "requirements", "**", "*.md"),
+            ),
+            scenarios: toPosix(
+              path.join(absoluteDocsRoot, "scenarios", "**", "*.md"),
+            ),
+            tests: toPosix(path.join(absoluteDocsRoot, "tests", "**", "*.md")),
+            adr: toPosix(path.join(absoluteDocsRoot, "adr", "**", "*.md")),
+            flags: toPosix(path.join(absoluteDocsRoot, "flags", "**", "*.md")),
+            events: toPosix(
+              path.join(absoluteDocsRoot, "events", "**", "*.md"),
+            ),
+            facts: toPosix(path.join(absoluteDocsRoot, "facts", "**", "*.md")),
+            symbols: toPosix(path.join(absoluteDocsRoot, "symbols.yaml")),
           },
-          null,
-          2,
-        ),
-      );
+        },
+        null,
+        2,
+      ),
+    );
 
-      // Create only ONE directory (requirements), leave all others missing
-      fs.mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
-        recursive: true,
-      });
+    const customDirs = [
+      "requirements",
+      "scenarios",
+      "tests",
+      "adr",
+      "flags",
+      "events",
+      "facts",
+    ];
+    for (const dir of customDirs) {
+      fs.mkdirSync(path.join(absoluteDocsRoot, dir), { recursive: true });
+    }
+    fs.writeFileSync(path.join(absoluteDocsRoot, "symbols.yaml"), "[]");
 
-      const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
-      });
-
-      const tracker = getSessionTracker();
-      const summary = tracker.generateSummary();
-      assert.equal(
-        summary.warningsByCategory["bootstrap-needed"],
-        1,
-        "Should record exactly one bootstrap-needed warning when targets are missing",
-      );
-
-      // Plugin continues with non-blocking behavior
-      assert.ok(typeof hooks === "object");
+    await kibiOpencodePlugin({
+      directory: tmpDir,
+      worktree: worktree,
+      client: null as any,
+      project: null as any,
+      serverUrl: null as any,
+      $: {} as any,
     });
+
+    const tracker = getSessionTracker();
+    const summary = tracker.generateSummary();
+    assert.equal(
+      summary.warningsByCategory["bootstrap-needed"],
+      0,
+      "Should not record bootstrap-needed warning when configured absolute paths exist",
+    );
+  });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  it("records bootstrap-needed when a configured target is missing", async () => {
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify(
+        {
+          paths: {
+            requirements: "kibi-docs/requirements/**/*.md",
+            scenarios: "kibi-docs/scenarios/**/*.md",
+            tests: "kibi-docs/tests/**/*.md",
+            adr: "kibi-docs/adr/**/*.md",
+            flags: "kibi-docs/flags/**/*.md",
+            events: "kibi-docs/events/**/*.md",
+            facts: "kibi-docs/facts/**/*.md",
+            symbols: "kibi-docs/symbols.yaml",
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    // Create only ONE directory (requirements), leave all others missing
+    fs.mkdirSync(path.join(tmpDir, "kibi-docs", "requirements"), {
+      recursive: true,
+    });
+
+    const hooks = await kibiOpencodePlugin({
+      directory: tmpDir,
+      worktree: worktree,
+      client: null as any,
+      project: null as any,
+      serverUrl: null as any,
+      $: {} as any,
+    });
+
+    const tracker = getSessionTracker();
+    const summary = tracker.generateSummary();
+    assert.equal(
+      summary.warningsByCategory["bootstrap-needed"],
+      1,
+      "Should record exactly one bootstrap-needed warning when targets are missing",
+    );
+
+    // Plugin continues with non-blocking behavior
+    assert.ok(typeof hooks === "object");
+  });
 
   describe("session summary and logging", () => {
     it("checks session expiry when session summary is enabled", async () => {
@@ -928,7 +991,9 @@ with normal content.
 
       assert.ok(mockOutput.system.length > 1);
       assert.equal(mockOutput.system[0], "original system prompt");
-      assert.ok(mockOutput.system.some((s: string) => s !== "original system prompt"));
+      assert.ok(
+        mockOutput.system.some((s: string) => s !== "original system prompt"),
+      );
     });
 
     it("creates system.transform hook when hookMode is system-transform", async () => {
@@ -2285,7 +2350,9 @@ import datetime
       const outputAfterCode = { system: ["base system prompt"] };
       await transformHook({}, outputAfterCode);
       assert.ok(
-        outputAfterCode.system.some((s: string) => s.includes("Durable knowledge detected")),
+        outputAfterCode.system.some((s: string) =>
+          s.includes("Durable knowledge detected"),
+        ),
         "Prompt should contain durable knowledge guidance after code file edit",
       );
 
@@ -2303,7 +2370,9 @@ import datetime
       const outputAfterKbDoc = { system: ["base system prompt"] };
       await transformHook({}, outputAfterKbDoc);
       assert.ok(
-        !outputAfterKbDoc.system.some((s: string) => s.includes("Durable knowledge detected")),
+        !outputAfterKbDoc.system.some((s: string) =>
+          s.includes("Durable knowledge detected"),
+        ),
         "Prompt should not contain durable knowledge guidance after switching to KB doc",
       );
     });
@@ -2545,7 +2614,8 @@ import datetime
 
       // The guidance should contain the reminder text since behavior_candidate is a risky class
       const guidanceEntry = mockOutput.system.find(
-        (s: string) => typeof s === "string" && s.includes("kb_check before completing"),
+        (s: string) =>
+          typeof s === "string" && s.includes("kb_check before completing"),
       );
 
       // If guidance contains the reminder text, the log should have fired
@@ -2671,10 +2741,7 @@ import datetime
       );
 
       // Create README to get safe_docs_only risk class
-      fs.writeFileSync(
-        path.join(tmpDir, "README.md"),
-        "# Test\n",
-      );
+      fs.writeFileSync(path.join(tmpDir, "README.md"), "# Test\n");
 
       const mockClient = {
         app: {
@@ -2745,7 +2812,7 @@ import datetime
           2,
         ),
       );
-      
+
       // Force root_active posture so only sync_disabled is latched
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(kbDir, { recursive: true });
@@ -2899,8 +2966,13 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -2914,7 +2986,9 @@ import datetime
         throw new Error("scheduler creation failure");
       };
 
-      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const { default: plugin } = await import(
+        "../src/index.ts?bust=" + Date.now()
+      );
       const hooks = await plugin({
         directory: tmpDir,
         worktree: worktree,
@@ -2987,8 +3061,13 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -3010,7 +3089,9 @@ import datetime
         };
       };
 
-      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const { default: plugin } = await import(
+        "../src/index.ts?bust=" + Date.now()
+      );
       const hooks = await plugin({
         directory: tmpDir,
         worktree: worktree,
@@ -3047,9 +3128,14 @@ import datetime
       assert.ok(causes.includes("scheduler_sync_failed"));
 
       const syncFailed = degradedLogs.find(
-        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_sync_failed",
+        (p) =>
+          (p.body as Record<string, unknown>).overlay_cause ===
+          "scheduler_sync_failed",
       );
-      assert.equal((syncFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      assert.equal(
+        (syncFailed?.body as Record<string, unknown>)?.effective_mode,
+        "advisory",
+      );
       delete (globalThis as any).__kibi_test_scheduler_factory;
     });
 
@@ -3089,8 +3175,13 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -3112,7 +3203,9 @@ import datetime
         };
       };
 
-      const { default: plugin } = await import("../src/index.ts?bust=" + Date.now());
+      const { default: plugin } = await import(
+        "../src/index.ts?bust=" + Date.now()
+      );
       const hooks = await plugin({
         directory: tmpDir,
         worktree: worktree,
@@ -3149,9 +3242,14 @@ import datetime
       assert.ok(causes.includes("scheduler_check_failed"));
 
       const checkFailed = degradedLogs.find(
-        (p) => (p.body as Record<string, unknown>).overlay_cause === "scheduler_check_failed",
+        (p) =>
+          (p.body as Record<string, unknown>).overlay_cause ===
+          "scheduler_check_failed",
       );
-      assert.equal((checkFailed?.body as Record<string, unknown>)?.effective_mode, "advisory");
+      assert.equal(
+        (checkFailed?.body as Record<string, unknown>)?.effective_mode,
+        "advisory",
+      );
       delete (globalThis as any).__kibi_test_scheduler_factory;
     });
   });
@@ -3160,14 +3258,22 @@ import datetime
   // These tests define the contract for Task 3 implementation.
   // Expected to FAIL until runtime routing is completed.
   describe("targeted-check rule routing contract", () => {
-    type ScheduleCall = { reason: string; filePath?: string; checkRules?: string[] };
+    type ScheduleCall = {
+      reason: string;
+      filePath?: string;
+      checkRules?: string[];
+    };
 
     /** Helper to set up a capturing scheduler factory and import a fresh plugin */
-    async function setupWithCapturingScheduler(tmpDir: string, configOverrides: Record<string, unknown> = {}) {
+    async function setupWithCapturingScheduler(tmpDir: string) {
       const scheduleCalls: ScheduleCall[] = [];
 
       (globalThis as any).__kibi_test_scheduler_factory = () => ({
-        scheduleSync: (reason: string, filePath?: string, checkRules?: string[]) => {
+        scheduleSync: (
+          reason: string,
+          filePath?: string,
+          checkRules?: string[],
+        ) => {
           scheduleCalls.push({ reason, filePath, checkRules });
         },
         onFileEdited: () => {},
@@ -3176,7 +3282,9 @@ import datetime
         dispose: () => {},
       });
 
-      const { default: plugin } = await import(`../src/index.ts?route=${Date.now()}`);
+      const { default: plugin } = await import(
+        `../src/index.ts?route=${Date.now()}`
+      );
       const hooks = await plugin({
         directory: tmpDir,
         worktree: tmpDir,
@@ -3224,7 +3332,10 @@ import datetime
       for (const dir of docDirs) {
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
       }
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "[]");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
     }
 
     afterEach(() => {
@@ -3266,7 +3377,8 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
       const eventHook = hooks.event as any;
@@ -3307,7 +3419,10 @@ import datetime
       const factDir = path.join(tmpDir, "documentation", "facts");
       fs.mkdirSync(factDir, { recursive: true });
       const factFile = path.join(factDir, "FACT-001.md");
-      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+      fs.writeFileSync(
+        factFile,
+        "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n",
+      );
 
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
@@ -3328,7 +3443,8 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
       const eventHook = hooks.event as any;
@@ -3364,7 +3480,10 @@ import datetime
       const scenDir = path.join(tmpDir, "documentation", "scenarios");
       fs.mkdirSync(scenDir, { recursive: true });
       const scenFile = path.join(scenDir, "SCEN-001.md");
-      fs.writeFileSync(scenFile, "---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n");
+      fs.writeFileSync(
+        scenFile,
+        "---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n",
+      );
 
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
@@ -3385,7 +3504,8 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
       const eventHook = hooks.event as any;
@@ -3424,7 +3544,10 @@ import datetime
       const factDir = path.join(tmpDir, "documentation", "facts");
       fs.mkdirSync(factDir, { recursive: true });
       const factFile = path.join(factDir, "FACT-001.md");
-      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+      fs.writeFileSync(
+        factFile,
+        "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n",
+      );
 
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
@@ -3445,7 +3568,8 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
       const eventHook = hooks.event as any;
@@ -3490,7 +3614,10 @@ import datetime
       const factDir = path.join(tmpDir, "documentation", "facts");
       fs.mkdirSync(factDir, { recursive: true });
       const factFile = path.join(factDir, "FACT-001.md");
-      fs.writeFileSync(factFile, "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n");
+      fs.writeFileSync(
+        factFile,
+        "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n",
+      );
 
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
@@ -3511,7 +3638,8 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } = await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
       const eventHook = hooks.event as any;
@@ -3534,5 +3662,4 @@ import datetime
       );
     });
   });
-
 });

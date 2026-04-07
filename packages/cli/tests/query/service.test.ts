@@ -22,10 +22,25 @@ const parseEntityFromBindingMock = mock((value: string) => {
 });
 
 mock.module("../../src/prolog/codec.js", () => ({
-  escapeAtom: escapeAtomMock,
-  parseEntityFromBinding: parseEntityFromBindingMock,
-  parseEntityFromList: parseEntityFromListMock,
-  parseListOfLists: parseListOfListsMock,
+escapeAtom: escapeAtomMock,
+parseEntityFromBinding: parseEntityFromBindingMock,
+parseEntityFromList: parseEntityFromListMock,
+parseListOfLists: parseListOfListsMock,
+  toPrologAtom: (value: string) => {
+    const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
+    return simplePrologAtom.test(value)
+      ? value
+      : `'${value.replace(/'/g, "''")}'`;
+  },
+  toPrologString: (value: string) => {
+    const escaped = value
+      .replace(/\\/g, "\\\\")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r")
+      .replace(/\t/g, "\\t");
+    return `"${escaped}"`;
+  },
 }));
 
 const service = await import("../../src/query/service.js");
@@ -44,6 +59,7 @@ function asPrologProcess(prolog: QueryableProlog): PrologProcess {
 
 describe("query service", () => {
   beforeEach(() => {
+    mock.restore();
     codecState.parsedLists = [];
     codecState.listEntities = [];
     codecState.bindingEntity = {};

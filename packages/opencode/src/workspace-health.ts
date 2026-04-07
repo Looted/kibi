@@ -41,7 +41,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   if (missingConfig) {
     // No config file: fall back to hardcoded defaults
     for (const docDir of KIBI_DOC_DIRS) {
-      const fullPath = path.join(cwd, docDir);
+      const fullPath = path.resolve(cwd, docDir);
       if (!fs.existsSync(fullPath)) {
         missingDocDirs.push(docDir);
       }
@@ -59,7 +59,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
       // User has custom paths: resolve targets dynamically
       const targets = getKbExistenceTargets(cwd);
       for (const target of targets) {
-        const fullPath = path.join(cwd, target.relativePath);
+        const fullPath = path.resolve(cwd, target.relativePath);
         if (!fs.existsSync(fullPath)) {
           missingDocDirs.push(target.relativePath);
         }
@@ -67,7 +67,7 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
     } else {
       // Config exists but no custom paths: use hardcoded defaults
       for (const docDir of KIBI_DOC_DIRS) {
-        const fullPath = path.join(cwd, docDir);
+        const fullPath = path.resolve(cwd, docDir);
         if (!fs.existsSync(fullPath)) {
           missingDocDirs.push(docDir);
         }
@@ -80,12 +80,12 @@ export function checkWorkspaceHealth(cwd: string): WorkspaceHealth {
   const hasKbEvidence =
     fs.existsSync(kbDir) && fs.readdirSync(kbDir).length > 0;
 
-  // Delegate needsBootstrap entirely to posture detection:
-  // - root_uninitialized → true
-  // - root_partial → true
-  // - vendored_only → false (nested tree handles its own KB)
-  // - root_active / hybrid_root_plus_vendored → false
-  const needsBootstrap = posture.needsBootstrap;
+  // Restore lenient threshold for repos that have a config but are missing a few dirs.
+  // Uninitialized repos always need bootstrap; partial repos fall back to the legacy
+  // >2 missing dirs threshold so small gaps (e.g. unused flags/events) do not nag.
+  const needsBootstrap =
+    posture.state === "root_uninitialized" ||
+    (posture.state === "root_partial" && missingDocDirs.length > 2);
 
   return {
     needsBootstrap,

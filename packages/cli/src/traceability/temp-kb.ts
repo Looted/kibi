@@ -8,7 +8,7 @@ import type {
   ExtractionResult,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
-import { toPrologAtom } from "../prolog/codec.js";
+import { toPrologAtom, toPrologString } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -54,17 +54,6 @@ function trace(message: string): void {
 
 function escapePrologAtom(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
-}
-
-function toPrologString(value: string): string {
-  const escaped = value
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-
-  return `"${escaped}"`;
 }
 
 function serializeTypedFactFields(entity: ExtractedEntity): string[] {
