@@ -59,6 +59,7 @@ function asPrologProcess(prolog: QueryableProlog): PrologProcess {
 
 describe("query service", () => {
   beforeEach(() => {
+    mock.restore();
     codecState.parsedLists = [];
     codecState.listEntities = [];
     codecState.bindingEntity = {};
