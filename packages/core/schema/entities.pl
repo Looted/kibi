@@ -28,6 +28,7 @@ entity_property(_, priority, atom).
 entity_property(_, severity, atom).
 entity_property(_, links, list).
 entity_property(_, text_ref, uri).
+entity_property(_, sourceFile, uri).
 
 % Typed fact fields - only valid for fact entities
 entity_property(fact, fact_kind, atom).

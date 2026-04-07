@@ -62,6 +62,7 @@ const entitySchema = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    sourceFile: { type: "string" },
     type: {
       type: "string",
       enum: [
