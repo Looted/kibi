@@ -123,6 +123,8 @@ export class PrologProcess {
       this.errorBuffer += chunk.toString();
     });
 
+    this.process.stdin.write("true.\n");
+
     if (!this.onProcessExit) {
       this.onProcessExit = () => {
         void this.terminate();
@@ -153,14 +155,15 @@ export class PrologProcess {
         );
       }
 
-      // If stdout or stderr shows any output, assume ready.
-      if (this.outputBuffer.length > 0 || this.errorBuffer.length > 0) {
-        break;
+      if (this.outputBuffer.includes("true.")) {
+        this.outputBuffer = "";
+        this.errorBuffer = "";
+        return;
       }
 
       // brief pause
       // eslint-disable-next-line no-await-in-loop
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     // Final sanity check
