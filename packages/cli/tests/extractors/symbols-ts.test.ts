@@ -1,238 +1,312 @@
 /*
- Kibi — repo-local, per-branch, queryable long-term memory for software projects
- Copyright (C) 2026 Piotr Franczyk
+ * Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ * Copyright (C) 2026 Piotr Franczyk
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
-
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import * as fs from "node:fs";
-import * as os from "node:os";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import * as path from "node:path";
 import {
-  type ManifestSymbolEntry,
   enrichSymbolCoordinatesWithTsMorph,
-} from "../../src/extractors/symbols-ts";
+  type ManifestSymbolEntry,
+} from "../../src/extractors/symbols-ts.js";
 
-// implements REQ-SYMBOL-MATCHER-001
+function writeFixture(
+  workspaceRoot: string,
+  relativePath: string,
+  content: string,
+): string {
+  const absolutePath = path.join(workspaceRoot, relativePath);
+  mkdirSync(path.dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, content, "utf8");
+  return absolutePath;
+}
 
-describe("symbols-ts matcher guardrails", () => {
-  let tmpDir: string;
-  let sourceFilePath: string;
+function createEntry(
+  id: string,
+  title: string,
+  sourceFile?: string,
+): ManifestSymbolEntry {
+  return sourceFile ? { id, title, sourceFile } : { id, title };
+}
 
-  beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-symbols-ts-"));
+function requireEntry(
+  entry: ManifestSymbolEntry | undefined,
+): ManifestSymbolEntry {
+  if (!entry) {
+    throw new Error("Expected manifest entry");
+  }
+
+  return entry;
+}
+
+function expectCoordinates(
+  entry: ManifestSymbolEntry,
+  expectedLine: number,
+): void {
+  expect(entry.sourceLine).toBe(expectedLine);
+  expect(typeof entry.sourceColumn).toBe("number");
+  expect(typeof entry.sourceEndLine).toBe("number");
+  expect(typeof entry.sourceEndColumn).toBe("number");
+  expect(entry.sourceEndLine).toBeGreaterThanOrEqual(expectedLine);
+  expect(entry.sourceEndColumn).toBeGreaterThanOrEqual(0);
+  expect(typeof entry.coordinatesGeneratedAt).toBe("string");
+  expect(Number.isNaN(Date.parse(entry.coordinatesGeneratedAt ?? ""))).toBe(
+    false,
+  );
+}
+
+function expectUnchanged(
+  actual: ManifestSymbolEntry,
+  expected: ManifestSymbolEntry,
+): void {
+  expect(actual).toEqual(expected);
+  expect(actual.sourceLine).toBeUndefined();
+  expect(actual.sourceColumn).toBeUndefined();
+  expect(actual.sourceEndLine).toBeUndefined();
+  expect(actual.sourceEndColumn).toBeUndefined();
+  expect(actual.coordinatesGeneratedAt).toBeUndefined();
+}
+
+describe("enrichSymbolCoordinatesWithTsMorph", () => {
+  let workspaceRoot = "";
+  let exportsFile = "";
+  let methodsFile = "";
+  let internalFile = "";
+  let multipleMatchesFile = "";
+  let unparseableFile = "";
+  let unsupportedCssFile = "";
+  let unsupportedJsonFile = "";
+  let invalidSourcePath = "";
+
+  beforeAll(() => {
+    workspaceRoot = mkdtempSync(path.join(tmpdir(), "kibi-symbols-ts-"));
+
+    exportsFile = writeFixture(
+      workspaceRoot,
+      "fixtures/exports.ts",
+      [
+        "export function myExportedFunc() { return 1; }",
+        "export class MyClass {",
+        "  methodOnExportedClass() { return 3; }",
+        "}",
+        "export interface MyInterface {",
+        "  foo: string;",
+        "}",
+        "export type MyType = string | number;",
+        "export enum MyEnum { A, B }",
+        "export const myConst = 42;",
+      ].join("\n"),
+    );
+
+    methodsFile = writeFixture(
+      workspaceRoot,
+      "fixtures/methods.ts",
+      ["export class MethodHost {", "  myMethod() { return 3; }", "}"].join(
+        "\n",
+      ),
+    );
+
+    internalFile = writeFixture(
+      workspaceRoot,
+      "fixtures/internal.ts",
+      "function myInternalFunc() { return 2; }\n",
+    );
+
+    multipleMatchesFile = writeFixture(
+      workspaceRoot,
+      "fixtures/multiple-exported.ts",
+      [
+        "export interface SharedName {",
+        "  foo: string;",
+        "}",
+        "export const SharedName = 42;",
+      ].join("\n"),
+    );
+
+    unparseableFile = writeFixture(
+      workspaceRoot,
+      "fixtures/unparseable.ts",
+      "export function () {\n",
+    );
+
+    unsupportedCssFile = writeFixture(
+      workspaceRoot,
+      "fixtures/styles.css",
+      ".fixture { color: red; }\n",
+    );
+
+    unsupportedJsonFile = writeFixture(
+      workspaceRoot,
+      "fixtures/data.json",
+      '{"ok":true}\n',
+    );
+
+    invalidSourcePath = path.join(workspaceRoot, "fixtures", "not-a-file.ts");
+    mkdirSync(invalidSourcePath, { recursive: true });
   });
 
-  afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+  afterAll(() => {
+    rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
-  /**
-   * exportedWinsOverInternal
-   *
-   * When a source file has both an exported function named `foo` and an
-   * internal (non-exported) function named `foo`, the matcher MUST resolve
-   * to the exported declaration's coordinates, not the internal one.
-   *
-   * This guards against accidental resolution of the wrong symbol when both
-   * exported and internal declarations share the same name.
-   *
-   * The matcher now prefers exported declarations first, and only falls back
-   * to unique internal functions or class methods when no matching export
-   * is found. When an internal-then-exported pair exists, this test locks
-   * in the priority rule that the exported declaration must win.
-   */
-  test("exportedWinsOverInternal: exported declaration coordinates are returned when both exported and internal exist", async () => {
-    // Internal `foo` is on line 3; exported `foo` is on line 5
-    const source = [
-      "// source file with both exported and internal foo",
-      "",
-      "function foo() { return 'internal'; }",
-      "",
-      "export function foo() { return 'exported'; }",
-    ].join("\n");
+  test("enriches supported declarations, resolves relative and absolute paths, and leaves unsupported entries unchanged", async () => {
+    const relativeExportsPath = path.relative(workspaceRoot, exportsFile);
 
-    sourceFilePath = path.join(tmpDir, "dual-foo.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const entries: ManifestSymbolEntry[] = [
+      createEntry("SYM-001", "myExportedFunc", relativeExportsPath),
+      createEntry("SYM-002", "MyClass", exportsFile),
+      createEntry("SYM-003", "MyInterface", relativeExportsPath),
+      createEntry("SYM-004", "MyType", relativeExportsPath),
+      createEntry("SYM-005", "MyEnum", relativeExportsPath),
+      createEntry("SYM-006", "myConst", relativeExportsPath),
+      createEntry("SYM-007", "missingSource"),
+      createEntry(
+        "SYM-008",
+        "stylesheet",
+        path.relative(workspaceRoot, unsupportedCssFile),
+      ),
+      createEntry(
+        "SYM-009",
+        "jsonBlob",
+        path.relative(workspaceRoot, unsupportedJsonFile),
+      ),
+      createEntry("SYM-010", "MissingFile", "fixtures/does-not-exist.ts"),
+    ];
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-foo",
-      title: "foo",
-      sourceFile: sourceFilePath,
-    };
+    const results = await enrichSymbolCoordinatesWithTsMorph(
+      entries,
+      workspaceRoot,
+    );
+    const exportedFunction = requireEntry(results[0]);
+    const exportedClass = requireEntry(results[1]);
+    const exportedInterface = requireEntry(results[2]);
+    const exportedType = requireEntry(results[3]);
+    const exportedEnum = requireEntry(results[4]);
+    const exportedConst = requireEntry(results[5]);
+    const missingSource = requireEntry(results[6]);
+    const unsupportedCss = requireEntry(results[7]);
+    const unsupportedJson = requireEntry(results[8]);
+    const missingFile = requireEntry(results[9]);
 
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
+    expect(results).toHaveLength(entries.length);
 
-    // Coordinates must be generated
-    expect(result.coordinatesGeneratedAt).toBeDefined();
+    expectCoordinates(exportedFunction, 1);
+    expect(exportedFunction.sourceColumn).toBe(16);
 
-    // The exported `foo` is on line 5 (1-based)
-    // The internal `foo` is on line 3 (1-based)
-    // We assert the matcher resolved to the EXPORTED declaration (line 5)
-    expect(result.sourceLine).toBe(5);
+    expectCoordinates(exportedClass, 2);
+    expectCoordinates(exportedInterface, 5);
+    expectCoordinates(exportedType, 8);
+    expectCoordinates(exportedEnum, 9);
+    expectCoordinates(exportedConst, 10);
+
+    expectUnchanged(missingSource, requireEntry(entries[6]));
+    expectUnchanged(unsupportedCss, requireEntry(entries[7]));
+    expectUnchanged(unsupportedJson, requireEntry(entries[8]));
+    expectUnchanged(missingFile, requireEntry(entries[9]));
   });
 
-  /**
-   * ambiguousInternalTitlesFailClosed
-   *
-   * When a source file has two non-exported functions with the same name
-   * `bar`, the matcher MUST return no coordinates (fail closed).  Resolving
-   * ambiguously to one of them would produce silently wrong coordinates.
-   *
-   * The matcher now scans non-exported top-level functions, but when multiple
-   * internal declarations share the same title and there is no exported
-   * declaration to disambiguate, it must treat the match as ambiguous and
-   * emit no coordinates. This test locks in that fail-closed behaviour.
-   */
-  test("ambiguousInternalTitlesFailClosed: no coordinates generated when title is ambiguous among internal declarations", async () => {
-    const source = [
-      "// two non-exported `bar` functions — ambiguous",
-      "",
-      "function bar() { return 1; }",
-      "",
-      "function bar() { return 2; }",
-    ].join("\n");
+  test("falls back to a unique non-exported top-level function when no exported declaration matches", async () => {
+    const entry = createEntry(
+      "SYM-011",
+      "myInternalFunc",
+      path.relative(workspaceRoot, internalFile),
+    );
 
-    sourceFilePath = path.join(tmpDir, "ambiguous-bar.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-bar",
-      title: "bar",
-      sourceFile: sourceFilePath,
-    };
-
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
-
-    // No coordinates must be generated — fail closed on ambiguity
-    expect(result.coordinatesGeneratedAt).toBeUndefined();
-    expect(result.sourceLine).toBeUndefined();
+    expectCoordinates(requireEntry(result), 1);
   });
 
-  /**
-   * unsupportedShapesOutOfScope
-   *
-   * Getter accessors (`get baz() {}`) are NOT supported by the matcher.
-   * The matcher MUST return no coordinates for getter declarations.
-   *
-   * Rationale: ts-morph `getAccessors` are class-member constructs and have
-   * no standard top-level `isExported()` path.  Rather than silently produce
-   * wrong coordinates, we keep getters out-of-scope until explicit support
-   * is added and tested.
-   *
-   * RED PHASE: This test verifies fail-closed behaviour for an unsupported
-   * shape.  If getter support is ever added, this test must be updated first.
-   */
-  test("unsupportedShapesOutOfScope: no coordinates generated for getter accessor declarations", async () => {
-    const source = [
-      "// a class with a getter named baz",
-      "class MyClass {",
-      "  get baz(): string { return 'value'; }",
-      "}",
-      "",
-      "// also a top-level getter (object literal shorthand is not a declaration)",
-      "const obj = { get baz() { return 42; } };",
-    ].join("\n");
+  test("falls back to a unique class method when no top-level declaration matches", async () => {
+    const entry = createEntry(
+      "SYM-012",
+      "myMethod",
+      path.relative(workspaceRoot, methodsFile),
+    );
 
-    sourceFilePath = path.join(tmpDir, "getter-baz.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-baz",
-      title: "baz",
-      sourceFile: sourceFilePath,
-    };
-
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
-
-    // No coordinates: getters are out-of-scope and must not be resolved
-    expect(result.coordinatesGeneratedAt).toBeUndefined();
-    expect(result.sourceLine).toBeUndefined();
+    expectCoordinates(requireEntry(result), 2);
   });
 
-  test("uniqueNonExportedHelperGetsCoordinates: unique non-exported helper receives coordinates", async () => {
-    const source = [
-      "// file with only non-exported helper",
-      "",
-      "function uniqueHelper() { return 'helper'; }",
-    ].join("\n");
+  test("returns the original entry when the symbol name does not exist in the source file", async () => {
+    const entry = createEntry(
+      "SYM-013",
+      "DoesNotExist",
+      path.relative(workspaceRoot, exportsFile),
+    );
 
-    sourceFilePath = path.join(tmpDir, "unique-helper.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-uniqueHelper",
-      title: "uniqueHelper",
-      sourceFile: sourceFilePath,
-    };
-
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
-
-    // Coordinates must be generated
-    expect(result.coordinatesGeneratedAt).toBeDefined();
-    // The function is on line 3 (1-based)
-    expect(result.sourceLine).toBe(3);
+    expectUnchanged(requireEntry(result), entry);
   });
 
-  test("uniqueClassMethodGetsCoordinates: unique class method receives coordinates", async () => {
-    const source = [
-      "// file with a single class and unique method",
-      "class MyClass {",
-      "  uniqueMethod() { return 'method'; }",
-      "}",
-    ].join("\n");
+  test("prefers the earliest exported declaration when multiple exported declarations share the same title", async () => {
+    const entry = createEntry(
+      "SYM-014",
+      "SharedName",
+      path.relative(workspaceRoot, multipleMatchesFile),
+    );
 
-    sourceFilePath = path.join(tmpDir, "class-method.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-uniqueMethod",
-      title: "uniqueMethod",
-      sourceFile: sourceFilePath,
-    };
-
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
-
-    // Coordinates must be generated for the class method
-    expect(result.coordinatesGeneratedAt).toBeDefined();
-    // method is on line 3 (1-based)
-    expect(result.sourceLine).toBe(3);
+    expectCoordinates(requireEntry(result), 1);
   });
 
-  test("privateClassMethodGetsCoordinates: private class method receives coordinates", async () => {
-    const source = [
-      "// file with a class that has a private method",
-      "class Provider {",
-      "  private mergeStaticLinks() { return true; }",
-      "}",
-    ].join("\n");
+  test("returns the original entry when the resolved TypeScript path cannot be loaded by ts-morph", async () => {
+    const entry = createEntry(
+      "SYM-015",
+      "BrokenTarget",
+      path.relative(workspaceRoot, invalidSourcePath),
+    );
 
-    sourceFilePath = path.join(tmpDir, "private-class-method.ts");
-    fs.writeFileSync(sourceFilePath, source, "utf8");
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
 
-    const entry: ManifestSymbolEntry = {
-      id: "SYM-mergeStaticLinks",
-      title: "mergeStaticLinks",
-      sourceFile: sourceFilePath,
-    };
+    expectUnchanged(requireEntry(result), entry);
+  });
 
-    const [result] = await enrichSymbolCoordinatesWithTsMorph([entry], tmpDir);
+  test("returns the original entry for an unparseable TypeScript file", async () => {
+    const entry = createEntry(
+      "SYM-016",
+      "BrokenSymbol",
+      path.relative(workspaceRoot, unparseableFile),
+    );
 
-    // Coordinates must be generated for the private class method
-    expect(result.coordinatesGeneratedAt).toBeDefined();
-    // private method is on line 3 (1-based)
-    expect(result.sourceLine).toBe(3);
+    const [result] = await enrichSymbolCoordinatesWithTsMorph(
+      [entry],
+      workspaceRoot,
+    );
+
+    expectUnchanged(requireEntry(result), entry);
   });
 });

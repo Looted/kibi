@@ -57,9 +57,6 @@ const SUPPORTED_SOURCE_EXTENSIONS = new Set([
   ".cjs",
 ]);
 
-/* v8 ignore next 59 lines */
-// enrichSymbolCoordinatesWithTsMorph requires ts-morph Project and real source files.
-// Integration tests verify the symbol enrichment works end-to-end.
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
@@ -121,9 +118,6 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   return enriched;
 }
 
-/* v8 ignore next 16 lines */
-// resolveSourcePath is a private helper requiring fs/path modules.
-// Covered by integration tests that exercise symbol enrichment.
 function resolveSourcePath(
   sourceFile: string | undefined,
   workspaceRoot: string,
@@ -141,9 +135,6 @@ function resolveSourcePath(
   return absolute;
 }
 
-/* v8 ignore next 15 lines */
-// getOrAddSourceFile requires ts-morph Project and real source files.
-// Covered by integration tests that exercise symbol enrichment.
 function getOrAddSourceFile(
   project: Project,
   cache: Map<string, SourceFile>,
@@ -163,9 +154,6 @@ function getOrAddSourceFile(
 
 type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;
 
-/* v8 ignore next 106 lines */
-// findNamedDeclaration requires ts-morph SourceFile and real source code.
-// Covered by integration tests that exercise symbol enrichment.
 function findNamedDeclaration(
   sourceFile: SourceFile,
   title: string,
