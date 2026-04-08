@@ -37,7 +37,7 @@ let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
 
 // implements REQ-008
-export function resetSessionStateForTests():
+export function resetSessionStateForTests(): void {
   prologProcess = null;
   isInitialized = false;
   activeBranchName = "develop";

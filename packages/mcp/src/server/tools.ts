@@ -114,13 +114,14 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
 };
 
 // implements REQ-008
+function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
     console.error(...args);
   }
 }
 
 // implements REQ-002
-export function jsonSchemaToZod(
+export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   if (!schema || typeof schema !== "object") {
     return z.any();
   }
