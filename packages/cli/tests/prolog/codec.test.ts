@@ -17,17 +17,9 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import * as codecModule from "../../src/prolog/codec.js";
-
-const xsd = "http://www.w3.org/2001/XMLSchema";
-const codecTsUrl = new URL("../../src/prolog/codec.ts", import.meta.url).href;
-
-const codec =
-  "parsePropertyList" in codecModule && "parsePrologValue" in codecModule
-    ? codecModule
-    : await import(codecTsUrl);
-
-const {
+import {
+  escapeAtom,
+  escapeAtomContent,
   parseAtomList,
   parseEntityFromBinding,
   parseEntityFromList,
@@ -39,7 +31,25 @@ const {
   parseViolationRows,
   splitTopLevel,
   splitTopLevelGeneral,
-} = codec;
+  toPrologAtom,
+} from "../../src/prolog/codec";
+
+const xsd = "http://www.w3.org/2001/XMLSchema";
+
+describe("atom escaping helpers", () => {
+  test("doubles single quotes in atom content", () => {
+    expect(escapeAtom("rock'n'roll")).toBe("rock''n''roll");
+    expect(escapeAtomContent("it's 'quoted' already")).toBe(
+      "it''s ''quoted'' already",
+    );
+  });
+
+  test("leaves simple atoms unchanged and quotes complex atoms", () => {
+    expect(toPrologAtom("simple_atom42")).toBe("simple_atom42");
+    expect(toPrologAtom("Needs'Quotes")).toBe("'Needs''Quotes'");
+    expect(toPrologAtom("has-hyphen")).toBe("'has-hyphen'");
+  });
+});
 
 describe("parseListOfLists", () => {
   test("returns an empty array for an empty outer list", () => {
@@ -94,6 +104,14 @@ describe("parseEntityFromBinding", () => {
       id: "REQ-002",
       label: "Beta",
       type: "fact",
+    });
+  });
+
+  test("keeps unquoted ids unchanged", () => {
+    expect(parseEntityFromBinding("[REQ-RAW,req,[label='Unquoted']]")).toEqual({
+      id: "REQ-RAW",
+      label: "Unquoted",
+      type: "req",
     });
   });
 });
@@ -197,6 +215,10 @@ describe("parsePrologValue", () => {
     expect(parsePrologValue(`^^("hello", '${xsd}#string')`)).toBe("hello");
   });
 
+  test("parses typed literals whose string content contains parentheses", () => {
+    expect(parsePrologValue(`^^("fn(a,b)", '${xsd}#string')`)).toBe("fn(a,b)");
+  });
+
   test("returns the original value for malformed typed literals", () => {
     expect(parsePrologValue('^^("hello")')).toBe('^^("hello")');
   });
@@ -278,6 +300,10 @@ describe("parseAtomList", () => {
     expect(parseAtomList("")).toEqual([]);
   });
 
+  test("returns an empty array for whitespace-only wrapped lists", () => {
+    expect(parseAtomList("[   ]")).toEqual([]);
+  });
+
   test("strips quotes from quoted atoms and strings", () => {
     expect(parseAtomList("['alpha',\"beta\",gamma]")).toEqual([
       "alpha",
@@ -326,6 +352,10 @@ describe("parseTriples", () => {
       ["a", "b", "c"],
       ["d", "e", "f"],
     ]);
+  });
+
+  test("preserves nested list content inside rows", () => {
+    expect(parseTriples("[[a,[b,c],d]]")).toEqual([["a", "[b,c]", "d"]]);
   });
 });
 

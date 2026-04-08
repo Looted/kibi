@@ -1,13 +1,21 @@
-import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  mock,
+  spyOn,
+} from "bun:test";
 import { existsSync } from "node:fs";
-import { cp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { ExtractionResult } from "../../src/extractors/markdown.js";
 import { toPrologAtom } from "../../src/prolog/codec.js";
 import type { ExtractedSymbol } from "../../src/traceability/symbol-extract.js";
 
-import { PrologProcess } from "../../src/prolog.js";
+import { PrologProcess, type QueryResult } from "../../src/prolog.js";
 import {
   _setPrologFactory,
   cleanupTempKb,
@@ -20,6 +28,75 @@ import {
 import { validateStagedSymbols } from "../../src/traceability/validate.js";
 
 const FIXED_TIMESTAMP = "2026-04-05T00:00:00.000Z";
+
+class StubPrologProcess extends PrologProcess {
+  public queries: Array<string | string[]> = [];
+
+  constructor(
+    private readonly options: {
+      onQuery?: (goal: string | string[]) => Promise<QueryResult> | QueryResult;
+      onStart?: () => Promise<void> | void;
+      onTerminate?: () => Promise<void> | void;
+    } = {},
+  ) {
+    super({ timeout: 1 });
+  }
+
+  override async start(): Promise<void> {
+    await this.options.onStart?.();
+  }
+
+  override async query(goal: string | string[]): Promise<QueryResult> {
+    this.queries.push(goal);
+    return (
+      (await this.options.onQuery?.(goal)) ?? {
+        success: true,
+        bindings: {},
+      }
+    );
+  }
+
+  override async terminate(): Promise<void> {
+    await this.options.onTerminate?.();
+  }
+}
+
+function interceptProcessHandlers(): Map<string, Array<() => void>> {
+  const handlers = new Map<string, Array<() => void>>();
+
+  const onceMock = (
+    event: Parameters<typeof process.once>[0],
+    listener: Parameters<typeof process.once>[1],
+  ): ReturnType<typeof process.once> => {
+    if (typeof event === "string") {
+      handlers.set(event, [
+        ...(handlers.get(event) ?? []),
+        listener as () => void,
+      ]);
+    }
+    return process;
+  };
+
+  const offMock = (
+    event: Parameters<typeof process.off>[0],
+    listener: Parameters<typeof process.off>[1],
+  ): ReturnType<typeof process.off> => {
+    if (typeof event === "string") {
+      handlers.set(
+        event,
+        (handlers.get(event) ?? []).filter(
+          (candidate) => candidate !== listener,
+        ),
+      );
+    }
+    return process;
+  };
+
+  spyOn(process, "once").mockImplementation(onceMock);
+  spyOn(process, "off").mockImplementation(offMock);
+
+  return handlers;
+}
 
 function makeExtractionResult(options: {
   id: string;
@@ -49,6 +126,20 @@ async function querySucceeds(
 ): Promise<boolean> {
   const result = await prolog.query(goal);
   return result.success;
+}
+
+function expectErrorMessage(error: unknown, message: string | RegExp): void {
+  expect(error).toBeInstanceOf(Error);
+  if (!(error instanceof Error)) {
+    throw new Error("Expected an Error instance");
+  }
+
+  if (typeof message === "string") {
+    expect(error.message).toBe(message);
+    return;
+  }
+
+  expect(error.message).toMatch(message);
 }
 
 async function seedBaseKb(
@@ -87,7 +178,10 @@ describe("temp-kb", () => {
     mock.restore();
     // Create a temporary base KB directory for testing
     // Use a unique suffix to avoid collisions
-    baseKbDir = path.join(tmpdir(), `kibi-test-base-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+    baseKbDir = path.join(
+      tmpdir(),
+      `kibi-test-base-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    );
     await mkdir(baseKbDir, { recursive: true });
     await writeFile(
       path.join(baseKbDir, "test.facts"),
@@ -97,9 +191,13 @@ describe("temp-kb", () => {
   });
 
   afterEach(async () => {
+    mock.restore();
+    Reflect.deleteProperty(process.env, "KIBI_TRACE");
+    Reflect.deleteProperty(process.env, "KIBI_DEBUG");
     // Clean up any temporary KBs created during tests
     await cleanupTempKb(baseKbDir).catch(() => {});
     await rm(baseKbDir, { recursive: true, force: true }).catch(() => {});
+    resetModuleState();
   });
 
   describe("createTempKb", () => {
@@ -124,7 +222,16 @@ describe("temp-kb", () => {
         tmpdir(),
         `kibi-nonexistent-${Date.now()}`,
       );
-      await expect(createTempKb(nonExistentPath)).rejects.toThrow(
+      let error: unknown;
+
+      try {
+        await createTempKb(nonExistentPath);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(
+        error,
         `Base KB path does not exist: ${nonExistentPath}`,
       );
     });
@@ -180,6 +287,46 @@ describe("temp-kb", () => {
       } finally {
         await cleanupTempKb(ctx.tempDir);
       }
+    });
+
+    it("cleans up and throws when attach fails", async () => {
+      const stub = new StubPrologProcess({
+        onQuery: async (goal) => {
+          if (
+            goal ===
+            `kb_attach(${toPrologAtom(path.join("/tmp", "attach-target"))})`
+          ) {
+            return { success: false, bindings: {}, error: "attach failed" };
+          }
+
+          if (typeof goal === "string" && goal.startsWith("kb_attach(")) {
+            return { success: false, bindings: {}, error: "attach failed" };
+          }
+
+          return { success: true, bindings: {} };
+        },
+      });
+
+      const handlers = interceptProcessHandlers();
+      _setPrologFactory(() => stub);
+
+      let error: unknown;
+
+      try {
+        await createTempKb(baseKbDir);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(
+        error,
+        /Failed to attach temporary KB .* attach failed/,
+      );
+
+      expect(stub.queries).toContain("kb_detach");
+      expect(handlers.get("SIGINT") ?? []).toHaveLength(0);
+      expect(handlers.get("SIGTERM") ?? []).toHaveLength(0);
+      expect(handlers.get("exit") ?? []).toHaveLength(0);
     });
   });
 
@@ -265,9 +412,15 @@ describe("temp-kb", () => {
         prolog: null,
       } as unknown as Parameters<typeof consultOverlay>[0];
 
-      await expect(consultOverlay(mockCtx)).rejects.toThrow(
-        "No Prolog session found for temp dir",
-      );
+      let error: unknown;
+
+      try {
+        await consultOverlay(mockCtx);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(error, /No Prolog session found for temp dir/);
     });
 
     it("throws error on consult failure", async () => {
@@ -277,9 +430,15 @@ describe("temp-kb", () => {
         (ctx as { overlayPath: string }).overlayPath =
           "/nonexistent/overlay.pl";
 
-        await expect(consultOverlay(ctx)).rejects.toThrow(
-          "Failed to consult overlay facts",
-        );
+        let error: unknown;
+
+        try {
+          await consultOverlay(ctx);
+        } catch (caught) {
+          error = caught;
+        }
+
+        expectErrorMessage(error, /Failed to consult overlay facts/);
       } finally {
         await cleanupTempKb(ctx.tempDir);
       }
@@ -287,6 +446,74 @@ describe("temp-kb", () => {
   });
 
   describe("projectStagedEntities", () => {
+    it("serializes fact-specific properties into the assertion goal", async () => {
+      const prolog = new StubPrologProcess();
+      const result: ExtractionResult = {
+        entity: {
+          id: "FACT-001",
+          type: "fact",
+          title: "Fact title",
+          status: "active",
+          created_at: FIXED_TIMESTAMP,
+          updated_at: FIXED_TIMESTAMP,
+          source: "documentation/facts/FACT-001.md",
+          tags: ["alpha", "beta_tag"],
+          owner: "platform_team",
+          priority: "high",
+          severity: "critical",
+          text_ref: "facts.md#L1",
+          fact_kind: "observation",
+          subject_key: "subject-1",
+          property_key: "property-1",
+          operator: "eq",
+          value_type: "string",
+          value_string: 'value "with" details',
+          value_int: 7.5,
+          value_number: 7.5,
+          value_bool: true,
+          unit: "ms",
+          scope: "global",
+          polarity: "require",
+          closed_world: false,
+          valid_from: "2026-01-01",
+          valid_to: "2026-12-31",
+          canonical_key: "canon-1",
+        },
+        relationships: [],
+      };
+
+      await projectStagedEntities(prolog, [result]);
+
+      const assertGoal = prolog.queries[1];
+      expect(typeof assertGoal).toBe("string");
+      if (typeof assertGoal !== "string") {
+        throw new Error("Expected string assertion goal");
+      }
+
+      expect(assertGoal).toContain("kb_assert_entity(fact");
+      expect(assertGoal).toContain("tags=[alpha,beta_tag]");
+      expect(assertGoal).toContain("owner=platform_team");
+      expect(assertGoal).toContain("priority=high");
+      expect(assertGoal).toContain("severity=critical");
+      expect(assertGoal).toContain('text_ref="facts.md#L1"');
+      expect(assertGoal).toContain("fact_kind=observation");
+      expect(assertGoal).toContain('subject_key="subject-1"');
+      expect(assertGoal).toContain('property_key="property-1"');
+      expect(assertGoal).toContain("operator=eq");
+      expect(assertGoal).toContain("value_type=string");
+      expect(assertGoal).toContain('value_string="value \\"with\\" details"');
+      expect(assertGoal).toContain('unit="ms"');
+      expect(assertGoal).toContain('scope="global"');
+      expect(assertGoal).toContain("polarity=require");
+      expect(assertGoal).toContain("value_number=7.5");
+      expect(assertGoal).toContain("value_bool=true");
+      expect(assertGoal).toContain("closed_world=false");
+      expect(assertGoal).toContain('valid_from="2026-01-01"');
+      expect(assertGoal).toContain('valid_to="2026-12-31"');
+      expect(assertGoal).toContain('canonical_key="canon-1"');
+      expect(assertGoal).not.toContain("value_int=7.5");
+    });
+
     it("asserts staged entities and relationships into the temp KB", async () => {
       const ctx = await createTempKb(baseKbDir);
 
@@ -363,6 +590,125 @@ describe("temp-kb", () => {
       } finally {
         await cleanupTempKb(ctx.tempDir);
       }
+    });
+
+    it("throws when retracting a staged entity fails", async () => {
+      const prolog = new StubPrologProcess({
+        onQuery: async (goal) => {
+          if (
+            typeof goal === "string" &&
+            goal.startsWith("kb_retract_entity(")
+          ) {
+            return { success: false, bindings: {}, error: "cannot retract" };
+          }
+
+          return { success: true, bindings: {} };
+        },
+      });
+
+      let error: unknown;
+
+      try {
+        await projectStagedEntities(prolog, [
+          makeExtractionResult({
+            id: "REQ-FAIL",
+            type: "req",
+            title: "Broken requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-FAIL.md",
+          }),
+        ]);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(
+        error,
+        "Failed to retract staged entity REQ-FAIL: cannot retract",
+      );
+    });
+
+    it("throws when asserting a staged entity fails", async () => {
+      const prolog = new StubPrologProcess({
+        onQuery: async (goal) => {
+          if (
+            typeof goal === "string" &&
+            goal.startsWith("kb_assert_entity(")
+          ) {
+            return {
+              success: false,
+              bindings: {},
+              error: "cannot assert entity",
+            };
+          }
+
+          return { success: true, bindings: {} };
+        },
+      });
+
+      let error: unknown;
+
+      try {
+        await projectStagedEntities(prolog, [
+          makeExtractionResult({
+            id: "REQ-FAIL",
+            type: "req",
+            title: "Broken requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-FAIL.md",
+          }),
+        ]);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(
+        error,
+        "Failed to assert staged entity REQ-FAIL: cannot assert entity",
+      );
+    });
+
+    it("throws when asserting a staged relationship fails", async () => {
+      const prolog = new StubPrologProcess({
+        onQuery: async (goal) => {
+          if (
+            typeof goal === "string" &&
+            goal.startsWith("kb_assert_relationship(")
+          ) {
+            return {
+              success: false,
+              bindings: {},
+              error: "cannot assert relationship",
+            };
+          }
+
+          return { success: true, bindings: {} };
+        },
+      });
+
+      let error: unknown;
+
+      try {
+        await projectStagedEntities(prolog, [
+          makeExtractionResult({
+            id: "REQ-FAIL",
+            type: "req",
+            title: "Broken requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-FAIL.md",
+            relationships: [
+              { type: "verified_by", from: "REQ-FAIL", to: "TEST-FAIL" },
+            ],
+          }),
+        ]);
+      } catch (caught) {
+        error = caught;
+      }
+
+      expectErrorMessage(
+        error,
+        "Failed to assert staged relationship verified_by REQ-FAIL -> TEST-FAIL: cannot assert relationship",
+      );
     });
 
     it("retracts stale copied-base relationships before reasserting the staged snapshot", async () => {
@@ -729,6 +1075,54 @@ describe("temp-kb", () => {
       } finally {
         await cleanupTempKb(tempDir);
       }
+    });
+
+    it("traces cleanup failures from signal handlers and ignores re-entrant calls", async () => {
+      process.env.KIBI_TRACE = "1";
+
+      const handlers = interceptProcessHandlers();
+      const logSpy = spyOn(console, "log").mockImplementation(() => undefined);
+      const stub = new StubPrologProcess({
+        onTerminate: async () => {
+          throw new Error("terminate failed");
+        },
+      });
+
+      _setPrologFactory(() => stub);
+      const ctx = await createTempKb(baseKbDir);
+
+      const sigintHandler = handlers.get("SIGINT")?.[0];
+      const sigtermHandler = handlers.get("SIGTERM")?.[0];
+
+      expect(sigintHandler).toBeDefined();
+      expect(sigtermHandler).toBeDefined();
+
+      sigintHandler?.();
+      sigtermHandler?.();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(logSpy).toHaveBeenCalledWith(
+        expect.stringContaining("cleanup on signal/exit failed"),
+      );
+
+      await rm(ctx.tempDir, { recursive: true, force: true });
+    });
+
+    it("swallows terminate rejections during module state reset", async () => {
+      interceptProcessHandlers();
+      const stub = new StubPrologProcess({
+        onTerminate: async () => {
+          throw new Error("terminate failed");
+        },
+      });
+
+      _setPrologFactory(() => stub);
+      const ctx = await createTempKb(baseKbDir);
+
+      resetModuleState();
+      await Promise.resolve();
+
+      await rm(ctx.tempDir, { recursive: true, force: true });
     });
   });
 });

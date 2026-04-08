@@ -20,22 +20,27 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-// --- Mock session.js so initiateGracefulShutdown is controllable ---
+const TRANSPORT_MODULE_URL = new URL(
+  "../../src/server/transport.js",
+  import.meta.url,
+).href;
 
 const mockInitiateGracefulShutdown = mock((_exitCode?: number) =>
   Promise.resolve(),
 );
+const realSession = await import("../../src/server/session.js");
+const _realSession = { ...realSession };
 
-mock.module("../../src/server/session.js", () => ({
-  initiateGracefulShutdown: mockInitiateGracefulShutdown,
-}));
+async function restoreRealModules() {
+  await mock.module("../../src/server/session.js", () => _realSession);
+}
 
-// Import after mocks are set up
-const { setupTransportHandlers, connectTransport } = await import(
-  "../../src/server/transport.js"
-);
-
-// --- Helpers ---
+async function importTransportModule(tag: string) {
+  await mock.module("../../src/server/session.js", () => ({
+    initiateGracefulShutdown: mockInitiateGracefulShutdown,
+  }));
+  return import(`${TRANSPORT_MODULE_URL}?case=${tag}-${Math.random()}`);
+}
 
 function createMockTransport(): {
   transport: StdioServerTransport;
@@ -56,7 +61,30 @@ function createMockServer(): McpServer {
   } as unknown as McpServer;
 }
 
-// --- Tests ---
+function requireOnError(
+  transport: StdioServerTransport,
+): (error: Error) => void {
+  const onerror = transport.onerror;
+  if (!onerror) {
+    throw new Error("Expected transport.onerror to be defined");
+  }
+  return onerror;
+}
+
+function requireOnClose(transport: StdioServerTransport): () => void {
+  const onclose = transport.onclose;
+  if (!onclose) {
+    throw new Error("Expected transport.onclose to be defined");
+  }
+  return onclose;
+}
+
+function requireSigtermHandler(handler: (() => void) | undefined): () => void {
+  if (!handler) {
+    throw new Error("Expected SIGTERM handler to be defined");
+  }
+  return handler;
+}
 
 describe("setupTransportHandlers", () => {
   let consoleErrorSpy: ReturnType<typeof mock>;
@@ -64,8 +92,9 @@ describe("setupTransportHandlers", () => {
   let originalProcessOn: typeof process.on;
   let capturedSigtermHandler: (() => void) | undefined;
   let originalDebug: string | undefined;
+  let setupTransportHandlers: typeof import("../../src/server/transport.js").setupTransportHandlers;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     originalConsoleError = console.error;
     consoleErrorSpy = mock((..._args: unknown[]) => {});
     console.error = consoleErrorSpy as typeof console.error;
@@ -83,18 +112,17 @@ describe("setupTransportHandlers", () => {
 
     mockInitiateGracefulShutdown.mockClear();
     originalDebug = process.env.KIBI_MCP_DEBUG;
+
+    ({ setupTransportHandlers } = await importTransportModule("transport"));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     console.error = originalConsoleError;
     process.on = originalProcessOn;
-    if (originalDebug === undefined) {
-      delete process.env.KIBI_MCP_DEBUG;
-    } else {
-      process.env.KIBI_MCP_DEBUG = originalDebug;
-    }
+    process.env = { ...process.env, KIBI_MCP_DEBUG: originalDebug };
     // Restore all module mocks to prevent pollution of other test files
     mock.restore();
+    await restoreRealModules();
   });
 
   test("attaches onerror and onclose handlers to transport", () => {
@@ -127,7 +155,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       const error = new SyntaxError("Unexpected token");
-      transport.onerror!(error);
+      requireOnError(transport)(error);
 
       expect(sendMock).toHaveBeenCalledTimes(1);
       expect(sendMock).toHaveBeenCalledWith({
@@ -141,7 +169,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onerror!(new SyntaxError("bad json"));
+      requireOnError(transport)(new SyntaxError("bad json"));
 
       expect(mockInitiateGracefulShutdown).not.toHaveBeenCalled();
     });
@@ -156,7 +184,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onerror!(new SyntaxError("bad"));
+      requireOnError(transport)(new SyntaxError("bad"));
 
       // Allow microtask queue to flush
       await new Promise((resolve) => setTimeout(resolve, 0));
@@ -172,7 +200,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onerror!(new SyntaxError("unexpected"));
+      requireOnError(transport)(new SyntaxError("unexpected"));
 
       // debugLog should have called console.error with debug prefix
       expect(consoleErrorSpy).toHaveBeenCalled();
@@ -184,14 +212,14 @@ describe("setupTransportHandlers", () => {
     });
 
     test("does not log debug message when KIBI_MCP_DEBUG is unset", () => {
-      delete process.env.KIBI_MCP_DEBUG;
+      process.env = { ...process.env, KIBI_MCP_DEBUG: undefined };
 
       const { transport } = createMockTransport();
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
       consoleErrorSpy.mockClear();
-      transport.onerror!(new SyntaxError("unexpected"));
+      requireOnError(transport)(new SyntaxError("unexpected"));
 
       const calls = consoleErrorSpy.mock.calls as unknown[][];
       const hasDebugLog = calls.some((call) =>
@@ -211,7 +239,7 @@ describe("setupTransportHandlers", () => {
 
       const error = new Error("Validation failed");
       error.name = "ZodError";
-      transport.onerror!(error);
+      requireOnError(transport)(error);
 
       expect(sendMock).toHaveBeenCalledTimes(1);
       expect(sendMock).toHaveBeenCalledWith({
@@ -227,7 +255,7 @@ describe("setupTransportHandlers", () => {
 
       const error = new Error("schema mismatch");
       error.name = "ZodError";
-      transport.onerror!(error);
+      requireOnError(transport)(error);
 
       expect(mockInitiateGracefulShutdown).not.toHaveBeenCalled();
     });
@@ -244,7 +272,7 @@ describe("setupTransportHandlers", () => {
 
       const error = new Error("zod validation");
       error.name = "ZodError";
-      transport.onerror!(error);
+      requireOnError(transport)(error);
 
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -261,7 +289,7 @@ describe("setupTransportHandlers", () => {
 
       const error = new Error("invalid schema");
       error.name = "ZodError";
-      transport.onerror!(error);
+      requireOnError(transport)(error);
 
       const calls = consoleErrorSpy.mock.calls as unknown[][];
       const hasDebugLog = calls.some((call) =>
@@ -279,7 +307,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onerror!(new Error("something broke"));
+      requireOnError(transport)(new Error("something broke"));
 
       expect(mockInitiateGracefulShutdown).toHaveBeenCalledWith(1);
     });
@@ -290,7 +318,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       const err = new Error("transport crashed");
-      transport.onerror!(err);
+      requireOnError(transport)(err);
 
       expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
       const calls = consoleErrorSpy.mock.calls as unknown[][];
@@ -305,7 +333,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       consoleErrorSpy.mockClear();
-      transport.onerror!(new Error("crash"));
+      requireOnError(transport)(new Error("crash"));
 
       // Should have both the main error log and the debug stack log
       expect(consoleErrorSpy.mock.calls.length).toBeGreaterThanOrEqual(2);
@@ -321,7 +349,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onerror!(new Error("unknown"));
+      requireOnError(transport)(new Error("unknown"));
 
       expect(sendMock).not.toHaveBeenCalled();
     });
@@ -335,7 +363,7 @@ describe("setupTransportHandlers", () => {
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
-      transport.onclose!();
+      requireOnClose(transport)();
 
       expect(mockInitiateGracefulShutdown).toHaveBeenCalledWith(0);
     });
@@ -348,7 +376,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       consoleErrorSpy.mockClear();
-      transport.onclose!();
+      requireOnClose(transport)();
 
       const calls = consoleErrorSpy.mock.calls as unknown[][];
       const hasDebugLog = calls.some((call) =>
@@ -358,14 +386,14 @@ describe("setupTransportHandlers", () => {
     });
 
     test("does not log debug when KIBI_MCP_DEBUG is unset", () => {
-      delete process.env.KIBI_MCP_DEBUG;
+      process.env = { ...process.env, KIBI_MCP_DEBUG: undefined };
 
       const { transport } = createMockTransport();
       const server = createMockServer();
       setupTransportHandlers(server, transport);
 
       consoleErrorSpy.mockClear();
-      transport.onclose!();
+      requireOnClose(transport)();
 
       expect(consoleErrorSpy).not.toHaveBeenCalled();
     });
@@ -380,7 +408,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       expect(capturedSigtermHandler).toBeDefined();
-      capturedSigtermHandler!();
+      requireSigtermHandler(capturedSigtermHandler)();
 
       expect(mockInitiateGracefulShutdown).toHaveBeenCalledWith(0);
     });
@@ -393,7 +421,7 @@ describe("setupTransportHandlers", () => {
       setupTransportHandlers(server, transport);
 
       consoleErrorSpy.mockClear();
-      capturedSigtermHandler!();
+      requireSigtermHandler(capturedSigtermHandler)();
 
       const calls = consoleErrorSpy.mock.calls as unknown[][];
       const hasDebugLog = calls.some((call) =>
@@ -407,6 +435,17 @@ describe("setupTransportHandlers", () => {
 });
 
 describe("connectTransport", () => {
+  let connectTransport: typeof import("../../src/server/transport.js").connectTransport;
+
+  beforeEach(async () => {
+    ({ connectTransport } = await importTransportModule("connect-transport"));
+  });
+
+  afterEach(async () => {
+    mock.restore();
+    await restoreRealModules();
+  });
+
   test("calls server.connect with transport and resolves on success", async () => {
     const connectMock = mock(() => Promise.resolve());
     const server = { connect: connectMock } as unknown as McpServer;

@@ -282,10 +282,7 @@ symbols:
     writeRefreshFixture(yamlWithCoordinates);
 
     const originalContent = fs.readFileSync(REFRESH_MANIFEST_PATH, "utf-8");
-    const result = await refreshCoordinatesForSymbolId(
-      "test-symbol",
-      REFRESH_TEST_ROOT,
-    );
+    await refreshCoordinatesForSymbolId("test-symbol", REFRESH_TEST_ROOT);
 
     // File should not be rewritten if no changes
     const newContent = fs.readFileSync(REFRESH_MANIFEST_PATH, "utf-8");
