@@ -60,7 +60,7 @@ export function initializeDiagnosticMode(
  * No-op if diagnostic mode is not enabled.
  */
 // implements REQ-008
-export function appendUsageLogLine(
+export function appendUsageLogLine(entry: Record<string, unknown>): void {
   if (!diagnosticUsageLogPath) {
     return;
   }
