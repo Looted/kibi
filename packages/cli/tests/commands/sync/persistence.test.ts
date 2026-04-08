@@ -441,7 +441,11 @@ describe("persistEntities", () => {
   });
 
   test("non-fact entity does not serialize typed fields", async () => {
-    const entity = makeEntity({ type: "req", value_int: 42, fact_kind: "subject" as any });
+    const entity = makeEntity({
+      type: "req",
+      value_int: 42,
+      fact_kind: "subject" as any,
+    });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
         success: true,
@@ -803,7 +807,13 @@ describe("persistRelationships", () => {
       prolog as any,
       [
         { entity, relationships: [rel] },
-        { entity: makeEntity({ id: "REQ-002", source: "documentation/requirements/REQ-002.md" }), relationships: [] },
+        {
+          entity: makeEntity({
+            id: "REQ-002",
+            source: "documentation/requirements/REQ-002.md",
+          }),
+          relationships: [],
+        },
       ],
       [],
     );
