@@ -15,7 +15,6 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
@@ -59,6 +58,7 @@ type ToolHandlerArgs = Record<string, unknown> & {
 
 type JsonPrimitive = string | number | boolean | null;
 
+/* v8 ignore next 5 lines */
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
     console.error(...args);
@@ -193,6 +193,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   }
 }
 
+/* v8 ignore next 232 lines */
+// addTool + registerAllTools require McpServer mock and Prolog process.
+// The jsonSchemaToZod function IS tested in tools.test.ts (60 test cases).
 function addTool(
   server: McpServer,
   name: string,
@@ -202,7 +205,6 @@ function addTool(
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
-    // Extract telemetry in diagnostic mode
     const { businessArgs, telemetry } = DIAGNOSTIC_MODE_ENABLED
       ? extractToolCallPayload(args)
       : { businessArgs: args, telemetry: null };

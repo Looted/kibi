@@ -22,6 +22,34 @@ const prologByTempDir = new Map<string, PrologProcess>();
 const cleanupByTempDir = new Map<string, () => void>();
 const cleanedTempDirs = new Set<string>();
 
+/**
+ * Reset module state - used by tests to clear state between test runs.
+ * This is necessary because module-level Maps/Sets persist across tests.
+ */
+export function resetModuleState(): void { // implements REQ-014
+  // Terminate all tracked prolog processes
+  for (const prolog of prologByTempDir.values()) {
+    void prolog.terminate().catch(() => {});
+  }
+  prologByTempDir.clear();
+  cleanupByTempDir.clear();
+  cleanedTempDirs.clear();
+}
+
+// Factory function for creating PrologProcess instances.
+// Default uses the imported PrologProcess. Tests can override via _setPrologFactory
+// to bypass mock.module() pollution from other test files.
+let _createProlog = (opts: { timeout: number }) => new PrologProcess(opts);
+
+/**
+ * Override the PrologProcess factory — used by tests to inject the real constructor
+ * when mock.module() has replaced the module-level binding.
+ */
+export function _setPrologFactory( // implements REQ-014
+  factory: (opts: { timeout: number }) => PrologProcess,
+): void {
+  _createProlog = factory;
+}
 const FACT_ATOM_FIELDS = new Set([
   "fact_kind",
   "operator",
@@ -215,14 +243,15 @@ export async function projectStagedEntities(
   }
 }
 
-export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
+export async function createTempKb(baseKbPath: string): Promise<TempKbContext> { // implements REQ-014
   if (!existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }
 
+  // Use crypto.randomUUID() for uniqueness across concurrent calls
   const tempDir = path.join(
     tmpdir(),
-    `kibi-precommit-${process.pid}-${Date.now()}`,
+    `kibi-precommit-${process.pid}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
   );
   const kbPath = path.join(tempDir, "kb");
   const overlayPath = path.join(tempDir, "changed_symbols.pl");
@@ -235,7 +264,7 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
 
   await writeFile(overlayPath, "", "utf8");
 
-  const prolog = new PrologProcess({ timeout: 120000 });
+  const prolog = _createProlog({ timeout: 120000 });
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 

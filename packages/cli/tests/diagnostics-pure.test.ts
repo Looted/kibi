@@ -45,6 +45,77 @@ describe("formatSyncSummary", () => {
   });
 });
 
+  test("formats summary with commit", () => {
+    const result = formatSyncSummary({
+      branch: "main",
+      commit: "abc1234",
+      timestamp: "2024-01-01T00:00:00Z",
+      entityCounts: { req: 1 },
+      relationshipCount: 1,
+      success: true,
+      published: true,
+      failures: [],
+    });
+    expect(result).toContain("abc1234");
+  });
+
+  test("formats summary with duration", () => {
+    const result = formatSyncSummary({
+      branch: "main",
+      timestamp: "2024-01-01T00:00:00Z",
+      entityCounts: {},
+      relationshipCount: 0,
+      success: true,
+      published: true,
+      failures: [],
+      durationMs: 1234,
+    });
+    expect(result).toContain("1234ms");
+  });
+
+  test("formats summary with failures", () => {
+    const result = formatSyncSummary({
+      branch: "main",
+      timestamp: "2024-01-01T00:00:00Z",
+      entityCounts: {},
+      relationshipCount: 0,
+      success: false,
+      published: false,
+      failures: [
+        {
+          category: "BRANCH_RESOLUTION_FAILURE" as const,
+          severity: "error" as const,
+          message: "Failed to resolve branch",
+          suggestion: "Set KIBI_BRANCH",
+        },
+      ],
+    });
+    expect(result).toContain("Failures (1)");
+    expect(result).toContain("BRANCH_RESOLUTION_FAILURE");
+    expect(result).toContain("Suggestion: Set KIBI_BRANCH");
+  });
+
+  test("formats failure with file", () => {
+    const result = formatSyncSummary({
+      branch: "main",
+      timestamp: "2024-01-01T00:00:00Z",
+      entityCounts: {},
+      relationshipCount: 0,
+      success: false,
+      published: false,
+      failures: [
+        {
+          category: "EXTRACTION_ERROR" as const,
+          severity: "warning" as const,
+          message: "Parse error",
+          file: "docs/REQ-001.md",
+        },
+      ],
+    });
+    expect(result).toContain("File: docs/REQ-001.md");
+  });
+
+
 describe("formatDiagnosticsForMcp", () => {
   test("formats empty diagnostics array", () => {
     const result = formatDiagnosticsForMcp([]);

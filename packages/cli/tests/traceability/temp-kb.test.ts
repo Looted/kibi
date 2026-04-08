@@ -4,15 +4,18 @@ import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { ExtractionResult } from "../../src/extractors/markdown.js";
-import { PrologProcess } from "../../src/prolog.js";
 import { toPrologAtom } from "../../src/prolog/codec.js";
 import type { ExtractedSymbol } from "../../src/traceability/symbol-extract.js";
+
+import { PrologProcess } from "../../src/prolog.js";
 import {
+  _setPrologFactory,
   cleanupTempKb,
   consultOverlay,
   createOverlayFacts,
   createTempKb,
   projectStagedEntities,
+  resetModuleState,
 } from "../../src/traceability/temp-kb.js";
 import { validateStagedSymbols } from "../../src/traceability/validate.js";
 
@@ -74,9 +77,17 @@ describe("temp-kb", () => {
   let baseKbDir: string;
 
   beforeEach(async () => {
+    // Reset module state to clear any leftover prolog processes and temp dir tracking
+    // This prevents environmental pollution between tests
+    resetModuleState();
+    // Ensure createTempKb uses the real PrologProcess constructor, not a mock.
+    // Other test files (e.g. discovery-shared.test.ts) may call mock.module("prolog.js")
+    // which replaces the module-level binding. The factory bypasses this.
+    _setPrologFactory((opts) => new PrologProcess(opts));
     mock.restore();
     // Create a temporary base KB directory for testing
-    baseKbDir = path.join(tmpdir(), `kibi-test-base-${Date.now()}`);
+    // Use a unique suffix to avoid collisions
+    baseKbDir = path.join(tmpdir(), `kibi-test-base-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
     await mkdir(baseKbDir, { recursive: true });
     await writeFile(
       path.join(baseKbDir, "test.facts"),

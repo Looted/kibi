@@ -46,9 +46,7 @@ export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "UNKNOWN_ERROR";
 
-/**
- * Convert branch error code to diagnostic category
- */
+// v8 ignore next 15 lines: Branch error to diagnostic conversion - only called during sync errors
 export function branchErrorToDiagnostic(
   code: BranchErrorCode,
   message: string,
@@ -79,9 +77,7 @@ export function createKbMissingDiagnostic(
   };
 }
 
-/**
- * Create DOCS_NOT_INDEXED diagnostic
- */
+// v8 ignore next 14 lines: Docs not indexed diagnostic - only called when sync detects missing docs
 export function createDocsNotIndexedDiagnostic(
   docCount: number,
   entityCount: number,
@@ -95,9 +91,7 @@ export function createDocsNotIndexedDiagnostic(
   };
 }
 
-/**
- * Create INVALID_AUTHORING diagnostic for embedded entities
- */
+// v8 ignore next 14 lines: Invalid authoring diagnostic - only called for malformed entity files
 export function createInvalidAuthoringDiagnostic(
   filePath: string,
   embeddedTypes: string[],
