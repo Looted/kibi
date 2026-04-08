@@ -17,7 +17,7 @@
  * Escape a string for use as a Prolog atom.
  * Doubles single-quote characters per ISO Prolog standard.
  */
-export function escapeAtom(value: string): string {
+export function escapeAtom(value: string): string { // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
@@ -25,7 +25,7 @@ export function escapeAtom(value: string): string {
  * Convert a string to a Prolog atom, quoting if necessary.
  * Simple atoms (lowercase start, alphanumeric + underscore) pass through.
  */
-export function toPrologAtom(value: string): string {
+export function toPrologAtom(value: string): string { // implements REQ-009
   const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
   return simplePrologAtom.test(value)
     ? value
@@ -52,14 +52,11 @@ export function toPrologString(value: string): string {
  * Escape a string for embedding inside a single-quoted Prolog atom.
  * Alias for escapeAtom for semantic clarity.
  */
-export function escapeAtomContent(value: string): string {
+export function escapeAtomContent(value: string): string { // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
-/* v8 ignore next 46 lines */
-// parseListOfLists requires complex Prolog response strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parseListOfLists(listStr: string): string[][] {
+export function parseListOfLists(listStr: string): string[][] { // implements REQ-009
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -106,10 +103,7 @@ export function parseListOfLists(listStr: string): string[][] {
   return results;
 }
 
-/* v8 ignore next 17 lines */
-// parseEntityFromBinding requires complex Prolog binding strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parseEntityFromBinding(
+export function parseEntityFromBinding( // implements REQ-009
   bindingStr: string,
 ): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
@@ -127,10 +121,7 @@ export function parseEntityFromBinding(
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-/* v8 ignore next 12 lines */
-// parseEntityFromList requires complex Prolog list data for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parseEntityFromList(data: string[]): Record<string, unknown> {
+export function parseEntityFromList(data: string[]): Record<string, unknown> { // implements REQ-009
   if (data.length < 3) {
     return {};
   }
@@ -143,10 +134,7 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> {
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-/* v8 ignore next 30 lines */
-// parsePropertyList requires complex Prolog property strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parsePropertyList(propsStr: string): Record<string, unknown> {
+export function parsePropertyList(propsStr: string): Record<string, unknown> { // implements REQ-009
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -177,9 +165,6 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
   return props;
 }
 
-/* v8 ignore next 89 lines */
-// parsePrologValue requires complex Prolog typed literal strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
 export function parsePrologValue(valueInput: string): unknown {
   // implements REQ-009
   const value = valueInput.trim();
@@ -270,9 +255,6 @@ export function parsePrologValue(valueInput: string): unknown {
   return value;
 }
 
-/* v8 ignore next 53 lines */
-// splitTopLevelGeneral requires complex delimiter parsing for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
 export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   // implements REQ-009
   const results: string[] = [];
@@ -327,15 +309,11 @@ export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   return results;
 }
 
-/* v8 ignore next 4 lines */
-// splitTopLevel is a thin wrapper - tested via splitTopLevelGeneral.
 export function splitTopLevel(str: string, delimiter: string): string[] {
   // implements REQ-009
   return splitTopLevelGeneral(str, delimiter);
 }
 
-/* v8 ignore next 9 lines */
-// stripOuterQuotes is a private helper - covered by parseEntityFromList tests.
 function stripOuterQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
     return value.slice(1, -1);
@@ -346,8 +324,6 @@ function stripOuterQuotes(value: string): string {
   return value;
 }
 
-/* v8 ignore next 8 lines */
-// normalizeEntityId is a private helper - covered by parseEntityFromList tests.
 function normalizeEntityId(value: string): string {
   if (!value.startsWith("file:///")) {
     return value;
@@ -357,10 +333,7 @@ function normalizeEntityId(value: string): string {
   return idx === -1 ? value : value.slice(idx + 1);
 }
 
-/* v8 ignore next 15 lines */
-// parseAtomList requires complex Prolog atom list strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parseAtomList(raw: string): string[] {
+export function parseAtomList(raw: string): string[] { // implements REQ-009
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
     return [];
@@ -376,10 +349,7 @@ export function parseAtomList(raw: string): string[] {
     .filter((token) => token.length > 0);
 }
 
-/* v8 ignore next 15 lines */
-// parsePairList requires complex Prolog pair list strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parsePairList(raw: string): Array<[string, string]> {
+export function parsePairList(raw: string): Array<[string, string]> { // implements REQ-009
   const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
 
@@ -395,10 +365,7 @@ export function parsePairList(raw: string): Array<[string, string]> {
   return pairs;
 }
 
-/* v8 ignore next 15 lines */
-// parseTriples requires complex Prolog triple list strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
-export function parseTriples(raw: string): Array<[string, string, string]> {
+export function parseTriples(raw: string): Array<[string, string, string]> { // implements REQ-009
   const rows = parseListRows(raw);
   const triples: Array<[string, string, string]> = [];
 
@@ -414,9 +381,6 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
   return triples;
 }
 
-/* v8 ignore next 45 lines */
-// parseListRows requires complex Prolog list row strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
 function parseListRows(raw: string): string[] {
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
@@ -463,8 +427,6 @@ function parseListRows(raw: string): string[] {
   return rows;
 }
 
-/* v8 ignore next 6 lines */
-// unwrapList is a private helper - covered by other parsing function tests.
 function unwrapList(value: string): string {
   if (value.startsWith("[") && value.endsWith("]")) {
     return value.slice(1, -1).trim();
@@ -483,9 +445,6 @@ export interface ParsedViolation {
   source?: string;
 }
 
-/* v8 ignore next 43 lines */
-// parseViolationRows requires complex Prolog violation list strings for testing.
-// Integration tests verify the codec works end-to-end with real Prolog output.
 export function parseViolationRows(raw: string): ParsedViolation[] {
   // implements REQ-006
   const trimmed = raw.trim();
@@ -530,8 +489,6 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
   return violations;
 }
 
-/* v8 ignore next 11 lines */
-// stripQuotes is a private helper - covered by other parsing function tests.
 function stripQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
     return value.slice(1, -1);

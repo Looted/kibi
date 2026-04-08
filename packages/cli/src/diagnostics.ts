@@ -46,9 +46,8 @@ export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "UNKNOWN_ERROR";
 
-// v8 ignore next 15 lines: Branch error to diagnostic conversion - only called during sync errors
-export function branchErrorToDiagnostic(
-  code: BranchErrorCode,
+export function branchErrorToDiagnostic( // implements REQ-008
+  _code: BranchErrorCode,
   message: string,
   branch?: string,
 ): Diagnostic {
@@ -77,7 +76,6 @@ export function createKbMissingDiagnostic(
   };
 }
 
-// v8 ignore next 14 lines: Docs not indexed diagnostic - only called when sync detects missing docs
 export function createDocsNotIndexedDiagnostic(
   docCount: number,
   entityCount: number,
@@ -91,7 +89,6 @@ export function createDocsNotIndexedDiagnostic(
   };
 }
 
-// v8 ignore next 14 lines: Invalid authoring diagnostic - only called for malformed entity files
 export function createInvalidAuthoringDiagnostic(
   filePath: string,
   embeddedTypes: string[],

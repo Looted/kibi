@@ -50,16 +50,7 @@ export async function processExtractions( // implements REQ-003
         error instanceof FrontmatterError &&
         error.classification === "Embedded Entity Violation"
       ) {
-        // v8 ignore next 10 lines: Embedded entity type detection - error analysis logic
-        const embeddedTypes =
-          message.includes("scenario") && message.includes("test")
-            ? ["scenario", "test"]
-            : message.includes("scenario")
-              ? ["scenario"]
-              : message.includes("test")
-                ? ["test"]
-                : ["entity"];
-        // Note: diagnostics are created by the caller
+        // Note: diagnostics with embeddedTypes are created by the caller (sync.ts)
       }
 
       if (validateOnly) {
