@@ -36,17 +36,26 @@ export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
 
-/* v8 ignore next 5 lines */
-// debugLog only executes when KIBI_MCP_DEBUG environment variable is set.
+// implements REQ-008
+export function resetSessionStateForTests():
+  prologProcess = null;
+  isInitialized = false;
+  activeBranchName = "develop";
+  ensurePrologTail = Promise.resolve();
+  isShuttingDown = false;
+  inFlightRequests.clear();
+  if (shutdownTimeout) {
+    clearTimeout(shutdownTimeout);
+    shutdownTimeout = null;
+  }
+}
+
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
     console.error(...args);
   }
 }
 
-/* v8 ignore next 34 lines */
-// ensureBranchKbExists requires filesystem operations and branch-resolver module.
-// Integration tests verify the branch KB creation works end-to-end.
 export function ensureBranchKbExists(
   workspaceRoot: string,
   branch: string,
@@ -82,9 +91,6 @@ export function ensureBranchKbExists(
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
 }
 
-/* v8 ignore next 50 lines */
-// initiateGracefulShutdown calls process.exit() which cannot be unit tested.
-// Integration tests verify graceful shutdown behavior.
 export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   if (isShuttingDown) {
     return;
@@ -136,9 +142,6 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
   process.exit(exitCode);
 }
 
-/* v8 ignore next 147 lines */
-// ensurePrologUnsafe requires Prolog process and workspace filesystem.
-// Integration tests verify the Prolog connection works end-to-end.
 // implements REQ-008
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const workspaceRoot = resolveWorkspaceRoot();
@@ -288,9 +291,6 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   return prologProcess;
 }
 
-/* v8 ignore next 14 lines */
-// ensureProlog is a thin wrapper around ensurePrologUnsafe.
-// ensurePrologUnsafe requires Prolog process (see above).
 export async function ensureProlog(): Promise<PrologProcess> {
   const previous = ensurePrologTail;
   let release!: () => void;
