@@ -9,46 +9,13 @@
  * This ensures that changes to RDF parsing or root-item grouping are caught.
  */
 
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 
-// ---------------------------------------------------------------------------
-// Minimal vscode mock — only the APIs used by KibiTreeDataProvider
-// ---------------------------------------------------------------------------
-const TreeItemCollapsibleState = { None: 0, Collapsed: 1, Expanded: 2 };
-
-class ThemeIcon {
-  constructor(public id: string) {}
-}
-class TreeItem {
-  constructor(
-    public label: string,
-    public collapsibleState: number,
-  ) {}
-  description?: string;
-  iconPath?: ThemeIcon;
-  contextValue?: string;
-  tooltip?: string;
-  command?: unknown;
-  resourceUri?: unknown;
-}
-class EventEmitter {
-  event = () => {};
-  fire() {}
-}
-const window = { showInformationMessage: mock(() => {}) };
-const Uri = { file: (p: string) => ({ fsPath: p }) };
-
-mock.module("vscode", () => ({
-  TreeItemCollapsibleState,
-  ThemeIcon,
-  TreeItem,
-  EventEmitter,
-  window,
-  Uri,
-}));
+mock.module("vscode", () => getVscodeMockModule());
 
 // ---------------------------------------------------------------------------
 // Fixture RDF — two entities: one req, one scenario
@@ -86,6 +53,7 @@ const FIXTURE_RDF = `<?xml version="1.0" encoding="UTF-8"?>
 let tmpDir: string;
 
 beforeEach(() => {
+  resetVscodeMock();
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-vscode-test-"));
   // Create the branch KB directory structure
   const branchDir = path.join(tmpDir, ".kb", "branches", "develop");
@@ -144,6 +112,11 @@ afterEach(() => {
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
+});
+
+afterAll(() => {
+  resetVscodeMock();
+  mock.restore();
 });
 
 test("KibiTreeDataProvider.getChildren returns 7 entity-type root items", async () => {
