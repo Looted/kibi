@@ -118,7 +118,7 @@ The Kibi knowledge base is managed through public MCP tools. Direct manual edits
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
-function postureGuidance(posture: RepoPosture): string | null {
+export function postureGuidance(posture: RepoPosture): string | null { // implements REQ-opencode-prompt-injection
   switch (posture) {
     case "vendored_only":
       // Minimal guidance only, no bootstrap nags
@@ -295,8 +295,6 @@ If you're adding long explanatory comments, consider routing that knowledge to:
           const headerEnd = selectedBlock.indexOf("\n");
           if (headerEnd !== -1) {
             selectedBlock = `${selectedBlock.slice(0, headerEnd + 1)}- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock.slice(headerEnd + 1)}`;
-          } else {
-            selectedBlock = `${selectedBlock}\n- Existing Kibi links: ${linkedIds.join(", ")}`;
           }
         }
       }
