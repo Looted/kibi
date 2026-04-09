@@ -7,7 +7,7 @@ mock.module("fast-glob", () => ({
   default: fgMock,
 }));
 
-mock.module("../../src/extractors/relationships.js", () => ({
+mock.module("../../../src/extractors/relationships.js", () => ({
   getRelationshipsDir: (kbRoot: string) => `${kbRoot}/relationships`,
 }));
 
