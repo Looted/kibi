@@ -1,0 +1,650 @@
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import process from "node:process";
+
+import {
+  addTool,
+  registerAllTools,
+  type ToolConfig,
+  type ToolsRuntime,
+} from "../../src/server/tools.js";
+import type { CheckArgs } from "../../src/tools/check.js";
+import type { CoverageArgs } from "../../src/tools/coverage.js";
+import type { DeleteArgs } from "../../src/tools/delete.js";
+import type { FindGapsArgs } from "../../src/tools/find-gaps.js";
+import type { GraphArgs } from "../../src/tools/graph.js";
+import type { QueryArgs } from "../../src/tools/query.js";
+import type { SearchArgs } from "../../src/tools/search.js";
+import type { StatusArgs } from "../../src/tools/status.js";
+import type { UpsertArgs } from "../../src/tools/upsert.js";
+
+type MockProlog = { kind: "mock-prolog" };
+type ToolHandlerLike = (args: Record<string, unknown>) => Promise<unknown>;
+
+type RegisteredTool = {
+  name: string;
+  config: {
+    description: string;
+    inputSchema: {
+      safeParse: (value: unknown) => { success: boolean };
+    };
+  };
+  handler: ToolHandlerLike;
+};
+
+const TOOL_NAMES = [
+  "kb_query",
+  "kb_search",
+  "kb_status",
+  "kb_find_gaps",
+  "kb_coverage",
+  "kb_graph",
+  "kb_upsert",
+  "kb_delete",
+  "kb_check",
+] as const;
+
+function createDeferred<T>() {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+function createToolConfigs(): ToolConfig[] {
+  return TOOL_NAMES.map((name) => ({
+    name,
+    description: `${name} description`,
+    inputSchema: {
+      type: "object",
+      properties: {
+        marker: { type: "string" },
+      },
+    },
+  }));
+}
+
+function createCapturingServer(): {
+  server: McpServer;
+  registered: RegisteredTool[];
+  registerTool: ReturnType<typeof mock>;
+} {
+  const registered: RegisteredTool[] = [];
+  const registerTool = mock(
+    (
+      name: string,
+      config: RegisteredTool["config"],
+      handler: ToolHandlerLike,
+    ): void => {
+      registered.push({ name, config, handler });
+    },
+  );
+
+  return {
+    server: { registerTool } as unknown as McpServer,
+    registered,
+    registerTool,
+  };
+}
+
+function getRegisteredTool(
+  registered: RegisteredTool[],
+  name: string,
+): RegisteredTool {
+  const tool = registered.find((candidate) => candidate.name === name);
+  if (!tool) {
+    throw new Error(`Expected tool ${name} to be registered`);
+  }
+  return tool;
+}
+
+async function invokeTool(
+  tool: RegisteredTool,
+  args: unknown,
+): Promise<unknown> {
+  return (tool.handler as unknown as (value: unknown) => Promise<unknown>)(
+    args,
+  );
+}
+
+function restoreEnvVar(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    Reflect.deleteProperty(process.env, name);
+    return;
+  }
+  process.env[name] = value;
+}
+
+function consoleCallsContain(
+  consoleErrorSpy: ReturnType<typeof mock>,
+  fragment: string,
+): boolean {
+  return (consoleErrorSpy.mock.calls as unknown[][]).some((call) =>
+    call.some((entry) => String(entry).includes(fragment)),
+  );
+}
+
+async function getRejectedError(promise: Promise<unknown>): Promise<Error> {
+  const error = await promise.then(
+    () => null,
+    (caught: unknown) =>
+      caught instanceof Error ? caught : new Error(String(caught)),
+  );
+
+  if (!error) {
+    throw new Error("Expected promise to reject");
+  }
+
+  return error;
+}
+
+async function flushWrappedHandlerSetup(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
+function createRuntime() {
+  const trackedRequests = new Map<string, Promise<unknown>>();
+  const mockProlog: MockProlog = { kind: "mock-prolog" };
+  const prologHandle = { getPid: () => 4321 };
+
+  const diagnosticModeEnabled = mock((): boolean => false);
+  const appendUsageLogLine = mock(
+    (_entry: Record<string, unknown>): void => {},
+  );
+  const deriveDiagnosticFields = mock(
+    (
+      _tool: string,
+      _args: Record<string, unknown>,
+      _telemetry: Record<string, unknown> | null,
+      _result: unknown,
+    ): Record<string, unknown> => ({ result_summary: "mock summary" }),
+  );
+  const extractToolCallPayload = mock(
+    (
+      args: Record<string, unknown>,
+    ): {
+      businessArgs: Record<string, unknown>;
+      telemetry: Record<string, unknown> | null;
+    } => ({
+      businessArgs: args,
+      telemetry: null,
+    }),
+  );
+  const activeBranchName = mock(async (): Promise<string> => "feature/test");
+  const ensureProlog = mock(async (): Promise<MockProlog> => mockProlog);
+  const inFlightRequests = mock(
+    async (): Promise<Map<string, Promise<unknown>>> => trackedRequests,
+  );
+  const isShuttingDown = mock(async (): Promise<boolean> => false);
+  const prologProcess = mock(
+    async (): Promise<{ getPid: () => number } | null> => prologHandle,
+  );
+
+  const handleKbCheck: ToolsRuntime<MockProlog>["handleKbCheck"] = mock(
+    async (_prolog: MockProlog, args: CheckArgs): Promise<unknown> => ({
+      tool: "kb_check",
+      args,
+    }),
+  );
+  const handleKbCoverage: ToolsRuntime<MockProlog>["handleKbCoverage"] = mock(
+    async (_prolog: MockProlog, args: CoverageArgs): Promise<unknown> => ({
+      tool: "kb_coverage",
+      args,
+    }),
+  );
+  const handleKbDelete: ToolsRuntime<MockProlog>["handleKbDelete"] = mock(
+    async (_prolog: MockProlog, args: DeleteArgs): Promise<unknown> => ({
+      tool: "kb_delete",
+      args,
+    }),
+  );
+  const handleKbFindGaps: ToolsRuntime<MockProlog>["handleKbFindGaps"] = mock(
+    async (_prolog: MockProlog, args: FindGapsArgs): Promise<unknown> => ({
+      tool: "kb_find_gaps",
+      args,
+    }),
+  );
+  const handleKbGraph: ToolsRuntime<MockProlog>["handleKbGraph"] = mock(
+    async (_prolog: MockProlog, args: GraphArgs): Promise<unknown> => ({
+      tool: "kb_graph",
+      args,
+    }),
+  );
+  const handleKbQuery: ToolsRuntime<MockProlog>["handleKbQuery"] = mock(
+    async (_prolog: MockProlog, args: QueryArgs): Promise<unknown> => ({
+      tool: "kb_query",
+      args,
+    }),
+  );
+  const handleKbSearch: ToolsRuntime<MockProlog>["handleKbSearch"] = mock(
+    async (_prolog: MockProlog, args: SearchArgs): Promise<unknown> => ({
+      tool: "kb_search",
+      args,
+    }),
+  );
+  const handleKbStatus: ToolsRuntime<MockProlog>["handleKbStatus"] = mock(
+    async (_prolog: MockProlog, args: StatusArgs): Promise<unknown> => ({
+      tool: "kb_status",
+      args,
+    }),
+  );
+  const handleKbUpsert: ToolsRuntime<MockProlog>["handleKbUpsert"] = mock(
+    async (_prolog: MockProlog, args: UpsertArgs): Promise<unknown> => ({
+      tool: "kb_upsert",
+      args,
+    }),
+  );
+
+  const runtime = {
+    diagnosticModeEnabled,
+    appendUsageLogLine,
+    deriveDiagnosticFields,
+    extractToolCallPayload,
+    tools: createToolConfigs(),
+    activeBranchName,
+    ensureProlog,
+    inFlightRequests,
+    isShuttingDown,
+    prologProcess,
+    handleKbCheck,
+    handleKbCoverage,
+    handleKbDelete,
+    handleKbFindGaps,
+    handleKbGraph,
+    handleKbQuery,
+    handleKbSearch,
+    handleKbStatus,
+    handleKbUpsert,
+  } satisfies ToolsRuntime<MockProlog>;
+
+  return {
+    runtime,
+    trackedRequests,
+    mockProlog,
+    spies: {
+      diagnosticModeEnabled,
+      appendUsageLogLine,
+      deriveDiagnosticFields,
+      extractToolCallPayload,
+      activeBranchName,
+      ensureProlog,
+      inFlightRequests,
+      isShuttingDown,
+      prologProcess,
+      handleKbCheck,
+      handleKbCoverage,
+      handleKbDelete,
+      handleKbFindGaps,
+      handleKbGraph,
+      handleKbQuery,
+      handleKbSearch,
+      handleKbStatus,
+      handleKbUpsert,
+    },
+  };
+}
+
+describe.serial("server tools coverage", () => {
+  let originalDebug: string | undefined;
+  let originalConsoleError: typeof console.error;
+  let consoleErrorSpy: ReturnType<typeof mock>;
+
+  beforeEach(() => {
+    originalDebug = process.env.KIBI_MCP_DEBUG;
+    originalConsoleError = console.error;
+    consoleErrorSpy = mock((..._args: unknown[]) => {});
+    console.error = consoleErrorSpy as typeof console.error;
+  });
+
+  afterEach(() => {
+    console.error = originalConsoleError;
+    restoreEnvVar("KIBI_MCP_DEBUG", originalDebug);
+  });
+
+  test("addTool rejects non-object arguments before running the handler", async () => {
+    const { runtime, spies } = createRuntime();
+    const { server, registered, registerTool } = createCapturingServer();
+    const handler = mock(
+      async (_args: Record<string, unknown>): Promise<unknown> => ({
+        ok: true,
+      }),
+    );
+
+    addTool(
+      server,
+      "invalid_args_tool",
+      "invalid args tool",
+      {},
+      handler,
+      runtime,
+    );
+
+    expect(registerTool).toHaveBeenCalledTimes(1);
+    const tool = getRegisteredTool(registered, "invalid_args_tool");
+    expect(tool.config.description).toBe("invalid args tool");
+    expect(tool.config.inputSchema.safeParse({ anything: true }).success).toBe(
+      true,
+    );
+
+    const error = await getRejectedError(invokeTool(tool, "bad args"));
+
+    expect(error.message).toBe(
+      "Tool invalid_args_tool failed: Invalid arguments for tool invalid_args_tool: expected object, got string",
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(spies.isShuttingDown).not.toHaveBeenCalled();
+    expect(spies.extractToolCallPayload).not.toHaveBeenCalled();
+    expect(
+      consoleCallsContain(consoleErrorSpy, "Error in tool invalid_args_tool:"),
+    ).toBe(true);
+  });
+
+  test("addTool rejects null arguments before running the handler", async () => {
+    const { runtime } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const handler = mock(
+      async (_args: Record<string, unknown>): Promise<unknown> => ({
+        ok: true,
+      }),
+    );
+
+    addTool(server, "null_args_tool", "null args tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "null_args_tool");
+
+    const error = await getRejectedError(invokeTool(tool, null));
+
+    expect(error.message).toBe(
+      "Tool null_args_tool failed: Invalid arguments for tool null_args_tool: expected object, got object",
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  test("addTool rejects requests while the server is shutting down", async () => {
+    const { runtime, spies, trackedRequests } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const handler = mock(
+      async (_args: Record<string, unknown>): Promise<unknown> => ({
+        ok: true,
+      }),
+    );
+
+    spies.isShuttingDown.mockImplementation(async () => true);
+
+    addTool(server, "shutdown_tool", "shutdown tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "shutdown_tool");
+
+    const error = await getRejectedError(invokeTool(tool, { marker: "stop" }));
+
+    expect(error.message).toBe(
+      "Tool shutdown_tool failed: Tool shutdown_tool rejected: server is shutting down",
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(trackedRequests.size).toBe(0);
+    expect(
+      consoleCallsContain(consoleErrorSpy, "server is shutting down"),
+    ).toBe(true);
+  });
+
+  test("addTool passes args directly and cleans up in-flight requests when diagnostics are disabled", async () => {
+    const { runtime, spies, trackedRequests } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const deferred = createDeferred<{ ok: true }>();
+    const handler = mock(
+      (_args: Record<string, unknown>): Promise<{ ok: true }> =>
+        deferred.promise,
+    );
+
+    addTool(server, "plain_tool", "plain tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "plain_tool");
+    const args = { marker: "plain" };
+    const callPromise = invokeTool(tool, args);
+
+    await flushWrappedHandlerSetup();
+
+    expect(spies.extractToolCallPayload).not.toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledWith(args);
+    expect(trackedRequests.size).toBe(1);
+
+    const entries = Array.from(trackedRequests.entries());
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.[0]).toStartWith("plain_tool-");
+    expect(entries[0]?.[1]).toBe(deferred.promise);
+
+    deferred.resolve({ ok: true });
+
+    const response = await callPromise;
+
+    expect(response).toEqual({ ok: true });
+
+    expect(trackedRequests.size).toBe(0);
+    expect(spies.appendUsageLogLine).not.toHaveBeenCalled();
+    expect(spies.deriveDiagnosticFields).not.toHaveBeenCalled();
+    expect(spies.prologProcess).not.toHaveBeenCalled();
+    expect(spies.activeBranchName).not.toHaveBeenCalled();
+  });
+
+  test("addTool extracts telemetry and appends usage logs on success in diagnostic mode", async () => {
+    const { runtime, spies, trackedRequests } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const result = { structuredContent: { count: 2 } };
+    const rawArgs = {
+      marker: "diagnostic",
+      _requestId: "req-success",
+      _diagnostic_telemetry: { is_autonomous: true, confidence_score: 0.9 },
+    };
+    const businessArgs = { marker: "diagnostic", _requestId: "req-success" };
+    const telemetry = { is_autonomous: true, confidence_score: 0.9 };
+    const handler = mock(
+      async (args: Record<string, unknown>): Promise<unknown> => ({
+        ...result,
+        args,
+      }),
+    );
+
+    spies.diagnosticModeEnabled.mockImplementation(() => true);
+    spies.extractToolCallPayload.mockImplementation(() => ({
+      businessArgs,
+      telemetry,
+    }));
+    spies.deriveDiagnosticFields.mockImplementation(
+      (
+        tool: string,
+        args: Record<string, unknown>,
+        toolTelemetry: Record<string, unknown> | null,
+        toolResult: unknown,
+      ): Record<string, unknown> => ({
+        tool_name: tool,
+        business_marker: args.marker,
+        telemetry_kind: toolTelemetry?.is_autonomous,
+        result_value: toolResult,
+      }),
+    );
+    spies.activeBranchName.mockImplementation(async () => "feature/diagnostic");
+    spies.prologProcess.mockImplementation(async () => ({
+      getPid: () => 9876,
+    }));
+
+    addTool(server, "diagnostic_tool", "diagnostic tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "diagnostic_tool");
+    const response = await invokeTool(tool, rawArgs);
+
+    expect(response).toEqual({ ...result, args: businessArgs });
+    expect(handler).toHaveBeenCalledWith(businessArgs);
+    expect(spies.extractToolCallPayload).toHaveBeenCalledWith(rawArgs);
+    expect(spies.deriveDiagnosticFields).toHaveBeenCalledWith(
+      "diagnostic_tool",
+      businessArgs,
+      telemetry,
+      response,
+    );
+    expect(trackedRequests.size).toBe(0);
+    expect(spies.appendUsageLogLine).toHaveBeenCalledTimes(1);
+    expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: "req-success",
+        tool: "diagnostic_tool",
+        telemetry,
+        business_args: businessArgs,
+        status: "success",
+        prolog_pid: 9876,
+        active_branch: "feature/diagnostic",
+        tool_name: "diagnostic_tool",
+        business_marker: "diagnostic",
+        telemetry_kind: true,
+        result_value: response,
+      }),
+    );
+  });
+
+  test("addTool logs diagnostic errors, emits debug output, and wraps handler failures", async () => {
+    const { runtime, spies, trackedRequests } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const deferred = createDeferred<never>();
+    const rawArgs = {
+      marker: "failure",
+      _requestId: "req-error",
+      _diagnostic_telemetry: { is_autonomous: false },
+    };
+    const businessArgs = { marker: "failure", _requestId: "req-error" };
+    const telemetry = { is_autonomous: false };
+    const handler = mock(
+      (_args: Record<string, unknown>): Promise<never> => deferred.promise,
+    );
+
+    process.env.KIBI_MCP_DEBUG = "1";
+    spies.diagnosticModeEnabled.mockImplementation(() => true);
+    spies.extractToolCallPayload.mockImplementation(() => ({
+      businessArgs,
+      telemetry,
+    }));
+    spies.prologProcess.mockImplementation(async () => null);
+    spies.activeBranchName.mockImplementation(async () => "feature/error");
+
+    addTool(server, "failing_tool", "failing tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "failing_tool");
+    const callPromise = invokeTool(tool, rawArgs);
+
+    await flushWrappedHandlerSetup();
+
+    expect(trackedRequests.size).toBe(1);
+    expect(
+      consoleCallsContain(consoleErrorSpy, "Tool called: failing_tool"),
+    ).toBe(true);
+
+    deferred.reject("boom");
+
+    const error = await getRejectedError(callPromise);
+
+    expect(error.message).toBe("Tool failing_tool failed: boom");
+
+    expect(trackedRequests.size).toBe(0);
+    expect(spies.deriveDiagnosticFields).not.toHaveBeenCalled();
+    expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: "req-error",
+        tool: "failing_tool",
+        telemetry,
+        business_args: businessArgs,
+        status: "error",
+        prolog_pid: null,
+        active_branch: "feature/error",
+        error_message: "boom",
+      }),
+    );
+    expect(
+      consoleCallsContain(consoleErrorSpy, "Error in tool failing_tool:"),
+    ).toBe(true);
+    expect(
+      consoleCallsContain(consoleErrorSpy, "Tool failing_tool stack:"),
+    ).toBe(true);
+  });
+
+  test("registerAllTools registers all configured tools and delegates to the matching runtime handlers", async () => {
+    const { runtime, spies, mockProlog } = createRuntime();
+    const { server, registered } = createCapturingServer();
+
+    registerAllTools(server, runtime);
+
+    expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
+
+    const argsByTool = new Map<string, Record<string, unknown>>(
+      TOOL_NAMES.map((name) => [name, { marker: name }]),
+    );
+
+    const results = await Promise.all(
+      TOOL_NAMES.map(async (name) => {
+        const tool = getRegisteredTool(registered, name);
+        return invokeTool(tool, argsByTool.get(name) ?? {});
+      }),
+    );
+
+    expect(results).toEqual(
+      TOOL_NAMES.map((name) => ({
+        tool: name,
+        args: argsByTool.get(name),
+      })),
+    );
+
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length);
+    expect(spies.handleKbQuery).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_query"),
+    );
+    expect(spies.handleKbSearch).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_search"),
+    );
+    expect(spies.handleKbStatus).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_status"),
+    );
+    expect(spies.handleKbFindGaps).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_find_gaps"),
+    );
+    expect(spies.handleKbCoverage).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_coverage"),
+    );
+    expect(spies.handleKbGraph).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_graph"),
+    );
+    expect(spies.handleKbUpsert).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_upsert"),
+    );
+    expect(spies.handleKbDelete).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_delete"),
+    );
+    expect(spies.handleKbCheck).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_check"),
+    );
+  });
+
+  test("registerAllTools throws when a configured tool definition is missing", () => {
+    const { runtime } = createRuntime();
+    const { server, registerTool } = createCapturingServer();
+
+    runtime.tools = runtime.tools.filter((tool) => tool.name !== "kb_query");
+
+    expect(() => registerAllTools(server, runtime)).toThrow(
+      "Unknown tool: kb_query",
+    );
+    expect(registerTool).not.toHaveBeenCalled();
+  });
+});
