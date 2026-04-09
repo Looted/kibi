@@ -97,7 +97,8 @@ function readJsonIfExists(filePath: string): unknown | null {
   }
 }
 
-function validateAndMerge(obj: unknown): KibiConfig {
+// implements REQ-opencode-kibi-plugin-v1
+export function validateAndMerge(obj: unknown): KibiConfig {
   if (!obj || typeof obj !== "object") {
     logger.warn("Config is not an object, using defaults");
     return DEFAULTS;
