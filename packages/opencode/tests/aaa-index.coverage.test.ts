@@ -267,6 +267,59 @@ We assert that the response should return success.
     assert.equal(summary.warningsByCategory["embedded-test-in-req"], 0);
   });
 
+  // implements REQ-opencode-smart-enforcement-v1
+  test("returns cleanly for behavior edits when comment detection is disabled", async () => {
+    const logs: Array<Record<string, unknown>> = [];
+
+    setupRootActiveWorkspace(tmpDir);
+    fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "feature.ts"),
+      "export const feature = true;\n",
+    );
+
+    const hooks = await createHooks(tmpDir, logs, {
+      enabled: true,
+      sync: { enabled: false },
+      guidance: {
+        sessionSummary: { enabled: false },
+        commentDetection: { enabled: false, minLines: 6 },
+      },
+    });
+
+    await fireEdit(hooks, "src/feature.ts");
+
+    const summary = getSessionTracker().generateSummary();
+    assert.equal(summary.totalWarnings, 0);
+    assert.ok(Array.isArray(logs));
+  });
+
+  test("warns when a requirement document exceeds fifty content lines", async () => {
+    const reqLines = Array.from(
+      { length: 51 },
+      (_, index) => `Requirement content line ${index + 1}.`,
+    ).join("\n");
+
+    setupRootActiveWorkspace(tmpDir);
+    fs.writeFileSync(
+      path.join(tmpDir, "documentation", "requirements", "REQ-LONG.md"),
+      `---\nid: REQ-LONG\ntitle: Long requirement\n---\n${reqLines}\n`,
+    );
+
+    const hooks = await createHooks(tmpDir, [], {
+      enabled: true,
+      sync: { enabled: false },
+      guidance: {
+        sessionSummary: { enabled: false },
+      },
+    });
+
+    await fireEdit(hooks, "documentation/requirements/REQ-LONG.md");
+
+    const summary = getSessionTracker().generateSummary();
+    assert.equal(summary.warningsByCategory["missing-traceability"], 1);
+  });
+
   test("latches scheduler_unavailable when scheduler creation throws", async () => {
     const logs: Array<Record<string, unknown>> = [];
 
@@ -522,6 +575,35 @@ export function registerUser() { return true; }
     assert.ok(!output.system[0]?.includes("Durable knowledge detected"));
   });
 
+  test("records ADR durable comment warnings with the ADR-specific category", async () => {
+    setupRootActiveWorkspace(tmpDir);
+    fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "decision.ts"),
+      `/*
+We chose PostgreSQL over MongoDB because we need ACID transactions.
+The tradeoff is slightly higher operational complexity.
+This decision preserves consistency guarantees for financial writes.
+*/
+export function connectDatabase() { return true; }
+`,
+    );
+
+    const hooks = await createHooks(tmpDir, [], {
+      enabled: true,
+      sync: { enabled: false },
+      guidance: {
+        commentDetection: { enabled: true, minLines: 3 },
+        sessionSummary: { enabled: false },
+      },
+    });
+
+    await fireEdit(hooks, "src/decision.ts");
+
+    const summary = getSessionTracker().generateSummary();
+    assert.equal(summary.warningsByCategory["long-comment-missed-adr"], 1);
+  });
+
   test("uses cache hits for repeated behavior edits and appends transform guidance once", async () => {
     const logs: Array<Record<string, unknown>> = [];
 
@@ -600,6 +682,37 @@ export function registerUser() { return true; }
     const secondOutput = { system: [] as string[] };
     await runSystemTransform(hooks, secondOutput);
     assert.ok(!secondOutput.system[0]?.includes("Maintenance degraded"));
+  });
+
+  test("logs degraded structural guidance for KB document edits", async () => {
+    const logs: Array<Record<string, unknown>> = [];
+
+    setupRootActiveWorkspace(tmpDir);
+    fs.writeFileSync(
+      path.join(tmpDir, "documentation", "adr", "ADR-001.md"),
+      "---\nid: ADR-001\ntitle: Decision\n---\nDecision details\n",
+    );
+
+    const hooks = await createHooks(tmpDir, logs, {
+      enabled: true,
+      sync: { enabled: false },
+      guidance: {
+        sessionSummary: { enabled: false },
+        smartEnforcement: {
+          degradedMode: "warn-once",
+          completionReminder: false,
+        },
+      },
+    });
+
+    await fireEdit(hooks, "documentation/adr/ADR-001.md");
+
+    const degraded = getEventLogs(logs, "smart_enforcement_degraded");
+    assert.ok(
+      degraded.some(
+        (payload) => getBody(payload).risk_class === "kb_doc_structural",
+      ),
+    );
   });
 
   test("caps recent edits at five entries and logs auto chat.params activation", async () => {
