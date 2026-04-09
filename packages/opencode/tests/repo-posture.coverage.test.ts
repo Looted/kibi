@@ -51,4 +51,18 @@ describe("repo-posture coverage", () => {
     assert.equal(posture.needsBootstrap, true);
     assert.match(posture.reason, /plugin intent detected at root/);
   });
+
+  // implements REQ-opencode-smart-enforcement-v1
+  test("detects root intent from AGENTS guidance mentioning kb_search", () => {
+    fs.writeFileSync(
+      path.join(tmpDir, "AGENTS.md"),
+      "Agents should discover first with kb_search before exact kb_query follow-up.\n",
+    );
+
+    const posture = detectPosture(tmpDir);
+
+    assert.equal(posture.state, "root_uninitialized");
+    assert.equal(posture.needsBootstrap, true);
+    assert.match(posture.reason, /Kibi plugin intent detected at root/);
+  });
 });
