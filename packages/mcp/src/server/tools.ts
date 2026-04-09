@@ -51,24 +51,38 @@ type ToolHandlerArgs = Record<string, unknown> & {
 type JsonPrimitive = string | number | boolean | null;
 
 type Awaitable<T> = T | Promise<T>;
-
 type DefaultRuntimeProlog = PrologProcess;
-
-function toToolsRuntime<TProlog>(
-  runtime: ToolsRuntime<DefaultRuntimeProlog>,
-): ToolsRuntime<TProlog> {
-  return runtime as unknown as ToolsRuntime<TProlog>;
-}
-
 type SessionModule = typeof import("./session.js");
 
-let sessionModulePromise: Promise<SessionModule> | null = null;
-
-async function getSessionModule(): Promise<SessionModule> {
-  sessionModulePromise ??= import("./session.js");
-  return sessionModulePromise;
+interface ToolsServerDeps {
+  getSessionModule: () => Promise<SessionModule>;
 }
 
+const defaultToolsServerDeps: ToolsServerDeps = {
+  getSessionModule: () => import("./session.js"),
+};
+
+// implements REQ-008
+export function _setToolsServerDepsForTests(deps: Partial<ToolsServerDeps>, resetPromise = false): void {
+  defaultToolsServerDeps.getSessionModule = deps.getSessionModule ?? defaultToolsServerDeps.getSessionModule;
+  if (resetPromise) {
+    sessionModulePromise = null;
+  }
+}
+
+// implements REQ-012
+export function _resetSessionModulePromise(): void {
+  sessionModulePromise = null;
+}
+
+let sessionModulePromise: Promise<SessionModule> | null = null;
+/* v8 ignore next (3 lines) — lazy async module loader; body only executes once per process
+ * when DEFAULT_TOOLS_RUNTIME.activeBranchName/ensureProlog/etc. are first called.
+ * Cannot be re-triggered without process restart (sessionModulePromise is module-level). */
+async function getSessionModule(): Promise<SessionModule> {
+  sessionModulePromise ??= defaultToolsServerDeps.getSessionModule();
+  return sessionModulePromise;
+}
 export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   diagnosticModeEnabled: () => boolean;
   appendUsageLogLine: typeof appendUsageLogLine;
@@ -256,9 +270,7 @@ export function addTool<TProlog>(
   description: string,
   inputSchema: object,
   handler: ToolHandler,
-  runtime: ToolsRuntime<TProlog> = toToolsRuntime<TProlog>(
-    DEFAULT_TOOLS_RUNTIME,
-  ),
+  runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
@@ -387,9 +399,7 @@ export function addTool<TProlog>(
 // implements REQ-002, REQ-013
 export function registerAllTools<TProlog>(
   server: McpServer,
-  runtime: ToolsRuntime<TProlog> = toToolsRuntime<TProlog>(
-    DEFAULT_TOOLS_RUNTIME,
-  ),
+  runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const toolDef = (name: string) => {
     const t = runtime.tools.find((tool) => tool.name === name);
