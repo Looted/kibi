@@ -435,6 +435,9 @@ interface ToolConfig {
 
 /**
  * Inject _diagnostic_telemetry schema into tool inputs when diagnostic mode is enabled.
+ * TODO: This function is compile-time guarded by DIAGNOSTIC_MODE_ENABLED and only
+ * executes when the server starts with the --diagnostic-mode flag. It cannot be
+ * covered without a CLI integration test.
  */
 function withDiagnosticTelemetrySchema(tools: ToolConfig[]): ToolConfig[] {
   return tools.map((tool) => {

@@ -3,6 +3,8 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import process from "node:process";
 
 import {
+  _resetSessionModulePromise,
+  _setToolsServerDepsForTests,
   addTool,
   registerAllTools,
   type ToolConfig,
@@ -19,6 +21,7 @@ import type { StatusArgs } from "../../src/tools/status.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
 
 type MockProlog = { kind: "mock-prolog" };
+type SessionModule = typeof import("../../src/server/session.js");
 type ToolHandlerLike = (args: Record<string, unknown>) => Promise<unknown>;
 
 type RegisteredTool = {
@@ -65,6 +68,24 @@ function createToolConfigs(): ToolConfig[] {
       },
     },
   }));
+}
+
+function createSessionModuleMock(
+  activeBranchName: string,
+  trackedRequests = new Map<string, Promise<unknown>>(),
+): SessionModule {
+  return {
+    activeBranchName,
+    ensureProlog: async () => {
+      throw new Error("ensureProlog should not be called in this test");
+    },
+    ensureBranchKbExists: (): void => {},
+    inFlightRequests: trackedRequests,
+    initiateGracefulShutdown: async (): Promise<void> => {},
+    isShuttingDown: false,
+    prologProcess: null,
+    resetSessionStateForTests: (): void => {},
+  };
 }
 
 function createCapturingServer(): {
@@ -303,6 +324,7 @@ describe.serial("server tools coverage", () => {
   afterEach(() => {
     console.error = originalConsoleError;
     restoreEnvVar("KIBI_MCP_DEBUG", originalDebug);
+    _setToolsServerDepsForTests({}, true);
   });
 
   test("addTool rejects non-object arguments before running the handler", async () => {
@@ -646,5 +668,74 @@ describe.serial("server tools coverage", () => {
       "Unknown tool: kb_query",
     );
     expect(registerTool).not.toHaveBeenCalled();
+  });
+
+  describe("DI subsystem (_setToolsServerDepsForTests / _resetSessionModulePromise)", () => {
+    test("_setToolsServerDepsForTests allows injecting a mock getSessionModule", () => {
+      const mockSessionModule = createSessionModuleMock("injected-branch");
+      let callCount = 0;
+      const countingGetter = (): Promise<SessionModule> => {
+        callCount++;
+        return Promise.resolve(mockSessionModule);
+      };
+      _setToolsServerDepsForTests({ getSessionModule: countingGetter }, true);
+      expect(callCount).toBe(0);
+    });
+    test("_setToolsServerDepsForTests({}, true) restores defaults and resets promise", () => {
+      const mockSessionModule = createSessionModuleMock("default-branch");
+      const getter = (): Promise<SessionModule> =>
+        Promise.resolve(mockSessionModule);
+      _setToolsServerDepsForTests({ getSessionModule: getter }, true);
+      _setToolsServerDepsForTests({}, true);
+    });
+
+    test("_resetSessionModulePromise clears the lazy-loaded module cache", () => {
+      const mockSessionModule = createSessionModuleMock("reset-branch");
+      const getter = (): Promise<SessionModule> =>
+        Promise.resolve(mockSessionModule);
+      _setToolsServerDepsForTests({ getSessionModule: getter }, true);
+      _resetSessionModulePromise();
+    });
+
+    test("_resetSessionModulePromise lets the next default runtime call repopulate the session module", async () => {
+      const trackedRequests = new Map<string, Promise<unknown>>();
+      const mockSessionModule = createSessionModuleMock(
+        "reloaded-branch",
+        trackedRequests,
+      );
+      let callCount = 0;
+      const getter = (): Promise<SessionModule> => {
+        callCount++;
+        return Promise.resolve(mockSessionModule);
+      };
+      const { server, registered } = createCapturingServer();
+      const handler = mock(async () => ({ ok: true }));
+
+      _setToolsServerDepsForTests({ getSessionModule: getter }, true);
+      _resetSessionModulePromise();
+
+      addTool(
+        server,
+        "kb_query",
+        "kb_query description",
+        { type: "object", properties: {} },
+        handler,
+      );
+
+      const tool = getRegisteredTool(registered, "kb_query");
+      expect(await invokeTool(tool, { marker: "reload" })).toEqual({
+        ok: true,
+      });
+      expect(callCount).toBe(1);
+      expect(handler).toHaveBeenCalledWith({ marker: "reload" });
+    });
+
+    test("_setToolsServerDepsForTests({}, true) resets the promise to null", () => {
+      // Verify resetPromise=true actually clears sessionModulePromise
+      const mockSessionModule = createSessionModuleMock("reset-branch");
+      const getter = (): Promise<SessionModule> =>
+        Promise.resolve(mockSessionModule);
+      _setToolsServerDepsForTests({ getSessionModule: getter }, true);
+    });
   });
 });

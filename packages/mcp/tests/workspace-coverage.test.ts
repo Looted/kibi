@@ -76,6 +76,19 @@ describe.serial("workspace uncovered path coverage", () => {
       expect(resolveWorkspaceRoot(workspaceRoot)).toBe(preferredRoot);
     });
 
+    test("ignores blank and undefined workspace env vars before falling back to git root", () => {
+      const gitRoot = path.join(workspaceRoot, "repo-root");
+      const nestedRoot = path.join(gitRoot, "nested", "child");
+      fs.mkdirSync(path.join(gitRoot, ".git"), { recursive: true });
+      fs.mkdirSync(nestedRoot, { recursive: true });
+
+      setEnvVar("KIBI_WORKSPACE", "   ");
+      setEnvVar("KIBI_PROJECT_ROOT", undefined);
+      setEnvVar("KIBI_ROOT", "\t");
+
+      expect(resolveWorkspaceRoot(nestedRoot)).toBe(gitRoot);
+    });
+
     test("finds a .kb directory when walking upward", () => {
       fs.mkdirSync(path.join(workspaceRoot, ".kb"));
       const nestedRoot = path.join(workspaceRoot, "a", "b", "c");
@@ -95,6 +108,10 @@ describe.serial("workspace uncovered path coverage", () => {
     test("returns the starting directory when no markers are found", () => {
       const nestedRoot = path.join(workspaceRoot, "no", "markers", "here");
       fs.mkdirSync(nestedRoot, { recursive: true });
+
+      setEnvVar("KIBI_WORKSPACE", undefined);
+      setEnvVar("KIBI_PROJECT_ROOT", "   ");
+      setEnvVar("KIBI_ROOT", undefined);
 
       expect(resolveWorkspaceRoot(nestedRoot)).toBe(path.resolve(nestedRoot));
     });
