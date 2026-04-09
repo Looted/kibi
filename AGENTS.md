@@ -344,43 +344,42 @@ The following schema is planned for a future release:
   "langs": ["ts", "tsx", "js", "jsx"]
 }
 ```
-KP|
-WS|
-HK|---
-RB|
-XB|## Test Environmental Pollution Prevention
-WT|
-XK|Tests must be checked for environmental pollution - only a full suite run can be treated as a pass.
-HB|
-JB|**What is environmental pollution?**
-JM|When a test modifies global/module-level state that persists and breaks subsequent tests. Examples:
-XZ|  - Mocking `node:fs` globally without restoring it
-QP|  - Mutating shared module state across tests
-ZV|  - Not cleaning up after tests that modify process state
-ZJ|
-MB|**Required practices:**
-JM|  1. **Always restore mocks in afterEach** - Call `mock.restore()` or reset mocked modules
-HM|  2. **Isolate filesystem operations** - Use temporary directories and clean them up
-QZ|  3. **Reset module state** - If a module has mutable state, export a reset function and call it in beforeEach
-QK|  4. **Test in isolation first** - Verify tests pass individually before claiming they pass
-QT|  5. **Run full suite** - Always verify tests pass when run with the full test suite, not just in isolation
-NV|
-KB|**Common pitfalls:**
-XK|  - Using `mock.module()` without calling `mock.restore()` - pollutes subsequent tests
-XB|  - Module-level caches that persist across tests
-JK|  - Global variable modifications without cleanup
-YM|
-ZV|**Verification:**
-HB|  Before marking a test as passing, verify it passes in BOTH isolation AND as part of the full suite run:
-MJ|  ```bash
-XP|  # Test in isolation (passes)
-QV|  bun test path/to/specific.test.ts
-XP|
-XZ|  # Test in full suite (must also pass)
-QV|  bun test
-HM|  ```
-QP|
-ZB|---
-RB|
+
+---
+
+## Test Environmental Pollution Prevention
+
+Tests must be checked for environmental pollution - only a full suite run can be treated as a pass.
+
+**What is environmental pollution?**
+When a test modifies global/module-level state that persists and breaks subsequent tests. Examples:
+  - Mocking `node:fs` globally without restoring it
+  - Mutating shared module state across tests
+  - Not cleaning up after tests that modify process state
+
+**Required practices:**
+  1. **Always restore mocks in afterEach** - Call `mock.restore()` or reset mocked modules
+  2. **Isolate filesystem operations** - Use temporary directories and clean them up
+  3. **Reset module state** - If a module has mutable state, export a reset function and call it in beforeEach
+  4. **Test in isolation first** - Verify tests pass individually before claiming they pass
+  5. **Run full suite** - Always verify tests pass when run with the full test suite, not just in isolation
+
+**Common pitfalls:**
+  - Using `mock.module()` without calling `mock.restore()` - pollutes subsequent tests
+  - Module-level caches that persist across tests
+  - Global variable modifications without cleanup
+
+**Verification:**
+  Before marking a test as passing, verify it passes in BOTH isolation AND as part of the full suite run:
+  ```bash
+  # Test in isolation (passes)
+  bun test path/to/specific.test.ts
+
+  # Test in full suite (must also pass)
+  bun test
+  ```
+
+---
+
 *For user-facing CLI syntax and quick reference, see [CLI Reference](docs/cli-reference.md#staged-symbol-traceability)*
 *For troubleshooting staged check issues, see [Troubleshooting](docs/troubleshooting.md)*
