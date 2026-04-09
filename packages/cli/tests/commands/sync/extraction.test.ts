@@ -329,6 +329,20 @@ describe("processExtractions edge cases", () => {
   });
 });
 
+describe("processExtractions error handling", () => {
+  let originalConsoleWarn: typeof console.warn;
+
+  beforeEach(() => {
+    mockExtractFromMarkdown.mockClear();
+    mockExtractFromManifest.mockClear();
+    originalConsoleWarn = console.warn;
+  });
+
+  afterEach(() => {
+    console.warn = originalConsoleWarn;
+    mock.restore();
+  });
+
   test("handles FrontmatterError with Embedded Entity Violation", async () => {
     // Mock throws FrontmatterError with Embedded Entity Violation classification
     const error = new FrontmatterError(
@@ -353,8 +367,10 @@ describe("processExtractions edge cases", () => {
   });
 
   test("non-validate mode uses console.warn for errors", async () => {
-    const warnSpy = mock(() => {});
-    mock.module("console", () => ({ warn: warnSpy }));
+    const warnMessages: string[] = [];
+    console.warn = (...args: unknown[]) => {
+      warnMessages.push(args.join(" "));
+    };
 
     mockExtractFromMarkdown.mockImplementation(() => {
       throw new Error("Extraction failed");
@@ -373,8 +389,10 @@ describe("processExtractions edge cases", () => {
   });
 
   test("non-validate mode handles manifest errors", async () => {
-    const warnSpy = mock(() => {});
-    mock.module("console", () => ({ warn: warnSpy }));
+    const warnMessages: string[] = [];
+    console.warn = (...args: unknown[]) => {
+      warnMessages.push(args.join(" "));
+    };
 
     mockExtractFromManifest.mockImplementation(() => {
       throw new Error("Manifest parse failed");
@@ -390,4 +408,5 @@ describe("processExtractions edge cases", () => {
     expect(result.errors).toEqual([]);
     expect(result.failedCacheKeys.size).toBe(1);
   });
+});
 
