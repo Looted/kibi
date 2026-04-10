@@ -16,17 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
-import * as actualFs from "node:fs";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { SyncCache } from "../../../src/commands/sync/cache.js";
 
 // Import the real cache module FIRST to get actual implementations
@@ -56,30 +46,17 @@ const mockMkdirSync = mock((..._args: unknown[]): undefined => undefined);
 const mockReadFileSync = mock((..._args: unknown[]): string | Buffer => "");
 const mockWriteFileSync = mock((..._args: unknown[]): undefined => undefined);
 
-// Restore mocks before all tests to ensure clean state
-// This is needed because other tests may have mocked modules before this file loads
-beforeAll(() => {
-  mock.restore();
-});
-
-mock.module("node:crypto", () => ({
-  createHash: mockCreateHash,
-}));
-
-mock.module("node:fs", () => ({
-  existsSync: mockExistsSync,
-  mkdirSync: mockMkdirSync,
-  readFileSync: mockReadFileSync,
-  writeFileSync: mockWriteFileSync,
-}));
-
 // Restore mocks after each test to prevent pollution
 afterEach(() => {
   mock.restore();
 });
 
-afterAll(() => {
-  mock.module("node:fs", () => actualFs);
+const cacheDeps = () => ({
+  createHash: mockCreateHash as typeof cacheModule.createHash,
+  existsSync: mockExistsSync,
+  mkdirSync: mockMkdirSync,
+  readFileSync: mockReadFileSync,
+  writeFileSync: mockWriteFileSync,
 });
 
 // --- Helpers ---
@@ -162,7 +139,7 @@ describe("hashFile", () => {
     const mockUpdate = mock(() => ({ digest: mockDigest }));
     mockCreateHash.mockReturnValue({ update: mockUpdate });
 
-    const result = hashFile("/some/file.ts");
+    const result = hashFile("/some/file.ts", cacheDeps());
 
     expect(mockCreateHash).toHaveBeenCalledWith("sha256");
     expect(mockUpdate).toHaveBeenCalledWith(Buffer.from("hello world"));
@@ -187,9 +164,9 @@ describe("hashFile", () => {
     });
 
     // Both calls read the same content
-    const result1 = hashFile("/file1.ts");
+    const result1 = hashFile("/file1.ts", cacheDeps());
     mockReadFileSync.mockReturnValue(Buffer.from("consistent content"));
-    const result2 = hashFile("/file2.ts");
+    const result2 = hashFile("/file2.ts", cacheDeps());
 
     // Same content should produce the same hash value
     // (Our mock returns different per-call, but the real impl uses crypto)
@@ -204,7 +181,7 @@ describe("hashFile", () => {
       update: mock(() => ({ digest: mock(() => "abc") })),
     });
 
-    hashFile("/path/to/my/file.ts");
+    hashFile("/path/to/my/file.ts", cacheDeps());
     expect(mockReadFileSync).toHaveBeenCalledWith("/path/to/my/file.ts");
   });
 });
@@ -219,7 +196,7 @@ describe("readSyncCache", () => {
   test("returns default empty cache when file does not exist", () => {
     mockExistsSync.mockReturnValue(false);
 
-    const result = readSyncCache("/no/such/cache.json");
+    const result = readSyncCache("/no/such/cache.json", cacheDeps());
 
     expect(result).toEqual(defaultCache());
     expect(mockExistsSync).toHaveBeenCalledWith("/no/such/cache.json");
@@ -235,7 +212,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(cached);
     expect(result.version).toBe(1);
@@ -252,7 +229,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(defaultCache());
   });
@@ -262,7 +239,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(defaultCache());
   });
@@ -271,7 +248,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue("not valid json {{{");
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(defaultCache());
   });
@@ -280,7 +257,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue("");
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result).toEqual(defaultCache());
   });
@@ -290,7 +267,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result.version).toBe(1);
     expect(result.hashes).toEqual({});
@@ -302,7 +279,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify(cached));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
 
     expect(result.hashes).toEqual({ "a.ts": "hash1" });
     expect(result.seenAt).toEqual({});
@@ -312,7 +289,7 @@ describe("readSyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue(JSON.stringify({ version: 1 }));
 
-    const result = readSyncCache("/cache/path.json");
+    const result = readSyncCache("/cache/path.json", cacheDeps());
     expect(result).toEqual({ version: 1, hashes: {}, seenAt: {} });
   });
 
@@ -322,7 +299,7 @@ describe("readSyncCache", () => {
       JSON.stringify({ version: 1, hashes: {}, seenAt: {} }),
     );
 
-    readSyncCache("/cache.json");
+    readSyncCache("/cache.json", cacheDeps());
 
     expect(mockReadFileSync).toHaveBeenCalledWith("/cache.json", "utf8");
   });
@@ -338,7 +315,7 @@ describe("writeSyncCache", () => {
   test("creates directory when it does not exist", () => {
     mockExistsSync.mockReturnValue(false);
 
-    writeSyncCache("/deep/nested/dir/cache.json", defaultCache());
+    writeSyncCache("/deep/nested/dir/cache.json", defaultCache(), cacheDeps());
 
     expect(mockMkdirSync).toHaveBeenCalledWith("/deep/nested/dir", {
       recursive: true,
@@ -348,7 +325,7 @@ describe("writeSyncCache", () => {
   test("skips mkdir when directory already exists", () => {
     mockExistsSync.mockReturnValue(true);
 
-    writeSyncCache("/existing/dir/cache.json", defaultCache());
+    writeSyncCache("/existing/dir/cache.json", defaultCache(), cacheDeps());
 
     expect(mockMkdirSync).not.toHaveBeenCalled();
   });
@@ -361,7 +338,7 @@ describe("writeSyncCache", () => {
       seenAt: { "foo.ts": "2026-01-01" },
     };
 
-    writeSyncCache("/dir/cache.json", cache);
+    writeSyncCache("/dir/cache.json", cache, cacheDeps());
 
     const expectedContent = `${JSON.stringify(cache, null, 2)}\n`;
     expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -385,8 +362,8 @@ describe("writeSyncCache", () => {
       seenAt: {},
     };
 
-    writeSyncCache("/cache.json", cache1);
-    writeSyncCache("/cache.json", cache2);
+    writeSyncCache("/cache.json", cache1, cacheDeps());
+    writeSyncCache("/cache.json", cache2, cacheDeps());
 
     expect(mockWriteFileSync).toHaveBeenCalledTimes(2);
     // Last call should have cache2
@@ -399,7 +376,7 @@ describe("writeSyncCache", () => {
   test("writes empty cache correctly", () => {
     mockExistsSync.mockReturnValue(true);
 
-    writeSyncCache("/cache.json", defaultCache());
+    writeSyncCache("/cache.json", defaultCache(), cacheDeps());
 
     const expected = `${JSON.stringify(defaultCache(), null, 2)}\n`;
     expect(mockWriteFileSync).toHaveBeenCalledWith(
@@ -426,7 +403,7 @@ describe("copySyncCache", () => {
     });
     mockReadFileSync.mockReturnValue(cacheContent);
 
-    copySyncCache("/live/.kb", "/staging/.kb");
+    copySyncCache("/live/.kb", "/staging/.kb", cacheDeps());
 
     expect(mockReadFileSync).toHaveBeenCalledWith(
       "/live/.kb/sync-cache.json",
@@ -442,7 +419,7 @@ describe("copySyncCache", () => {
   test("does nothing when live cache does not exist", () => {
     mockExistsSync.mockReturnValue(false);
 
-    copySyncCache("/live/.kb", "/staging/.kb");
+    copySyncCache("/live/.kb", "/staging/.kb", cacheDeps());
 
     expect(mockReadFileSync).not.toHaveBeenCalled();
     expect(mockWriteFileSync).not.toHaveBeenCalled();
@@ -454,7 +431,7 @@ describe("copySyncCache", () => {
       '{\n  "version": 1,\n  "hashes": {},\n  "seenAt": {}\n}';
     mockReadFileSync.mockReturnValue(originalContent);
 
-    copySyncCache("/live", "/staging");
+    copySyncCache("/live", "/staging", cacheDeps());
 
     expect(mockWriteFileSync).toHaveBeenCalledWith(
       "/staging/sync-cache.json",
@@ -467,7 +444,7 @@ describe("copySyncCache", () => {
     mockExistsSync.mockReturnValue(true);
     mockReadFileSync.mockReturnValue("{}");
 
-    copySyncCache("/a/b", "/c/d");
+    copySyncCache("/a/b", "/c/d", cacheDeps());
 
     expect(mockExistsSync).toHaveBeenCalledWith("/a/b/sync-cache.json");
     expect(mockReadFileSync).toHaveBeenCalledWith(
