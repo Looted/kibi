@@ -17,6 +17,7 @@
  */
 
 import {
+  afterAll,
   afterEach,
   beforeAll,
   beforeEach,
@@ -25,6 +26,7 @@ import {
   mock,
   test,
 } from "bun:test";
+import * as actualFs from "node:fs";
 import type { SyncCache } from "../../../src/commands/sync/cache.js";
 
 // Import the real cache module FIRST to get actual implementations
@@ -49,10 +51,10 @@ const mockCreateHash = mock(() => ({
   })),
 }));
 
-const mockExistsSync = mock((..._args: any[]): boolean => false);
-const mockMkdirSync = mock((..._args: any[]): undefined => undefined);
-const mockReadFileSync = mock((..._args: any[]): any => "");
-const mockWriteFileSync = mock((..._args: any[]): undefined => undefined);
+const mockExistsSync = mock((..._args: unknown[]): boolean => false);
+const mockMkdirSync = mock((..._args: unknown[]): undefined => undefined);
+const mockReadFileSync = mock((..._args: unknown[]): string | Buffer => "");
+const mockWriteFileSync = mock((..._args: unknown[]): undefined => undefined);
 
 // Restore mocks before all tests to ensure clean state
 // This is needed because other tests may have mocked modules before this file loads
@@ -74,6 +76,10 @@ mock.module("node:fs", () => ({
 // Restore mocks after each test to prevent pollution
 afterEach(() => {
   mock.restore();
+});
+
+afterAll(() => {
+  mock.module("node:fs", () => actualFs);
 });
 
 // --- Helpers ---
@@ -125,7 +131,7 @@ describe("toCacheKey", () => {
 
   test("converts absolute path to relative using cwd", () => {
     const cwd = process.cwd();
-    const absolutePath = cwd + "/src/foo.ts";
+    const absolutePath = `${cwd}/src/foo.ts`;
     const result = toCacheKey(absolutePath);
     expect(result).toBe("src/foo.ts");
   });

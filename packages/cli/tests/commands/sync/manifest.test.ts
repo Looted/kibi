@@ -8,8 +8,24 @@
  * (at your option) any later version.
  */
 
-import { afterEach, afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterEach,
+  afterAll,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
+import { createRequire } from "node:module";
 import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
+
+const actualFs = await import("node:fs");
+const require = createRequire(import.meta.url);
+const actualYaml = require("js-yaml");
+const actualSymbolsCoordinator = await import(
+  "../../../src/extractors/symbols-coordinator.js"
+);
 
 // --- Mocks ---
 
@@ -545,7 +561,7 @@ describe("refreshManifestCoordinates", () => {
   test("uses previous sourceFile when current sourceFile is not a string", async () => {
     const entry = makeEntry({ sourceFile: "src/foo.ts" });
     const enriched = makeEntry();
-    delete (enriched as Record<string, unknown>).sourceFile;
+    Reflect.deleteProperty(enriched as Record<string, unknown>, "sourceFile");
     // Make coordinates different so it goes to refreshed
     enriched.sourceLine = 99;
 
@@ -564,11 +580,14 @@ describe("refreshManifestCoordinates", () => {
 
   test("handles both current and previous sourceFile not being strings", async () => {
     const entry = makeEntry();
-    delete (entry as Record<string, unknown>).sourceFile;
+    Reflect.deleteProperty(entry as Record<string, unknown>, "sourceFile");
     mockParseYAML.mockImplementation(() => ({ symbols: [entry] }));
     mockEnrichSymbolCoordinates.mockImplementation(async (e) => {
       const result = e.map((ent) => ({ ...ent }));
-      delete (result[0] as Record<string, unknown>).sourceFile;
+      Reflect.deleteProperty(
+        result[0] as Record<string, unknown>,
+        "sourceFile",
+      );
       return result;
     });
 
@@ -653,7 +672,9 @@ describe("refreshManifestCoordinates", () => {
   });
 
   test("isRecord guard: null parsed YAML triggers early return", async () => {
-    mockParseYAML.mockImplementation(() => null as unknown as Record<string, unknown>);
+    mockParseYAML.mockImplementation(
+      () => null as unknown as Record<string, unknown>,
+    );
     const { messages, restore } = captureWarn();
 
     await refreshManifestCoordinates(manifestPath, workspaceRoot);
@@ -709,5 +730,11 @@ describe("refreshManifestCoordinates", () => {
 // --- Cleanup ---
 
 afterAll(() => {
+  mock.module("node:fs", () => actualFs);
+  mock.module("js-yaml", () => actualYaml);
+  mock.module(
+    "../../../src/extractors/symbols-coordinator.js",
+    () => actualSymbolsCoordinator,
+  );
   mock.restore();
 });

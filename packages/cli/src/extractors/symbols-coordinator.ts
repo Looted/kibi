@@ -36,11 +36,18 @@ const TS_JS_EXTENSIONS = new Set([
 
 export type { ManifestSymbolEntry };
 
+interface EnrichSymbolCoordinatesDeps {
+  enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
+}
+
 export async function enrichSymbolCoordinates(
   entries: ManifestSymbolEntry[],
   workspaceRoot: string,
+  deps?: Partial<EnrichSymbolCoordinatesDeps>,
 ): Promise<ManifestSymbolEntry[]> {
   // implements REQ-vscode-traceability
+  const enrichTsCoordinates =
+    deps?.enrichTsCoordinates ?? enrichSymbolCoordinatesWithTsMorph;
   const output = entries.map((entry) => ({ ...entry }));
 
   const tsIndices: number[] = [];
@@ -62,10 +69,7 @@ export async function enrichSymbolCoordinates(
   }
 
   if (tsEntries.length > 0) {
-    const enrichedTs = await enrichSymbolCoordinatesWithTsMorph(
-      tsEntries,
-      workspaceRoot,
-    );
+    const enrichedTs = await enrichTsCoordinates(tsEntries, workspaceRoot);
     for (let i = 0; i < tsIndices.length; i++) {
       const target = tsIndices[i];
       const enriched = enrichedTs[i];
