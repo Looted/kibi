@@ -33,7 +33,7 @@ afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
   if (initialKibiMcpDebug === undefined) {
-    process.env.KIBI_MCP_DEBUG = undefined;
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }

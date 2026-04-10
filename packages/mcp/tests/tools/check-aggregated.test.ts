@@ -105,8 +105,6 @@ describe("MCP check aggregated path", () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-default-"),
     );
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = workspaceRoot;
 
     try {
       const query = mock(async (goal: string) => {
@@ -135,17 +133,12 @@ describe("MCP check aggregated path", () => {
 
       const prolog = { query } as unknown as PrologProcess;
 
-      const result = await handleKbCheck(prolog, {});
+      const result = await handleKbCheck(prolog, { workspaceRoot });
 
       expect(result.structuredContent?.count).toBe(0);
       expect(result.structuredContent?.violations).toEqual([]);
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
@@ -154,8 +147,6 @@ describe("MCP check aggregated path", () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-optin-"),
     );
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = workspaceRoot;
 
     try {
       mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
@@ -202,6 +193,7 @@ describe("MCP check aggregated path", () => {
 
       const result = await handleKbCheck(prolog, {
         rules: ["strict-fact-shape"],
+        workspaceRoot,
       });
 
       expect(result.structuredContent?.count).toBe(1);
@@ -210,11 +202,6 @@ describe("MCP check aggregated path", () => {
       );
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
