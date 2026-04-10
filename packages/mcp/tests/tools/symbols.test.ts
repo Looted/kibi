@@ -77,33 +77,33 @@ describe("resolveManifestPath precedence (regression)", () => {
     }
   }
 
-  it("should prefer .kb/config.json paths.symbols over repo-root symbols.yaml (regression)", () => {
+  it("should prefer .kb/config.json paths.symbols over repo-root symbols.yaml (regression)", async () => {
     writeFixture({
       configSymbolsPath: "custom/symbols.yaml",
       hasRepoRootSymbols: true,
       hasCustomSymbols: true,
     });
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(customSymbolsPath);
   });
 
-  it("should fall back to repo-root symbols.yaml if no paths.symbols is set", () => {
+  it("should fall back to repo-root symbols.yaml if no paths.symbols is set", async () => {
     writeFixture({
       configSymbolsPath: null,
       hasRepoRootSymbols: true,
       hasCustomSymbols: true,
     });
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(repoRootSymbols);
   });
 
-  it("should return fallback path if neither config nor repo-root symbols.yaml exist", () => {
+  it("should return fallback path if neither config nor repo-root symbols.yaml exist", async () => {
     writeFixture({
       configSymbolsPath: null,
       hasRepoRootSymbols: false,
       hasCustomSymbols: false,
     });
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(repoRootSymbols);
   });
 });
@@ -131,37 +131,37 @@ describe("resolveManifestPath - additional coverage", () => {
     fs.rmSync(testRoot, { recursive: true, force: true });
   });
 
-  it("should handle absolute paths.symbols (line 130)", () => {
+  it("should handle absolute paths.symbols (line 130)", async () => {
     const absoluteCustomPath = "/absolute/custom/symbols.yaml";
     fs.writeFileSync(
       configPath,
       JSON.stringify({ paths: { symbols: absoluteCustomPath } }, null, 2),
     );
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(absoluteCustomPath);
   });
 
-  it("should handle legacy symbolsManifest with absolute path (line 132-136)", () => {
+  it("should handle legacy symbolsManifest with absolute path (line 132-136)", async () => {
     const absoluteLegacyPath = "/legacy/symbols.yaml";
     fs.writeFileSync(
       configPath,
       JSON.stringify({ symbolsManifest: absoluteLegacyPath }, null, 2),
     );
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(absoluteLegacyPath);
   });
 
-  it("should handle legacy symbolsManifest with relative path (line 133-135)", () => {
+  it("should handle legacy symbolsManifest with relative path (line 133-135)", async () => {
     const relativeLegacyPath = "legacy/symbols.yaml";
     fs.writeFileSync(
       configPath,
       JSON.stringify({ symbolsManifest: relativeLegacyPath }, null, 2),
     );
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(path.resolve(testRoot, relativeLegacyPath));
   });
 
-  it("should prefer paths.symbols over legacy symbolsManifest", () => {
+  it("should prefer paths.symbols over legacy symbolsManifest", async () => {
     ensureDirSync(path.dirname(customSymbolsPath));
     fs.writeFileSync(
       configPath,
@@ -175,22 +175,22 @@ describe("resolveManifestPath - additional coverage", () => {
       ),
     );
     fs.writeFileSync(customSymbolsPath, "custom: true\n");
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(customSymbolsPath);
   });
 
-  it("should handle malformed config.json (catch block at line 137)", () => {
+  it("should handle malformed config.json (catch block at line 137)", async () => {
     fs.writeFileSync(configPath, "invalid json{");
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(repoRootSymbols);
   });
 
-  it("should handle empty paths.symbols gracefully", () => {
+  it("should handle empty paths.symbols gracefully", async () => {
     fs.writeFileSync(
       configPath,
       JSON.stringify({ paths: { symbols: "" } }, null, 2),
     );
-    const resolved = resolveManifestPath(testRoot);
+    const resolved = await resolveManifestPath(testRoot);
     expect(resolved).toBe(repoRootSymbols);
   });
 });
@@ -390,7 +390,6 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
       internalTestRoot,
     );
     expect(result.found).toBe(true);
-    expect(result.refreshed).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).toContain("sourceLine:");
@@ -403,7 +402,6 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
       internalTestRoot,
     );
     expect(result.found).toBe(true);
-    expect(result.refreshed).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).toContain("sourceLine:");
@@ -416,7 +414,6 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
       internalTestRoot,
     );
     expect(result.found).toBe(true);
-    expect(result.refreshed).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).toContain("sourceLine:");

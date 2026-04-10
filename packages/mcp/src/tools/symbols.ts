@@ -15,7 +15,7 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
@@ -26,6 +26,7 @@ import { resolveWorkspaceRoot } from "../workspace.js";
 
 export interface SymbolsRefreshArgs {
   dryRun?: boolean;
+  workspaceRoot?: string;
 }
 
 export interface SymbolsRefreshResult {
@@ -82,10 +83,10 @@ export async function handleKbSymbolsRefresh(
 ): Promise<SymbolsRefreshResult> {
   // implements REQ-vscode-traceability
   const dryRun = args.dryRun === true;
-  const workspaceRoot = resolveWorkspaceRoot();
-  const manifestPath = resolveManifestPath(workspaceRoot);
+  const workspaceRoot = args.workspaceRoot ?? resolveWorkspaceRoot();
+  const manifestPath = await resolveManifestPath(workspaceRoot);
 
-  const rawContent = readFileSync(manifestPath, "utf8");
+  const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
 
   if (!isRecord(parsed) || !Array.isArray(parsed.symbols)) {
@@ -108,7 +109,16 @@ export async function handleKbSymbolsRefresh(
     entriesForEnrichment,
     workspaceRoot,
   );
-  parsed.symbols = enriched;
+  const finalized = await Promise.all(
+    enriched.map((entry, index) =>
+      fillMissingCoordinates(
+        original[index] ?? ({} as ManifestSymbolEntry),
+        entry,
+        workspaceRoot,
+      ),
+    ),
+  );
+  parsed.symbols = finalized;
 
   let refreshed = 0;
   let failed = 0;
@@ -116,7 +126,7 @@ export async function handleKbSymbolsRefresh(
 
   for (let i = 0; i < original.length; i++) {
     const before = original[i] ?? ({} as ManifestSymbolEntry);
-    const after = enriched[i] ?? before;
+    const after = finalized[i] ?? before;
 
     const changed = GENERATED_COORD_FIELDS.some(
       (field) => before[field] !== after[field],
@@ -134,7 +144,7 @@ export async function handleKbSymbolsRefresh(
           ? before.sourceFile
           : undefined;
 
-    const eligible = isEligible(source, workspaceRoot);
+    const eligible = await isEligible(source, workspaceRoot);
     if (eligible && !hasGeneratedCoordinates(after)) {
       failed++;
     } else {
@@ -150,7 +160,7 @@ export async function handleKbSymbolsRefresh(
   const nextContent = `${COMMENT_BLOCK}${dumped}`;
 
   if (!dryRun && rawContent !== nextContent) {
-    writeFileSync(manifestPath, nextContent, "utf8");
+    await writeFile(manifestPath, nextContent, "utf8");
   }
 
   return {
@@ -174,8 +184,8 @@ export async function refreshCoordinatesForSymbolId(
   workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
   // implements REQ-vscode-traceability
-  const manifestPath = resolveManifestPath(workspaceRoot);
-  const rawContent = readFileSync(manifestPath, "utf8");
+  const manifestPath = await resolveManifestPath(workspaceRoot);
+  const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
 
   if (!isRecord(parsed) || !Array.isArray(parsed.symbols)) {
@@ -209,8 +219,13 @@ export async function refreshCoordinatesForSymbolId(
     [singleEntry],
     workspaceRoot,
   );
+  const finalized = await fillMissingCoordinates(
+    original as ManifestSymbolEntry,
+    enriched ?? singleEntry,
+    workspaceRoot,
+  );
 
-  symbols[index] = enriched ?? (original as ManifestSymbolEntry);
+  symbols[index] = finalized;
   parsed.symbols = symbols;
 
   const refreshed = GENERATED_COORD_FIELDS.some(
@@ -226,43 +241,48 @@ export async function refreshCoordinatesForSymbolId(
   const nextContent = `${COMMENT_BLOCK}${dumped}`;
 
   if (rawContent !== nextContent) {
-    writeFileSync(manifestPath, nextContent, "utf8");
+    await writeFile(manifestPath, nextContent, "utf8");
   }
 
   return { refreshed, found: true };
 }
 
-export function resolveManifestPath(workspaceRoot: string): string {
+export async function resolveManifestPath(
+  workspaceRoot: string,
+): Promise<string> {
   // implements REQ-002, REQ-013
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
-  if (existsSync(configPath)) {
-    try {
-      const config = JSON.parse(readFileSync(configPath, "utf8")) as {
-        symbolsManifest?: string;
-        paths?: { symbols?: string };
-      };
-      // Prefer paths.symbols (new standard) over symbolsManifest (legacy)
-      if (config.paths?.symbols) {
-        return path.isAbsolute(config.paths.symbols)
-          ? config.paths.symbols
-          : path.resolve(workspaceRoot, config.paths.symbols);
-      }
-      // Backward compatibility: check legacy symbolsManifest field
-      if (config.symbolsManifest) {
-        return path.isAbsolute(config.symbolsManifest)
-          ? config.symbolsManifest
-          : path.resolve(workspaceRoot, config.symbolsManifest);
-      }
-    } catch {
-      // config file missing or malformed; fall through to defaults
+  try {
+    const config = JSON.parse(await readFile(configPath, "utf8")) as {
+      symbolsManifest?: string;
+      paths?: { symbols?: string };
+    };
+    // Prefer paths.symbols (new standard) over symbolsManifest (legacy)
+    if (config.paths?.symbols) {
+      return path.isAbsolute(config.paths.symbols)
+        ? config.paths.symbols
+        : path.resolve(workspaceRoot, config.paths.symbols);
     }
+    // Backward compatibility: check legacy symbolsManifest field
+    if (config.symbolsManifest) {
+      return path.isAbsolute(config.symbolsManifest)
+        ? config.symbolsManifest
+        : path.resolve(workspaceRoot, config.symbolsManifest);
+    }
+  } catch {
+    // config file missing or malformed; fall through to defaults
   }
 
   const candidates = [
     path.join(workspaceRoot, "symbols.yaml"),
     path.join(workspaceRoot, "symbols.yml"),
   ];
-  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
+  for (const candidate of candidates) {
+    if (await fileExists(candidate)) {
+      return candidate;
+    }
+  }
+  return candidates[0];
 }
 
 function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
@@ -276,18 +296,85 @@ function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
   );
 }
 
-function isEligible(
+async function isEligible(
   sourceFile: string | undefined,
   workspaceRoot: string,
-): boolean {
+): Promise<boolean> {
   if (!sourceFile) return false;
 
   const absolute = path.isAbsolute(sourceFile)
     ? sourceFile
     : path.resolve(workspaceRoot, sourceFile);
-  if (!existsSync(absolute)) return false;
+  if (!(await fileExists(absolute))) return false;
 
   return SOURCE_EXTENSIONS.has(path.extname(absolute).toLowerCase());
+}
+
+async function fileExists(filePath: string): Promise<boolean> {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function fillMissingCoordinates(
+  before: ManifestSymbolEntry,
+  after: ManifestSymbolEntry,
+  workspaceRoot: string,
+): Promise<ManifestSymbolEntry> {
+  if (hasGeneratedCoordinates(after)) {
+    return after;
+  }
+
+  const sourceFile =
+    typeof after.sourceFile === "string"
+      ? after.sourceFile
+      : typeof before.sourceFile === "string"
+        ? before.sourceFile
+        : undefined;
+  const title =
+    typeof after.title === "string"
+      ? after.title
+      : typeof before.title === "string"
+        ? before.title
+        : undefined;
+
+  if (!sourceFile || !title) {
+    return after;
+  }
+
+  const absolutePath = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(workspaceRoot, sourceFile);
+
+  try {
+    const content = await readFile(absolutePath, "utf8");
+    const escapedTitle = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`\\b${escapedTitle}\\b`);
+    const lines = content.split(/\r?\n/);
+
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      if (!line) continue;
+      const match = pattern.exec(line);
+      if (!match || match.index < 0) continue;
+
+      return {
+        ...after,
+        sourceLine: index + 1,
+        sourceColumn: match.index,
+        sourceEndLine: index + 1,
+        sourceEndColumn: match.index + title.length,
+        coordinatesGeneratedAt: new Date().toISOString(),
+      };
+    }
+  } catch {
+    return after;
+  }
+
+  return after;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

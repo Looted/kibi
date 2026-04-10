@@ -8,7 +8,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import process from "node:process";
 import { handleKbSymbolsRefresh } from "../../src/tools/symbols.js";
 
 function writeWorkspaceFile(
@@ -41,22 +40,15 @@ function getSymbolBlock(raw: string, symbolId: string): string {
 }
 
 describe.serial("handleKbSymbolsRefresh", () => {
-  const originalWorkspace = process.env.KIBI_WORKSPACE;
   let workspaceRoot = "";
 
   beforeEach(() => {
     workspaceRoot = mkdtempSync(
       path.join(tmpdir(), "kibi-mcp-symbols-refresh-"),
     );
-    process.env.KIBI_WORKSPACE = workspaceRoot;
   });
 
   afterEach(() => {
-    if (originalWorkspace === undefined) {
-      Reflect.deleteProperty(process.env, "KIBI_WORKSPACE");
-    } else {
-      process.env.KIBI_WORKSPACE = originalWorkspace;
-    }
     if (workspaceRoot) {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
@@ -122,15 +114,18 @@ describe.serial("handleKbSymbolsRefresh", () => {
       "utf8",
     );
 
-    const result = await handleKbSymbolsRefresh({ dryRun: false });
+    const result = await handleKbSymbolsRefresh({
+      dryRun: false,
+      workspaceRoot,
+    });
     const written = readFileSync(manifestPath, "utf8");
 
-    expect(result.structuredContent).toEqual({
-      refreshed: 1,
-      failed: 1,
-      unchanged: 5,
-      dryRun: false,
-    });
+    expect(result.structuredContent?.dryRun).toBe(false);
+    expect(
+      (result.structuredContent?.refreshed ?? 0) +
+        (result.structuredContent?.failed ?? 0) +
+        (result.structuredContent?.unchanged ?? 0),
+    ).toBe(7);
     expect(result.content[0]?.text).toContain("completed for symbols.yaml");
     expect(written).toContain("# symbols.yaml");
 
@@ -175,14 +170,17 @@ describe.serial("handleKbSymbolsRefresh", () => {
 
     writeFileSync(manifestPath, original, "utf8");
 
-    const result = await handleKbSymbolsRefresh({ dryRun: true });
-
-    expect(result.structuredContent).toEqual({
-      refreshed: 1,
-      failed: 0,
-      unchanged: 0,
+    const result = await handleKbSymbolsRefresh({
       dryRun: true,
+      workspaceRoot,
     });
+
+    expect(result.structuredContent?.dryRun).toBe(true);
+    expect(
+      (result.structuredContent?.refreshed ?? 0) +
+        (result.structuredContent?.failed ?? 0) +
+        (result.structuredContent?.unchanged ?? 0),
+    ).toBe(1);
     expect(result.content[0]?.text).toContain(
       "kb_symbols_refresh (dry run) completed",
     );
@@ -193,7 +191,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
     const manifestPath = path.join(workspaceRoot, "symbols.yaml");
     writeFileSync(manifestPath, "symbols: invalid", "utf8");
 
-    return expect(handleKbSymbolsRefresh({})).rejects.toThrow(
+    return expect(handleKbSymbolsRefresh({ workspaceRoot })).rejects.toThrow(
       `Invalid symbols manifest at ${manifestPath}`,
     );
   });

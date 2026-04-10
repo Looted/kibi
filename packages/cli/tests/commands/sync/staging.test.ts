@@ -8,7 +8,15 @@
  * (at your option) any later version.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as path from "node:path";
 import {
   prepareStagingEnvironment,
@@ -16,15 +24,17 @@ import {
   cleanupStaging,
 } from "../../../src/commands/sync/staging.js";
 
+const actualFs = await import("node:fs");
+
 // --- Mocks ---
 
 const mockExistsSync = mock((_p: string) => false);
-const mockMkdirSync = mock((_p: string, _opts?: any) => undefined as any);
+const mockMkdirSync = mock((_p: string, _opts?: unknown) => undefined);
 const mockRenameSync = mock((_old: string, _new: string) => undefined);
-const mockRmSync = mock((_p: string, _opts?: any) => undefined as any);
+const mockRmSync = mock((_p: string, _opts?: unknown) => undefined);
 const mockCopyFileSync = mock((_src: string, _dest: string) => undefined);
 const mockCopyCleanSnapshot = mock((_src: string, _dest: string) => undefined);
-const mockFg = mock((_pattern: string, _opts?: any) =>
+const mockFg = mock((_pattern: string, _opts?: unknown) =>
   Promise.resolve([] as string[]),
 );
 
@@ -35,6 +45,11 @@ mock.module("node:fs", () => ({
   rmSync: mockRmSync,
   copyFileSync: mockCopyFileSync,
 }));
+
+afterAll(() => {
+  mock.module("node:fs", () => actualFs);
+  mock.restore();
+});
 
 mock.module("../../../src/utils/branch-resolver.js", () => ({
   copyCleanSnapshot: mockCopyCleanSnapshot,
@@ -425,7 +440,9 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
 
     await prepareStagingEnvironment("/staging", "/live", true);
 
-    const mkdirPaths = mockMkdirSync.mock.calls.map((c: any) => c[0]);
+    const mkdirPaths = mockMkdirSync.mock.calls.map(
+      (c: readonly unknown[]) => c[0],
+    );
     expect(mkdirPaths).not.toContain(schemaDestDir);
   });
 
