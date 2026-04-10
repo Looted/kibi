@@ -191,6 +191,7 @@ function hasLikelyUnquotedColonInTitle(content: string): boolean {
 }
 
 export function detectEmbeddedEntities(
+  // implements REQ-007, REQ-004
   data: Record<string, unknown>,
   entityType: string,
 ): string[] {
@@ -199,42 +200,46 @@ export function detectEmbeddedEntities(
   }
 
   const detected: string[] = [];
+  const hasEmbeddedValue = (value: unknown): boolean =>
+    value !== null &&
+    value !== undefined &&
+    (Array.isArray(value) ||
+      typeof value === "object" ||
+      typeof value === "string");
 
-  const scenarioFields = ["scenarios", "given", "when", "then", "steps"];
+  const scenarioFields = [
+    "scenario",
+    "scenarios",
+    "given",
+    "when",
+    "then",
+    "steps",
+  ];
   for (const field of scenarioFields) {
-    if (field in data) {
-      const value = data[field];
-      if (
-        value !== null &&
-        value !== undefined &&
-        (Array.isArray(value) ||
-          typeof value === "object" ||
-          typeof value === "string")
-      ) {
-        if (!detected.includes("scenario")) {
-          detected.push("scenario");
-        }
-        break;
+    if (hasEmbeddedValue(data[field])) {
+      if (!detected.includes("scenario")) {
+        detected.push("scenario");
       }
+      break;
     }
   }
 
-  const testFields = ["tests", "testCases", "assertions", "testSteps"];
+  const testFields = [
+    "test",
+    "tests",
+    "testCase",
+    "testCases",
+    "assertion",
+    "assertions",
+    "testStep",
+    "testSteps",
+  ];
   for (const field of testFields) {
-    if (field in data) {
-      const value = data[field];
-      if (
-        value !== null &&
-        value !== undefined &&
-        (Array.isArray(value) ||
-          typeof value === "object" ||
-          typeof value === "string")
-      ) {
-        if (!detected.includes("test")) {
-          detected.push("test");
-        }
-        break;
+    if (hasEmbeddedValue(data[field])) {
+      if (!detected.includes("test")) {
+        detected.push("test");
       }
+      break;
     }
   }
 

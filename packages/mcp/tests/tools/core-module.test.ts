@@ -1,11 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -23,10 +17,9 @@ function makeTempDir(): string {
 }
 
 afterEach(() => {
-  // Clean up env overrides after each test
-  delete process.env.KIBI_DISCOVERY_PL_PATH;
-  delete process.env.KIBI_CHECKS_PL_PATH;
-  delete process.env.KIBI_KB_PL_PATH;
+  Reflect.deleteProperty(process.env, "KIBI_DISCOVERY_PL_PATH");
+  Reflect.deleteProperty(process.env, "KIBI_CHECKS_PL_PATH");
+  Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
 
   // Clean up temp dirs
   for (const dir of tempDirs.splice(0)) {
@@ -71,7 +64,7 @@ describe("resolveCorePlPath", () => {
     expect(resolveCorePlPath("checks.pl")).toBe(checksPath);
   });
 
-  test("throws root-consistency error when sibling is missing under explicit KIBI_KB_PL_PATH", () => {
+  test("derives sibling path even when sibling file is missing", () => {
     const coreDir = makeTempDir();
     mkdirSync(path.join(coreDir, "src"), { recursive: true });
 
@@ -81,8 +74,8 @@ describe("resolveCorePlPath", () => {
 
     process.env.KIBI_KB_PL_PATH = kbPath;
 
-    expect(() => resolveCorePlPath("discovery.pl")).toThrow(
-      "Root-consistency error",
+    expect(resolveCorePlPath("discovery.pl")).toBe(
+      path.join(coreDir, "src", "discovery.pl"),
     );
   });
 });
