@@ -24,6 +24,11 @@ import { fileURLToPath } from "node:url";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
+// Derive the monorepo root from the module location.
+// This is more reliable than process.cwd() in Docker/CI where the
+// working directory may differ from the repo checkout location.
+const importMetaRoot = path.resolve(importMetaDir, "..", "..", "..");
+
 const require = createRequire(import.meta.url);
 
 export function resolveKbPlPath(): string {
@@ -40,7 +45,7 @@ export function resolveKbPlPath(): string {
     // require.resolve not available or package not installed
   }
 
-  const startDirs = [importMetaDir, process.cwd()];
+  const startDirs = [importMetaRoot, importMetaDir];
   for (const startDir of startDirs) {
     let currentDir = path.resolve(startDir);
     while (true) {
