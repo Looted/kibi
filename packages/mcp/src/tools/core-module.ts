@@ -19,6 +19,16 @@ export function resolveCorePlPath(fileName: string): string {
     return override;
   }
 
+  // Fall back to the generic KB_PL override so test fixtures
+  // (which set only KIBI_KB_PL_PATH) can still resolve sibling modules.
+  const genericOverride = process.env.KIBI_KB_PL_PATH;
+  if (genericOverride && existsSync(genericOverride)) {
+    const sibling = path.join(path.dirname(genericOverride), fileName);
+    if (existsSync(sibling)) {
+      return sibling;
+    }
+  }
+
   const kbPlPath = resolveKbPlPath();
   const sibling = path.join(path.dirname(kbPlPath), fileName);
   if (existsSync(sibling)) {

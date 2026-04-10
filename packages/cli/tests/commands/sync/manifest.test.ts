@@ -8,7 +8,7 @@
  * (at your option) any later version.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
 
 // --- Mocks ---
@@ -704,4 +704,10 @@ describe("refreshManifestCoordinates", () => {
 
     restore();
   });
+});
+
+// --- Cleanup ---
+
+afterAll(() => {
+  mock.restore();
 });
