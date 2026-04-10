@@ -30,7 +30,9 @@ jobs:
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
           sudo apt-get update
           sudo apt-get install -y swi-prolog
 
@@ -67,7 +69,7 @@ jobs:
         run: bun run test:unit
 
       - name: Upload unit coverage artifact
-        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
         uses: actions/upload-artifact@v4
         with:
           name: unit-coverage
@@ -97,6 +99,7 @@ jobs:
           cd ../mcp && npm pack
 
       - name: Upload tarball artifacts
+        if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@v4
         with:
           name: kibi-tarballs
@@ -109,6 +112,7 @@ jobs:
           npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
 
       - name: Upload compiled e2e tests
+        if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@v4
         with:
           name: kibi-e2e-tests-compiled
@@ -118,14 +122,16 @@ jobs:
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
           sudo apt-get update
           sudo apt-get install -y swi-prolog
       - name: Setup Bun
@@ -158,14 +164,16 @@ jobs:
   packed-e2e-mcp-regression:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
           sudo apt-get update
           sudo apt-get install -y swi-prolog
       - name: Setup Bun
@@ -197,7 +205,7 @@ jobs:
   packed-e2e-tarball-verify:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -229,14 +237,16 @@ jobs:
   packed-e2e-branch-workflow:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
-          sudo apt-add-repository -y ppa:swi-prolog/stable
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
           sudo apt-get update
           sudo apt-get install -y swi-prolog
       - name: Setup Bun
