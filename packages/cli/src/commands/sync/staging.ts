@@ -22,35 +22,68 @@ import * as path from "node:path";
 import fg from "fast-glob";
 import { copyCleanSnapshot } from "../../utils/branch-resolver.js";
 
+interface StagingDeps {
+  copyCleanSnapshot: typeof copyCleanSnapshot;
+  copyFileSync: typeof copyFileSync;
+  cwd: () => string;
+  existsSync: typeof existsSync;
+  fg: typeof fg;
+  mkdirSync: typeof mkdirSync;
+  moduleDir: string;
+  renameSync: typeof renameSync;
+  rmSync: typeof rmSync;
+}
+
+function resolveDeps(overrides?: Partial<StagingDeps>): StagingDeps {
+  return {
+    copyCleanSnapshot,
+    copyFileSync,
+    cwd: () => process.cwd(),
+    existsSync,
+    fg,
+    mkdirSync,
+    moduleDir: import.meta.dirname,
+    renameSync,
+    rmSync,
+    ...overrides,
+  };
+}
+
 export async function prepareStagingEnvironment(
+  // implements REQ-003
   stagingPath: string,
   livePath: string,
   rebuild: boolean,
+  deps?: Partial<StagingDeps>,
 ): Promise<void> {
+  const resolved = resolveDeps(deps);
   // Cleanup any existing staging directory
-  cleanupStaging(stagingPath);
-  mkdirSync(stagingPath, { recursive: true });
+  cleanupStaging(stagingPath, resolved);
+  resolved.mkdirSync(stagingPath, { recursive: true });
 
-  if (!rebuild && existsSync(livePath)) {
+  if (!rebuild && resolved.existsSync(livePath)) {
     // Use existing live path if available
-    copyCleanSnapshot(livePath, stagingPath);
+    resolved.copyCleanSnapshot(livePath, stagingPath);
   } else {
     // Start fresh with schema only
-    await copySchemaToStaging(stagingPath);
+    await copySchemaToStaging(stagingPath, resolved);
   }
 }
 
-async function copySchemaToStaging(stagingPath: string): Promise<void> {
+async function copySchemaToStaging(
+  stagingPath: string,
+  deps: StagingDeps,
+): Promise<void> {
   const possibleSchemaPaths = [
-    path.resolve(process.cwd(), "node_modules", "kibi-cli", "schema"),
-    path.resolve(process.cwd(), "..", "..", "schema"),
-    path.resolve(import.meta.dirname || __dirname, "..", "..", "schema"),
-    path.resolve(process.cwd(), "packages", "cli", "schema"),
+    path.resolve(deps.cwd(), "node_modules", "kibi-cli", "schema"),
+    path.resolve(deps.cwd(), "..", "..", "schema"),
+    path.resolve(deps.moduleDir, "..", "..", "schema"),
+    path.resolve(deps.cwd(), "packages", "cli", "schema"),
   ];
 
   let schemaSourceDir: string | null = null;
   for (const p of possibleSchemaPaths) {
-    if (existsSync(p)) {
+    if (deps.existsSync(p)) {
       schemaSourceDir = p;
       break;
     }
@@ -60,41 +93,52 @@ async function copySchemaToStaging(stagingPath: string): Promise<void> {
     return;
   }
 
-  const schemaFiles = await fg("*.pl", {
+  const schemaFiles = await deps.fg("*.pl", {
     cwd: schemaSourceDir,
     absolute: false,
   });
 
   const schemaDestDir = path.join(stagingPath, "schema");
-  if (!existsSync(schemaDestDir)) {
-    mkdirSync(schemaDestDir, { recursive: true });
+  if (!deps.existsSync(schemaDestDir)) {
+    deps.mkdirSync(schemaDestDir, { recursive: true });
   }
 
   for (const file of schemaFiles) {
     const sourcePath = path.join(schemaSourceDir, file);
     const destPath = path.join(schemaDestDir, file);
-    copyFileSync(sourcePath, destPath);
+    deps.copyFileSync(sourcePath, destPath);
   }
 }
 
-export function atomicPublish(stagingPath: string, livePath: string): void {
+export function atomicPublish(
+  // implements REQ-003
+  stagingPath: string,
+  livePath: string,
+  deps?: Partial<StagingDeps>,
+): void {
+  const resolved = resolveDeps(deps);
   const liveParent = path.dirname(livePath);
-  if (!existsSync(liveParent)) {
-    mkdirSync(liveParent, { recursive: true });
+  if (!resolved.existsSync(liveParent)) {
+    resolved.mkdirSync(liveParent, { recursive: true });
   }
 
-  if (existsSync(livePath)) {
+  if (resolved.existsSync(livePath)) {
     const tempPath = `${livePath}.old.${Date.now()}`;
-    renameSync(livePath, tempPath);
-    renameSync(stagingPath, livePath);
-    rmSync(tempPath, { recursive: true, force: true });
+    resolved.renameSync(livePath, tempPath);
+    resolved.renameSync(stagingPath, livePath);
+    resolved.rmSync(tempPath, { recursive: true, force: true });
   } else {
-    renameSync(stagingPath, livePath);
+    resolved.renameSync(stagingPath, livePath);
   }
 }
 
-export function cleanupStaging(stagingPath: string): void {
-  if (existsSync(stagingPath)) {
-    rmSync(stagingPath, { recursive: true, force: true });
+export function cleanupStaging(
+  // implements REQ-003
+  stagingPath: string,
+  deps?: Partial<StagingDeps>,
+): void {
+  const resolved = resolveDeps(deps);
+  if (resolved.existsSync(stagingPath)) {
+    resolved.rmSync(stagingPath, { recursive: true, force: true });
   }
 }

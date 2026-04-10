@@ -8,23 +8,13 @@
  * (at your option) any later version.
  */
 
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as path from "node:path";
 import {
   prepareStagingEnvironment,
   atomicPublish,
   cleanupStaging,
 } from "../../../src/commands/sync/staging.js";
-
-const actualFs = await import("node:fs");
 
 // --- Mocks ---
 
@@ -38,26 +28,17 @@ const mockFg = mock((_pattern: string, _opts?: unknown) =>
   Promise.resolve([] as string[]),
 );
 
-mock.module("node:fs", () => ({
+const stagingDeps = () => ({
+  copyCleanSnapshot: mockCopyCleanSnapshot,
+  copyFileSync: mockCopyFileSync,
+  cwd: () => MOCK_CWD,
   existsSync: mockExistsSync,
+  fg: mockFg,
   mkdirSync: mockMkdirSync,
+  moduleDir: sourceDir,
   renameSync: mockRenameSync,
   rmSync: mockRmSync,
-  copyFileSync: mockCopyFileSync,
-}));
-
-afterAll(() => {
-  mock.module("node:fs", () => actualFs);
-  mock.restore();
 });
-
-mock.module("../../../src/utils/branch-resolver.js", () => ({
-  copyCleanSnapshot: mockCopyCleanSnapshot,
-}));
-
-mock.module("fast-glob", () => ({
-  default: mockFg,
-}));
 
 // --- Helpers ---
 
@@ -86,7 +67,7 @@ describe("cleanupStaging", () => {
   test("removes staging directory when it exists", () => {
     mockExistsSync.mockImplementation((p: string) => p === "/staging/path");
 
-    cleanupStaging("/staging/path");
+    cleanupStaging("/staging/path", stagingDeps());
 
     expect(mockRmSync).toHaveBeenCalledTimes(1);
     expect(mockRmSync).toHaveBeenCalledWith("/staging/path", {
@@ -98,7 +79,7 @@ describe("cleanupStaging", () => {
   test("is a no-op when staging path does not exist", () => {
     mockExistsSync.mockImplementation(() => false);
 
-    cleanupStaging("/nonexistent/path");
+    cleanupStaging("/nonexistent/path", stagingDeps());
 
     expect(mockRmSync).not.toHaveBeenCalled();
   });
@@ -123,7 +104,7 @@ describe("atomicPublish", () => {
   test("creates parent directory when liveParent does not exist", () => {
     mockExistsSync.mockImplementation(() => false);
 
-    atomicPublish("/staging/path", "/live/.kb/data");
+    atomicPublish("/staging/path", "/live/.kb/data", stagingDeps());
 
     expect(mockMkdirSync).toHaveBeenCalledWith(path.dirname("/live/.kb/data"), {
       recursive: true,
@@ -136,7 +117,7 @@ describe("atomicPublish", () => {
       return false;
     });
 
-    atomicPublish("/staging/path", "/live/.kb/data");
+    atomicPublish("/staging/path", "/live/.kb/data", stagingDeps());
 
     expect(mockMkdirSync).not.toHaveBeenCalled();
   });
@@ -144,7 +125,7 @@ describe("atomicPublish", () => {
   test("renames staging to live directly when livePath does not exist", () => {
     mockExistsSync.mockImplementation(() => false);
 
-    atomicPublish("/staging/path", "/live/.kb/data");
+    atomicPublish("/staging/path", "/live/.kb/data", stagingDeps());
 
     expect(mockRenameSync).toHaveBeenCalledWith(
       "/staging/path",
@@ -165,7 +146,7 @@ describe("atomicPublish", () => {
       return false;
     });
 
-    atomicPublish("/staging/path", livePath);
+    atomicPublish("/staging/path", livePath, stagingDeps());
 
     const tempPath = `${livePath}.old.1234567890`;
     expect(mockRenameSync).toHaveBeenCalledTimes(2);
@@ -189,7 +170,7 @@ describe("atomicPublish", () => {
       return false;
     });
 
-    atomicPublish("/staging", livePath);
+    atomicPublish("/staging", livePath, stagingDeps());
 
     const expectedTemp = `${livePath}.old.1234567890`;
     expect(mockRenameSync).toHaveBeenNthCalledWith(1, livePath, expectedTemp);
@@ -230,7 +211,7 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue(["schema.pl", "rules.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", true);
+    await prepareStagingEnvironment("/staging", "/live/.kb/data", true, stagingDeps());
 
     // Staging dir did not exist, so rmSync was NOT called during cleanup
     expect(mockRmSync).not.toHaveBeenCalled();
@@ -252,7 +233,7 @@ describe("prepareStagingEnvironment", () => {
       return false;
     });
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", false);
+    await prepareStagingEnvironment("/staging", "/live/.kb/data", false, stagingDeps());
 
     expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
       "/live/.kb/data",
@@ -273,7 +254,7 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", false);
+    await prepareStagingEnvironment("/staging", "/live/.kb/data", false, stagingDeps());
 
     expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
     expect(mockFg).toHaveBeenCalled();
@@ -288,7 +269,7 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue([]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", true);
+    await prepareStagingEnvironment("/staging", "/live/.kb/data", true, stagingDeps());
 
     // cleanupStaging called because staging existed
     expect(mockRmSync).toHaveBeenCalledWith("/staging", {
@@ -344,7 +325,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
   test("finds schema at node_modules/kibi-cli/schema (first path)", async () => {
     const expected = setupSchemaAt(0);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).toHaveBeenCalledWith("*.pl", {
       cwd: expected,
@@ -355,7 +336,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
   test("finds schema at ../../schema relative to cwd (second path)", async () => {
     const expected = setupSchemaAt(1);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).toHaveBeenCalledWith("*.pl", {
       cwd: expected,
@@ -366,7 +347,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
   test("finds schema at ../../schema relative to dirname (third path)", async () => {
     const expected = setupSchemaAt(2);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).toHaveBeenCalledWith("*.pl", {
       cwd: expected,
@@ -377,7 +358,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
   test("finds schema at packages/cli/schema (fourth path)", async () => {
     const expected = setupSchemaAt(3);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).toHaveBeenCalledWith("*.pl", {
       cwd: expected,
@@ -391,7 +372,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
       return false;
     });
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).not.toHaveBeenCalled();
     expect(mockCopyFileSync).not.toHaveBeenCalled();
@@ -414,7 +395,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockMkdirSync).toHaveBeenCalledWith(schemaDestDir, {
       recursive: true,
@@ -438,7 +419,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     const mkdirPaths = mockMkdirSync.mock.calls.map(
       (c: readonly unknown[]) => c[0],
@@ -463,7 +444,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue(["schema.pl", "rules.pl", "constraints.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockCopyFileSync).toHaveBeenCalledTimes(3);
     expect(mockCopyFileSync).toHaveBeenCalledWith(
@@ -495,7 +476,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue([]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(mockFg).toHaveBeenCalled();
     expect(mockCopyFileSync).not.toHaveBeenCalled();
@@ -520,7 +501,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     // existsSync should have been called for the first schema path
     expect(checkedPaths).toContain(firstPath);
@@ -551,7 +532,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live", true);
+    await prepareStagingEnvironment("/staging", "/live", true, stagingDeps());
 
     expect(foundSchemaCall).toBe(true);
     // The path passed to existsSync should be absolute
