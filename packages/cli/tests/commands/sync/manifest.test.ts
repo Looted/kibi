@@ -8,24 +8,8 @@
  * (at your option) any later version.
  */
 
-import {
-  afterEach,
-  afterAll,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
-import { createRequire } from "node:module";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
-
-const actualFs = await import("node:fs");
-const require = createRequire(import.meta.url);
-const actualYaml = require("js-yaml");
-const actualSymbolsCoordinator = await import(
-  "../../../src/extractors/symbols-coordinator.js"
-);
 
 // --- Mocks ---
 
@@ -35,34 +19,27 @@ const mockWriteFileSync = mock(
 );
 const mockExistsSync = mock((_path: string) => true);
 
-mock.module("node:fs", () => ({
-  existsSync: mockExistsSync,
-  readFileSync: mockReadFileSync,
-  writeFileSync: mockWriteFileSync,
-}));
-
 const mockEnrichSymbolCoordinates = mock(
   async (entries: ManifestSymbolEntry[], _workspaceRoot: string) => entries,
 );
 
-mock.module("../../../src/extractors/symbols-coordinator.js", () => ({
-  enrichSymbolCoordinates: mockEnrichSymbolCoordinates,
-}));
-
 const mockParseYAML = mock((_content: string) => ({}));
 const mockDumpYAML = mock((_obj: object, _opts?: object) => "yaml-content\n");
 
-mock.module("js-yaml", () => ({
-  load: mockParseYAML,
-  dump: mockDumpYAML,
-}));
-
-// Must import after mocks
 import {
   hasAllGeneratedCoordinates,
   isEligibleForCoordinateRefresh,
   refreshManifestCoordinates,
 } from "../../../src/commands/sync/manifest.js";
+
+const manifestDeps = () => ({
+  dumpYAML: mockDumpYAML,
+  enrichSymbolCoordinates: mockEnrichSymbolCoordinates,
+  existsSync: mockExistsSync,
+  parseYAML: mockParseYAML,
+  readFileSync: mockReadFileSync,
+  writeFileSync: mockWriteFileSync,
+});
 
 // We test isRecord indirectly through refreshManifestCoordinates since it's not exported.
 // Re-implement the same logic here for direct testing.
@@ -200,77 +177,77 @@ describe("isEligibleForCoordinateRefresh", () => {
   const workspaceRoot = "/workspace";
 
   test("returns false for undefined sourceFile", () => {
-    expect(isEligibleForCoordinateRefresh(undefined, workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh(undefined, workspaceRoot, manifestDeps())).toBe(
       false,
     );
   });
 
   test("returns true for .ts extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.ts", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.ts", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .js extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.js", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.js", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .tsx extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.tsx", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.tsx", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .jsx extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.jsx", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.jsx", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .mts extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.mts", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.mts", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .cts extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.cts", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.cts", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .mjs extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.mjs", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.mjs", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns true for .cjs extension", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.cjs", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.cjs", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
 
   test("returns false for unsupported extension (.py)", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.py", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.py", workspaceRoot, manifestDeps())).toBe(
       false,
     );
   });
 
   test("returns false for unsupported extension (.rs)", () => {
     mockExistsSync.mockImplementation(() => true);
-    expect(isEligibleForCoordinateRefresh("src/foo.rs", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.rs", workspaceRoot, manifestDeps())).toBe(
       false,
     );
   });
@@ -279,7 +256,7 @@ describe("isEligibleForCoordinateRefresh", () => {
     mockExistsSync.mockImplementation(
       (p: string) => p === "/workspace/src/foo.ts",
     );
-    expect(isEligibleForCoordinateRefresh("src/foo.ts", workspaceRoot)).toBe(
+    expect(isEligibleForCoordinateRefresh("src/foo.ts", workspaceRoot, manifestDeps())).toBe(
       true,
     );
   });
@@ -287,13 +264,13 @@ describe("isEligibleForCoordinateRefresh", () => {
   test("handles absolute path correctly", () => {
     const absPath = "/other/project/src/foo.ts";
     mockExistsSync.mockImplementation((p: string) => p === absPath);
-    expect(isEligibleForCoordinateRefresh(absPath, workspaceRoot)).toBe(true);
+    expect(isEligibleForCoordinateRefresh(absPath, workspaceRoot, manifestDeps())).toBe(true);
   });
 
   test("returns false when file does not exist", () => {
     mockExistsSync.mockImplementation(() => false);
     expect(
-      isEligibleForCoordinateRefresh("src/missing.ts", workspaceRoot),
+      isEligibleForCoordinateRefresh("src/missing.ts", workspaceRoot, manifestDeps()),
     ).toBe(false);
   });
 });
@@ -328,7 +305,7 @@ describe("refreshManifestCoordinates", () => {
     mockParseYAML.mockImplementation(() => "not-an-object");
     const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(messages[0]).toContain(
@@ -343,7 +320,7 @@ describe("refreshManifestCoordinates", () => {
     mockParseYAML.mockImplementation(() => ({ otherKey: "value" }));
     const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(messages[0]).toContain(
@@ -358,7 +335,7 @@ describe("refreshManifestCoordinates", () => {
     mockParseYAML.mockImplementation(() => ({ symbols: "not-array" }));
     const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(mockEnrichSymbolCoordinates).not.toHaveBeenCalled();
@@ -374,7 +351,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(messages[0]).toContain("refreshed=1");
@@ -391,7 +368,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages[0]).toContain("refreshed=0");
     expect(messages[0]).toContain("unchanged=1");
@@ -408,7 +385,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages[0]).toContain("refreshed=0");
     expect(messages[0]).toContain("unchanged=0");
@@ -424,7 +401,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages[0]).toContain("unchanged=1");
 
@@ -439,7 +416,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // .py is not in SYMBOL_COORD_EXTENSIONS, so not eligible, hence unchanged
     expect(messages[0]).toContain("unchanged=1");
@@ -462,7 +439,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages[0]).toContain("failed=1");
 
@@ -487,7 +464,7 @@ describe("refreshManifestCoordinates", () => {
     mockReadFileSync.mockImplementation(() => fullContent);
     mockDumpYAML.mockImplementation(() => dumpedYaml);
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(mockWriteFileSync).not.toHaveBeenCalled();
   });
@@ -499,7 +476,7 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockImplementation(async () => [enriched]);
     mockDumpYAML.mockImplementation(() => "new-yaml\n");
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(mockWriteFileSync).toHaveBeenCalled();
     const callArgs = mockWriteFileSync.mock.calls[0];
@@ -515,7 +492,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // path.relative("/workspace", "/workspace/documentation/symbols.yaml") => "documentation/symbols.yaml"
     expect(messages[0]).toContain("documentation/symbols.yaml");
@@ -533,7 +510,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // Should not throw; processes all entries
     expect(messages.length).toBe(1);
@@ -549,7 +526,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // The enriched[i] is undefined, so it falls back to previous
     // Entry has sourceFile, is eligible, and hasAllGeneratedCoordinates is true → unchanged
@@ -570,7 +547,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // Coordinates changed (sourceLine 10→99) → refreshed=1
     expect(messages[0]).toContain("refreshed=1");
@@ -593,7 +570,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // sourceFile undefined → not eligible → unchanged
     expect(messages[0]).toContain("unchanged=1");
@@ -626,7 +603,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages[0]).toContain("refreshed=1");
     expect(messages[0]).toContain("unchanged=1");
@@ -641,7 +618,7 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockImplementation(async (e) => e);
     mockDumpYAML.mockImplementation(() => "dumped\n");
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(mockDumpYAML).toHaveBeenCalled();
     const callArgs = mockDumpYAML.mock.calls[0];
@@ -658,7 +635,7 @@ describe("refreshManifestCoordinates", () => {
     mockEnrichSymbolCoordinates.mockImplementation(async () => [enriched]);
     mockDumpYAML.mockImplementation(() => "yaml-output\n");
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(mockWriteFileSync).toHaveBeenCalled();
     const callArgs = mockWriteFileSync.mock.calls[0];
@@ -677,7 +654,7 @@ describe("refreshManifestCoordinates", () => {
     );
     const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(messages[0]).toContain(
@@ -692,7 +669,7 @@ describe("refreshManifestCoordinates", () => {
     mockParseYAML.mockImplementation(() => ["not", "an", "object"]);
     const { messages, restore } = captureWarn();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     expect(messages.length).toBe(1);
     expect(messages[0]).toContain(
@@ -718,7 +695,7 @@ describe("refreshManifestCoordinates", () => {
 
     const { messages, restore } = captureLog();
 
-    await refreshManifestCoordinates(manifestPath, workspaceRoot);
+    await refreshManifestCoordinates(manifestPath, workspaceRoot, manifestDeps());
 
     // File doesn't exist → not eligible → unchanged
     expect(messages[0]).toContain("unchanged=1");
@@ -728,13 +705,3 @@ describe("refreshManifestCoordinates", () => {
 });
 
 // --- Cleanup ---
-
-afterAll(() => {
-  mock.module("node:fs", () => actualFs);
-  mock.module("js-yaml", () => actualYaml);
-  mock.module(
-    "../../../src/extractors/symbols-coordinator.js",
-    () => actualSymbolsCoordinator,
-  );
-  mock.restore();
-});
