@@ -19,7 +19,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv from "ajv";
-import matter from "gray-matter";
+import { load as yamlLoad } from "js-yaml";
 import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
@@ -92,6 +92,20 @@ export interface ExtractionResult {
   relationships: ExtractedRelationship[];
 }
 
+type FrontmatterData = Record<string, unknown> &
+  Partial<
+    Omit<
+      ExtractedEntity,
+      "created_at" | "updated_at" | "valid_from" | "valid_to"
+    >
+  > & {
+    created_at?: string | Date;
+    updated_at?: string | Date;
+    valid_from?: string | Date;
+    valid_to?: string | Date;
+    links?: Array<string | { type: string; target: string }>;
+  };
+
 const DEFAULT_STATUS_BY_TYPE: Record<string, string> = {
   req: "open",
   scenario: "draft",
@@ -134,6 +148,46 @@ export class FrontmatterError extends Error {
     }
     return msg;
   }
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseFrontmatter(content: string): {
+  data: FrontmatterData;
+  content: string;
+} {
+  const trimmedStart = content.trimStart();
+
+  if (!trimmedStart.startsWith("---")) {
+    return { data: {}, content };
+  }
+
+  const parts = trimmedStart.split("---");
+  if (parts.length < 3) {
+    return { data: {}, content };
+  }
+
+  const parsed = yamlLoad(parts[1]);
+
+  return {
+    data: isObjectRecord(parsed) ? (parsed as FrontmatterData) : {},
+    content: parts.slice(2).join("---"),
+  };
+}
+
+function hasLikelyUnquotedColonInTitle(content: string): boolean {
+  if (!content.trim().startsWith("---")) {
+    return false;
+  }
+
+  const parts = content.split("---");
+  if (parts.length < 2) {
+    return false;
+  }
+
+  return /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(parts[1]);
 }
 
 export function detectEmbeddedEntities(
@@ -193,7 +247,7 @@ function extractFromMarkdownContent(
   filePath: string,
 ): ExtractionResult {
   try {
-    const { data } = matter(content);
+    const { data } = parseFrontmatter(content);
 
     if (content.trim().startsWith("---")) {
       const parts = content.split("---");
@@ -363,8 +417,9 @@ function extractFromMarkdownContent(
       let hint = "Check the YAML syntax in your frontmatter.";
 
       if (
-        message.includes("incomplete explicit mapping pair") &&
-        message.includes(":")
+        (message.includes("incomplete explicit mapping pair") &&
+          message.includes(":")) ||
+        hasLikelyUnquotedColonInTitle(content)
       ) {
         classification = "Unquoted colon likely in title";
         hint =
