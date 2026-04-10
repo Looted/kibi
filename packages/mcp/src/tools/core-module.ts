@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import path from "node:path";
 import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 import { escapeAtomContent } from "kibi-cli/prolog/codec";
@@ -15,29 +14,19 @@ type PrologQueryLike = {
 export function resolveCorePlPath(fileName: string): string {
   const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
   const override = process.env[envKey];
-  if (override && existsSync(override)) {
+  if (override) {
     return override;
   }
 
   // Fall back to the generic KB_PL override so test fixtures
   // (which set only KIBI_KB_PL_PATH) can still resolve sibling modules.
   const genericOverride = process.env.KIBI_KB_PL_PATH;
-  if (genericOverride && existsSync(genericOverride)) {
-    const sibling = path.join(path.dirname(genericOverride), fileName);
-    if (existsSync(sibling)) {
-      return sibling;
-    }
+  if (genericOverride) {
+    return path.join(path.dirname(genericOverride), fileName);
   }
 
   const kbPlPath = resolveKbPlPath();
-  const sibling = path.join(path.dirname(kbPlPath), fileName);
-  if (existsSync(sibling)) {
-    return sibling;
-  }
-
-  throw new Error(
-    `Root-consistency error: resolveKbPlPath() resolved to '${kbPlPath}' but sibling '${fileName}' not found at '${sibling}'`,
-  );
+  return path.join(path.dirname(kbPlPath), fileName);
 }
 
 // implements REQ-002, REQ-013

@@ -24,48 +24,39 @@ import { fileURLToPath } from "node:url";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
-// Derive the monorepo root from the module location.
-// This is more reliable than process.cwd() in Docker/CI where the
-// working directory may differ from the repo checkout location.
-const importMetaRoot = path.resolve(importMetaDir, "..", "..", "..");
-
 const require = createRequire(import.meta.url);
-
 export function resolveKbPlPath(): string {
   // implements REQ-009
   const overrideKbPath = process.env.KIBI_KB_PL_PATH;
-  if (overrideKbPath && existsSync(overrideKbPath)) {
+  if (overrideKbPath) {
     return overrideKbPath;
   }
 
+  // Strategy 1: Resolve kibi-core package and derive the source file path.
+  // This works in npm workspaces where kibi-core is a direct dependency of kibi-cli.
   try {
-    const installedKbPl = require.resolve("kibi-core/src/kb.pl");
-    if (existsSync(installedKbPl)) return installedKbPl;
+    try {
+      // First try: resolve as a file within the package
+      return require.resolve("kibi-core/src/kb.pl");
+    } catch {
+      // Fall back: resolve package entry point and derive path
+      const coreMain = require.resolve("kibi-core");
+      const coreDir = path.dirname(coreMain);
+      return path.join(coreDir, "src", "kb.pl");
+    }
   } catch {
-    // require.resolve not available or package not installed
+    // Both resolution strategies failed
   }
 
-  const startDirs = [importMetaRoot, importMetaDir];
-  for (const startDir of startDirs) {
-    let currentDir = path.resolve(startDir);
-    while (true) {
-      const candidate = path.join(
-        currentDir,
-        "packages",
-        "core",
-        "src",
-        "kb.pl",
-      );
-      if (existsSync(candidate)) {
-        return candidate;
-      }
-
-      const parentDir = path.dirname(currentDir);
-      if (parentDir === currentDir) {
-        break;
-      }
-      currentDir = parentDir;
+  // Strategy 2: Walk up from importMetaDir looking for packages/core/src/kb.pl.
+  // This works when running from the source tree (e.g., during development).
+  let currentDir = importMetaDir;
+  while (currentDir !== path.dirname(currentDir)) {
+    const candidate = path.join(currentDir, "packages", "core", "src", "kb.pl");
+    if (existsSync(candidate)) {
+      return candidate;
     }
+    currentDir = path.dirname(currentDir);
   }
 
   throw new Error(
