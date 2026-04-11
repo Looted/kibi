@@ -678,8 +678,6 @@ const kibiOpencodePlugin: Plugin = async (
       } else {
         recentCommentSuggestion = null;
       }
-
-      return;
     }
 
     return;

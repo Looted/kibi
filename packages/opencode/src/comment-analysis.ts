@@ -109,13 +109,6 @@ function extractJsTsComments(
 }
 
 /**
- * Check if a line is an assignment (x = y), which would disqualify a triple-quoted string from being a docstring.
- */
-function isAssignment(line: string): boolean {
-  return /^\s*\w+\s*=\s*["']/.test(line);
-}
-
-/**
  * Check if a line starts a class or function definition.
  */
 function isClassOrDef(line: string): boolean {
@@ -248,25 +241,6 @@ function extractPythonComments(
       trimmed.startsWith('"""') || trimmed.startsWith("'''");
 
     if (isTripleQuote) {
-      // Skip if it's an assignment (x = """...""")
-      if (isAssignment(line)) {
-        // Track that we've seen a significant non-docstring statement
-        if (!foundModuleDocstring && !insideClassOrDef) {
-          foundModuleDocstring = true;
-        }
-        if (insideClassOrDef && !foundClassDocstring) {
-          foundClassDocstring = true;
-        }
-        // Skip to end of string
-        const quote = trimmed.startsWith('"""') ? '"""' : "'''";
-        i++;
-        while (i < lines.length && !lines[i].includes(quote)) {
-          i++;
-        }
-        i++;
-        continue;
-      }
-
       const quote = trimmed.startsWith('"""') ? '"""' : "'''";
 
       // Check if this is a valid docstring position
@@ -294,13 +268,6 @@ function extractPythonComments(
         }
       }
 
-      // Not a docstring - mark as significant and skip it
-      if (!foundModuleDocstring && !insideClassOrDef) {
-        foundModuleDocstring = true;
-      }
-      if (insideClassOrDef && !foundClassDocstring) {
-        foundClassDocstring = true;
-      }
       // Find the closing quote
       i++;
       while (i < lines.length && !lines[i].includes(quote)) {

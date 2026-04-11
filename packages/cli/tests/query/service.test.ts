@@ -22,10 +22,10 @@ const parseEntityFromBindingMock = mock((value: string) => {
 });
 
 mock.module("../../src/prolog/codec.js", () => ({
-escapeAtom: escapeAtomMock,
-parseEntityFromBinding: parseEntityFromBindingMock,
-parseEntityFromList: parseEntityFromListMock,
-parseListOfLists: parseListOfListsMock,
+  escapeAtom: escapeAtomMock,
+  parseEntityFromBinding: parseEntityFromBindingMock,
+  parseEntityFromList: parseEntityFromListMock,
+  parseListOfLists: parseListOfListsMock,
   toPrologAtom: (value: string) => {
     const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
     return simplePrologAtom.test(value)

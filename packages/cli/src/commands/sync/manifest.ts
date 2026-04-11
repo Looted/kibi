@@ -24,6 +24,27 @@ import {
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
 
+interface ManifestDeps {
+  dumpYAML: typeof dumpYAML;
+  enrichSymbolCoordinates: typeof enrichSymbolCoordinates;
+  existsSync: typeof existsSync;
+  parseYAML: typeof parseYAML;
+  readFileSync: typeof readFileSync;
+  writeFileSync: typeof writeFileSync;
+}
+
+function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
+  return {
+    dumpYAML,
+    enrichSymbolCoordinates,
+    existsSync,
+    parseYAML,
+    readFileSync,
+    writeFileSync,
+    ...overrides,
+  };
+}
+
 const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
@@ -52,11 +73,14 @@ const GENERATED_COORD_FIELDS = [
 ] as const;
 
 export async function refreshManifestCoordinates(
+  // implements REQ-003
   manifestPath: string,
   workspaceRoot: string,
+  deps?: Partial<ManifestDeps>,
 ): Promise<void> {
-  const rawContent = readFileSync(manifestPath, "utf8");
-  const parsed = parseYAML(rawContent);
+  const resolved = resolveDeps(deps);
+  const rawContent = resolved.readFileSync(manifestPath, "utf8");
+  const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
     console.warn(
@@ -78,7 +102,10 @@ export async function refreshManifestCoordinates(
       ? ({ ...entry } as ManifestSymbolEntry)
       : ({} as ManifestSymbolEntry),
   );
-  const enriched = await enrichSymbolCoordinates(before, workspaceRoot);
+  const enriched = await resolved.enrichSymbolCoordinates(
+    before,
+    workspaceRoot,
+  );
   parsed.symbols = enriched;
 
   let refreshed = 0;
@@ -104,6 +131,7 @@ export async function refreshManifestCoordinates(
           ? previous.sourceFile
           : undefined,
       workspaceRoot,
+      resolved,
     );
 
     if (eligible && !hasAllGeneratedCoordinates(current)) {
@@ -113,7 +141,7 @@ export async function refreshManifestCoordinates(
     }
   }
 
-  const dumped = dumpYAML(parsed, {
+  const dumped = resolved.dumpYAML(parsed, {
     lineWidth: -1,
     noRefs: true,
     sortKeys: false,
@@ -121,7 +149,7 @@ export async function refreshManifestCoordinates(
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
   if (rawContent !== nextContent) {
-    writeFileSync(manifestPath, nextContent, "utf8");
+    resolved.writeFileSync(manifestPath, nextContent, "utf8");
   }
 
   console.log(
@@ -130,6 +158,7 @@ export async function refreshManifestCoordinates(
 }
 
 export function hasAllGeneratedCoordinates(
+  // implements REQ-003
   entry: ManifestSymbolEntry,
 ): boolean {
   return (
@@ -143,15 +172,18 @@ export function hasAllGeneratedCoordinates(
 }
 
 export function isEligibleForCoordinateRefresh(
+  // implements REQ-003
   sourceFile: string | undefined,
   workspaceRoot: string,
+  deps?: Partial<ManifestDeps>,
 ): boolean {
+  const resolved = resolveDeps(deps);
   if (!sourceFile) return false;
   const absolute = path.isAbsolute(sourceFile)
     ? sourceFile
     : path.resolve(workspaceRoot, sourceFile);
 
-  if (!existsSync(absolute)) return false;
+  if (!resolved.existsSync(absolute)) return false;
   const ext = path.extname(absolute).toLowerCase();
   return SYMBOL_COORD_EXTENSIONS.has(ext);
 }

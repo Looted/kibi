@@ -30,7 +30,7 @@ export interface ExtractionOutput {
   errors: { file: string; message: string }[];
 }
 
-export async function processExtractions(
+export async function processExtractions( // implements REQ-003
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,
@@ -50,15 +50,7 @@ export async function processExtractions(
         error instanceof FrontmatterError &&
         error.classification === "Embedded Entity Violation"
       ) {
-        const embeddedTypes =
-          message.includes("scenario") && message.includes("test")
-            ? ["scenario", "test"]
-            : message.includes("scenario")
-              ? ["scenario"]
-              : message.includes("test")
-                ? ["test"]
-                : ["entity"];
-        // Note: diagnostics are created by the caller
+        // Note: diagnostics with embeddedTypes are created by the caller (sync.ts)
       }
 
       if (validateOnly) {

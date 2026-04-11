@@ -15,9 +15,9 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { z } from "zod";
 import {
   DIAGNOSTIC_MODE_ENABLED,
@@ -35,21 +35,12 @@ import { type QueryArgs, handleKbQuery } from "../tools/query.js";
 import { type SearchArgs, handleKbSearch } from "../tools/search.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
-import {
-  activeBranchName,
-  ensureProlog,
-  inFlightRequests,
-  isShuttingDown,
-  prologProcess,
-} from "./session.js";
 
 export interface ToolConfig {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
 }
-
-const ACTIVE_TOOLS = TOOLS as unknown as ToolConfig[];
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<unknown>;
 
@@ -59,12 +50,91 @@ type ToolHandlerArgs = Record<string, unknown> & {
 
 type JsonPrimitive = string | number | boolean | null;
 
+type Awaitable<T> = T | Promise<T>;
+type DefaultRuntimeProlog = PrologProcess;
+type SessionModule = typeof import("./session.js");
+
+interface ToolsServerDeps {
+  getSessionModule: () => Promise<SessionModule>;
+}
+
+const defaultToolsServerDeps: ToolsServerDeps = {
+  getSessionModule: () => import("./session.js"),
+};
+
+// implements REQ-008
+export function _setToolsServerDepsForTests(deps: Partial<ToolsServerDeps>, resetPromise = false): void {
+  defaultToolsServerDeps.getSessionModule = deps.getSessionModule ?? defaultToolsServerDeps.getSessionModule;
+  if (resetPromise) {
+    sessionModulePromise = null;
+  }
+}
+
+// implements REQ-012
+export function _resetSessionModulePromise(): void {
+  sessionModulePromise = null;
+}
+
+let sessionModulePromise: Promise<SessionModule> | null = null;
+/* v8 ignore next (3 lines) — lazy async module loader; body only executes once per process
+ * when DEFAULT_TOOLS_RUNTIME.activeBranchName/ensureProlog/etc. are first called.
+ * Cannot be re-triggered without process restart (sessionModulePromise is module-level). */
+async function getSessionModule(): Promise<SessionModule> {
+  sessionModulePromise ??= defaultToolsServerDeps.getSessionModule();
+  return sessionModulePromise;
+}
+export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
+  diagnosticModeEnabled: () => boolean;
+  appendUsageLogLine: typeof appendUsageLogLine;
+  deriveDiagnosticFields: typeof deriveDiagnosticFields;
+  extractToolCallPayload: typeof extractToolCallPayload;
+  tools: ToolConfig[];
+  activeBranchName: () => Awaitable<string>;
+  ensureProlog: () => Promise<TProlog>;
+  inFlightRequests: () => Awaitable<Map<string, Promise<unknown>>>;
+  isShuttingDown: () => Awaitable<boolean>;
+  prologProcess: () => Awaitable<{ getPid: () => number } | null>;
+  handleKbCheck: (prolog: TProlog, args: CheckArgs) => Promise<unknown>;
+  handleKbCoverage: (prolog: TProlog, args: CoverageArgs) => Promise<unknown>;
+  handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
+  handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
+  handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
+  handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
+  handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
+  handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
+  handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
+}
+
+const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
+  diagnosticModeEnabled: () => DIAGNOSTIC_MODE_ENABLED,
+  appendUsageLogLine,
+  deriveDiagnosticFields,
+  extractToolCallPayload,
+  tools: TOOLS as unknown as ToolConfig[],
+  activeBranchName: async () => (await getSessionModule()).activeBranchName,
+  ensureProlog: async () => (await getSessionModule()).ensureProlog(),
+  inFlightRequests: async () => (await getSessionModule()).inFlightRequests,
+  isShuttingDown: async () => (await getSessionModule()).isShuttingDown,
+  prologProcess: async () => (await getSessionModule()).prologProcess,
+  handleKbCheck,
+  handleKbCoverage,
+  handleKbDelete,
+  handleKbFindGaps,
+  handleKbGraph,
+  handleKbQuery,
+  handleKbSearch,
+  handleKbStatus,
+  handleKbUpsert,
+};
+
+// implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
     console.error(...args);
   }
 }
 
+// implements REQ-002
 export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   if (!schema || typeof schema !== "object") {
     return z.any();
@@ -121,10 +191,10 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
         shape[key] = required.has(key) ? propSchema : propSchema.optional();
       }
 
-      let objectSchema = z.object(shape);
-      if (obj.additionalProperties !== false) {
-        objectSchema = objectSchema.passthrough();
-      }
+      const objectSchema =
+        obj.additionalProperties === false
+          ? z.object(shape)
+          : z.looseObject(shape);
       const description =
         typeof obj.description === "string" ? obj.description : undefined;
       return description ? objectSchema.describe(description) : objectSchema;
@@ -193,18 +263,20 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
   }
 }
 
-function addTool(
+// implements REQ-002
+export function addTool<TProlog>(
   server: McpServer,
   name: string,
   description: string,
   inputSchema: object,
   handler: ToolHandler,
+  runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
     const startedAt = new Date();
-    // Extract telemetry in diagnostic mode
-    const { businessArgs, telemetry } = DIAGNOSTIC_MODE_ENABLED
-      ? extractToolCallPayload(args)
+    const diagnosticModeEnabled = runtime.diagnosticModeEnabled();
+    const { businessArgs, telemetry } = diagnosticModeEnabled
+      ? runtime.extractToolCallPayload(args)
       : { businessArgs: args, telemetry: null };
 
     try {
@@ -216,7 +288,7 @@ function addTool(
       }
 
       // Check if shutting down before processing
-      if (isShuttingDown) {
+      if (await runtime.isShuttingDown()) {
         throw new Error(`Tool ${name} rejected: server is shutting down`);
       }
 
@@ -236,23 +308,26 @@ function addTool(
       }
 
       // Track the handler promise in inFlightRequests Map
+      const trackedRequests = await runtime.inFlightRequests();
       const handlerPromise = handler(businessArgs);
-      inFlightRequests.set(requestId, handlerPromise);
+      trackedRequests.set(requestId, handlerPromise);
 
       try {
         // Execute handler
         const result = await handlerPromise;
 
         // Log usage in diagnostic mode
-        if (DIAGNOSTIC_MODE_ENABLED) {
+        if (diagnosticModeEnabled) {
           const finishedAt = new Date();
-          const diagnosticFields = deriveDiagnosticFields(
+          const diagnosticFields = runtime.deriveDiagnosticFields(
             name,
             businessArgs,
             telemetry,
             result,
           );
-          appendUsageLogLine({
+          const processHandle = await runtime.prologProcess();
+          const branchName = await runtime.activeBranchName();
+          runtime.appendUsageLogLine({
             timestamp: finishedAt.toISOString(),
             request_id: requestId,
             tool: name,
@@ -262,8 +337,8 @@ function addTool(
             started_at: startedAt.toISOString(),
             finished_at: finishedAt.toISOString(),
             duration_ms: finishedAt.getTime() - startedAt.getTime(),
-            prolog_pid: prologProcess?.getPid() ?? null,
-            active_branch: activeBranchName,
+            prolog_pid: processHandle?.getPid() ?? null,
+            active_branch: branchName,
             ...diagnosticFields,
           });
         }
@@ -271,10 +346,12 @@ function addTool(
         return result;
       } catch (error) {
         // Log error in diagnostic mode
-        if (DIAGNOSTIC_MODE_ENABLED) {
+        if (diagnosticModeEnabled) {
           const finishedAt = new Date();
           const err = error instanceof Error ? error : new Error(String(error));
-          appendUsageLogLine({
+          const processHandle = await runtime.prologProcess();
+          const branchName = await runtime.activeBranchName();
+          runtime.appendUsageLogLine({
             timestamp: finishedAt.toISOString(),
             request_id: requestId,
             tool: name,
@@ -284,15 +361,15 @@ function addTool(
             started_at: startedAt.toISOString(),
             finished_at: finishedAt.toISOString(),
             duration_ms: finishedAt.getTime() - startedAt.getTime(),
-            prolog_pid: prologProcess?.getPid() ?? null,
-            active_branch: activeBranchName,
+            prolog_pid: processHandle?.getPid() ?? null,
+            active_branch: branchName,
             error_message: err.message,
           });
         }
         throw error;
       } finally {
         // Always clean up from Map when done (success or failure)
-        inFlightRequests.delete(requestId);
+        trackedRequests.delete(requestId);
       }
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error));
@@ -320,9 +397,12 @@ function addTool(
 }
 
 // implements REQ-002, REQ-013
-export function registerAllTools(server: McpServer): void {
+export function registerAllTools<TProlog>(
+  server: McpServer,
+  runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
+): void {
   const toolDef = (name: string) => {
-    const t = ACTIVE_TOOLS.find((t) => t.name === name);
+    const t = runtime.tools.find((tool) => tool.name === name);
     if (!t) throw new Error(`Unknown tool: ${name}`);
     return t;
   };
@@ -333,9 +413,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_query").description,
     toolDef("kb_query").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbQuery(prolog, args as QueryArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbQuery(prolog, args as QueryArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -344,9 +425,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_search").description,
     toolDef("kb_search").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbSearch(prolog, args as unknown as SearchArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbSearch(prolog, args as unknown as SearchArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -355,9 +437,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_status").description,
     toolDef("kb_status").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbStatus(prolog, args as StatusArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbStatus(prolog, args as StatusArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -366,9 +449,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_find_gaps").description,
     toolDef("kb_find_gaps").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbFindGaps(prolog, args as FindGapsArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbFindGaps(prolog, args as FindGapsArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -377,9 +461,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_coverage").description,
     toolDef("kb_coverage").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbCoverage(prolog, args as CoverageArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbCoverage(prolog, args as CoverageArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -388,9 +473,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_graph").description,
     toolDef("kb_graph").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbGraph(prolog, args as unknown as GraphArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbGraph(prolog, args as unknown as GraphArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -399,9 +485,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_upsert").description,
     toolDef("kb_upsert").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbUpsert(prolog, args as unknown as UpsertArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbUpsert(prolog, args as unknown as UpsertArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -410,9 +497,10 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_delete").description,
     toolDef("kb_delete").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbDelete(prolog, args as unknown as DeleteArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbDelete(prolog, args as unknown as DeleteArgs);
     },
+    runtime,
   );
 
   addTool(
@@ -421,8 +509,9 @@ export function registerAllTools(server: McpServer): void {
     toolDef("kb_check").description,
     toolDef("kb_check").inputSchema,
     async (args) => {
-      const prolog = await ensureProlog();
-      return handleKbCheck(prolog, args as CheckArgs);
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbCheck(prolog, args as CheckArgs);
     },
+    runtime,
   );
 }

@@ -1,6 +1,25 @@
+/*
+ * Kibi — repo-local, per-branch, queryable long-term memory for software projects
+ * Copyright (C) 2026 Piotr Franczyk
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -9,7 +28,7 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import * as os from "node:os";
+import { tmpdir } from "node:os";
 import * as path from "node:path";
 import {
   copySchemaFiles,
@@ -17,14 +36,15 @@ import {
   createKbDirectoryStructure,
   getCurrentBranch,
   installGitHooks,
+  installHook,
   updateGitIgnore,
-} from "../../src/commands/init-helpers";
+} from "../../src/commands/init-helpers.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-init-helpers-"));
+    tmpDir = mkdtempSync(path.join(tmpdir(), "kibi-test-init-helpers-"));
   });
 
   afterEach(() => {
@@ -35,7 +55,6 @@ describe("init-helpers", () => {
 
   test("getCurrentBranch returns current branch", async () => {
     execSync("git init", { cwd: tmpDir });
-    // Make sure we have a commit so HEAD is valid for some git versions
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
     execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
@@ -46,16 +65,20 @@ describe("init-helpers", () => {
   });
 
   test("getCurrentBranch throws error if git fails and KIBI_BRANCH not set", async () => {
-    // No git init here
-    await expect(getCurrentBranch(tmpDir)).rejects.toThrow(
-      "Failed to resolve active branch",
-    );
+    try {
+      await getCurrentBranch(tmpDir);
+      throw new Error("Expected getCurrentBranch to throw");
+    } catch (error) {
+      expect((error as Error).message).toContain(
+        "Failed to resolve active branch",
+      );
+    }
   });
 
   test("getCurrentBranch uses KIBI_BRANCH when git fails", async () => {
-    // No git init here
     const originalBranch = process.env.KIBI_BRANCH;
     process.env.KIBI_BRANCH = "custom-branch";
+
     try {
       const branch = await getCurrentBranch(tmpDir);
       expect(branch).toBe("custom-branch");
@@ -66,6 +89,7 @@ describe("init-helpers", () => {
 
   test("createKbDirectoryStructure creates expected directories", () => {
     const kbDir = path.join(tmpDir, ".kb");
+
     createKbDirectoryStructure(kbDir, "my-branch");
 
     expect(existsSync(kbDir)).toBe(true);
@@ -77,20 +101,23 @@ describe("init-helpers", () => {
   test("createConfigFile creates valid config.json", () => {
     const kbDir = path.join(tmpDir, ".kb");
     mkdirSync(kbDir);
+
     createConfigFile(kbDir);
 
     const configPath = path.join(kbDir, "config.json");
     expect(existsSync(configPath)).toBe(true);
-    const config = JSON.parse(readFileSync(configPath, "utf-8"));
+
+    const config = JSON.parse(readFileSync(configPath, "utf8"));
     expect(config.paths).toBeDefined();
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 
   test("updateGitIgnore adds .kb/", () => {
     updateGitIgnore(tmpDir);
+
     const gitignorePath = path.join(tmpDir, ".gitignore");
     expect(existsSync(gitignorePath)).toBe(true);
-    expect(readFileSync(gitignorePath, "utf-8")).toContain(".kb/");
+    expect(readFileSync(gitignorePath, "utf8")).toContain(".kb/");
   });
 
   test("updateGitIgnore appends to existing .gitignore", () => {
@@ -99,7 +126,7 @@ describe("init-helpers", () => {
 
     updateGitIgnore(tmpDir);
 
-    const content = readFileSync(gitignorePath, "utf-8");
+    const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain("node_modules/");
     expect(content).toContain(".kb/");
   });
@@ -120,6 +147,68 @@ describe("init-helpers", () => {
     expect(existsSync(path.join(kbDir, "schema/other.txt"))).toBe(false);
   });
 
+  describe("installHook", () => {
+    test("creates a new hook with a shebang, kibi section, and executable permissions", () => {
+      const hookPath = path.join(tmpDir, "pre-commit");
+      const hookContent = 'echo "kibi check --staged"';
+
+      installHook(hookPath, hookContent);
+
+      expect(existsSync(hookPath)).toBe(true);
+      expect(readFileSync(hookPath, "utf8")).toBe(
+        `#!/bin/sh\n# BEGIN kibi-managed\n${hookContent}\n# END kibi-managed\n`,
+      );
+      expect(statSync(hookPath).mode & 0o111).not.toBe(0);
+    });
+
+    test("replaces only the kibi-managed section and preserves regex-special user content", () => {
+      const hookPath = path.join(tmpDir, "post-checkout");
+      const userPrelude =
+        "#!/bin/sh\n# user content (a+b)? [keep] {safe} ^$ .*\n";
+      const oldKibiSection =
+        '# BEGIN kibi-managed\necho "old [kibi] (hook) .* + ? ^ $"\n# END kibi-managed';
+      const userSuffix = '\necho "tail .* + ? ^ $ [ ] ( ) | \\\\ /"\n';
+      const newHookContent = 'echo "new (kibi) [hook] .* + ? ^ $ | \\\\ /"';
+
+      writeFileSync(hookPath, `${userPrelude}${oldKibiSection}${userSuffix}`);
+
+      installHook(hookPath, newHookContent);
+
+      expect(readFileSync(hookPath, "utf8")).toBe(
+        `${userPrelude}# BEGIN kibi-managed\n${newHookContent}\n# END kibi-managed${userSuffix}`,
+      );
+      expect(readFileSync(hookPath, "utf8")).not.toContain("old [kibi] (hook)");
+      expect(statSync(hookPath).mode & 0o111).not.toBe(0);
+    });
+
+    test("leaves a legacy non-kibi hook untouched", () => {
+      const hookPath = path.join(tmpDir, "post-merge");
+      const legacyHook = '#!/bin/sh\necho "user hook"\n';
+
+      writeFileSync(hookPath, legacyHook);
+      chmodSync(hookPath, 0o755);
+
+      installHook(hookPath, 'echo "kibi sync"');
+
+      expect(readFileSync(hookPath, "utf8")).toBe(legacyHook);
+      expect(statSync(hookPath).mode & 0o111).not.toBe(0);
+    });
+
+    test("appends a kibi section with a shebang to an existing empty hook file", () => {
+      const hookPath = path.join(tmpDir, "post-rewrite");
+      const hookContent = 'echo "kibi sync"';
+
+      writeFileSync(hookPath, "");
+
+      installHook(hookPath, hookContent);
+
+      expect(readFileSync(hookPath, "utf8")).toBe(
+        `#!/bin/sh\n\n# BEGIN kibi-managed\n${hookContent}\n# END kibi-managed\n`,
+      );
+      expect(statSync(hookPath).mode & 0o111).not.toBe(0);
+    });
+  });
+
   test("installGitHooks creates hooks", () => {
     const gitDir = path.join(tmpDir, ".git");
     mkdirSync(gitDir);
@@ -131,72 +220,13 @@ describe("init-helpers", () => {
     expect(existsSync(path.join(hooksDir, "post-checkout"))).toBe(true);
     expect(existsSync(path.join(hooksDir, "post-merge"))).toBe(true);
 
-    // check executable bit
     const stats = statSync(path.join(hooksDir, "pre-commit"));
     expect(stats.mode & 0o111).not.toBe(0);
 
-    // Verify the post-checkout hook contains the correct literal-caret sed expression.
-    // A JavaScript template-literal escape bug (\\^ vs \^) previously caused the
-    // old_branch extraction to silently produce an empty string, meaning --from was
-    // never forwarded to `kibi branch ensure` and every new branch got an empty KB.
     const postCheckoutContent = readFileSync(
       path.join(hooksDir, "post-checkout"),
-      "utf-8",
+      "utf8",
     );
     expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
   });
 });
-// Test escapeRegex functionality used by installHook
-  test("escapeRegex escapes special regex characters", () => {
-    // The escapeRegex function is used internally by installHook
-    // to create the regex pattern for replacing kibi-managed sections
-    const testCases = [
-      { input: ".", expected: "\\." },
-      { input: "*", expected: "\\*" },
-      { input: "+", expected: "\\+" },
-      { input: "?", expected: "\\?" },
-      { input: "^", expected: "\\^" },
-      { input: "$", expected: "\\$" },
-      { input: "{", expected: "\\{" },
-      { input: "}", expected: "\\}" },
-      { input: "(", expected: "\\(" },
-      { input: ")", expected: "\\)" },
-      { input: "|", expected: "\\|" },
-      { input: "[", expected: "\\[" },
-      { input: "]", expected: "\\]" },
-      { input: "\\", expected: "\\\\" },
-    ];
-
-    // Re-implement the escapeRegex function for testing
-    const escapeRegex = (s: string): string => {
-      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    };
-
-    for (const { input, expected } of testCases) {
-      expect(escapeRegex(input)).toBe(expected);
-    }
-  });
-
-  test("escapeRegex handles KIBI_HOOK markers correctly", () => {
-    const escapeRegex = (s: string): string => {
-      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    };
-
-    const kibiHookBegin = "# BEGIN kibi-managed";
-    const kibiHookEnd = "# END kibi-managed";
-
-    // These should not have any regex special chars, so they pass through unchanged
-    expect(escapeRegex(kibiHookBegin)).toBe("# BEGIN kibi-managed");
-    expect(escapeRegex(kibiHookEnd)).toBe("# END kibi-managed");
-  });
-
-  test("escapeRegex handles complex patterns", () => {
-    const escapeRegex = (s: string): string => {
-      return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    };
-
-    expect(escapeRegex("(hello|world)")).toBe("\\(hello\\|world\\)");
-    expect(escapeRegex("[a-z]")).toBe("\\[a-z\\]");
-    expect(escapeRegex("^start$")).toBe("\\^start\\$");
-    expect(escapeRegex("path\\to\\file")).toBe("path\\\\to\\\\file");
-  });

@@ -10,6 +10,9 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  branchErrorToDiagnostic,
+  createDocsNotIndexedDiagnostic,
+  createInvalidAuthoringDiagnostic,
   createKbMissingDiagnostic,
   formatDiagnosticsForMcp,
   formatSyncSummary,
@@ -43,6 +46,76 @@ describe("formatSyncSummary", () => {
     expect(result).toContain("5");
     expect(result).toContain("10");
   });
+});
+
+test("formats summary with commit", () => {
+  const result = formatSyncSummary({
+    branch: "main",
+    commit: "abc1234",
+    timestamp: "2024-01-01T00:00:00Z",
+    entityCounts: { req: 1 },
+    relationshipCount: 1,
+    success: true,
+    published: true,
+    failures: [],
+  });
+  expect(result).toContain("abc1234");
+});
+
+test("formats summary with duration", () => {
+  const result = formatSyncSummary({
+    branch: "main",
+    timestamp: "2024-01-01T00:00:00Z",
+    entityCounts: {},
+    relationshipCount: 0,
+    success: true,
+    published: true,
+    failures: [],
+    durationMs: 1234,
+  });
+  expect(result).toContain("1234ms");
+});
+
+test("formats summary with failures", () => {
+  const result = formatSyncSummary({
+    branch: "main",
+    timestamp: "2024-01-01T00:00:00Z",
+    entityCounts: {},
+    relationshipCount: 0,
+    success: false,
+    published: false,
+    failures: [
+      {
+        category: "BRANCH_RESOLUTION_FAILURE" as const,
+        severity: "error" as const,
+        message: "Failed to resolve branch",
+        suggestion: "Set KIBI_BRANCH",
+      },
+    ],
+  });
+  expect(result).toContain("Failures (1)");
+  expect(result).toContain("BRANCH_RESOLUTION_FAILURE");
+  expect(result).toContain("Suggestion: Set KIBI_BRANCH");
+});
+
+test("formats failure with file", () => {
+  const result = formatSyncSummary({
+    branch: "main",
+    timestamp: "2024-01-01T00:00:00Z",
+    entityCounts: {},
+    relationshipCount: 0,
+    success: false,
+    published: false,
+    failures: [
+      {
+        category: "EXTRACTION_ERROR" as const,
+        severity: "warning" as const,
+        message: "Parse error",
+        file: "docs/REQ-001.md",
+      },
+    ],
+  });
+  expect(result).toContain("File: docs/REQ-001.md");
 });
 
 describe("formatDiagnosticsForMcp", () => {
@@ -103,5 +176,82 @@ describe("createKbMissingDiagnostic", () => {
     const result = createKbMissingDiagnostic("main", "/path/to/.kb");
     expect(result.suggestion).toBeTruthy();
     expect(result.suggestion?.length).toBeGreaterThan(0);
+  });
+});
+
+describe("branchErrorToDiagnostic", () => {
+  const branchErrorCodes = [
+    "DETACHED_HEAD",
+    "UNBORN_BRANCH",
+    "GIT_NOT_AVAILABLE",
+    "NOT_A_GIT_REPO",
+    "ENV_OVERRIDE",
+    "UNKNOWN_ERROR",
+  ] as const;
+
+  test("creates branch diagnostics for all error codes when branch is provided", () => {
+    for (const code of branchErrorCodes) {
+      const message = `problem for ${code}`;
+      const branch = `feature/${code.toLowerCase()}`;
+      const result = branchErrorToDiagnostic(code, message, branch);
+
+      expect(result.category).toBe("BRANCH_RESOLUTION_FAILURE");
+      expect(result.severity).toBe("error");
+      expect(result.message).toContain(message);
+      expect(result.suggestion).toContain(branch);
+    }
+  });
+
+  test("mentions KIBI_BRANCH when branch is not provided", () => {
+    for (const code of branchErrorCodes) {
+      const message = `problem for ${code}`;
+      const result = branchErrorToDiagnostic(code, message);
+
+      expect(result.category).toBe("BRANCH_RESOLUTION_FAILURE");
+      expect(result.severity).toBe("error");
+      expect(result.message).toContain(message);
+      expect(result.suggestion).toContain("KIBI_BRANCH");
+    }
+  });
+});
+
+describe("createDocsNotIndexedDiagnostic", () => {
+  test("creates warning diagnostic with counts and sync suggestion", () => {
+    const result = createDocsNotIndexedDiagnostic(12, 7);
+
+    expect(result.category).toBe("DOCS_NOT_INDEXED");
+    expect(result.severity).toBe("warning");
+    expect(result.message).toContain("12");
+    expect(result.message).toContain("7");
+    expect(result.suggestion).toContain("kibi sync --validate-only");
+  });
+});
+
+describe("createInvalidAuthoringDiagnostic", () => {
+  test("creates invalid authoring diagnostic for a single embedded type", () => {
+    const filePath = "documentation/requirements/REQ-001.md";
+    const result = createInvalidAuthoringDiagnostic(filePath, ["scenario"]);
+
+    expect(result.category).toBe("INVALID_AUTHORING");
+    expect(result.severity).toBe("error");
+    expect(result.file).toBe(filePath);
+    expect(result.message).toContain("scenario");
+    expect(result.suggestion).toContain("Move scenario");
+    expect(result.suggestion).toContain("separate entity files");
+  });
+
+  test("creates invalid authoring diagnostic for multiple embedded types", () => {
+    const filePath = "documentation/requirements/REQ-002.md";
+    const result = createInvalidAuthoringDiagnostic(filePath, [
+      "scenario",
+      "test",
+    ]);
+
+    expect(result.category).toBe("INVALID_AUTHORING");
+    expect(result.severity).toBe("error");
+    expect(result.file).toBe(filePath);
+    expect(result.message).toContain("scenario and test");
+    expect(result.suggestion).toContain("Move scenario and test");
+    expect(result.suggestion).toContain("separate entity files");
   });
 });

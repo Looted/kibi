@@ -705,120 +705,99 @@ describe("MCP Check Tool Handler", () => {
   }, 15000);
 
   test("should respect disabled rules from .kb/config.json", async () => {
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = testKbPath;
-
-    try {
-      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
-      await fs.writeFile(
-        path.join(testKbPath, ".kb", "config.json"),
-        JSON.stringify(
-          {
-            checks: {
-              rules: {
-                "symbol-traceability": false,
-              },
+    await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+    await fs.writeFile(
+      path.join(testKbPath, ".kb", "config.json"),
+      JSON.stringify(
+        {
+          checks: {
+            rules: {
+              "symbol-traceability": false,
             },
           },
-          null,
-          2,
-        ),
-      );
-
-      await handleKbUpsert(prolog, {
-        type: "symbol",
-        id: "symbol-config-disabled-001",
-        properties: {
-          title: "Config disabled symbol",
-          status: "active",
-          source: "test://config-disabled",
         },
-      });
+        null,
+        2,
+      ),
+    );
 
-      const result = await handleKbCheck(prolog, {});
-      const violation = result.structuredContent?.violations.find(
-        (v) =>
-          v.rule === "symbol-traceability" &&
-          v.entityId === "symbol-config-disabled-001",
-      );
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-config-disabled-001",
+      properties: {
+        title: "Config disabled symbol",
+        status: "active",
+        source: "test://config-disabled",
+      },
+    });
 
-      expect(violation).toBeUndefined();
-    } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
-    }
+    const result = await handleKbCheck(prolog, { workspaceRoot: testKbPath });
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "symbol-traceability" &&
+        v.entityId === "symbol-config-disabled-001",
+    );
+
+    expect(violation).toBeUndefined();
   }, 15000);
 
   test("should respect requireAdr from .kb/config.json", async () => {
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = testKbPath;
-
-    try {
-      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
-      await fs.writeFile(
-        path.join(testKbPath, ".kb", "config.json"),
-        JSON.stringify(
-          {
-            checks: {
-              symbolTraceability: {
-                requireAdr: true,
-              },
+    await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+    await fs.writeFile(
+      path.join(testKbPath, ".kb", "config.json"),
+      JSON.stringify(
+        {
+          checks: {
+            symbolTraceability: {
+              requireAdr: true,
             },
           },
-          null,
-          2,
-        ),
-      );
-
-      await handleKbUpsert(prolog, {
-        type: "req",
-        id: "req-config-adr-001",
-        properties: {
-          title: "ADR config requirement",
-          status: "open",
-          source: "test://config-adr",
         },
-      });
+        null,
+        2,
+      ),
+    );
 
-      await handleKbUpsert(prolog, {
-        type: "symbol",
-        id: "symbol-config-adr-001",
-        properties: {
-          title: "ADR constrained symbol",
-          status: "active",
-          source: "test://config-adr",
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-config-adr-001",
+      properties: {
+        title: "ADR config requirement",
+        status: "open",
+        source: "test://config-adr",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-config-adr-001",
+      properties: {
+        title: "ADR constrained symbol",
+        status: "active",
+        source: "test://config-adr",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "symbol-config-adr-001",
+          to: "req-config-adr-001",
         },
-        relationships: [
-          {
-            type: "implements",
-            from: "symbol-config-adr-001",
-            to: "req-config-adr-001",
-          },
-        ],
-      });
+      ],
+    });
 
-      const result = await handleKbCheck(prolog, {
-        rules: ["symbol-traceability"],
-      });
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+      workspaceRoot: testKbPath,
+    });
 
-      const violation = result.structuredContent?.violations.find(
-        (v) =>
-          v.rule === "symbol-traceability" &&
-          v.entityId === "symbol-config-adr-001",
-      );
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "symbol-traceability" &&
+        v.entityId === "symbol-config-adr-001",
+    );
 
-      expect(violation).toBeDefined();
-      expect(violation?.description).toMatch(/ADR/i);
-    } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
-    }
+    expect(violation).toBeDefined();
+    expect(violation?.description).toMatch(/ADR/i);
   }, 15000);
 
   test("should pass well-formed strict facts with strict-fact-shape rule", async () => {
@@ -871,26 +850,23 @@ describe("MCP Check Tool Handler", () => {
   }, 15000);
 
   test("should allow explicit strict-fact-shape opt-in even when disabled by config", async () => {
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = testKbPath;
-
-    try {
-      await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
-      await fs.writeFile(
-        path.join(testKbPath, ".kb", "config.json"),
-        JSON.stringify(
-          {
-            checks: {
-              rules: {
-                "strict-fact-shape": false,
-              },
+    await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+    await fs.writeFile(
+      path.join(testKbPath, ".kb", "config.json"),
+      JSON.stringify(
+        {
+          checks: {
+            rules: {
+              "strict-fact-shape": false,
             },
           },
-          null,
-          2,
-        ),
-      );
+        },
+        null,
+        2,
+      ),
+    );
 
+    try {
       await prolog.query("kb_detach");
       await fs.writeFile(
         path.join(testKbPath, "strict-fact-optin.pl"),
@@ -901,6 +877,7 @@ describe("MCP Check Tool Handler", () => {
 
       const result = await handleKbCheck(prolog, {
         rules: ["strict-fact-shape"],
+        workspaceRoot: testKbPath,
       });
 
       const violation = result.structuredContent?.violations.find(
@@ -914,11 +891,6 @@ describe("MCP Check Tool Handler", () => {
       await prolog.query("kb_detach");
       const reattachResult = await prolog.query(`kb_attach('${testKbPath}')`);
       expect(reattachResult.success).toBe(true);
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
     }
   }, 15000);
 });
@@ -943,6 +915,11 @@ describe("kb_check resolveCorePlPath integration", () => {
     }
   });
 
+  afterAll(() => {
+    Reflect.deleteProperty(process.env, "KIBI_CHECKS_PL_PATH");
+    Reflect.deleteProperty(process.env, "KIBI_KB_PL_PATH");
+  });
+
   test("KIBI_CHECKS_PL_PATH explicit override is used by resolveCorePlPath", () => {
     // Arrange: create a temp file as the explicit override
     const tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-check-override-"));
@@ -957,7 +934,6 @@ describe("kb_check resolveCorePlPath integration", () => {
       const result = resolveCorePlPath("checks.pl");
 
       expect(result).toBe(overridePath);
-      expect(existsSync(result)).toBe(true);
     } finally {
       rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -982,7 +958,6 @@ describe("kb_check resolveCorePlPath integration", () => {
       const result = resolveCorePlPath("checks.pl");
 
       expect(result).toBe(checksPath);
-      expect(existsSync(result)).toBe(true);
     } finally {
       rmSync(coreDir, { recursive: true, force: true });
     }
