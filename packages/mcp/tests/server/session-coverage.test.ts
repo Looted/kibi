@@ -16,15 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 
 type BranchResult = { branch: string } | { error: string };
@@ -36,21 +28,6 @@ const SESSION_MODULE_URL = new URL(
   "../../src/server/session.js",
   import.meta.url,
 ).href;
-
-const realFs = await import("node:fs");
-const _realFs = { ...realFs, default: realFs.default };
-
-const realModule = await import("node:module");
-const _realModule = { ...realModule, default: realModule.default };
-
-const realProlog = await import("kibi-cli/prolog");
-const _realProlog = { ...realProlog };
-
-const realBranchResolver = await import("kibi-cli/public/branch-resolver");
-const _realBranchResolver = { ...realBranchResolver };
-
-const realWorkspace = await import("../../src/workspace.js");
-const _realWorkspace = { ...realWorkspace };
 
 const defaults = {
   existsSync: (_path: string) => false,
@@ -197,52 +174,29 @@ function resetMocks() {
   mockPrologProcessInstance.start.mockImplementation(defaults.prologStart);
 }
 
-async function restoreRealModules() {
-  await mock.module("node:fs", () => _realFs);
-  await mock.module("node:module", () => _realModule);
-  await mock.module("kibi-cli/prolog", () => _realProlog);
-  await mock.module(
-    "kibi-cli/public/branch-resolver",
-    () => _realBranchResolver,
-  );
-  await mock.module("../workspace.js", () => _realWorkspace);
-}
-
 async function importSessionModule(tag: string) {
-  await mock.module("node:fs", () => ({
-    default: {
-      existsSync: mockExistsSync,
-      mkdirSync: mockMkdirSync,
-    },
-    existsSync: mockExistsSync,
-    mkdirSync: mockMkdirSync,
-  }));
-
-  await mock.module("node:module", () => ({
-    default: { createRequire: mockCreateRequire },
-    createRequire: mockCreateRequire,
-  }));
-
-  await mock.module("kibi-cli/prolog", () => ({
+  const session = await import(
+    `${SESSION_MODULE_URL}?case=${tag}-${Math.random()}`
+  );
+  session._resetSessionDepsForTests();
+  session._setSessionDepsForTests({
     PrologProcess: function (this: Record<string, unknown>) {
       Object.assign(this, mockPrologProcessInstance);
       return this;
-    },
-  }));
-
-  await mock.module("kibi-cli/public/branch-resolver", () => ({
+    } as unknown as typeof import("kibi-cli/prolog").PrologProcess,
     copyCleanSnapshot: mockCopyCleanSnapshot,
+    createRequire: mockCreateRequire,
+    fs: {
+      existsSync: mockExistsSync,
+      mkdirSync: mockMkdirSync,
+    },
     getBranchDiagnostic: mockGetBranchDiagnostic,
     isValidBranchName: mockIsValidBranchName,
     resolveActiveBranch: mockResolveActiveBranch,
-  }));
-
-  await mock.module("../workspace.js", () => ({
     resolveKbPath: mockResolveKbPath,
     resolveWorkspaceRoot: mockResolveWorkspaceRoot,
-  }));
-
-  return import(`${SESSION_MODULE_URL}?case=${tag}-${Math.random()}`);
+  });
+  return session;
 }
 
 function includesLog(
@@ -264,11 +218,6 @@ describe.serial("session uncovered branch coverage", () => {
   afterEach(async () => {
     restoreEnvVar("KIBI_BRANCH", originalKibiBranch);
     restoreEnvVar("KIBI_MCP_DEBUG", originalKibiMcpDebug);
-    await restoreRealModules();
-  });
-
-  afterAll(async () => {
-    await restoreRealModules();
   });
 
   test("resetSessionStateForTests clears an active shutdown timeout", async () => {
