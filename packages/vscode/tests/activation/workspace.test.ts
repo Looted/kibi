@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -56,9 +56,7 @@ beforeEach(() => {
 
 afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
-});
-
-afterAll(() => {
+  mock.module("node:fs", () => fs);
   mock.restore();
 });
 
