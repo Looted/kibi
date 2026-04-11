@@ -25,8 +25,6 @@ const stableFsModule = {
   },
 };
 
-mock.module("node:fs", () => stableFsModule);
-
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };
 let tmpDir: string;
 
