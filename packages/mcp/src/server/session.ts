@@ -28,6 +28,32 @@ import {
 } from "kibi-cli/public/branch-resolver";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 
+interface SessionDeps {
+  PrologProcess: typeof PrologProcess;
+  copyCleanSnapshot: typeof copyCleanSnapshot;
+  createRequire: typeof createRequire;
+  fs: Pick<typeof fs, "existsSync" | "mkdirSync">;
+  getBranchDiagnostic: typeof getBranchDiagnostic;
+  isValidBranchName: typeof isValidBranchName;
+  resolveActiveBranch: typeof resolveActiveBranch;
+  resolveKbPath: typeof resolveKbPath;
+  resolveWorkspaceRoot: typeof resolveWorkspaceRoot;
+}
+
+const defaultSessionDeps: SessionDeps = {
+  PrologProcess,
+  copyCleanSnapshot,
+  createRequire,
+  fs,
+  getBranchDiagnostic,
+  isValidBranchName,
+  resolveActiveBranch,
+  resolveKbPath,
+  resolveWorkspaceRoot,
+};
+
+let sessionDeps: SessionDeps = { ...defaultSessionDeps };
+
 export let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 export let activeBranchName = "develop";
@@ -50,6 +76,18 @@ export function resetSessionStateForTests(): void {
   }
 }
 
+export function _setSessionDepsForTests(
+  // implements REQ-008
+  overrides: Partial<SessionDeps>,
+): void {
+  sessionDeps = { ...sessionDeps, ...overrides };
+}
+
+export function _resetSessionDepsForTests(): void {
+  // implements REQ-008
+  sessionDeps = { ...defaultSessionDeps };
+}
+
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (process.env.KIBI_MCP_DEBUG) {
     console.error(...args);
@@ -60,26 +98,30 @@ export function ensureBranchKbExists(
   workspaceRoot: string,
   branch: string,
 ): void {
-  if (!isValidBranchName(branch)) {
+  // implements REQ-008
+  if (!sessionDeps.isValidBranchName(branch)) {
     throw new Error(`Invalid branch name: ${branch}`);
   }
 
-  const branchPath = resolveKbPath(workspaceRoot, branch);
-  if (fs.existsSync(branchPath)) {
+  const branchPath = sessionDeps.resolveKbPath(workspaceRoot, branch);
+  if (sessionDeps.fs.existsSync(branchPath)) {
     return;
   }
 
   // Try to copy from the previously active branch if available
   const previousBranch = activeBranchName;
-  const previousBranchPath = resolveKbPath(workspaceRoot, previousBranch);
+  const previousBranchPath = sessionDeps.resolveKbPath(
+    workspaceRoot,
+    previousBranch,
+  );
 
   if (
     previousBranch !== branch &&
     previousBranch !== "develop" &&
-    fs.existsSync(previousBranchPath)
+    sessionDeps.fs.existsSync(previousBranchPath)
   ) {
     // Copy from previous branch for continuity
-    copyCleanSnapshot(previousBranchPath, branchPath);
+    sessionDeps.copyCleanSnapshot(previousBranchPath, branchPath);
     debugLog(
       `[KIBI-MCP] Created branch KB for '${branch}' from '${previousBranch}'`,
     );
@@ -87,7 +129,7 @@ export function ensureBranchKbExists(
   }
 
   // No previous branch available - create empty KB
-  fs.mkdirSync(branchPath, { recursive: true });
+  sessionDeps.fs.mkdirSync(branchPath, { recursive: true });
   debugLog(`[KIBI-MCP] Created empty branch KB for '${branch}'`);
 }
 
@@ -144,7 +186,7 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
 
 // implements REQ-008
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
-  const workspaceRoot = resolveWorkspaceRoot();
+  const workspaceRoot = sessionDeps.resolveWorkspaceRoot();
 
   // Determine target branch: respect KIBI_BRANCH override or resolve from git
   const envBranch = process.env.KIBI_BRANCH?.trim();
@@ -152,16 +194,19 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   if (envBranch) {
     // KIBI_BRANCH override is set - use it without re-resolving from git
-    if (!isValidBranchName(envBranch)) {
+    if (!sessionDeps.isValidBranchName(envBranch)) {
       throw new Error(`Invalid branch name from KIBI_BRANCH: '${envBranch}'`);
     }
     targetBranch = envBranch;
   } else {
     // No override - resolve active branch from git (may change between requests)
-    const branchResult = resolveActiveBranch(workspaceRoot);
+    const branchResult = sessionDeps.resolveActiveBranch(workspaceRoot);
 
     if ("error" in branchResult) {
-      const diagnostic = getBranchDiagnostic(undefined, branchResult.error);
+      const diagnostic = sessionDeps.getBranchDiagnostic(
+        undefined,
+        branchResult.error,
+      );
       console.error(`[KIBI-MCP] ${diagnostic}`);
       throw new Error(`Failed to resolve active branch: ${branchResult.error}`);
     }
@@ -199,7 +244,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
     // Ensure new branch KB exists
     ensureBranchKbExists(workspaceRoot, targetBranch);
-    const newKbPath = resolveKbPath(workspaceRoot, targetBranch);
+    const newKbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
 
     // Attach to new branch KB
     const attachResult = await prologProcess.query(`kb_attach('${newKbPath}')`);
@@ -219,14 +264,14 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   // First initialization
   debugLog("[KIBI-MCP] Initializing Prolog process...");
 
-  prologProcess = new PrologProcess({ timeout: 120000 });
+  prologProcess = new sessionDeps.PrologProcess({ timeout: 120000 });
   await prologProcess.start();
 
   // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
   // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
   if (process.env.KIBI_MCP_DEBUG) {
     try {
-      const req = createRequire(import.meta.url);
+      const req = sessionDeps.createRequire(import.meta.url);
       try {
         const resolved = req.resolve("kibi-cli/prolog");
         debugLog(
@@ -274,7 +319,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   activeBranchName = targetBranch;
   ensureBranchKbExists(workspaceRoot, targetBranch);
-  const kbPath = resolveKbPath(workspaceRoot, targetBranch);
+  const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
 
   if (!attachResult.success) {

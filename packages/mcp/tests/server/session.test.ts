@@ -16,31 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  mock,
-  test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
-
-const realFs = await import("node:fs");
-const _realFs = { ...realFs, default: realFs.default };
-
-const realModule = await import("node:module");
-const _realModule = { ...realModule, default: realModule.default };
-
-const realProlog = await import("kibi-cli/prolog");
-const _realProlog = { ...realProlog };
-
-const realBranchResolver = await import("kibi-cli/public/branch-resolver");
-const _realBranchResolver = { ...realBranchResolver };
-
-const realWorkspace = await import("../../src/workspace.js");
-const _realWorkspace = { ...realWorkspace };
 
 // ============================================================================
 // MOCKED DEPENDENCIES
@@ -103,17 +80,6 @@ function createDeferred<T>() {
   return { promise, resolve };
 }
 
-async function restoreRealModules() {
-  await mock.module("node:fs", () => _realFs);
-  await mock.module("node:module", () => _realModule);
-  await mock.module("kibi-cli/prolog", () => _realProlog);
-  await mock.module(
-    "kibi-cli/public/branch-resolver",
-    () => _realBranchResolver,
-  );
-  await mock.module("../workspace.js", () => _realWorkspace);
-}
-
 function resetMocks() {
   mockExistsSync.mockClear();
   mockMkdirSync.mockClear();
@@ -152,6 +118,26 @@ function resetMocks() {
   mockPrologProcessInstance.start.mockImplementation(defaults.prologStart);
 }
 
+function createMockSessionDeps() {
+  return {
+    PrologProcess: function (this: Record<string, unknown>) {
+      Object.assign(this, mockPrologProcessInstance);
+      return this;
+    } as unknown as typeof import("kibi-cli/prolog").PrologProcess,
+    copyCleanSnapshot: mockCopyCleanSnapshot,
+    createRequire: mockCreateRequire,
+    fs: {
+      existsSync: mockExistsSync,
+      mkdirSync: mockMkdirSync,
+    },
+    getBranchDiagnostic: mockGetBranchDiagnostic,
+    isValidBranchName: mockIsValidBranchName,
+    resolveActiveBranch: mockResolveActiveBranch,
+    resolveKbPath: mockResolveKbPath,
+    resolveWorkspaceRoot: mockResolveWorkspaceRoot,
+  };
+}
+
 // ============================================================================
 // TEST SUITE
 // ============================================================================
@@ -171,13 +157,7 @@ describe.serial("session module", () => {
 
   afterEach(async () => {
     process.env = { ...originalEnv };
-    // Restore all module mocks to prevent pollution of other test files
     mock.restore();
-    await restoreRealModules();
-  });
-
-  afterAll(async () => {
-    await restoreRealModules();
   });
 
   // ==========================================================================
@@ -185,48 +165,12 @@ describe.serial("session module", () => {
   // ==========================================================================
 
   async function importSession() {
-    await mock.module("node:fs", () => ({
-      default: {
-        existsSync: mockExistsSync,
-        mkdirSync: mockMkdirSync,
-        mkdtempSync: (prefix: string) => `${prefix}mock-temp-dir`,
-        rmSync: () => {},
-        readFileSync: () => "",
-        writeFileSync: () => {},
-      },
-      existsSync: mockExistsSync,
-      mkdirSync: mockMkdirSync,
-      mkdtempSync: (prefix: string) => `${prefix}mock-temp-dir`,
-      rmSync: () => {},
-      readFileSync: () => "",
-      writeFileSync: () => {},
-    }));
-
-    await mock.module("node:module", () => ({
-      default: { createRequire: mockCreateRequire },
-      createRequire: mockCreateRequire,
-    }));
-
-    await mock.module("kibi-cli/prolog", () => ({
-      PrologProcess: function (this: Record<string, unknown>) {
-        Object.assign(this, mockPrologProcessInstance);
-        return this;
-      },
-    }));
-
-    await mock.module("kibi-cli/public/branch-resolver", () => ({
-      copyCleanSnapshot: mockCopyCleanSnapshot,
-      getBranchDiagnostic: mockGetBranchDiagnostic,
-      isValidBranchName: mockIsValidBranchName,
-      resolveActiveBranch: mockResolveActiveBranch,
-    }));
-
-    await mock.module("../workspace.js", () => ({
-      resolveKbPath: mockResolveKbPath,
-      resolveWorkspaceRoot: mockResolveWorkspaceRoot,
-    }));
-
-    return import("../../src/server/session.js");
+    const session = await import(
+      `../../src/server/session.js?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+    );
+    session._resetSessionDepsForTests();
+    session._setSessionDepsForTests(createMockSessionDeps());
+    return session;
   }
 
   // ==========================================================================
@@ -341,7 +285,9 @@ describe.serial("session module", () => {
   });
 
   describe("initiateGracefulShutdown", () => {
-    function resetShutdownState(session: Awaited<ReturnType<typeof importSession>>): void {
+    function resetShutdownState(
+      session: Awaited<ReturnType<typeof importSession>>,
+    ): void {
       // Reset module-level state for shutdown tests via the module's own API.
       // ESM `export let` bindings are read-only from outside, so we cannot
       // assign isShuttingDown directly — resetSessionStateForTests does it internally.
@@ -560,8 +506,13 @@ describe.serial("session module", () => {
         expect(result).toBeDefined();
         expect(mockPrologProcessInstance.start).toHaveBeenCalledTimes(1);
         expect(mockPrologProcessInstance.query).toHaveBeenCalledWith(
-          expect.stringContaining("debug-branch"),
+          "kb_attach('/mock/kb/path')",
         );
+        expect(
+          consoleErrorMock.mock.calls.some((call) =>
+            call.some((arg) => String(arg).includes("debug-branch")),
+          ),
+        ).toBe(true);
         expect(consoleErrorMock.mock.calls.length).toBeGreaterThan(0);
       } finally {
         console.error = originalConsoleError;
