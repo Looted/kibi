@@ -15,7 +15,7 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import { existsSync, readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import * as path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
@@ -29,6 +29,7 @@ import { resolveCorePlPath } from "./core-module.js";
 
 export interface CheckArgs {
   rules?: string[];
+  workspaceRoot?: string;
 }
 
 interface Diagnostic {
@@ -86,15 +87,11 @@ function formatViolationText(violations: Violation[]): string {
 }
 
 // implements REQ-002
-function loadChecksConfig(workspaceRoot: string): ChecksConfig {
+async function loadChecksConfig(workspaceRoot: string): Promise<ChecksConfig> {
   const configPath = path.join(workspaceRoot, ".kb", "config.json");
 
-  if (!existsSync(configPath)) {
-    return DEFAULT_CHECKS_CONFIG;
-  }
-
   try {
-    const content = readFileSync(configPath, "utf8");
+    const content = await readFile(configPath, "utf8");
     const parsed = JSON.parse(content) as {
       checks?: Partial<ChecksConfig>;
     };
@@ -163,11 +160,11 @@ export async function handleKbCheck(
   prolog: PrologProcess,
   args: CheckArgs,
 ): Promise<CheckResult> {
-  const { rules } = args;
+  const { rules, workspaceRoot: workspaceOverride } = args;
 
   try {
-    const workspaceRoot = resolveWorkspaceRoot();
-    const checksConfig = loadChecksConfig(workspaceRoot);
+    const workspaceRoot = workspaceOverride ?? resolveWorkspaceRoot();
+    const checksConfig = await loadChecksConfig(workspaceRoot);
     const rulesAllowlist = getEffectiveRules(checksConfig.rules, rules);
 
     if (rulesAllowlist.size === 0) {

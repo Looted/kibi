@@ -28,12 +28,30 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -63,7 +81,7 @@ jobs:
         run: bun run test:unit
 
       - name: Upload unit coverage artifact
-        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
         uses: actions/upload-artifact@v4
         with:
           name: unit-coverage
@@ -93,6 +111,7 @@ jobs:
           cd ../mcp && npm pack
 
       - name: Upload tarball artifacts
+        if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@v4
         with:
           name: kibi-tarballs
@@ -105,6 +124,7 @@ jobs:
           npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
 
       - name: Upload compiled e2e tests
+        if: ${{ github.actor != 'nektos/act' }}
         uses: actions/upload-artifact@v4
         with:
           name: kibi-e2e-tests-compiled
@@ -114,16 +134,34 @@ jobs:
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -150,16 +188,34 @@ jobs:
   packed-e2e-mcp-regression:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -185,14 +241,14 @@ jobs:
   packed-e2e-tarball-verify:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -217,16 +273,34 @@ jobs:
   packed-e2e-branch-workflow:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -259,7 +333,7 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

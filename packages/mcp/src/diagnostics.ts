@@ -39,20 +39,29 @@ let diagnosticUsageLogPath: string | null = null;
  * Initialize diagnostic mode: set up usage.log path.
  * Called once during server startup.
  */
-export function initializeDiagnosticMode(): void {
-  if (DIAGNOSTIC_MODE_ENABLED) {
-    const workspaceRoot = resolveWorkspaceRoot();
-    diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
-    process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
+// implements REQ-008
+export function initializeDiagnosticMode(
+  enabled: boolean = DIAGNOSTIC_MODE_ENABLED,
+): void {
+  diagnosticUsageLogPath = null;
+
+  if (!enabled) {
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DIAGNOSTIC_MODE");
+    return;
   }
+
+  const workspaceRoot = resolveWorkspaceRoot();
+  diagnosticUsageLogPath = path.join(workspaceRoot, ".kb", "usage.log");
+  process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
 }
 
 /**
  * Append a JSON line to the usage.log file.
  * No-op if diagnostic mode is not enabled.
  */
+// implements REQ-008
 export function appendUsageLogLine(entry: Record<string, unknown>): void {
-  if (!DIAGNOSTIC_MODE_ENABLED || !diagnosticUsageLogPath) {
+  if (!diagnosticUsageLogPath) {
     return;
   }
   const logDir = path.dirname(diagnosticUsageLogPath);

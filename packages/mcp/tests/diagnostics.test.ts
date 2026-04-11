@@ -8,10 +8,16 @@
  * (at your option) any later version.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import process from "node:process";
 import {
+  appendUsageLogLine,
   deriveDiagnosticFields,
   extractToolCallPayload,
+  initializeDiagnosticMode,
 } from "../src/diagnostics.js";
 
 describe("deriveDiagnosticFields", () => {
@@ -177,5 +183,56 @@ describe("extractToolCallPayload", () => {
       c: [3],
       d: { nested: true },
     });
+  });
+});
+
+describe.serial("diagnostic mode lifecycle", () => {
+  const originalArgv = [...process.argv];
+  const originalEnv = { ...process.env };
+  let workspaceRoot = "";
+
+  beforeEach(() => {
+    workspaceRoot = mkdtempSync(
+      path.join(tmpdir(), "kibi-mcp-diagnostics-test-"),
+    );
+    process.argv = [...originalArgv];
+    process.env = {
+      ...originalEnv,
+      KIBI_WORKSPACE: workspaceRoot,
+      KIBI_MCP_DIAGNOSTIC_MODE: undefined,
+    };
+    initializeDiagnosticMode(false);
+  });
+
+  afterEach(() => {
+    initializeDiagnosticMode(false);
+    process.argv = [...originalArgv];
+    process.env = { ...originalEnv };
+    if (workspaceRoot) {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("initializeDiagnosticMode sets diagnostic env and usage log path", () => {
+    const entry = { tool: "kb_query", count: 1 };
+
+    initializeDiagnosticMode(true);
+    appendUsageLogLine(entry);
+
+    const logPath = path.join(workspaceRoot, ".kb", "usage.log");
+
+    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBe("1");
+    expect(existsSync(logPath)).toBe(true);
+    expect(readFileSync(logPath, "utf8")).toBe(`${JSON.stringify(entry)}\n`);
+  });
+
+  test("appendUsageLogLine is a no-op when diagnostic mode is disabled", () => {
+    initializeDiagnosticMode(false);
+    appendUsageLogLine({ tool: "kb_status" });
+
+    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBeUndefined();
+    expect(existsSync(path.join(workspaceRoot, ".kb", "usage.log"))).toBe(
+      false,
+    );
   });
 });

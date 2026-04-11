@@ -8,7 +8,7 @@ Please follow the comprehensive guidelines and rules defined in [AGENTS.md](../A
 
 ## Tech Stack
 
-- **Primary Runtime**: Bun v1.3.6 (package manager and runtime)
+- **Primary Runtime**: Bun v1.3.10 (package manager and runtime)
 - **Compatibility**: Node.js v24 (required for npm publishing)
 - **Backend Engine**: SWI-Prolog 9.0+ (Prolog KB engine)
 - **Monorepo**: Bun workspaces in `packages/*`

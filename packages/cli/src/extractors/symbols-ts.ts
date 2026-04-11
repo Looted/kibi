@@ -15,8 +15,7 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-
-import * as fs from "node:fs";
+import { access, readFile } from "node:fs/promises";
 import * as path from "node:path";
 import {
   type ClassDeclaration,
@@ -71,15 +70,22 @@ export async function enrichSymbolCoordinatesWithTsMorph(
   const enriched: ManifestSymbolEntry[] = [];
   for (const entry of entries) {
     try {
-      const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
-      if (!resolved) {
+      const absolutePath = await resolveSourcePath(
+        entry.sourceFile,
+        workspaceRoot,
+      );
+      if (!absolutePath) {
         enriched.push(entry);
         continue;
       }
 
-      const sourceFile = getOrAddSourceFile(project, sourceFileCache, resolved);
+      const sourceFile = getOrAddSourceFile(
+        project,
+        sourceFileCache,
+        absolutePath,
+      );
       if (!sourceFile) {
-        enriched.push(entry);
+        enriched.push(await enrichWithTextFallback(entry, absolutePath));
         continue;
       }
 
@@ -112,17 +118,25 @@ export async function enrichSymbolCoordinatesWithTsMorph(
       console.warn(
         `[kibi] Failed to enrich symbol coordinates for ${entry.id}: ${message}`,
       );
-      enriched.push(entry);
+      const absolutePath = await resolveSourcePath(
+        entry.sourceFile,
+        workspaceRoot,
+      );
+      if (!absolutePath) {
+        enriched.push(entry);
+        continue;
+      }
+      enriched.push(await enrichWithTextFallback(entry, absolutePath));
     }
   }
 
   return enriched;
 }
 
-function resolveSourcePath(
+async function resolveSourcePath(
   sourceFile: string | undefined,
   workspaceRoot: string,
-): string | null {
+): Promise<string | null> {
   if (!sourceFile) return null;
 
   const absolute = path.isAbsolute(sourceFile)
@@ -131,7 +145,11 @@ function resolveSourcePath(
   const ext = path.extname(absolute).toLowerCase();
 
   if (!SUPPORTED_SOURCE_EXTENSIONS.has(ext)) return null;
-  if (!fs.existsSync(absolute)) return null;
+  try {
+    await access(absolute);
+  } catch {
+    return null;
+  }
 
   return absolute;
 }
@@ -150,6 +168,45 @@ function getOrAddSourceFile(
     return sourceFile;
   } catch {
     return null;
+  }
+}
+
+function enrichWithTextFallback(
+  entry: ManifestSymbolEntry,
+  absolutePath: string,
+): Promise<ManifestSymbolEntry> {
+  return enrichWithTextFallbackInternal(entry, absolutePath);
+}
+
+async function enrichWithTextFallbackInternal(
+  entry: ManifestSymbolEntry,
+  absolutePath: string,
+): Promise<ManifestSymbolEntry> {
+  try {
+    const content = await readFile(absolutePath, "utf8");
+    const lines = content.split(/\r?\n/);
+    const escapedTitle = entry.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`\\b${escapedTitle}\\b`);
+
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
+      if (!line) continue;
+      const match = pattern.exec(line);
+      if (!match || match.index < 0) continue;
+
+      return {
+        ...entry,
+        sourceLine: index + 1,
+        sourceColumn: match.index,
+        sourceEndLine: index + 1,
+        sourceEndColumn: match.index + entry.title.length,
+        coordinatesGeneratedAt: new Date().toISOString(),
+      };
+    }
+
+    return entry;
+  } catch {
+    return entry;
   }
 }
 

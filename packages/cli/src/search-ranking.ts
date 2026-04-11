@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import matter from "gray-matter";
 
 export interface SearchMatch {
   entity: Record<string, unknown>;
@@ -163,10 +162,32 @@ export async function loadMarkdownBody(
 
   try {
     const fileContent = await fs.readFile(resolved, "utf8");
-    return matter(fileContent).content;
+    return stripFrontmatter(fileContent);
   } catch {
     return null;
   }
+}
+
+function stripFrontmatter(content: string): string {
+  const trimmedContent = content.trimStart();
+  if (!trimmedContent.startsWith("---")) {
+    return content;
+  }
+
+  const openingDelimiter = /^---[^\S\r\n]*(?:\r?\n|$)/.exec(trimmedContent);
+  if (!openingDelimiter) {
+    return content;
+  }
+
+  const closingDelimiter = /(?:\r?\n)---[^\S\r\n]*(?:\r?\n|$)/g;
+  closingDelimiter.lastIndex = openingDelimiter[0].length;
+
+  const match = closingDelimiter.exec(trimmedContent);
+  if (!match) {
+    return content;
+  }
+
+  return trimmedContent.slice(match.index + match[0].length);
 }
 
 function normalize(value: string): string {

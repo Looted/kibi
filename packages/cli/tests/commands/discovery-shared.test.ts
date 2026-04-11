@@ -7,7 +7,7 @@ import {
   spyOn,
   test,
 } from "bun:test";
-import type { PrologProcess } from "../../src/prolog.js";
+import { PrologProcess } from "../../src/prolog.js";
 
 type QueryResult = {
   success: boolean;
@@ -84,17 +84,15 @@ class MockPrologProcess {
   }
 }
 
-mock.module("../../src/prolog.js", () => ({
-  PrologProcess: MockPrologProcess,
-  resolveKbPlPath: () => state.resolveKbPlPath,
-}));
+// Use DI to inject mock dependencies instead of mock.module().
+// mock.module() in Bun cannot be undone and pollutes other test files' static imports.
+import * as discovery from "../../src/commands/discovery-shared.js";
+import type { DiscoveryDeps } from "../../src/commands/discovery-shared.js";
 
-
-// Note: Tests use KIBI_BRANCH env var to control branch detection.
-// When KIBI_BRANCH is set, getCurrentBranch is never called.
-// When not set, the real getCurrentBranch runs (which returns "main" in CI).
-
-const discovery = await import("../../src/commands/discovery-shared.js");
+const mockDeps: DiscoveryDeps = {
+  createProlog: (opts) => new MockPrologProcess(opts) as unknown as PrologProcess,
+  resolveKbPl: () => state.resolveKbPlPath,
+};
 
 describe("discovery-shared", () => {
   let logSpy: ReturnType<typeof spyOn>;
@@ -123,7 +121,7 @@ describe("discovery-shared", () => {
     const result = await discovery.withAttachedBranchProlog(async (prolog) => {
       const callbackResult = await prolog.query("user_goal");
       return callbackResult.bindings;
-    });
+    }, mockDeps);
 
     expect(JSON.stringify(result)).toBe(JSON.stringify({ ok: true }));
     expect(state.createdPrologs).toHaveLength(1);
@@ -141,7 +139,7 @@ describe("discovery-shared", () => {
     state.throwCurrentBranch = true;
     state.queryResponses = [{ success: true }, { success: true }];
 
-    await discovery.withAttachedBranchProlog(async () => "done");
+    await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
     expect(state.queries[1]).toContain(".kb/branches/env-branch");
 
     setBranch();
@@ -150,7 +148,7 @@ describe("discovery-shared", () => {
     process.env.KIBI_BRANCH = "main";
     state.queryResponses = [{ success: true }, { success: true }];
 
-    await discovery.withAttachedBranchProlog(async () => "done");
+    await discovery.withAttachedBranchProlog(async () => "done", mockDeps);
     expect(state.queries[1]).toContain(".kb/branches/main");
   });
 
@@ -161,7 +159,7 @@ describe("discovery-shared", () => {
     ];
 
     await expect(
-      discovery.withAttachedBranchProlog(async () => "never"),
+      discovery.withAttachedBranchProlog(async () => "never", mockDeps),
     ).rejects.toThrow("Failed to attach KB: attach exploded");
 
     expect(state.cleanups).toEqual([state.createdPrologs[0]]);
@@ -176,7 +174,7 @@ describe("discovery-shared", () => {
           true,
         );
         throw new Error("callback failed");
-      }),
+      }, mockDeps),
     ).rejects.toThrow("callback failed");
 
     expect(state.createdPrologs[0]?.options).toEqual({ timeout: 120000 });
@@ -200,7 +198,7 @@ describe("discovery-shared", () => {
 
   test("resolveCoreModulePath joins the requested file next to kb.pl", () => {
     state.resolveKbPlPath = "/tmp/core/kb.pl";
-    expect(discovery.resolveCoreModulePath("search_json.pl")).toBe(
+    expect(discovery.resolveCoreModulePath("search_json.pl", mockDeps)).toBe(
       "/tmp/core/search_json.pl",
     );
   });
@@ -226,6 +224,7 @@ describe("discovery-shared", () => {
         "coverage_goal(JsonString)",
         "Coverage failed",
         "/tmp/kb/path",
+        mockDeps,
       ),
     ).resolves.toEqual({ rows: [1, 2] });
 
@@ -250,6 +249,8 @@ describe("discovery-shared", () => {
         "status_json.pl",
         "status_goal(JsonString)",
         "Status failed",
+        undefined,
+        mockDeps,
       ),
     ).resolves.toEqual({ ok: true });
     expect(fakeProlog.query).toHaveBeenCalledWith(
@@ -264,6 +265,8 @@ describe("discovery-shared", () => {
         "status_json.pl",
         "status_goal(JsonString)",
         "Status failed",
+        undefined,
+        mockDeps,
       ),
     ).rejects.toThrow("Status failed: bad query");
 
@@ -275,6 +278,8 @@ describe("discovery-shared", () => {
         "status_json.pl",
         "status_goal(JsonString)",
         "Status failed",
+        undefined,
+        mockDeps,
       ),
     ).rejects.toThrow("Status failed: missing JsonString binding");
   });

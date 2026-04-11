@@ -46,11 +46,8 @@ export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "UNKNOWN_ERROR";
 
-/**
- * Convert branch error code to diagnostic category
- */
-export function branchErrorToDiagnostic(
-  code: BranchErrorCode,
+export function branchErrorToDiagnostic( // implements REQ-008
+  _code: BranchErrorCode,
   message: string,
   branch?: string,
 ): Diagnostic {
@@ -79,9 +76,6 @@ export function createKbMissingDiagnostic(
   };
 }
 
-/**
- * Create DOCS_NOT_INDEXED diagnostic
- */
 export function createDocsNotIndexedDiagnostic(
   docCount: number,
   entityCount: number,
@@ -95,9 +89,6 @@ export function createDocsNotIndexedDiagnostic(
   };
 }
 
-/**
- * Create INVALID_AUTHORING diagnostic for embedded entities
- */
 export function createInvalidAuthoringDiagnostic(
   filePath: string,
   embeddedTypes: string[],

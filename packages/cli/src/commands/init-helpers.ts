@@ -159,6 +159,7 @@ function escapeRegex(s: string): string {
 }
 
 export function installHook(hookPath: string, content: string): void {
+  // implements REQ-008
   const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
 
   if (existsSync(hookPath)) {
@@ -176,11 +177,9 @@ export function installHook(hookPath: string, content: string): void {
         kibiSection,
       );
       writeFileSync(hookPath, updated, { mode: 0o755 });
-    } else if (existing.includes("kibi branch ensure")) {
-      // Legacy format: already has the complete kibi logic, skip
+    } else if (existing.trim().length > 0) {
       return;
     } else {
-      // Hook exists with user content (no kibi section) - append kibi section
       const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
       writeFileSync(
         hookPath,

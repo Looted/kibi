@@ -11,93 +11,31 @@
  * shape, etc.) are caught — unlike the prior approach of testing an in-file
  * reimplementation.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import {
+  getVscodeMockModule,
+  resetVscodeMock,
+  type DefaultCodeLens as MockCodeLens,
+  type DefaultRange as MockRange,
+} from "./shared/vscode-mock";
 // Import the real buildIndex before registering mocks — symbolIndex has no vscode
 // dependency so this is safe. Captured here so the synchronous mock factory below
 // can include the real implementation without using an async factory (which races
 // with Bun's synchronous named-export resolution and drops the export).
 import { buildIndex } from "../src/symbolIndex";
 
-// ---------------------------------------------------------------------------
-// Minimal vscode mock — only the APIs used by KibiCodeLensProvider
-// ---------------------------------------------------------------------------
-class MockEventEmitter {
-  event = () => {};
-  fire() {}
-  dispose() {}
-}
-
-class MockRange {
-  start: { line: number; character: number };
-  end: { line: number; character: number };
-  constructor(
-    startLine: number,
-    startCharacter: number,
-    endLine: number,
-    endCharacter: number,
-  ) {
-    this.start = { line: startLine, character: startCharacter };
-    this.end = { line: endLine, character: endCharacter };
-  }
-}
-
-class MockCodeLens {
-  command?: unknown;
-  constructor(
-    public range: unknown,
-    command?: unknown,
-  ) {
-    this.command = command;
-  }
-}
-
-const MockUri = { file: (p: string) => ({ fsPath: p, scheme: "file" }) };
-const MockRelativePattern = class {
-  constructor(
-    public base: unknown,
-    public pattern: string,
-  ) {}
-};
-const mockWorkspace = {
-  createFileSystemWatcher: () => ({
-    onDidChange: () => {},
-    onDidCreate: () => {},
-    onDidDelete: () => {},
-    dispose: () => {},
-  }),
-};
-// Stub out additional vscode APIs used by treeProvider (loaded in the same
-// Bun process). If this mock wins the mock.module race these stubs prevent
-// "undefined is not an object" errors in the extension.test.ts suite.
-const MockTreeItemCollapsibleState = { None: 0, Collapsed: 1, Expanded: 2 };
-class MockThemeIcon {
-  constructor(public id: string) {}
-}
-class MockTreeItem {
-  constructor(
-    public label: string,
-    public collapsibleState: number,
-  ) {}
-  iconPath?: MockThemeIcon;
-  contextValue?: string;
-}
-const mockWindow = { showInformationMessage: () => {} };
-
-mock.module("vscode", () => ({
-  EventEmitter: MockEventEmitter,
-  Range: MockRange,
-  CodeLens: MockCodeLens,
-  Uri: MockUri,
-  RelativePattern: MockRelativePattern,
-  workspace: mockWorkspace,
-  TreeItemCollapsibleState: MockTreeItemCollapsibleState,
-  ThemeIcon: MockThemeIcon,
-  TreeItem: MockTreeItem,
-  window: mockWindow,
-}));
+mock.module("vscode", () => getVscodeMockModule());
 
 // ---------------------------------------------------------------------------
 // Mock queryRelationshipsViaCli — keep buildIndex real (reads YAML)
@@ -187,6 +125,7 @@ describe("KibiCodeLensProvider – provideCodeLenses", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -349,7 +288,6 @@ describe("KibiCodeLensProvider – provideCodeLenses", () => {
     ).toBe(114);
   });
 
-
   test("returns null when symbols.yaml is malformed", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
@@ -396,6 +334,7 @@ describe("KibiCodeLensProvider – resolveCodeLens", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -578,6 +517,7 @@ describe("KibiCodeLensProvider – caching", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -654,4 +594,9 @@ describe("KibiCodeLensProvider – caching", () => {
     await provider.resolveCodeLens(lenses[0], noCancel);
     expect(callCount).toBe(2);
   });
+});
+
+afterAll(() => {
+  resetVscodeMock();
+  mock.restore();
 });

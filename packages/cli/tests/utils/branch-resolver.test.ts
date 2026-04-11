@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { execSync } from "node:child_process";
+import {
+  execSync,
+  type ExecSyncOptions,
+  type ExecSyncOptionsWithBufferEncoding,
+  type ExecSyncOptionsWithStringEncoding,
+} from "node:child_process";
 import {
   existsSync,
   mkdirSync,
@@ -12,6 +17,7 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import {
+  _setBranchResolverDepsForTests,
   type BranchErrorCode,
   copyCleanSnapshot,
   getBranchDiagnostic,
@@ -26,8 +32,55 @@ describe("branch-resolver", () => {
   let tmpDir: string;
   const originalEnv = process.env.KIBI_BRANCH;
 
+  type BranchResolverExecSyncOptions =
+    | ExecSyncOptions
+    | ExecSyncOptionsWithBufferEncoding
+    | ExecSyncOptionsWithStringEncoding;
+  type MockExecSyncCall = {
+    command: string;
+    options: BranchResolverExecSyncOptions | undefined;
+  };
+
+  let mockExecSyncCalls: MockExecSyncCall[];
+  let mockExecSyncResponses: Array<string | Buffer | Error>;
+
+  function queueExecSyncResponses(
+    ...responses: Array<string | Buffer | Error>
+  ): void {
+    mockExecSyncResponses.push(...responses);
+  }
+
+  function mockExecSync(command: string): Buffer;
+  function mockExecSync(
+    command: string,
+    options: ExecSyncOptionsWithStringEncoding,
+  ): string;
+  function mockExecSync(
+    command: string,
+    options?: ExecSyncOptions | ExecSyncOptionsWithBufferEncoding,
+  ): Buffer;
+  function mockExecSync(
+    command: string,
+    options?: BranchResolverExecSyncOptions,
+  ): string | Buffer {
+    mockExecSyncCalls.push({ command, options });
+
+    const response = mockExecSyncResponses.shift();
+    if (response === undefined) {
+      throw new Error(`Unexpected execSync call: ${command}`);
+    }
+
+    if (response instanceof Error) {
+      throw response;
+    }
+
+    return response;
+  }
+
   beforeEach(() => {
     tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-branch-resolver-"));
+    mockExecSyncCalls = [];
+    mockExecSyncResponses = [];
     process.env.KIBI_BRANCH = "";
   });
 
@@ -35,6 +88,9 @@ describe("branch-resolver", () => {
     if (tmpDir && existsSync(tmpDir)) {
       rmSync(tmpDir, { recursive: true, force: true });
     }
+
+    _setBranchResolverDepsForTests({});
+
     if (originalEnv !== undefined) {
       process.env.KIBI_BRANCH = originalEnv;
     } else {
@@ -61,6 +117,15 @@ describe("branch-resolver", () => {
       expect((result as { error: string; code: BranchErrorCode }).code).toBe(
         "ENV_OVERRIDE",
       );
+    });
+
+    test("trims KIBI_BRANCH env var before returning it", () => {
+      process.env.KIBI_BRANCH = "  env-branch  ";
+
+      const result = resolveActiveBranch(tmpDir);
+
+      expect("branch" in result).toBe(true);
+      expect((result as { branch: string }).branch).toBe("env-branch");
     });
 
     test("returns current git branch when KIBI_BRANCH not set", () => {
@@ -116,6 +181,159 @@ describe("branch-resolver", () => {
 
       expect("branch" in result).toBe(true);
       expect((result as { branch: string }).branch).toBe("feature/test");
+    });
+
+    describe("with mocked execSync", () => {
+      beforeEach(() => {
+        _setBranchResolverDepsForTests({ execSync: mockExecSync });
+      });
+
+      test("normalizes master to main when git branch reports master", () => {
+        queueExecSyncResponses("master\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("branch" in result).toBe(true);
+        expect((result as { branch: string }).branch).toBe("main");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+        ]);
+      });
+
+      test("returns UNKNOWN_ERROR when git reports an invalid branch name", () => {
+        queueExecSyncResponses("-invalid\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "UNKNOWN_ERROR",
+        );
+        expect(
+          (result as { error: string; code: BranchErrorCode }).error,
+        ).toContain("Invalid branch name detected");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+        ]);
+      });
+
+      test("falls back to git rev-parse when git branch --show-current fails", () => {
+        queueExecSyncResponses(
+          new Error("branch lookup failed"),
+          "feature/fallback\n",
+        );
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("branch" in result).toBe(true);
+        expect((result as { branch: string }).branch).toBe("feature/fallback");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+          "git rev-parse --abbrev-ref HEAD",
+        ]);
+      });
+
+      test("returns DETACHED_HEAD when fallback git rev-parse reports HEAD", () => {
+        queueExecSyncResponses(new Error("branch lookup failed"), "HEAD\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "DETACHED_HEAD",
+        );
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+          "git rev-parse --abbrev-ref HEAD",
+        ]);
+      });
+
+      test("returns UNBORN_BRANCH when fallback git rev-parse returns empty output", () => {
+        queueExecSyncResponses(new Error("branch lookup failed"), "\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "UNBORN_BRANCH",
+        );
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+          "git rev-parse --abbrev-ref HEAD",
+        ]);
+      });
+
+      test("normalizes master to main when fallback git rev-parse reports master", () => {
+        queueExecSyncResponses(new Error("branch lookup failed"), "master\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("branch" in result).toBe(true);
+        expect((result as { branch: string }).branch).toBe("main");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+          "git rev-parse --abbrev-ref HEAD",
+        ]);
+      });
+
+      test("returns UNKNOWN_ERROR when fallback git rev-parse reports invalid branch", () => {
+        queueExecSyncResponses(new Error("branch lookup failed"), "-invalid\n");
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "UNKNOWN_ERROR",
+        );
+        expect(
+          (result as { error: string; code: BranchErrorCode }).error,
+        ).toContain("Invalid branch name detected");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git branch --show-current",
+          "git rev-parse --abbrev-ref HEAD",
+        ]);
+      });
+
+      test("returns NOT_A_GIT_REPO when both git commands report repository errors", () => {
+        const gitRepoError = new Error(
+          "fatal: not a git repository (or any of the parent directories): .git",
+        );
+        queueExecSyncResponses(gitRepoError, gitRepoError);
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "NOT_A_GIT_REPO",
+        );
+      });
+
+      test("returns GIT_NOT_AVAILABLE when git commands report ENOENT", () => {
+        const gitMissingError = new Error("spawnSync git ENOENT");
+        queueExecSyncResponses(gitMissingError, gitMissingError);
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "GIT_NOT_AVAILABLE",
+        );
+      });
+
+      test("returns UNKNOWN_ERROR when git commands fail unexpectedly", () => {
+        const gitFailure = new Error("fatal: simulated git failure");
+        queueExecSyncResponses(gitFailure, gitFailure);
+
+        const result = resolveActiveBranch(tmpDir);
+
+        expect("error" in result).toBe(true);
+        expect((result as { error: string; code: BranchErrorCode }).code).toBe(
+          "UNKNOWN_ERROR",
+        );
+        expect(
+          (result as { error: string; code: BranchErrorCode }).error,
+        ).toContain("simulated git failure");
+      });
     });
   });
 
@@ -286,6 +504,29 @@ describe("branch-resolver", () => {
       );
       expect(existsSync(path.join(targetDir, "kb.rdf"))).toBe(true);
     });
+
+    test("excludes extension-based volatile artifacts and preserves file contents", () => {
+      const sourceDir = path.join(tmpDir, "source");
+      const targetDir = path.join(tmpDir, "target");
+
+      mkdirSync(sourceDir, { recursive: true });
+      writeFileSync(path.join(sourceDir, "keep.txt"), "persist me");
+      writeFileSync(path.join(sourceDir, "lockfile"), "");
+      writeFileSync(path.join(sourceDir, "state.lock"), "");
+      writeFileSync(path.join(sourceDir, "server.temp"), "");
+      writeFileSync(path.join(sourceDir, "worker.pid"), "");
+
+      copyCleanSnapshot(sourceDir, targetDir);
+
+      expect(readdirSync(targetDir)).toEqual(["keep.txt"]);
+      expect(readFileSync(path.join(targetDir, "keep.txt"), "utf8")).toBe(
+        "persist me",
+      );
+      expect(existsSync(path.join(targetDir, "lockfile"))).toBe(false);
+      expect(existsSync(path.join(targetDir, "state.lock"))).toBe(false);
+      expect(existsSync(path.join(targetDir, "server.temp"))).toBe(false);
+      expect(existsSync(path.join(targetDir, "worker.pid"))).toBe(false);
+    });
   });
 
   describe("getVolatileArtifactPatterns", () => {
@@ -391,6 +632,33 @@ describe("branch-resolver", () => {
       // Should return "master" verbatim, not normalized to "main"
       expect("branch" in result).toBe(true);
       expect((result as { branch: string }).branch).toBe("master");
+    });
+
+    test("trims configured defaultBranch before returning it", () => {
+      const result = resolveDefaultBranch(tmpDir, {
+        defaultBranch: "  trunk  ",
+      });
+
+      expect("branch" in result).toBe(true);
+      expect((result as { branch: string }).branch).toBe("trunk");
+    });
+
+    describe("with mocked execSync", () => {
+      beforeEach(() => {
+        _setBranchResolverDepsForTests({ execSync: mockExecSync });
+      });
+
+      test("falls back to main when origin/HEAD resolves to an invalid branch", () => {
+        queueExecSyncResponses("refs/remotes/origin/-invalid\n");
+
+        const result = resolveDefaultBranch(tmpDir, undefined);
+
+        expect("branch" in result).toBe(true);
+        expect((result as { branch: string }).branch).toBe("main");
+        expect(mockExecSyncCalls.map((call) => call.command)).toEqual([
+          "git symbolic-ref refs/remotes/origin/HEAD",
+        ]);
+      });
     });
   });
 });

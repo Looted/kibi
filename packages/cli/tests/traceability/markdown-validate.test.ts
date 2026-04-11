@@ -1,79 +1,84 @@
 import { describe, expect, it } from "bun:test";
-import { FrontmatterError } from "../../src/extractors/markdown";
-
 import { validateStagedMarkdown } from "../../src/traceability/markdown-validate";
 
-function fm(obj: Record<string, any>) {
-  const yaml = Object.entries(obj)
-    .map(
-      ([k, v]) =>
-        `${k}: ${typeof v === "string" ? `"${v}"` : JSON.stringify(v)}`,
-    )
-    .join("\n");
-  return `---\n${yaml}\n---\n`;
-}
-
 describe("validateStagedMarkdown", () => {
-  it("returns no errors for valid requirement frontmatter", () => {
-    const content = fm({ id: "REQ-1", title: "Req", status: "open" });
-    const res = validateStagedMarkdown(
-      "/some/requirements/req.md",
+  it("returns no errors when neither frontmatter type nor path type is available", () => {
+    const result = validateStagedMarkdown("/docs/random/file.md", "# content");
+
+    expect(result.filePath).toBe("/docs/random/file.md");
+    expect(result.errors).toEqual([]);
+  });
+
+  it("infers requirement type from path and reports embedded scenario fields", () => {
+    const content = `---
+id: REQ-123
+title: Requirement with embedded scenario
+scenarios:
+  - given: user is logged in
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-123.md",
       content,
-      (v) => {},
     );
-    expect(res.errors.length).toBe(0);
+
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]?.classification).toBe("Embedded Entity Violation");
+    expect(result.errors[0]?.message).toContain("scenario");
   });
 
-  it("returns no errors for valid scenario frontmatter", () => {
-    const content = fm({
-      id: "SCEN-1",
-      title: "Scen",
-      status: "draft",
-      type: "scenario",
-    });
-    const res = validateStagedMarkdown(
-      "/some/scenarios/sc.md",
+  it("infers requirement type from path and reports embedded test fields", () => {
+    const content = `---
+id: REQ-124
+title: Requirement with embedded test
+test: run api assertion
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-124.md",
       content,
-      () => {},
     );
-    expect(res.errors.length).toBe(0);
+
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]?.classification).toBe("Embedded Entity Violation");
+    expect(result.errors[0]?.message).toContain("test");
   });
 
-  it("returns no errors for valid test frontmatter", () => {
-    const content = fm({
-      id: "TEST-1",
-      title: "T",
-      status: "pending",
-      type: "test",
-    });
-    const res = validateStagedMarkdown("/some/tests/t.md", content, () => {});
-    expect(res.errors.length).toBe(0);
+  it("uses explicit frontmatter type over path inference", () => {
+    const content = `---
+id: SCEN-001
+type: scenario
+title: Scenario file
+scenario: Given something
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-999.md",
+      content,
+    );
+
+    expect(result.errors).toEqual([]);
   });
 
-  it("handles missing fields gracefully (no embedded entities)", () => {
-    const content = fm({});
-    const res = validateStagedMarkdown("/requirements/a.md", content);
-    expect(res.errors.length).toBe(0);
-  });
+  it("returns no errors for malformed frontmatter parse failures", () => {
+    const malformed = `---
+id: REQ-001
+title: broken
+links:
+  - type: verified_by
+    target: TEST-001
+    extra: [unclosed
+---
+`;
 
-  it("detects embedded scenario fields inside a requirement", () => {
-    const content = fm({ title: "X", scenarios: [{ given: "a" }] });
-    const res = validateStagedMarkdown("/requirements/req.md", content);
-    expect(res.errors.length).toBe(1);
-    expect(res.errors[0]).toBeInstanceOf(FrontmatterError);
-    expect(String(res.errors[0].message)).toContain("Invalid embedded entity");
-  });
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-001.md",
+      malformed,
+    );
 
-  it("handles generic parse errors without throwing", () => {
-    const content = "---\nfoo: [\n---\n";
-    const res = validateStagedMarkdown("/requirements/req.md", content);
-    expect(res).toHaveProperty("filePath", "/requirements/req.md");
-    expect(Array.isArray(res.errors)).toBe(true);
-  });
-
-  it("returns early for unknown path types", () => {
-    const content = fm({ title: "NoType" });
-    const res = validateStagedMarkdown("/some/other/thing.md", content);
-    expect(res.errors.length).toBe(0);
+    expect(result.errors).toEqual([]);
   });
 });
