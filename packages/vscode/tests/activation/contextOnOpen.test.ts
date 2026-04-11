@@ -51,19 +51,21 @@ resetVscodeMock({
 mock.module("vscode", () => getVscodeMockModule());
 
 const actualFs = await import("node:fs");
-mock.module("node:fs", () => ({
-  ...actualFs,
-  existsSync: (...args: unknown[]) => mockExistsSync(...(args as [string])),
-}));
-
-const { registerContextOnOpen } = await import(
-  "../../src/activation/contextOnOpen"
-);
-mock.module("node:fs", () => actualFs);
 
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };
 let context: { subscriptions: DisposableLike[] };
 let tmpDir: string;
+
+async function importContextOnOpenModule() {
+  mock.module("vscode", () => getVscodeMockModule());
+  mock.module("node:fs", () => ({
+    ...actualFs,
+    existsSync: (...args: unknown[]) => mockExistsSync(...(args as [string])),
+  }));
+  return import(
+    `../../src/activation/contextOnOpen?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+}
 
 function getDocOpenListener(): OpenDocumentListener {
   if (!capturedDocOpenListener) {
@@ -73,9 +75,10 @@ function getDocOpenListener(): OpenDocumentListener {
   return capturedDocOpenListener;
 }
 
-function registerFresh(workspaceRoot = tmpDir) {
+async function registerFresh(workspaceRoot = tmpDir) {
   capturedDocOpenListener = null;
   context.subscriptions = [];
+  const { registerContextOnOpen } = await importContextOnOpenModule();
   registerContextOnOpen(context as never, output as never, workspaceRoot);
 }
 
@@ -108,8 +111,8 @@ afterAll(() => {
   mock.restore();
 });
 
-test("registerContextOnOpen registers workspace.onDidOpenTextDocument listener", () => {
-  registerFresh();
+test("registerContextOnOpen registers workspace.onDidOpenTextDocument listener", async () => {
+  await registerFresh();
 
   expect(capturedDocOpenListener).not.toBeNull();
   expect(context.subscriptions.length).toBe(1);
@@ -118,10 +121,10 @@ test("registerContextOnOpen registers workspace.onDidOpenTextDocument listener",
   );
 });
 
-test("registerContextOnOpen skips registration when contextOnOpen config is false", () => {
+test("registerContextOnOpen skips registration when contextOnOpen config is false", async () => {
   mockContextOnOpen = false;
 
-  registerFresh();
+  await registerFresh();
 
   expect(capturedDocOpenListener).toBeNull();
   expect(context.subscriptions.length).toBe(0);
@@ -129,7 +132,7 @@ test("registerContextOnOpen skips registration when contextOnOpen config is fals
 });
 
 test("listener ignores non-file URIs (scheme !== 'file')", async () => {
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "untitled", fsPath: "" },
@@ -139,7 +142,7 @@ test("listener ignores non-file URIs (scheme !== 'file')", async () => {
 });
 
 test("listener ignores documents when workspaceRoot is empty", async () => {
-  registerFresh("");
+  await registerFresh("");
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: "/some/file.ts" },
@@ -151,7 +154,7 @@ test("listener ignores documents when workspaceRoot is empty", async () => {
 test("listener returns early when .kb folder is missing", async () => {
   mockExistsSync = mock(() => false);
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: path.join(tmpDir, "src", "file.ts") },
@@ -172,7 +175,7 @@ test("listener shows info message when KB query returns entities", async () => {
     },
   };
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
@@ -193,7 +196,7 @@ test("listener does not show message when KB query returns no entities", async (
   );
   mockExecuteCommandResult = { structuredContent: { entities: [] } };
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
@@ -212,7 +215,7 @@ test("listener does not show message when structuredContent is missing", async (
   );
   mockExecuteCommandResult = {};
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
@@ -233,7 +236,7 @@ test("listener logs error when KB query throws", async () => {
     throw new Error("MCP server not available");
   };
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
@@ -261,7 +264,7 @@ test("listener uses relative path to sourceFile in KB query", async () => {
   executeCommandImpl = (command: string, ...args: unknown[]) =>
     executeCommandCapture(command, ...args);
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
@@ -284,7 +287,7 @@ test("listener handles non-Error thrown values in catch block", async () => {
     throw "string error";
   };
 
-  registerFresh();
+  await registerFresh();
 
   await getDocOpenListener()({
     uri: { scheme: "file", fsPath: filePath },
