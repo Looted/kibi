@@ -34,10 +34,14 @@ function getWorkspaceMock(): WorkspaceMock {
 
 async function importWorkspaceModule() {
   mock.module("vscode", () => getVscodeMockModule());
-  mock.module("node:fs", () => stableFsModule);
-  return import(
+  const module = await import(
     `../../src/activation/workspace?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
+  module._resetWorkspaceFsDepsForTests();
+  module._setWorkspaceFsDepsForTests({
+    existsSync: stableFsModule.existsSync,
+  });
+  return module;
 }
 
 function setWorkspaceRootEnv(value: string | undefined) {
@@ -56,7 +60,6 @@ beforeEach(() => {
 
 afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
-  mock.module("node:fs", () => fs);
   mock.restore();
 });
 

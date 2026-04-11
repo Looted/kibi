@@ -50,21 +50,21 @@ resetVscodeMock({
 
 mock.module("vscode", () => getVscodeMockModule());
 
-const actualFs = await import("node:fs");
-
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };
 let context: { subscriptions: DisposableLike[] };
 let tmpDir: string;
 
 async function importContextOnOpenModule() {
   mock.module("vscode", () => getVscodeMockModule());
-  mock.module("node:fs", () => ({
-    ...actualFs,
-    existsSync: (...args: unknown[]) => mockExistsSync(...(args as [string])),
-  }));
-  return import(
+  const module = await import(
     `../../src/activation/contextOnOpen?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
+  module._resetContextOnOpenFsDepsForTests();
+  module._setContextOnOpenFsDepsForTests({
+    existsSync: (...args: Parameters<typeof fs.existsSync>) =>
+      mockExistsSync(...(args as [string])),
+  });
+  return module;
 }
 
 function getDocOpenListener(): OpenDocumentListener {
@@ -107,7 +107,6 @@ beforeEach(() => {
 
 afterEach(() => {
   resetVscodeMock();
-  mock.module("node:fs", () => actualFs);
   mock.restore();
 });
 
