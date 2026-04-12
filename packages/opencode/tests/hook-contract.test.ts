@@ -16,6 +16,7 @@ describe("hook contract", () => {
     prompt: { enabled: true, hookMode: "auto" },
     sync: { enabled: false, debounceMs: 2000, ignore: [], relevant: [] },
     ux: {
+      toastStartup: true,
       toastFailures: true,
       toastSuccesses: false,
       toastCooldownMs: 10000,
@@ -201,8 +202,8 @@ describe("hook contract", () => {
 
     const output = {
       system: ["existing-prompt-a", "existing-prompt-b"],
-    } as any;
-    await transform({} as any, output);
+    } as { system: string[] };
+    await transform({} as never, output as never);
 
     // Original entries must still be present
     assert.ok(
@@ -232,8 +233,8 @@ describe("hook contract", () => {
     const chatParams = hooks["chat.params"];
     assert.ok(chatParams, "chat.params hook should exist");
 
-    const output = {} as any;
-    await chatParams({} as any, output);
+    const output = {} as Record<string, never>;
+    await chatParams({} as never, output as never);
 
     // chat.params must not touch any system-related data
     assert.ok(
