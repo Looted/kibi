@@ -18,6 +18,7 @@ import {
   createSyncScheduler as importedCreateSyncScheduler,
 } from "./scheduler.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
+import { notifyStartup } from "./startup-notifier.js";
 import {
   type EffectiveMode,
   computeEffectiveMode,
@@ -71,6 +72,14 @@ export interface PluginInput {
   serverUrl?: unknown;
   $?: unknown;
   client?: {
+    tui?: {
+      toast?: (payload: {
+        variant?: "info" | "success" | "warning" | "error";
+        title?: string;
+        message: string;
+        duration?: number;
+      }) => void | Promise<void>;
+    };
     app: { log: (payload: Record<string, unknown>) => Promise<void> };
   };
 }
@@ -785,6 +794,9 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   logger.info("kibi-opencode: setup complete");
+  if (input.client && cfg.ux.toastStartup === true && !maintenanceDegraded) {
+    notifyStartup(input.client, {});
+  }
   return hooks;
 };
 

@@ -17,6 +17,7 @@ export interface KibiConfig {
     relevant: string[];
   };
   ux: {
+    toastStartup: boolean;
     toastFailures: boolean;
     toastSuccesses: boolean;
     toastCooldownMs: number;
