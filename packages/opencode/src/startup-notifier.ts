@@ -8,8 +8,10 @@ export type ToastPayload = {
 export type StartupNotifierClient = {
   tui?: {
     showToast?: (payload: {
-      body: ToastPayload;
-      query?: { directory?: string };
+      title?: string;
+      message: string;
+      variant?: "info" | "success" | "warning" | "error";
+      duration?: number;
     }) => void | Promise<void>;
     toast?: (payload: ToastPayload) => void | Promise<void>;
   };
@@ -21,6 +23,7 @@ export type StartupNotifierClient = {
 export type StartupNotifierConfig = {
   version?: string;
   suppressToast?: boolean;
+  directory?: string;
 };
 
 function hasShowToast(
@@ -28,8 +31,10 @@ function hasShowToast(
 ): client is StartupNotifierClient & {
   tui: {
     showToast: (payload: {
-      body: ToastPayload;
-      query?: { directory?: string };
+      title?: string;
+      message: string;
+      variant?: "info" | "success" | "warning" | "error";
+      duration?: number;
     }) => void | Promise<void>;
   };
 } {
@@ -47,10 +52,10 @@ function hasLegacyToast(
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function notifyStartup(
+export async function notifyStartup(
   client: StartupNotifierClient,
   cfg: StartupNotifierConfig,
-): void {
+): Promise<void> {
   const message = "kibi-opencode started";
   const toastPayload: ToastPayload = {
     variant: "success",
@@ -61,18 +66,31 @@ export function notifyStartup(
 
   if (!cfg.suppressToast) {
     if (hasShowToast(client)) {
-      void client.tui.showToast({ body: toastPayload });
+      try {
+        await client.tui.showToast(toastPayload);
+      } catch (err) {
+        await client.app.log({
+          body: {
+            service: "kibi-opencode",
+            level: "warn",
+            message: "startup toast failed",
+            error: String(err),
+            ...(cfg.directory ? { directory: cfg.directory } : {}),
+          },
+        });
+      }
     } else if (hasLegacyToast(client)) {
-      void client.tui.toast(toastPayload);
+      await client.tui.toast(toastPayload);
     }
   }
 
-  void client.app.log({
+  return client.app.log({
     body: {
       service: "kibi-opencode",
       level: "info",
       message,
       ...(cfg.version ? { version: cfg.version } : {}),
+      ...(cfg.directory ? { directory: cfg.directory } : {}),
     },
   });
 }

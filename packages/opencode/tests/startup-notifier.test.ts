@@ -15,17 +15,15 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, { version: "1.2.3" });
+    await notifyStartup(client as never, { version: "1.2.3" });
 
     expect(showToast).toHaveBeenCalledTimes(1);
     expect(client.app.log).toHaveBeenCalledTimes(1);
     expect(showToast.mock.calls[0]?.[0]).toEqual({
-      body: {
-        variant: "success",
-        title: "Kibi OpenCode",
-        message: "kibi-opencode started",
-        duration: 4000,
-      },
+      variant: "success",
+      title: "Kibi OpenCode",
+      message: "kibi-opencode started",
+      duration: 4000,
     });
     expect(log.mock.calls[0]?.[0]).toEqual({
       body: {
@@ -49,7 +47,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, { version: "1.2.3" });
+    await notifyStartup(client as never, { version: "1.2.3" });
 
     expect(toast).toHaveBeenCalledTimes(1);
     expect(client.app.log).toHaveBeenCalledTimes(1);
@@ -84,7 +82,7 @@ describe("notifyStartup", () => {
     console.warn = consoleWarn;
 
     try {
-      notifyStartup(client as never, { version: "1.2.3" });
+      await notifyStartup(client as never, { version: "1.2.3" });
 
       expect(log).toHaveBeenCalledTimes(1);
       expect(consoleLog).not.toHaveBeenCalled();
@@ -115,7 +113,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, {
+    await notifyStartup(client as never, {
       version: "1.2.3",
       suppressToast: true,
     });
@@ -128,6 +126,35 @@ describe("notifyStartup", () => {
         level: "info",
         message: "kibi-opencode started",
         version: "1.2.3",
+      },
+    });
+  });
+
+  test("logs toast failures when showToast rejects", async () => {
+    const showToast = mock(async () => {
+      throw new Error("boom");
+    });
+    const log = mock(async () => {});
+    const client = {
+      tui: {
+        showToast,
+      },
+      app: {
+        log,
+      },
+    };
+
+    await notifyStartup(client as never, { directory: "/tmp/worktree" });
+
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledTimes(2);
+    expect(log.mock.calls[0]?.[0]).toEqual({
+      body: {
+        service: "kibi-opencode",
+        level: "warn",
+        message: "startup toast failed",
+        error: "Error: boom",
+        directory: "/tmp/worktree",
       },
     });
   });
