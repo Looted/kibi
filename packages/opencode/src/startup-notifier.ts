@@ -52,10 +52,10 @@ function hasLegacyToast(
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export async function notifyStartup(
+export function notifyStartup(
   client: StartupNotifierClient,
   cfg: StartupNotifierConfig,
-): Promise<void> {
+): void {
   const message = "kibi-opencode started";
   const toastPayload: ToastPayload = {
     variant: "success",
@@ -66,32 +66,40 @@ export async function notifyStartup(
 
   if (!cfg.suppressToast) {
     if (hasShowToast(client)) {
-      try {
-        await client.tui.showToast(toastPayload);
-      } catch (err) {
+      void Promise.resolve(client.tui.showToast(toastPayload)).catch((err) => {
         console.error("[kibi-opencode] startup toast failed:", err);
-        await client.app.log({
-          body: {
-            service: "kibi-opencode",
-            level: "warn",
-            message: "startup toast failed",
-            error: String(err),
-            ...(cfg.directory ? { directory: cfg.directory } : {}),
-          },
+        void Promise.resolve(
+          client.app.log({
+            body: {
+              service: "kibi-opencode",
+              level: "warn",
+              message: "startup toast failed",
+              error: String(err),
+              ...(cfg.directory ? { directory: cfg.directory } : {}),
+            },
+          }),
+        ).catch((logErr) => {
+          console.error("[kibi-opencode] startup toast log failed:", logErr);
         });
-      }
+      });
     } else if (hasLegacyToast(client)) {
-      await client.tui.toast(toastPayload);
+      void Promise.resolve(client.tui.toast(toastPayload)).catch((err) => {
+        console.error("[kibi-opencode] startup toast failed:", err);
+      });
     }
   }
 
-  return client.app.log({
-    body: {
-      service: "kibi-opencode",
-      level: "info",
-      message,
-      ...(cfg.version ? { version: cfg.version } : {}),
-      ...(cfg.directory ? { directory: cfg.directory } : {}),
-    },
+  void Promise.resolve(
+    client.app.log({
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message,
+        ...(cfg.version ? { version: cfg.version } : {}),
+        ...(cfg.directory ? { directory: cfg.directory } : {}),
+      },
+    }),
+  ).catch((err) => {
+    console.error("[kibi-opencode] startup log failed:", err);
   });
 }

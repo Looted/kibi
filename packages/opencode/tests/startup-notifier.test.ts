@@ -15,7 +15,8 @@ describe("notifyStartup", () => {
       },
     };
 
-    await notifyStartup(client as never, { version: "1.2.3" });
+    notifyStartup(client as never, { version: "1.2.3" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(showToast).toHaveBeenCalledTimes(1);
     expect(client.app.log).toHaveBeenCalledTimes(1);
@@ -47,7 +48,8 @@ describe("notifyStartup", () => {
       },
     };
 
-    await notifyStartup(client as never, { version: "1.2.3" });
+    notifyStartup(client as never, { version: "1.2.3" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(toast).toHaveBeenCalledTimes(1);
     expect(client.app.log).toHaveBeenCalledTimes(1);
@@ -82,7 +84,8 @@ describe("notifyStartup", () => {
     console.warn = consoleWarn;
 
     try {
-      await notifyStartup(client as never, { version: "1.2.3" });
+      notifyStartup(client as never, { version: "1.2.3" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(log).toHaveBeenCalledTimes(1);
       expect(consoleLog).not.toHaveBeenCalled();
@@ -113,10 +116,11 @@ describe("notifyStartup", () => {
       },
     };
 
-    await notifyStartup(client as never, {
+    notifyStartup(client as never, {
       version: "1.2.3",
       suppressToast: true,
     });
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(showToast).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledTimes(1);
@@ -148,7 +152,8 @@ describe("notifyStartup", () => {
     };
 
     try {
-      await notifyStartup(client as never, { directory: "/tmp/worktree" });
+      notifyStartup(client as never, { directory: "/tmp/worktree" });
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(showToast).toHaveBeenCalledTimes(1);
       expect(log).toHaveBeenCalledTimes(2);
@@ -158,6 +163,14 @@ describe("notifyStartup", () => {
         expect.any(Error),
       ]);
       expect(log.mock.calls[0]?.[0]).toEqual({
+        body: {
+          service: "kibi-opencode",
+          level: "info",
+          message: "kibi-opencode started",
+          directory: "/tmp/worktree",
+        },
+      });
+      expect(log.mock.calls[1]?.[0]).toEqual({
         body: {
           service: "kibi-opencode",
           level: "warn",
