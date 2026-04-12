@@ -1,5 +1,12 @@
 /// <reference path="../../../types/bun-test.d.ts" />
-import { afterEach, beforeEach, describe, it } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+} from "bun:test";
 import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
@@ -13,6 +20,24 @@ import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 describe("index kibiOpencodePlugin", () => {
   let tmpDir: string;
   let worktree: string;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  beforeAll(() => {
+    globalThis.setTimeout = ((
+      handler: TimerHandler,
+      _delay?: number,
+      ...args: unknown[]
+    ) => {
+      if (typeof handler === "function") {
+        handler(...args);
+      }
+      return 0 as unknown as ReturnType<typeof globalThis.setTimeout>;
+    }) as typeof globalThis.setTimeout;
+  });
+
+  afterAll(() => {
+    globalThis.setTimeout = originalSetTimeout;
+  });
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
