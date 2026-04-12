@@ -12,3 +12,4 @@
 - `ux.toastStartup` now gates the post-setup notification.
 - The startup notification must run after setup success and stay silent on degraded init.
 - In tests, a no-op scheduler factory is needed to keep the happy-path setup non-degraded.
+- Extracting the startup seam into `plugin-startup.ts` works best when the helper returns the full hook-scoped runtime context (`cfg`, `posture`, `cache`, `runtimeOverlay`, `scheduler`, and the derived getters) while `index.ts` keeps hook registration and closures.
