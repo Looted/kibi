@@ -163,9 +163,9 @@ describe("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-          },
+                    },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
@@ -278,9 +278,9 @@ describe("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-          },
+                    },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
@@ -346,8 +346,8 @@ describe("index kibiOpencodePlugin", () => {
 
       assert.equal(
         toastCalls.filter((payload) => {
-          const message = payload.message as string | undefined;
-          return message === "kibi-opencode started";
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode started";
         }).length,
         0,
       );
@@ -439,9 +439,9 @@ describe("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-          },
+                    },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
