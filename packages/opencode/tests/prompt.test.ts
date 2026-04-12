@@ -14,6 +14,7 @@ const baseConfig: KibiConfig = {
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: {
+    toastStartup: true,
     toastFailures: true,
     toastSuccesses: false,
     toastCooldownMs: 10000,
