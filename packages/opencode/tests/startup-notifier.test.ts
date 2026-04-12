@@ -135,6 +135,9 @@ describe("notifyStartup", () => {
       throw new Error("boom");
     });
     const log = mock(async () => {});
+    const consoleError = mock(() => {});
+    const originalError = console.error;
+    console.error = consoleError;
     const client = {
       tui: {
         showToast,
@@ -144,18 +147,27 @@ describe("notifyStartup", () => {
       },
     };
 
-    await notifyStartup(client as never, { directory: "/tmp/worktree" });
+    try {
+      await notifyStartup(client as never, { directory: "/tmp/worktree" });
 
-    expect(showToast).toHaveBeenCalledTimes(1);
-    expect(log).toHaveBeenCalledTimes(2);
-    expect(log.mock.calls[0]?.[0]).toEqual({
-      body: {
-        service: "kibi-opencode",
-        level: "warn",
-        message: "startup toast failed",
-        error: "Error: boom",
-        directory: "/tmp/worktree",
-      },
-    });
+      expect(showToast).toHaveBeenCalledTimes(1);
+      expect(log).toHaveBeenCalledTimes(2);
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      expect(consoleError.mock.calls[0]).toEqual([
+        "[kibi-opencode] startup toast failed:",
+        expect.any(Error),
+      ]);
+      expect(log.mock.calls[0]?.[0]).toEqual({
+        body: {
+          service: "kibi-opencode",
+          level: "warn",
+          message: "startup toast failed",
+          error: "Error: boom",
+          directory: "/tmp/worktree",
+        },
+      });
+    } finally {
+      console.error = originalError;
+    }
   });
 });
