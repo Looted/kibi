@@ -19,12 +19,14 @@ describe("notifyStartup", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(showToast).toHaveBeenCalledTimes(1);
-    expect(client.app.log).toHaveBeenCalledTimes(1);
+    expect(client.app.log).toHaveBeenCalledTimes(2);
     expect(showToast.mock.calls[0]?.[0]).toEqual({
-      variant: "success",
-      title: "Kibi OpenCode",
-      message: "kibi-opencode started",
-      duration: 4000,
+      body: {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started",
+        duration: 4000,
+      },
     });
     expect(log.mock.calls[0]?.[0]).toEqual({
       body: {
@@ -32,6 +34,14 @@ describe("notifyStartup", () => {
         level: "info",
         message: "kibi-opencode started",
         version: "1.2.3",
+      },
+    });
+    expect(log.mock.calls[1]?.[0]).toEqual({
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "startup toast result",
+        result: "[object Object]",
       },
     });
   });
@@ -179,8 +189,44 @@ describe("notifyStartup", () => {
           directory: "/tmp/worktree",
         },
       });
+      expect(log.mock.calls[1]?.[0]).toEqual({
+        body: {
+          service: "kibi-opencode",
+          level: "warn",
+          message: "startup toast failed",
+          error: "Error: boom",
+          directory: "/tmp/worktree",
+        },
+      });
     } finally {
       console.error = originalError;
     }
+  });
+
+  test("logs boolean toast result when showToast resolves to true", async () => {
+    const showToast = mock(async () => true);
+    const log = mock(async () => {});
+    const client = {
+      tui: {
+        showToast,
+      },
+      app: {
+        log,
+      },
+    };
+
+    notifyStartup(client as never, { version: "1.2.3" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(showToast).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledTimes(2);
+    expect(log.mock.calls[0]?.[0]).toEqual({
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "kibi-opencode started",
+        version: "1.2.3",
+      },
+    });
   });
 });
