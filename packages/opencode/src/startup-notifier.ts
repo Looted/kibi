@@ -8,10 +8,12 @@ export type ToastPayload = {
 export type StartupNotifierClient = {
   tui?: {
     showToast?: (payload: {
-      title?: string;
-      message: string;
-      variant?: "info" | "success" | "warning" | "error";
-      duration?: number;
+      body: {
+        title?: string;
+        message: string;
+        variant?: "info" | "success" | "warning" | "error";
+        duration?: number;
+      };
     }) => void | Promise<void>;
     toast?: (payload: ToastPayload) => void | Promise<void>;
   };
@@ -31,10 +33,12 @@ function hasShowToast(
 ): client is StartupNotifierClient & {
   tui: {
     showToast: (payload: {
-      title?: string;
-      message: string;
-      variant?: "info" | "success" | "warning" | "error";
-      duration?: number;
+      body: {
+        title?: string;
+        message: string;
+        variant?: "info" | "success" | "warning" | "error";
+        duration?: number;
+      };
     }) => void | Promise<void>;
   };
 } {
@@ -66,22 +70,42 @@ export function notifyStartup(
 
   if (!cfg.suppressToast) {
     if (hasShowToast(client)) {
-      void Promise.resolve(client.tui.showToast(toastPayload)).catch((err) => {
-        console.error("[kibi-opencode] startup toast failed:", err);
-        void Promise.resolve(
-          client.app.log({
-            body: {
-              service: "kibi-opencode",
-              level: "warn",
-              message: "startup toast failed",
-              error: String(err),
-              ...(cfg.directory ? { directory: cfg.directory } : {}),
-            },
-          }),
-        ).catch((logErr) => {
-          console.error("[kibi-opencode] startup toast log failed:", logErr);
+      void Promise.resolve(client.tui.showToast({ body: toastPayload }))
+        .then(
+          (result) =>
+            void Promise.resolve(
+              client.app.log({
+                body: {
+                  service: "kibi-opencode",
+                  level: "info",
+                  message: "startup toast result",
+                  result: String(result),
+                  ...(cfg.directory ? { directory: cfg.directory } : {}),
+                },
+              }),
+            ).catch((logErr) => {
+              console.error(
+                "[kibi-opencode] startup toast result log failed:",
+                logErr,
+              );
+            }),
+        )
+        .catch((err) => {
+          console.error("[kibi-opencode] startup toast failed:", err);
+          void Promise.resolve(
+            client.app.log({
+              body: {
+                service: "kibi-opencode",
+                level: "warn",
+                message: "startup toast failed",
+                error: String(err),
+                ...(cfg.directory ? { directory: cfg.directory } : {}),
+              },
+            }),
+          ).catch((logErr) => {
+            console.error("[kibi-opencode] startup toast log failed:", logErr);
+          });
         });
-      });
     } else if (hasLegacyToast(client)) {
       void Promise.resolve(client.tui.toast(toastPayload)).catch((err) => {
         console.error("[kibi-opencode] startup toast failed:", err);

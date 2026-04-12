@@ -224,10 +224,12 @@ describe("index kibiOpencodePlugin", () => {
 
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
-        variant: "success",
-        title: "Kibi OpenCode",
-        message: "kibi-opencode started",
-        duration: 4000,
+        body: {
+          variant: "success",
+          title: "Kibi OpenCode",
+          message: "kibi-opencode started",
+          duration: 4000,
+        },
       });
       assert.equal(startupConfirmations.length, 1);
 
