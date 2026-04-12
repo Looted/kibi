@@ -165,7 +165,7 @@ describe("index kibiOpencodePlugin", () => {
         tui: {
           showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-                    },
+          },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
@@ -223,6 +223,12 @@ describe("index kibiOpencodePlugin", () => {
       });
 
       assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started",
+        duration: 4000,
+      });
       assert.equal(startupConfirmations.length, 1);
 
       assert.equal(
@@ -280,7 +286,7 @@ describe("index kibiOpencodePlugin", () => {
         tui: {
           showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-                    },
+          },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
@@ -346,8 +352,7 @@ describe("index kibiOpencodePlugin", () => {
 
       assert.equal(
         toastCalls.filter((payload) => {
-          const body = payload.body as Record<string, unknown> | undefined;
-          return body?.message === "kibi-opencode started";
+          return payload.message === "kibi-opencode started";
         }).length,
         0,
       );
@@ -441,7 +446,7 @@ describe("index kibiOpencodePlugin", () => {
         tui: {
           showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
-                    },
+          },
         },
         app: {
           log: async (payload: Record<string, unknown>) => {
