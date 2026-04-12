@@ -12,7 +12,12 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import * as logger from "../src/logger.js";
-import { DEFAULTS, isPluginEnabled, loadConfig, validateAndMerge } from "../src/config";
+import {
+  DEFAULTS,
+  isPluginEnabled,
+  loadConfig,
+  validateAndMerge,
+} from "../src/config";
 
 describe("config loader", () => {
   let tmpBase: string;
@@ -122,6 +127,7 @@ describe("config loader", () => {
       path.join(home, ".config", "opencode", "kibi.json"),
       JSON.stringify({
         ux: {
+          toastStartup: false,
           toastFailures: false,
           toastSuccesses: true,
           toastCooldownMs: 2500,
@@ -132,10 +138,37 @@ describe("config loader", () => {
     const c = loadConfig(projDir);
 
     expect(c.ux).toEqual({
+      toastStartup: false,
       toastFailures: false,
       toastSuccesses: true,
       toastCooldownMs: 2500,
     });
+  });
+
+  test("ux toastStartup defaults to true and project config overrides global", () => {
+    fs.writeFileSync(
+      path.join(home, ".config", "opencode", "kibi.json"),
+      JSON.stringify({
+        ux: {
+          toastStartup: false,
+        },
+      }),
+    );
+    fs.writeFileSync(
+      path.join(projDir, ".opencode", "kibi.json"),
+      JSON.stringify({
+        ux: {
+          toastStartup: true,
+        },
+      }),
+    );
+
+    const c = loadConfig(projDir);
+
+    expect(c.ux.toastStartup).toBe(true);
+    expect(c.ux.toastFailures).toBe(DEFAULTS.ux.toastFailures);
+    expect(c.ux.toastSuccesses).toBe(DEFAULTS.ux.toastSuccesses);
+    expect(c.ux.toastCooldownMs).toBe(DEFAULTS.ux.toastCooldownMs);
   });
 
   test("non-object nested ux config falls back to defaults", () => {
@@ -167,7 +200,12 @@ describe("config loader", () => {
     const c = validateAndMerge({
       enabled: true,
       prompt: { enabled: true, hookMode: "auto" },
-      sync: { enabled: false, debounceMs: 5000, ignore: ["*.log"], relevant: ["src/**"] },
+      sync: {
+        enabled: false,
+        debounceMs: 5000,
+        ignore: ["*.log"],
+        relevant: ["src/**"],
+      },
       guidance: {
         dynamic: false,
         warnOnKbEdits: false,

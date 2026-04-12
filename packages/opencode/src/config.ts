@@ -53,7 +53,12 @@ const DEFAULTS: KibiConfig = {
   enabled: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-  ux: { toastFailures: true, toastSuccesses: false, toastCooldownMs: 10000 },
+  ux: {
+    toastStartup: true,
+    toastFailures: true,
+    toastSuccesses: false,
+    toastCooldownMs: 10000,
+  },
   guidance: {
     dynamic: true,
     warnOnKbEdits: true,
@@ -138,6 +143,8 @@ export function validateAndMerge(obj: unknown): KibiConfig {
   if (src.ux && typeof src.ux === "object") {
     const u = src.ux as Record<string, unknown>;
     out.ux = { ...DEFAULTS.ux };
+    if (typeof u.toastStartup === "boolean")
+      out.ux.toastStartup = u.toastStartup;
     if (typeof u.toastFailures === "boolean")
       out.ux.toastFailures = u.toastFailures;
     if (typeof u.toastSuccesses === "boolean")
@@ -195,7 +202,10 @@ export function validateAndMerge(obj: unknown): KibiConfig {
         out.guidance.smartEnforcement.preflightTtlMs = se.preflightTtlMs;
       if (typeof se.idleResetMs === "number")
         out.guidance.smartEnforcement.idleResetMs = se.idleResetMs;
-      if (se.degradedMode === "warn-once" || se.degradedMode === "structured-only")
+      if (
+        se.degradedMode === "warn-once" ||
+        se.degradedMode === "structured-only"
+      )
         out.guidance.smartEnforcement.degradedMode = se.degradedMode;
       if (typeof se.requireRootKbForStrict === "boolean")
         out.guidance.smartEnforcement.requireRootKbForStrict =
