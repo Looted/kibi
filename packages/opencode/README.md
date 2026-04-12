@@ -152,6 +152,10 @@ Config files (project overrides global):
 | `sync.debounceMs` | number | `2000` | Debounce window in milliseconds |
 | `sync.ignore` | string[] | `[]` | Additional paths to ignore |
 | `sync.relevant` | string[] | `[]` | Additional relevant paths |
+| `ux.toastStartup` | boolean | `true` | Show the startup confirmation toast independently from sync-status toasts |
+| `ux.toastFailures` | boolean | `true` | Show failure toasts for sync/check issues |
+| `ux.toastSuccesses` | boolean | `false` | Show success toasts for sync/check completion |
+| `ux.toastCooldownMs` | number | `10000` | Cooldown between repeated UX toasts |
 | `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.warnOnKbEdits` | boolean | `true` | Enable loud warnings for .kb/** edits |
 | `guidance.factFirstDomainRouting` | boolean | `true` | Enable FACT-first domain routing suggestions |
