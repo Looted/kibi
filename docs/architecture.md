@@ -19,7 +19,13 @@ graph TD
 
 ## Component Descriptions
 
+## Component Descriptions
+
+### Monorepo Architecture and Simplification
+- Detailed analysis of package boundaries and simplification roadmap: [OpenCode monorepo simplification review](proposals/opencode-monorepo-simplification.md)
+
 ### Prolog Core
+
 - Located at `packages/core/src/kb.pl`
 - Implements RDF persistence using SWI-Prolog's `rdf_persistency`
 - Stores entities and relationships as RDF triples
