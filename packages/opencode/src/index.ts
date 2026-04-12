@@ -594,8 +594,10 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   logger.info("kibi-opencode: setup complete");
-  if (input.client && cfg.ux.toastStartup === true && !maintenanceDegraded) {
-    notifyStartup(input.client, {});
+  if (input.client && !maintenanceDegraded) {
+    notifyStartup(input.client, {
+      suppressToast: cfg.ux.toastStartup === false,
+    });
   }
   return hooks;
 };

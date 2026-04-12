@@ -14,6 +14,7 @@ export type StartupNotifierClient = {
 
 export type StartupNotifierConfig = {
   version?: string;
+  suppressToast?: boolean;
 };
 
 function hasToast(
@@ -38,14 +39,13 @@ export function notifyStartup(
 ): void {
   const message = "kibi-opencode started";
 
-  if (hasToast(client)) {
+  if (!cfg.suppressToast && hasToast(client)) {
     void client.tui.toast({
       variant: "success",
       title: "Kibi OpenCode",
       message,
       duration: 4000,
     });
-    return;
   }
 
   void client.app.log({

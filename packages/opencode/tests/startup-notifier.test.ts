@@ -5,19 +5,34 @@ import { notifyStartup } from "../src/startup-notifier";
 describe("notifyStartup", () => {
   test("uses runtime toast capability when available", async () => {
     const toast = mock((payload: unknown) => payload);
+    const log = mock(async () => {});
     const client = {
       tui: {
         toast,
       },
       app: {
-        log: mock(async () => {}),
+        log,
       },
     };
 
     notifyStartup(client as never, { version: "1.2.3" });
 
     expect(toast).toHaveBeenCalledTimes(1);
-    expect(client.app.log).not.toHaveBeenCalled();
+    expect(client.app.log).toHaveBeenCalledTimes(1);
+    expect(toast.mock.calls[0]?.[0]).toEqual({
+      variant: "success",
+      title: "Kibi OpenCode",
+      message: "kibi-opencode started",
+      duration: 4000,
+    });
+    expect(log.mock.calls[0]?.[0]).toEqual({
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "kibi-opencode started",
+        version: "1.2.3",
+      },
+    });
   });
 
   test("falls back to structured app log without console noise", async () => {
@@ -52,5 +67,34 @@ describe("notifyStartup", () => {
       console.log = originalLog;
       console.warn = originalWarn;
     }
+  });
+
+  test("suppresses toast but still logs structured startup when requested", async () => {
+    const toast = mock((payload: unknown) => payload);
+    const log = mock(async () => {});
+    const client = {
+      tui: {
+        toast,
+      },
+      app: {
+        log,
+      },
+    };
+
+    notifyStartup(client as never, {
+      version: "1.2.3",
+      suppressToast: true,
+    });
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log.mock.calls[0]?.[0]).toEqual({
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "kibi-opencode started",
+        version: "1.2.3",
+      },
+    });
   });
 });
