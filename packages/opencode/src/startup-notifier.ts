@@ -69,6 +69,7 @@ export async function notifyStartup(
       try {
         await client.tui.showToast(toastPayload);
       } catch (err) {
+        console.error("[kibi-opencode] startup toast failed:", err);
         await client.app.log({
           body: {
             service: "kibi-opencode",
