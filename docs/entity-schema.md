@@ -103,8 +103,6 @@ source: documentation/requirements/REQ-001.md
 links:
   - type: specified_by
     target: SCEN-001
-  - type: verified_by
-    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -118,13 +116,9 @@ source: documentation/scenarios/SCEN-001.md
 ---
 
 # documentation/tests/TEST-001.md
----
-id: TEST-001
-title: Verify login flow
-status: passing
-created_at: 2026-03-10T10:02:00Z
-updated_at: 2026-03-10T10:02:00Z
-source: documentation/tests/TEST-001.md
+links:
+  - type: validates
+    target: SCEN-001
 ---
 ```
 
@@ -548,7 +542,7 @@ relationship:
   source: https://example.com/fixtures/tests/TEST-001
 ```
 
-`verified_by` has one frozen meaning: a requirement or scenario is verified by a test.
+`verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
 
 **validates**
 ```yaml

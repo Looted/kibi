@@ -7,16 +7,8 @@
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "keywords": [
-    "knowledge base",
-    "requirements",
-    "adr",
-    "scenarios",
-    "mcp"
-  ],
+  "categories": ["Other"],
+  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
@@ -114,9 +106,7 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": [
-            "${config:kibi.mcp.serverPath}"
-          ],
+          "args": ["${config:kibi.mcp.serverPath}"],
           "env": {}
         }
       }

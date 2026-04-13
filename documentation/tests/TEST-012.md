@@ -10,7 +10,7 @@ tags:
   - context
 links:
   - type: validates
-    target: REQ-015
+    target: SCEN-001
 ---
 
 Validation steps:

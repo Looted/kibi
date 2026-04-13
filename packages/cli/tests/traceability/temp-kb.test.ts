@@ -867,7 +867,11 @@ describe("temp-kb", () => {
             status: "active",
             source: "documentation/symbols.yaml",
             relationships: [
-              { type: "executable_for", from: "SYM-EXE-TEST", to: "TEST-EXE-001" },
+              {
+                type: "executable_for",
+                from: "SYM-EXE-TEST",
+                to: "TEST-EXE-001",
+              },
             ],
           }),
         ]);
@@ -935,17 +939,26 @@ describe("temp-kb", () => {
 
         // Verify the covered_by relationship is projected and queryable
         expect(
-          await querySucceeds(ctx.prolog, "kb_relationship(covered_by, 'SYM-COV', 'TEST-COV')"),
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(covered_by, 'SYM-COV', 'TEST-COV')",
+          ),
         ).toBe(true);
 
         // Verify no implements relationship exists for this symbol
         expect(
-          await querySucceeds(ctx.prolog, "kb_relationship(implements, 'SYM-COV', _)"),
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(implements, 'SYM-COV', _)",
+          ),
         ).toBe(false);
 
         // Verify no executable_for relationship exists for this symbol
         expect(
-          await querySucceeds(ctx.prolog, "kb_relationship(executable_for, 'SYM-COV', _)"),
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(executable_for, 'SYM-COV', _)",
+          ),
         ).toBe(false);
       } finally {
         await cleanupTempKb(ctx.tempDir);

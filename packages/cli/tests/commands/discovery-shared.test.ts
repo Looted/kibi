@@ -90,7 +90,8 @@ import * as discovery from "../../src/commands/discovery-shared.js";
 import type { DiscoveryDeps } from "../../src/commands/discovery-shared.js";
 
 const mockDeps: DiscoveryDeps = {
-  createProlog: (opts) => new MockPrologProcess(opts) as unknown as PrologProcess,
+  createProlog: (opts) =>
+    new MockPrologProcess(opts) as unknown as PrologProcess,
   resolveKbPl: () => state.resolveKbPlPath,
 };
 

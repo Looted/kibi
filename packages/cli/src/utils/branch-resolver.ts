@@ -48,7 +48,8 @@ const defaultDeps: BranchResolverDeps = { execSync: rawExecSync };
 
 export function _setBranchResolverDepsForTests(
   deps: Partial<BranchResolverDeps>,
-): void { // implements REQ-008
+): void {
+  // implements REQ-008
   defaultDeps.execSync = deps.execSync ?? rawExecSync;
 }
 
@@ -91,7 +92,8 @@ function isVolatileArtifact(fileName: string): boolean {
  */
 export function resolveActiveBranch(
   workspaceRoot: string = process.cwd(),
-): BranchResolutionResult { // implements REQ-008
+): BranchResolutionResult {
+  // implements REQ-008
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = process.env.KIBI_BRANCH?.trim();
   if (envBranch) {
@@ -218,7 +220,8 @@ export function resolveActiveBranch(
  * @param workspaceRoot - The workspace root directory
  * @returns true if in detached HEAD, false otherwise
  */
-export function isDetachedHead(workspaceRoot: string = process.cwd()): boolean { // implements REQ-008
+export function isDetachedHead(workspaceRoot: string = process.cwd()): boolean {
+  // implements REQ-008
   try {
     const branch = defaultDeps
       .execSync("git rev-parse --abbrev-ref HEAD", {
@@ -385,7 +388,8 @@ export function getVolatileArtifactPatterns(): string[] {
 export function resolveDefaultBranch(
   cwd: string = process.cwd(),
   config?: { defaultBranch?: string },
-): { branch: string } | { error: string; code: string } { // implements REQ-012
+): { branch: string } | { error: string; code: string } {
+  // implements REQ-012
   // 1. Check config.defaultBranch first (highest precedence)
   const configuredBranch = config?.defaultBranch?.trim();
   if (configuredBranch) {

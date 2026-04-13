@@ -36,7 +36,8 @@ const STRICT_ELIGIBLE_POSTURES: ReadonlySet<RepoPosture> = new Set([
  *
  * Only root_active and hybrid_root_plus_vendored are considered authoritative.
  */
-export function isStrictEligible(inputs: ModeInputs): boolean { // implements REQ-opencode-smart-enforcement-v1
+export function isStrictEligible(inputs: ModeInputs): boolean {
+  // implements REQ-opencode-smart-enforcement-v1
   if (inputs.maintenanceDegraded) return false;
 
   if (inputs.requireRootKbForStrict) {
@@ -59,7 +60,8 @@ export function isStrictEligible(inputs: ModeInputs): boolean { // implements RE
  *   postures (but hooks/checks remain hard gate regardless)
  * - maintenance-degraded → advisory regardless of config
  */
-export function computeEffectiveMode(inputs: ModeInputs): EffectiveMode { // implements REQ-opencode-smart-enforcement-v1
+export function computeEffectiveMode(inputs: ModeInputs): EffectiveMode {
+  // implements REQ-opencode-smart-enforcement-v1
   // Maintenance-degraded always forces advisory
   if (inputs.maintenanceDegraded) {
     return "advisory";

@@ -10,6 +10,8 @@ tags:
   - adr
   - temporal
   - agent-workflow
+  - type: verified_by
+    target: TEST-013
 ---
 
 ## Scenario

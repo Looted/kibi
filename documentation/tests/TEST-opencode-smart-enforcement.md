@@ -12,6 +12,9 @@ tags:
   - opencode
   - kibi
   - test
+links:
+  - type: validates
+    target: SCEN-opencode-smart-enforcement
 ---
 
 ## Test Coverage

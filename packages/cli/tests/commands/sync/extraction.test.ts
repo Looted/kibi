@@ -190,7 +190,7 @@ describe("processExtractions", () => {
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
-test("collects relationships from extraction results", async () => {
+  test("collects relationships from extraction results", async () => {
     // Create extraction result with relationships at top level
     const extractionResult = {
       entity: {
@@ -348,17 +348,13 @@ describe("processExtractions error handling", () => {
     const error = new FrontmatterError(
       "Test scenario and test embedded",
       "test.md",
-      { classification: "Embedded Entity Violation" }
+      { classification: "Embedded Entity Violation" },
     );
     mockExtractFromMarkdown.mockImplementation(() => {
       throw error;
     });
 
-    const result = await processExtractions(
-      ["test.md"],
-      [],
-      true,
-    );
+    const result = await processExtractions(["test.md"], [], true);
 
     // Should handle the error gracefully
     expect(result.results).toEqual([]);
@@ -409,4 +405,3 @@ describe("processExtractions error handling", () => {
     expect(result.failedCacheKeys.size).toBe(1);
   });
 });
-

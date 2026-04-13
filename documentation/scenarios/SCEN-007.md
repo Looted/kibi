@@ -10,6 +10,8 @@ tags:
   - extractors
 links:
   - REQ-007
+  - type: verified_by
+    target: TEST-002
 ---
 
 Steps:

@@ -20,8 +20,6 @@ links:
     target: ADR-018
   - type: specified_by
     target: SCEN-opencode-agent-mcp-only
-  - type: verified_by
-    target: TEST-opencode-agent-mcp-only
   - type: relates_to
     target: REQ-opencode-smart-enforcement-v1
 ---

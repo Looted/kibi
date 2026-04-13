@@ -164,7 +164,11 @@ if (RUN_NODE_TEST_SUITE) {
           );
           // Bootstrap the temp project so posture is root_active (comment guidance is visible)
           mkdirSync(join(projectDir, ".kb"), { recursive: true });
-          writeFileSync(join(projectDir, ".kb", "config.json"), JSON.stringify({}), "utf8");
+          writeFileSync(
+            join(projectDir, ".kb", "config.json"),
+            JSON.stringify({}),
+            "utf8",
+          );
           for (const dir of [
             "documentation/requirements",
             "documentation/scenarios",
@@ -176,7 +180,11 @@ if (RUN_NODE_TEST_SUITE) {
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }
-          writeFileSync(join(projectDir, "documentation", "symbols.yaml"), "[]", "utf8");
+          writeFileSync(
+            join(projectDir, "documentation", "symbols.yaml"),
+            "[]",
+            "utf8",
+          );
 
           // Write Python file with a module docstring containing domain invariants
           const pyFile = join(projectDir, "src", "models.py");
@@ -317,7 +325,11 @@ class User:
 
           // Bootstrap the temp project so posture is root_active (comment guidance is visible)
           mkdirSync(join(projectDir, ".kb"), { recursive: true });
-          writeFileSync(join(projectDir, ".kb", "config.json"), JSON.stringify({}), "utf8");
+          writeFileSync(
+            join(projectDir, ".kb", "config.json"),
+            JSON.stringify({}),
+            "utf8",
+          );
           for (const dir of [
             "documentation/requirements",
             "documentation/scenarios",
@@ -329,7 +341,11 @@ class User:
           ]) {
             mkdirSync(join(projectDir, dir), { recursive: true });
           }
-          writeFileSync(join(projectDir, "documentation", "symbols.yaml"), "[]", "utf8");
+          writeFileSync(
+            join(projectDir, "documentation", "symbols.yaml"),
+            "[]",
+            "utf8",
+          );
 
           // Write Python file with # comments containing decision rationale
           const pyFile = join(projectDir, "src", "database.py");

@@ -11,7 +11,8 @@ tags:
   - test
   - enforcement
 links:
-  - REQ-opencode-kibi-plugin-v1
+  - type: validates
+    target: SCEN-opencode-kibi-plugin-v1
 ---
 
 Automated verification for the OpenCode Kibi Plugin v1 requirement includes:

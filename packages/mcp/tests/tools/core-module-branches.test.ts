@@ -111,7 +111,11 @@ describe("runJsonModuleQuery branch coverage", () => {
       return ok({ JsonString: JSON.stringify({ loaded: true }) });
     });
 
-    Object.defineProperty(prolog, "useOneShotMode", { value: false, writable: true, configurable: true });
+    Object.defineProperty(prolog, "useOneShotMode", {
+      value: false,
+      writable: true,
+      configurable: true,
+    });
     prolog.query = query;
 
     const result = await runJsonModuleQuery<{ loaded: boolean }>(
@@ -134,7 +138,11 @@ describe("runJsonModuleQuery branch coverage", () => {
     const prolog = Object.create(PrologProcess.prototype);
     prolog.invalidateCache = mock(() => {});
 
-    Object.defineProperty(prolog, "useOneShotMode", { value: false, writable: true, configurable: true });
+    Object.defineProperty(prolog, "useOneShotMode", {
+      value: false,
+      writable: true,
+      configurable: true,
+    });
     prolog.query = mock(async (goal: string | string[]) => {
       if (!Array.isArray(goal) && goal.startsWith("use_module(")) {
         return fail("load boom");
@@ -158,7 +166,11 @@ describe("runJsonModuleQuery branch coverage", () => {
     const prolog = Object.create(PrologProcess.prototype);
     prolog.invalidateCache = mock(() => {});
 
-    Object.defineProperty(prolog, "useOneShotMode", { value: true, writable: true, configurable: true });
+    Object.defineProperty(prolog, "useOneShotMode", {
+      value: true,
+      writable: true,
+      configurable: true,
+    });
     prolog.query = mock(async () => fail("goal boom"));
 
     await expect(
@@ -176,7 +188,11 @@ describe("runJsonModuleQuery branch coverage", () => {
     const prolog = Object.create(PrologProcess.prototype);
     prolog.invalidateCache = mock(() => {});
 
-    Object.defineProperty(prolog, "useOneShotMode", { value: true, writable: true, configurable: true });
+    Object.defineProperty(prolog, "useOneShotMode", {
+      value: true,
+      writable: true,
+      configurable: true,
+    });
     prolog.query = mock(async () => ok());
 
     await expect(
