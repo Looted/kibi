@@ -53,6 +53,30 @@ test(valid_entity) :-
     Props = [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="http://x"],
     validate_entity(req, Props).
 
+test(test_entity_without_verification_fields_valid) :-
+    Props = [id='TEST-LEGACY', title="Legacy test", status=pending, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-LEGACY.md"],
+    validate_entity(test, Props).
+
+test(test_entity_with_verification_fields_valid) :-
+    Props = [id='TEST-TYPED', title="Typed test", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-TYPED.md", verification_scope=integration, verification_perspective=consumer],
+    validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_scope_invalid) :-
+    Props = [id='TEST-BAD-SCOPE', title="Bad scope", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-SCOPE.md", verification_scope=e2e],
+    \+ validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_perspective_invalid) :-
+    Props = [id='TEST-BAD-PERSPECTIVE', title="Bad perspective", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-PERSPECTIVE.md", verification_perspective=external],
+    \+ validate_entity(test, Props).
+
+test(req_with_verification_scope_invalid) :-
+    Props = [id='REQ-BAD-SCOPE', title="Req with scope", status=open, created_at="2024-01-01", updated_at="2024-01-01", source="reqs/REQ-BAD-SCOPE.md", verification_scope=unit],
+    \+ validate_entity(req, Props).
+
+test(symbol_with_verification_perspective_invalid) :-
+    Props = [id='SYM-BAD-PERSPECTIVE', title="Symbol with perspective", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="symbols/SYM-BAD-PERSPECTIVE.md", verification_perspective=internal],
+    \+ validate_entity(symbol, Props).
+
 % Typed fact validation tests
 
 test(legacy_prose_fact_valid) :-

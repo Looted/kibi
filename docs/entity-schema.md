@@ -61,7 +61,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance (file path, URL, or reference)        |
-| tags[]       | No       | array[string]  | Array of tags                                    |
+| tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |
 | severity     | No       | string         | Severity level                                   |
@@ -283,6 +283,10 @@ tags:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
+| verification_perspective | No | enum     | `internal` or `consumer`                         |
+
+`tags` remain metadata only. They do not alias or replace typed verification fields.
 
 **Example:**
 ```yaml
@@ -295,8 +299,12 @@ updated_at: 2026-02-17T13:00:00Z
 source: https://example.com/fixtures/tests/TEST-001
 tags:
   - sample
+verification_scope: integration
+verification_perspective: internal
 ---
 ```
+
+See `docs/examples/test-verification-fields.md` for a complete example using both typed fields.
 
 #### ADR (`adr`)
 

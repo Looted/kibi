@@ -1,4 +1,8 @@
 import { describe, expect, it } from "bun:test";
+import {
+  extractFromMarkdownString,
+  FrontmatterError,
+} from "../../src/extractors/markdown";
 import { validateStagedMarkdown } from "../../src/traceability/markdown-validate";
 
 describe("validateStagedMarkdown", () => {
@@ -80,5 +84,62 @@ links:
     );
 
     expect(result.errors).toEqual([]);
+  });
+
+  it("extracts optional test verification fields from test frontmatter", () => {
+    const content = `---
+id: TEST-200
+title: Consumer login flow smoke test
+status: passing
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/tests/TEST-200.md
+verification_scope: end_to_end
+verification_perspective: consumer
+---
+`;
+
+    const result = extractFromMarkdownString(
+      content,
+      "/docs/tests/TEST-200.md",
+    );
+
+    expect(result.entity.type).toBe("test");
+    expect(result.entity.verification_scope).toBe("end_to_end");
+    expect(result.entity.verification_perspective).toBe("consumer");
+  });
+
+  it("rejects invalid test verification enum values", () => {
+    const content = `---
+id: TEST-201
+title: Invalid verification scope test
+status: passing
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/tests/TEST-201.md
+verification_scope: playwright
+---
+`;
+
+    expect(() =>
+      extractFromMarkdownString(content, "/docs/tests/TEST-201.md"),
+    ).toThrow(FrontmatterError);
+  });
+
+  it("rejects verification fields on non-test entities", () => {
+    const content = `---
+id: REQ-200
+title: Requirement with invalid test field
+status: open
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/requirements/REQ-200.md
+verification_perspective: consumer
+---
+`;
+
+    expect(() =>
+      extractFromMarkdownString(content, "/docs/requirements/REQ-200.md"),
+    ).toThrow(FrontmatterError);
   });
 });

@@ -39,6 +39,14 @@
     "links": { "type": "array", "items": { "type": "string" } },
     "text_ref": { "type": "string" },
     "sourceFile": { "type": "string" },
+    "verification_scope": {
+      "type": "string",
+      "enum": ["unit", "integration", "end_to_end"]
+    },
+    "verification_perspective": {
+      "type": "string",
+      "enum": ["internal", "consumer"]
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -88,6 +96,20 @@
     "type"
   ],
   "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "test" } }
+      },
+      "then": {},
+      "else": {
+        "not": {
+          "anyOf": [
+            { "required": ["verification_scope"] },
+            { "required": ["verification_perspective"] }
+          ]
+        }
+      }
+    },
     {
       "if": {
         "properties": { "type": { "const": "fact" } }
