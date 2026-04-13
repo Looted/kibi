@@ -15,6 +15,14 @@
     kb_assert_relationship_no_audit/4,
     kb_log_relationship_upsert/4,
     kb_relationship/3,
+    symbol_owns_requirement/2,
+    scenario_verified_by_test/2,
+    requirement_test_fallback_allowed/1,
+    test_satisfies_requirement_semantics/2,
+    production_symbol_covered_for_requirement/2,
+    production_symbol_untested/1,
+    executable_test_symbol/1,
+    mixed_role_symbol/1,
     transitively_implements/2,
     transitively_depends/2,
     impacted_by_change/2,
@@ -587,10 +595,84 @@ uri_to_key(URI, Key) :-
 %% Inference predicates (Phase 1)
 %% ------------------------------------------------------------------
 
+%% symbol_owns_requirement(+Symbol, +Req)
+% Direct requirement ownership for production code.
+symbol_owns_requirement(Symbol, Req) :-
+    kb_relationship(implements, Symbol, Req).
+
 %% transitively_implements(+Symbol, +Req)
 % Ownership is direct only; coverage/test traceability is handled separately.
 transitively_implements(Symbol, Req) :-
-    kb_relationship(implements, Symbol, Req).
+    symbol_owns_requirement(Symbol, Req).
+
+%% scenario_verified_by_test(+Scenario, +Test)
+% Canonical scenario-to-test verification path.
+scenario_verified_by_test(Scenario, Test) :-
+    kb_relationship(validates, Test, Scenario).
+scenario_verified_by_test(Scenario, Test) :-
+    kb_relationship(verified_by, Scenario, Test).
+
+%% requirement_test_fallback_allowed(+Req)
+% Direct requirement-to-test fallback is only allowed when no scenario exists.
+requirement_test_fallback_allowed(Req) :-
+    \+ has_scenario(Req).
+
+%% executable_test_symbol(+Symbol)
+% Symbol represents executable test code rather than production code.
+executable_test_symbol(Symbol) :-
+    kb_relationship(executable_for, Symbol, _).
+
+%% mixed_role_symbol(+Symbol)
+% Invalid symbol carrying both executable test identity and production semantics.
+mixed_role_symbol(Symbol) :-
+    executable_test_symbol(Symbol),
+    (   kb_relationship(implements, Symbol, _)
+    ;   kb_relationship(covered_by, Symbol, _)
+    ).
+
+%% production_symbol(+Symbol)
+% Internal helper for production-only symbol checks.
+production_symbol(Symbol) :-
+    kb_entity(Symbol, symbol, _),
+    \+ executable_test_symbol(Symbol).
+
+%% requirement_verified_by_test(+Req, +Test)
+% Direct req<->test compatibility path.
+requirement_verified_by_test(Req, Test) :-
+    kb_relationship(validates, Test, Req).
+requirement_verified_by_test(Req, Test) :-
+    kb_relationship(verified_by, Req, Test).
+
+%% test_satisfies_requirement_semantics(+Test, +Req)
+% Matches requirement verification facts against typed test fields when present.
+% If the requirement declares no verification semantics, compatibility passes.
+test_satisfies_requirement_semantics(Test, Req) :-
+    findall(Key-Expected,
+            required_test_semantic(Req, Key, Expected),
+            RequiredPairs0),
+    sort(RequiredPairs0, RequiredPairs),
+    (   RequiredPairs = []
+    ->  true
+    ;   kb_entity(Test, test, TestProps),
+        forall(member(Key-Expected, RequiredPairs),
+               test_matches_required_semantic(TestProps, Key, Expected))
+    ).
+
+required_test_semantic(Req, Key, Expected) :-
+    memberchk(Key, [verification_scope, verification_perspective]),
+    verification_subject_key(Req, SubjectKey),
+    effective_req_property(Req, SubjectKey, Key, Operator, _ValueType, Value, _Unit, _Scope, Polarity),
+    Operator == eq,
+    Polarity == require,
+    normalize_term_atom(Value, Expected).
+
+verification_subject_key(Req, SubjectKey) :-
+    format(atom(SubjectKey), 'requirement.~w.verification', [Req]).
+
+test_matches_required_semantic(TestProps, Key, Expected) :-
+    memberchk(Key=ActualRaw, TestProps),
+    normalize_term_atom(ActualRaw, Actual),
+    Actual == Expected.
 
 %% transitively_depends(+Req1, +Req2)
 % Req1 transitively depends on Req2 through depends_on chains.
@@ -679,12 +761,9 @@ has_test(Req) :-
     once(kb_relationship(verified_by, Scenario, _)).
 
 %% untested_symbols(-Symbols)
-% Returns symbols with no test coverage relationship.
+% Returns production symbols with no test coverage relationship.
 untested_symbols(Symbols) :-
-    setof(Symbol,
-          (kb_entity(Symbol, symbol, _),
-           \+ kb_relationship(covered_by, Symbol, _)),
-          Symbols),
+    setof(Symbol, production_symbol_untested(Symbol), Symbols),
     !.
 untested_symbols([]).
 
@@ -702,9 +781,9 @@ stale(Entity, MaxAgeDays) :-
     AgeDays > MaxAgeDays.
 
 %% orphaned(+Symbol)
-% Symbol is orphaned if it has no core traceability links.
+% Production symbol is orphaned if it has no core traceability links.
 orphaned(Symbol) :-
-    kb_entity(Symbol, symbol, _),
+    production_symbol(Symbol),
     \+ kb_relationship(implements, Symbol, _),
     \+ kb_relationship(covered_by, Symbol, _),
     \+ kb_relationship(constrained_by, Symbol, _).
@@ -1021,31 +1100,39 @@ normalize_uri_atom(Value, Atom) :-
 
 %% symbol_no_req_coverage(+Symbol, -Reason)
 % Find symbols that lack canonical production requirement coverage.
-symbol_no_req_coverage(Symbol, no_path_to_req) :-
-    kb_entity(Symbol, symbol, _),
-    \+ symbol_has_req_coverage(Symbol, _).
+symbol_no_req_coverage(Symbol, no_qualifying_production_coverage) :-
+    production_symbol(Symbol),
+    \+ production_symbol_covered_for_requirement(Symbol, _).
 
-symbol_has_req_coverage(Symbol, Req) :-
+%% production_symbol_covered_for_requirement(+Symbol, +Req)
+% Production coverage requires a covered_by edge and a canonical requirement/test path.
+production_symbol_covered_for_requirement(Symbol, Req) :-
+    production_symbol(Symbol),
     kb_relationship(covered_by, Symbol, Test),
     test_covers_requirement(Test, Req).
 
+symbol_has_req_coverage(Symbol, Req) :-
+    production_symbol_covered_for_requirement(Symbol, Req).
+
 test_covers_requirement(Test, Req) :-
-    kb_relationship(validates, Test, Req),
-    \+ has_scenario(Req).
-test_covers_requirement(Test, Req) :-
-    kb_relationship(verified_by, Req, Test),
-    \+ has_scenario(Req).
-test_covers_requirement(Test, Req) :-
-    kb_relationship(specified_by, Req, Scenario),
-    kb_relationship(validates, Test, Scenario).
+    requirement_test_fallback_allowed(Req),
+    requirement_verified_by_test(Req, Test),
+    test_satisfies_requirement_semantics(Test, Req).
 test_covers_requirement(Test, Req) :-
     kb_relationship(specified_by, Req, Scenario),
-    kb_relationship(verified_by, Scenario, Test).
+    scenario_verified_by_test(Scenario, Test),
+    test_satisfies_requirement_semantics(Test, Req).
+
+%% production_symbol_untested(+Symbol)
+% Production symbol with no covered_by test evidence at all.
+production_symbol_untested(Symbol) :-
+    production_symbol(Symbol),
+    \+ kb_relationship(covered_by, Symbol, _).
 
 % Helper predicate for readability - symbols with no traceability
 symbol_uncovered(Symbol) :-
-    kb_entity(Symbol, symbol, _),
-    \+ symbol_has_req_coverage(Symbol, _).
+    production_symbol(Symbol),
+    \+ production_symbol_covered_for_requirement(Symbol, _).
 
 
 coerce_timestamp_atom(Val^^_Type, Atom) :-
@@ -1081,7 +1168,8 @@ coerce_timestamp_atom(Val, Atom) :-
 % counted so that `// implements: REQ-001` can satisfy the gate.
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
-    (   setof(Req, transitively_implements(Symbol, Req), KbReqs)
+    \+ executable_test_symbol(Symbol),
+    (   setof(Req, symbol_owns_requirement(Symbol, Req), KbReqs)
     ->  true
     ;   KbReqs = []
     ),

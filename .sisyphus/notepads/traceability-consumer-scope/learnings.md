@@ -36,3 +36,6 @@
 - VS Code relationship rendering uses `REL_LABELS` for human-readable child nodes and a separate `relTypes` allowlist for RDF extraction, so new edges need both updates plus focused tests.
 - Optional typed test fields require lockstep updates across Prolog entity properties, Prolog shape validation, CLI JSON schema conditionals, and markdown extraction guards.
 - `tags` must stay metadata-only in docs and extraction logic; typed verification semantics come only from explicit `verification_scope` / `verification_perspective` fields.
+
+- Task 4 note: MCP check tests share a long-lived Prolog process, so per-test kb_attach/kb_detach isolation plus explicit 15s timeouts prevents cross-test state leakage from masking symbol-coverage semantics.
+- Task 4 note: verification test semantics stay compatibility-first: direct req->test fallback must pass when no scenario exists and no verification facts are present, while executable_for symbols are excluded from production untested/orphaned reports.

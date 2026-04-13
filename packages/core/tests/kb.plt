@@ -305,6 +305,95 @@ test(symbol_traceability_rejects_executable_for_path, [setup(setup_kb), cleanup(
     check_symbol_traceability(false, Violations),
     member(violation('symbol-traceability', 'sym-executable-only', _, _, _), Violations).
 
+test(executable_test_symbol_detects_test_code, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(test, [
+        id='test-executable-helper',
+        title="Executable Helper Test",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-executable-helper',
+        title="Executable Helper Symbol",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(executable_for, 'sym-executable-helper', 'test-executable-helper', []),
+    executable_test_symbol('sym-executable-helper').
+
+test(production_symbol_coverage_helper_accepts_direct_req_test_fallback, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-direct-helper',
+        title="Req Direct Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-direct-helper',
+        title="Test Direct Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-direct-helper',
+        title="Sym Direct Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(validates, 'test-direct-helper', 'req-direct-helper', []),
+    kb_assert_relationship(covered_by, 'sym-direct-helper', 'test-direct-helper', []),
+    production_symbol_covered_for_requirement('sym-direct-helper', 'req-direct-helper').
+
+test(production_symbol_coverage_helper_rejects_direct_req_test_fallback_when_scenario_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-scenario-helper',
+        title="Req Scenario Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(scenario, [
+        id='scen-scenario-helper',
+        title="Scenario Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(test, [
+        id='test-scenario-helper',
+        title="Test Scenario Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-scenario-helper',
+        title="Sym Scenario Helper",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(specified_by, 'req-scenario-helper', 'scen-scenario-helper', []),
+    kb_assert_relationship(validates, 'test-scenario-helper', 'req-scenario-helper', []),
+    kb_assert_relationship(covered_by, 'sym-scenario-helper', 'test-scenario-helper', []),
+    \+ production_symbol_covered_for_requirement('sym-scenario-helper', 'req-scenario-helper').
+
 test(symbol_coverage_accepts_direct_req_test_fallback_without_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-direct-fallback',
@@ -461,6 +550,28 @@ test(untested_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     untested_symbols(Symbols),
     memberchk('sym-untested', Symbols).
 
+test(executable_test_symbols_excluded_from_untested_symbols, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(test, [
+        id='test-executable-untested',
+        title="Executable Untested Test",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-executable-untested',
+        title="Executable Untested Symbol",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(executable_for, 'sym-executable-untested', 'test-executable-untested', []),
+    untested_symbols(Symbols),
+    \+ memberchk('sym-executable-untested', Symbols),
+    \+ production_symbol_untested('sym-executable-untested').
+
 test(stale_entity, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-old',
@@ -482,6 +593,26 @@ test(orphaned_symbol, [setup(setup_kb), cleanup(cleanup_kb)]) :-
         source="test://kb.plt"
     ]),
     orphaned('sym-orphan').
+
+test(executable_test_symbols_are_not_orphaned, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(test, [
+        id='test-executable-orphan',
+        title="Executable Orphan Test",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-executable-orphan',
+        title="Executable Orphan Symbol",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(executable_for, 'sym-executable-orphan', 'test-executable-orphan', []),
+    \+ orphaned('sym-executable-orphan').
 
 test(conflicting_adrs, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(symbol, [

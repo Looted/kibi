@@ -2,6 +2,7 @@ import {
   afterAll,
   afterEach,
   beforeAll,
+  beforeEach,
   describe,
   expect,
   test,
@@ -27,17 +28,27 @@ describe("MCP Check Tool Handler", () => {
   let testKbPath: string;
 
   beforeAll(async () => {
-    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-check-"));
-
     prolog = new PrologProcess();
     await prolog.start();
 
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
     );
+  });
 
+  beforeEach(async () => {
+    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-check-"));
     const attachResult = await prolog.query(`kb_attach('${testKbPath}')`);
     expect(attachResult.success).toBe(true);
+  });
+
+  afterEach(async () => {
+    if (prolog?.isRunning()) {
+      await prolog.query("kb_detach");
+    }
+    if (testKbPath) {
+      await fs.rm(testKbPath, { recursive: true, force: true });
+    }
   });
 
   afterAll(async () => {
@@ -45,8 +56,6 @@ describe("MCP Check Tool Handler", () => {
       await prolog.query("kb_detach");
       await prolog.terminate();
     }
-
-    await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
   test("should return no violations for empty KB", async () => {
@@ -57,7 +66,7 @@ describe("MCP Check Tool Handler", () => {
     expect(result.content[0].text).toContain("No violations");
     expect(result.structuredContent?.violations).toEqual([]);
     expect(result.structuredContent?.count).toBe(0);
-  });
+  }, 15000);
 
   test("should detect must-priority requirement without scenario", async () => {
     await handleKbUpsert(prolog, {
@@ -80,7 +89,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeDefined();
     expect(violation?.entityId).toBe("req-must-001");
     expect(violation?.description).toContain("scenario");
-  });
+  }, 15000);
 
   test("should detect must-priority requirement with scenario but no test", async () => {
     await handleKbUpsert(prolog, {
@@ -120,7 +129,7 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeDefined();
     expect(violation?.description).toContain("test");
     expect(violation?.description).not.toContain("scenario");
-  });
+  }, 15000);
 
   test("should pass must-priority coverage with both scenario and test", async () => {
     await handleKbUpsert(prolog, {
@@ -194,7 +203,7 @@ describe("MCP Check Tool Handler", () => {
 
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
-  });
+  }, 15000);
 
   test("should support filtering by specific rule", async () => {
     const result = await handleKbCheck(prolog, {
@@ -207,7 +216,7 @@ describe("MCP Check Tool Handler", () => {
       (v) => v.rule !== "must-priority-coverage",
     );
     expect(nonMatchingViolations?.length).toBe(0);
-  });
+  }, 15000);
 
   test("should run no-dangling-refs rule without errors", async () => {
     await handleKbUpsert(prolog, {
@@ -226,7 +235,7 @@ describe("MCP Check Tool Handler", () => {
 
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
-  });
+  }, 15000);
 
   test("should run no-cycles rule without errors", async () => {
     const relationship = {
@@ -262,7 +271,7 @@ describe("MCP Check Tool Handler", () => {
 
     expect(result.structuredContent).toBeDefined();
     expect(result.structuredContent?.violations).toBeInstanceOf(Array);
-  });
+  }, 15000);
 
   test("should detect symbol without requirement coverage", async () => {
     // Create a symbol without any implements relationship to a requirement
@@ -286,9 +295,10 @@ describe("MCP Check Tool Handler", () => {
         v.rule === "symbol-coverage" && v.entityId === "symbol-uncovered-001",
     );
     expect(violation).toBeDefined();
-    expect(violation?.description).toContain("not traceable");
+    expect(violation?.description).toMatch(/qualifying requirement coverage/i);
     expect(violation?.suggestion).toContain("covered_by");
-  });
+    expect(violation?.suggestion).toMatch(/scenario|fallback/i);
+  }, 15000);
 
   test("should fail symbol coverage when symbol only implements requirement", async () => {
     // Ownership alone should not satisfy coverage.
@@ -328,7 +338,7 @@ describe("MCP Check Tool Handler", () => {
       (v) => v.entityId === "symbol-covered-001",
     );
     expect(violation).toBeDefined();
-  });
+  }, 15000);
 
   test("should complete kb_check on a larger MCP-written dataset", async () => {
     // Create 10 entities (reduced for CI performance)
@@ -371,10 +381,11 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(traceabilityViolation).toBeDefined();
     expect(traceabilityViolation?.description).toMatch(
-      /supported requirement traceability path/i,
+      /direct requirement ownership/i,
     );
     expect(traceabilityViolation?.suggestion).toMatch(/implements/i);
     expect(traceabilityViolation?.suggestion).toMatch(/executable_for/i);
+    expect(traceabilityViolation?.suggestion).toMatch(/covered_by/i);
   }, 15000);
 
   test("should pass symbol-traceability when symbol implements requirement", async () => {
@@ -478,7 +489,7 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(symbolViolation).toBeDefined();
     expect(symbolViolation?.description).toMatch(
-      /supported requirement traceability path/i,
+      /direct requirement ownership/i,
     );
   }, 15000);
 
@@ -536,7 +547,7 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(symbolViolation).toBeDefined();
     expect(symbolViolation?.description).toMatch(
-      /supported requirement traceability path/i,
+      /direct requirement ownership/i,
     );
   }, 15000);
 
@@ -740,7 +751,7 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(symbolViolation).toBeDefined();
     expect(symbolViolation?.description).toMatch(
-      /supported requirement traceability path/i,
+      /direct requirement ownership/i,
     );
   }, 15000);
 
@@ -781,7 +792,7 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(symbolViolation).toBeDefined();
     expect(symbolViolation?.description).toMatch(
-      /supported requirement traceability path/i,
+      /direct requirement ownership/i,
     );
   }, 15000);
 
