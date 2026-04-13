@@ -147,6 +147,74 @@ describe("kb_graph multi-relationship integration", () => {
     });
     expect(reversed.structuredContent?.edges?.length).toBe(2);
   });
+
+  test("returns scenario to test traversal edges for validates and verified_by", async () => {
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "SCEN-GRAPH-TRACE-001",
+      properties: { title: "Graph trace scenario", status: "active" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "TEST-GRAPH-TRACE-001",
+      properties: { title: "Graph trace test", status: "passing" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "TEST-GRAPH-TRACE-002",
+      properties: { title: "Graph trace verified test", status: "passing" },
+    });
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "SCEN-GRAPH-TRACE-001",
+      properties: { title: "Graph trace scenario", status: "active" },
+      relationships: [
+        {
+          type: "verified_by",
+          from: "SCEN-GRAPH-TRACE-001",
+          to: "TEST-GRAPH-TRACE-002",
+        },
+      ],
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "TEST-GRAPH-TRACE-001",
+      properties: { title: "Graph trace test", status: "passing" },
+      relationships: [
+        {
+          type: "validates",
+          from: "TEST-GRAPH-TRACE-001",
+          to: "SCEN-GRAPH-TRACE-001",
+        },
+      ],
+    });
+
+    const outgoing = await handleKbGraph(prolog, {
+      seedIds: ["SCEN-GRAPH-TRACE-001"],
+      relationships: ["verified_by"],
+      direction: "outgoing",
+      depth: 1,
+    });
+    const incoming = await handleKbGraph(prolog, {
+      seedIds: ["SCEN-GRAPH-TRACE-001"],
+      relationships: ["validates"],
+      direction: "incoming",
+      depth: 1,
+    });
+
+    const outgoingEdges = outgoing.structuredContent?.edges ?? [];
+    const incomingEdges = incoming.structuredContent?.edges ?? [];
+    expect(outgoingEdges).toContainEqual({
+      type: "verified_by",
+      from: "SCEN-GRAPH-TRACE-001",
+      to: "TEST-GRAPH-TRACE-002",
+    });
+    expect(incomingEdges).toContainEqual({
+      type: "validates",
+      from: "TEST-GRAPH-TRACE-001",
+      to: "SCEN-GRAPH-TRACE-001",
+    });
+  });
 });
 
 describe("kb_graph isolated-core regression (issue #118)", () => {

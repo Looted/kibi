@@ -166,6 +166,11 @@ spawn_entity_thread(N, ThreadId) :-
 
 :- begin_tests(kb_inference).
 
+% Truth-table matrix:
+% - dead code = missing production ownership (`implements`) for symbol-traceability
+% - untested code = missing `covered_by` evidence
+% - uncovered code = `covered_by` exists but no canonical requirement/scenario path
+
 test(transitively_implements_direct, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-a',
@@ -187,7 +192,7 @@ test(transitively_implements_direct, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_relationship(implements, 'sym-a', 'req-a', []),
     transitively_implements('sym-a', 'req-a').
 
-test(transitively_implements_via_test, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(transitively_implements_does_not_treat_coverage_as_ownership, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-b',
         title="Req B",
@@ -215,9 +220,9 @@ test(transitively_implements_via_test, [setup(setup_kb), cleanup(cleanup_kb)]) :
     ]),
     kb_assert_relationship(validates, 'test-b', 'req-b', []),
     kb_assert_relationship(covered_by, 'sym-b', 'test-b', []),
-    transitively_implements('sym-b', 'req-b').
+    \+ transitively_implements('sym-b', 'req-b').
 
-test(symbol_traceability_accepts_validates_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(symbol_traceability_rejects_covered_by_validates_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-trace-validates',
         title="Req Trace Validates",
@@ -246,9 +251,9 @@ test(symbol_traceability_accepts_validates_path, [setup(setup_kb), cleanup(clean
     kb_assert_relationship(validates, 'test-trace-validates', 'req-trace-validates', []),
     kb_assert_relationship(covered_by, 'sym-trace-validates', 'test-trace-validates', []),
     check_symbol_traceability(false, Violations),
-    assertion(Violations == []).
+    member(violation('symbol-traceability', 'sym-trace-validates', _, _, _), Violations).
 
-test(symbol_traceability_accepts_verified_by_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(symbol_traceability_rejects_covered_by_verified_by_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-trace-verified',
         title="Req Trace Verified",
@@ -277,7 +282,131 @@ test(symbol_traceability_accepts_verified_by_path, [setup(setup_kb), cleanup(cle
     kb_assert_relationship(verified_by, 'req-trace-verified', 'test-trace-verified', []),
     kb_assert_relationship(covered_by, 'sym-trace-verified', 'test-trace-verified', []),
     check_symbol_traceability(false, Violations),
-    assertion(Violations == []).
+    member(violation('symbol-traceability', 'sym-trace-verified', _, _, _), Violations).
+
+test(symbol_traceability_rejects_executable_for_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(test, [
+        id='test-executable-only',
+        title="Executable Test Only",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-executable-only',
+        title="Executable Symbol Only",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(executable_for, 'sym-executable-only', 'test-executable-only', []),
+    check_symbol_traceability(false, Violations),
+    member(violation('symbol-traceability', 'sym-executable-only', _, _, _), Violations).
+
+test(symbol_coverage_accepts_direct_req_test_fallback_without_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-direct-fallback',
+        title="Req Direct Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-direct-fallback',
+        title="Test Direct Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-direct-fallback',
+        title="Sym Direct Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(validates, 'test-direct-fallback', 'req-direct-fallback', []),
+    kb_assert_relationship(covered_by, 'sym-direct-fallback', 'test-direct-fallback', []),
+    check_symbol_coverage(Violations),
+    \+ member(violation('symbol-coverage', 'sym-direct-fallback', _, _, _), Violations).
+
+test(symbol_coverage_rejects_direct_req_test_fallback_when_scenario_exists, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-scenario-fallback',
+        title="Req Scenario Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(scenario, [
+        id='scen-scenario-fallback',
+        title="Scenario Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(test, [
+        id='test-scenario-fallback',
+        title="Test Scenario Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-scenario-fallback',
+        title="Sym Scenario Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(specified_by, 'req-scenario-fallback', 'scen-scenario-fallback', []),
+    kb_assert_relationship(validates, 'test-scenario-fallback', 'req-scenario-fallback', []),
+    kb_assert_relationship(covered_by, 'sym-scenario-fallback', 'test-scenario-fallback', []),
+    check_symbol_coverage(Violations),
+    member(violation('symbol-coverage', 'sym-scenario-fallback', _, _, _), Violations).
+
+test(mixed_role_symbol_rejects_executable_for_and_implements, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='req-mixed-role',
+        title="Req Mixed Role",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(test, [
+        id='test-mixed-role',
+        title="Test Mixed Role",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-mixed-role',
+        title="Sym Mixed Role",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(executable_for, 'sym-mixed-role', 'test-mixed-role', []),
+    catch(
+        kb_assert_relationship(implements, 'sym-mixed-role', 'req-mixed-role', []),
+        error(validation_error(_), _),
+        true
+    ).
 
 test(transitively_depends, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [

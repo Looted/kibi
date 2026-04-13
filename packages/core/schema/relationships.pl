@@ -4,6 +4,7 @@
 
 % Relationship types
 relationship_type(depends_on).
+relationship_type(executable_for).
 relationship_type(specified_by).
 relationship_type(verified_by).
 relationship_type(validates).
@@ -20,9 +21,12 @@ relationship_type(requires_property).
 
 % valid_relationship(RelType, FromType, ToType).
 valid_relationship(depends_on, req, req).
+valid_relationship(executable_for, symbol, test).
 valid_relationship(specified_by, req, scenario).
 valid_relationship(verified_by, req, test).
+valid_relationship(verified_by, scenario, test).
 valid_relationship(validates, test, req).
+valid_relationship(validates, test, scenario).
 valid_relationship(implements, symbol, req).
 valid_relationship(covered_by, symbol, test).
 valid_relationship(constrained_by, symbol, adr).

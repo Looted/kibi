@@ -13,9 +13,10 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 14 items; ensure length and membership
-    length(Sorted, 14),
+    % relationship_type/1 includes 15 items; ensure length and membership
+    length(Sorted, 15),
     member(depends_on, Sorted),
+    member(executable_for, Sorted),
     member(specified_by, Sorted),
     member(verified_by, Sorted),
     member(constrains, Sorted),
@@ -26,6 +27,17 @@ test(valid_relationship_ok) :-
 
 test(invalid_relationship_bad_types) :-
     \+ validate_relationship(depends_on, invalid, req).
+
+test(traceability_schema_valid_relationships) :-
+    validate_relationship(executable_for, symbol, test),
+    validate_relationship(verified_by, scenario, test),
+    validate_relationship(validates, test, scenario).
+
+test(traceability_schema_invalid_relationships) :-
+    \+ validate_relationship(implements, symbol, test),
+    \+ validate_relationship(implements, symbol, scenario),
+    \+ validate_relationship(covered_by, scenario, test),
+    \+ validate_relationship(executable_for, req, test).
 
 test(missing_required_property) :-
     % missing title
