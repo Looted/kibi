@@ -485,10 +485,12 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | Relationship         | Source Entity         | Target Entity         | Description                                      |
 |---------------------|----------------------|----------------------|--------------------------------------------------|
 | depends_on          | req                  | req                  | Requirement depends on another requirement        |
-| specified_by        | req                  | scenario             | Requirement specified by scenario                 |
-| verified_by         | req                  | test                 | Requirement verified by test                      |
-| implements          | symbol               | req                  | Symbol implements requirement                     |
-| covered_by          | symbol               | test                 | Symbol covered by test                            |
+| specified_by        | req                  | scenario             | Requirement is specified by a scenario            |
+| verified_by         | req/scenario         | test                 | Requirement or scenario is verified by a test     |
+| validates           | test                 | req/scenario         | Test validates a requirement or scenario          |
+| implements          | symbol               | req                  | Symbol owns or implements requirement behavior    |
+| covered_by          | symbol               | test                 | Production symbol has coverage evidence from a test |
+| executable_for      | symbol               | test                 | Symbol is executable test code for a test entity  |
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
@@ -538,6 +540,22 @@ relationship:
   source: https://example.com/fixtures/tests/TEST-001
 ```
 
+`verified_by` has one frozen meaning: a requirement or scenario is verified by a test.
+
+**validates**
+```yaml
+# test TEST-001 validates scenario SCEN-001
+relationship:
+  type: validates
+  source: TEST-001
+  target: SCEN-001
+  created_at: 2026-02-17T13:22:00Z
+  created_by: qa
+  source: https://example.com/fixtures/tests/TEST-001
+```
+
+`validates` is the inverse edge for req/scenario ↔ test links.
+
 **implements**
 ```yaml
 # symbol SYMBOL-001 implements req REQ-001
@@ -550,6 +568,8 @@ relationship:
   source: https://example.com/fixtures/symbols/SYMBOL-001
 ```
 
+`implements` is frozen to requirement ownership only (`symbol -> req`).
+
 **covered_by**
 ```yaml
 # symbol SYMBOL-001 covered_by test TEST-001
@@ -561,6 +581,22 @@ relationship:
   created_by: dev
   source: https://example.com/fixtures/tests/TEST-001
 ```
+
+`covered_by` is frozen to production coverage evidence only (`symbol -> test`).
+
+**executable_for**
+```yaml
+# symbol SYMBOL-TEST-001 executable_for test TEST-001
+relationship:
+  type: executable_for
+  source: SYMBOL-TEST-001
+  target: TEST-001
+  created_at: 2026-02-17T13:32:00Z
+  created_by: dev
+  source: https://example.com/fixtures/symbols/SYMBOL-TEST-001
+```
+
+`executable_for` is frozen to executable test code identity only (`symbol -> test`).
 
 **constrained_by**
 ```yaml
