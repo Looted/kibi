@@ -244,5 +244,159 @@ if (RUN_NODE_TEST_SUITE) {
       assert.strictEqual(afterSymbols, beforeSymbols);
       assert.deepStrictEqual(afterBranches, beforeBranches);
     });
+
+    it("should pass with executable_for test symbol", async () => {
+      if (!hasProlog) return;
+
+      const hostRepo = process.cwd();
+      const beforeSymbols = repoSymbolsHash(hostRepo);
+      const beforeBranches = kbBranchesSnapshot(hostRepo);
+
+      // Create test entity and symbol manifest with executable_for
+      createMarkdownFile(
+        sandbox,
+        "documentation/tests/TEST-EXE-001.md",
+        {
+          id: "TEST-EXE-001",
+          title: "Executable test",
+          status: "passing",
+          created_at: "2026-03-20T17:30:00Z",
+          updated_at: "2026-03-20T17:30:00Z",
+          source: "documentation/tests/TEST-EXE-001.md",
+        },
+        "Test for executable_for check.",
+      );
+
+      const fs = await import("node:fs");
+      const symbolsYaml = `symbols:
+  - id: SYM-EXE-001
+    title: testHelper
+    sourceFile: tests/helper.js
+    links:
+      - type: executable_for
+        target: TEST-EXE-001
+    status: active
+`;
+      fs.writeFileSync(
+        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        symbolsYaml,
+        "utf8",
+      );
+
+      fs.mkdirSync(join(sandbox.repoDir, "tests"), { recursive: true });
+      const src = "export function testHelper() { return 'ok'; }\n";
+      fs.writeFileSync(join(sandbox.repoDir, "tests", "helper.js"), src, "utf8");
+      fs.writeFileSync(join(sandbox.repoDir, "tests", "helper.js"), src, "utf8");
+
+      await run("git", ["add", "."], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+
+      let out = "";
+      try {
+        const result = await kibi(sandbox, ["check", "--staged"], {
+          timeoutMs: TEST_TIMEOUT_MS,
+        });
+        out = result.stdout + result.stderr;
+      } catch (e) {
+        const err = e as Error;
+        out = err.message;
+      }
+
+      const passed = out.includes("No violations found") || out.includes("\u2713");
+      assert.ok(passed, `Expected passing output for executable_for symbol, got: ${out}`);
+
+      const afterSymbols = repoSymbolsHash(hostRepo);
+      const afterBranches = kbBranchesSnapshot(hostRepo);
+      assert.strictEqual(afterSymbols, beforeSymbols);
+      assert.deepStrictEqual(afterBranches, beforeBranches);
+    });
+
+    it("should fail when only covered_by is present (no implements ownership)", async () => {
+      if (!hasProlog) return;
+
+      const hostRepo = process.cwd();
+      const beforeSymbols = repoSymbolsHash(hostRepo);
+      const beforeBranches = kbBranchesSnapshot(hostRepo);
+
+      // Create test that validates REQ-001 (direct write for typed links)
+      const fs = await import("node:fs");
+      const testContent = `---
+id: TEST-COV-001
+title: Coverage test
+status: passing
+created_at: 2026-03-20T17:30:00Z
+updated_at: 2026-03-20T17:30:00Z
+source: documentation/tests/TEST-COV-001.md
+links:
+  - type: validates
+    target: REQ-001
+---
+
+Coverage test for split semantics.
+`;
+      fs.mkdirSync(join(sandbox.repoDir, "documentation", "tests"), { recursive: true });
+      fs.writeFileSync(
+        join(sandbox.repoDir, "documentation", "tests", "TEST-COV-001.md"),
+        testContent,
+        "utf8",
+      );
+
+      const symbolsYaml = `symbols:
+  - id: SYM-COV-001
+    title: covFunc
+    sourceFile: src/cov.js
+    links:
+      - type: covered_by
+        target: TEST-COV-001
+    status: active
+`;
+      fs.writeFileSync(
+        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        symbolsYaml,
+        "utf8",
+      );
+
+      const src = "export function covFunc() { return 'cov'; }\n";
+      fs.mkdirSync(join(sandbox.repoDir, "src"), { recursive: true });
+      fs.writeFileSync(join(sandbox.repoDir, "src", "cov.js"), src, "utf8");
+      fs.writeFileSync(join(sandbox.repoDir, "src", "cov.js"), src, "utf8");
+
+      await run("git", ["add", "."], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+      });
+
+      let code = 0;
+      let stdout = "";
+      try {
+        const result = await kibi(sandbox, ["check", "--staged"], {
+          timeoutMs: TEST_TIMEOUT_MS,
+        });
+        stdout = result.stdout;
+        code = result.exitCode;
+      } catch (e) {
+        code = 1;
+        const err = e as Error;
+        stdout = err.message;
+      }
+
+      // covered_by alone must fail the ownership gate
+      const okFailure =
+        code === 1 &&
+        /cov\.js:\d+/.test(stdout) &&
+        stdout.includes("covFunc");
+      const skipped = stdout.includes("No staged files found");
+      assert.ok(
+        okFailure || skipped,
+        `Expected failure with violation info, got code=${code}, stdout=${stdout}`,
+      );
+
+      const afterSymbols = repoSymbolsHash(hostRepo);
+      const afterBranches = kbBranchesSnapshot(hostRepo);
+      assert.strictEqual(afterSymbols, beforeSymbols);
+      assert.deepStrictEqual(afterBranches, beforeBranches);
   });
+});
 }
