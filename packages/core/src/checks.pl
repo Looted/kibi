@@ -100,7 +100,7 @@ symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
     "Code symbol is not traceable to any functional requirement.",
-    "Update symbols.yaml to link this symbol to a related requirement.",
+    "Add qualifying production coverage via 'covered_by' and a canonical requirement/scenario test path.",
     Source
 )) :-
     violation_source(SymbolId, symbol, Source).
@@ -143,10 +143,10 @@ symbol_traceability_violation(RequireAdr, violation(
     % Determine what is missing
     (   HasReq = false, HasAdr = false, RequireAdr = true ->
         Description = "Symbol has no supported requirement traceability path and no ADR constraint.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link or a test-backed 'covered_by' + 'validates'/'verified_by' path, and add 'constrained_by: ADR-xxx' in symbols.yaml."
+        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership, and add 'constrained_by: ADR-xxx' in symbols.yaml."
     ;   HasReq = false ->
         Description = "Symbol has no supported requirement traceability path.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link or a test-backed 'covered_by' + 'validates'/'verified_by' path."
+        Suggestion = "Add a direct 'implements: REQ-xxx' link. 'covered_by' and 'executable_for' do not satisfy ownership."
     ;   HasAdr = false ->
         Description = "Symbol has no ADR constraint.",
         Suggestion = "Add 'constrained_by: ADR-xxx' in symbols.yaml."

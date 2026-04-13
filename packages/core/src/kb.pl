@@ -382,6 +382,7 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     once(kb_entity(FromId, FromType, _)),
     once(kb_entity(ToId, ToType, _)),
     validate_relationship(RelType, FromType, ToType),
+    validate_symbol_role_compatibility(RelType, FromId, ToId),
     % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
     % via validateStrictLanePairing() before the transaction begins.
     % Prolog-level validation is deferred to avoid potential issues with
@@ -399,6 +400,25 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
         % Assert relationship triple
         rdf_assert(FromURI, RelURI, ToURI, Graph)
     )).
+
+validate_symbol_role_compatibility(RelType, FromId, _ToId) :-
+    memberchk(RelType, [implements, covered_by, executable_for]),
+    !,
+    (   mixed_symbol_role(RelType, FromId)
+    ->  format(atom(Msg), 'symbol ~w cannot mix executable_for with production ownership/coverage relationships', [FromId]),
+        throw(error(validation_error(Msg), Msg))
+    ;   true
+    ).
+validate_symbol_role_compatibility(_, _, _).
+
+mixed_symbol_role(executable_for, SymbolId) :-
+    (   kb_relationship(implements, SymbolId, _)
+    ;   kb_relationship(covered_by, SymbolId, _)
+    ).
+mixed_symbol_role(implements, SymbolId) :-
+    kb_relationship(executable_for, SymbolId, _).
+mixed_symbol_role(covered_by, SymbolId) :-
+    kb_relationship(executable_for, SymbolId, _).
 
 %% kb_log_relationship_upsert(+Type, +From, +To, +Metadata)
 % Append the audit entry for a successfully committed relationship upsert.
@@ -568,16 +588,9 @@ uri_to_key(URI, Key) :-
 %% ------------------------------------------------------------------
 
 %% transitively_implements(+Symbol, +Req)
-% A symbol transitively implements a requirement if it directly implements it,
-% or if it is covered by a test that validates/verifies the requirement.
+% Ownership is direct only; coverage/test traceability is handled separately.
 transitively_implements(Symbol, Req) :-
     kb_relationship(implements, Symbol, Req).
-transitively_implements(Symbol, Req) :-
-    kb_relationship(covered_by, Symbol, Test),
-    kb_relationship(validates, Test, Req).
-transitively_implements(Symbol, Req) :-
-    kb_relationship(covered_by, Symbol, Test),
-    kb_relationship(verified_by, Req, Test).
 
 %% transitively_depends(+Req1, +Req2)
 % Req1 transitively depends on Req2 through depends_on chains.
@@ -658,6 +671,12 @@ has_test(Req) :-
     once(kb_relationship(validates, _, Req)).
 has_test(Req) :-
     once(kb_relationship(verified_by, Req, _)).
+has_test(Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    once(kb_relationship(validates, _, Scenario)).
+has_test(Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    once(kb_relationship(verified_by, Scenario, _)).
 
 %% untested_symbols(-Symbols)
 % Returns symbols with no test coverage relationship.
@@ -1001,15 +1020,32 @@ normalize_uri_atom(Value, Atom) :-
     ).
 
 %% symbol_no_req_coverage(+Symbol, -Reason)
-% Find symbols that are not traceable to any functional requirement.
+% Find symbols that lack canonical production requirement coverage.
 symbol_no_req_coverage(Symbol, no_path_to_req) :-
     kb_entity(Symbol, symbol, _),
-    \+ transitively_implements(Symbol, _).
+    \+ symbol_has_req_coverage(Symbol, _).
+
+symbol_has_req_coverage(Symbol, Req) :-
+    kb_relationship(covered_by, Symbol, Test),
+    test_covers_requirement(Test, Req).
+
+test_covers_requirement(Test, Req) :-
+    kb_relationship(validates, Test, Req),
+    \+ has_scenario(Req).
+test_covers_requirement(Test, Req) :-
+    kb_relationship(verified_by, Req, Test),
+    \+ has_scenario(Req).
+test_covers_requirement(Test, Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    kb_relationship(validates, Test, Scenario).
+test_covers_requirement(Test, Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    kb_relationship(verified_by, Scenario, Test).
 
 % Helper predicate for readability - symbols with no traceability
 symbol_uncovered(Symbol) :-
     kb_entity(Symbol, symbol, _),
-    \+ transitively_implements(Symbol, _).
+    \+ symbol_has_req_coverage(Symbol, _).
 
 
 coerce_timestamp_atom(Val^^_Type, Atom) :-

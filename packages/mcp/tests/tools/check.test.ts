@@ -287,11 +287,11 @@ describe("MCP Check Tool Handler", () => {
     );
     expect(violation).toBeDefined();
     expect(violation?.description).toContain("not traceable");
-    expect(violation?.suggestion).toContain("symbols.yaml");
+    expect(violation?.suggestion).toContain("covered_by");
   });
 
-  test("should pass symbol coverage when symbol implements requirement", async () => {
-    // Create a symbol with an implements relationship to a requirement
+  test("should fail symbol coverage when symbol only implements requirement", async () => {
+    // Ownership alone should not satisfy coverage.
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req-for-symbol-001",
@@ -327,7 +327,7 @@ describe("MCP Check Tool Handler", () => {
     const violation = result.structuredContent?.violations.find(
       (v) => v.entityId === "symbol-covered-001",
     );
-    expect(violation).toBeUndefined();
+    expect(violation).toBeDefined();
   });
 
   test("should complete kb_check on a larger MCP-written dataset", async () => {
@@ -374,8 +374,7 @@ describe("MCP Check Tool Handler", () => {
       /supported requirement traceability path/i,
     );
     expect(traceabilityViolation?.suggestion).toMatch(/implements/i);
-    expect(traceabilityViolation?.suggestion).toMatch(/covered_by/i);
-    expect(traceabilityViolation?.suggestion).toMatch(/validates|verified_by/i);
+    expect(traceabilityViolation?.suggestion).toMatch(/executable_for/i);
   }, 15000);
 
   test("should pass symbol-traceability when symbol implements requirement", async () => {
@@ -420,7 +419,12 @@ describe("MCP Check Tool Handler", () => {
     expect(symbolViolation).toBeUndefined();
   }, 15000);
 
-  test("should pass symbol-traceability when symbol is covered by validating test", async () => {
+  // Truth-table matrix:
+  // - dead code = missing production ownership (`implements`) for symbol-traceability
+  // - untested code = missing `covered_by` evidence
+  // - uncovered code = `covered_by` exists but no canonical requirement/scenario path
+
+  test("should fail symbol-traceability when symbol is only covered by validating test", async () => {
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req-trace-validates-001",
@@ -472,10 +476,13 @@ describe("MCP Check Tool Handler", () => {
     const symbolViolation = result.structuredContent?.violations.find(
       (v) => v.entityId === "symbol-trace-validates-001",
     );
-    expect(symbolViolation).toBeUndefined();
+    expect(symbolViolation).toBeDefined();
+    expect(symbolViolation?.description).toMatch(
+      /supported requirement traceability path/i,
+    );
   }, 15000);
 
-  test("should pass symbol-traceability when requirement is verified by covering test", async () => {
+  test("should fail symbol-traceability when requirement is only verified by covering test", async () => {
     await handleKbUpsert(prolog, {
       type: "test",
       id: "test-trace-verified-001",
@@ -527,7 +534,173 @@ describe("MCP Check Tool Handler", () => {
     const symbolViolation = result.structuredContent?.violations.find(
       (v) => v.entityId === "symbol-trace-verified-001",
     );
+    expect(symbolViolation).toBeDefined();
+    expect(symbolViolation?.description).toMatch(
+      /supported requirement traceability path/i,
+    );
+  }, 15000);
+
+  test("should fail symbol-traceability when symbol is only executable_for a test", async () => {
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-trace-executable-001",
+      properties: {
+        title: "Executable traceability test",
+        status: "passing",
+        source: "test://traceability-executable",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-trace-executable-001",
+      properties: {
+        title: "Symbol executable for test only",
+        status: "active",
+        source: "test://traceability-executable",
+      },
+    });
+
+    const relResult = await prolog.query(
+      "kb_assert_relationship(executable_for, 'symbol-trace-executable-001', 'test-trace-executable-001', [])",
+    );
+    expect(relResult.success).toBe(true);
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-traceability"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-trace-executable-001",
+    );
+    expect(symbolViolation).toBeDefined();
+  }, 15000);
+
+  test("should pass symbol-coverage for direct req to test fallback without scenario", async () => {
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-coverage-direct-001",
+      properties: {
+        title: "Coverage direct fallback requirement",
+        status: "open",
+        source: "test://coverage-direct",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-coverage-direct-001",
+      properties: {
+        title: "Coverage direct fallback test",
+        status: "passing",
+        source: "test://coverage-direct",
+      },
+      relationships: [
+        {
+          type: "validates",
+          from: "test-coverage-direct-001",
+          to: "req-coverage-direct-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-coverage-direct-001",
+      properties: {
+        title: "Symbol covered through direct fallback",
+        status: "active",
+        source: "test://coverage-direct",
+      },
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-coverage-direct-001",
+          to: "test-coverage-direct-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-coverage-direct-001",
+    );
     expect(symbolViolation).toBeUndefined();
+  }, 15000);
+
+  test("should fail symbol-coverage direct req to test fallback when scenario exists", async () => {
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-coverage-001",
+      properties: {
+        title: "Coverage scenario",
+        status: "active",
+        source: "test://coverage-scenario",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-coverage-scenario-001",
+      properties: {
+        title: "Coverage scenario requirement",
+        status: "open",
+        source: "test://coverage-scenario",
+      },
+      relationships: [
+        {
+          type: "specified_by",
+          from: "req-coverage-scenario-001",
+          to: "scenario-coverage-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-coverage-scenario-001",
+      properties: {
+        title: "Coverage scenario test",
+        status: "passing",
+        source: "test://coverage-scenario",
+      },
+      relationships: [
+        {
+          type: "validates",
+          from: "test-coverage-scenario-001",
+          to: "req-coverage-scenario-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-coverage-scenario-001",
+      properties: {
+        title: "Symbol blocked by scenario-aware fallback",
+        status: "active",
+        source: "test://coverage-scenario",
+      },
+      relationships: [
+        {
+          type: "covered_by",
+          from: "symbol-coverage-scenario-001",
+          to: "test-coverage-scenario-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
+
+    const symbolViolation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "symbol-coverage-scenario-001",
+    );
+    expect(symbolViolation).toBeDefined();
   }, 15000);
 
   test("should still fail symbol-traceability for relates_to requirement links", async () => {
