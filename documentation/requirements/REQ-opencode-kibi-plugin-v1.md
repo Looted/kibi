@@ -15,10 +15,9 @@ tags:
    - enforcement
    - guidance
 links:
-  - type: verified_by
-    target: TEST-opencode-kibi-plugin-v1
   - type: specified_by
-    target: SCEN-001
+    target: SCEN-opencode-kibi-plugin-v1
+---
   - type: relates_to
     target: ADR-016
   - type: relates_to

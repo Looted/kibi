@@ -10,6 +10,9 @@ tags:
   - cli
   - discovery
   - e2e
+links:
+  - type: validates
+    target: SCEN-mcp-search-discovery
 ---
 
 Verification covers:

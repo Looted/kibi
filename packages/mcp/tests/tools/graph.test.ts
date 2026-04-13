@@ -372,9 +372,9 @@ describe("kb_graph canonical traceability chain traversal", () => {
 
     const nodes = result.structuredContent?.nodes ?? [];
     const edges = result.structuredContent?.edges ?? [];
-    const nodeIds = nodes.map(
-      (n) => (n as Record<string, unknown>).id,
-    ).filter(Boolean) as string[];
+    const nodeIds = nodes
+      .map((n) => (n as Record<string, unknown>).id)
+      .filter(Boolean) as string[];
 
     // All three entities should be discovered via chain traversal
     expect(nodeIds).toContain("REQ-CHAIN-001");
@@ -415,7 +415,11 @@ describe("kb_graph canonical traceability chain traversal", () => {
       id: "REQ-FALLBACK-001",
       properties: { title: "Fallback requirement", status: "open" },
       relationships: [
-        { type: "verified_by", from: "REQ-FALLBACK-001", to: "TEST-FALLBACK-001" },
+        {
+          type: "verified_by",
+          from: "REQ-FALLBACK-001",
+          to: "TEST-FALLBACK-001",
+        },
       ],
     });
 
@@ -428,9 +432,9 @@ describe("kb_graph canonical traceability chain traversal", () => {
 
     const edges = result.structuredContent?.edges ?? [];
     const nodes = result.structuredContent?.nodes ?? [];
-    const nodeIds = nodes.map(
-      (n) => (n as Record<string, unknown>).id,
-    ).filter(Boolean) as string[];
+    const nodeIds = nodes
+      .map((n) => (n as Record<string, unknown>).id)
+      .filter(Boolean) as string[];
 
     // Should have the direct req → test edge
     expect(edges).toContainEqual({
@@ -444,9 +448,7 @@ describe("kb_graph canonical traceability chain traversal", () => {
     expect(nodeIds).toContain("TEST-FALLBACK-001");
 
     // No scenario entity in the result
-    expect(nodeIds).not.toContain(
-      expect.stringMatching(/^SCEN-/),
-    );
+    expect(nodeIds).not.toContain(expect.stringMatching(/^SCEN-/));
   });
 
   test("traverses executable_for relationship from symbol to test", async () => {

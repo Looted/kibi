@@ -10,7 +10,7 @@ tags:
   - query
   - unit
 links:
-  - REQ-003
+    target: SCEN-006
 ---
 
 Asserts that:

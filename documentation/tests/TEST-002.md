@@ -10,8 +10,8 @@ tags:
   - sync
   - unit
 links:
-  - REQ-007
-  - SCEN-007
+  - type: validates
+    target: SCEN-007
 ---
 
 Runs `kibi sync` against `test/fixtures/` and then `kibi query req --format json`.

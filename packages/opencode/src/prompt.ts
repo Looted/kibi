@@ -118,7 +118,8 @@ The Kibi knowledge base is managed through public MCP tools. Direct manual edits
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
-export function postureGuidance(posture: RepoPosture): string | null { // implements REQ-opencode-prompt-injection
+export function postureGuidance(posture: RepoPosture): string | null {
+  // implements REQ-opencode-prompt-injection
   switch (posture) {
     case "vendored_only":
       // Minimal guidance only, no bootstrap nags

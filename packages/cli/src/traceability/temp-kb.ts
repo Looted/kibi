@@ -26,7 +26,8 @@ const cleanedTempDirs = new Set<string>();
  * Reset module state - used by tests to clear state between test runs.
  * This is necessary because module-level Maps/Sets persist across tests.
  */
-export function resetModuleState(): void { // implements REQ-014
+export function resetModuleState(): void {
+  // implements REQ-014
   // Terminate all tracked prolog processes
   for (const prolog of prologByTempDir.values()) {
     void prolog.terminate().catch(() => {});
@@ -45,7 +46,8 @@ let _createProlog = (opts: { timeout: number }) => new PrologProcess(opts);
  * Override the PrologProcess factory — used by tests to inject the real constructor
  * when mock.module() has replaced the module-level binding.
  */
-export function _setPrologFactory( // implements REQ-014
+export function _setPrologFactory(
+  // implements REQ-014
   factory: (opts: { timeout: number }) => PrologProcess,
 ): void {
   _createProlog = factory;
@@ -243,7 +245,8 @@ export async function projectStagedEntities(
   }
 }
 
-export async function createTempKb(baseKbPath: string): Promise<TempKbContext> { // implements REQ-014
+export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
+  // implements REQ-014
   if (!existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }

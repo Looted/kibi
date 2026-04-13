@@ -323,11 +323,24 @@ describe("treeProvider – split traceability RDF edges", () => {
     // Inline the relationship parsing logic matching treeProvider.parseRdfRelationships
     const content = rdf;
     const relTypes = [
-      "depends_on", "specified_by", "verified_by", "validates",
-      "implements", "covered_by", "executable_for", "constrained_by",
-      "guards", "publishes", "consumes", "relates_to",
+      "depends_on",
+      "specified_by",
+      "verified_by",
+      "validates",
+      "implements",
+      "covered_by",
+      "executable_for",
+      "constrained_by",
+      "guards",
+      "publishes",
+      "consumes",
+      "relates_to",
     ];
-    const relationships: Array<{ relType: string; fromId: string; toId: string }> = [];
+    const relationships: Array<{
+      relType: string;
+      fromId: string;
+      toId: string;
+    }> = [];
 
     const blockRe =
       /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
@@ -412,11 +425,24 @@ describe("treeProvider – split traceability RDF edges", () => {
 
     const content = rdf;
     const relTypes = [
-      "depends_on", "specified_by", "verified_by", "validates",
-      "implements", "covered_by", "executable_for", "constrained_by",
-      "guards", "publishes", "consumes", "relates_to",
+      "depends_on",
+      "specified_by",
+      "verified_by",
+      "validates",
+      "implements",
+      "covered_by",
+      "executable_for",
+      "constrained_by",
+      "guards",
+      "publishes",
+      "consumes",
+      "relates_to",
     ];
-    const relationships: Array<{ relType: string; fromId: string; toId: string }> = [];
+    const relationships: Array<{
+      relType: string;
+      fromId: string;
+      toId: string;
+    }> = [];
 
     const blockRe =
       /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;

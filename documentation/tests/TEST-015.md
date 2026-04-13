@@ -14,7 +14,7 @@ tags:
   - relationships
 links:
   - type: validates
-    target: REQ-007
+    target: SCEN-012
 ---
 
 ## Test Cases

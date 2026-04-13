@@ -276,9 +276,7 @@ describe("symbol-extract", () => {
         "src/test.ts:testHelper",
         {
           id: "SYM-TEST-001",
-          relationships: [
-            { type: "executable_for", to: "TEST-001" },
-          ],
+          relationships: [{ type: "executable_for", to: "TEST-001" }],
         },
       ],
     ]);

@@ -13,6 +13,9 @@ tags:
   - kibi-first
   - guidance
   - risk-classification
+links:
+  - type: verified_by
+    target: TEST-opencode-smart-enforcement
 ---
 
 ## Scenario: Posture Detection and Dynamic Guidance

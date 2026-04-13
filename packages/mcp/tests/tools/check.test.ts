@@ -1119,7 +1119,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://chain-coverage",
       },
       relationships: [
-        { type: "specified_by", from: "req-scen-chain-001", to: "scenario-chain-001" },
+        {
+          type: "specified_by",
+          from: "req-scen-chain-001",
+          to: "scenario-chain-001",
+        },
       ],
     });
 
@@ -1133,7 +1137,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://chain-coverage",
       },
       relationships: [
-        { type: "verified_by", from: "scenario-chain-001", to: "test-chain-001" },
+        {
+          type: "verified_by",
+          from: "scenario-chain-001",
+          to: "test-chain-001",
+        },
       ],
     });
 
@@ -1147,7 +1155,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://chain-coverage",
       },
       relationships: [
-        { type: "implements", from: "symbol-chain-001", to: "req-scen-chain-001" },
+        {
+          type: "implements",
+          from: "symbol-chain-001",
+          to: "req-scen-chain-001",
+        },
         { type: "covered_by", from: "symbol-chain-001", to: "test-chain-001" },
       ],
     });
@@ -1193,8 +1205,16 @@ describe("MCP Check Tool Handler", () => {
         source: "test://exec-trace",
       },
       relationships: [
-        { type: "implements", from: "symbol-exec-trace-001", to: "req-exec-trace-001" },
-        { type: "covered_by", from: "symbol-exec-trace-001", to: "test-exec-trace-001" },
+        {
+          type: "implements",
+          from: "symbol-exec-trace-001",
+          to: "req-exec-trace-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-exec-trace-001",
+          to: "test-exec-trace-001",
+        },
       ],
     });
 
@@ -1249,7 +1269,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://validates-chain",
       },
       relationships: [
-        { type: "specified_by", from: "req-validates-chain-001", to: "scenario-validates-001" },
+        {
+          type: "specified_by",
+          from: "req-validates-chain-001",
+          to: "scenario-validates-001",
+        },
       ],
     });
 
@@ -1263,7 +1287,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://validates-chain",
       },
       relationships: [
-        { type: "validates", from: "test-validates-001", to: "scenario-validates-001" },
+        {
+          type: "validates",
+          from: "test-validates-001",
+          to: "scenario-validates-001",
+        },
       ],
     });
 
@@ -1277,8 +1305,16 @@ describe("MCP Check Tool Handler", () => {
         source: "test://validates-chain",
       },
       relationships: [
-        { type: "implements", from: "symbol-validates-001", to: "req-validates-chain-001" },
-        { type: "covered_by", from: "symbol-validates-001", to: "test-validates-001" },
+        {
+          type: "implements",
+          from: "symbol-validates-001",
+          to: "req-validates-chain-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-validates-001",
+          to: "test-validates-001",
+        },
       ],
     });
 

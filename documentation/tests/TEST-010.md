@@ -10,9 +10,8 @@ tags:
   - inference
   - integration
 links:
-  - REQ-013
-  - SCEN-008
-  - ADR-008
+  - type: validates
+    target: SCEN-008
 ---
 
 Validation steps:

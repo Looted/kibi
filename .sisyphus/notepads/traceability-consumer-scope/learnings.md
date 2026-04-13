@@ -50,3 +50,12 @@
 - Task 6 note: treeProvider.test.ts added scenario↔test verification edge rendering test showing verified_by outgoing and validates incoming labels on scenario entities.
 - Task 6 note: traceability.test.ts added two new describe blocks testing inline RDF parsing of executable_for/verified_by/validates edges and the full canonical req→scenario→test chain from RDF.
 - Task 6 note: When using prepend to insert tests before a describe block, ensure they end up inside the parent describe scope (where prolog is defined), not between describe blocks where they become orphans.
+## Artifacts and Documentation Migration (Task 8)
+- Canonical Chain (REQ → SCEN → TEST): Successfully migrated all internal Kibi documentation artifacts in `documentation/requirements/`, `documentation/scenarios/`, and `documentation/tests/`. All direct `REQ` → `TEST` links were replaced with `REQ` → `SCEN` and `SCEN` → `TEST` links where scenarios exist.
+- Relation Semantics (Ownership vs Coverage vs Identity): Human-facing documentation (`docs/entity-schema.md`, `AGENTS.md`) and agent guidance (OpenCode prompts, Copilot instructions) now consistently teach:
+  - `implements`: Production symbol ownership of a requirement.
+  - `covered_by`: Production symbol coverage by a test.
+  - `executable_for`: Test symbol identity (link to a `TEST-*` entity).
+  - `verified_by` / `validates`: Link between scenario and test (or fallback to req if no scenario).
+- Symbols Manifest: Updated `documentation/symbols.yaml` with role-distinguished examples for both production and test symbols.
+- Audit: Performed a comprehensive `grep` audit of the `documentation/` directory to ensure no leftover direct `verified_by` links remain in requirements that have associated scenarios, and no tests directly `validate` requirements that have scenarios.

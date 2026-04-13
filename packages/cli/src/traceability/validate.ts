@@ -167,7 +167,8 @@ export async function validateStagedSymbols(
   return violations;
 }
 
-export function formatViolations(violations: Violation[]): string { // implements REQ-014
+export function formatViolations(violations: Violation[]): string {
+  // implements REQ-014
   if (!violations || violations.length === 0) return "";
   const total = violations.length;
   const minLinks = violations[0]?.requiredLinks ?? 0;

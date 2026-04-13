@@ -9,8 +9,8 @@ tags:
   - prolog
   - core
   - unit
-links:
-  - REQ-009
+  - type: validates
+    target: SCEN-001
 ---
 
 Calls `kb_attach/1` on a temp RDF store, then `kb_assert_entity/2` with a valid

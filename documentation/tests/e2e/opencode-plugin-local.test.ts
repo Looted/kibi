@@ -51,39 +51,31 @@ if (RUN_NODE_TEST_SUITE) {
       rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    it(
-      "plugin package can be loaded",
-      { timeout: 30000 },
-      async () => {
-        const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
-        const pkg = await import(distIndex);
-        assert.ok(pkg.default !== undefined);
-      },
-    );
+    it("plugin package can be loaded", { timeout: 30000 }, async () => {
+      const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+      const pkg = await import(distIndex);
+      assert.ok(pkg.default !== undefined);
+    });
 
-    it(
-      "plugin exports required functions",
-      { timeout: 30000 },
-      async () => {
-        const distRoot = join(REPO_ROOT, "packages/opencode/dist");
-        const { injectPrompt, buildPrompt } = await import(
-          join(distRoot, "prompt.js")
-        );
-        const { loadConfig } = await import(join(distRoot, "config.js"));
-        const { shouldHandleFile } = await import(
-          join(distRoot, "file-filter.js")
-        );
-        const { createSyncScheduler } = await import(
-          join(distRoot, "scheduler.js")
-        );
+    it("plugin exports required functions", { timeout: 30000 }, async () => {
+      const distRoot = join(REPO_ROOT, "packages/opencode/dist");
+      const { injectPrompt, buildPrompt } = await import(
+        join(distRoot, "prompt.js")
+      );
+      const { loadConfig } = await import(join(distRoot, "config.js"));
+      const { shouldHandleFile } = await import(
+        join(distRoot, "file-filter.js")
+      );
+      const { createSyncScheduler } = await import(
+        join(distRoot, "scheduler.js")
+      );
 
-        assert.ok(typeof injectPrompt === "function");
-        assert.ok(typeof buildPrompt === "function");
-        assert.ok(typeof loadConfig === "function");
-        assert.ok(typeof shouldHandleFile === "function");
-        assert.ok(typeof createSyncScheduler === "function");
-      },
-    );
+      assert.ok(typeof injectPrompt === "function");
+      assert.ok(typeof buildPrompt === "function");
+      assert.ok(typeof loadConfig === "function");
+      assert.ok(typeof shouldHandleFile === "function");
+      assert.ok(typeof createSyncScheduler === "function");
+    });
 
     it(
       "plugin root exports only loader-safe plugin function",
@@ -141,7 +133,9 @@ if (RUN_NODE_TEST_SUITE) {
       "does not emit bootstrap warning for healthy relocated paths",
       { timeout: 30000 },
       async () => {
-        const healthyDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-healthy-"));
+        const healthyDir = mkdtempSync(
+          join(tmpdir(), "kibi-e2e-relocated-healthy-"),
+        );
         try {
           mkdirSync(join(healthyDir, ".kb"), { recursive: true });
           writeFileSync(
@@ -201,7 +195,9 @@ if (RUN_NODE_TEST_SUITE) {
       "emits bootstrap warning when configured target is missing",
       { timeout: 30000 },
       async () => {
-        const missingDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-missing-"));
+        const missingDir = mkdtempSync(
+          join(tmpdir(), "kibi-e2e-relocated-missing-"),
+        );
         try {
           mkdirSync(join(missingDir, ".kb"), { recursive: true });
           writeFileSync(

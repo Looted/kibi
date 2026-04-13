@@ -12,6 +12,8 @@ tags:
 links:
   - REQ-vscode-traceability
   - REQ-010
+  - type: verified_by
+    target: TEST-vscode-traceability
 ---
 
 Steps:

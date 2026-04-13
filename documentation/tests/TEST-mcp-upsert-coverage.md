@@ -12,8 +12,8 @@ tags:
   - coverage
 source: packages/mcp/tests/tools/upsert.test.ts
 links:
-  - REQ-002
-  - REQ-011
+  - type: validates
+    target: SCEN-001
 ---
 
 Validation steps:

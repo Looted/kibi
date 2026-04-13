@@ -16,8 +16,6 @@ links:
     target: SCEN-vscode-open-entity
   - type: specified_by
     target: SCEN-vscode-code-action
-  - type: verified_by
-    target: TEST-vscode-traceability
 ---
 
 Two directions of traceability from the VS Code extension:

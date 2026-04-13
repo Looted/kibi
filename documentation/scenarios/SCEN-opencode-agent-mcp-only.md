@@ -14,6 +14,8 @@ tags:
   - guidance
 links:
   - REQ-opencode-agent-mcp-only
+  - type: verified_by
+    target: TEST-opencode-agent-mcp-only
 ---
 
 ## Scenario

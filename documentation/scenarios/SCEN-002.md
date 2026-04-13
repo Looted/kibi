@@ -9,8 +9,8 @@ tags:
   - cli
   - init
 links:
-  - REQ-003
-  - REQ-008
+  - type: verified_by
+    target: TEST-001
 ---
 
 Steps:

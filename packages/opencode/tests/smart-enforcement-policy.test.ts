@@ -300,8 +300,14 @@ describe("smart enforcement contract matrix", () => {
   describe("single-block prompt policy", () => {
     it("returns full base guidance when no context matches", () => {
       const p = buildPrompt();
-      assert.ok(p.includes(SENTINEL), "Should include sentinel in base guidance");
-      assert.ok(p.includes("kb_search"), "Base guidance should mention kb_search");
+      assert.ok(
+        p.includes(SENTINEL),
+        "Should include sentinel in base guidance",
+      );
+      assert.ok(
+        p.includes("kb_search"),
+        "Base guidance should mention kb_search",
+      );
     });
 
     it("returns exactly one contextual block plus sentinel for code edits", () => {
@@ -311,7 +317,11 @@ describe("smart enforcement contract matrix", () => {
         riskClass: "behavior_candidate",
       });
       const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
-      assert.equal(blocks.length, 1, "Should emit exactly one contextual block");
+      assert.equal(
+        blocks.length,
+        1,
+        "Should emit exactly one contextual block",
+      );
     });
 
     it("combines degraded advisory and guidance into a single block", () => {
@@ -322,10 +332,17 @@ describe("smart enforcement contract matrix", () => {
         degradedMode: "warn-once",
         showDegradedAdvisory: true,
       });
-      assert.ok(p.includes("Maintenance degraded"), "Should include degraded advisory");
+      assert.ok(
+        p.includes("Maintenance degraded"),
+        "Should include degraded advisory",
+      );
       assert.ok(p.includes("Code changes detected"), "Should include guidance");
       const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
-      assert.equal(blocks.length, 1, "Degraded advisory + guidance must be one block");
+      assert.equal(
+        blocks.length,
+        1,
+        "Degraded advisory + guidance must be one block",
+      );
     });
 
     it("never exceeds 120 words or 5 bullets total", () => {
@@ -338,7 +355,9 @@ describe("smart enforcement contract matrix", () => {
         completionReminder: true,
       });
       const words = p.split(/\s+/).filter(Boolean).length;
-      const bullets = p.split("\n").filter((line) => line.trimStart().startsWith("-")).length;
+      const bullets = p
+        .split("\n")
+        .filter((line) => line.trimStart().startsWith("-")).length;
       assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
       assert.ok(bullets <= 5, `Expected <= 5 bullets, got ${bullets}`);
     });
@@ -366,7 +385,10 @@ describe("smart enforcement contract matrix", () => {
         completionReminder: true,
         maintenanceDegraded: true,
       });
-      assert.ok(!p.includes("kb_check"), "Should suppress reminder when degraded");
+      assert.ok(
+        !p.includes("kb_check"),
+        "Should suppress reminder when degraded",
+      );
     });
 
     it("suppresses completion reminder for safe edits even when enabled", () => {
@@ -376,7 +398,10 @@ describe("smart enforcement contract matrix", () => {
         riskClass: "safe_docs_only",
         completionReminder: true,
       });
-      assert.ok(!p.includes("kb_check"), "Should suppress reminder for safe edits");
+      assert.ok(
+        !p.includes("kb_check"),
+        "Should suppress reminder for safe edits",
+      );
     });
   });
 
@@ -384,7 +409,11 @@ describe("smart enforcement contract matrix", () => {
     it("effective mode falls back to advisory when maintenanceDegraded is true", () => {
       assert.equal(
         computeEffectiveMode(
-          makeInputs({ mode: "strict", posture: "root_active", maintenanceDegraded: true }),
+          makeInputs({
+            mode: "strict",
+            posture: "root_active",
+            maintenanceDegraded: true,
+          }),
         ),
         "advisory",
       );
@@ -399,7 +428,8 @@ describe("smart enforcement contract matrix", () => {
         showDegradedAdvisory: true,
       });
       assert.ok(
-        p.includes("Maintenance degraded") || p.includes("maintenance degraded"),
+        p.includes("Maintenance degraded") ||
+          p.includes("maintenance degraded"),
         "Should inject degraded advisory in warn-once mode",
       );
     });
