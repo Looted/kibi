@@ -43,3 +43,10 @@
 - Task 7 note: OpenCode prompt guidance now teaches split traceability semantics: `implements` for ownership, `executable_for` for test code identity, `covered_by` for coverage evidence only. Old `covered_by + validates/verified_by` combo pattern fully removed from all prompt surfaces (GUIDANCE_BY_RISK, BASE_GUIDANCE, legacy fallback, comment suggestion guidance).
 - Task 7 note: risk-classifier.test.ts and aaa-index.coverage.test.ts needed no changes — they test classification/routing logic, not prompt wording.
 - Task 7 note: `safe_test_only` stays null and single-block budget (MAX_BULLETS=5, MAX_WORDS=117) preserved. All 118 tests pass.
+
+- Task 6 note: MCP graph.test.ts already had scenario↔test traversal tests (verified_by/validates) from task 4. Task 6 added canonical chain traversal (req→scenario→test at depth 2), req→test fallback when no scenario exists, and executable_for graph traversal.
+- Task 6 note: MCP check.test.ts already had extensive split semantics tests. Task 6 added three new tests: scenario verified_by chain coverage, executable_for + implements traceability pass, and test validates scenario specified_by requirement coverage.
+- Task 6 note: treeProvider.ts was already complete — executable_for was in both REL_LABELS and relTypes from task 2. No production code changes needed.
+- Task 6 note: treeProvider.test.ts added scenario↔test verification edge rendering test showing verified_by outgoing and validates incoming labels on scenario entities.
+- Task 6 note: traceability.test.ts added two new describe blocks testing inline RDF parsing of executable_for/verified_by/validates edges and the full canonical req→scenario→test chain from RDF.
+- Task 6 note: When using prepend to insert tests before a describe block, ensure they end up inside the parent describe scope (where prolog is defined), not between describe blocks where they become orphans.
