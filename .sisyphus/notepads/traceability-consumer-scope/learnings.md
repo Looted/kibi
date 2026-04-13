@@ -39,3 +39,7 @@
 
 - Task 4 note: MCP check tests share a long-lived Prolog process, so per-test kb_attach/kb_detach isolation plus explicit 15s timeouts prevents cross-test state leakage from masking symbol-coverage semantics.
 - Task 4 note: verification test semantics stay compatibility-first: direct req->test fallback must pass when no scenario exists and no verification facts are present, while executable_for symbols are excluded from production untested/orphaned reports.
+
+- Task 7 note: OpenCode prompt guidance now teaches split traceability semantics: `implements` for ownership, `executable_for` for test code identity, `covered_by` for coverage evidence only. Old `covered_by + validates/verified_by` combo pattern fully removed from all prompt surfaces (GUIDANCE_BY_RISK, BASE_GUIDANCE, legacy fallback, comment suggestion guidance).
+- Task 7 note: risk-classifier.test.ts and aaa-index.coverage.test.ts needed no changes — they test classification/routing logic, not prompt wording.
+- Task 7 note: `safe_test_only` stays null and single-block budget (MAX_BULLETS=5, MAX_WORDS=117) preserved. All 118 tests pass.
