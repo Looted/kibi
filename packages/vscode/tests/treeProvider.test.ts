@@ -462,6 +462,84 @@ test("relationship children use executable_for label", () => {
   ]);
 });
 
+test("relationship children render scenario verified_by and test validates labels", () => {
+  const provider = makeProvider();
+  const internals = provider as unknown as NavigationInternals;
+
+  internals.entities = [
+    {
+      id: "SCEN-SCENARIO-001",
+      type: "scenario",
+      title: "login flow",
+      status: "active",
+      tags: "",
+      source: "documentation/scenarios/SCEN-SCENARIO-001.md",
+    },
+    {
+      id: "TEST-VALIDATES-001",
+      type: "test",
+      title: "login spec",
+      status: "passing",
+      tags: "",
+      source: "documentation/tests/TEST-VALIDATES-001.md",
+    },
+    {
+      id: "TEST-VERIFIED-001",
+      type: "test",
+      title: "login verified spec",
+      status: "passing",
+      tags: "",
+      source: "documentation/tests/TEST-VERIFIED-001.md",
+    },
+  ];
+  internals.relationships = [
+    {
+      relType: "verified_by",
+      fromId: "SCEN-SCENARIO-001",
+      toId: "TEST-VERIFIED-001",
+    },
+    {
+      relType: "validates",
+      fromId: "TEST-VALIDATES-001",
+      toId: "SCEN-SCENARIO-001",
+    },
+  ];
+  internals.symbolIndex = null;
+
+  const entityIndex = new Map(
+    internals.entities.map((entity) => [entity.id, entity]),
+  );
+
+  const scenarioChildren = internals.buildRelationshipChildren(
+    "SCEN-SCENARIO-001",
+    entityIndex,
+  );
+
+  // Outgoing: scenario --verified_by--> test
+  expect(scenarioChildren).toContainEqual({
+    label: "→ verified by: TEST-VERIFIED-001: login verified spec",
+    iconPath: "arrow-right",
+    contextValue: "kibi-relationship",
+    collapsibleState: TreeItemCollapsibleState.None,
+    tooltip: "SCEN-SCENARIO-001 -[verified_by]-> TEST-VERIFIED-001",
+    localPath: undefined,
+    sourceLine: undefined,
+    targetId: "TEST-VERIFIED-001",
+  });
+
+  // Incoming: test --validates--> scenario
+  expect(scenarioChildren).toContainEqual({
+    label: "← validates: TEST-VALIDATES-001: login spec",
+    iconPath: "arrow-right",
+    contextValue: "kibi-relationship",
+    collapsibleState: TreeItemCollapsibleState.None,
+    tooltip: "TEST-VALIDATES-001 -[validates]-> SCEN-SCENARIO-001",
+    localPath: undefined,
+    sourceLine: undefined,
+    targetId: "TEST-VALIDATES-001",
+  });
+});
+
 test("frontmatter helpers normalize tags and links from YAML content", () => {
   const provider = makeProvider();
   const internals = provider as unknown as FrontmatterInternals;
