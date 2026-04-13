@@ -160,6 +160,32 @@ type NavigationInternals = {
   symbolIndex: {
     byId: Map<string, { sourceFile?: string; sourceLine?: number }>;
   } | null;
+  relationships: Array<{ relType: string; fromId: string; toId: string }>;
+  buildRelationshipChildren: (
+    entityId: string,
+    entityIndex: Map<
+      string,
+      {
+        id: string;
+        type: string;
+        title: string;
+        status: string;
+        tags: string;
+        source: string;
+        localPath?: string;
+        sourceLine?: number;
+      }
+    >,
+  ) => Array<{
+    label: string;
+    iconPath: string;
+    contextValue: string;
+    collapsibleState: number;
+    tooltip?: string;
+    localPath?: string;
+    sourceLine?: number;
+    targetId?: string;
+  }>;
 };
 
 type FallbackSymbolInternals = {
@@ -357,8 +383,10 @@ test("parseRdfRelationships extracts outgoing relationships from RDF blocks", ()
       <kb:depends_on rdf:resource="http://kibi.dev/kb/entity/REQ-002"/>
       <kb:specified_by rdf:resource="kb:entity/SCEN-001"/>
       <kb:verified_by rdf:resource="http://kibi.dev/kb/entity/TEST-001"/>
+      <kb:validates rdf:resource="kb:entity/SCEN-002"/>
       <kb:implements rdf:resource="kb:entity/REQ-010"/>
       <kb:covered_by rdf:resource="http://kibi.dev/kb/entity/TEST-002"/>
+      <kb:executable_for rdf:resource="kb:entity/TEST-003"/>
       <kb:constrained_by rdf:resource="kb:entity/ADR-001"/>
       <kb:guards rdf:resource="http://kibi.dev/kb/entity/FLAG-001"/>
       <kb:publishes rdf:resource="kb:entity/EVT-001"/>
@@ -371,13 +399,66 @@ test("parseRdfRelationships extracts outgoing relationships from RDF blocks", ()
     { relType: "depends_on", fromId: "REQ-001", toId: "REQ-002" },
     { relType: "specified_by", fromId: "REQ-001", toId: "SCEN-001" },
     { relType: "verified_by", fromId: "REQ-001", toId: "TEST-001" },
+    { relType: "validates", fromId: "REQ-001", toId: "SCEN-002" },
     { relType: "implements", fromId: "REQ-001", toId: "REQ-010" },
     { relType: "covered_by", fromId: "REQ-001", toId: "TEST-002" },
+    { relType: "executable_for", fromId: "REQ-001", toId: "TEST-003" },
     { relType: "constrained_by", fromId: "REQ-001", toId: "ADR-001" },
     { relType: "guards", fromId: "REQ-001", toId: "FLAG-001" },
     { relType: "publishes", fromId: "REQ-001", toId: "EVT-001" },
     { relType: "consumes", fromId: "REQ-001", toId: "EVT-002" },
     { relType: "relates_to", fromId: "REQ-001", toId: "FACT-001" },
+  ]);
+});
+
+test("relationship children use executable_for label", () => {
+  const provider = makeProvider();
+  const internals = provider as unknown as NavigationInternals;
+
+  internals.entities = [
+    {
+      id: "SYM-TEST-001",
+      type: "symbol",
+      title: "test handler",
+      status: "active",
+      tags: "",
+      source: "src/test-handler.ts",
+    },
+    {
+      id: "TEST-001",
+      type: "test",
+      title: "identity spec",
+      status: "passing",
+      tags: "",
+      source: "documentation/tests/TEST-001.md",
+    },
+  ];
+  internals.relationships = [
+    {
+      relType: "executable_for",
+      fromId: "SYM-TEST-001",
+      toId: "TEST-001",
+    },
+  ];
+  internals.symbolIndex = null;
+
+  const entityIndex = new Map(
+    internals.entities.map((entity) => [entity.id, entity]),
+  );
+
+  expect(
+    internals.buildRelationshipChildren("SYM-TEST-001", entityIndex),
+  ).toEqual([
+    {
+      label: "→ executable for: TEST-001: identity spec",
+      iconPath: "arrow-right",
+      contextValue: "kibi-relationship",
+      collapsibleState: TreeItemCollapsibleState.None,
+      tooltip: "SYM-TEST-001 -[executable_for]-> TEST-001",
+      localPath: undefined,
+      sourceLine: undefined,
+      targetId: "TEST-001",
+    },
   ]);
 });
 
