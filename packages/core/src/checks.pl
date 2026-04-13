@@ -90,7 +90,7 @@ coverage_gap_suggestion(missing_scenario, "Create scenario that specifies this r
 coverage_gap_suggestion(missing_scenario_and_test, "Create scenario that specifies and test that validates this requirement").
 
 %% check_symbol_coverage(-Violations)
-% Finds all symbols not traceable to any functional requirement.
+% Finds all production symbols lacking qualifying production coverage.
 check_symbol_coverage(Violations) :-
     findall(SymbolId, symbol_no_req_coverage(SymbolId, _), SymbolIds0),
     sort(SymbolIds0, SymbolIds),
@@ -99,15 +99,15 @@ check_symbol_coverage(Violations) :-
 symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
-    "Code symbol is not traceable to any functional requirement.",
-    "Add qualifying production coverage via 'covered_by' and a canonical requirement/scenario test path.",
+    "Production symbol lacks qualifying requirement coverage.",
+    "Add 'covered_by: TEST-xxx' for production coverage, and ensure that test reaches the requirement through a scenario->test path or direct req->test fallback when no scenario exists.",
     Source
 )) :-
     violation_source(SymbolId, symbol, Source).
 
 %% check_symbol_traceability(+RequireAdr, -Violations)
-% Finds all symbols lacking supported requirement traceability:
-% - Every symbol must have at least one supported requirement traceability path
+% Finds all symbols lacking direct requirement ownership:
+% - Every symbol must have at least one direct implements ownership path
 % - If RequireAdr=true, the symbol must also have at least one 'constrained_by' relationship to an ADR
 check_symbol_traceability(RequireAdr, Violations) :-
     findall(
@@ -125,8 +125,8 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
-    % Check if symbol has a supported requirement traceability path
-    (   transitively_implements(SymbolId, ReqId),
+    % Check if symbol has direct requirement ownership
+    (   symbol_owns_requirement(SymbolId, ReqId),
         kb_entity(ReqId, req, _)
     ->  HasReq = true
     ;   HasReq = false
@@ -142,11 +142,11 @@ symbol_traceability_violation(RequireAdr, violation(
     ),
     % Determine what is missing
     (   HasReq = false, HasAdr = false, RequireAdr = true ->
-        Description = "Symbol has no supported requirement traceability path and no ADR constraint.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership, and add 'constrained_by: ADR-xxx' in symbols.yaml."
+        Description = "Symbol has no direct requirement ownership and no ADR constraint.",
+        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership, use 'covered_by' only for production coverage, use 'executable_for' only for executable test code, and add 'constrained_by: ADR-xxx' in symbols.yaml."
     ;   HasReq = false ->
-        Description = "Symbol has no supported requirement traceability path.",
-        Suggestion = "Add a direct 'implements: REQ-xxx' link. 'covered_by' and 'executable_for' do not satisfy ownership."
+        Description = "Symbol has no direct requirement ownership.",
+        Suggestion = "Add a direct 'implements: REQ-xxx' link for ownership. Use 'covered_by' for production coverage and 'executable_for' for executable test code identity."
     ;   HasAdr = false ->
         Description = "Symbol has no ADR constraint.",
         Suggestion = "Add 'constrained_by: ADR-xxx' in symbols.yaml."
@@ -177,7 +177,7 @@ dangling_ref_violation(Type, violation(
     "Remove relationship or create missing entity",
     ""
 )) :-
-    kb_relationship(Type, FromId, ToId),
+    kb_relationship(Type, FromId, _ToId),
     \+ kb_entity(FromId, _, _),  % From doesn't exist
     format(string(Description), "Relationship references non-existent entity: ~w", [FromId]).
 
@@ -297,7 +297,7 @@ missing_required_field(Required, violation(
     Suggestion,
     Source
 )) :-
-    kb_entity(EntityId, Type, Props),
+    kb_entity(EntityId, _Type, Props),
     member(Field, Required),
     \+ memberchk(Field=_, Props),
     
