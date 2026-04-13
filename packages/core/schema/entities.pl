@@ -48,6 +48,10 @@ entity_property(fact, valid_from, datetime).
 entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
 
+% Typed test verification fields - only valid for test entities
+entity_property(test, verification_scope, atom).
+entity_property(test, verification_perspective, atom).
+
 % Required properties for all entity types
 required_property(Type, id) :- entity_type(Type).
 required_property(Type, title) :- entity_type(Type).
@@ -63,6 +67,8 @@ optional_property(Type, priority) :- entity_type(Type).
 optional_property(Type, severity) :- entity_type(Type).
 optional_property(Type, links) :- entity_type(Type).
 optional_property(Type, text_ref) :- entity_type(Type).
+optional_property(test, verification_scope).
+optional_property(test, verification_perspective).
 
 % Documentation helpers
 % list all entity types

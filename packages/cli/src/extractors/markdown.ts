@@ -46,6 +46,11 @@ const FACT_ONLY_FIELDS = [
   ...FACT_BOOLEAN_FIELDS,
 ] as const;
 
+const TEST_ENUM_FIELDS = [
+  "verification_scope",
+  "verification_perspective",
+] as const;
+
 const ajv = new Ajv({ strict: false, allErrors: true });
 const validateExtractedEntity = ajv.compile(entitySchema);
 
@@ -62,6 +67,8 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  verification_scope?: "unit" | "integration" | "end_to_end";
+  verification_perspective?: "internal" | "consumer";
   // Typed fact fields - only present when type === 'fact'
   fact_kind?: "subject" | "property_value" | "observation" | "meta";
   subject_key?: string;
@@ -152,6 +159,18 @@ export class FrontmatterError extends Error {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isVerificationScope(
+  value: unknown,
+): value is ExtractedEntity["verification_scope"] {
+  return value === "unit" || value === "integration" || value === "end_to_end";
+}
+
+function isVerificationPerspective(
+  value: unknown,
+): value is ExtractedEntity["verification_perspective"] {
+  return value === "internal" || value === "consumer";
 }
 
 function parseFrontmatter(content: string): {
@@ -360,6 +379,52 @@ function extractFromMarkdownContent(
             hint: "Remove fact-only fields or change the entity type to fact.",
           },
         );
+      }
+    }
+
+    if (type !== "test") {
+      const invalidTestField = TEST_ENUM_FIELDS.find(
+        (field) => data[field] !== undefined,
+      );
+      if (invalidTestField) {
+        throw new FrontmatterError(
+          `Test-only fields are only allowed on type: test (found ${invalidTestField})`,
+          filePath,
+          {
+            classification: "Test Field on Non-Test Entity",
+            hint: "Remove test-only fields or change the entity type to test.",
+          },
+        );
+      }
+    }
+
+    if (type === "test") {
+      if (data.verification_scope !== undefined) {
+        if (!isVerificationScope(data.verification_scope)) {
+          throw new FrontmatterError(
+            "Invalid verification_scope; expected one of: unit, integration, end_to_end",
+            filePath,
+            {
+              classification: "Invalid Test Verification Scope",
+              hint: "Use one of: unit, integration, end_to_end.",
+            },
+          );
+        }
+        entity.verification_scope = data.verification_scope;
+      }
+
+      if (data.verification_perspective !== undefined) {
+        if (!isVerificationPerspective(data.verification_perspective)) {
+          throw new FrontmatterError(
+            "Invalid verification_perspective; expected one of: internal, consumer",
+            filePath,
+            {
+              classification: "Invalid Test Verification Perspective",
+              hint: "Use one of: internal, consumer.",
+            },
+          );
+        }
+        entity.verification_perspective = data.verification_perspective;
       }
     }
 

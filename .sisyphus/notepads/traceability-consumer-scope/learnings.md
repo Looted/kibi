@@ -34,3 +34,5 @@
 - Scenario-aware fallback matters: direct `req -> test` coverage is accepted only when the requirement has no `specified_by` scenario; once a scenario exists, coverage must flow through scenario↔test edges.
 - Downstream consumers must be updated in lockstep for new relationship types: CLI JSON schema enums, docs relationship tables/examples, and VS Code hardcoded label/parser lists.
 - VS Code relationship rendering uses `REL_LABELS` for human-readable child nodes and a separate `relTypes` allowlist for RDF extraction, so new edges need both updates plus focused tests.
+- Optional typed test fields require lockstep updates across Prolog entity properties, Prolog shape validation, CLI JSON schema conditionals, and markdown extraction guards.
+- `tags` must stay metadata-only in docs and extraction logic; typed verification semantics come only from explicit `verification_scope` / `verification_perspective` fields.
