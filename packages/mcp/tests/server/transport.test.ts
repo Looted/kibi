@@ -93,7 +93,7 @@ describe("setupTransportHandlers", () => {
   let capturedSigtermHandler: (() => void) | undefined;
   let originalDebug: string | undefined;
   let setupTransportHandlers: typeof import(
-    "../../src/server/transport.js",
+    "../../src/server/transport.js"
   ).setupTransportHandlers;
 
   beforeEach(async () => {
@@ -438,7 +438,7 @@ describe("setupTransportHandlers", () => {
 
 describe("connectTransport", () => {
   let connectTransport: typeof import(
-    "../../src/server/transport.js",
+    "../../src/server/transport.js"
   ).connectTransport;
 
   beforeEach(async () => {
