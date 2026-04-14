@@ -1,6 +1,6 @@
 {
   "name": "kibi-opencode",
-  "version": "0.6.1",
+  "version": "0.6.0",
   "description": "Kibi OpenCode plugin - thin adapter to integrate Kibi with OpenCode sessions",
   "type": "module",
   "main": "dist/index.js",
@@ -32,9 +32,7 @@
       "default": "./dist/file-filter.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "engines": {
     "node": ">=18"
   },

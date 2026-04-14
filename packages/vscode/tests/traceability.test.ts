@@ -11,6 +11,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { parseRdfRelationships } from "../src/shared/rdf-parser";
 
 // ── Minimal VS Code API mock ────────────────────────────────────────────────
 
@@ -320,45 +321,7 @@ describe("treeProvider – split traceability RDF edges", () => {
 </rdf:RDF>`;
     fs.writeFileSync(path.join(kbDir, "kb.rdf"), rdf, "utf8");
 
-    // Inline the relationship parsing logic matching treeProvider.parseRdfRelationships
-    const content = rdf;
-    const relTypes = [
-      "depends_on",
-      "specified_by",
-      "verified_by",
-      "validates",
-      "implements",
-      "covered_by",
-      "executable_for",
-      "constrained_by",
-      "guards",
-      "publishes",
-      "consumes",
-      "relates_to",
-    ];
-    const relationships: Array<{
-      relType: string;
-      fromId: string;
-      toId: string;
-    }> = [];
-
-    const blockRe =
-      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
-    let blockMatch: RegExpExecArray | null;
-    while ((blockMatch = blockRe.exec(content)) !== null) {
-      const fromId = blockMatch[1];
-      const block = blockMatch[2];
-      for (const relType of relTypes) {
-        const relRe = new RegExp(
-          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*\/?>`,
-          "g",
-        );
-        let relMatch: RegExpExecArray | null;
-        while ((relMatch = relRe.exec(block)) !== null) {
-          relationships.push({ relType, fromId, toId: relMatch[1] });
-        }
-      }
-    }
+    const relationships = parseRdfRelationships(rdf);
 
     // scenario --verified_by--> test
     expect(relationships).toContainEqual({
@@ -423,44 +386,7 @@ describe("treeProvider – split traceability RDF edges", () => {
 </rdf:RDF>`;
     fs.writeFileSync(path.join(kbDir, "kb.rdf"), rdf, "utf8");
 
-    const content = rdf;
-    const relTypes = [
-      "depends_on",
-      "specified_by",
-      "verified_by",
-      "validates",
-      "implements",
-      "covered_by",
-      "executable_for",
-      "constrained_by",
-      "guards",
-      "publishes",
-      "consumes",
-      "relates_to",
-    ];
-    const relationships: Array<{
-      relType: string;
-      fromId: string;
-      toId: string;
-    }> = [];
-
-    const blockRe =
-      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
-    let blockMatch: RegExpExecArray | null;
-    while ((blockMatch = blockRe.exec(content)) !== null) {
-      const fromId = blockMatch[1];
-      const block = blockMatch[2];
-      for (const relType of relTypes) {
-        const relRe = new RegExp(
-          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*\/?>`,
-          "g",
-        );
-        let relMatch: RegExpExecArray | null;
-        while ((relMatch = relRe.exec(block)) !== null) {
-          relationships.push({ relType, fromId, toId: relMatch[1] });
-        }
-      }
-    }
+    const relationships = parseRdfRelationships(rdf);
 
     // Canonical chain: req --specified_by--> scenario
     expect(relationships).toContainEqual({
