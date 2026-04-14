@@ -189,6 +189,8 @@ Kibi uses a two-branch release model with [Changesets](https://github.com/change
 3. **Merge**: Merge `develop` into `master`.
 4. **Publish**: `master` CI builds and publishes new versions to npm.
 
+There is no `master → develop` back-merge.
+
 ```bash
 # Add release metadata (run on develop)
 bun run changeset

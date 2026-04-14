@@ -34,8 +34,8 @@ jobs:
         id: decide
         run: |
           DECISION=$(bun run scripts/run-release-state.ts)
-          ACTION=$(echo "$DECISION" | grep '"action"' | head -1 | sed 's/.*"action"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
-          TO_PUBLISH=$(echo "$DECISION" | grep '"toPublish"' | head -1 | sed 's/.*"toPublish"[[:space:]]*:[[:space:]]*"\(.*\)".*/\1/')
+          ACTION=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write(d.action)")
+          TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
           echo "action=$ACTION" >> $GITHUB_OUTPUT
           echo "to_publish=$TO_PUBLISH" >> $GITHUB_OUTPUT
           echo "Release action: $ACTION"
@@ -110,9 +110,11 @@ jobs:
       - name: Pass through packages to publish
         id: check-packages
         run: |
-          echo "to_publish<<EOF" >> $GITHUB_OUTPUT
-          echo -n "${{ needs.check-release.outputs.to_publish }}" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          cat >> $GITHUB_OUTPUT <<'EOFMARKER'
+          to_publish<<EOF
+          ${{ needs.check-release.outputs.to_publish }}
+          EOF
+          EOFMARKER
 
   release-gate:
     runs-on: ubuntu-latest

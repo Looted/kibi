@@ -15,12 +15,10 @@
  * consume. The decision function takes a structured context and returns an
  * explicit action with the set of packages affected.
  *
- * DESIGN INTENT (desired model — not all invariants are implemented yet):
+ * DESIGN INTENT:
  * - develop authors unreleased work via changesets
- * - master CI creates a persisted release commit and publishes
- * - CI release commits are marked with a stable trailer
- * - Recursion guard: CI-authored release commits must not trigger another
- *   release-prep cycle
+ * - develop gets version bumps via `bun run version-packages`
+ * - master CI publishes only, no commits on master
  * - Partial rerun: if some packages are already published on npm, only
  *   the unpublished subset is included in the publish set
  * - No master → develop back-merge
@@ -32,7 +30,6 @@ export type ReleaseAction =
   | "NOOP"
   | "PREPARE_RELEASE"
   | "PUBLISH_ONLY_RERUN"
-  | "SKIP_RELEASE_COMMIT"
   | "ALREADY_PUBLISHED_NOOP";
 
 export interface PackageInfo {
@@ -67,23 +64,19 @@ export interface ReleaseContext {
 
 // --- Constants --------------------------------------------------------------
 
-/** Stable marker in commit messages that identifies CI-authored release commits */
-export const RELEASE_COMMIT_MARKER = "[kibi-release]"; // implements REQ-020
-
 /** Canonical publishable package directories */
 export const PUBLISHABLE_DIRS = ["core", "cli", "mcp", "opencode"] as const; // implements REQ-020
 
-// --- Current (pre-fix) implementation ---------------------------------------
+// --- Implementation ---------------------------------------------------------
 
 /**
  * Determines the release action based on the current context.
  *
- * IMPLEMENTATION STATUS:
- * ✅ No-op when no changesets and no unpublished packages
- * ✅ PREPARE_RELEASE for fresh changesets on source commit
- * ✅ Recursion guard: detects CI release commits
- * ✅ Partial rerun: returns PUBLISH_ONLY_RERUN
- * ✅ SKIP_RELEASE_COMMIT: implemented
+ * Decision matrix:
+ * ✅ NOOP: not on master, or no changesets + all published
+ * ✅ PREPARE_RELEASE: fresh release (unpublished packages, no prior publishes)
+ * ✅ PUBLISH_ONLY_RERUN: partial rerun (some already published, some not)
+ * ✅ ALREADY_PUBLISHED_NOOP: changesets present but all on npm already
  */
 export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
   // implements REQ-020
@@ -96,48 +89,18 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
     };
   }
 
-  const isReleaseCommit = ctx.commitMessage.includes(RELEASE_COMMIT_MARKER);
-
   // Collect publishable package info
   const allPackages = collectPackages(ctx);
   const unpublished = allPackages.filter((p) => !p.alreadyPublished);
+  const published = allPackages.filter((p) => p.alreadyPublished);
 
   // Detect pending changeset files
   const pendingChangesets = ctx.changesetFiles.filter(
     (f) => f.endsWith(".md") && f !== "README.md",
   );
 
-  if (isReleaseCommit) {
-    // CI-authored release commit: never re-run version-packages
-    if (unpublished.length === 0) {
-      return {
-        action: "ALREADY_PUBLISHED_NOOP",
-        packages: [],
-        sourceSha: ctx.sourceSha,
-        reason: "CI release commit: all packages already published",
-      };
-    }
-    if (pendingChangesets.length === 0) {
-      return {
-        action: "PUBLISH_ONLY_RERUN",
-        packages: unpublished,
-        sourceSha: ctx.sourceSha,
-        reason: "CI release commit rerun: publishing missing packages",
-      };
-    }
-    // If changesets somehow remain on a CI release commit, skip re-preparing
-    return {
-      action: "SKIP_RELEASE_COMMIT",
-      packages: unpublished,
-      sourceSha: ctx.sourceSha,
-      reason:
-        "CI release commit: skipping release-prep despite leftover changesets",
-    };
-  }
-
-  // Source (human-authored) commit path
+  // No changesets and all published → true no-op
   if (pendingChangesets.length === 0 && unpublished.length === 0) {
-    // True no-op: nothing to version, nothing to publish
     return {
       action: "NOOP",
       packages: [],
@@ -146,8 +109,18 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
     };
   }
 
+  // No changesets but unpublished packages exist
   if (pendingChangesets.length === 0) {
-    // No changesets but unpublished packages exist on source commit — prepare release
+    // Some packages already published → partial rerun
+    if (published.length > 0) {
+      return {
+        action: "PUBLISH_ONLY_RERUN",
+        packages: unpublished,
+        sourceSha: ctx.sourceSha,
+        reason: `Partial rerun: ${published.length} already published, ${unpublished.length} remaining`,
+      };
+    }
+    // Fresh: nothing published yet but no changesets (consumed on develop)
     return {
       action: "PREPARE_RELEASE",
       packages: unpublished,
@@ -156,7 +129,7 @@ export function determineReleaseAction(ctx: ReleaseContext): ReleaseDecision {
     };
   }
 
-  // Have pending changesets — prepare release
+  // Have pending changesets — all published already?
   if (unpublished.length === 0) {
     return {
       action: "ALREADY_PUBLISHED_NOOP",
