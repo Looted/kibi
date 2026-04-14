@@ -304,7 +304,12 @@ describe("jsonSchemaToZod", () => {
       };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
-      expect(result.safeParse([[1, 2], [3, 4]]).success).toBe(true);
+      expect(
+        result.safeParse([
+          [1, 2],
+          [3, 4],
+        ]).success,
+      ).toBe(true);
       expect(result.safeParse([["a", "b"]]).success).toBe(false);
     });
   });
@@ -361,7 +366,7 @@ describe("jsonSchemaToZod", () => {
       expect(
         result.safeParse({
           user: { name: "John", address: { city: "NYC" } },
-        }).success
+        }).success,
       ).toBe(true);
     });
 
@@ -374,7 +379,9 @@ describe("jsonSchemaToZod", () => {
       };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
-      expect(result.safeParse({ name: "John", extra: "value" }).success).toBe(true);
+      expect(result.safeParse({ name: "John", extra: "value" }).success).toBe(
+        true,
+      );
     });
 
     test("handles additionalProperties=false (strict objects)", () => {
@@ -400,7 +407,9 @@ describe("jsonSchemaToZod", () => {
       };
       const result = jsonSchemaToZod(schema);
       expect(result).toBeInstanceOf(z.ZodType);
-      expect(result.safeParse({ name: "John", extra: "value" }).success).toBe(true);
+      expect(result.safeParse({ name: "John", extra: "value" }).success).toBe(
+        true,
+      );
     });
 
     test("handles additionalProperties as object schema", () => {

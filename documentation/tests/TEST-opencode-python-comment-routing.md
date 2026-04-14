@@ -13,8 +13,8 @@ tags:
   - test
   - comment-detection
 links:
-  - REQ-opencode-comment-routing
-  - SCEN-opencode-python-comment-routing
+  - type: validates
+    target: SCEN-opencode-python-comment-routing
 ---
 
 ## Test Coverage

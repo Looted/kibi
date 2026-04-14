@@ -55,7 +55,6 @@ describe("symbolIndex", () => {
     expect(index.byTitle.size).toBe(0);
   });
 
-
   test("buildIndex correctly maps internal helper function entries", () => {
     const manifestPath = path.join(tmpDir, "symbols.yaml");
     fs.writeFileSync(
@@ -124,7 +123,10 @@ describe("symbolIndex", () => {
     expect(index.byId.size).toBe(2);
     expect(index.byFile.size).toBe(1);
 
-    const absPath = path.resolve(tmpDir, "packages/vscode/src/codeLensProvider.ts");
+    const absPath = path.resolve(
+      tmpDir,
+      "packages/vscode/src/codeLensProvider.ts",
+    );
     const fileEntries = index.byFile.get(absPath);
     expect(fileEntries?.length).toBe(2);
 

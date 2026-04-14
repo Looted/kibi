@@ -1,1 +1,13 @@
-{"project": "custom-paths", "paths": {"requirements": "kibi-docs/requirements/**/*.md", "scenarios": "kibi-docs/scenarios/**/*.md", "tests": "kibi-docs/tests/**/*.md", "adr": "kibi-docs/adr/**/*.md", "flags": "kibi-docs/flags/**/*.md", "events": "kibi-docs/events/**/*.md", "facts": "kibi-docs/facts/**/*.md", "symbols": "kibi-docs/symbols.yaml"}}
+{
+  "project": "custom-paths",
+  "paths": {
+    "requirements": "kibi-docs/requirements/**/*.md",
+    "scenarios": "kibi-docs/scenarios/**/*.md",
+    "tests": "kibi-docs/tests/**/*.md",
+    "adr": "kibi-docs/adr/**/*.md",
+    "flags": "kibi-docs/flags/**/*.md",
+    "events": "kibi-docs/events/**/*.md",
+    "facts": "kibi-docs/facts/**/*.md",
+    "symbols": "kibi-docs/symbols.yaml"
+  }
+}

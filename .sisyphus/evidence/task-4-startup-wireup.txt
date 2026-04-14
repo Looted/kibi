@@ -1,0 +1,8 @@
+Verified with: bun test packages/opencode/tests/index.test.ts
+
+Result: 67 pass, 0 fail
+
+Observed behavior:
+- startup toast emits once after successful setup when enabled
+- toast is suppressed when ux.toastStartup=false
+- degraded initialization keeps startup toast silent

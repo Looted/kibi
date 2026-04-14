@@ -100,11 +100,11 @@ Requirement edits need policy alignment. Run kb_check with required-fields and n
 
   behavior_candidate: `📝 **Code changes detected**
 
-Code changes need traceability. Use kb_search for context. For test/e2e symbols, prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible.`,
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.`,
 
   traceability_candidate: `📝 **Code changes detected**
 
-Code changes need traceability. Use kb_search for context. For test/e2e symbols, prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible.
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.
 - Durable knowledge comment detected — route to KB instead of inline comments
 - Use kb_upsert for FACT, ADR, or REQ entities as appropriate`,
 
@@ -118,7 +118,8 @@ The Kibi knowledge base is managed through public MCP tools. Direct manual edits
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
-export function postureGuidance(posture: RepoPosture): string | null { // implements REQ-opencode-prompt-injection
+export function postureGuidance(posture: RepoPosture): string | null {
+  // implements REQ-opencode-prompt-injection
   switch (posture) {
     case "vendored_only":
       // Minimal guidance only, no bootstrap nags
@@ -255,7 +256,7 @@ Before implementing or explaining code:
 1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-4. **Add traceability** - For test/e2e symbols, prefer durable symbol/test/requirement relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible for quick code-only changes.
+4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
 - \`FACT\` for domain invariants, properties, limits, cardinalities
@@ -395,7 +396,7 @@ Your recent code edit contains a comment that looks like **behavior intent** (sy
 **Action**: Instead of inline comments, route this to a REQ entity:
 - Create \`documentation/requirements/REQ-xxx.md\` with the behavior description
 - Add SCEN and TEST entities for specification and verification
-- Link code to requirements: for test/e2e symbols prefer durable relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible
+- Link code: production uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only
 
 This ensures behavior is documented and traceable.`;
     default:
@@ -405,7 +406,7 @@ Before implementing or explaining code:
 1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
-4. **Add traceability** - For test/e2e symbols, prefer durable symbol/test/requirement relationships (e.g. via symbols.yaml with covered_by + validates/verified_by); inline // implements REQ-xxx comments remain optional and backward-compatible for quick code-only changes.`;
+4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.`;
   }
 }
 
@@ -419,7 +420,7 @@ This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over 
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
 
-Keep changed symbols traceable: for test and e2e code, prefer durable symbol/test/requirement relationships (e.g. via \`symbols.yaml\`); inline \`// implements REQ-xxx\` comments remain optional and backward-compatible for quick code-only changes.
+Keep changed symbols traceable: production code uses \`implements\` (symbol→req) for ownership; test code uses \`executable_for\`; \`covered_by\` is coverage evidence only. Inline \`// implements REQ-xxx\` comments remain backward-compatible.
 
 Run kb_check after KB mutations.
 
@@ -430,7 +431,7 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 2. **Confirm**: Run kb_query with sourceFile, id, type, or tags once you know the exact follow-up target.
 3. **Inspect freshness**: Run kb_status when branch or stale-state confidence matters.
 4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
-5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), verified_by (req→test), implements (symbol→req), covered_by (symbol→test).
+5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
 **Public Kibi tools only:** kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.

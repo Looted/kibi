@@ -11,7 +11,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 3. **Start with `kb_search`, then follow with `kb_query`.** Use `kb_search` for discovery, then use `kb_query` for exact IDs, source-linked entities, and precise follow-up.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
-6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`).
+6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`, `validates`).
 7. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
 8. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
 9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
@@ -39,8 +39,6 @@ status: open
 links:
   - type: specified_by
     target: SCEN-001
-  - type: verified_by
-    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -55,6 +53,9 @@ status: active
 id: TEST-001
 title: Verify login flow
 status: passing
+links:
+  - type: validates
+    target: SCEN-001
 ---
 ```
 
@@ -122,15 +123,11 @@ When creating or updating entities:
    - `links`
    - `text_ref`
 3. Create relationships during the same `kb_upsert` when possible:
-   - `specified_by` for requirement -> scenario
-   - `verified_by` or `validates` for requirement/test links
-   - `implements` for symbol -> requirement (Optional/Backward-Compatible shortcut)
-   - `covered_by` for symbol -> test (Preferred workflow for test/e2e traceability)
-   - `constrains` and `requires_property` for requirement/fact modeling
-   - `specified_by` for requirement -> scenario
-   - `verified_by` or `validates` for requirement/test links
-   - `implements` for symbol -> requirement
-   - `covered_by` for symbol -> test
+   - `specified_by` for requirement -> scenario (Canonical)
+   - `verified_by` or `validates` for requirement/test or scenario/test links
+   - `implements` for production symbol -> requirement (Ownership)
+   - `covered_by` for production symbol -> test (Coverage) spinning off requirements/scenarios
+   - `executable_for` for test symbol -> test entity (Identity)
    - `constrains` and `requires_property` for requirement/fact modeling
 
 **Important:** Execute `kb_upsert` calls sequentially. Do not fire in parallel to avoid lock contention.
@@ -140,8 +137,8 @@ When creating or updating entities:
 For test and e2e symbols, the preferred traceability workflow uses durable KB relationships instead of inline code comments:
 
 1. **Model the code as a symbol** in `documentation/symbols.yaml` (or the configured symbol manifest), with `sourceFile` pointing at the test/e2e file.
-2. **Link symbol → test** using a `covered_by` relationship row during `kb_upsert`.
-3. **Link test → requirement** using `validates` or `verified_by` relationship rows.
+2. **Link symbol → test** using an `executable_for` relationship row during `kb_upsert` to establish its identity as test code.
+3. **Ensure the test entity is linked** to a requirement or scenario (canonical: `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`).
 
 This manifest-based approach keeps traceability in the KB where it can be queried and validated, avoiding comment churn in test files.
 

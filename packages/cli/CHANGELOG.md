@@ -1,12 +1,55 @@
 # kibi-cli
 
+## 0.5.1
+
+### Patch Changes
+
+- 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- efc7fd7: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
+  - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
+    `config.paths.symbols` manifest before processing staged-manifest overrides.
+    This prevents code-only staged changes (where `symbols.yaml` is not staged) from
+    falling back to hash-generated IDs and incorrectly failing traceability even when
+    the symbol is already linked in the KB.
+  - Remove duplicate `toPrologString` in `temp-kb.ts` and reuse the shared
+    `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
+
+- d344f57: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+  fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
+- 2994632: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
+  - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
+  - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
+  - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
+  - This resolves the `temp-kb.test.ts` timeout under bare `bun test` and significantly speeds up all CLI tests that spawn Prolog processes.
+
+- 7111197: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- Updated dependencies [6cdf9f5]
+- Updated dependencies [7111197]
+  - kibi-core@0.4.1
+
 ## 0.5.0
 
 ### Minor Changes
 
 - 0c2c1e7: feat(traceability): document comment-free test workflow with validation parity
 
-  - Add relationship-first traceability guidance: prefer symbol/test/requirement relationships via `covered_by` and `verified_by`/`validates` over inline `// implements REQ-xxx` comments
+  - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
   - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments

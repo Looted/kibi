@@ -14,6 +14,8 @@ tags:
   - comment-detection
 links:
   - REQ-opencode-comment-routing
+  - type: verified_by
+    target: TEST-opencode-python-comment-routing
 ---
 
 ## Scenario

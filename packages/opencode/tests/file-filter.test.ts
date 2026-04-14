@@ -1,6 +1,10 @@
 import { describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
-import { shouldHandleFile, stripToRoot, getKbExistenceTargets } from "../src/file-filter";
+import {
+  shouldHandleFile,
+  stripToRoot,
+  getKbExistenceTargets,
+} from "../src/file-filter";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -65,7 +69,10 @@ describe("stripToRoot", () => {
   });
 
   it("strips nested glob patterns", () => {
-    assert.equal(stripToRoot("kibi-docs/requirements/**/*.md"), "kibi-docs/requirements");
+    assert.equal(
+      stripToRoot("kibi-docs/requirements/**/*.md"),
+      "kibi-docs/requirements",
+    );
   });
 
   it("handles path without glob", () => {

@@ -1,5 +1,12 @@
 /// <reference path="../../../types/bun-test.d.ts" />
-import { afterEach, beforeEach, describe, it } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  it,
+} from "bun:test";
 import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
@@ -13,6 +20,24 @@ import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 describe("index kibiOpencodePlugin", () => {
   let tmpDir: string;
   let worktree: string;
+  const originalSetTimeout = globalThis.setTimeout;
+
+  beforeAll(() => {
+    globalThis.setTimeout = ((
+      handler: TimerHandler,
+      _delay?: number,
+      ...args: unknown[]
+    ) => {
+      if (typeof handler === "function") {
+        handler(...args);
+      }
+      return 0 as unknown as ReturnType<typeof globalThis.setTimeout>;
+    }) as typeof globalThis.setTimeout;
+  });
+
+  afterAll(() => {
+    globalThis.setTimeout = originalSetTimeout;
+  });
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
@@ -93,27 +118,6 @@ describe("index kibiOpencodePlugin", () => {
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-
-      const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
-      });
-
-      assert.ok(typeof hooks === "object");
-    });
-
-    it("does not trigger bootstrap warning when fully configured", async () => {
-      const kbDir = path.join(tmpDir, ".kb");
-      fs.mkdirSync(kbDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(kbDir, "config.json"),
-        JSON.stringify({}, null, 2),
-      );
-
       const docDirs = [
         "documentation/requirements",
         "documentation/scenarios",
@@ -141,6 +145,378 @@ describe("index kibiOpencodePlugin", () => {
       });
 
       assert.ok(typeof hooks === "object");
+    });
+
+    it("does not trigger bootstrap warning when fully configured", async () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(typeof hooks === "object");
+    });
+
+    it("only emits startup confirmation after successful setup", async () => {
+      const toastCalls: Array<Record<string, unknown>> = [];
+      const logCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        tui: {
+          showToast: async (payload: Record<string, unknown>) => {
+            toastCalls.push(payload);
+          },
+        },
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+      };
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: client as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      const startupConfirmations = logCalls.filter((payload) => {
+        const body = payload.body as Record<string, unknown> | undefined;
+        return body?.message === "kibi-opencode: setup complete";
+      });
+
+      assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
+        body: {
+          variant: "success",
+          title: "Kibi OpenCode",
+          message: "kibi-opencode started",
+          duration: 4000,
+        },
+      });
+      assert.equal(startupConfirmations.length, 1);
+
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode started";
+        }).length,
+        1,
+      );
+
+      delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+        .__kibi_test_scheduler_factory;
+    });
+
+    it("does not emit startup confirmation when disabled", async () => {
+      const logCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+      };
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: false }, null, 2),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: client as any,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.deepEqual(hooks, {});
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode: setup complete";
+        }).length,
+        0,
+      );
+    });
+
+    it("suppresses startup toast when toastStartup is false", async () => {
+      const toastCalls: Array<Record<string, unknown>> = [];
+      const logCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        tui: {
+          showToast: async (payload: Record<string, unknown>) => {
+            toastCalls.push(payload);
+          },
+        },
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+      };
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ ux: { toastStartup: false } }, null, 2),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+
+      try {
+        await kibiOpencodePlugin({
+          directory: tmpDir,
+          worktree: worktree,
+          client: client as any,
+          project: null as any,
+          serverUrl: null as any,
+          $: {} as any,
+        });
+      } finally {
+        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+          .__kibi_test_scheduler_factory;
+      }
+
+      assert.equal(
+        toastCalls.filter((payload) => {
+          return payload.message === "kibi-opencode started";
+        }).length,
+        0,
+      );
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode started";
+        }).length,
+        1,
+      );
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode: setup complete";
+        }).length,
+        1,
+      );
+    });
+
+    it("emits structured startup fallback when toast capability is absent", async () => {
+      const logCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+      };
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      const schedulerFactory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = schedulerFactory;
+
+      try {
+        await kibiOpencodePlugin({
+          directory: tmpDir,
+          worktree: worktree,
+          client: client as any,
+          project: null as any,
+          serverUrl: null as any,
+          $: {} as any,
+        });
+      } finally {
+        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+          .__kibi_test_scheduler_factory;
+      }
+
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode started";
+        }).length,
+        1,
+      );
+    });
+
+    it("does not emit startup confirmation on degraded initialization", async () => {
+      const toastCalls: Array<Record<string, unknown>> = [];
+      const logCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        tui: {
+          showToast: async (payload: Record<string, unknown>) => {
+            toastCalls.push(payload);
+          },
+        },
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+      };
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = () => {
+        throw new Error("scheduler unavailable");
+      };
+
+      try {
+        await kibiOpencodePlugin({
+          directory: tmpDir,
+          worktree: worktree,
+          client: client as any,
+          project: null as any,
+          serverUrl: null as any,
+          $: {} as any,
+        });
+      } finally {
+        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+          .__kibi_test_scheduler_factory;
+      }
+
+      assert.equal(toastCalls.length, 0);
+      assert.equal(
+        logCalls.filter((payload) => {
+          const body = payload.body as Record<string, unknown> | undefined;
+          return body?.message === "kibi-opencode: setup complete";
+        }).length,
+        1,
+      );
     });
   });
 

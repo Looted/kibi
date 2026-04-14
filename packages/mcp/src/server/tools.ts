@@ -63,8 +63,12 @@ const defaultToolsServerDeps: ToolsServerDeps = {
 };
 
 // implements REQ-008
-export function _setToolsServerDepsForTests(deps: Partial<ToolsServerDeps>, resetPromise = false): void {
-  defaultToolsServerDeps.getSessionModule = deps.getSessionModule ?? defaultToolsServerDeps.getSessionModule;
+export function _setToolsServerDepsForTests(
+  deps: Partial<ToolsServerDeps>,
+  resetPromise = false,
+): void {
+  defaultToolsServerDeps.getSessionModule =
+    deps.getSessionModule ?? defaultToolsServerDeps.getSessionModule;
   if (resetPromise) {
     sessionModulePromise = null;
   }

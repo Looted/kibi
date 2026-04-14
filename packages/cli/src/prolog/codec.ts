@@ -17,7 +17,8 @@
  * Escape a string for use as a Prolog atom.
  * Doubles single-quote characters per ISO Prolog standard.
  */
-export function escapeAtom(value: string): string { // implements REQ-009
+export function escapeAtom(value: string): string {
+  // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
@@ -25,7 +26,8 @@ export function escapeAtom(value: string): string { // implements REQ-009
  * Convert a string to a Prolog atom, quoting if necessary.
  * Simple atoms (lowercase start, alphanumeric + underscore) pass through.
  */
-export function toPrologAtom(value: string): string { // implements REQ-009
+export function toPrologAtom(value: string): string {
+  // implements REQ-009
   const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
   return simplePrologAtom.test(value)
     ? value
@@ -52,11 +54,13 @@ export function toPrologString(value: string): string {
  * Escape a string for embedding inside a single-quoted Prolog atom.
  * Alias for escapeAtom for semantic clarity.
  */
-export function escapeAtomContent(value: string): string { // implements REQ-009
+export function escapeAtomContent(value: string): string {
+  // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
-export function parseListOfLists(listStr: string): string[][] { // implements REQ-009
+export function parseListOfLists(listStr: string): string[][] {
+  // implements REQ-009
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -103,7 +107,8 @@ export function parseListOfLists(listStr: string): string[][] { // implements RE
   return results;
 }
 
-export function parseEntityFromBinding( // implements REQ-009
+export function parseEntityFromBinding(
+  // implements REQ-009
   bindingStr: string,
 ): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
@@ -121,7 +126,8 @@ export function parseEntityFromBinding( // implements REQ-009
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-export function parseEntityFromList(data: string[]): Record<string, unknown> { // implements REQ-009
+export function parseEntityFromList(data: string[]): Record<string, unknown> {
+  // implements REQ-009
   if (data.length < 3) {
     return {};
   }
@@ -134,7 +140,8 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> { /
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-export function parsePropertyList(propsStr: string): Record<string, unknown> { // implements REQ-009
+export function parsePropertyList(propsStr: string): Record<string, unknown> {
+  // implements REQ-009
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -333,7 +340,8 @@ function normalizeEntityId(value: string): string {
   return idx === -1 ? value : value.slice(idx + 1);
 }
 
-export function parseAtomList(raw: string): string[] { // implements REQ-009
+export function parseAtomList(raw: string): string[] {
+  // implements REQ-009
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
     return [];
@@ -349,7 +357,8 @@ export function parseAtomList(raw: string): string[] { // implements REQ-009
     .filter((token) => token.length > 0);
 }
 
-export function parsePairList(raw: string): Array<[string, string]> { // implements REQ-009
+export function parsePairList(raw: string): Array<[string, string]> {
+  // implements REQ-009
   const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
 
@@ -365,7 +374,8 @@ export function parsePairList(raw: string): Array<[string, string]> { // impleme
   return pairs;
 }
 
-export function parseTriples(raw: string): Array<[string, string, string]> { // implements REQ-009
+export function parseTriples(raw: string): Array<[string, string, string]> {
+  // implements REQ-009
   const rows = parseListRows(raw);
   const triples: Array<[string, string, string]> = [];
 

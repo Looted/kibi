@@ -12,6 +12,8 @@ tags:
   - relationships
 links:
   - REQ-007
+  - type: verified_by
+    target: TEST-015
 ---
 
 ## Scenario

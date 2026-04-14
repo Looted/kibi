@@ -786,7 +786,10 @@ describe("logging policy", () => {
 
       // Also trigger the transform hook which emits the reminder log
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       const consoleLogCalls = logCalls.filter(
@@ -841,8 +844,13 @@ describe("logging policy", () => {
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -875,7 +883,10 @@ describe("logging policy", () => {
 
       // Trigger the transform hook which conditionally emits the reminder log
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       await new Promise((r) => setTimeout(r, 20));
@@ -883,9 +894,7 @@ describe("logging policy", () => {
       // Check if any info log contains the completion reminder event
       const reminderLogs = appLogCalls.filter((p) => {
         const body = p.body as Record<string, unknown>;
-        return (
-          body.event === "smart_enforcement_completion_reminder"
-        );
+        return body.event === "smart_enforcement_completion_reminder";
       });
 
       // Reminder should be emitted via structured info log for risky code edits
@@ -929,10 +938,7 @@ describe("logging policy", () => {
         ),
       );
 
-      fs.writeFileSync(
-        path.join(tmpDir, "README.md"),
-        "# Test\n",
-      );
+      fs.writeFileSync(path.join(tmpDir, "README.md"), "# Test\n");
 
       const mockClient = {
         app: {
@@ -957,7 +963,10 @@ describe("logging policy", () => {
       });
 
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       await new Promise((r) => setTimeout(r, 20));

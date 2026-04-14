@@ -2,7 +2,7 @@
 id: SCEN-opencode-smart-enforcement
 title: Smart Enforcement Posture and Risk Classification
 type: scenario
-status: draft
+status: active
 created_at: 2026-04-03T00:00:00Z
 updated_at: 2026-04-05T01:00:00Z
 source: documentation/scenarios/SCEN-opencode-smart-enforcement.md
@@ -13,6 +13,9 @@ tags:
   - kibi-first
   - guidance
   - risk-classification
+links:
+  - type: verified_by
+    target: TEST-opencode-smart-enforcement
 ---
 
 ## Scenario: Posture Detection and Dynamic Guidance

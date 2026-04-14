@@ -20,7 +20,8 @@ export async function withAttachedBranchProlog<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
   deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
-  const createProlog = deps?.createProlog ?? ((opts) => new PrologProcess(opts));
+  const createProlog =
+    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
   let prolog: PrologProcess | null = null;
   let attached = false;
 
@@ -61,7 +62,8 @@ export async function withPrologProcess<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
   deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
-  const createProlog = deps?.createProlog ?? ((opts) => new PrologProcess(opts));
+  const createProlog =
+    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
   const prolog = createProlog({ timeout: 120000 });
   try {
     await prolog.start();
@@ -88,7 +90,10 @@ export async function resolveCurrentKbPath(): Promise<string> {
 }
 
 // implements REQ-003
-export function resolveCoreModulePath(fileName: string, deps?: Partial<DiscoveryDeps>): string {
+export function resolveCoreModulePath(
+  fileName: string,
+  deps?: Partial<DiscoveryDeps>,
+): string {
   const resolve = deps?.resolveKbPl ?? resolveKbPlPath;
   return path.join(path.dirname(resolve()), fileName);
 }

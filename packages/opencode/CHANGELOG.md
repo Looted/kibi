@@ -1,12 +1,26 @@
 # kibi-opencode
 
+## 0.6.1
+
+### Patch Changes
+
+- 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- d344f57: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+  fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
 ## 0.6.0
 
 ### Minor Changes
 
 - 0c2c1e7: feat(traceability): document comment-free test workflow with validation parity
 
-  - Add relationship-first traceability guidance: prefer symbol/test/requirement relationships via `covered_by` and `verified_by`/`validates` over inline `// implements REQ-xxx` comments
+  - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
   - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments

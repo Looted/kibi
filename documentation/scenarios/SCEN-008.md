@@ -10,8 +10,8 @@ tags:
   - impact
   - coverage
 links:
-  - REQ-013
-  - ADR-008
+  - type: verified_by
+    target: TEST-010
 ---
 
 Steps:

@@ -18,7 +18,10 @@
 
 import { existsSync } from "node:fs";
 import * as path from "node:path";
-import { extractFromManifest, extractFromManifestString } from "../extractors/manifest.js";
+import {
+  extractFromManifest,
+  extractFromManifestString,
+} from "../extractors/manifest.js";
 import {
   type ExtractionResult,
   extractFromMarkdownString,
@@ -96,7 +99,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
               .filter(
                 (relationship) =>
                   relationship.type === "implements" ||
-                  relationship.type === "covered_by",
+                  relationship.type === "covered_by" ||
+                  relationship.type === "executable_for",
               )
               .map((relationship) => ({
                 type: relationship.type,
@@ -108,7 +112,9 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         // Ignore working-tree manifest parsing errors; staged-only fallback still applies
         if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
           const msg = e instanceof Error ? e.message : String(e);
-          console.debug(`[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`);
+          console.debug(
+            `[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`,
+          );
         }
       }
     }
@@ -149,7 +155,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
             .filter(
               (relationship) =>
                 relationship.type === "implements" ||
-                relationship.type === "covered_by",
+                relationship.type === "covered_by" ||
+                relationship.type === "executable_for",
             )
             .map((relationship) => ({
               type: relationship.type,

@@ -61,7 +61,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance (file path, URL, or reference)        |
-| tags[]       | No       | array[string]  | Array of tags                                    |
+| tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |
 | severity     | No       | string         | Severity level                                   |
@@ -103,8 +103,6 @@ source: documentation/requirements/REQ-001.md
 links:
   - type: specified_by
     target: SCEN-001
-  - type: verified_by
-    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -120,11 +118,14 @@ source: documentation/scenarios/SCEN-001.md
 # documentation/tests/TEST-001.md
 ---
 id: TEST-001
-title: Verify login flow
+title: Login test
 status: passing
 created_at: 2026-03-10T10:02:00Z
 updated_at: 2026-03-10T10:02:00Z
 source: documentation/tests/TEST-001.md
+links:
+  - type: validates
+    target: SCEN-001
 ---
 ```
 
@@ -283,6 +284,10 @@ tags:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
+| verification_perspective | No | enum     | `internal` or `consumer`                         |
+
+`tags` remain metadata only. They do not alias or replace typed verification fields.
 
 **Example:**
 ```yaml
@@ -295,8 +300,12 @@ updated_at: 2026-02-17T13:00:00Z
 source: https://example.com/fixtures/tests/TEST-001
 tags:
   - sample
+verification_scope: integration
+verification_perspective: internal
 ---
 ```
+
+See `docs/examples/test-verification-fields.md` for a complete example using both typed fields.
 
 #### ADR (`adr`)
 
@@ -485,10 +494,12 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | Relationship         | Source Entity         | Target Entity         | Description                                      |
 |---------------------|----------------------|----------------------|--------------------------------------------------|
 | depends_on          | req                  | req                  | Requirement depends on another requirement        |
-| specified_by        | req                  | scenario             | Requirement specified by scenario                 |
-| verified_by         | req                  | test                 | Requirement verified by test                      |
-| implements          | symbol               | req                  | Symbol implements requirement                     |
-| covered_by          | symbol               | test                 | Symbol covered by test                            |
+| specified_by        | req                  | scenario             | Requirement is specified by a scenario            |
+| verified_by         | req/scenario         | test                 | Requirement or scenario is verified by a test     |
+| validates           | test                 | req/scenario         | Test validates a requirement or scenario          |
+| implements          | symbol               | req                  | Symbol owns or implements requirement behavior    |
+| covered_by          | symbol               | test                 | Production symbol has coverage evidence from a test |
+| executable_for      | symbol               | test                 | Symbol is executable test code for a test entity  |
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
@@ -538,6 +549,22 @@ relationship:
   source: https://example.com/fixtures/tests/TEST-001
 ```
 
+`verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
+
+**validates**
+```yaml
+# test TEST-001 validates scenario SCEN-001
+relationship:
+  type: validates
+  source: TEST-001
+  target: SCEN-001
+  created_at: 2026-02-17T13:22:00Z
+  created_by: qa
+  source: https://example.com/fixtures/tests/TEST-001
+```
+
+`validates` is the inverse edge for req/scenario ↔ test links.
+
 **implements**
 ```yaml
 # symbol SYMBOL-001 implements req REQ-001
@@ -550,6 +577,8 @@ relationship:
   source: https://example.com/fixtures/symbols/SYMBOL-001
 ```
 
+`implements` is frozen to requirement ownership only (`symbol -> req`).
+
 **covered_by**
 ```yaml
 # symbol SYMBOL-001 covered_by test TEST-001
@@ -561,6 +590,22 @@ relationship:
   created_by: dev
   source: https://example.com/fixtures/tests/TEST-001
 ```
+
+`covered_by` is frozen to production coverage evidence only (`symbol -> test`).
+
+**executable_for**
+```yaml
+# symbol SYMBOL-TEST-001 executable_for test TEST-001
+relationship:
+  type: executable_for
+  source: SYMBOL-TEST-001
+  target: TEST-001
+  created_at: 2026-02-17T13:32:00Z
+  created_by: dev
+  source: https://example.com/fixtures/symbols/SYMBOL-TEST-001
+```
+
+`executable_for` is frozen to executable test code identity only (`symbol -> test`).
 
 **constrained_by**
 ```yaml

@@ -4,7 +4,11 @@ import { extractFromManifest } from "../extractors/manifest.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type TraceabilityRelationship = { type: string; to: string };
-const TRACEABILITY_RELATIONSHIP_TYPES = new Set(["implements", "covered_by"]);
+const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
+  "implements",
+  "covered_by",
+  "executable_for",
+]);
 const REQUIREMENT_ID_PATTERN = /^[A-Z][A-Z0-9\-_]*$/;
 const LOCAL_MANIFEST_NAMES = ["symbols.yaml", "symbols.yml"];
 const MANIFEST_SENTINEL_PREFIX = "__manifest__:";

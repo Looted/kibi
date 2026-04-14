@@ -11,6 +11,10 @@ tags:
 links:
   - REQ-008
   - REQ-012
+  - type: verified_by
+    target: TEST-006
+  - type: verified_by
+    target: TEST-009
 ---
 
 Steps:

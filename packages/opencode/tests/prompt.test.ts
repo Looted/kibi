@@ -14,6 +14,7 @@ const baseConfig: KibiConfig = {
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: {
+    toastStartup: true,
     toastFailures: true,
     toastSuccesses: false,
     toastCooldownMs: 10000,
@@ -89,12 +90,12 @@ describe("prompt", () => {
     const result = injectPrompt("", baseConfig);
 
     assert.ok(
-      result.includes("durable symbol/test/requirement relationships"),
-      "Should mention relationship-first traceability",
+      result.includes("implements") && result.includes("ownership"),
+      "Should teach implements for requirement ownership",
     );
     assert.ok(
-      result.includes("// implements REQ-xxx"),
-      "Should mention backward-compatible inline comment pattern",
+      result.includes("executable_for"),
+      "Should mention executable_for for test code",
     );
   });
 

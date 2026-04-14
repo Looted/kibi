@@ -9,7 +9,8 @@ tags:
   - enforcement
   - pre-commit
 links:
-  - REQ-014
+  - type: verified_by
+    target: TEST-011
 ---
 Steps:
 1. KB contains REQ-X with priority: must but no specifiedby scenario.

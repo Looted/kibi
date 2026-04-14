@@ -10,6 +10,8 @@ tags:
   - branches
 links:
   - REQ-003
+  - type: verified_by
+    target: TEST-003
 ---
 
 Steps:
