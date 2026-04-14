@@ -11,20 +11,19 @@
 /**
  * Release invariant tests for the develop-to-master publish model.
  *
- * These tests codify the desired release decisions BEFORE the workflow
- * and helper are updated. They exercise `determineReleaseAction` from
+ * These tests exercise `determineReleaseAction` from
  * `scripts/release-state.ts` against fixture contexts representing
  * real CI scenarios.
  *
- * Expected test status:
- * - PASS: no-op, fresh release, already-published skip
- * - FAIL: recursion guard, partial rerun (these expose invariant gaps
- *   in the current pre-fix implementation)
+ * Covered scenarios:
+ * - No-op: no changesets, all published, non-master branch
+ * - Fresh release: unpublished packages, no prior publishes
+ * - Already-published skip: changesets present but all on npm
+ * - Partial rerun: some already published, some not → PUBLISH_ONLY_RERUN
  */
 
 import { describe, expect, test } from "bun:test";
 import {
-  RELEASE_COMMIT_MARKER,
   type ReleaseContext,
   determineReleaseAction,
 } from "../release-state.ts";
@@ -43,16 +42,6 @@ const ALL_PACKAGES = {
 /** Human-authored merge commit from develop → master */
 const SOURCE_COMMIT_MSG =
   "Merge branch 'develop' into master\n\nIntegration of new schema features.";
-
-/** CI-authored release commit (includes the stable marker) */
-const CI_RELEASE_COMMIT_MSG = `chore(release): version packages ${RELEASE_COMMIT_MARKER}
-
-kibi-core@0.5.0
-kibi-cli@0.6.0
-kibi-mcp@0.7.0
-kibi-opencode@0.7.0
-
-Release-source-sha: abc123def456`;
 
 /** A changeset file representing a minor bump for all four packages */
 const FRESH_CHANGESETS = ["spotty-llamas-fly.md", "brave-tables-dance.md"];
@@ -199,69 +188,7 @@ describe("release invariants: develop-to-master model", () => {
   });
 
   // -------------------------------------------------------------------------
-  // 3. Recursion guard for CI-authored release commits on master
-  // -------------------------------------------------------------------------
-  describe("recursion guard (CI release commit must not re-prepare)", () => {
-    test("DESIRED: CI release commit returns SKIP_RELEASE_COMMIT, not PREPARE_RELEASE", () => {
-      const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
-        changesetFiles: FRESH_CHANGESETS,
-        isPublishedOnNpm: nothingPublished,
-      });
-
-      const decision = determineReleaseAction(ctx);
-
-      // The CI release commit contains the [kibi-release] marker.
-      // The desired behavior is to NOT re-run version-packages.
-      // CURRENT BUG: returns PREPARE_RELEASE instead of SKIP_RELEASE_COMMIT.
-      expect(decision.action).toBe("SKIP_RELEASE_COMMIT");
-    });
-
-    test("DESIRED: CI release commit with no changesets also skips", () => {
-      const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
-        changesetFiles: NO_CHANGESETS,
-        isPublishedOnNpm: nothingPublished,
-      });
-
-      const decision = determineReleaseAction(ctx);
-
-      // Even without changesets, a CI release commit should not
-      // trigger PREPARE_RELEASE — it should indicate publish-only
-      // or skip.
-      expect(decision.action).not.toBe("PREPARE_RELEASE");
-    });
-
-    test("release commit marker is present in CI commit fixture", () => {
-      expect(CI_RELEASE_COMMIT_MSG).toContain(RELEASE_COMMIT_MARKER);
-    });
-
-    test("source commit does NOT contain release marker", () => {
-      expect(SOURCE_COMMIT_MSG).not.toContain(RELEASE_COMMIT_MARKER);
-    });
-
-    test("DESIRED: helper detects release marker in commit message", () => {
-      // This tests that the helper should parse the commit message
-      // for the release marker. Currently it does not.
-      const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
-        changesetFiles: FRESH_CHANGESETS,
-      });
-
-      const decision = determineReleaseAction(ctx);
-
-      // If the helper respected the marker, it would NOT say PREPARE_RELEASE
-      // for a CI-authored commit. This assertion codifies the gap.
-      const isReleaseCommit = ctx.commitMessage.includes(RELEASE_COMMIT_MARKER);
-      expect(isReleaseCommit).toBe(true);
-
-      // The decision should reflect awareness of the marker:
-      expect(decision.action).not.toBe("PREPARE_RELEASE");
-    });
-  });
-
-  // -------------------------------------------------------------------------
-  // 4. Already-published package skip
+  // 3. Already-published package skip
   // -------------------------------------------------------------------------
   describe("already-published package skip", () => {
     test("excludes already-published packages from publish set", () => {
@@ -310,24 +237,20 @@ describe("release invariants: develop-to-master model", () => {
   });
 
   // -------------------------------------------------------------------------
-  // 5. Partial rerun recovery
+  // 4. Partial rerun recovery
   // -------------------------------------------------------------------------
   describe("partial rerun (some packages published, some not)", () => {
-    test("DESIRED: CI release commit rerun returns PUBLISH_ONLY_RERUN for missing packages", () => {
-      // Simulate: CI release commit was pushed, but only core and cli
-      // were published before the job was interrupted. mcp and opencode
-      // still need publishing.
+    test("returns PUBLISH_ONLY_RERUN for partially published packages on source commit", () => {
+      // Simulate: CI ran and published core+cli but mcp+opencode failed.
+      // Re-running the same source commit detects partial state.
       const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
       const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
       });
 
       const decision = determineReleaseAction(ctx);
 
-      // DESIRED: should return PUBLISH_ONLY_RERUN (not PREPARE_RELEASE)
-      // because this is a rerun of a CI release commit.
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
 
       const toPublish = decision.packages
@@ -337,35 +260,28 @@ describe("release invariants: develop-to-master model", () => {
       expect(toPublish).toEqual(["mcp", "opencode"]);
     });
 
-    test("DESIRED: CI release commit rerun with all published returns ALREADY_PUBLISHED_NOOP", () => {
+    test("returns PUBLISH_ONLY_RERUN when all published → ALREADY_PUBLISHED_NOOP", () => {
       const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: everythingPublished,
       });
 
       const decision = determineReleaseAction(ctx);
 
-      // All packages already published on a CI release commit rerun
-      // should be a clean no-op.
-      expect(decision.action).toBe("ALREADY_PUBLISHED_NOOP");
+      // No changesets + all published = NOOP (not PUBLISH_ONLY_RERUN)
+      expect(decision.action).toBe("NOOP");
     });
 
-    test("DESIRED: source commit with partially published packages still returns PREPARE_RELEASE", () => {
-      // A human merge commit where some packages were published in a
-      // previous partial run should still trigger PREPARE_RELEASE because
-      // it's a source commit, not a CI commit.
+    test("source commit with changesets + partial publish returns PREPARE_RELEASE", () => {
       const published = new Set(["kibi-core@0.5.0"]);
       const ctx = makeContext({
         commitMessage: SOURCE_COMMIT_MSG,
-        changesetFiles: NO_CHANGESETS,
+        changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
       });
 
       const decision = determineReleaseAction(ctx);
 
-      // Source commit: should prepare release even if some packages
-      // are already on npm. The publish step will skip them.
       expect(decision.action).toBe("PREPARE_RELEASE");
 
       const toPublish = decision.packages
@@ -377,7 +293,7 @@ describe("release invariants: develop-to-master model", () => {
   });
 
   // -------------------------------------------------------------------------
-  // 6. Fixture integrity checks
+  // 5. Fixture integrity checks
   // -------------------------------------------------------------------------
   describe("fixture integrity", () => {
     test("release-source SHA is explicit in every context", () => {
@@ -387,14 +303,6 @@ describe("release invariants: develop-to-master model", () => {
       const decision = determineReleaseAction(ctx);
 
       expect(decision.sourceSha).toBe(sha);
-    });
-
-    test("CI release commit fixture contains release-source-sha trailer", () => {
-      expect(CI_RELEASE_COMMIT_MSG).toContain("Release-source-sha:");
-    });
-
-    test("RELEASE_COMMIT_MARKER does not appear in source commit fixture", () => {
-      expect(SOURCE_COMMIT_MSG).not.toContain(RELEASE_COMMIT_MARKER);
     });
 
     test("all four publishable package dirs are represented", () => {

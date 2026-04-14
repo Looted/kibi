@@ -22,7 +22,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 575
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:54.292Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.220Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -40,7 +40,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 246
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:54.787Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.405Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -55,7 +55,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:54.791Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.406Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -73,7 +73,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 216
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:55.028Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.548Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -91,7 +91,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 1006
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:55.660Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.793Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -106,7 +106,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 195
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:55.964Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:30.922Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -121,7 +121,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 57
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:56.721Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.313Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -139,7 +139,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 1006
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:56.722Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.313Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -156,7 +156,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 106
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:56.725Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.316Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -192,7 +192,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:56.727Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.317Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -209,7 +209,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 334
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:57.000Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.480Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -256,7 +256,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 102
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:57.357Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.606Z'
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
@@ -271,7 +271,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 96
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:57.661Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.729Z'
   - id: SYM-detectPosture
     title: detectPosture
     sourceFile: packages/opencode/src/repo-posture.ts
@@ -289,7 +289,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 240
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:57.661Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.730Z'
   - id: SYM-classifyRisk
     title: classifyRisk
     sourceFile: packages/opencode/src/risk-classifier.ts
@@ -307,7 +307,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 175
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:57.895Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.855Z'
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
@@ -325,7 +325,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 162
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:58.148Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:31.978Z'
   - id: SYM-buildPrompt
     title: buildPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -348,4 +348,4 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 451
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-14T15:19:58.441Z'
+    coordinatesGeneratedAt: '2026-04-14T16:35:32.132Z'

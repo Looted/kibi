@@ -86,11 +86,10 @@ const decision = determineReleaseAction({
   sourceSha,
 });
 
-// Build workflow-compatible to_publish string (dir=name\n...)
+// Build workflow-compatible toPublish array (dir=name entries)
 const toPublish = decision.packages
   .filter((p) => !p.alreadyPublished)
-  .map((p) => `${p.dir}=${p.name}`)
-  .join("\n");
+  .map((p) => `${p.dir}=${p.name}`);
 
 console.log(
   JSON.stringify(

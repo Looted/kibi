@@ -9,19 +9,18 @@
  */
 
 /**
- * End-to-end dry-run verification tests for the simplified no-commit master
- * publish model.
+ * End-to-end dry-run verification tests for the no-commit master publish
+ * model.
  *
  * These tests exercise the full dry-run path by:
  * 1. Testing `determineReleaseAction` with mocked registry contexts (unit-level)
  * 2. Spawning `run-release-state.ts` with `GITHUB_REF_NAME=master` and
  *    verifying the JSON output (integration-level)
  *
- * The three core scenarios:
+ * The core scenarios:
  * - Happy path: unpublished packages on master → PREPARE_RELEASE
  * - No-op path: all packages already on npm → NOOP / ALREADY_PUBLISHED_NOOP
- * - Partial rerun: CI release commit with some packages missing →
- *   PUBLISH_ONLY_RERUN with correct subset
+ * - Partial rerun: some packages already published → PUBLISH_ONLY_RERUN
  */
 
 import { describe, expect, test } from "bun:test";
@@ -30,7 +29,6 @@ import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   PUBLISHABLE_DIRS,
-  RELEASE_COMMIT_MARKER,
   type ReleaseContext,
   determineReleaseAction,
 } from "../release-state.ts";
@@ -50,15 +48,6 @@ const ALL_PACKAGES = {
 
 const SOURCE_COMMIT_MSG =
   "Merge branch 'develop' into master\n\nIntegration of new schema features.";
-
-const CI_RELEASE_COMMIT_MSG = `chore(release): version packages ${RELEASE_COMMIT_MARKER}
-
-kibi-core@0.5.0
-kibi-cli@0.6.0
-kibi-mcp@0.7.0
-kibi-opencode@0.7.0
-
-Release-source-sha: abc123def456`;
 
 const FRESH_CHANGESETS = ["spotty-llamas-fly.md", "brave-tables-dance.md"];
 const NO_CHANGESETS: string[] = [];
@@ -112,8 +101,6 @@ describe("release dry-run: no-commit master publish model", () => {
     });
 
     test("source commit without changesets + unpublished packages → PREPARE_RELEASE", () => {
-      // This is the scenario after version-packages has already run on develop
-      // and changesets were consumed, but versions aren't on npm yet.
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: nothingPublished,
@@ -205,32 +192,15 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.packages).toHaveLength(0);
       expect(decision.reason).toContain("already on npm");
     });
-
-    test("CI release commit + all published → ALREADY_PUBLISHED_NOOP", () => {
-      const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
-        changesetFiles: NO_CHANGESETS,
-        isPublishedOnNpm: everythingPublished,
-      });
-
-      const decision = determineReleaseAction(ctx);
-
-      expect(decision.action).toBe("ALREADY_PUBLISHED_NOOP");
-      expect(decision.packages).toHaveLength(0);
-      expect(decision.reason).toContain("already published");
-    });
   });
 
   // -------------------------------------------------------------------------
   // 3. Partial rerun: some published, some not
   // -------------------------------------------------------------------------
   describe("partial rerun — subset of packages published", () => {
-    test("CI release commit + partial publish → PUBLISH_ONLY_RERUN with missing packages", () => {
-      // Simulate: CI published core and cli before interruption; mcp and
-      // opencode still need publishing.
+    test("partial publish + no changesets → PUBLISH_ONLY_RERUN with missing packages", () => {
       const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
       const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
       });
@@ -238,25 +208,21 @@ describe("release dry-run: no-commit master publish model", () => {
       const decision = determineReleaseAction(ctx);
 
       expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
-      expect(decision.reason).toContain("missing packages");
+      expect(decision.reason).toContain("already published");
 
-      // PUBLISH_ONLY_RERUN returns only unpublished packages
       expect(decision.packages).toHaveLength(2);
       const dirs = decision.packages.map((p) => p.dir).sort();
       expect(dirs).toEqual(["mcp", "opencode"]);
 
-      // All returned packages should be unpublished
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
     });
 
-    test("source commit + partial publish → PREPARE_RELEASE with unpublished subset", () => {
-      // A human merge commit where core was published in a prior partial run.
+    test("source commit + partial publish + changesets → PREPARE_RELEASE with unpublished subset", () => {
       const published = new Set(["kibi-core@0.5.0"]);
       const ctx = makeContext({
-        commitMessage: SOURCE_COMMIT_MSG,
-        changesetFiles: NO_CHANGESETS,
+        changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
       });
 
@@ -271,29 +237,6 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(toPublish).toEqual(["cli", "mcp", "opencode"]);
     });
 
-    test("CI release commit + changesets remaining + partial publish → SKIP_RELEASE_COMMIT", () => {
-      // Edge case: changesets somehow remain on a CI release commit.
-      const published = new Set(["kibi-core@0.5.0"]);
-      const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
-        changesetFiles: FRESH_CHANGESETS,
-        isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
-      });
-
-      const decision = determineReleaseAction(ctx);
-
-      // Should never re-prepare when it's a CI release commit
-      expect(decision.action).toBe("SKIP_RELEASE_COMMIT");
-      expect(decision.reason).toContain("skipping release-prep");
-
-      // The unpublished packages are still surfaced for manual intervention
-      const unpublished = decision.packages
-        .filter((p) => !p.alreadyPublished)
-        .map((p) => p.dir)
-        .sort();
-      expect(unpublished).toEqual(["cli", "mcp", "opencode"]);
-    });
-
     test("only mcp unpublished → rerun targets mcp alone", () => {
       const published = new Set([
         "kibi-core@0.5.0",
@@ -301,7 +244,6 @@ describe("release dry-run: no-commit master publish model", () => {
         "kibi-opencode@0.7.0",
       ]);
       const ctx = makeContext({
-        commitMessage: CI_RELEASE_COMMIT_MSG,
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
       });
@@ -321,8 +263,6 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("integration — run-release-state.ts spawned output", () => {
     test("script produces valid JSON with PREPARE_RELEASE when run as master", () => {
-      // Use KIBI_RELEASE_MOCK_NPM="" (nothing published) so the test is
-      // deterministic regardless of live npm registry state.
       const raw = execSync("bun run scripts/run-release-state.ts", {
         encoding: "utf8",
         env: {
@@ -341,16 +281,19 @@ describe("release dry-run: no-commit master publish model", () => {
       expect(decision.packages.length).toBe(4);
       expect(decision.sourceSha).toBe("test-sha-integration");
 
-      // Verify all four packages are present with correct metadata
       const dirs = decision.packages.map((p: { dir: string }) => p.dir).sort();
       expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
 
-      // All should be unpublished since KIBI_RELEASE_MOCK_NPM is empty
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
 
-      // Write evidence artifact
+      // Verify toPublish is a JSON array of strings
+      expect(Array.isArray(decision.toPublish)).toBe(true);
+      for (const entry of decision.toPublish as string[]) {
+        expect(entry).toMatch(/^.+=.+$/);
+      }
+
       writeEvidence(
         "task-7-release-dryrun-happy.txt",
         `Release Dry-Run Happy Path Evidence
@@ -397,7 +340,7 @@ Reason: ${decision.reason}
 
 --- Unit-level partial rerun verification ---
 
-CI release commit with core+cli published, mcp+opencode unpublished:
+Source commit with core+cli published, mcp+opencode unpublished:
 Expected action: PUBLISH_ONLY_RERUN
 Unpublished dirs: mcp, opencode
 
@@ -405,7 +348,7 @@ Source commit with only core published:
 Expected action: PREPARE_RELEASE
 Unpublished dirs: cli, mcp, opencode
 
-CI release commit with all published:
+Source commit + changesets + all published:
 Expected action: ALREADY_PUBLISHED_NOOP
 
 Source commit + no changesets + all published:

@@ -113,6 +113,7 @@ If you change any publishable npm package (`kibi-core`, `kibi-cli`, `kibi-mcp`, 
   - **Major**: Breaking changes to CLI, MCP tools, or core Prolog schema.
 - **Do NOT Publish Directly**: Manual `npm publish` is forbidden. Publishing occurs automatically on `master` CI after `develop` is merged.
 - **Dogfood Rebuild Rule**: This repo uses local `kibi-mcp` and `kibi-opencode` artifacts. After changing versions or local wiring, run `bun run build` to ensure your OpenCode environment reflects the changes.
+- **No Back-Merge**: Do not merge `master` back into `develop`.
 
 ---
 

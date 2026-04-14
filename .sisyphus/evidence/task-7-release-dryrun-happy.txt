@@ -1,6 +1,6 @@
 Release Dry-Run Happy Path Evidence
 =====================================
-Date: 2026-04-14T16:18:17.384Z
+Date: 2026-04-14T16:41:14.104Z
 Branch override: GITHUB_REF_NAME=master
 
 Raw JSON output:
@@ -34,7 +34,12 @@ Raw JSON output:
   ],
   "sourceSha": "test-sha-integration",
   "reason": "Unpublished packages detected without pending changesets",
-  "toPublish": "core=kibi-core\ncli=kibi-cli\nmcp=kibi-mcp\nopencode=kibi-opencode"
+  "toPublish": [
+    "core=kibi-core",
+    "cli=kibi-cli",
+    "mcp=kibi-mcp",
+    "opencode=kibi-opencode"
+  ]
 }
 
 

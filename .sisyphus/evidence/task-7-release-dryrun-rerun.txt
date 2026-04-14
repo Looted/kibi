@@ -1,6 +1,6 @@
 Release Dry-Run Rerun Path Evidence
 =====================================
-Date: 2026-04-14T16:18:17.442Z
+Date: 2026-04-14T16:41:14.157Z
 
 --- Non-master branch test (GITHUB_REF_NAME=develop) ---
 Action: NOOP
@@ -8,7 +8,7 @@ Reason: Not on master branch
 
 --- Unit-level partial rerun verification ---
 
-CI release commit with core+cli published, mcp+opencode unpublished:
+Source commit with core+cli published, mcp+opencode unpublished:
 Expected action: PUBLISH_ONLY_RERUN
 Unpublished dirs: mcp, opencode
 
@@ -16,7 +16,7 @@ Source commit with only core published:
 Expected action: PREPARE_RELEASE
 Unpublished dirs: cli, mcp, opencode
 
-CI release commit with all published:
+Source commit + changesets + all published:
 Expected action: ALREADY_PUBLISHED_NOOP
 
 Source commit + no changesets + all published:
