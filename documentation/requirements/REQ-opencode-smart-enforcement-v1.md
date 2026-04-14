@@ -23,7 +23,6 @@ links:
   - type: verified_by
     target: TEST-opencode-smart-enforcement
 ---
----
 
 The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.
 

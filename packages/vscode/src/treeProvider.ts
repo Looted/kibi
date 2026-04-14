@@ -22,6 +22,10 @@ import { promisify } from "node:util";
 import { load as loadYaml } from "js-yaml";
 import * as vscode from "vscode";
 import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import {
+  type KbRelationship as SharedKbRelationship,
+  parseRdfRelationships as parseRdfRelationshipsFromRdf,
+} from "./shared/rdf-parser";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 const execAsync = promisify(exec);
@@ -55,11 +59,7 @@ interface KbEntity {
   sourceLine?: number;
 }
 
-interface KbRelationship {
-  relType: string;
-  fromId: string;
-  toId: string;
-}
+type KbRelationship = SharedKbRelationship;
 
 type SupportedEntityType =
   | "req"
@@ -395,53 +395,7 @@ export class KibiTreeDataProvider
    */
   // implements REQ-vscode-traceability
   private parseRdfRelationships(content: string): KbRelationship[] {
-    const relationships: KbRelationship[] = [];
-
-    // Known relationship types from the KB schema
-    const relTypes = [
-      "depends_on",
-      "specified_by",
-      "verified_by",
-      "validates",
-      "implements",
-      "covered_by",
-      "executable_for",
-      "constrained_by",
-      "guards",
-      "publishes",
-      "consumes",
-      "relates_to",
-    ];
-
-    // Match each rdf:Description block to get the source entity ID
-    const blockRe =
-      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
-
-    while (true) {
-      const blockMatch = blockRe.exec(content);
-      if (!blockMatch) break;
-
-      const fromId = blockMatch[1];
-      const block = blockMatch[2];
-
-      // For each relationship type, find all rdf:resource references
-      for (const relType of relTypes) {
-        // Match <kb:relType rdf:resource="...entity/TOID"/>
-        const relRe = new RegExp(
-          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
-          "g",
-        );
-        while (true) {
-          const relMatch = relRe.exec(block);
-          if (!relMatch) break;
-
-          const toId = relMatch[1];
-          relationships.push({ relType, fromId, toId });
-        }
-      }
-    }
-
-    return relationships;
+    return parseRdfRelationshipsFromRdf(content);
   }
 
   private extractText(block: string, tag: string): string {
