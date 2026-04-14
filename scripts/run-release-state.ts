@@ -59,7 +59,13 @@ for (const dir of PUBLISHABLE_DIRS) {
 }
 
 // npm existence check
+const mockNpm = process.env.KIBI_RELEASE_MOCK_NPM;
 const isPublishedOnNpm = (pkgName: string, version: string): boolean => {
+  if (mockNpm) {
+    // Fixture mode for deterministic tests: comma-separated list of published pkg@version
+    const published = new Set(mockNpm.split(",").map((s) => s.trim()));
+    return published.has(`${pkgName}@${version}`);
+  }
   try {
     execSync(`npm view ${pkgName}@${version} version`, {
       encoding: "utf8",
@@ -80,4 +86,19 @@ const decision = determineReleaseAction({
   sourceSha,
 });
 
-console.log(JSON.stringify(decision, null, 2));
+// Build workflow-compatible to_publish string (dir=name\n...)
+const toPublish = decision.packages
+  .filter((p) => !p.alreadyPublished)
+  .map((p) => `${p.dir}=${p.name}`)
+  .join("\n");
+
+console.log(
+  JSON.stringify(
+    {
+      ...decision,
+      toPublish,
+    },
+    null,
+    2,
+  ),
+);
