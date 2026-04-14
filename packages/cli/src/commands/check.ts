@@ -99,7 +99,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
               .filter(
                 (relationship) =>
                   relationship.type === "implements" ||
-                  relationship.type === "covered_by",
+                  relationship.type === "covered_by" ||
+                  relationship.type === "executable_for",
               )
               .map((relationship) => ({
                 type: relationship.type,

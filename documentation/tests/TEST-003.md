@@ -10,6 +10,7 @@ tags:
   - query
   - unit
 links:
+  - type: validates
     target: SCEN-006
 ---
 

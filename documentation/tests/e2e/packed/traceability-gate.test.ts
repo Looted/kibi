@@ -207,9 +207,8 @@ if (RUN_NODE_TEST_SUITE) {
         code === 1 &&
         /noimpl\.js:\d+/.test(stdout) &&
         stdout.includes("missingLink");
-      const skipped = stdout.includes("No staged files found");
       assert.ok(
-        okFailure || skipped,
+        okFailure,
         `Expected failure with violation info, got code=${code}, stdout=${stdout}`,
       );
 
@@ -399,9 +398,8 @@ Coverage test for split semantics.
       // covered_by alone must fail the ownership gate
       const okFailure =
         code === 1 && /cov\.js:\d+/.test(stdout) && stdout.includes("covFunc");
-      const skipped = stdout.includes("No staged files found");
       assert.ok(
-        okFailure || skipped,
+        okFailure,
         `Expected failure with violation info, got code=${code}, stdout=${stdout}`,
       );
 

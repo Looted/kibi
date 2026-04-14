@@ -10,6 +10,7 @@ tags:
   - adr
   - temporal
   - agent-workflow
+links:
   - type: verified_by
     target: TEST-013
 ---

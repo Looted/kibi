@@ -9,6 +9,7 @@ tags:
   - inference
   - impact
   - coverage
+links:
   - type: verified_by
     target: TEST-010
 ---

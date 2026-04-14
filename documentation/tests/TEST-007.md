@@ -9,6 +9,7 @@ tags:
   - prolog
   - core
   - unit
+links:
   - type: validates
     target: SCEN-001
 ---

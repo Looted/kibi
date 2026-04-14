@@ -125,6 +125,7 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
+    \+ executable_test_symbol(SymbolId),
     % Check if symbol has direct requirement ownership
     (   symbol_owns_requirement(SymbolId, ReqId),
         kb_entity(ReqId, req, _)

@@ -16,11 +16,13 @@ symbols:
         target: REQ-001
       - type: implements
         target: REQ-009
+      - type: covered_by
+        target: TEST-001
     sourceLine: 78
     sourceColumn: 13
     sourceEndLine: 575
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:43.295Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:04.408Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -33,10 +35,12 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-011
+      - type: covered_by
+        target: TEST-001
     sourceColumn: 22
     sourceEndLine: 246
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:43.608Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:04.765Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -46,10 +50,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: covered_by
+        target: TEST-001
     sourceColumn: 22
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:43.610Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:04.777Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -61,11 +67,13 @@ symbols:
         target: REQ-002
       - type: implements
         target: REQ-006
+      - type: covered_by
+        target: TEST-001
     sourceLine: 159
     sourceColumn: 22
     sourceEndLine: 216
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:43.817Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:05.051Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -78,10 +86,12 @@ symbols:
         target: REQ-010
       - type: implements
         target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 13
     sourceEndLine: 1006
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.197Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:05.693Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -90,11 +100,13 @@ symbols:
     relationships:
       - type: implements
         target: REQ-007
+      - type: covered_by
+        target: TEST-001
     sourceLine: 192
     sourceColumn: 16
     sourceEndLine: 195
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.319Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:05.989Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -103,11 +115,13 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: covered_by
+        target: TEST-001
     sourceLine: 37
     sourceColumn: 22
     sourceEndLine: 57
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.778Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.693Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -120,10 +134,12 @@ symbols:
         target: REQ-vscode-traceability
       - type: implements
         target: REQ-010
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 13
     sourceEndLine: 1006
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.779Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.693Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -134,11 +150,13 @@ symbols:
         target: REQ-vscode-traceability
       - type: constrained_by
         target: ADR-annotation-strategy
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceLine: 25
     sourceColumn: 13
     sourceEndLine: 106
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.782Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.698Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -151,6 +169,8 @@ symbols:
         target: REQ-vscode-traceability
       - type: implements
         target: REQ-002
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 22
     sourceEndLine: 151
     sourceEndColumn: 1
@@ -167,10 +187,12 @@ symbols:
         target: REQ-vscode-traceability
       - type: implements
         target: REQ-010
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 16
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:44.784Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.700Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -182,10 +204,12 @@ symbols:
         target: REQ-vscode-traceability
       - type: constrained_by
         target: ADR-annotation-strategy
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 13
     sourceEndLine: 334
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.006Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.949Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -200,7 +224,7 @@ symbols:
     sourceColumn: 10
     sourceEndLine: 210
     sourceEndColumn: 3
-    coordinatesGeneratedAt: '2026-04-09T15:54:29.282Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.955Z'
   - id: SYM-parseSymbolsManifest
     title: parseSymbolsManifest
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -212,10 +236,12 @@ symbols:
         target: ADR-annotation-strategy
       - type: implements
         target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceColumn: 9
     sourceEndLine: 185
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-09T15:54:29.282Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:06.956Z'
   - id: SYM-getKbExistenceTargets
     title: getKbExistenceTargets
     sourceFile: packages/opencode/src/file-filter.ts
@@ -230,7 +256,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 102
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.179Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.157Z'
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
@@ -245,7 +271,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 96
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.351Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.330Z'
   - id: SYM-detectPosture
     title: detectPosture
     sourceFile: packages/opencode/src/repo-posture.ts
@@ -257,11 +283,13 @@ symbols:
         target: REQ-opencode-smart-enforcement-v1
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
     sourceLine: 161
     sourceColumn: 16
     sourceEndLine: 240
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.352Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.331Z'
   - id: SYM-classifyRisk
     title: classifyRisk
     sourceFile: packages/opencode/src/risk-classifier.ts
@@ -273,11 +301,13 @@ symbols:
         target: REQ-opencode-smart-enforcement-v1
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
     sourceLine: 63
     sourceColumn: 16
     sourceEndLine: 175
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.576Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.488Z'
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
@@ -289,11 +319,13 @@ symbols:
         target: REQ-opencode-smart-enforcement-v1
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
     sourceLine: 43
     sourceColumn: 13
     sourceEndLine: 162
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:45.770Z'
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.714Z'
   - id: SYM-buildPrompt
     title: buildPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -308,22 +340,12 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: implements
         target: REQ-opencode-agent-mcp-only
-    sourceLine: 445
-    sourceColumn: 16
-    sourceEndLine: 450
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-13T18:15:46.003Z'
-  - id: SYM-traceability-test-identity
-    title: traceability.test.ts
-    sourceFile: packages/cli/tests/traceability.test.ts
-    relationships:
-      - type: executable_for
-        target: TEST-traceability-split-checks
-  - id: SYM-traceability-production-logic
-    title: checkTraceability
-    sourceFile: packages/cli/src/traceability.ts
-    relationships:
-      - type: implements
-        target: REQ-traceability-v2
       - type: covered_by
-        target: TEST-traceability-split-checks
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-agent-mcp-only
+    sourceLine: 446
+    sourceColumn: 16
+    sourceEndLine: 451
+    sourceEndColumn: 1
+    coordinatesGeneratedAt: '2026-04-14T07:38:07.929Z'

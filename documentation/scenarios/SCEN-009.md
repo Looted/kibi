@@ -8,6 +8,7 @@ priority: must
 tags:
   - enforcement
   - pre-commit
+links:
   - type: verified_by
     target: TEST-011
 ---

@@ -30,6 +30,7 @@ const relationshipSchema = {
         "validates",
         "implements",
         "covered_by",
+        "executable_for",
         "constrained_by",
         "constrains",
         "requires_property",
