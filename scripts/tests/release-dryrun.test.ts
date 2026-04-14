@@ -31,8 +31,8 @@ import { join } from "node:path";
 import {
   PUBLISHABLE_DIRS,
   RELEASE_COMMIT_MARKER,
-  determineReleaseAction,
   type ReleaseContext,
+  determineReleaseAction,
 } from "../release-state.ts";
 
 // ---------------------------------------------------------------------------
@@ -333,21 +333,20 @@ describe("release dry-run: no-commit master publish model", () => {
         },
       });
 
-      let decision: ReturnType<typeof determineReleaseAction>;
-      expect(() => {
-        decision = JSON.parse(raw);
-      }).not.toThrow();
+      const decision = JSON.parse(raw) as ReturnType<
+        typeof determineReleaseAction
+      >;
 
-      expect(decision!.action).toBe("PREPARE_RELEASE");
-      expect(decision!.packages.length).toBe(4);
-      expect(decision!.sourceSha).toBe("test-sha-integration");
+      expect(decision.action).toBe("PREPARE_RELEASE");
+      expect(decision.packages.length).toBe(4);
+      expect(decision.sourceSha).toBe("test-sha-integration");
 
       // Verify all four packages are present with correct metadata
-      const dirs = decision!.packages.map((p: { dir: string }) => p.dir).sort();
+      const dirs = decision.packages.map((p: { dir: string }) => p.dir).sort();
       expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
 
       // All should be unpublished since these versions are not on npm
-      for (const pkg of decision!.packages) {
+      for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
 
@@ -363,10 +362,10 @@ Raw JSON output:
 ${raw}
 
 Summary:
-- Action: ${decision!.action}
-- Packages: ${decision!.packages.map((p: { name: string; version: string }) => `${p.name}@${p.version}`).join(", ")}
-- All unpublished: ${decision!.packages.every((p: { alreadyPublished: boolean }) => !p.alreadyPublished)}
-- Reason: ${decision!.reason}
+- Action: ${decision.action}
+- Packages: ${decision.packages.map((p: { name: string; version: string }) => `${p.name}@${p.version}`).join(", ")}
+- All unpublished: ${decision.packages.every((p: { alreadyPublished: boolean }) => !p.alreadyPublished)}
+- Reason: ${decision.reason}
 `,
       );
     });
