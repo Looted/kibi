@@ -321,15 +321,15 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("integration — run-release-state.ts spawned output", () => {
     test("script produces valid JSON with PREPARE_RELEASE when run as master", () => {
-      // Since current versions (0.5.0/0.6.0/0.7.0/0.7.0) are NOT on npm,
-      // and we set GITHUB_REF_NAME=master, the script should detect them as
-      // publishable and return PREPARE_RELEASE.
+      // Use KIBI_RELEASE_MOCK_NPM="" (nothing published) so the test is
+      // deterministic regardless of live npm registry state.
       const raw = execSync("bun run scripts/run-release-state.ts", {
         encoding: "utf8",
         env: {
           ...process.env,
           GITHUB_REF_NAME: "master",
           GITHUB_SHA: "test-sha-integration",
+          KIBI_RELEASE_MOCK_NPM: "",
         },
       });
 
@@ -345,7 +345,7 @@ describe("release dry-run: no-commit master publish model", () => {
       const dirs = decision.packages.map((p: { dir: string }) => p.dir).sort();
       expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
 
-      // All should be unpublished since these versions are not on npm
+      // All should be unpublished since KIBI_RELEASE_MOCK_NPM is empty
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
@@ -376,6 +376,7 @@ Summary:
         env: {
           ...process.env,
           GITHUB_REF_NAME: "develop",
+          KIBI_RELEASE_MOCK_NPM: "",
         },
       });
 
