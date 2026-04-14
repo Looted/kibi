@@ -20,6 +20,8 @@ links:
     target: REQ-opencode-agent-mcp-only
   - type: specified_by
     target: SCEN-opencode-smart-enforcement
+  - type: verified_by
+    target: TEST-opencode-smart-enforcement
 ---
 ---
 
