@@ -21,11 +21,14 @@ on:
         required: false
         default: false
         type: boolean
+
 jobs:
-  check-changesets:
+  check-release:
     runs-on: ubuntu-latest
     outputs:
-      has_changesets: ${{ steps.check.outputs.has_changesets }}
+      release_action: ${{ steps.decide.outputs.action }}
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -37,74 +40,26 @@ jobs:
           bun-version: '1.3.10'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Check for changesets
-        id: check
+      - name: Determine release action
+        id: decide
         run: |
-          BASE_BRANCH=$(node -e "console.log(require('./.changeset/config.json').baseBranch || 'main')")
-          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}" || true
-          git fetch origin "${BASE_BRANCH}" || true
-
-          if bunx changeset status --since "${BASE_BRANCH}" --output /dev/null 2>&1; then
-            echo "has_changesets=true" >> $GITHUB_OUTPUT
-            echo "Changesets detected - will version packages"
-          else
-            STATUS_OUTPUT=$(bunx changeset status --since "${BASE_BRANCH}" 2>&1 || true)
-            if echo "$STATUS_OUTPUT" | grep -q "Some packages have been changed"; then
-              echo "has_changesets=true" >> $GITHUB_OUTPUT
-              echo "Changesets detected - will version packages"
-            elif echo "$STATUS_OUTPUT" | grep -q "No changesets present"; then
-              echo "has_changesets=false" >> $GITHUB_OUTPUT
-              echo "No changesets detected"
-            else
-              echo "$STATUS_OUTPUT"
-              echo "changeset status failed unexpectedly"
-              exit 1
-            fi
-          fi
-
-  version-packages:
-    runs-on: ubuntu-latest
-    needs: check-changesets
-    if: ${{ needs.check-changesets.outputs.has_changesets == 'true' && inputs.dry-run != true }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: '1.3.10'
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-        env:
-          NODE_INSTALLER: npm
-      - name: Verify npm is available
-        run: npm --version
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Version packages
-        run: bun run version-packages
-      - name: Upload versioned files
-        uses: actions/upload-artifact@v4
-        with:
-          name: versioned-packages
-          path: |
-            packages/*/package.json
-            packages/*/CHANGELOG.md
-            .changeset/
-          retention-days: 1
+          DECISION=$(bun run scripts/run-release-state.ts)
+          ACTION=$(echo "$DECISION" | grep '"action"' | head -1 | sed 's/.*"action"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+          echo "Release action: $ACTION"
+          echo "$DECISION"
 
   build-and-check:
     runs-on: ubuntu-latest
-    needs: [check-changesets, version-packages]
-    if: ${{ always() && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: check-release
+    if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
     outputs:
       to_publish: ${{ steps.check-packages.outputs.to_publish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: refs/heads/master
           fetch-depth: 0
       - name: Install SWI-Prolog
         run: |
@@ -132,11 +87,6 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Build CLI package
         run: bun run build:cli
       - name: Build MCP package
@@ -213,14 +163,13 @@ jobs:
 
   release-gate:
     runs-on: ubuntu-latest
-    needs: [build-and-check, version-packages]
-    # Run when build-and-check succeeded with packages to publish,
-    # and version-packages either succeeded (changesets present) or was skipped (no changesets/dry-run).
-    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.to_publish != '' && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: [build-and-check, check-release]
+    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.to_publish != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: refs/heads/master
           fetch-depth: 0
       - name: Install SWI-Prolog
         run: |
@@ -238,11 +187,6 @@ jobs:
           node-version: '24'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download package tarballs
         uses: actions/download-artifact@v4
         with:
@@ -285,8 +229,8 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: [build-and-check, release-gate, version-packages]
-    if: ${{ needs.build-and-check.outputs.to_publish != '' && inputs.dry-run != true && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: [build-and-check, release-gate, check-release]
+    if: ${{ needs.build-and-check.outputs.to_publish != '' && inputs.dry-run != true }}
     permissions:
       contents: read
       id-token: write
@@ -294,6 +238,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: refs/heads/master
           fetch-depth: 0
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -304,11 +249,6 @@ jobs:
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download package tarballs
         uses: actions/download-artifact@v4
         with:
@@ -334,7 +274,7 @@ jobs:
 
   create-github-releases:
     runs-on: ubuntu-latest
-    needs: [publish, build-and-check, version-packages]
+    needs: [publish, build-and-check, check-release]
     if: ${{ needs.publish.result == 'success' && needs.build-and-check.outputs.to_publish != '' }}
     permissions:
       contents: write
@@ -342,6 +282,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: refs/heads/master
           fetch-depth: 0
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -349,11 +290,6 @@ jobs:
           bun-version: '1.3.10'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download VS Code extension VSIX
         uses: actions/download-artifact@v4
         with:
