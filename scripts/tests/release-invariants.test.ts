@@ -25,8 +25,8 @@
 import { describe, expect, test } from "bun:test";
 import {
   RELEASE_COMMIT_MARKER,
-  determineReleaseAction,
   type ReleaseContext,
+  determineReleaseAction,
 } from "../release-state.ts";
 
 // ---------------------------------------------------------------------------

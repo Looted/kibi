@@ -17,10 +17,10 @@
  * Intended for use in CI: `bun run scripts/run-release-state.ts`
  */
 
-import { determineReleaseAction, PUBLISHABLE_DIRS } from "./release-state";
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { PUBLISHABLE_DIRS, determineReleaseAction } from "./release-state";
 
 const rootDir = join(import.meta.dir, "..");
 
