@@ -19,8 +19,6 @@ graph TD
 
 ## Component Descriptions
 
-## Component Descriptions
-
 ### Monorepo Architecture and Simplification
 - Detailed analysis of package boundaries and simplification roadmap: [OpenCode monorepo simplification review](proposals/opencode-monorepo-simplification.md)
 

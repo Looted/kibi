@@ -116,6 +116,13 @@ source: documentation/scenarios/SCEN-001.md
 ---
 
 # documentation/tests/TEST-001.md
+---
+id: TEST-001
+title: Login test
+status: passing
+created_at: 2026-03-10T10:02:00Z
+updated_at: 2026-03-10T10:02:00Z
+source: documentation/tests/TEST-001.md
 links:
   - type: validates
     target: SCEN-001

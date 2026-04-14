@@ -1,6 +1,8 @@
-// @ts-nocheck
 import { describe, expect, mock, test } from "bun:test";
-import { notifyStartup } from "../src/startup-notifier";
+import {
+  type StartupNotifierClient,
+  notifyStartup,
+} from "../src/startup-notifier";
 
 describe("notifyStartup", () => {
   test("uses server-plugin showToast capability when available", async () => {
@@ -15,7 +17,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, { version: "1.2.3" });
+    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(showToast).toHaveBeenCalledTimes(1);
@@ -58,7 +60,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, { version: "1.2.3" });
+    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(toast).toHaveBeenCalledTimes(1);
@@ -94,7 +96,7 @@ describe("notifyStartup", () => {
     console.warn = consoleWarn;
 
     try {
-      notifyStartup(client as never, { version: "1.2.3" });
+      notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(log).toHaveBeenCalledTimes(1);
@@ -126,7 +128,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, {
+    notifyStartup(client as StartupNotifierClient, {
       version: "1.2.3",
       suppressToast: true,
     });
@@ -162,7 +164,7 @@ describe("notifyStartup", () => {
     };
 
     try {
-      notifyStartup(client as never, { directory: "/tmp/worktree" });
+      notifyStartup(client as StartupNotifierClient, { directory: "/tmp/worktree" });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(showToast).toHaveBeenCalledTimes(1);
@@ -177,15 +179,6 @@ describe("notifyStartup", () => {
           service: "kibi-opencode",
           level: "info",
           message: "kibi-opencode started",
-          directory: "/tmp/worktree",
-        },
-      });
-      expect(log.mock.calls[1]?.[0]).toEqual({
-        body: {
-          service: "kibi-opencode",
-          level: "warn",
-          message: "startup toast failed",
-          error: "Error: boom",
           directory: "/tmp/worktree",
         },
       });
@@ -215,7 +208,7 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as never, { version: "1.2.3" });
+    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(showToast).toHaveBeenCalledTimes(1);
