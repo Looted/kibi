@@ -17,6 +17,8 @@ tags:
 links:
   - type: specified_by
     target: SCEN-opencode-kibi-plugin-v1
+  - type: verified_by
+    target: TEST-opencode-kibi-plugin-v1
 ---
   - type: relates_to
     target: ADR-016

@@ -14,6 +14,8 @@ tags:
 links:
   - type: specified_by
     target: SCEN-mcp-search-discovery
+  - type: verified_by
+    target: TEST-mcp-search-discovery
 ---
 
 Kibi must provide a curated read-only discovery surface for both MCP and CLI.
