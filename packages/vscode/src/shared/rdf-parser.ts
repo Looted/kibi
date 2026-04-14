@@ -12,7 +12,7 @@ export interface KbRelationship {
 }
 
 /** All relationship types recognised by the Kibi KB schema. */
-export const KB_RELATIONSHIP_TYPES: ReadonlyArray<string> = [ // implements REQ-vscode-traceability
+export const KB_RELATIONSHIP_TYPES: ReadonlyArray<string> = [
   "depends_on",
   "specified_by",
   "verified_by",
@@ -27,7 +27,7 @@ export const KB_RELATIONSHIP_TYPES: ReadonlyArray<string> = [ // implements REQ-
   "relates_to",
 ];
 
-// implements REQ-vscode-traceability
+
 /**
  * Parse inline-style RDF relationships from a kb.rdf document.
  *

@@ -349,6 +349,19 @@ symbols:
     sourceEndLine: 451
     sourceEndColumn: 1
     coordinatesGeneratedAt: '2026-04-14T16:47:07.849Z'
+  - id: SYM-parseRdfRelationships
+    title: parseRdfRelationships
+    sourceFile: packages/vscode/src/shared/rdf-parser.ts
+    links:
+      - REQ-vscode-traceability
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+    sourceLine: 37
+    sourceColumn: 1
+    sourceEndLine: 64
+    sourceEndColumn: 1
+    coordinatesGeneratedAt: '2026-04-14T20:45:00.000Z'
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
