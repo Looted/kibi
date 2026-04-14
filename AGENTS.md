@@ -101,15 +101,18 @@ This ensures the knowledge base grows with each investigation, making future wor
 
 ---
 
-### Rule 3: Release Metadata and Publishing (npm Packages)
+### Rule 3: Release Metadata and Versioning (npm Packages)
 
-- **Release Metadata Required:** If you make changes to any package intended for npm publication (e.g., `kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`), you MUST create or update release metadata using [changesets](https://github.com/changesets/changesets). This ensures changelogs and versioning are tracked for all publishable packages.
-- **Do NOT Publish Directly:** Agents and contributors must NOT publish npm packages directly. Actual publishing is performed by GitHub Actions after PR review and merge. Local/PR workflows should only prepare changesets and version bumps.
-- **Release Workflow:** See the README for the full release workflow, including required commands and changelog policy.
-- **Changelog Parity:** Maintain package changelogs consistently across all npm packages, including `packages/opencode/CHANGELOG.md` for `kibi-opencode`.
-- **Commit Messages:** All release-related commits must follow Conventional Commits and clearly describe the scope and reason for the release metadata or version change.
-- **defaultBranch Precedence:** When preparing releases, the default branch is resolved in this order: `.kb/config.json` `defaultBranch` → `origin/HEAD` → `main`.
-- **Dogfood Rebuild Rule:** This repo's OpenCode setup uses local built `kibi-mcp` and `kibi-opencode` artifacts via `opencode.json` and `.opencode/plugins/kibi.ts`. After changing any Kibi package version or local package wiring used by that setup, run `bun run build` before testing or using OpenCode here.
+If you change any publishable npm package (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`), you MUST manage release metadata using [changesets](https://github.com/changesets/changesets).
+
+- **Create Changesets Immediately**: Add a changeset as part of your work, not as an afterthought. Use `bun run changeset` on your branch.
+- **Bump Versions on Develop**: If your work includes version bumps, run `bun run version-packages` on `develop` (or your feature branch before merge to `develop`). All version bumps must be committed before merging to `master`.
+- **Semver Discipline**:
+  - **Patch**: Bug fixes, documentation, minor internal refactors.
+  - **Minor**: New features, non-breaking CLI/API additions.
+  - **Major**: Breaking changes to CLI, MCP tools, or core Prolog schema.
+- **Do NOT Publish Directly**: Manual `npm publish` is forbidden. Publishing occurs automatically on `master` CI after `develop` is merged.
+- **Dogfood Rebuild Rule**: This repo uses local `kibi-mcp` and `kibi-opencode` artifacts. After changing versions or local wiring, run `bun run build` to ensure your OpenCode environment reflects the changes.
 
 ---
 
