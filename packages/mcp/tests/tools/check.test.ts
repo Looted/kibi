@@ -551,7 +551,7 @@ describe("MCP Check Tool Handler", () => {
     );
   }, 15000);
 
-  test("should fail symbol-traceability when symbol is only executable_for a test", async () => {
+  test("should pass symbol-traceability when symbol is only executable_for a test", async () => {
     await handleKbUpsert(prolog, {
       type: "test",
       id: "test-trace-executable-001",
@@ -584,7 +584,7 @@ describe("MCP Check Tool Handler", () => {
     const symbolViolation = result.structuredContent?.violations.find(
       (v) => v.entityId === "symbol-trace-executable-001",
     );
-    expect(symbolViolation).toBeDefined();
+    expect(symbolViolation).toBeUndefined();
   }, 15000);
 
   test("should pass symbol-coverage for direct req to test fallback without scenario", async () => {
@@ -1175,9 +1175,9 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeUndefined();
   }, 15000);
 
-  test("should pass symbol-traceability with executable_for and implements", async () => {
-    // Split semantics: implements = ownership, executable_for = test identity
-    // A symbol with both implements (ownership) and executable_for (test identity) should pass traceability
+  test("should reject mixed executable_for and implements semantics", async () => {
+    // Split semantics are exclusive: executable_for marks test identity, while
+    // implements marks production ownership. A symbol may not carry both.
     await handleKbUpsert(prolog, {
       type: "req",
       id: "req-exec-trace-001",
@@ -1196,36 +1196,29 @@ describe("MCP Check Tool Handler", () => {
         source: "test://exec-trace",
       },
     });
-    await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "symbol-exec-trace-001",
-      properties: {
-        title: "Executable trace symbol",
-        status: "active",
-        source: "test://exec-trace",
-      },
-      relationships: [
-        {
-          type: "implements",
-          from: "symbol-exec-trace-001",
-          to: "req-exec-trace-001",
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "symbol-exec-trace-001",
+        properties: {
+          title: "Executable trace symbol",
+          status: "active",
+          source: "test://exec-trace",
         },
-        {
-          type: "covered_by",
-          from: "symbol-exec-trace-001",
-          to: "test-exec-trace-001",
-        },
-      ],
-    });
-
-    const result = await handleKbCheck(prolog, {
-      rules: ["symbol-traceability"],
-    });
-
-    const violation = result.structuredContent?.violations.find(
-      (v) => v.entityId === "symbol-exec-trace-001",
-    );
-    expect(violation).toBeUndefined();
+        relationships: [
+          {
+            type: "implements",
+            from: "symbol-exec-trace-001",
+            to: "req-exec-trace-001",
+          },
+          {
+            type: "executable_for",
+            from: "symbol-exec-trace-001",
+            to: "test-exec-trace-001",
+          },
+        ],
+      }),
+    ).rejects.toThrow(/cannot mix executable_for/i);
   }, 15000);
 
   test("should pass symbol-coverage when test validates scenario that is specified by requirement", async () => {

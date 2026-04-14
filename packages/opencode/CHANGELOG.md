@@ -6,7 +6,7 @@
 
 - 0c2c1e7: feat(traceability): document comment-free test workflow with validation parity
 
-  - Add relationship-first traceability guidance: prefer symbol/test/requirement relationships via `covered_by` and `verified_by`/`validates` over inline `// implements REQ-xxx` comments
+  - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
   - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments

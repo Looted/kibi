@@ -35,11 +35,11 @@ Kibi supports 8 entity types:
 |--------------|-----------------|-------------|
 | `depends_on` | req → req | Requirement depends on another |
 | `specified_by` | req → scenario | Requirement specified by scenario |
-| `verified_by` | req → test | Requirement verified by test |
-| `validates` | test → req | Test validates requirement |
+| `verified_by` | req/scenario → test | Requirement or scenario verified by test |
+| `validates` | test → req/scenario | Test validates requirement or scenario |
 | `implements` | symbol → req | Symbol implements requirement (Ownership) |
 | `covered_by` | symbol → test | Symbol covered by test (Coverage) |
-| `executable_for` | test → test | Links test symbol to test entity (Identity) |
+| `executable_for` | symbol → test | Symbol is executable test code for a test entity (Identity) |
 | `constrained_by` | symbol → adr | Symbol constrained by ADR |
 | `constrains` | req → fact | Requirement constrains domain fact |
 | `requires_property` | req → fact | Requirement requires property/value fact |
@@ -301,37 +301,6 @@ When implementing code changes, an agent should:
    ```typescript
    export class MyClass() { } // implements REQ-001, REQ-002
    ```
-
-3. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links (either via inline comments or explicit KB relationships). This happens automatically on commit.
-
-4. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or create the missing relationship in the KB (e.g., via `kb_upsert`)
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
-**Scope Note**: This workflow applies to explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported; test() callbacks are out of scope for the staged check.
-
-### Configuration
-
-   ```typescript
-   export function myFunc() { } // implements REQ-001
-   ```
-
-   You can link to multiple requirements:
-   ```typescript
-   export class MyClass() { } // implements REQ-001, REQ-002
-   ```
-
-2. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links. This happens automatically on commit - you do not need to run validation manually.
-
-3. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
 
 
 ### Configuration

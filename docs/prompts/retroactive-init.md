@@ -42,7 +42,7 @@ kibi_kb_query({ "type": "symbol", "sourceFile": "src/auth/login.ts" })
 ### kb_upsert - Create or update entities with relationships
 
 ```json
-// Create a requirement with scenario and test links
+// Create a requirement linked to a scenario (canonical: REQ→SCEN→TEST)
 kibi_kb_upsert({
   "type": "req",
   "id": "REQ-001",
@@ -53,9 +53,22 @@ kibi_kb_upsert({
   },
   "relationships": [
     { "type": "specified_by", "from": "REQ-001", "to": "SCEN-001" },
-    { "type": "verified_by", "from": "REQ-001", "to": "TEST-001" },
     { "type": "constrains", "from": "REQ-001", "to": "FACT-001" },
     { "type": "requires_property", "from": "REQ-001", "to": "FACT-002" }
+  ]
+})
+
+// Create the scenario→test verification link separately
+kibi_kb_upsert({
+  "type": "scenario",
+  "id": "SCEN-001",
+  "properties": {
+    "title": "Authenticated account settings access",
+    "status": "active",
+    "source": "docs/scenarios/account-security.md"
+  },
+  "relationships": [
+    { "type": "verified_by", "from": "SCEN-001", "to": "TEST-001" }
   ]
 })
 
@@ -103,7 +116,7 @@ kibi_kb_check({ "rules": ["required-fields", "no-dangling-refs"] })
 // - no-dangling-refs: Checks that relationship targets exist
 // - no-cycles: Detects circular dependencies
 // - must-priority-coverage: Ensures high-priority requirements have verification
-// - symbol-coverage: Validates symbol entity completeness
+// - symbol-coverage: Checks that production symbols have qualifying test coverage
 ```
 
 ### kb_delete - Remove entities after dependency checks

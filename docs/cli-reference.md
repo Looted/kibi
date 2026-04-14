@@ -307,33 +307,6 @@ Link to multiple requirements:
 export class MyClass { } // implements REQ-001, REQ-002
 ```
 
-The `kibi check --staged` command enforces traceability on code before commit.
-
-**Purpose:**
-Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
-
-**How to use:**
-```bash
-# Check staged files for traceability coverage
-kibi check --staged
-```
-
-This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
-
-**The `implements REQ-xxx` directive syntax:**
-
-Link a code symbol to a requirement by adding a comment:
-
-```typescript
-export function myFunc() { } // implements REQ-001
-```
-
-Link to multiple requirements:
-
-```typescript
-export class MyClass { } // implements REQ-001, REQ-002
-```
-
 **Supported languages:**
 - TypeScript (`.ts`, `.tsx`)
 - JavaScript (`.js`, `.jsx`)
