@@ -1,0 +1,211 @@
+Warning: /home/looted/projects/kibi/packages/core/tests/schema.plt:4:
+Warning:    Found file packages/core/schema/entities.pl relative to the current working directory.
+Warning:    This behaviour is deprecated but still supported by
+Warning:    the Prolog flag source_search_working_directory.
+Warning: /home/looted/projects/kibi/packages/core/tests/schema.plt:5:
+Warning:    Found file packages/core/schema/relationships.pl relative to the current working directory.
+Warning:    This behaviour is deprecated but still supported by
+Warning:    the Prolog flag source_search_working_directory.
+Warning: /home/looted/projects/kibi/packages/core/tests/schema.plt:6:
+Warning:    Found file packages/core/schema/validation.pl relative to the current working directory.
+Warning:    This behaviour is deprecated but still supported by
+Warning:    the Prolog flag source_search_working_directory.
+% Found 0 .plt test files, loaded 0
+% Start unit: schema
+% [1/34] schema:entity_types_count .................. passed (0.006 sec)
+% [2/34] schema:relationship_types_count ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:13:
+Warning: [Thread main]     test schema:relationship_types_count: Test succeeded with choicepoint
+% [3/34] schema:valid_relationship_ok ............... passed (0.000 sec)
+% [4/34] schema:invalid_relationship_bad_types ...... passed (0.000 sec)
+% [5/34] schema:traceabili..valid_relationships ..... passed (0.000 sec)
+% [6/34] schema:traceabili..valid_relationships ..... passed (0.000 sec)
+% [7/34] schema:missing_required_property ........... passed (0.000 sec)
+% [8/34] schema:invalid_property_type ............... passed (0.000 sec)
+% [9/34] schema:valid_entity ........................ passed (0.000 sec)
+% [10/34] schema:legacy_prose_fact_valid ............ passed (0.000 sec)
+% [11/34] schema:subject_fact_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:63:
+Warning: [Thread main]     test schema:subject_fact_valid: Test succeeded with choicepoint
+% [12/34] schema:property_v..fact_with_int_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:68:
+Warning: [Thread main]     test schema:property_value_fact_with_int_valid: Test succeeded with choicepoint
+% [13/34] schema:property_v..t_with_string_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:73:
+Warning: [Thread main]     test schema:property_value_fact_with_string_valid: Test succeeded with choicepoint
+% [14/34] schema:property_v..t_with_number_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:78:
+Warning: [Thread main]     test schema:property_value_fact_with_number_valid: Test succeeded with choicepoint
+% [15/34] schema:property_v..act_with_bool_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:83:
+Warning: [Thread main]     test schema:property_value_fact_with_bool_valid: Test succeeded with choicepoint
+% [16/34] schema:property_v..value_field_invalid .... passed (0.000 sec)
+% [17/34] schema:property_v.._value_type_invalid .... passed (0.000 sec)
+% [18/34] schema:property_v..subject_key_invalid .... passed (0.000 sec)
+% [19/34] schema:closed_world_boolean_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:104:
+Warning: [Thread main]     test schema:closed_world_boolean_valid: Test succeeded with choicepoint
+% [20/34] schema:observation_fact_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:109:
+Warning: [Thread main]     test schema:observation_fact_valid: Test succeeded with choicepoint
+% [21/34] schema:meta_fact_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:114:
+Warning: [Thread main]     test schema:meta_fact_valid: Test succeeded with choicepoint
+% [22/34] schema:req_with_fact_kind_invalid ......... passed (0.000 sec)
+% [23/34] schema:req_with_value_int_invalid ......... passed (0.000 sec)
+% [24/34] schema:unknown_property_invalid ........... passed (0.000 sec)
+% [25/34] schema:legacy_fac..tional_enum_invalid .... passed (0.000 sec)
+% [26/34] schema:invalid_fact_kind_enum_invalid ..... passed (0.000 sec)
+% [27/34] schema:invalid_operator_enum_invalid ...... passed (0.000 sec)
+% [28/34] schema:invalid_value_type_enum_invalid .... passed (0.000 sec)
+% [29/34] schema:invalid_polarity_enum_invalid ...... passed (0.000 sec)
+% [30/34] schema:observatio..tional_enum_invalid .... passed (0.000 sec)
+% [31/34] schema:valid_polarity_require ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:164:
+Warning: [Thread main]     test schema:valid_polarity_require: Test succeeded with choicepoint
+% [32/34] schema:valid_polarity_forbid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:169:
+Warning: [Thread main]     test schema:valid_polarity_forbid: Test succeeded with choicepoint
+% [33/34] schema:constrains.._subject_fact_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:185:
+Warning: [Thread main]     test schema:constrains_to_subject_fact_valid: Test succeeded with choicepoint
+% [34/34] schema:requires_p..ty_value_fact_valid ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/schema.plt:189:
+Warning: [Thread main]     test schema:requires_property_to_property_value_fact_valid: Test succeeded with choicepoint
+% End unit schema: passed (0.026 sec CPU)
+% All 34 tests passed in 0.036 seconds (0.036 cpu)
+% Library was moved: library(http/json) --> library(json)
+% Library was moved: library(http/json_convert) --> library(json_convert)
+Warning: /home/looted/projects/kibi/packages/core/src/checks.pl:173:
+Warning:    Singleton variables: [ToId]
+Warning: /home/looted/projects/kibi/packages/core/src/checks.pl:293:
+Warning:    Singleton variables: [Type]
+% Found 0 .plt test files, loaded 0
+% Start unit: kb_basic
+% [1/41] kb_basic:attach_detach_cycle ............... passed (0.010 sec)
+% [2/41] kb_basic:attach_creates_directory .......... passed (0.001 sec)
+% End unit kb_basic: passed (0.020 sec CPU)
+% Start unit: kb_entities
+% [3/41] kb_entities:assert_and_query_entity ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:28:
+Warning: [Thread main]     test kb_entities:assert_and_query_entity: Test succeeded with choicepoint
+% [4/41] kb_entities:retract_entity ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:43:
+Warning: [Thread main]     test kb_entities:retract_entity: Test succeeded with choicepoint
+% [5/41] kb_entities:entity_validation_error ........ passed (0.000 sec)
+% End unit kb_entities: passed (0.007 sec CPU)
+% Start unit: kb_relationships
+% [6/41] kb_relationships:.._query_relationship ..... passed (0.001 sec)
+% End unit kb_relationships: passed (0.003 sec CPU)
+% Start unit: kb_persistence
+% [7/41] kb_persistence:journal_persistence ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:99:
+Warning: [Thread main]     test kb_persistence:journal_persistence: Test succeeded with choicepoint
+% End unit kb_persistence: passed (0.077 sec CPU)
+% Start unit: kb_audit
+% [8/41] kb_audit:audit_log_created ................. passed (0.000 sec)
+% End unit kb_audit: passed (0.001 sec CPU)
+% Start unit: kb_mutex
+% [9/41] kb_mutex:mutex_protection .................. passed (0.004 sec)
+% End unit kb_mutex: passed (0.009 sec CPU)
+% Start unit: kb_inference
+% [10/41] kb_inference:tran..y_implements_direct .... passed (0.001 sec)
+% [11/41] kb_inference:tran..verage_as_ownership ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:195:
+Warning: [Thread main]     test kb_inference:transitively_implements_does_not_treat_coverage_as_ownership: Test succeeded with choicepoint
+% [12/41] kb_inference:symb..d_by_validates_path ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:225:
+Warning: [Thread main]     test kb_inference:symbol_traceability_rejects_covered_by_validates_path: Test succeeded with choicepoint
+% [13/41] kb_inference:symb..by_verified_by_path ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:256:
+Warning: [Thread main]     test kb_inference:symbol_traceability_rejects_covered_by_verified_by_path: Test succeeded with choicepoint
+% [14/41] kb_inference:symb..executable_for_path .... passed (0.001 sec)
+% [15/41] kb_inference:symb..ck_without_scenario ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:308:
+Warning: [Thread main]     test kb_inference:symbol_coverage_accepts_direct_req_test_fallback_without_scenario: Test succeeded with choicepoint
+% [16/41] kb_inference:symb..hen_scenario_exists ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:339:
+Warning: [Thread main]     test kb_inference:symbol_coverage_rejects_direct_req_test_fallback_when_scenario_exists: Test succeeded with choicepoint
+% [17/41] kb_inference:mixe.._for_and_implements .... passed (0.001 sec)
+% [18/41] kb_inference:transitively_depends ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:411:
+Warning: [Thread main]     test kb_inference:transitively_depends: Test succeeded with choicepoint
+% [19/41] kb_inference:coverage_gap_missing_both ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:440:
+Warning: [Thread main]     test kb_inference:coverage_gap_missing_both: Test succeeded with choicepoint
+% [20/41] kb_inference:untested_symbols ............. passed (0.000 sec)
+% [21/41] kb_inference:stale_entity ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:464:
+Warning: [Thread main]     test kb_inference:stale_entity: Test succeeded with choicepoint
+% [22/41] kb_inference:orphaned_symbol ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:475:
+Warning: [Thread main]     test kb_inference:orphaned_symbol: Test succeeded with choicepoint
+% [23/41] kb_inference:conflicting_adrs ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:486:
+Warning: [Thread main]     test kb_inference:conflicting_adrs: Test succeeded with choicepoint
+% [24/41] kb_inference:deprecated_still_used ........ passed (0.000 sec)
+% [25/41] kb_inference:impacted_by_change ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:536:
+Warning: [Thread main]     test kb_inference:impacted_by_change: Test succeeded with choicepoint
+% [26/41] kb_inference:affected_symbols ............. passed (0.001 sec)
+% [27/41] kb_inference:contradicting_reqs ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:586:
+Warning: [Thread main]     test kb_inference:contradicting_reqs: Test succeeded with choicepoint
+% [28/41] kb_inference:cont.._ignores_superseded ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:647:
+Warning: [Thread main]     test kb_inference:contradicting_reqs_ignores_superseded: Test succeeded with choicepoint
+% End unit kb_inference: passed (0.033 sec CPU)
+% Start unit: kb_semantic_contradictions
+% [29/41] kb_semantic_contr..xact_value_conflict ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:716:
+Warning: [Thread main]     test kb_semantic_contradictions:exact_value_conflict: Test succeeded with choicepoint
+% [30/41] kb_semantic_contr..umeric_gap_conflict ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:785:
+Warning: [Thread main]     test kb_semantic_contradictions:numeric_gap_conflict: Test succeeded with choicepoint
+% [31/41] kb_semantic_contr..s:polarity_conflict ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:851:
+Warning: [Thread main]     test kb_semantic_contradictions:polarity_conflict: Test succeeded with choicepoint
+% [32/41] kb_semantic_contr..on_no_contradiction ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:918:
+Warning: [Thread main]     test kb_semantic_contradictions:observation_no_contradiction: Test succeeded with choicepoint
+% [33/41] kb_semantic_contr..ta_no_contradiction ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:981:
+Warning: [Thread main]     test kb_semantic_contradictions:meta_no_contradiction: Test succeeded with choicepoint
+% [34/41] kb_semantic_contr..eq_ignored_semantic ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1036:
+Warning: [Thread main]     test kb_semantic_contradictions:superseded_req_ignored_semantic: Test succeeded with choicepoint
+% [35/41] kb_semantic_contr..erators_no_conflict ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1100:
+Warning: [Thread main]     test kb_semantic_contradictions:compatible_operators_no_conflict: Test succeeded with choicepoint
+% [36/41] kb_semantic_contr..cts_backward_compat .... passed (0.001 sec)
+% [37/41] kb_semantic_contr..n_no_false_positive ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1197:
+Warning: [Thread main]     test kb_semantic_contradictions:numeric_coercion_no_false_positive: Test succeeded with choicepoint
+% End unit kb_semantic_contradictions: passed (0.023 sec CPU)
+% Start unit: kb_strict_lane_pairing
+% [38/41] kb_strict_lane_pa..bject_fact_succeeds ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1245:
+Warning: [Thread main]     test kb_strict_lane_pairing:constrains_to_subject_fact_succeeds: Test succeeded with choicepoint
+% [39/41] kb_strict_lane_pa..value_fact_succeeds ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1267:
+Warning: [Thread main]     test kb_strict_lane_pairing:requires_property_to_property_value_fact_succeeds: Test succeeded with choicepoint
+% [40/41] kb_strict_lane_pa..ty_value_fact_fails ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1293:
+Warning: [Thread main]     test kb_strict_lane_pairing:constrains_to_property_value_fact_fails: Test succeeded with choicepoint
+% [41/41] kb_strict_lane_pa.._subject_fact_fails ..
+Warning: [Thread main] /home/looted/projects/kibi/packages/core/tests/kb.plt:1323:
+Warning: [Thread main]     test kb_strict_lane_pairing:requires_property_to_subject_fact_fails: Test succeeded with choicepoint
+% End unit kb_strict_lane_pairing: passed (0.007 sec CPU)
+% All 41 tests passed in 0.189 seconds (0.193 cpu)
+bun test v1.3.6 (d530ed99)
+
+ 29 pass
+ 0 fail
+ 70 expect() calls
+Ran 29 tests across 1 file. [38.81s]
+bun test v1.3.6 (d530ed99)
+
+ 4 pass
+ 0 fail
+ 13 expect() calls
+Ran 4 tests across 1 file. [11.37s]

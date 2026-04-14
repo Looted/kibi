@@ -14,10 +14,8 @@ tags:
   - policy
   - test
 links:
-  - REQ-opencode-agent-mcp-only
-  - SCEN-opencode-agent-mcp-only
-  - type: relates_to
-    target: TEST-opencode-smart-enforcement
+  - type: validates
+    target: SCEN-opencode-agent-mcp-only
 ---
 
 ## Test Coverage

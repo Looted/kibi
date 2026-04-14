@@ -1,0 +1,4 @@
+Fallback verification:
+- startup notification uses existing notifyStartup adapter
+- adapter falls back to app.log when no tui.toast is available
+- degraded/suppressed paths do not call notifyStartup

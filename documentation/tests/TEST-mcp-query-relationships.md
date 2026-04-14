@@ -9,8 +9,8 @@ tags:
   - mcp
   - test
 links:
-  - REQ-002
-  - REQ-vscode-traceability
+  - type: validates
+    target: SCEN-001
 ---
 
 Validation steps:

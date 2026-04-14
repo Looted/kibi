@@ -348,6 +348,7 @@ const BASE_TOOLS = [
                   "validates",
                   "implements",
                   "covered_by",
+                  "executable_for",
                   "constrained_by",
                   "constrains",
                   "requires_property",
@@ -358,7 +359,7 @@ const BASE_TOOLS = [
                   "relates_to",
                 ],
                 description:
-                  "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req->test).",
+                  "Relationship type enum. Use only supported values. Direction semantics follow KB model (e.g., implements symbol->req, verified_by req/scenario->test, executable_for symbol->test).",
               },
               from: {
                 type: "string",

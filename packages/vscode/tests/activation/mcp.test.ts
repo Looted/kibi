@@ -46,7 +46,10 @@ resetVscodeMock({
 
 mock.module("vscode", () => getVscodeMockModule());
 
-import { validateMcpServerPath, findKibiMcpInPath } from "../../src/activation/mcp";
+import {
+  validateMcpServerPath,
+  findKibiMcpInPath,
+} from "../../src/activation/mcp";
 
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };
 
@@ -60,7 +63,9 @@ beforeEach(() => {
   mockDeps = {
     existsSync: (...args: unknown[]) => mockExistsSync(...(args as [string])),
     execSync: ((...args: unknown[]) =>
-      mockExecSync(...(args as [string, unknown | undefined]))) as McpDeps["execSync"],
+      mockExecSync(
+        ...(args as [string, unknown | undefined]),
+      )) as McpDeps["execSync"],
   };
   workspaceApi.getConfiguration.mockClear();
   showWarningMessage.mockClear();

@@ -13,9 +13,10 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 14 items; ensure length and membership
-    length(Sorted, 14),
+    % relationship_type/1 includes 15 items; ensure length and membership
+    length(Sorted, 15),
     member(depends_on, Sorted),
+    member(executable_for, Sorted),
     member(specified_by, Sorted),
     member(verified_by, Sorted),
     member(constrains, Sorted),
@@ -26,6 +27,17 @@ test(valid_relationship_ok) :-
 
 test(invalid_relationship_bad_types) :-
     \+ validate_relationship(depends_on, invalid, req).
+
+test(traceability_schema_valid_relationships) :-
+    validate_relationship(executable_for, symbol, test),
+    validate_relationship(verified_by, scenario, test),
+    validate_relationship(validates, test, scenario).
+
+test(traceability_schema_invalid_relationships) :-
+    \+ validate_relationship(implements, symbol, test),
+    \+ validate_relationship(implements, symbol, scenario),
+    \+ validate_relationship(covered_by, scenario, test),
+    \+ validate_relationship(executable_for, req, test).
 
 test(missing_required_property) :-
     % missing title
@@ -40,6 +52,30 @@ test(invalid_property_type) :-
 test(valid_entity) :-
     Props = [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="http://x"],
     validate_entity(req, Props).
+
+test(test_entity_without_verification_fields_valid) :-
+    Props = [id='TEST-LEGACY', title="Legacy test", status=pending, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-LEGACY.md"],
+    validate_entity(test, Props).
+
+test(test_entity_with_verification_fields_valid) :-
+    Props = [id='TEST-TYPED', title="Typed test", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-TYPED.md", verification_scope=integration, verification_perspective=consumer],
+    validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_scope_invalid) :-
+    Props = [id='TEST-BAD-SCOPE', title="Bad scope", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-SCOPE.md", verification_scope=e2e],
+    \+ validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_perspective_invalid) :-
+    Props = [id='TEST-BAD-PERSPECTIVE', title="Bad perspective", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-PERSPECTIVE.md", verification_perspective=external],
+    \+ validate_entity(test, Props).
+
+test(req_with_verification_scope_invalid) :-
+    Props = [id='REQ-BAD-SCOPE', title="Req with scope", status=open, created_at="2024-01-01", updated_at="2024-01-01", source="reqs/REQ-BAD-SCOPE.md", verification_scope=unit],
+    \+ validate_entity(req, Props).
+
+test(symbol_with_verification_perspective_invalid) :-
+    Props = [id='SYM-BAD-PERSPECTIVE', title="Symbol with perspective", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="symbols/SYM-BAD-PERSPECTIVE.md", verification_perspective=internal],
+    \+ validate_entity(symbol, Props).
 
 % Typed fact validation tests
 

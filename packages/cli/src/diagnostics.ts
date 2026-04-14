@@ -46,7 +46,8 @@ export type BranchErrorCode =
   | "ENV_OVERRIDE"
   | "UNKNOWN_ERROR";
 
-export function branchErrorToDiagnostic( // implements REQ-008
+export function branchErrorToDiagnostic(
+  // implements REQ-008
   _code: BranchErrorCode,
   message: string,
   branch?: string,

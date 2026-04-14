@@ -224,7 +224,6 @@ describe("server docs coverage", () => {
     expect(actualNames).toEqual(expectedNames);
   });
 
-
   test("DOC_RESOURCES has expected resource URIs", () => {
     const expectedUris = [
       "kibi://docs/overview",

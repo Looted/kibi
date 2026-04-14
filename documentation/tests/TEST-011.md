@@ -9,6 +9,7 @@ tags:
   - enforcement
   - hooks
 links:
-  - REQ-014
+  - type: validates
+    target: SCEN-009
 ---
 Covered by packages/cli/tests/commands/init.test.ts pre-commit hook tests.

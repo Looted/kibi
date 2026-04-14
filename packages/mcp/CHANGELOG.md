@@ -1,12 +1,33 @@
 # kibi-mcp
 
+## 0.6.1
+
+### Patch Changes
+
+- 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 7111197: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- Updated dependencies [6cdf9f5]
+- Updated dependencies [efc7fd7]
+- Updated dependencies [d344f57]
+- Updated dependencies [2994632]
+- Updated dependencies [7111197]
+  - kibi-core@0.4.1
+  - kibi-cli@0.5.1
+
 ## 0.6.0
 
 ### Minor Changes
 
 - 0c2c1e7: feat(traceability): document comment-free test workflow with validation parity
 
-  - Add relationship-first traceability guidance: prefer symbol/test/requirement relationships via `covered_by` and `verified_by`/`validates` over inline `// implements REQ-xxx` comments
+  - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
   - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments

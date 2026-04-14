@@ -107,7 +107,7 @@ When working on this codebase:
 
 1. **Query Kibi first** - Use MCP tools (`kb_query`) before grepping the project
 2. **Document intent** - Route explanations to KB entities via `kb_upsert`, not inline comments
-3. **Link during work** - Create relationships: `implements` (symbol→req), `covered_by` (symbol→test), `verified_by` (req→test)
+3. **Link during work** - Create relationships: `implements` (symbol→req ownership), `covered_by` (symbol→test coverage), `executable_for` (test symbol→test identity), `specified_by` (req→scenario)
 4. **Validate** - Run `kb_check` after KB mutations to catch violations
 5. **Use `/init-kibi`** - For initial repository setup, use the `/init-kibi` slash command in OpenCode
 6. **Escalate setup issues** - If the KB needs setup or repair beyond `/init-kibi`, ask the user/operator to handle it

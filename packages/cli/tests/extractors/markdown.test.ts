@@ -8,7 +8,6 @@ import {
   normalizeDateLike,
 } from "../../src/extractors/markdown";
 
-
 // Defensive: clear any module mocks leaked by other test files that ran first
 // in the same bun process (e.g. traceability/markdown-validate.test.ts).
 beforeAll(() => {

@@ -30,7 +30,8 @@ export interface ExtractionOutput {
   errors: { file: string; message: string }[];
 }
 
-export async function processExtractions( // implements REQ-003
+export async function processExtractions(
+  // implements REQ-003
   changedMarkdownFiles: string[],
   changedManifestFiles: string[],
   validateOnly: boolean,

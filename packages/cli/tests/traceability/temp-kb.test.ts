@@ -837,6 +837,133 @@ describe("temp-kb", () => {
         await cleanupTempKb(ctx.tempDir);
       }
     });
+
+    it("executable_for symbol is excluded from staged ownership gate", async () => {
+      const ctx = await createTempKb(baseKbDir);
+
+      try {
+        await projectStagedEntities(ctx.prolog, [
+          makeExtractionResult({
+            id: "TEST-EXE-001",
+            type: "test",
+            title: "Executable test",
+            status: "passing",
+            source: "documentation/tests/TEST-EXE-001.md",
+            relationships: [
+              { type: "validates", from: "TEST-EXE-001", to: "REQ-EXE" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "REQ-EXE",
+            type: "req",
+            title: "Exe requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-EXE.md",
+          }),
+          makeExtractionResult({
+            id: "SYM-EXE-TEST",
+            type: "symbol",
+            title: "testHelper",
+            status: "active",
+            source: "documentation/symbols.yaml",
+            relationships: [
+              {
+                type: "executable_for",
+                from: "SYM-EXE-TEST",
+                to: "TEST-EXE-001",
+              },
+            ],
+          }),
+        ]);
+
+        // Symbol has no reqLinks but has executable_for
+        const overlayFacts = createOverlayFacts([
+          {
+            id: "SYM-EXE-TEST",
+            name: "testHelper",
+            kind: "function",
+            location: { file: "tests/helper.ts", startLine: 1, endLine: 10 },
+            hunkRanges: [],
+            reqLinks: [],
+          },
+        ]);
+
+        await Bun.write(ctx.overlayPath, overlayFacts);
+        await consultOverlay(ctx);
+
+        // executable_test_symbol check should exclude this from violations
+        const violations = await validateStagedSymbols({
+          minLinks: 1,
+          prolog: ctx.prolog,
+        });
+
+        expect(violations).toEqual([]);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
+
+    it("projected covered_by relationship is queryable via kb_relationship", async () => {
+      const ctx = await createTempKb(baseKbDir);
+
+      try {
+        await projectStagedEntities(ctx.prolog, [
+          makeExtractionResult({
+            id: "REQ-COV",
+            type: "req",
+            title: "Coverage requirement",
+            status: "open",
+            source: "documentation/requirements/REQ-COV.md",
+          }),
+          makeExtractionResult({
+            id: "TEST-COV",
+            type: "test",
+            title: "Coverage test",
+            status: "passing",
+            source: "documentation/tests/TEST-COV.md",
+            relationships: [
+              { type: "validates", from: "TEST-COV", to: "REQ-COV" },
+            ],
+          }),
+          makeExtractionResult({
+            id: "SYM-COV",
+            type: "symbol",
+            title: "covFunc",
+            status: "active",
+            source: "documentation/symbols.yaml",
+            relationships: [
+              { type: "covered_by", from: "SYM-COV", to: "TEST-COV" },
+            ],
+          }),
+        ]);
+
+        // Verify the covered_by relationship is projected and queryable
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(covered_by, 'SYM-COV', 'TEST-COV')",
+          ),
+        ).toBe(true);
+
+        // Verify no implements relationship exists for this symbol
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(implements, 'SYM-COV', _)",
+          ),
+        ).toBe(false);
+
+        // Verify no executable_for relationship exists for this symbol
+        expect(
+          await querySucceeds(
+            ctx.prolog,
+            "kb_relationship(executable_for, 'SYM-COV', _)",
+          ),
+        ).toBe(false);
+      } finally {
+        await cleanupTempKb(ctx.tempDir);
+      }
+    });
   });
 
   describe("createOverlayFacts", () => {

@@ -10,6 +10,8 @@ tags:
   - validation
 links:
   - REQ-006
+  - type: verified_by
+    target: TEST-004
 ---
 
 Steps:

@@ -35,10 +35,11 @@ Kibi supports 8 entity types:
 |--------------|-----------------|-------------|
 | `depends_on` | req → req | Requirement depends on another |
 | `specified_by` | req → scenario | Requirement specified by scenario |
-| `verified_by` | req → test | Requirement verified by test |
-| `validates` | test → req | Test validates requirement |
-| `implements` | symbol → req | Symbol implements requirement |
-| `covered_by` | symbol → test | Symbol covered by test |
+| `verified_by` | req/scenario → test | Requirement or scenario verified by test |
+| `validates` | test → req/scenario | Test validates requirement or scenario |
+| `implements` | symbol → req | Symbol implements requirement (Ownership) |
+| `covered_by` | symbol → test | Symbol covered by test (Coverage) |
+| `executable_for` | symbol → test | Symbol is executable test code for a test entity (Identity) |
 | `constrained_by` | symbol → adr | Symbol constrained by ADR |
 | `constrains` | req → fact | Requirement constrains domain fact |
 | `requires_property` | req → fact | Requirement requires property/value fact |
@@ -169,8 +170,9 @@ When a bug is temporarily mitigated by a feature gate:
 **Canonical mapping:**
   - `flag` = runtime/config gate (includes kill-switches, deferred capabilities)
   - `fact` (observation/meta) = bug records, incident notes, workarounds
-  - `req` = intended/corrected behavior
-  - `test` = executable verification/reproduction
+  - `req` = intended/corrected behavior (Owner)
+  - `scenario` = canonical behavior specification
+  - `test` = executable verification (Identity)
   - `adr` = durable design rationale
 
 ---
@@ -287,7 +289,7 @@ This feature enforces a discipline where every code change must reference a requ
 When implementing code changes, an agent should:
 
 1. **Prefer relationship-based traceability for test and e2e code:**
-   Instead of inline comments, model the code as a symbol (e.g., in `documentation/symbols.yaml`), link it to a `TEST-*` entity with `covered_by`, and link the test to the requirement with `validates` or `verified_by`. This is the preferred workflow for test and e2e symbols.
+   Instead of inline comments, model the code as a symbol (e.g., in `documentation/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them.
 
 2. **Add the `implements REQ-xxx` directive (Optional/Backward-Compatible):**
    Inline comments remain supported and are useful for quick code-only changes:
@@ -299,37 +301,6 @@ When implementing code changes, an agent should:
    ```typescript
    export class MyClass() { } // implements REQ-001, REQ-002
    ```
-
-3. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links (either via inline comments or explicit KB relationships). This happens automatically on commit.
-
-4. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or create the missing relationship in the KB (e.g., via `kb_upsert`)
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
-**Scope Note**: This workflow applies to explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported; test() callbacks are out of scope for the staged check.
-
-### Configuration
-
-   ```typescript
-   export function myFunc() { } // implements REQ-001
-   ```
-
-   You can link to multiple requirements:
-   ```typescript
-   export class MyClass() { } // implements REQ-001, REQ-002
-   ```
-
-2. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links. This happens automatically on commit - you do not need to run validation manually.
-
-3. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
 
 
 ### Configuration

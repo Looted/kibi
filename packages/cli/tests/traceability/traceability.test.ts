@@ -269,6 +269,63 @@ describe("symbol-extract", () => {
     expect(syms[0]?.id.length).toBe(16); // SHA256 hex slice
     expect(syms[0]?.reqLinks.length).toBe(0);
   });
+
+  it("manifest with executable_for preserves relationship but does not add to reqLinks", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      [
+        "src/test.ts:testHelper",
+        {
+          id: "SYM-TEST-001",
+          relationships: [{ type: "executable_for", to: "TEST-001" }],
+        },
+      ],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/test.ts",
+      content: "export function testHelper() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms.length).toBe(1);
+    expect(syms[0]?.id).toBe("SYM-TEST-001");
+    // executable_for should NOT contribute to reqLinks
+    expect(syms[0]?.reqLinks).toEqual([]);
+    // But the relationship should be preserved in the relationships field
+    expect(syms[0]?.relationships).toEqual([
+      { type: "executable_for", to: "TEST-001" },
+    ]);
+  });
+
+  it("manifest with mixed implements and executable_for preserves both relationships", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      [
+        "src/mixed.ts:mixedFunc",
+        {
+          id: "SYM-MIXED",
+          relationships: [
+            { type: "implements", to: "REQ-001" },
+            { type: "executable_for", to: "TEST-001" },
+          ],
+        },
+      ],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/mixed.ts",
+      content: "export function mixedFunc() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms.length).toBe(1);
+    // implements contributes to reqLinks
+    expect(syms[0]?.reqLinks).toContain("REQ-001");
+    // Both relationships are preserved
+    expect(syms[0]?.relationships).toEqual([
+      { type: "implements", to: "REQ-001" },
+      { type: "executable_for", to: "TEST-001" },
+    ]);
+  });
 });
 
 describe("temp-kb and validate", () => {

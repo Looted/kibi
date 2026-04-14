@@ -1,0 +1,9 @@
+8 files changed:
+ packages/core/schema/relationships.pl  |   4 +
+ packages/core/src/checks.pl            |   6 +-
+ packages/core/src/kb.pl                |  58 ++++++++--
+ packages/core/tests/kb.plt             | 141 ++++++++++++++++++++++--
+ packages/core/tests/schema.plt         |  16 ++-
+ packages/mcp/tests/tools/check.test.ts | 191 +++++++++++++++++++++++++++++++--
+ packages/mcp/tests/tools/graph.test.ts |  68 ++++++++++++
+ 7 files changed, 453 insertions(+), 31 deletions(-)

@@ -20,7 +20,8 @@ const defaultDeps: McpDeps = {
  * Validates the MCP server path configuration.
  * Auto-detects if not configured and shows warnings if not found.
  */
-export function validateMcpServerPath( // implements REQ-vscode-traceability
+export function validateMcpServerPath(
+  // implements REQ-vscode-traceability
   output: vscode.OutputChannel,
   deps?: Partial<McpDeps>,
 ): void {
@@ -81,7 +82,8 @@ export function validateMcpServerPath( // implements REQ-vscode-traceability
  * Attempts to find the kibi-mcp executable in the system PATH.
  * Returns the path if found, undefined otherwise.
  */
-export function findKibiMcpInPath(deps?: Partial<McpDeps>): string | undefined { // implements REQ-vscode-traceability
+export function findKibiMcpInPath(deps?: Partial<McpDeps>): string | undefined {
+  // implements REQ-vscode-traceability
   const d = { ...defaultDeps, ...deps };
   try {
     const isWindows = process.platform === "win32";

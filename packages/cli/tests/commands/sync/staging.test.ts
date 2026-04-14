@@ -211,7 +211,12 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue(["schema.pl", "rules.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", true, stagingDeps());
+    await prepareStagingEnvironment(
+      "/staging",
+      "/live/.kb/data",
+      true,
+      stagingDeps(),
+    );
 
     // Staging dir did not exist, so rmSync was NOT called during cleanup
     expect(mockRmSync).not.toHaveBeenCalled();
@@ -233,7 +238,12 @@ describe("prepareStagingEnvironment", () => {
       return false;
     });
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", false, stagingDeps());
+    await prepareStagingEnvironment(
+      "/staging",
+      "/live/.kb/data",
+      false,
+      stagingDeps(),
+    );
 
     expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
       "/live/.kb/data",
@@ -254,7 +264,12 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue(["schema.pl"]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", false, stagingDeps());
+    await prepareStagingEnvironment(
+      "/staging",
+      "/live/.kb/data",
+      false,
+      stagingDeps(),
+    );
 
     expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
     expect(mockFg).toHaveBeenCalled();
@@ -269,7 +284,12 @@ describe("prepareStagingEnvironment", () => {
     });
     mockFg.mockResolvedValue([]);
 
-    await prepareStagingEnvironment("/staging", "/live/.kb/data", true, stagingDeps());
+    await prepareStagingEnvironment(
+      "/staging",
+      "/live/.kb/data",
+      true,
+      stagingDeps(),
+    );
 
     // cleanupStaging called because staging existed
     expect(mockRmSync).toHaveBeenCalledWith("/staging", {

@@ -92,7 +92,9 @@ describe("setupTransportHandlers", () => {
   let originalProcessOn: typeof process.on;
   let capturedSigtermHandler: (() => void) | undefined;
   let originalDebug: string | undefined;
-  let setupTransportHandlers: typeof import("../../src/server/transport.js").setupTransportHandlers;
+  let setupTransportHandlers: typeof import(
+    "../../src/server/transport.js"
+  ).setupTransportHandlers;
 
   beforeEach(async () => {
     originalConsoleError = console.error;
@@ -435,7 +437,9 @@ describe("setupTransportHandlers", () => {
 });
 
 describe("connectTransport", () => {
-  let connectTransport: typeof import("../../src/server/transport.js").connectTransport;
+  let connectTransport: typeof import(
+    "../../src/server/transport.js"
+  ).connectTransport;
 
   beforeEach(async () => {
     ({ connectTransport } = await importTransportModule("connect-transport"));

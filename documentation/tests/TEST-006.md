@@ -10,8 +10,8 @@ tags:
   - hooks
   - git
 links:
-  - REQ-008
-  - SCEN-003
+  - type: validates
+    target: SCEN-003
 ---
 
 In a temp git repo with hooks installed:

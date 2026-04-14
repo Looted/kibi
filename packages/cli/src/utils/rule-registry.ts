@@ -62,14 +62,14 @@ export const RULES: readonly RuleDefinition[] = [
   {
     name: "symbol-coverage",
     description:
-      "Symbols should be traceable to requirements via transitive implements",
+      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path",
     defaultEnabled: true,
     category: "coverage",
   },
   {
     name: "symbol-traceability",
     description:
-      "Source symbols must have direct implements links to requirements; optionally constrained_by ADR",
+      "Production symbols must directly implement requirements for ownership; covered_by is coverage only, executable_for is test identity only, and ADR constraints are optional unless configured",
     defaultEnabled: true,
     category: "traceability",
   },
