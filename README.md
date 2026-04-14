@@ -181,16 +181,19 @@ kibi coverage --by req --format table
 
 ## Release and Versioning
 
-All publishable npm packages in this repo (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`) follow the same Changesets workflow for versioning and changelog generation.
+Kibi uses a two-branch release model with [Changesets](https://github.com/changesets/changesets). Work happens on `develop`, where version bumps are applied. The `master` branch is publish-only.
+
+### Release Flow
+1. **Development**: Create changesets on `develop` as you work.
+2. **Versioning**: Run `bun run version-packages` on `develop` to apply bumps.
+3. **Merge**: Merge `develop` into `master`.
+4. **Publish**: `master` CI builds and publishes new versions to npm.
 
 ```bash
-# Add release metadata for changed package(s)
+# Add release metadata (run on develop)
 bun run changeset
 
-# Preview pending releases
-bunx changeset status
-
-# Apply version bumps and update package changelogs
+# Apply version bumps (run on develop)
 bun run version-packages
 ```
 
