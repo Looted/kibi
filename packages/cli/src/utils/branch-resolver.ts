@@ -419,7 +419,7 @@ export function resolveDefaultBranch(
     const match = remoteHead.match(/^refs\/remotes\/origin\/(.+)$/);
     if (match) {
       const branch = match[1];
-      if (isValidBranchName(branch)) {
+      if (branch && isValidBranchName(branch)) {
         return { branch };
       }
     }

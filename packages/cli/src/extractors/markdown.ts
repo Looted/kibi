@@ -188,7 +188,12 @@ function parseFrontmatter(content: string): {
     return { data: {}, content };
   }
 
-  const parsed = yamlLoad(parts[1]);
+  const frontmatter = parts[1];
+  if (frontmatter === undefined) {
+    return { data: {}, content };
+  }
+
+  const parsed = yamlLoad(frontmatter);
 
   return {
     data: isObjectRecord(parsed) ? (parsed as FrontmatterData) : {},
@@ -206,7 +211,10 @@ function hasLikelyUnquotedColonInTitle(content: string): boolean {
     return false;
   }
 
-  return /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(parts[1]);
+  const frontmatter = parts[1];
+  return frontmatter
+    ? /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(frontmatter)
+    : false;
 }
 
 export function detectEmbeddedEntities(

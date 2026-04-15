@@ -137,9 +137,11 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
 
     const itemMatch = trimmed.match(/^-+\s*id:\s*(.+)$/);
     if (itemMatch) {
+      const idValue = itemMatch[1];
+      if (idValue === undefined) continue;
       pushCurrent();
       current = {
-        id: unquote(itemMatch[1]),
+        id: unquote(idValue),
         links: [],
       };
       inLinks = false;
@@ -156,7 +158,10 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
     if (inLinks) {
       const linkMatch = trimmed.match(/^-+\s*(.+)$/);
       if (linkMatch) {
-        (current.links as string[]).push(unquote(linkMatch[1]));
+        const linkValue = linkMatch[1];
+        if (linkValue !== undefined && Array.isArray(current.links)) {
+          current.links.push(unquote(linkValue));
+        }
         continue;
       }
       inLinks = false;
@@ -164,13 +169,20 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
 
     const titleMatch = trimmed.match(/^title:\s*(.+)$/);
     if (titleMatch) {
-      current.title = unquote(titleMatch[1]);
+      const titleValue = titleMatch[1];
+      if (titleValue !== undefined) {
+        current.title = unquote(titleValue);
+      }
       continue;
     }
 
     const sourceMatch = trimmed.match(/^(sourceFile|source):\s*(.+)$/);
     if (sourceMatch) {
-      current[sourceMatch[1]] = unquote(sourceMatch[2]);
+      const sourceKey = sourceMatch[1];
+      const sourceValue = sourceMatch[2];
+      if (sourceKey !== undefined && sourceValue !== undefined) {
+        current[sourceKey] = unquote(sourceValue);
+      }
       continue;
     }
 

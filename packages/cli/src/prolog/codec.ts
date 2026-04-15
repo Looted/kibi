@@ -118,8 +118,14 @@ export function parseEntityFromBinding(
     return {};
   }
 
-  const id = parts[0].trim();
-  const type = parts[1].trim();
+  const idPart = parts[0];
+  const typePart = parts[1];
+  if (idPart === undefined || typePart === undefined) {
+    return {};
+  }
+
+  const id = idPart.trim();
+  const type = typePart.trim();
   const propsStr = parts.slice(2).join(",").trim();
 
   const props = parsePropertyList(propsStr);
@@ -132,9 +138,18 @@ export function parseEntityFromList(data: string[]): Record<string, unknown> {
     return {};
   }
 
-  const id = data[0].trim();
-  const type = data[1].trim();
-  const propsStr = data[2].trim();
+  const [idPart, typePart, propsPart] = data;
+  if (
+    idPart === undefined ||
+    typePart === undefined ||
+    propsPart === undefined
+  ) {
+    return {};
+  }
+
+  const id = idPart.trim();
+  const type = typePart.trim();
+  const propsStr = propsPart.trim();
 
   const props = parsePropertyList(propsStr);
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
@@ -195,8 +210,14 @@ export function parsePrologValue(valueInput: string): unknown {
 
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
-      let literalValue = parts[0].trim();
-      const datatype = parts[1].trim();
+      const literalPart = parts[0];
+      const datatypePart = parts[1];
+      if (literalPart === undefined || datatypePart === undefined) {
+        return value;
+      }
+
+      let literalValue = literalPart.trim();
+      const datatype = datatypePart.trim();
 
       if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
         literalValue = literalValue.substring(1, literalValue.length - 1);
@@ -367,7 +388,11 @@ export function parsePairList(raw: string): Array<[string, string]> {
       stripQuotes(part.trim()),
     );
     if (parts.length >= 2) {
-      pairs.push([parts[0], parts[1]]);
+      const first = parts[0];
+      const second = parts[1];
+      if (first !== undefined && second !== undefined) {
+        pairs.push([first, second]);
+      }
     }
   }
 
@@ -384,7 +409,12 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
       stripQuotes(part.trim()),
     );
     if (parts.length >= 3) {
-      triples.push([parts[0], parts[1], parts[2]]);
+      const first = parts[0];
+      const second = parts[1];
+      const third = parts[2];
+      if (first !== undefined && second !== undefined && third !== undefined) {
+        triples.push([first, second, third]);
+      }
     }
   }
 
@@ -484,13 +514,26 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
     const parts = splitTopLevelGeneral(inner, ",");
     if (parts.length < 4) continue;
 
-    const rule = parts[0].trim().replace(/^'|'$/g, "");
-    const entityId = parts[1].trim().replace(/^'|'$/g, "");
-    const description = parts[2].trim().replace(/^"|"$/g, "");
-    const suggestion = parts[3].trim().replace(/^"|"$/g, "");
+    const rulePart = parts[0];
+    const entityIdPart = parts[1];
+    const descriptionPart = parts[2];
+    const suggestionPart = parts[3];
+    if (
+      rulePart === undefined ||
+      entityIdPart === undefined ||
+      descriptionPart === undefined ||
+      suggestionPart === undefined
+    ) {
+      continue;
+    }
+
+    const rule = rulePart.trim().replace(/^'|'$/g, "");
+    const entityId = entityIdPart.trim().replace(/^'|'$/g, "");
+    const description = descriptionPart.trim().replace(/^"|"$/g, "");
+    const suggestion = suggestionPart.trim().replace(/^"|"$/g, "");
     const source =
       parts.length >= 5
-        ? parts[4].trim().replace(/^'|'$/g, "") || undefined
+        ? parts[4]?.trim().replace(/^'|'$/g, "") || undefined
         : undefined;
 
     violations.push({ rule, entityId, description, suggestion, source });

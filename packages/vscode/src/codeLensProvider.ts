@@ -81,7 +81,11 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       path.join(this.workspaceRoot, "symbols.yaml"),
       path.join(this.workspaceRoot, "symbols.yml"),
     ];
-    return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
+    return (
+      candidates.find((p) => fs.existsSync(p)) ??
+      candidates[0] ??
+      path.join(this.workspaceRoot, "symbols.yaml")
+    );
   }
 
   provideCodeLenses(

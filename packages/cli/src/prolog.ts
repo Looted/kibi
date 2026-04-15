@@ -371,6 +371,15 @@ export class PrologProcess {
 
     const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
     if (attachMatch) {
+      const attachPath = attachMatch[1] ?? null;
+      if (!attachPath) {
+        return {
+          success: false,
+          bindings: {},
+          error: "Invalid KB attach path",
+        };
+      }
+
       if (this.attachedKbPath !== null) {
         return {
           success: false,
@@ -380,7 +389,7 @@ export class PrologProcess {
       }
       const attachResult = this.execOneShot(trimmedGoal, null);
       if (attachResult.success) {
-        this.attachedKbPath = attachMatch[1];
+        this.attachedKbPath = attachPath;
       }
       return attachResult;
     }
@@ -503,7 +512,9 @@ export class PrologProcess {
       const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.+)\.?\s*$/);
       if (match) {
         const [, varName, value] = match;
-        bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        if (varName !== undefined && value !== undefined) {
+          bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        }
       }
     }
 
@@ -530,12 +541,13 @@ export class PrologProcess {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
 
-    const simpleError = errorText
-      .replace(/ERROR:\s*/g, "")
-      .replace(/^\*\*.*\*\*$/gm, "")
-      .replace(/^\s+/gm, "")
-      .split("\n")[0]
-      .trim();
+    const simpleError = (
+      errorText
+        .replace(/ERROR:\s*/g, "")
+        .replace(/^\*\*.*\*\*$/gm, "")
+        .replace(/^\s+/gm, "")
+        .split("\n")[0] ?? ""
+    ).trim();
 
     return simpleError || "Unknown error";
   }
