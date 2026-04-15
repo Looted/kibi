@@ -26,6 +26,7 @@ import {
   isValidBranchName,
   resolveActiveBranch,
 } from "kibi-cli/public/branch-resolver";
+import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 
 interface SessionDeps {
@@ -89,7 +90,7 @@ export function _resetSessionDepsForTests(): void {
 }
 
 function debugLog(...args: Parameters<typeof console.error>): void {
-  if (process.env.KIBI_MCP_DEBUG) {
+  if (isMcpDebugEnabled()) {
     console.error(...args);
   }
 }
@@ -189,7 +190,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   const workspaceRoot = sessionDeps.resolveWorkspaceRoot();
 
   // Determine target branch: respect KIBI_BRANCH override or resolve from git
-  const envBranch = process.env.KIBI_BRANCH?.trim();
+  const envBranch = getBranchOverride();
   let targetBranch: string;
 
   if (envBranch) {
@@ -269,7 +270,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
   // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
-  if (process.env.KIBI_MCP_DEBUG) {
+  if (isMcpDebugEnabled()) {
     try {
       const req = sessionDeps.createRequire(import.meta.url);
       try {
@@ -312,9 +313,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   }
 
   debugLog("[KIBI-MCP] Branch selection:");
-  debugLog(
-    `[KIBI-MCP]   KIBI_BRANCH env: ${process.env.KIBI_BRANCH || "not set"}`,
-  );
+  debugLog(`[KIBI-MCP]   KIBI_BRANCH env: ${envBranch || "not set"}`);
   debugLog(`[KIBI-MCP]   Resolved branch: ${targetBranch}`);
 
   activeBranchName = targetBranch;

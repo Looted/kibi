@@ -1,6 +1,7 @@
 import path from "node:path";
 import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 import { escapeAtomContent } from "kibi-cli/prolog/codec";
+import { getCoreModulePathOverride, getKbPlPathOverride } from "../env.js";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
 
@@ -10,15 +11,14 @@ type PrologQueryLike = {
 
 // implements REQ-002, REQ-013
 export function resolveCorePlPath(fileName: string): string {
-  const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
-  const override = process.env[envKey];
+  const override = getCoreModulePathOverride(fileName);
   if (override) {
     return override;
   }
 
   // Fall back to the generic KB_PL override so test fixtures
   // (which set only KIBI_KB_PL_PATH) can still resolve sibling modules.
-  const genericOverride = process.env.KIBI_KB_PL_PATH;
+  const genericOverride = getKbPlPathOverride();
   if (genericOverride) {
     return path.join(path.dirname(genericOverride), fileName);
   }

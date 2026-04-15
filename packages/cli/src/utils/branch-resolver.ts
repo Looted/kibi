@@ -25,6 +25,7 @@ import {
   statSync,
 } from "node:fs";
 import * as path from "node:path";
+import { getBranchOverride } from "../env.js";
 
 export type BranchResolutionSuccess = { branch: string };
 export type BranchResolutionError = { error: string; code: BranchErrorCode };
@@ -95,7 +96,7 @@ export function resolveActiveBranch(
 ): BranchResolutionResult {
   // implements REQ-008
   // 1. Check KIBI_BRANCH env var first (highest precedence)
-  const envBranch = process.env.KIBI_BRANCH?.trim();
+  const envBranch = getBranchOverride();
   if (envBranch) {
     // Validate the env branch name
     if (!isValidBranchName(envBranch)) {

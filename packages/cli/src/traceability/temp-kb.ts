@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 import type {
   ExtractedEntity,
   ExtractedRelationship,
@@ -72,7 +73,7 @@ const FACT_NUMBER_FIELDS = new Set(["value_int", "value_number"]);
 const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
 function isTraceEnabled(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+  return isCliTraceOrDebugEnabled();
 }
 
 function trace(message: string): void {
