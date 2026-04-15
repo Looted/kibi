@@ -465,6 +465,9 @@ function formatUpsertError(
   if (contradictionMatch) {
     // Extract individual conflict details from the list
     const details = contradictionMatch[1];
+    if (!details) {
+      return `Contradiction detected for entity ${entityId}: This requirement conflicts with existing requirements. Add a supersedes relationship to the conflicting requirement, or deprecate the old requirement before creating the new one.`;
+    }
     // Parse out readable parts - each entry is like 'Reason'-'ReqId'
     const conflicts: string[] = [];
     const conflictRegex = /'([^']+)'-'([^']+)'/g;
@@ -472,7 +475,9 @@ function formatUpsertError(
     while (execResult !== null) {
       const reason = execResult[1];
       const otherReq = execResult[2];
-      conflicts.push(`  - Conflicts with ${otherReq}: ${reason}`);
+      if (reason !== undefined && otherReq !== undefined) {
+        conflicts.push(`  - Conflicts with ${otherReq}: ${reason}`);
+      }
       execResult = conflictRegex.exec(details);
     }
 

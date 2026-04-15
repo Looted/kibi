@@ -204,6 +204,8 @@ function parseReqDirectives(text: string): string[] {
     m = regex.exec(text);
     if (!m) break;
     const list = m[1];
+    if (!list) continue;
+
     for (const part of list.split(/[,\s]+/)) {
       const p = part.trim();
       if (!p) continue;

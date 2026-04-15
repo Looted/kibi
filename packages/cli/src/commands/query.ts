@@ -118,11 +118,24 @@ export async function queryCommand(
         const rows = parseListOfLists(queryResult.bindings.Results);
         const parsed = rows
           .filter((r) => r.length >= 3)
-          .map((r) => ({
-            type: parsePrologValue(r[0]),
-            from: parsePrologValue(r[1]),
-            to: parsePrologValue(r[2]),
-          }));
+          .flatMap((r) => {
+            const [typeValue, fromValue, toValue] = r;
+            if (
+              typeValue === undefined ||
+              fromValue === undefined ||
+              toValue === undefined
+            ) {
+              return [];
+            }
+
+            return [
+              {
+                type: parsePrologValue(typeValue),
+                from: parsePrologValue(fromValue),
+                to: parsePrologValue(toValue),
+              },
+            ];
+          });
         results = parsed.filter(
           (rel) =>
             rel &&

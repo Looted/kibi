@@ -55,6 +55,8 @@ export async function enrichSymbolCoordinates(
 
   for (let index = 0; index < output.length; index++) {
     const entry = output[index];
+    if (!entry) continue;
+
     const resolved = resolveSourcePath(entry.sourceFile, workspaceRoot);
     if (!resolved) continue;
 

@@ -288,7 +288,10 @@ function findNamedDeclaration(
 
     // Fail closed: only return if exactly one unique match
     if (internalCandidates.length === 1) {
-      return internalCandidates[0];
+      const candidate = internalCandidates[0];
+      if (candidate) {
+        return candidate;
+      }
     }
 
     // Third pass: unique class methods
@@ -308,7 +311,10 @@ function findNamedDeclaration(
 
     // Fail closed: only return if exactly one unique match
     if (methodCandidates.length === 1) {
-      return methodCandidates[0];
+      const candidate = methodCandidates[0];
+      if (candidate) {
+        return candidate;
+      }
     }
 
     return null;

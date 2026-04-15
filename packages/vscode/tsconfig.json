@@ -10,7 +10,8 @@
     "skipLibCheck": true,
     "types": ["node", "vscode"],
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
   },
   "include": ["src/**/*"]
 }

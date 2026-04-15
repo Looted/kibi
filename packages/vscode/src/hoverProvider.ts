@@ -36,7 +36,10 @@ interface EntityCacheEntry {
 
 // implements REQ-vscode-traceability
 interface HoverProviderDeps {
-  execCli(command: string, options?: import("node:child_process").ExecSyncOptionsWithStringEncoding): string;
+  execCli(
+    command: string,
+    options?: import("node:child_process").ExecSyncOptionsWithStringEncoding,
+  ): string;
   buildMarkdown(
     symbol: { id: string; title: string; file: string; line: number },
     entities: EntityDetails[],
@@ -50,6 +53,7 @@ const defaultDeps: HoverProviderDeps = {
 
 // implements REQ-vscode-traceability
 export class KibiHoverProvider implements vscode.HoverProvider {
+  // implements REQ-vscode-traceability
   private entityDetailsCache = new Map<string, EntityCacheEntry>();
   private entityInflight = new Map<string, Promise<EntityDetails | null>>();
   private readonly CACHE_TTL = 30_000; // 30 seconds
@@ -240,6 +244,7 @@ export class KibiHoverProvider implements vscode.HoverProvider {
       if (!typeMatch) return null;
 
       const typePrefix = typeMatch[1];
+      if (typePrefix === undefined) return null;
       const typeMap: Record<string, string> = {
         REQ: "req",
         SCEN: "scenario",

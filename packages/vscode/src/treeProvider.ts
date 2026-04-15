@@ -346,6 +346,9 @@ export class KibiTreeDataProvider
 
       const id = match[1];
       const block = match[2];
+      if (id === undefined || block === undefined) {
+        continue;
+      }
 
       const type = this.extractText(block, "kb:type");
       const title = this.extractText(block, "kb:title");
@@ -401,7 +404,7 @@ export class KibiTreeDataProvider
   private extractText(block: string, tag: string): string {
     const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
     const m = block.match(re);
-    return m ? m[1].trim() : "";
+    return m?.[1]?.trim() ?? "";
   }
 
   private extractResourceSuffix(block: string, tag: string): string {
@@ -409,7 +412,7 @@ export class KibiTreeDataProvider
       `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
-    return m ? m[1] : "";
+    return m?.[1] ?? "";
   }
 
   // implements REQ-vscode-traceability
@@ -632,7 +635,11 @@ export class KibiTreeDataProvider
     }
 
     try {
-      const parsed = loadYaml(match[1]);
+      const frontmatterText = match[1];
+      if (frontmatterText === undefined) {
+        return {};
+      }
+      const parsed = loadYaml(frontmatterText);
       return parsed && typeof parsed === "object"
         ? (parsed as Record<string, unknown>)
         : {};

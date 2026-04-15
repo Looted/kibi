@@ -166,6 +166,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
       const single = literalSchemas[0];
+      if (!single) {
+        return description ? z.any().describe(description) : z.any();
+      }
       return description ? single.describe(description) : single;
     }
     const union = z.union(
