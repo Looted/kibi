@@ -14,12 +14,11 @@ import type {
   ExtractedRelationship,
   ExtractionResult,
 } from "../../../src/extractors/markdown.js";
-import type { QueryResult } from "../../../src/prolog.d.ts";
 import {
   persistEntities,
   persistRelationships,
 } from "../../../src/commands/sync/persistence.js";
-import type { PrologProcess } from "../../../src/prolog.js";
+import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
 
 // --- Mocks ---
 
