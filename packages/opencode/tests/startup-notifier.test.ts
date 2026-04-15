@@ -1,4 +1,4 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, mock, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import {
   type StartupNotifierClient,
