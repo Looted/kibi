@@ -1,26 +1,24 @@
 import path from "node:path";
 import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 import { escapeAtomContent } from "kibi-cli/prolog/codec";
+import { getCoreModulePathOverride, getKbPlPathOverride } from "../env.js";
+
+type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
 
 type PrologQueryLike = {
-  query: (goal: string) => Promise<{
-    success: boolean;
-    bindings: Record<string, string>;
-    error?: string;
-  }>;
+  query: (goal: string) => Promise<PrologQueryResult>;
 };
 
 // implements REQ-002, REQ-013
 export function resolveCorePlPath(fileName: string): string {
-  const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
-  const override = process.env[envKey];
+  const override = getCoreModulePathOverride(fileName);
   if (override) {
     return override;
   }
 
   // Fall back to the generic KB_PL override so test fixtures
   // (which set only KIBI_KB_PL_PATH) can still resolve sibling modules.
-  const genericOverride = process.env.KIBI_KB_PL_PATH;
+  const genericOverride = getKbPlPathOverride();
   if (genericOverride) {
     return path.join(path.dirname(genericOverride), fileName);
   }
@@ -61,7 +59,11 @@ export async function runJsonModuleQuery<T>(
 
     return mockedParsed as T;
   }
-
+  // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
+  // forces single-query mode (start → query → terminate per call) instead of the
+  // default interactive session. It is not exposed in the public PrologProcess type
+  // because callers should not set it directly — only internal discovery helpers
+  // use it for lightweight one-shot queries that don't need session state.
   const oneShotCapable = prolog as unknown as { useOneShotMode?: boolean };
   prolog.invalidateCache();
   const result = oneShotCapable.useOneShotMode

@@ -44,7 +44,7 @@ describe("loadMarkdownBody", () => {
 
   test("returns null for undefined-like empty source", async () => {
     // source is typed as string but callers may pass coercion of undefined
-    const result = await loadMarkdownBody("" + undefined, "/workspace");
+    const result = await loadMarkdownBody(`${undefined}`, "/workspace");
     expect(result).toBeNull();
   });
 
@@ -63,23 +63,8 @@ describe("loadMarkdownBody", () => {
 
   test("resolves relative paths against workspaceRoot", async () => {
     const body = "# Hello\n\nThis is the body content.";
-    const mockMatter = { content: "This is the body content.", data: {} };
 
     const readSpy = spyOn(fs, "readFile").mockResolvedValue(body);
-    const matterSpy = spyOn(matter, "__esModule", "get").mockReturnValue(
-      undefined,
-    );
-    // gray-matter is a default export; use the module directly
-    // We need to mock matter() function
-    const origMatter = matter;
-    // @ts-expect-error overriding for test
-    const matterFnSpy = spyOn(
-      matter,
-      "default" in matter ? "default" : "constructor",
-      "get",
-    );
-
-    // Simpler approach: just spy on fs.readFile and let real gray-matter run
     readSpy.mockRestore();
 
     const mdContent = "---\ntitle: Test\n---\nThis is the body content.";
@@ -459,9 +444,10 @@ describe("rankEntities — markdown body integration", () => {
     const result = await rankEntities([entity], "AAA", "/workspace");
 
     expect(result).toHaveLength(1);
-    expect(result[0].snippet).toBeDefined();
-    expect(result[0].snippet!.length).toBe(160); // 157 + "..."
-    expect(result[0].snippet!.endsWith("...")).toBe(true);
+    const snippet = result[0].snippet;
+    expect(snippet).toBeDefined();
+    expect(snippet?.length).toBe(160); // 157 + "..."
+    expect(snippet?.endsWith("...")).toBe(true);
 
     readFileSpy.mockRestore();
   });

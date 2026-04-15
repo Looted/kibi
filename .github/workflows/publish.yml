@@ -38,7 +38,7 @@ jobs:
           TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
           echo "action=$ACTION" >> $GITHUB_OUTPUT
           echo "to_publish<<EOF" >> $GITHUB_OUTPUT
-          echo -n "$TO_PUBLISH" >> $GITHUB_OUTPUT
+          echo "$TO_PUBLISH" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "Release action: $ACTION"
           echo "$DECISION"
@@ -81,6 +81,10 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
+
+      - name: Typecheck matrix
+        run: bun run typecheck
+
       - name: Build CLI package
         run: bun run build:cli
       - name: Build MCP package
@@ -157,8 +161,9 @@ jobs:
         timeout-minutes: 5
       - name: Opencode packed behavior verification
         run: |
+          bun run typecheck:e2e:packed
           rm -rf /tmp/kibi-e2e-packed-compiled
-          bunx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          bunx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
           export NODE_OPTIONS='--enable-source-maps' && bunx node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/opencode-install.test.js /tmp/kibi-e2e-packed-compiled/opencode-plugin.test.js /tmp/kibi-e2e-packed-compiled/opencode-bootstrap-paths.test.js
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages

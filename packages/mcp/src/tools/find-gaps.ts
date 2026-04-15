@@ -57,7 +57,7 @@ export async function handleKbFindGaps(
                   .join(", ")}`,
         },
       ],
-      structuredContent: payload,
+      ...(payload !== undefined ? { structuredContent: payload } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

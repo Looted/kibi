@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 import type {
   ExtractedEntity,
   ExtractedRelationship,
@@ -72,7 +73,7 @@ const FACT_NUMBER_FIELDS = new Set(["value_int", "value_number"]);
 const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
 function isTraceEnabled(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+  return isCliTraceOrDebugEnabled();
 }
 
 function trace(message: string): void {
@@ -86,26 +87,31 @@ function escapePrologAtom(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
+  function getEntityField(entity: ExtractedEntity, field: string): unknown {
+  // ExtractedEntity declares all fact fields as optional properties, so indexing
+  // via keyof is safe. The cast is confined to this single helper.
+  return (entity as unknown as Record<string, unknown>)[field];
+}
+
 function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   const fields: string[] = [];
-  const entityRecord = entity as unknown as Record<string, unknown>;
 
   for (const field of FACT_STRING_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologString(String(value))}`);
     }
   }
 
   for (const field of FACT_ATOM_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologAtom(String(value))}`);
     }
   }
 
   for (const field of FACT_NUMBER_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "number") {
       if (field === "value_int" && !Number.isInteger(value)) {
         continue;
@@ -115,7 +121,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   }
 
   for (const field of FACT_BOOLEAN_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }

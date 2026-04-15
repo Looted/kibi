@@ -23,7 +23,7 @@ export function registerNavigationCommands(
     getLocalPathForEntity: (entityId: string) => string | undefined;
     getNavigationTargetForEntity?: (
       entityId: string,
-    ) => { localPath: string; line?: number } | undefined;
+    ) => { localPath: string; line?: number | undefined } | undefined;
   },
 ): NavigationCommandsResult {
   /** Open an entity's source file by its local filesystem path, optionally at a 1-based line. */

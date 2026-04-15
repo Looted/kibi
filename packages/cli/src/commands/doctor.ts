@@ -102,7 +102,16 @@ function checkSWIProlog(): {
       };
     }
 
-    const major = Number.parseInt(versionMatch[1], 10);
+    const majorText = versionMatch[1];
+    if (!majorText) {
+      return {
+        passed: false,
+        message: "Unable to parse major version",
+        remediation: "Reinstall SWI-Prolog from https://www.swi-prolog.org/",
+      };
+    }
+
+    const major = Number.parseInt(majorText, 10);
 
     if (major < 9) {
       return {

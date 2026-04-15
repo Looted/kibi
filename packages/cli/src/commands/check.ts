@@ -18,6 +18,7 @@
 
 import { existsSync } from "node:fs";
 import * as path from "node:path";
+import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
   extractFromManifest,
   extractFromManifestString,
@@ -72,6 +73,14 @@ export interface CheckOptions {
   dryRun?: boolean;
 }
 
+function getMatchGroup(
+  match: RegExpMatchArray | null,
+  index = 1,
+): string | null {
+  const value = match?.[index];
+  return typeof value === "string" ? value : null;
+}
+
 function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   manifestLookup: ManifestLookup;
   manifestResults: ExtractionResult[];
@@ -110,7 +119,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         }
       } catch (e) {
         // Ignore working-tree manifest parsing errors; staged-only fallback still applies
-        if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
+        if (isCliTraceOrDebugEnabled()) {
           const msg = e instanceof Error ? e.message : String(e);
           console.debug(
             `[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`,
@@ -183,7 +192,7 @@ export async function checkCommand(
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
     } else {
-      const envBranch = process.env.KIBI_BRANCH;
+      const envBranch = getBranchOverride();
       let branch = envBranch || undefined;
       if (!branch) {
         try {
@@ -465,8 +474,9 @@ async function checkMustPriorityCoverage(
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
       const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      if (sourceMatch) {
-        source = sourceMatch[1];
+      const sourceValue = getMatchGroup(sourceMatch);
+      if (sourceValue) {
+        source = sourceValue;
       }
     }
 
@@ -514,11 +524,7 @@ async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return [];
   }
@@ -540,11 +546,7 @@ async function getAllEntityIds(
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return [];
   }
@@ -579,15 +581,17 @@ async function checkNoDanglingRefs(
     if (relsResult.success && relsResult.bindings.Rels) {
       const relsStr = relsResult.bindings.Rels;
       const match = relsStr.match(/\[(.*)\]/);
-      if (match) {
-        const content = match[1].trim();
-        if (content) {
-          const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-          for (const relMatch of relMatches) {
-            const fromId = relMatch[1].trim().replace(/^'|'$/g, "");
-            const toId = relMatch[2].trim().replace(/^'|'$/g, "");
-            allRels.push({ from: fromId, to: toId });
-          }
+      const content = getMatchGroup(match)?.trim();
+      if (content) {
+        const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
+        for (const relMatch of relMatches) {
+          const fromValue = getMatchGroup(relMatch);
+          const toValue = getMatchGroup(relMatch, 2);
+          if (!fromValue || !toValue) continue;
+
+          const fromId = fromValue.trim().replace(/^'|'$/g, "");
+          const toId = toValue.trim().replace(/^'|'$/g, "");
+          allRels.push({ from: fromId, to: toId });
         }
       }
     }
@@ -629,11 +633,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
 
   const depsStr = depsResult.bindings.Deps;
   const match = depsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return violations;
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return violations;
   }
@@ -642,8 +642,12 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
 
   for (const depMatch of depMatches) {
-    const from = depMatch[1].trim().replace(/^'|'$/g, "");
-    const to = depMatch[2].trim().replace(/^'|'$/g, "");
+    const fromValue = getMatchGroup(depMatch);
+    const toValue = getMatchGroup(depMatch, 2);
+    if (!fromValue || !toValue) continue;
+
+    const from = fromValue.trim().replace(/^'|'$/g, "");
+    const to = toValue.trim().replace(/^'|'$/g, "");
     if (!graph.has(from)) {
       graph.set(from, []);
     }
@@ -680,6 +684,11 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
     if (!visited.has(node)) {
       const cyclePath = hasCycleDFS(node, []);
       if (cyclePath) {
+        const cycleEntityId = cyclePath[0];
+        if (!cycleEntityId) {
+          continue;
+        }
+
         const cycleWithSources: string[] = [];
         for (const entityId of cyclePath) {
           const entityResult = await prolog.query(
@@ -689,8 +698,9 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
           if (entityResult.success && entityResult.bindings.Props) {
             const propsStr = entityResult.bindings.Props;
             const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-            if (sourceMatch) {
-              sourceName = path.basename(sourceMatch[1], ".md");
+            const sourceValue = getMatchGroup(sourceMatch);
+            if (sourceValue) {
+              sourceName = path.basename(sourceValue, ".md");
             }
           }
           cycleWithSources.push(sourceName);
@@ -698,7 +708,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
 
         violations.push({
           rule: "no-cycles",
-          entityId: cyclePath[0],
+          entityId: cycleEntityId,
           description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
           suggestion:
             "Break cycle by removing one of the depends_on relationships",
@@ -735,7 +745,10 @@ async function checkRequiredFields(
 
       const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
       for (const match of keyMatches) {
-        propKeys.add(match[1]);
+        const key = getMatchGroup(match);
+        if (key) {
+          propKeys.add(key);
+        }
       }
 
       for (const field of required) {
@@ -770,11 +783,7 @@ async function checkDeprecatedAdrs(
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return violations;
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return violations;
   }
@@ -791,8 +800,9 @@ async function checkDeprecatedAdrs(
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
       const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      if (sourceMatch) {
-        source = sourceMatch[1];
+      const sourceValue = getMatchGroup(sourceMatch);
+      if (sourceValue) {
+        source = sourceValue;
       }
     }
 
@@ -875,21 +885,21 @@ async function checkSymbolCoverage(
     const symbolsStr = uncoveredResult.bindings.Symbols;
     const match = symbolsStr.match(/\[(.*)\]/);
 
-    if (match) {
-      const content = match[1].trim();
-      if (content) {
-        const symbolMatches = content.matchAll(/'([^']+)'/g);
-        for (const symbolMatch of symbolMatches) {
-          const symbolId = symbolMatch[1];
-          violations.push({
-            rule: "symbol-coverage",
-            entityId: symbolId,
-            description:
-              "Code symbol is not traceable to any functional requirement.",
-            suggestion:
-              "Update symbols.yaml to link this symbol to a related requirement.",
-          });
-        }
+    const content = getMatchGroup(match)?.trim();
+    if (content) {
+      const symbolMatches = content.matchAll(/'([^']+)'/g);
+      for (const symbolMatch of symbolMatches) {
+        const symbolId = getMatchGroup(symbolMatch);
+        if (!symbolId) continue;
+
+        violations.push({
+          rule: "symbol-coverage",
+          entityId: symbolId,
+          description:
+            "Code symbol is not traceable to any functional requirement.",
+          suggestion:
+            "Update symbols.yaml to link this symbol to a related requirement.",
+        });
       }
     }
   }

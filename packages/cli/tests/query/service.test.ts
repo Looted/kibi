@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "../../src/prolog.js";
 
 const codecState = {
@@ -21,29 +21,14 @@ const parseEntityFromBindingMock = mock((value: string) => {
   return codecState.bindingEntity;
 });
 
-mock.module("../../src/prolog/codec.js", () => ({
-  escapeAtom: escapeAtomMock,
-  parseEntityFromBinding: parseEntityFromBindingMock,
-  parseEntityFromList: parseEntityFromListMock,
-  parseListOfLists: parseListOfListsMock,
-  toPrologAtom: (value: string) => {
-    const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
-    return simplePrologAtom.test(value)
-      ? value
-      : `'${value.replace(/'/g, "''")}'`;
-  },
-  toPrologString: (value: string) => {
-    const escaped = value
-      .replace(/\\/g, "\\\\")
-      .replace(/"/g, '\\"')
-      .replace(/\n/g, "\\n")
-      .replace(/\r/g, "\\r")
-      .replace(/\t/g, "\\t");
-    return `"${escaped}"`;
-  },
-}));
-
 const service = await import("../../src/query/service.js");
+
+service._setQueryCodecDepsForTests({
+  escapeAtom: escapeAtomMock,
+  parseListOfLists: parseListOfListsMock,
+  parseEntityFromList: parseEntityFromListMock,
+  parseEntityFromBinding: parseEntityFromBindingMock,
+});
 
 type QueryableProlog = {
   query: (goal: string) => Promise<{
@@ -60,6 +45,13 @@ function asPrologProcess(prolog: QueryableProlog): PrologProcess {
 describe("query service", () => {
   beforeEach(() => {
     mock.restore();
+    service._resetQueryCodecDepsForTests();
+    service._setQueryCodecDepsForTests({
+      escapeAtom: escapeAtomMock,
+      parseListOfLists: parseListOfListsMock,
+      parseEntityFromList: parseEntityFromListMock,
+      parseEntityFromBinding: parseEntityFromBindingMock,
+    });
     codecState.parsedLists = [];
     codecState.listEntities = [];
     codecState.bindingEntity = {};
@@ -67,6 +59,10 @@ describe("query service", () => {
     parseListOfListsMock.mockClear();
     parseEntityFromListMock.mockClear();
     parseEntityFromBindingMock.mockClear();
+  });
+
+  afterEach(() => {
+    service._resetQueryCodecDepsForTests();
   });
 
   describe("buildEntityQueryGoal", () => {

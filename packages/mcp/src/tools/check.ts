@@ -45,8 +45,8 @@ function formatDiagnosticsForMcp(diagnostics: Diagnostic[]) {
     category: d.category,
     severity: d.severity,
     message: d.message,
-    file: d.file,
-    suggestion: d.suggestion,
+    ...(d.file !== undefined ? { file: d.file } : {}),
+    ...(d.suggestion !== undefined ? { suggestion: d.suggestion } : {}),
   }));
 }
 
@@ -190,8 +190,8 @@ export async function handleKbCheck(
       category: "SYNC_ERROR",
       severity: "error",
       message: v.description,
-      file: v.source,
-      suggestion: v.suggestion,
+      ...(v.source !== undefined ? { file: v.source } : {}),
+      ...(v.suggestion !== undefined ? { suggestion: v.suggestion } : {}),
     }));
 
     const summary = formatViolationText(aggregatedViolations);
@@ -268,8 +268,8 @@ async function runAggregatedChecks(
           rule: v.rule,
           entityId: v.entityId,
           description: v.description,
-          suggestion: v.suggestion || undefined,
-          source: v.source || undefined,
+          ...(v.suggestion ? { suggestion: v.suggestion } : {}),
+          ...(v.source ? { source: v.source } : {}),
         });
       }
     }

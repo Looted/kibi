@@ -32,18 +32,18 @@ const execAsync = promisify(exec);
 
 export interface KibiTreeItem {
   label: string;
-  description?: string;
-  iconPath?: string;
-  contextValue?: string;
+  description?: string | undefined;
+  iconPath?: string | undefined;
+  contextValue?: string | undefined;
   collapsibleState: vscode.TreeItemCollapsibleState;
-  children?: KibiTreeItem[];
-  tooltip?: string;
+  children?: KibiTreeItem[] | undefined;
+  tooltip?: string | undefined;
   /** Local filesystem path (when source is a local path, not a URL). */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number used when opening a symbol source file. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
   /** For relationship nodes: the target entity ID to navigate to. */
-  targetId?: string;
+  targetId?: string | undefined;
 }
 
 interface KbEntity {
@@ -54,9 +54,9 @@ interface KbEntity {
   tags: string;
   source: string;
   /** Resolved local path when source is a file path rather than a URL. */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number for symbol source navigation. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
 }
 
 type KbRelationship = SharedKbRelationship;
@@ -346,6 +346,9 @@ export class KibiTreeDataProvider
 
       const id = match[1];
       const block = match[2];
+      if (id === undefined || block === undefined) {
+        continue;
+      }
 
       const type = this.extractText(block, "kb:type");
       const title = this.extractText(block, "kb:title");
@@ -401,7 +404,7 @@ export class KibiTreeDataProvider
   private extractText(block: string, tag: string): string {
     const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
     const m = block.match(re);
-    return m ? m[1].trim() : "";
+    return m?.[1]?.trim() ?? "";
   }
 
   private extractResourceSuffix(block: string, tag: string): string {
@@ -409,7 +412,7 @@ export class KibiTreeDataProvider
       `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
-    return m ? m[1] : "";
+    return m?.[1] ?? "";
   }
 
   // implements REQ-vscode-traceability
@@ -632,7 +635,11 @@ export class KibiTreeDataProvider
     }
 
     try {
-      const parsed = loadYaml(match[1]);
+      const frontmatterText = match[1];
+      if (frontmatterText === undefined) {
+        return {};
+      }
+      const parsed = loadYaml(frontmatterText);
       return parsed && typeof parsed === "object"
         ? (parsed as Record<string, unknown>)
         : {};
@@ -880,7 +887,7 @@ export class KibiTreeDataProvider
   // implements REQ-vscode-traceability
   getNavigationTargetForEntity(
     id: string,
-  ): { localPath: string; line?: number } | undefined {
+  ): { localPath: string; line?: number | undefined } | undefined {
     const entity = this.entities.find((e) => e.id === id);
     if (entity?.localPath) {
       if (!fs.existsSync(entity.localPath)) {

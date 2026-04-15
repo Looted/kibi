@@ -24,7 +24,9 @@ interface ToolConfig {
   description: string;
   inputSchema: Record<string, unknown>;
 }
-
+// INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the runtime
+// interface with looser Record<string, unknown> inputSchema. The cast is safe because the
+// tool definitions are statically authored and validated at startup.
 const ACTIVE_TOOLS = TOOLS as unknown as ToolConfig[];
 
 export interface DocResource {

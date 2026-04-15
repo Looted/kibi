@@ -167,11 +167,12 @@ export function formatDiagnosticsForMcp(diagnostics: Diagnostic[]): Array<{
   file?: string;
   suggestion?: string;
 }> {
+  // implements REQ-003
   return diagnostics.map((d) => ({
     category: d.category,
     severity: d.severity,
     message: d.message,
-    file: d.file,
-    suggestion: d.suggestion,
+    ...(d.file !== undefined ? { file: d.file } : {}),
+    ...(d.suggestion !== undefined ? { suggestion: d.suggestion } : {}),
   }));
 }

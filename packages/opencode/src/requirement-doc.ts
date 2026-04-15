@@ -47,6 +47,7 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
   if (!match) return null;
 
   const frontmatterText = match[1];
+  if (frontmatterText === undefined) return null;
   const result: Record<string, unknown> = {};
 
   // Simple YAML-like parsing for top-level scalar values only
@@ -63,8 +64,12 @@ function parseFrontmatter(content: string): Record<string, unknown> | null {
 
     // Strip inline comments (simple heuristic: unquoted #)
     const commentMatch = value.match(/^(.*?)\s+#\s/);
-    if (commentMatch && !isInsideQuotes(value, commentMatch[1].length)) {
-      value = commentMatch[1].trim();
+    const commentValue = commentMatch?.[1];
+    if (
+      commentValue !== undefined &&
+      !isInsideQuotes(value, commentValue.length)
+    ) {
+      value = commentValue.trim();
     }
 
     if (key && value) {

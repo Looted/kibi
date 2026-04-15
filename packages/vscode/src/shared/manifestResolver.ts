@@ -53,5 +53,9 @@ export function resolveSymbolsManifestPath(workspaceRoot: string): string {
     path.join(workspaceRoot, "symbols.yml"),
   ];
   const foundPath = candidates.find((p) => fs.existsSync(p));
-  return foundPath ?? candidates[0];
+  return (
+    foundPath ??
+    candidates[0] ??
+    path.join(workspaceRoot, "documentation", "symbols.yaml")
+  );
 }

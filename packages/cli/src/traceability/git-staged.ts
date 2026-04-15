@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -76,7 +77,7 @@ const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
 const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
 function shouldLogTraceDebug(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+  return isCliTraceOrDebugEnabled();
 }
 
 function escapePath(p: string): string {
@@ -111,6 +112,7 @@ function isManifestFile(p: string): boolean {
  * Parse unified diff hunks (new-file coordinates) from git diff output
  */
 export function parseHunksFromDiff(
+  // implements REQ-014
   diffText: string,
   isNewFile = false,
 ): HunkRange[] {
@@ -121,7 +123,10 @@ export function parseHunksFromDiff(
   while (true) {
     m = regex.exec(diffText);
     if (!m) break;
-    const c = Number.parseInt(m[1], 10);
+    const startLine = m[1];
+    if (!startLine) continue;
+
+    const c = Number.parseInt(startLine, 10);
     const d = m[2] ? Number.parseInt(m[2], 10) : 1;
     if (d > 0) {
       ranges.push({ start: c, end: c + d - 1 });
@@ -172,8 +177,12 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
     let oldPath: string | undefined;
     if (status === "R") {
       if (entry.parts.length >= 2) {
-        oldPath = entry.parts[0];
-        path = entry.parts[1];
+        const previousPath = entry.parts[0];
+        const renamedPath = entry.parts[1];
+        if (previousPath !== undefined && renamedPath !== undefined) {
+          oldPath = previousPath;
+          path = renamedPath;
+        }
       }
     }
 
@@ -228,7 +237,13 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
       }
     }
 
-    results.push({ path, status, oldPath, hunkRanges, content });
+    results.push({
+      path,
+      status,
+      ...(oldPath !== undefined ? { oldPath } : {}),
+      hunkRanges,
+      content,
+    });
   }
 
   return results;

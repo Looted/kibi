@@ -106,8 +106,8 @@ function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
   let pendingRel: { type: string; target?: string } | null = null;
 
   function flushRel() {
-    if (pendingRel?.type && pendingRel.target && current) {
-      current.relationships!.push({
+    if (pendingRel?.type && pendingRel.target && current?.relationships) {
+      current.relationships.push({
         type: pendingRel.type,
         target: pendingRel.target,
       });
@@ -131,7 +131,9 @@ function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
     const entryMatch = raw.match(/^\s+-\s+id:\s*(.+)$/);
     if (entryMatch) {
       flushEntry();
-      current = { id: entryMatch[1].trim(), links: [], relationships: [] };
+      const entryId = entryMatch[1];
+      if (entryId === undefined) continue;
+      current = { id: entryId.trim(), links: [], relationships: [] };
       section = "none";
       continue;
     }
@@ -141,7 +143,9 @@ function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
     // sourceFile
     const srcMatch = raw.match(/^\s+sourceFile:\s*(.+)$/);
     if (srcMatch) {
-      current.sourceFile = srcMatch[1].trim();
+      const sourceFile = srcMatch[1];
+      if (sourceFile === undefined) continue;
+      current.sourceFile = sourceFile.trim();
       section = "none";
       continue;
     }
@@ -164,7 +168,10 @@ function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
     if (section === "links") {
       const linkMatch = raw.match(/^\s+-\s+(REQ-[A-Za-z0-9_-]+)\s*$/);
       if (linkMatch) {
-        current.links!.push(linkMatch[1]);
+        const linkId = linkMatch[1];
+        if (linkId !== undefined && current.links) {
+          current.links.push(linkId);
+        }
         continue;
       }
     }
@@ -174,13 +181,17 @@ function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
       const relTypeMatch = raw.match(/^\s+-\s+type:\s*(.+)$/);
       if (relTypeMatch) {
         flushRel();
-        pendingRel = { type: relTypeMatch[1].trim() };
+        const relationType = relTypeMatch[1];
+        if (relationType === undefined) continue;
+        pendingRel = { type: relationType.trim() };
         continue;
       }
       // Relationship target: "        target: REQ-..."
       const relTargetMatch = raw.match(/^\s+target:\s*(.+)$/);
       if (relTargetMatch && pendingRel) {
-        pendingRel.target = relTargetMatch[1].trim();
+        const target = relTargetMatch[1];
+        if (target === undefined) continue;
+        pendingRel.target = target.trim();
         continue;
       }
     }

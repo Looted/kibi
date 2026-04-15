@@ -83,6 +83,8 @@ function createSessionModuleMock(
     inFlightRequests: trackedRequests,
     initiateGracefulShutdown: async (): Promise<void> => {},
     isShuttingDown: false,
+    _setSessionDepsForTests: (): void => {},
+    _resetSessionDepsForTests: (): void => {},
     prologProcess: null,
     resetSessionStateForTests: (): void => {},
   };

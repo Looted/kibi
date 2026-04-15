@@ -66,6 +66,10 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
+
+      - name: Typecheck matrix
+        run: bun run typecheck
+
       - name: Build CLI package
         run: bun run build:cli
 
@@ -118,10 +122,11 @@ jobs:
           path: packages/*/*.tgz
           retention-days: 1
 
-      - name: Compile e2e tests
+      - name: Typecheck and compile e2e tests
         run: |
+          bun run typecheck:e2e:packed
           rm -rf /tmp/kibi-e2e-packed-compiled
-          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
 
       - name: Upload compiled e2e tests
         if: ${{ github.actor != 'nektos/act' }}

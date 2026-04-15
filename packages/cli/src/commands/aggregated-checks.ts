@@ -24,6 +24,7 @@ export async function runAggregatedChecks(
   rulesAllowlist: Set<string> | null,
   requireAdr = false,
 ): Promise<Violation[]> {
+  // implements REQ-003
   const violations: Violation[] = [];
 
   const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
@@ -70,8 +71,8 @@ export async function runAggregatedChecks(
             rule: v.rule,
             entityId: v.entityId,
             description: v.description,
-            suggestion: v.suggestion || undefined,
-            source: v.source || undefined,
+            ...(v.suggestion ? { suggestion: v.suggestion } : {}),
+            ...(v.source ? { source: v.source } : {}),
           });
         }
       }
