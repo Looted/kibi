@@ -36,7 +36,7 @@
     "typecheck:vscode:tests": "tsc -p packages/vscode/tests/tsconfig.json --noEmit",
     "typecheck:opencode:tests": "tsc -p packages/opencode/tests/tsconfig.json --noEmit",
     "typecheck:scripts": "tsc -p tsconfig.scripts.json --noEmit",
-    "typecheck": "bun run typecheck:cli; bun run typecheck:mcp; bun run typecheck:opencode; bun run typecheck:cli:tests; bun run typecheck:mcp:tests; bun run typecheck:e2e:packed; bun run typecheck:e2e:local; bun run typecheck:vscode; bun run typecheck:vscode:tests; bun run typecheck:opencode:tests; bun run typecheck:scripts",
+    "typecheck": "bun run typecheck:cli && bun run typecheck:mcp && bun run typecheck:opencode && bun run typecheck:cli:tests && bun run typecheck:mcp:tests && bun run typecheck:e2e:packed && bun run typecheck:e2e:local && bun run typecheck:vscode && bun run typecheck:vscode:tests && bun run typecheck:opencode:tests && bun run typecheck:scripts",
     "publish:selective": "./scripts/publish-selective.sh",
     "release:npm": "bun run build && ./scripts/publish-selective.sh",
     "release:bun": "bun run build && ./scripts/publish-selective.sh",
