@@ -38,7 +38,7 @@ jobs:
           TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
           echo "action=$ACTION" >> $GITHUB_OUTPUT
           echo "to_publish<<EOF" >> $GITHUB_OUTPUT
-          echo -n "$TO_PUBLISH" >> $GITHUB_OUTPUT
+          echo "$TO_PUBLISH" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "Release action: $ACTION"
           echo "$DECISION"
