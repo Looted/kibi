@@ -21,13 +21,14 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 export function resolveKbPlPath(): string {
   // implements REQ-009
-  const overrideKbPath = process.env.KIBI_KB_PL_PATH;
+  const overrideKbPath = getKbPlPathOverride();
   if (overrideKbPath) {
     return overrideKbPath;
   }
@@ -209,7 +210,7 @@ export class PrologProcess {
       this.outputBuffer = "";
       this.errorBuffer = "";
 
-      const debug = !!process.env.KIBI_PROLOG_DEBUG;
+      const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
         ? normalizedGoal

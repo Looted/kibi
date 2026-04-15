@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -76,7 +77,7 @@ const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
 const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
 
 function shouldLogTraceDebug(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+  return isCliTraceOrDebugEnabled();
 }
 
 function escapePath(p: string): string {

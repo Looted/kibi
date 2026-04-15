@@ -25,6 +25,7 @@ import {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
+import { isMcpDebugEnabled } from "../env.js";
 import { TOOLS } from "../tools-config.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
 import { type CoverageArgs, handleKbCoverage } from "../tools/coverage.js";
@@ -133,7 +134,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
-  if (process.env.KIBI_MCP_DEBUG) {
+  if (isMcpDebugEnabled()) {
     console.error(...args);
   }
 }
@@ -304,7 +305,7 @@ export function addTool<TProlog>(
           : `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
       // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
-      if (process.env.KIBI_MCP_DEBUG) {
+      if (isMcpDebugEnabled()) {
         console.error(
           `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
           JSON.stringify(businessArgs),

@@ -24,6 +24,7 @@ import {
 } from "kibi-cli/prolog/codec";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
+import { isMcpDebugEnabled } from "../env.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
@@ -218,7 +219,7 @@ export async function handleKbUpsert(
         await refreshCoordinatesForSymbolIdImpl(id);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        if (process.env.KIBI_MCP_DEBUG) {
+        if (isMcpDebugEnabled()) {
           console.warn(
             `[KIBI-MCP] Symbol coordinate auto-refresh failed for ${id}: ${message}`,
           );

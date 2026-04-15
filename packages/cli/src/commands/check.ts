@@ -18,6 +18,7 @@
 
 import { existsSync } from "node:fs";
 import * as path from "node:path";
+import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
   extractFromManifest,
   extractFromManifestString,
@@ -110,7 +111,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         }
       } catch (e) {
         // Ignore working-tree manifest parsing errors; staged-only fallback still applies
-        if (process.env.KIBI_TRACE || process.env.KIBI_DEBUG) {
+        if (isCliTraceOrDebugEnabled()) {
           const msg = e instanceof Error ? e.message : String(e);
           console.debug(
             `[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`,
@@ -183,7 +184,7 @@ export async function checkCommand(
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
     } else {
-      const envBranch = process.env.KIBI_BRANCH;
+      const envBranch = getBranchOverride();
       let branch = envBranch || undefined;
       if (!branch) {
         try {

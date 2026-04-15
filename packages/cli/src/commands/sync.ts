@@ -27,6 +27,7 @@ import {
   createKbMissingDiagnostic,
   formatSyncSummary,
 } from "../diagnostics.js";
+import { isCliDebugEnabled } from "../env.js";
 import type { FrontmatterError } from "../extractors/markdown.js";
 import {
   extractFromRelationshipShards,
@@ -74,10 +75,7 @@ export interface SyncResult extends SyncSummary {
 
 // implements REQ-003, REQ-007
 export async function syncCommand(
-  options: {
-    validateOnly?: boolean;
-    rebuild?: boolean;
-  } = {},
+  options: { validateOnly?: boolean; rebuild?: boolean } = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
@@ -118,7 +116,7 @@ export async function syncCommand(
 
     currentBranch = branchResult.branch;
 
-    if (process.env.KIBI_DEBUG) {
+    if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
@@ -129,7 +127,7 @@ export async function syncCommand(
     const { markdownFiles, manifestFiles, relationshipsDir } =
       await discoverSourceFiles(process.cwd(), paths);
 
-    if (process.env.KIBI_DEBUG) {
+    if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
       console.log("[kibi-debug] markdownFiles:", markdownFiles.length);
       // eslint-disable-next-line no-console

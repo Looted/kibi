@@ -1,5 +1,6 @@
 import path from "node:path";
 import Table from "cli-table3";
+import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
@@ -34,10 +35,9 @@ export async function withAttachedBranchProlog<T>(
 
     let branch: string;
     try {
-      branch =
-        process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+      branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
     } catch {
-      branch = process.env.KIBI_BRANCH || "main";
+      branch = getBranchOverride() || "main";
     }
 
     const kbPath = path.join(process.cwd(), ".kb/branches", branch);
@@ -81,9 +81,9 @@ export async function withPrologProcess<T>(
 export async function resolveCurrentKbPath(): Promise<string> {
   let branch: string;
   try {
-    branch = process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+    branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
   } catch {
-    branch = process.env.KIBI_BRANCH || "main";
+    branch = getBranchOverride() || "main";
   }
 
   return path.join(process.cwd(), ".kb/branches", branch);
