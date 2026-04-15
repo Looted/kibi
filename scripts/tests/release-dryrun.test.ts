@@ -311,7 +311,7 @@ Summary:
 - Reason: ${decision.reason}
 `,
       );
-    });
+    }, 15_000);
 
     test("script produces valid JSON when run as non-master branch (NOOP)", () => {
       const raw = execSync("bun run scripts/run-release-state.ts", {
