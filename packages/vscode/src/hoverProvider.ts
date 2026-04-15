@@ -36,7 +36,7 @@ interface EntityCacheEntry {
 
 // implements REQ-vscode-traceability
 interface HoverProviderDeps {
-  execCli(command: string, options?: any): string;
+  execCli(command: string, options?: import("node:child_process").ExecSyncOptionsWithStringEncoding): string;
   buildMarkdown(
     symbol: { id: string; title: string; file: string; line: number },
     entities: EntityDetails[],
@@ -44,7 +44,7 @@ interface HoverProviderDeps {
 }
 
 const defaultDeps: HoverProviderDeps = {
-  execCli: (cmd, opts) => execSync(cmd, opts as any) as unknown as string,
+  execCli: (cmd, opts) => execSync(cmd, opts) as string,
   buildMarkdown: (sym, ents) => buildHoverMarkdown(sym, ents),
 };
 

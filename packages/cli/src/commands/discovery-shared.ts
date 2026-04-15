@@ -67,6 +67,11 @@ export async function withPrologProcess<T>(
   const prolog = createProlog({ timeout: 120000 });
   try {
     await prolog.start();
+    // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
+    // forces single-query mode (start → query → terminate per call) instead of the
+    // default interactive session. It is not exposed in the public PrologProcess
+    // type because callers should not set it directly — only internal discovery
+    // helpers use it for lightweight one-shot queries that don't need session state.
     (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",

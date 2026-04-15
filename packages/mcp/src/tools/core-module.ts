@@ -59,7 +59,11 @@ export async function runJsonModuleQuery<T>(
 
     return mockedParsed as T;
   }
-
+  // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
+  // forces single-query mode (start → query → terminate per call) instead of the
+  // default interactive session. It is not exposed in the public PrologProcess type
+  // because callers should not set it directly — only internal discovery helpers
+  // use it for lightweight one-shot queries that don't need session state.
   const oneShotCapable = prolog as unknown as { useOneShotMode?: boolean };
   prolog.invalidateCache();
   const result = oneShotCapable.useOneShotMode
