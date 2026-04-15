@@ -8,7 +8,9 @@
     "target": "es2022",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "vscode"]
+    "types": ["node", "vscode"],
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*"]
 }
