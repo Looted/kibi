@@ -164,7 +164,9 @@ describe("notifyStartup", () => {
     };
 
     try {
-      notifyStartup(client as StartupNotifierClient, { directory: "/tmp/worktree" });
+      notifyStartup(client as StartupNotifierClient, {
+        directory: "/tmp/worktree",
+      });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(showToast).toHaveBeenCalledTimes(1);

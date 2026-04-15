@@ -1,16 +1,11 @@
-declare module "bun:test" {
-  export function describe(name: string, fn: () => void): void;
-  export function test(name: string, fn: (done?: unknown) => unknown): void;
-  export function it(name: string, fn: (done?: unknown) => unknown): void;
-  export function beforeEach(fn: () => void): void;
-  export function afterEach(fn: () => void): void;
-  export const expect: (actual: unknown) => {
-    toBe(expected: unknown): void;
-    toContain(expected: string | RegExp): void;
-    not: {
-      toContain(expected: string | RegExp): void;
-    };
-    toBeTruthy(): void;
-    toEqual(expected: unknown): void;
-  };
+/**
+ * Minimal test-type compatibility layer.
+ *
+ * Bun matcher/types must come from `bun-types` via each package test tsconfig.
+ * This file exists only for small compatibility shims that do not redefine
+ * Bun's core `bun:test` surface.
+ */
+
+declare module "vitest" {
+  export * from "bun:test";
 }
