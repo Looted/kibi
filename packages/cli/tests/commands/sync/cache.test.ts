@@ -183,24 +183,16 @@ describe("hashFile", () => {
     const content = Buffer.from("consistent content");
     mockReadFileSync.mockReturnValue(content);
 
-    // Use a real-ish chain to verify consistency
-    let callCount = 0;
+    // Deterministic mock: same content always produces the same digest
     mockCreateHash.mockImplementation(() => {
-      callCount++;
-      const id = callCount;
-      return makeHashMock(`hash_${id}_${content.toString()}`).hash;
+      return makeHashMock(`hash_${content.toString()}`).hash;
     });
 
-    // Both calls read the same content
-    hashFile("/file1.ts", cacheDeps());
-    mockReadFileSync.mockReturnValue(Buffer.from("consistent content"));
-    hashFile("/file2.ts", cacheDeps());
+    const result1 = hashFile("/file1.ts", cacheDeps());
+    const result2 = hashFile("/file2.ts", cacheDeps());
 
-    // Same content should produce the same hash value
-    // (Our mock returns different per-call, but the real impl uses crypto)
-    // Test that readFileSync is called with the path
-    expect(mockReadFileSync).toHaveBeenCalledWith("/file1.ts");
-    expect(mockReadFileSync).toHaveBeenCalledWith("/file2.ts");
+    // Same content must produce the same hash
+    expect(result1).toBe(result2);
   });
 
   test("passes file path to readFileSync", () => {
