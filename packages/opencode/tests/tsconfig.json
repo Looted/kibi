@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
     "rootDir": "..",
     "types": ["bun-types"]

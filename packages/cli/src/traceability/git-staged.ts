@@ -237,7 +237,13 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
       }
     }
 
-    results.push({ path, status, oldPath, hunkRanges, content });
+    results.push({
+      path,
+      status,
+      ...(oldPath !== undefined ? { oldPath } : {}),
+      hunkRanges,
+      content,
+    });
   }
 
   return results;

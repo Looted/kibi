@@ -31,8 +31,8 @@ import {
 interface CodeLensMetadata {
   symbolId: string;
   staticLinks: string[];
-  sourceFile?: string;
-  sourceLine?: number;
+  sourceFile?: string | undefined;
+  sourceLine?: number | undefined;
 }
 
 const codeLensMetadata = new WeakMap<vscode.CodeLens, CodeLensMetadata>();

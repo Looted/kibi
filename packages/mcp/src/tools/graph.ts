@@ -50,7 +50,7 @@ export async function handleKbGraph(
               : `Graph traversal returned ${nodes.length} nodes and ${(payload?.edges ?? []).length} edges from ${args.seedIds.join(", ")}.`,
         },
       ],
-      structuredContent: payload,
+      ...(payload !== undefined ? { structuredContent: payload } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

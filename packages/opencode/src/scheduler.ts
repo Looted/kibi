@@ -57,7 +57,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
   private readonly runSync: SyncRunner;
   private readonly runCheck: CheckRunner;
   private config: KibiConfig;
-  private readonly onRunComplete?: (meta: SyncRunMetadata) => void;
+  private readonly onRunComplete: ((meta: SyncRunMetadata) => void) | undefined;
   private readonly explicitToolAfterHint: boolean;
 
   private timer: TimeoutHandle | null = null;
@@ -88,7 +88,11 @@ class WorktreeSyncScheduler implements SyncScheduler {
       this.lastFileEditedAt = this.now();
     }
 
-    this.pending = { reason, filePath, checkRules };
+    this.pending = {
+      reason,
+      ...(filePath !== undefined ? { filePath } : {}),
+      ...(checkRules !== undefined ? { checkRules } : {}),
+    };
     if (this.timer) this.clearTimeoutFn(this.timer);
     this.timer = this.setTimeoutFn(() => {
       this.timer = null;
@@ -207,8 +211,12 @@ class WorktreeSyncScheduler implements SyncScheduler {
         this.trailing = null;
         void this.startRun({
           reason: `${trailing.reason}.trailing`,
-          filePath: trailing.filePath,
-          checkRules: trailing.checkRules,
+          ...(trailing.filePath !== undefined
+            ? { filePath: trailing.filePath }
+            : {}),
+          ...(trailing.checkRules !== undefined
+            ? { checkRules: trailing.checkRules }
+            : {}),
         });
       }
     }
@@ -225,12 +233,12 @@ class WorktreeSyncScheduler implements SyncScheduler {
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
-      filePath: trigger.filePath,
       debounceWindowMs: this.config.sync.debounceMs,
       durationMs,
       exitCode,
-      checkExitCode,
-      checkRules,
+      ...(trigger.filePath !== undefined ? { filePath: trigger.filePath } : {}),
+      ...(checkExitCode !== undefined ? { checkExitCode } : {}),
+      ...(checkRules !== undefined ? { checkRules } : {}),
     };
 
     if (exitCode === 0) {

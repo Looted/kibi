@@ -33,9 +33,10 @@ export function registerTraceability(
     getLocalPathForEntity: (entityId: string) => string | undefined;
     getNavigationTargetForEntity?: (
       entityId: string,
-    ) => { localPath: string; line?: number } | undefined;
+    ) => { localPath: string; line?: number | undefined } | undefined;
   },
 ): TraceabilityRegistrationResult {
+  // implements REQ-vscode-traceability
   const relationshipCache = new RelationshipCache();
   const results: TraceabilityRegistrationResult = {
     relationshipCache,

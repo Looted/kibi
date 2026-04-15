@@ -536,7 +536,13 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
         ? parts[4]?.trim().replace(/^'|'$/g, "") || undefined
         : undefined;
 
-    violations.push({ rule, entityId, description, suggestion, source });
+    violations.push({
+      rule,
+      entityId,
+      description,
+      suggestion,
+      ...(source !== undefined ? { source } : {}),
+    });
   }
 
   return violations;

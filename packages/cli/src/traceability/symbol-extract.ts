@@ -160,7 +160,7 @@ function buildSymbolResult(
       stagedFile.hunkRanges,
     ),
     reqLinks: mergedReqLinks,
-    relationships,
+    ...(relationships !== undefined ? { relationships } : {}),
   };
 }
 
