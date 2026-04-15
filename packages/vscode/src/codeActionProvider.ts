@@ -115,10 +115,11 @@ export async function browseLinkedEntities(
   _workspaceRoot: string,
   getNavigationTarget: (
     id: string,
-  ) => { localPath: string; line?: number } | undefined,
+  ) => { localPath: string; line?: number | undefined } | undefined,
   _symbolSourceFile?: string,
   _symbolSourceLine?: number,
 ): Promise<void> {
+  // implements REQ-vscode-traceability
   const allIds = relationships
     .filter((r) => r.from === symbolId || r.to === symbolId)
     .map((r) => (r.from === symbolId ? r.to : r.from));
@@ -133,12 +134,11 @@ export async function browseLinkedEntities(
 
   const items: vscode.QuickPickItem[] = uniqueIds.map((id) => {
     const navigationTarget = getNavigationTarget(id);
+    const detail = navigationTarget?.localPath;
     return {
       label: id,
-      description: navigationTarget?.localPath
-        ? path.basename(navigationTarget.localPath)
-        : "(no local file)",
-      detail: navigationTarget?.localPath ?? undefined,
+      description: detail ? path.basename(detail) : "(no local file)",
+      ...(detail ? { detail } : {}),
     };
   });
 

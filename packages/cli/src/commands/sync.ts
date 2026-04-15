@@ -27,6 +27,7 @@ import {
   createKbMissingDiagnostic,
   formatSyncSummary,
 } from "../diagnostics.js";
+import { isCliDebugEnabled } from "../env.js";
 import type { FrontmatterError } from "../extractors/markdown.js";
 import {
   extractFromRelationshipShards,
@@ -74,10 +75,7 @@ export interface SyncResult extends SyncSummary {
 
 // implements REQ-003, REQ-007
 export async function syncCommand(
-  options: {
-    validateOnly?: boolean;
-    rebuild?: boolean;
-  } = {},
+  options: { validateOnly?: boolean; rebuild?: boolean } = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
@@ -100,6 +98,12 @@ export async function syncCommand(
     }
   };
 
+  const withOptionalCommit = <T extends object>(
+    value: T,
+    commit: string | undefined,
+  ): T & { commit?: string } =>
+    commit !== undefined ? { ...value, commit } : value;
+
   try {
     // Branch resolution
     const branchResult = resolveActiveBranch(process.cwd());
@@ -118,7 +122,7 @@ export async function syncCommand(
 
     currentBranch = branchResult.branch;
 
-    if (process.env.KIBI_DEBUG) {
+    if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
       console.log("[kibi-debug] currentBranch:", currentBranch);
     }
@@ -129,7 +133,7 @@ export async function syncCommand(
     const { markdownFiles, manifestFiles, relationshipsDir } =
       await discoverSourceFiles(process.cwd(), paths);
 
-    if (process.env.KIBI_DEBUG) {
+    if (isCliDebugEnabled()) {
       // eslint-disable-next-line no-console
       console.log("[kibi-debug] markdownFiles:", markdownFiles.length);
       // eslint-disable-next-line no-console
@@ -237,18 +241,20 @@ export async function syncCommand(
         console.error(`${err.file}: ${err.message}`);
       }
       console.error(`FAILED: ${errors.length} errors found`);
-      return {
-        branch: currentBranch,
-        commit: getCurrentCommit(),
-        timestamp: new Date().toISOString(),
-        entityCounts,
-        relationshipCount: 0,
-        success: false,
-        published: false,
-        failures: diagnostics,
-        durationMs: Date.now() - startTime,
-        exitCode: 1,
-      };
+      return withOptionalCommit(
+        {
+          branch: currentBranch,
+          timestamp: new Date().toISOString(),
+          entityCounts,
+          relationshipCount: 0,
+          success: false,
+          published: false,
+          failures: diagnostics,
+          durationMs: Date.now() - startTime,
+          exitCode: 1,
+        },
+        getCurrentCommit(),
+      );
     }
 
     if (results.length === 0 && allRelationships.length === 0 && !rebuild) {
@@ -270,18 +276,20 @@ export async function syncCommand(
       });
 
       console.log("✓ Imported 0 entities, 0 relationships (no changes)");
-      return {
-        branch: currentBranch,
-        commit: getCurrentCommit(),
-        timestamp: new Date().toISOString(),
-        entityCounts,
-        relationshipCount: 0,
-        success: true,
-        published: false,
-        failures: diagnostics,
-        durationMs: Date.now() - startTime,
-        exitCode: 0,
-      };
+      return withOptionalCommit(
+        {
+          branch: currentBranch,
+          timestamp: new Date().toISOString(),
+          entityCounts,
+          relationshipCount: 0,
+          success: true,
+          published: false,
+          failures: diagnostics,
+          durationMs: Date.now() - startTime,
+          exitCode: 0,
+        },
+        getCurrentCommit(),
+      );
     }
 
     const livePath = path.join(process.cwd(), `.kb/branches/${currentBranch}`);
@@ -358,33 +366,37 @@ export async function syncCommand(
             console.error(`${err.file}: ${err.message}`);
           }
           console.error(`FAILED: ${errors.length} errors found`);
-          return {
-            branch: currentBranch,
-            commit: getCurrentCommit(),
-            timestamp: new Date().toISOString(),
-            entityCounts,
-            relationshipCount: 0,
-            success: false,
-            published: false,
-            failures: diagnostics,
-            durationMs: Date.now() - startTime,
-            exitCode: 1,
-          };
+          return withOptionalCommit(
+            {
+              branch: currentBranch,
+              timestamp: new Date().toISOString(),
+              entityCounts,
+              relationshipCount: 0,
+              success: false,
+              published: false,
+              failures: diagnostics,
+              durationMs: Date.now() - startTime,
+              exitCode: 1,
+            },
+            getCurrentCommit(),
+          );
         }
 
         console.log(`OK: Validation passed (${entityCount} entities)`);
-        return {
-          branch: currentBranch,
-          commit: getCurrentCommit(),
-          timestamp: new Date().toISOString(),
-          entityCounts,
-          relationshipCount: 0,
-          success: true,
-          published: false,
-          failures: diagnostics,
-          durationMs: Date.now() - startTime,
-          exitCode: 0,
-        };
+        return withOptionalCommit(
+          {
+            branch: currentBranch,
+            timestamp: new Date().toISOString(),
+            entityCounts,
+            relationshipCount: 0,
+            success: true,
+            published: false,
+            failures: diagnostics,
+            durationMs: Date.now() - startTime,
+            exitCode: 0,
+          },
+          getCurrentCommit(),
+        );
       }
 
       if (kbModified) {
@@ -437,17 +449,19 @@ export async function syncCommand(
       );
 
       const commit = getCurrentCommit();
-      const summary: SyncSummary = {
-        branch: currentBranch,
+      const summary: SyncSummary = withOptionalCommit(
+        {
+          branch: currentBranch,
+          timestamp: new Date().toISOString(),
+          entityCounts,
+          relationshipCount,
+          success: true,
+          published,
+          failures: diagnostics,
+          durationMs: Date.now() - startTime,
+        },
         commit,
-        timestamp: new Date().toISOString(),
-        entityCounts,
-        relationshipCount,
-        success: true,
-        published,
-        failures: diagnostics,
-        durationMs: Date.now() - startTime,
-      };
+      );
 
       console.log(formatSyncSummary(summary));
       return { ...summary, exitCode: 0 };
@@ -460,17 +474,19 @@ export async function syncCommand(
     console.error(`Error: ${errorMessage}`);
 
     const commit = getCurrentCommit();
-    const summary: SyncSummary = {
-      branch: currentBranch || "unknown",
+    const summary: SyncSummary = withOptionalCommit(
+      {
+        branch: currentBranch || "unknown",
+        timestamp: new Date().toISOString(),
+        entityCounts,
+        relationshipCount: 0,
+        success: false,
+        published: false,
+        failures: diagnostics,
+        durationMs: Date.now() - startTime,
+      },
       commit,
-      timestamp: new Date().toISOString(),
-      entityCounts,
-      relationshipCount: 0,
-      success: false,
-      published: false,
-      failures: diagnostics,
-      durationMs: Date.now() - startTime,
-    };
+    );
 
     if (diagnostics.length > 0) {
       console.log("\nDiagnostics:");

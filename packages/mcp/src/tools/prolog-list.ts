@@ -44,7 +44,11 @@ export function parsePairList(raw: string): Array<[string, string]> {
       stripQuotes(part.trim()),
     );
     if (parts.length >= 2) {
-      pairs.push([parts[0], parts[1]]);
+      const first = parts[0];
+      const second = parts[1];
+      if (first !== undefined && second !== undefined) {
+        pairs.push([first, second]);
+      }
     }
   }
 

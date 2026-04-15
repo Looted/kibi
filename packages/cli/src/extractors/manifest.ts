@@ -142,24 +142,26 @@ function extractFromParsedManifest(
     }
 
     const id = symbol.id || generateId(filePath, symbol.title);
+    const entity: ExtractedEntity = {
+      id,
+      type: "symbol",
+      title: symbol.title,
+      status: symbol.status || "active",
+      created_at: symbol.created_at || new Date().toISOString(),
+      updated_at: symbol.updated_at || new Date().toISOString(),
+      source: filePath,
+      ...(symbol.tags !== undefined ? { tags: symbol.tags } : {}),
+      ...(symbol.owner !== undefined ? { owner: symbol.owner } : {}),
+      ...(symbol.priority !== undefined ? { priority: symbol.priority } : {}),
+      ...(symbol.severity !== undefined ? { severity: symbol.severity } : {}),
+      ...(symbol.text_ref !== undefined ? { text_ref: symbol.text_ref } : {}),
+    };
+    const sourceFile = symbol.sourceFile ?? symbol.source;
 
     return {
-      entity: {
-        id,
-        type: "symbol",
-        title: symbol.title,
-        status: symbol.status || "active",
-        created_at: symbol.created_at || new Date().toISOString(),
-        updated_at: symbol.updated_at || new Date().toISOString(),
-        source: filePath,
-        tags: symbol.tags,
-        owner: symbol.owner,
-        priority: symbol.priority,
-        severity: symbol.severity,
-        text_ref: symbol.text_ref,
-      },
+      entity,
       relationships: extractRelationships(id, symbol),
-      sourceFile: symbol.sourceFile ?? symbol.source,
+      ...(sourceFile !== undefined ? { sourceFile } : {}),
     };
   });
 }

@@ -3,8 +3,8 @@
   "compilerOptions": {
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
-    "rootDir": "../..",
-    "types": ["bun-types"]
+    "rootDir": "..",
+    "types": ["bun-types", "node", "vscode"]
   },
-  "include": ["**/*.test.ts", "../src/**/*.d.ts"]
+  "include": ["**/*.test.ts", "../src/types/**/*.d.ts"]
 }

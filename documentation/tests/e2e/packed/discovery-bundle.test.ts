@@ -546,7 +546,7 @@ This requirement is intentionally not must-priority.
           recursive: true,
         });
 
-        const brokenEnv = {
+        const brokenEnv: NodeJS.ProcessEnv = {
           ...sandbox.env,
           KIBI_KB_PL_PATH: join(isolatedSrc, "kb.pl"),
         };

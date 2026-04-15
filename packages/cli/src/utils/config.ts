@@ -95,6 +95,7 @@ export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
  * @returns The merged configuration (defaults + user config)
  */
 export function loadConfig(cwd: string = process.cwd()): KbConfig {
+  // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
 
   let userConfig: Partial<KbConfig> = {};
@@ -113,7 +114,9 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
       ...DEFAULT_CONFIG.paths,
       ...userConfig.paths,
     },
-    defaultBranch: userConfig.defaultBranch,
+    ...(userConfig.defaultBranch !== undefined
+      ? { defaultBranch: userConfig.defaultBranch }
+      : {}),
     checks: userConfig.checks
       ? {
           rules: {
@@ -138,6 +141,7 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
  * @returns The merged configuration with sync-compatible paths
  */
 export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
+  // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
 
   let userConfig: Partial<KbConfig> = {};
@@ -156,7 +160,9 @@ export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
       ...DEFAULT_SYNC_PATHS,
       ...userConfig.paths,
     },
-    defaultBranch: userConfig.defaultBranch,
+    ...(userConfig.defaultBranch !== undefined
+      ? { defaultBranch: userConfig.defaultBranch }
+      : {}),
     checks: userConfig.checks
       ? {
           rules: {

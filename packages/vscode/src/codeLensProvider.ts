@@ -31,8 +31,8 @@ import {
 interface CodeLensMetadata {
   symbolId: string;
   staticLinks: string[];
-  sourceFile?: string;
-  sourceLine?: number;
+  sourceFile?: string | undefined;
+  sourceLine?: number | undefined;
 }
 
 const codeLensMetadata = new WeakMap<vscode.CodeLens, CodeLensMetadata>();
@@ -81,7 +81,11 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
       path.join(this.workspaceRoot, "symbols.yaml"),
       path.join(this.workspaceRoot, "symbols.yml"),
     ];
-    return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
+    return (
+      candidates.find((p) => fs.existsSync(p)) ??
+      candidates[0] ??
+      path.join(this.workspaceRoot, "symbols.yaml")
+    );
   }
 
   provideCodeLenses(

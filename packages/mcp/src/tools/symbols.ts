@@ -229,8 +229,7 @@ export async function refreshCoordinatesForSymbolId(
   parsed.symbols = symbols;
 
   const refreshed = GENERATED_COORD_FIELDS.some(
-    (field) =>
-      (original as ManifestSymbolEntry)[field] !== symbols[index][field],
+    (field) => (original as ManifestSymbolEntry)[field] !== finalized[field],
   );
 
   const dumped = dumpYAML(parsed, {
@@ -282,7 +281,7 @@ export async function resolveManifestPath(
       return candidate;
     }
   }
-  return candidates[0];
+  return candidates[0] ?? path.join(workspaceRoot, "symbols.yaml");
 }
 
 function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {

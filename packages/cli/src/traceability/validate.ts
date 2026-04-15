@@ -145,6 +145,17 @@ export async function validateStagedSymbols(
     // row: [Sym,Count,File,Line,Col,Name]
     if (row.length < 6) continue;
     const [sym, count, file, line, col, name] = row;
+    if (
+      sym === undefined ||
+      count === undefined ||
+      file === undefined ||
+      line === undefined ||
+      col === undefined ||
+      name === undefined
+    ) {
+      continue;
+    }
+
     const symbolId = unquoteAtom(sym);
     const currentLinks = Number(count.replace(/[^0-9]/g, "")) || 0;
     const requiredLinks = minLinks;

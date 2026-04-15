@@ -41,7 +41,9 @@ export async function handleKbSearch(
 
   try {
     const workspaceRoot = resolveWorkspaceRoot();
-    const entities = await loadEntities(prolog, { type });
+    const entities = await loadEntities(prolog, {
+      ...(type !== undefined ? { type } : {}),
+    });
     const matches = await rankEntities(entities, trimmedQuery, workspaceRoot);
     const paginated = paginateResults(matches, limit, offset);
 

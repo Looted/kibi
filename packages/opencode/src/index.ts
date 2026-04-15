@@ -515,7 +515,6 @@ const kibiOpencodePlugin: Plugin = async (
           hasRecentKbEdit,
           recentCommentSuggestion,
           posture: posture.state,
-          riskClass: lastRiskClass ?? undefined,
           cache,
           workspaceRoot: input.worktree,
           branch: currentBranch,
@@ -523,6 +522,7 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
+          ...(lastRiskClass != null ? { riskClass: lastRiskClass } : {}),
         });
 
         logger.info("smart-enforcement.guidance", {

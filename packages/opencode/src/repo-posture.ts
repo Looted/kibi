@@ -103,6 +103,7 @@ function rootTargetsAllResolve(cwd: string): boolean {
 
   for (const key of defaultKeys) {
     const raw = paths?.[key] ?? DEFAULT_SYNC_PATHS[key];
+    if (!raw) return false;
     // Normalize: strip trailing slashes and glob patterns to get the root dir/file path
     const normalized = raw.replace(/\/+$/, "");
     const isFile = normalized.endsWith(".yaml") || normalized.endsWith(".yml");

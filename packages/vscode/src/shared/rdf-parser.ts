@@ -27,7 +27,6 @@ export const KB_RELATIONSHIP_TYPES: ReadonlyArray<string> = [
   "relates_to",
 ];
 
-
 /**
  * Parse inline-style RDF relationships from a kb.rdf document.
  *
@@ -47,6 +46,7 @@ export function parseRdfRelationships(content: string): KbRelationship[] {
 
     const fromId = blockMatch[1];
     const block = blockMatch[2];
+    if (fromId === undefined || block === undefined) continue;
 
     for (const relType of KB_RELATIONSHIP_TYPES) {
       const relRe = new RegExp(
@@ -56,7 +56,9 @@ export function parseRdfRelationships(content: string): KbRelationship[] {
       while (true) {
         const relMatch = relRe.exec(block);
         if (!relMatch) break;
-        relationships.push({ relType, fromId, toId: relMatch[1] });
+        const toId = relMatch[1];
+        if (toId === undefined) continue;
+        relationships.push({ relType, fromId, toId });
       }
     }
   }

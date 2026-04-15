@@ -25,6 +25,7 @@ import {
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
+import { isMcpDebugEnabled } from "../env.js";
 import { TOOLS } from "../tools-config.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
 import { type CoverageArgs, handleKbCoverage } from "../tools/coverage.js";
@@ -114,6 +115,9 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   appendUsageLogLine,
   deriveDiagnosticFields,
   extractToolCallPayload,
+  // INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the
+  // runtime interface with looser Record<string, unknown> inputSchema. The cast is safe
+  // because the tool definitions are statically authored and validated at startup.
   tools: TOOLS as unknown as ToolConfig[],
   activeBranchName: async () => (await getSessionModule()).activeBranchName,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
@@ -133,7 +137,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
 
 // implements REQ-008
 function debugLog(...args: Parameters<typeof console.error>): void {
-  if (process.env.KIBI_MCP_DEBUG) {
+  if (isMcpDebugEnabled()) {
     console.error(...args);
   }
 }
@@ -162,6 +166,9 @@ export function jsonSchemaToZod(schema: unknown): z.ZodTypeAny {
     const literalSchemas = literals.map((value) => z.literal(value));
     if (literalSchemas.length === 1) {
       const single = literalSchemas[0];
+      if (!single) {
+        return description ? z.any().describe(description) : z.any();
+      }
       return description ? single.describe(description) : single;
     }
     const union = z.union(
@@ -274,6 +281,9 @@ export function addTool<TProlog>(
   description: string,
   inputSchema: object,
   handler: ToolHandler,
+  // INTENTIONAL: DEFAULT_TOOLS_RUNTIME is typed as ToolsRuntime<PrologProcess>; the
+  // generic TProlog parameter exists so tests can inject a mock type. The cast is safe
+  // because the runtime object satisfies the full ToolsRuntime contract at runtime.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
@@ -304,7 +314,7 @@ export function addTool<TProlog>(
           : `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
       // Log tool call for debugging (to stderr to avoid breaking stdio protocol)
-      if (process.env.KIBI_MCP_DEBUG) {
+      if (isMcpDebugEnabled()) {
         console.error(
           `[KIBI-MCP] Tool called: ${name} (requestId: ${requestId}) with args:`,
           JSON.stringify(businessArgs),
@@ -403,6 +413,7 @@ export function addTool<TProlog>(
 // implements REQ-002, REQ-013
 export function registerAllTools<TProlog>(
   server: McpServer,
+  // INTENTIONAL: same generic bridge cast as addTool — see comment there.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const toolDef = (name: string) => {
@@ -410,7 +421,10 @@ export function registerAllTools<TProlog>(
     if (!t) throw new Error(`Unknown tool: ${name}`);
     return t;
   };
-
+  // INTENTIONAL ARGUMENT CASTS: The `args as (unknown as)? XyzArgs` casts below
+  // bridge the generic ToolHandler (which receives Record<string, unknown>) to the
+  // specific handler argument types. Argument shapes are validated by Zod schemas
+  // (via jsonSchemaToZod) before the handler is invoked, so the casts are safe at runtime.
   addTool(
     server,
     "kb_query",

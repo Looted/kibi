@@ -1,5 +1,6 @@
 import path from "node:path";
 import Table from "cli-table3";
+import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
@@ -34,10 +35,9 @@ export async function withAttachedBranchProlog<T>(
 
     let branch: string;
     try {
-      branch =
-        process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+      branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
     } catch {
-      branch = process.env.KIBI_BRANCH || "main";
+      branch = getBranchOverride() || "main";
     }
 
     const kbPath = path.join(process.cwd(), ".kb/branches", branch);
@@ -67,6 +67,11 @@ export async function withPrologProcess<T>(
   const prolog = createProlog({ timeout: 120000 });
   try {
     await prolog.start();
+    // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
+    // forces single-query mode (start → query → terminate per call) instead of the
+    // default interactive session. It is not exposed in the public PrologProcess
+    // type because callers should not set it directly — only internal discovery
+    // helpers use it for lightweight one-shot queries that don't need session state.
     (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
@@ -81,9 +86,9 @@ export async function withPrologProcess<T>(
 export async function resolveCurrentKbPath(): Promise<string> {
   let branch: string;
   try {
-    branch = process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+    branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
   } catch {
-    branch = process.env.KIBI_BRANCH || "main";
+    branch = getBranchOverride() || "main";
   }
 
   return path.join(process.cwd(), ".kb/branches", branch);

@@ -21,13 +21,14 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 export function resolveKbPlPath(): string {
   // implements REQ-009
-  const overrideKbPath = process.env.KIBI_KB_PL_PATH;
+  const overrideKbPath = getKbPlPathOverride();
   if (overrideKbPath) {
     return overrideKbPath;
   }
@@ -209,7 +210,7 @@ export class PrologProcess {
       this.outputBuffer = "";
       this.errorBuffer = "";
 
-      const debug = !!process.env.KIBI_PROLOG_DEBUG;
+      const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
         ? normalizedGoal
@@ -370,6 +371,15 @@ export class PrologProcess {
 
     const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
     if (attachMatch) {
+      const attachPath = attachMatch[1] ?? null;
+      if (!attachPath) {
+        return {
+          success: false,
+          bindings: {},
+          error: "Invalid KB attach path",
+        };
+      }
+
       if (this.attachedKbPath !== null) {
         return {
           success: false,
@@ -379,7 +389,7 @@ export class PrologProcess {
       }
       const attachResult = this.execOneShot(trimmedGoal, null);
       if (attachResult.success) {
-        this.attachedKbPath = attachMatch[1];
+        this.attachedKbPath = attachPath;
       }
       return attachResult;
     }
@@ -502,7 +512,9 @@ export class PrologProcess {
       const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.+)\.?\s*$/);
       if (match) {
         const [, varName, value] = match;
-        bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        if (varName !== undefined && value !== undefined) {
+          bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        }
       }
     }
 
@@ -529,12 +541,13 @@ export class PrologProcess {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
 
-    const simpleError = errorText
-      .replace(/ERROR:\s*/g, "")
-      .replace(/^\*\*.*\*\*$/gm, "")
-      .replace(/^\s+/gm, "")
-      .split("\n")[0]
-      .trim();
+    const simpleError = (
+      errorText
+        .replace(/ERROR:\s*/g, "")
+        .replace(/^\*\*.*\*\*$/gm, "")
+        .replace(/^\s+/gm, "")
+        .split("\n")[0] ?? ""
+    ).trim();
 
     return simpleError || "Unknown error";
   }

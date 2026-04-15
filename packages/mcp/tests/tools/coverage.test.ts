@@ -75,7 +75,8 @@ describe("MCP coverage tool handler", () => {
     });
 
     expect(query).toHaveBeenCalledTimes(1);
-    expect(String(query.mock.calls[0]?.[0] ?? "")).toContain(
+    const firstCall = query.mock.calls[0] as unknown[];
+    expect(String(firstCall[0])).toContain(
       ", false, false, 100, 0, JsonString)",
     );
   });

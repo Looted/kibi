@@ -138,11 +138,14 @@ export class FrontmatterError extends Error {
       originalError?: string;
     },
   ) {
+    // implements REQ-003
     super(message);
     this.name = "FrontmatterError";
     this.classification = options?.classification || "Generic Error";
     this.hint = options?.hint || "Check the file for syntax errors.";
-    this.originalError = options?.originalError;
+    if (options?.originalError !== undefined) {
+      this.originalError = options.originalError;
+    }
   }
 
   override toString() {
@@ -188,7 +191,12 @@ function parseFrontmatter(content: string): {
     return { data: {}, content };
   }
 
-  const parsed = yamlLoad(parts[1]);
+  const frontmatter = parts[1];
+  if (frontmatter === undefined) {
+    return { data: {}, content };
+  }
+
+  const parsed = yamlLoad(frontmatter);
 
   return {
     data: isObjectRecord(parsed) ? (parsed as FrontmatterData) : {},
@@ -206,7 +214,10 @@ function hasLikelyUnquotedColonInTitle(content: string): boolean {
     return false;
   }
 
-  return /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(parts[1]);
+  const frontmatter = parts[1];
+  return frontmatter
+    ? /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(frontmatter)
+    : false;
 }
 
 export function detectEmbeddedEntities(
@@ -429,6 +440,13 @@ function extractFromMarkdownContent(
     }
 
     // Add typed fact fields only for fact entities
+    //
+    // INTENTIONAL DYNAMIC CAST: The casts below assign parsed markdown frontmatter
+    // values to ExtractedEntity fields. TypeScript cannot verify that a runtime string
+    // from a const array (e.g., FACT_STRING_FIELDS) is a valid key of ExtractedEntity,
+    // even though all fields are declared as optional properties on the interface.
+    // Fields are validated against the JSON Schema (via validateExtractedEntity) below,
+    // so any invalid field will be caught at runtime before the entity is returned.
     if (type === "fact") {
       // String fields
       for (const field of FACT_STRING_FIELDS) {

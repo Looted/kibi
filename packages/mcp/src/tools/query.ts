@@ -52,7 +52,13 @@ export async function handleKbQuery(
   const { type, id, tags, sourceFile, limit = 100, offset = 0 } = args;
 
   try {
-    const results = await loadEntities(prolog, { type, id, tags, sourceFile });
+    const queryArgs = {
+      ...(type !== undefined ? { type } : {}),
+      ...(id !== undefined ? { id } : {}),
+      ...(tags !== undefined ? { tags } : {}),
+      ...(sourceFile !== undefined ? { sourceFile } : {}),
+    };
+    const results = await loadEntities(prolog, queryArgs);
     const paginated = paginateResults(results, limit, offset);
 
     // Build human-readable text with entity IDs and titles
