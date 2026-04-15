@@ -129,7 +129,7 @@ async function rankEntity(
     entity,
     score,
     reasons: Array.from(new Set(reasons)),
-    snippet,
+    ...(snippet !== undefined ? { snippet } : {}),
   };
 }
 

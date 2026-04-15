@@ -13,6 +13,7 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
       "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],

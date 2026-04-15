@@ -51,7 +51,7 @@ export async function handleKbCoverage(
           text: `Coverage summary: ${fullyCovered} fully covered out of ${total}.`,
         },
       ],
-      structuredContent: payload,
+      ...(payload !== undefined ? { structuredContent: payload } : {}),
     };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

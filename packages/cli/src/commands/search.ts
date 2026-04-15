@@ -59,7 +59,7 @@ async function executeSearch(
   offset: number,
 ): Promise<{ results: SearchMatch[]; count: number }> {
   const entitiesResult = await queryEntities(prolog, {
-    type,
+    ...(type !== undefined ? { type } : {}),
     limit: 100000,
     offset: 0,
   });

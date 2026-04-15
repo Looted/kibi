@@ -1,6 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
+    "exactOptionalPropertyTypes": false,
     "rootDir": "..",
     "types": ["bun-types", "node", "vscode"]
   },

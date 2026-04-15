@@ -23,9 +23,9 @@ export interface SymbolEntry {
   id: string;
   title: string;
   /** Absolute path of the source file where this symbol lives, if available. */
-  sourceFile?: string;
+  sourceFile?: string | undefined;
   /** 1-based line number of the symbol declaration within sourceFile. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
   /**
    * Optional array of entity IDs this symbol is linked to.
    * @deprecated Use relationships from canonical shard storage instead.

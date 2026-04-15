@@ -138,11 +138,14 @@ export class FrontmatterError extends Error {
       originalError?: string;
     },
   ) {
+    // implements REQ-003
     super(message);
     this.name = "FrontmatterError";
     this.classification = options?.classification || "Generic Error";
     this.hint = options?.hint || "Check the file for syntax errors.";
-    this.originalError = options?.originalError;
+    if (options?.originalError !== undefined) {
+      this.originalError = options.originalError;
+    }
   }
 
   override toString() {

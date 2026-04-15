@@ -32,18 +32,18 @@ const execAsync = promisify(exec);
 
 export interface KibiTreeItem {
   label: string;
-  description?: string;
-  iconPath?: string;
-  contextValue?: string;
+  description?: string | undefined;
+  iconPath?: string | undefined;
+  contextValue?: string | undefined;
   collapsibleState: vscode.TreeItemCollapsibleState;
-  children?: KibiTreeItem[];
-  tooltip?: string;
+  children?: KibiTreeItem[] | undefined;
+  tooltip?: string | undefined;
   /** Local filesystem path (when source is a local path, not a URL). */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number used when opening a symbol source file. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
   /** For relationship nodes: the target entity ID to navigate to. */
-  targetId?: string;
+  targetId?: string | undefined;
 }
 
 interface KbEntity {
@@ -54,9 +54,9 @@ interface KbEntity {
   tags: string;
   source: string;
   /** Resolved local path when source is a file path rather than a URL. */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number for symbol source navigation. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
 }
 
 type KbRelationship = SharedKbRelationship;
@@ -887,7 +887,7 @@ export class KibiTreeDataProvider
   // implements REQ-vscode-traceability
   getNavigationTargetForEntity(
     id: string,
-  ): { localPath: string; line?: number } | undefined {
+  ): { localPath: string; line?: number | undefined } | undefined {
     const entity = this.entities.find((e) => e.id === id);
     if (entity?.localPath) {
       if (!fs.existsSync(entity.localPath)) {
