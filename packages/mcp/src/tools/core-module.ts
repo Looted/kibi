@@ -2,12 +2,10 @@ import path from "node:path";
 import { PrologProcess, resolveKbPlPath } from "kibi-cli/prolog";
 import { escapeAtomContent } from "kibi-cli/prolog/codec";
 
+type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
+
 type PrologQueryLike = {
-  query: (goal: string) => Promise<{
-    success: boolean;
-    bindings: Record<string, string>;
-    error?: string;
-  }>;
+  query: (goal: string) => Promise<PrologQueryResult>;
 };
 
 // implements REQ-002, REQ-013
