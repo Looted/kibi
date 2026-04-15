@@ -429,6 +429,13 @@ function extractFromMarkdownContent(
     }
 
     // Add typed fact fields only for fact entities
+    //
+    // INTENTIONAL DYNAMIC CAST: The casts below assign parsed markdown frontmatter
+    // values to ExtractedEntity fields. TypeScript cannot verify that a runtime string
+    // from a const array (e.g., FACT_STRING_FIELDS) is a valid key of ExtractedEntity,
+    // even though all fields are declared as optional properties on the interface.
+    // Fields are validated against the JSON Schema (via validateExtractedEntity) below,
+    // so any invalid field will be caught at runtime before the entity is returned.
     if (type === "fact") {
       // String fields
       for (const field of FACT_STRING_FIELDS) {

@@ -115,6 +115,9 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   appendUsageLogLine,
   deriveDiagnosticFields,
   extractToolCallPayload,
+  // INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the
+  // runtime interface with looser Record<string, unknown> inputSchema. The cast is safe
+  // because the tool definitions are statically authored and validated at startup.
   tools: TOOLS as unknown as ToolConfig[],
   activeBranchName: async () => (await getSessionModule()).activeBranchName,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
@@ -275,6 +278,9 @@ export function addTool<TProlog>(
   description: string,
   inputSchema: object,
   handler: ToolHandler,
+  // INTENTIONAL: DEFAULT_TOOLS_RUNTIME is typed as ToolsRuntime<PrologProcess>; the
+  // generic TProlog parameter exists so tests can inject a mock type. The cast is safe
+  // because the runtime object satisfies the full ToolsRuntime contract at runtime.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const wrappedHandler: ToolHandler = async (args) => {
@@ -404,6 +410,7 @@ export function addTool<TProlog>(
 // implements REQ-002, REQ-013
 export function registerAllTools<TProlog>(
   server: McpServer,
+  // INTENTIONAL: same generic bridge cast as addTool — see comment there.
   runtime: ToolsRuntime<TProlog> = DEFAULT_TOOLS_RUNTIME as unknown as ToolsRuntime<TProlog>,
 ): void {
   const toolDef = (name: string) => {
@@ -411,7 +418,10 @@ export function registerAllTools<TProlog>(
     if (!t) throw new Error(`Unknown tool: ${name}`);
     return t;
   };
-
+  // INTENTIONAL ARGUMENT CASTS: The `args as (unknown as)? XyzArgs` casts below
+  // bridge the generic ToolHandler (which receives Record<string, unknown>) to the
+  // specific handler argument types. Argument shapes are validated by Zod schemas
+  // (via jsonSchemaToZod) before the handler is invoked, so the casts are safe at runtime.
   addTool(
     server,
     "kb_query",
