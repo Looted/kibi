@@ -10,6 +10,8 @@
     "rootDir": "src",
     "baseUrl": ".",
     "types": ["node"],
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
       "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
