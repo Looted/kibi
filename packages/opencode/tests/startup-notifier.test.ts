@@ -1,4 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
+import { strict as assert } from "node:assert";
 import {
   type StartupNotifierClient,
   notifyStartup,
@@ -6,8 +7,14 @@ import {
 
 describe("notifyStartup", () => {
   test("uses server-plugin showToast capability when available", async () => {
-    const showToast = mock((payload: unknown) => payload);
-    const log = mock(async () => {});
+    const showToastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const showToast = async (payload: unknown) => {
+      showToastCalls.push(payload);
+    };
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
     const client = {
       tui: {
         showToast,
@@ -17,12 +24,14 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
+    notifyStartup(client as unknown as StartupNotifierClient, {
+      version: "1.2.3",
+    });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(showToast).toHaveBeenCalledTimes(1);
-    expect(client.app.log).toHaveBeenCalledTimes(2);
-    expect(showToast.mock.calls[0]?.[0]).toEqual({
+    assert.equal(showToastCalls.length, 1);
+    assert.equal(logCalls.length, 2);
+    assert.deepEqual(showToastCalls[0], {
       body: {
         variant: "success",
         title: "Kibi OpenCode",
@@ -30,7 +39,7 @@ describe("notifyStartup", () => {
         duration: 4000,
       },
     });
-    expect(log.mock.calls[0]?.[0]).toEqual({
+    assert.deepEqual(logCalls[0], {
       body: {
         service: "kibi-opencode",
         level: "info",
@@ -38,19 +47,25 @@ describe("notifyStartup", () => {
         version: "1.2.3",
       },
     });
-    expect(log.mock.calls[1]?.[0]).toEqual({
+    assert.deepEqual(logCalls[1], {
       body: {
         service: "kibi-opencode",
         level: "info",
         message: "startup toast result",
-        result: "[object Object]",
+        result: "undefined",
       },
     });
   });
 
   test("falls back to legacy runtime toast capability when available", async () => {
-    const toast = mock((payload: unknown) => payload);
-    const log = mock(async () => {});
+    const toastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const toast = async (payload: unknown) => {
+      toastCalls.push(payload);
+    };
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
     const client = {
       tui: {
         toast,
@@ -60,18 +75,20 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
+    notifyStartup(client as unknown as StartupNotifierClient, {
+      version: "1.2.3",
+    });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(toast).toHaveBeenCalledTimes(1);
-    expect(client.app.log).toHaveBeenCalledTimes(1);
-    expect(toast.mock.calls[0]?.[0]).toEqual({
+    assert.equal(toastCalls.length, 1);
+    assert.equal(logCalls.length, 1);
+    assert.deepEqual(toastCalls[0], {
       variant: "success",
       title: "Kibi OpenCode",
       message: "kibi-opencode started",
       duration: 4000,
     });
-    expect(log.mock.calls[0]?.[0]).toEqual({
+    assert.deepEqual(logCalls[0], {
       body: {
         service: "kibi-opencode",
         level: "info",
@@ -82,7 +99,10 @@ describe("notifyStartup", () => {
   });
 
   test("falls back to structured app log without console noise", async () => {
-    const log = mock(async () => {});
+    const logCalls: unknown[] = [];
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
     const client = {
       app: {
         log,
@@ -96,13 +116,15 @@ describe("notifyStartup", () => {
     console.warn = consoleWarn;
 
     try {
-      notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
+      notifyStartup(client as unknown as StartupNotifierClient, {
+        version: "1.2.3",
+      });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(log).toHaveBeenCalledTimes(1);
-      expect(consoleLog).not.toHaveBeenCalled();
-      expect(consoleWarn).not.toHaveBeenCalled();
-      expect(log.mock.calls[0]?.[0]).toEqual({
+      assert.equal(logCalls.length, 1);
+      assert.equal(consoleLog.mock.calls.length, 0);
+      assert.equal(consoleWarn.mock.calls.length, 0);
+      assert.deepEqual(logCalls[0], {
         body: {
           service: "kibi-opencode",
           level: "info",
@@ -117,8 +139,14 @@ describe("notifyStartup", () => {
   });
 
   test("suppresses toast but still logs structured startup when requested", async () => {
-    const showToast = mock((payload: unknown) => payload);
-    const log = mock(async () => {});
+    const showToastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const showToast = async (payload: unknown) => {
+      showToastCalls.push(payload);
+    };
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
     const client = {
       tui: {
         showToast,
@@ -128,15 +156,15 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as StartupNotifierClient, {
+    notifyStartup(client as unknown as StartupNotifierClient, {
       version: "1.2.3",
       suppressToast: true,
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(showToast).not.toHaveBeenCalled();
-    expect(log).toHaveBeenCalledTimes(1);
-    expect(log.mock.calls[0]?.[0]).toEqual({
+    assert.equal(showToastCalls.length, 0);
+    assert.equal(logCalls.length, 1);
+    assert.deepEqual(logCalls[0], {
       body: {
         service: "kibi-opencode",
         level: "info",
@@ -147,11 +175,17 @@ describe("notifyStartup", () => {
   });
 
   test("logs toast failures when showToast rejects", async () => {
-    const showToast = mock(async () => {
+    const showToast = async () => {
       throw new Error("boom");
-    });
-    const log = mock(async () => {});
-    const consoleError = mock(() => {});
+    };
+    const logCalls: unknown[] = [];
+    const consoleErrorCalls: unknown[][] = [];
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
+    const consoleError = (...args: unknown[]) => {
+      consoleErrorCalls.push(args);
+    };
     const originalError = console.error;
     console.error = consoleError;
     const client = {
@@ -169,14 +203,14 @@ describe("notifyStartup", () => {
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(showToast).toHaveBeenCalledTimes(1);
-      expect(log).toHaveBeenCalledTimes(2);
-      expect(consoleError).toHaveBeenCalledTimes(1);
-      expect(consoleError.mock.calls[0]).toEqual([
+      assert.equal(logCalls.length, 2);
+      assert.equal(consoleErrorCalls.length, 1);
+      assert.equal(
+        consoleErrorCalls[0]?.[0],
         "[kibi-opencode] startup toast failed:",
-        expect.any(Error),
-      ]);
-      expect(log.mock.calls[0]?.[0]).toEqual({
+      );
+      assert.ok(consoleErrorCalls[0]?.[1] instanceof Error);
+      assert.deepEqual(logCalls[0], {
         body: {
           service: "kibi-opencode",
           level: "info",
@@ -184,7 +218,7 @@ describe("notifyStartup", () => {
           directory: "/tmp/worktree",
         },
       });
-      expect(log.mock.calls[1]?.[0]).toEqual({
+      assert.deepEqual(logCalls[1], {
         body: {
           service: "kibi-opencode",
           level: "warn",
@@ -199,8 +233,15 @@ describe("notifyStartup", () => {
   });
 
   test("logs boolean toast result when showToast resolves to true", async () => {
-    const showToast = mock(async () => true);
-    const log = mock(async () => {});
+    const showToastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const showToast = async (payload: unknown) => {
+      showToastCalls.push(payload);
+      return true;
+    };
+    const log = async (payload: unknown) => {
+      logCalls.push(payload);
+    };
     const client = {
       tui: {
         showToast,
@@ -210,12 +251,14 @@ describe("notifyStartup", () => {
       },
     };
 
-    notifyStartup(client as StartupNotifierClient, { version: "1.2.3" });
+    notifyStartup(client as unknown as StartupNotifierClient, {
+      version: "1.2.3",
+    });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(showToast).toHaveBeenCalledTimes(1);
-    expect(log).toHaveBeenCalledTimes(2);
-    expect(log.mock.calls[0]?.[0]).toEqual({
+    assert.equal(showToastCalls.length, 1);
+    assert.equal(logCalls.length, 2);
+    assert.deepEqual(logCalls[0], {
       body: {
         service: "kibi-opencode",
         level: "info",

@@ -17,6 +17,11 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  createHash as realCreateHash,
+  type Hash,
+  type HashOptions,
+} from "node:crypto";
 import type { SyncCache } from "../../../src/commands/sync/cache.js";
 
 // Import the real cache module FIRST to get actual implementations
@@ -33,18 +38,41 @@ const {
   writeSyncCache,
 } = cacheModule;
 
+type HashCreateMock = typeof realCreateHash & {
+  mockReturnValue(value: Hash): HashCreateMock;
+  mockImplementation(
+    fn: (algorithm: string, options?: HashOptions) => Hash,
+  ): HashCreateMock;
+  mockClear(): HashCreateMock;
+};
+
 // --- Mocks ---
 
-const mockCreateHash = mock(() => ({
-  update: mock(() => ({
-    digest: mock(() => "deadbeef"),
-  })),
-}));
+const mockCreateHash = mock(
+  (_algorithm: string, _options?: HashOptions) => makeHashMock("deadbeef").hash,
+) as HashCreateMock;
 
 const mockExistsSync = mock((..._args: unknown[]): boolean => false);
 const mockMkdirSync = mock((..._args: unknown[]): undefined => undefined);
-const mockReadFileSync = mock((..._args: unknown[]): string | Buffer => "");
+const mockReadFileSync = mock(
+  (..._args: unknown[]): string | Uint8Array => "" as string | Uint8Array,
+);
 const mockWriteFileSync = mock((..._args: unknown[]): undefined => undefined);
+
+function makeHashMock(digestValue: string): {
+  hash: Hash;
+  update: ReturnType<typeof mock>;
+  digest: ReturnType<typeof mock>;
+} {
+  const box = { hash: null as unknown as Hash };
+  const digest = mock((_encoding: BufferEncoding = "hex") => digestValue);
+  const update = mock((..._args: Parameters<Hash["update"]>) => box.hash);
+  box.hash = Object.assign(realCreateHash("sha256"), {
+    update,
+    digest,
+  }) as Hash;
+  return { hash: box.hash, update, digest };
+}
 
 // Restore mocks after each test to prevent pollution
 afterEach(() => {
@@ -52,11 +80,12 @@ afterEach(() => {
 });
 
 const cacheDeps = () => ({
-  createHash: mockCreateHash as typeof cacheModule.createHash,
-  existsSync: mockExistsSync,
-  mkdirSync: mockMkdirSync,
-  readFileSync: mockReadFileSync,
-  writeFileSync: mockWriteFileSync,
+  createHash: mockCreateHash,
+  existsSync: mockExistsSync as typeof import("node:fs").existsSync,
+  mkdirSync: mockMkdirSync as typeof import("node:fs").mkdirSync,
+  readFileSync:
+    mockReadFileSync as unknown as typeof import("node:fs").readFileSync,
+  writeFileSync: mockWriteFileSync as typeof import("node:fs").writeFileSync,
 });
 
 // --- Helpers ---
@@ -135,9 +164,12 @@ describe("hashFile", () => {
   test("reads file and returns sha256 hex digest", () => {
     mockReadFileSync.mockReturnValue(Buffer.from("hello world"));
 
-    const mockDigest = mock(() => "hashed_hex_value");
-    const mockUpdate = mock(() => ({ digest: mockDigest }));
-    mockCreateHash.mockReturnValue({ update: mockUpdate });
+    const {
+      hash,
+      update: mockUpdate,
+      digest: mockDigest,
+    } = makeHashMock("hashed_hex_value");
+    mockCreateHash.mockReturnValue(hash);
 
     const result = hashFile("/some/file.ts", cacheDeps());
 
@@ -156,17 +188,13 @@ describe("hashFile", () => {
     mockCreateHash.mockImplementation(() => {
       callCount++;
       const id = callCount;
-      return {
-        update: mock(() => ({
-          digest: mock(() => `hash_${id}_${content.toString()}`),
-        })),
-      };
+      return makeHashMock(`hash_${id}_${content.toString()}`).hash;
     });
 
     // Both calls read the same content
-    const result1 = hashFile("/file1.ts", cacheDeps());
+    hashFile("/file1.ts", cacheDeps());
     mockReadFileSync.mockReturnValue(Buffer.from("consistent content"));
-    const result2 = hashFile("/file2.ts", cacheDeps());
+    hashFile("/file2.ts", cacheDeps());
 
     // Same content should produce the same hash value
     // (Our mock returns different per-call, but the real impl uses crypto)
@@ -177,9 +205,7 @@ describe("hashFile", () => {
 
   test("passes file path to readFileSync", () => {
     mockReadFileSync.mockReturnValue(Buffer.from("x"));
-    mockCreateHash.mockReturnValue({
-      update: mock(() => ({ digest: mock(() => "abc") })),
-    });
+    mockCreateHash.mockReturnValue(makeHashMock("abc").hash);
 
     hashFile("/path/to/my/file.ts", cacheDeps());
     expect(mockReadFileSync).toHaveBeenCalledWith("/path/to/my/file.ts");

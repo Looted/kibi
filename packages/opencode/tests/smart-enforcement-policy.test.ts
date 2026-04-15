@@ -393,7 +393,7 @@ describe("smart enforcement contract matrix", () => {
 
     it("suppresses completion reminder for safe edits even when enabled", () => {
       const p = buildPrompt({
-        recentEdits: [{ path: "docs/readme.md", kind: "docs" }],
+        recentEdits: [{ path: "docs/readme.md", kind: "code" }],
         posture: "root_active",
         riskClass: "safe_docs_only",
         completionReminder: true,

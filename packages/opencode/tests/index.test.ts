@@ -14,6 +14,7 @@ import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
 import * as logger from "../src/logger";
+import type { PluginInput } from "../src/index";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
@@ -21,6 +22,15 @@ import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 describe("index kibiOpencodePlugin", () => {
   let tmpDir: string;
   let worktree: string;
+  const makeInput = (overrides: Partial<PluginInput> = {}): PluginInput => ({
+    directory: tmpDir,
+    worktree,
+    project: undefined,
+    serverUrl: undefined,
+    $: undefined,
+    client: undefined,
+    ...overrides,
+  });
   const originalSetTimeout = globalThis.setTimeout;
 
   beforeAll(() => {
@@ -33,7 +43,7 @@ describe("index kibiOpencodePlugin", () => {
         handler(...args);
       }
       return 0 as unknown as ReturnType<typeof globalThis.setTimeout>;
-    }) as typeof globalThis.setTimeout;
+    }) as unknown as typeof globalThis.setTimeout;
   });
 
   afterAll(() => {
@@ -65,12 +75,7 @@ describe("index kibiOpencodePlugin", () => {
       );
 
       const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
+        ...makeInput(),
       });
 
       assert.deepEqual(hooks, {});
@@ -85,12 +90,7 @@ describe("index kibiOpencodePlugin", () => {
       );
 
       const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
+        ...makeInput(),
       });
 
       assert.ok(typeof hooks === "object");
@@ -101,12 +101,7 @@ describe("index kibiOpencodePlugin", () => {
   describe("workspace health bootstrap detection", () => {
     it("detects workspace needing bootstrap", async () => {
       const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
+        ...makeInput(),
       });
 
       assert.ok(typeof hooks === "object");
@@ -137,12 +132,7 @@ describe("index kibiOpencodePlugin", () => {
       );
 
       const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
+        ...makeInput(),
       });
 
       assert.ok(typeof hooks === "object");
@@ -173,12 +163,7 @@ describe("index kibiOpencodePlugin", () => {
       );
 
       const hooks = await kibiOpencodePlugin({
-        directory: tmpDir,
-        worktree: worktree,
-        client: null as any,
-        project: null as any,
-        serverUrl: null as any,
-        $: {} as any,
+        ...makeInput(),
       });
 
       assert.ok(typeof hooks === "object");
