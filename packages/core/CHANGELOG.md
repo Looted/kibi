@@ -1,5 +1,15 @@
 # kibi-core
 
+## 0.5.0
+
+### Minor Changes
+
+- Prepare fresh minor release line for schema and traceability alignment
+
+  This release includes the completed traceability schema realignment work,
+  ensuring proper symbol-to-requirement linking, staged traceability checks,
+  and the updated release automation model.
+
 ## 0.4.1
 
 ### Patch Changes

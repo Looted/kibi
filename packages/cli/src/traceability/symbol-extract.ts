@@ -9,7 +9,7 @@ const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
   "covered_by",
   "executable_for",
 ]);
-const REQUIREMENT_ID_PATTERN = /^[A-Z][A-Z0-9\-_]*$/;
+const REQUIREMENT_ID_PATTERN = /^[A-Za-z][A-Za-z0-9\-_]*$/;
 const LOCAL_MANIFEST_NAMES = ["symbols.yaml", "symbols.yml"];
 const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
 
@@ -193,7 +193,7 @@ function parseReqDirectives(text: string): string[] {
   // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
   // Stop at end-of-line and only accept IDs starting with an uppercase letter
   // to avoid capturing tokens like `export`, `function`, etc.
-  const REQ_ID = "[A-Z][A-Z0-9\\-_]*";
+  const REQ_ID = "[A-Za-z][A-Za-z0-9\\-_]*";
   const regex = new RegExp(
     `implements\\s*:?\\s*(${REQ_ID}(?:\\s*,\\s*${REQ_ID})*)\\s*$`,
     "gim",

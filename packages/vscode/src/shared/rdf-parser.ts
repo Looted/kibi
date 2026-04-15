@@ -27,7 +27,7 @@ export const KB_RELATIONSHIP_TYPES: ReadonlyArray<string> = [
   "relates_to",
 ];
 
-// implements REQ-vscode-traceability
+
 /**
  * Parse inline-style RDF relationships from a kb.rdf document.
  *
