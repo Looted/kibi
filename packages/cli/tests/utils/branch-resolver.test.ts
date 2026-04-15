@@ -185,7 +185,9 @@ describe("branch-resolver", () => {
 
     describe("with mocked execSync", () => {
       beforeEach(() => {
-        _setBranchResolverDepsForTests({ execSync: mockExecSync });
+        _setBranchResolverDepsForTests({
+          execSync: mockExecSync as unknown as typeof execSync,
+        });
       });
 
       test("normalizes master to main when git branch reports master", () => {
@@ -645,7 +647,9 @@ describe("branch-resolver", () => {
 
     describe("with mocked execSync", () => {
       beforeEach(() => {
-        _setBranchResolverDepsForTests({ execSync: mockExecSync });
+        _setBranchResolverDepsForTests({
+          execSync: mockExecSync as unknown as typeof execSync,
+        });
       });
 
       test("falls back to main when origin/HEAD resolves to an invalid branch", () => {

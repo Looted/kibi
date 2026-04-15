@@ -13,14 +13,33 @@ import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordi
 
 // --- Mocks ---
 
-const mockReadFileSync = mock((_path: string, _encoding: string) => "");
-const mockWriteFileSync = mock(
-  (_path: string, _content: string, _encoding: string) => {},
+const mockReadFileSync = mock(
+  (
+    _path: import("node:fs").PathOrFileDescriptor,
+    options?:
+      | BufferEncoding
+      | { encoding?: BufferEncoding | null; flag?: string | null }
+      | null,
+  ): string | Uint8Array =>
+    typeof options === "string" || options?.encoding ? "" : Buffer.from(""),
 );
-const mockExistsSync = mock((_path: string) => true);
+const mockWriteFileSync = mock(
+  (
+    _path: import("node:fs").PathOrFileDescriptor,
+    _content: string | Uint8Array,
+    _encoding?: BufferEncoding | null,
+  ) => {},
+);
+const mockExistsSync = mock((_path: import("node:fs").PathLike) => true);
 
 const mockEnrichSymbolCoordinates = mock(
-  async (entries: ManifestSymbolEntry[], _workspaceRoot: string) => entries,
+  async (
+    entries: ManifestSymbolEntry[],
+    _workspaceRoot: string,
+    _deps?: Partial<
+      typeof import("../../../src/extractors/symbols-coordinator.js")
+    >,
+  ) => entries,
 );
 
 const mockParseYAML = mock((_content: string) => ({}));
@@ -33,12 +52,14 @@ import {
 } from "../../../src/commands/sync/manifest.js";
 
 const manifestDeps = () => ({
-  dumpYAML: mockDumpYAML,
-  enrichSymbolCoordinates: mockEnrichSymbolCoordinates,
-  existsSync: mockExistsSync,
-  parseYAML: mockParseYAML,
-  readFileSync: mockReadFileSync,
-  writeFileSync: mockWriteFileSync,
+  dumpYAML: mockDumpYAML as typeof import("js-yaml").dump,
+  enrichSymbolCoordinates:
+    mockEnrichSymbolCoordinates as typeof import("../../../src/extractors/symbols-coordinator.js").enrichSymbolCoordinates,
+  existsSync: mockExistsSync as typeof import("node:fs").existsSync,
+  parseYAML: mockParseYAML as typeof import("js-yaml").load,
+  readFileSync:
+    mockReadFileSync as unknown as typeof import("node:fs").readFileSync,
+  writeFileSync: mockWriteFileSync as typeof import("node:fs").writeFileSync,
 });
 
 // We test isRecord indirectly through refreshManifestCoordinates since it's not exported.
@@ -294,7 +315,7 @@ describe("isEligibleForCoordinateRefresh", () => {
 
   test("resolves relative path correctly", () => {
     mockExistsSync.mockImplementation(
-      (p: string) => p === "/workspace/src/foo.ts",
+      (p: import("node:fs").PathLike) => p === "/workspace/src/foo.ts",
     );
     expect(
       isEligibleForCoordinateRefresh(
@@ -307,7 +328,9 @@ describe("isEligibleForCoordinateRefresh", () => {
 
   test("handles absolute path correctly", () => {
     const absPath = "/other/project/src/foo.ts";
-    mockExistsSync.mockImplementation((p: string) => p === absPath);
+    mockExistsSync.mockImplementation(
+      (p: import("node:fs").PathLike) => p === absPath,
+    );
     expect(
       isEligibleForCoordinateRefresh(absPath, workspaceRoot, manifestDeps()),
     ).toBe(true);

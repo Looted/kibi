@@ -19,6 +19,7 @@ import {
   persistEntities,
   persistRelationships,
 } from "../../../src/commands/sync/persistence.js";
+import type { PrologProcess } from "../../../src/prolog.js";
 
 // --- Mocks ---
 
@@ -67,7 +68,22 @@ function makeResult(
   };
 }
 
-function makeProlog(queries?: Record<string, QueryResult>) {
+type QueryMock = ReturnType<typeof mock> & {
+  mockImplementation: (
+    impl: (goal: string | string[]) => Promise<QueryResult>,
+  ) => unknown;
+};
+
+type MockProlog = {
+  query: QueryMock;
+  callLog: string[];
+};
+
+function asPrologProcess(prolog: MockProlog): PrologProcess {
+  return prolog as unknown as PrologProcess;
+}
+
+function makeProlog(queries?: Record<string, QueryResult>): MockProlog {
   const callLog: string[] = [];
   const defaultQueries = queries ?? {};
   return {
@@ -77,8 +93,8 @@ function makeProlog(queries?: Record<string, QueryResult>) {
       if (defaultQueries[g] !== undefined) {
         return defaultQueries[g];
       }
-      return { success: true, bindings: {} };
-    }),
+      return { success: true, bindings: {} as Record<string, string> };
+    }) as QueryMock,
     callLog,
   };
 }
@@ -101,7 +117,11 @@ describe("persistEntities", () => {
       },
     });
 
-    const result = await persistEntities(prolog as any, [], new Set());
+    const result = await persistEntities(
+      asPrologProcess(prolog),
+      [],
+      new Set(),
+    );
 
     expect(result.entityCount).toBe(0);
     expect(result.kbModified).toBe(false);
@@ -117,7 +137,7 @@ describe("persistEntities", () => {
     });
 
     const result = await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -140,7 +160,11 @@ describe("persistEntities", () => {
     });
 
     const results = entities.map((e) => ({ entity: e, relationships: [] }));
-    const result = await persistEntities(prolog as any, results, new Set());
+    const result = await persistEntities(
+      asPrologProcess(prolog),
+      results,
+      new Set(),
+    );
 
     expect(result.entityCount).toBe(3);
     expect(result.kbModified).toBe(true);
@@ -155,7 +179,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.has("req001")).toBe(true);
     expect(entityIds.has("REQ-002")).toBe(true);
@@ -171,7 +195,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.size).toBe(0);
   });
@@ -185,7 +209,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.size).toBe(0);
   });
@@ -204,7 +228,7 @@ describe("persistEntities", () => {
       makeResult({ id: "REQ-002" }),
     ];
 
-    await persistEntities(prolog as any, results, entityIds);
+    await persistEntities(asPrologProcess(prolog), results, entityIds);
 
     expect(entityIds.has("REQ-001")).toBe(true);
     expect(entityIds.has("REQ-002")).toBe(true);
@@ -220,7 +244,7 @@ describe("persistEntities", () => {
     });
 
     const result = await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -245,7 +269,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -267,7 +291,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -288,7 +312,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -309,7 +333,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -330,7 +354,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -351,7 +375,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -390,7 +414,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -425,7 +449,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -444,7 +468,7 @@ describe("persistEntities", () => {
     const entity = makeEntity({
       type: "req",
       value_int: 42,
-      fact_kind: "subject" as any,
+      fact_kind: "subject" as ExtractedEntity["fact_kind"],
     });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
@@ -454,7 +478,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -476,7 +500,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -497,7 +521,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -513,7 +537,7 @@ describe("persistEntities", () => {
       type: "fact",
       subject_key: undefined,
       property_key: undefined,
-      value_string: null as any,
+      value_string: null as unknown as string,
       value_int: undefined,
       value_bool: undefined,
       fact_kind: undefined,
@@ -526,7 +550,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -543,7 +567,10 @@ describe("persistEntities", () => {
   });
 
   test("fact entity ignores non-boolean value_bool", async () => {
-    const entity = makeEntity({ type: "fact", value_bool: "true" as any });
+    const entity = makeEntity({
+      type: "fact",
+      value_bool: "true" as unknown as boolean,
+    });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
         success: true,
@@ -552,7 +579,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -564,7 +591,10 @@ describe("persistEntities", () => {
   });
 
   test("fact entity ignores non-number value_int", async () => {
-    const entity = makeEntity({ type: "fact", value_int: "42" as any });
+    const entity = makeEntity({
+      type: "fact",
+      value_int: "42" as unknown as number,
+    });
     const prolog = makeProlog({
       "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
         success: true,
@@ -573,7 +603,7 @@ describe("persistEntities", () => {
     });
 
     await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [] }],
       new Set(),
     );
@@ -607,7 +637,7 @@ describe("persistEntities", () => {
 
     expect(
       persistEntities(
-        prolog as any,
+        asPrologProcess(prolog),
         [{ entity, relationships: [] }],
         new Set(),
       ),
@@ -633,7 +663,7 @@ describe("persistEntities", () => {
 
     expect(
       persistEntities(
-        prolog as any,
+        asPrologProcess(prolog),
         [{ entity, relationships: [] }],
         new Set(),
       ),
@@ -658,7 +688,7 @@ describe("persistEntities", () => {
 
     expect(
       persistEntities(
-        prolog as any,
+        asPrologProcess(prolog),
         [{ entity, relationships: [] }],
         new Set(),
       ),
@@ -678,7 +708,7 @@ describe("persistEntities", () => {
 
     expect(
       persistEntities(
-        prolog as any,
+        asPrologProcess(prolog),
         [{ entity, relationships: [] }],
         new Set(),
       ),
@@ -695,7 +725,7 @@ describe("persistEntities", () => {
     });
 
     const result = await persistEntities(
-      prolog as any,
+      asPrologProcess(prolog),
       entities.map((e) => ({ entity: e, relationships: [] })),
       new Set(),
     );
@@ -715,7 +745,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.has("REQ-001")).toBe(true);
     expect(entityIds.has("REQ-002")).toBe(true);
@@ -731,7 +761,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.has("req001")).toBe(true);
     expect(entityIds.has("req003")).toBe(true);
@@ -748,7 +778,7 @@ describe("persistEntities", () => {
     });
 
     const entityIds = new Set<string>();
-    await persistEntities(prolog as any, [], entityIds);
+    await persistEntities(asPrologProcess(prolog), [], entityIds);
 
     expect(entityIds.size).toBe(0);
   });
@@ -762,7 +792,7 @@ describe("persistRelationships", () => {
 
   test("returns 0 relationships and kbModified=false for empty inputs", async () => {
     const prolog = makeProlog();
-    const result = await persistRelationships(prolog as any, [], []);
+    const result = await persistRelationships(asPrologProcess(prolog), [], []);
 
     expect(result.relationshipCount).toBe(0);
     expect(result.kbModified).toBe(false);
@@ -783,7 +813,7 @@ describe("persistRelationships", () => {
     const results = [{ entity, relationships: [rel] }];
 
     // The relationship should use the lookup-resolved ID
-    await persistRelationships(prolog as any, results, []);
+    await persistRelationships(asPrologProcess(prolog), results, []);
 
     const assertCall = prolog.callLog.find((g) =>
       g.includes("kb_assert_relationship"),
@@ -804,7 +834,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [
         { entity, relationships: [rel] },
         {
@@ -842,7 +872,11 @@ describe("persistRelationships", () => {
       { entity: entity2, relationships: [] },
     ];
 
-    const result = await persistRelationships(prolog as any, results, []);
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      results,
+      [],
+    );
 
     expect(result.relationshipCount).toBe(1);
     expect(result.kbModified).toBe(true);
@@ -858,7 +892,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -881,7 +915,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -902,7 +936,7 @@ describe("persistRelationships", () => {
     ];
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: rels }],
       [],
     );
@@ -936,7 +970,7 @@ describe("persistRelationships", () => {
     console.warn = warnSpy;
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: rels }],
       [],
     );
@@ -968,7 +1002,7 @@ describe("persistRelationships", () => {
     console.warn = mock();
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -1003,7 +1037,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -1034,7 +1068,7 @@ describe("persistRelationships", () => {
     console.warn = warnSpy;
 
     await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -1043,9 +1077,7 @@ describe("persistRelationships", () => {
 
     // Should have logged warnings
     expect(warnSpy.mock.calls.length).toBeGreaterThan(0);
-    const allWarnOutput = warnSpy.mock.calls
-      .map((c: any) => String(c))
-      .join(" ");
+    const allWarnOutput = warnSpy.mock.calls.map((c) => String(c)).join(" ");
     expect(allWarnOutput).toContain("relationship(s) failed");
     expect(allWarnOutput).toContain("depends_on");
     expect(allWarnOutput).toContain("Tip:");
@@ -1071,7 +1103,7 @@ describe("persistRelationships", () => {
     console.warn = warnSpy;
 
     await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: rels }],
       [],
     );
@@ -1080,7 +1112,7 @@ describe("persistRelationships", () => {
 
     // Should have deduplicated — only one "depends_on: REQ-001 -> REQ-002" line
     const warnOutput = warnSpy.mock.calls
-      .map((c: any) => (Array.isArray(c) ? c.join(" ") : String(c)))
+      .map((c) => (Array.isArray(c) ? c.join(" ") : String(c)))
       .join("\n");
     // Count occurrences of the specific relationship log
     const matchCount = (
@@ -1097,7 +1129,11 @@ describe("persistRelationships", () => {
       to: "REQ-002",
     };
 
-    const result = await persistRelationships(prolog as any, [], [shardRel]);
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [],
+      [shardRel],
+    );
 
     expect(result.relationshipCount).toBe(1);
     expect(result.kbModified).toBe(true);
@@ -1121,7 +1157,11 @@ describe("persistRelationships", () => {
     const origWarn = console.warn;
     console.warn = warnSpy;
 
-    const result = await persistRelationships(prolog as any, [], [shardRel]);
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [],
+      [shardRel],
+    );
 
     console.warn = origWarn;
 
@@ -1145,7 +1185,11 @@ describe("persistRelationships", () => {
     const origWarn = console.warn;
     console.warn = warnSpy;
 
-    const result = await persistRelationships(prolog as any, [], [shardRel]);
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [],
+      [shardRel],
+    );
 
     console.warn = origWarn;
 
@@ -1168,7 +1212,11 @@ describe("persistRelationships", () => {
     const origWarn = console.warn;
     console.warn = warnSpy;
 
-    const result = await persistRelationships(prolog as any, [], [shardRel]);
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [],
+      [shardRel],
+    );
 
     console.warn = origWarn;
 
@@ -1202,7 +1250,7 @@ describe("persistRelationships", () => {
     console.warn = warnSpy;
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -1227,7 +1275,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [resultRel] }],
       [shardRel],
     );
@@ -1250,7 +1298,7 @@ describe("persistRelationships", () => {
     console.warn = warnSpy;
 
     await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );
@@ -1273,7 +1321,7 @@ describe("persistRelationships", () => {
     };
 
     const result = await persistRelationships(
-      prolog as any,
+      asPrologProcess(prolog),
       [{ entity, relationships: [rel] }],
       [],
     );

@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { KbConfigPaths } from "../../../src/utils/config.js";
 
-const fgMock = mock(async () => [] as string[]);
+const fgMock = mock(
+  async (..._args: [string | string[], { cwd: string; absolute: boolean }?]) =>
+    [] as string[],
+);
 
 mock.module("fast-glob", () => ({
   default: fgMock,
@@ -92,7 +95,7 @@ describe("discoverSourceFiles", () => {
     const result = await discoverSourceFiles("/project", paths);
 
     // Only one pattern should be passed (requirements)
-    const patternsArg = fgMock.mock.calls[0][0] as string[];
+    const patternsArg = fgMock.mock.calls[0][0];
     expect(patternsArg).toEqual(["docs/requirements/**/*.md"]);
     expect(result.markdownFiles).toEqual(["/project/docs/REQ-001.md"]);
   });
@@ -105,7 +108,7 @@ describe("discoverSourceFiles", () => {
     const result = await discoverSourceFiles("/project", paths);
 
     expect(result.markdownFiles).toEqual([]);
-    const patternsArg = fgMock.mock.calls[0][0] as string[];
+    const patternsArg = fgMock.mock.calls[0][0];
     expect(patternsArg).toEqual([]);
   });
 
@@ -179,7 +182,7 @@ describe("discoverSourceFiles", () => {
     await discoverSourceFiles("/project", paths);
 
     // Wildcard patterns should pass through unchanged
-    const mdPatterns = fgMock.mock.calls[0][0] as string[];
+    const mdPatterns = fgMock.mock.calls[0][0];
     expect(mdPatterns).toEqual(["docs/**/reqs/**/*.md"]);
 
     expect(fgMock.mock.calls[1][0]).toBe("src/**/*.symbols.yaml");

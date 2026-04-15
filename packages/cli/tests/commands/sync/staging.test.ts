@@ -9,6 +9,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import type { PathLike } from "node:fs";
+import type fg from "fast-glob";
 import * as path from "node:path";
 import {
   prepareStagingEnvironment,
@@ -18,12 +20,14 @@ import {
 
 // --- Mocks ---
 
-const mockExistsSync = mock((_p: string) => false);
-const mockMkdirSync = mock((_p: string, _opts?: unknown) => undefined);
-const mockRenameSync = mock((_old: string, _new: string) => undefined);
-const mockRmSync = mock((_p: string, _opts?: unknown) => undefined);
-const mockCopyFileSync = mock((_src: string, _dest: string) => undefined);
-const mockCopyCleanSnapshot = mock((_src: string, _dest: string) => undefined);
+const mockExistsSync = mock((_p: PathLike) => false);
+const mockMkdirSync = mock((_p: PathLike, _opts?: unknown) => undefined);
+const mockRenameSync = mock((_old: PathLike, _new: PathLike) => undefined);
+const mockRmSync = mock((_p: PathLike, _opts?: unknown) => undefined);
+const mockCopyFileSync = mock((_src: PathLike, _dest: PathLike) => undefined);
+const mockCopyCleanSnapshot = mock(
+  (_src: PathLike, _dest: PathLike) => undefined,
+);
 const mockFg = mock((_pattern: string, _opts?: unknown) =>
   Promise.resolve([] as string[]),
 );
@@ -33,7 +37,7 @@ const stagingDeps = () => ({
   copyFileSync: mockCopyFileSync,
   cwd: () => MOCK_CWD,
   existsSync: mockExistsSync,
-  fg: mockFg,
+  fg: mockFg as unknown as typeof fg,
   mkdirSync: mockMkdirSync,
   moduleDir: sourceDir,
   renameSync: mockRenameSync,
@@ -65,7 +69,7 @@ describe("cleanupStaging", () => {
   });
 
   test("removes staging directory when it exists", () => {
-    mockExistsSync.mockImplementation((p: string) => p === "/staging/path");
+    mockExistsSync.mockImplementation((p: PathLike) => p === "/staging/path");
 
     cleanupStaging("/staging/path", stagingDeps());
 
@@ -112,7 +116,7 @@ describe("atomicPublish", () => {
   });
 
   test("skips parent mkdirSync when liveParent already exists", () => {
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === path.dirname("/live/.kb/data")) return true;
       return false;
     });
@@ -140,7 +144,7 @@ describe("atomicPublish", () => {
     const livePath = "/live/.kb/data";
     const liveParent = path.dirname(livePath);
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === liveParent) return true;
       if (p === livePath) return true;
       return false;
@@ -164,7 +168,7 @@ describe("atomicPublish", () => {
 
   test("uses Date.now() timestamp in temp path suffix", () => {
     const livePath = "/some/deep/.kb/branch";
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === path.dirname(livePath)) return true;
       if (p === livePath) return true;
       return false;
@@ -203,7 +207,7 @@ describe("prepareStagingEnvironment", () => {
       "kibi-cli",
       "schema",
     );
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
       if (p === schemaPath) return true;
       if (p === path.join("/staging", "schema")) return true;
@@ -232,7 +236,7 @@ describe("prepareStagingEnvironment", () => {
   });
 
   test("rebuild=false with existing livePath copies via copyCleanSnapshot", async () => {
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
       if (p === "/live/.kb/data") return true;
       return false;
@@ -255,7 +259,7 @@ describe("prepareStagingEnvironment", () => {
 
   test("rebuild=false with missing livePath falls back to schema copy", async () => {
     const schemaPath = path.resolve(MOCK_CWD, "packages", "cli", "schema");
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
       if (p === "/live/.kb/data") return false;
       if (p === schemaPath) return true;
@@ -277,7 +281,7 @@ describe("prepareStagingEnvironment", () => {
   });
 
   test("calls cleanupStaging before directory creation", async () => {
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       // Staging exists → cleanup should remove it
       if (p === "/staging") return true;
       return false;
@@ -328,7 +332,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     ];
     const chosen = paths[index];
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
       // All schema search paths before `index` return false, the chosen one returns true
       for (let i = 0; i < index; i++) {
@@ -387,7 +391,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
   });
 
   test("returns early when no schema path is found", async () => {
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
       return false;
     });
@@ -407,7 +411,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     );
     const schemaDestDir = path.join("/staging", "schema");
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === schemaPath) return true;
       if (p === "/staging") return false;
       if (p === schemaDestDir) return false; // dest dir missing
@@ -431,7 +435,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     );
     const schemaDestDir = path.join("/staging", "schema");
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === schemaPath) return true;
       if (p === "/staging") return false;
       if (p === schemaDestDir) return true; // dest dir already exists
@@ -456,7 +460,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     );
     const schemaDestDir = path.join("/staging", "schema");
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === schemaPath) return true;
       if (p === "/staging") return false;
       if (p === schemaDestDir) return true;
@@ -489,7 +493,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
       "schema",
     );
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === schemaPath) return true;
       if (p === "/staging") return false;
       return false;
@@ -512,9 +516,9 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     );
     const checkedPaths: string[] = [];
 
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === "/staging") return false;
-      checkedPaths.push(p);
+      checkedPaths.push(String(p));
       if (p === firstPath) return true;
       if (p === path.join("/staging", "schema")) return true;
       return false;
@@ -541,7 +545,7 @@ describe("copySchemaToStaging (tested via prepareStagingEnvironment)", () => {
     );
 
     let foundSchemaCall = false;
-    mockExistsSync.mockImplementation((p: string) => {
+    mockExistsSync.mockImplementation((p: PathLike) => {
       if (p === expectedSchemaPath) {
         foundSchemaCall = true;
         return true;
