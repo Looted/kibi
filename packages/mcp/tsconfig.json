@@ -7,7 +7,7 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "src",
+    "rootDir": "../..",
     "baseUrl": ".",
     "types": ["node"],
     "noImplicitReturns": true,
@@ -15,18 +15,19 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "paths": {
-      "kibi-cli/prolog": ["../cli/dist/public/prolog"],
-      "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
+      "kibi-cli/prolog": ["../cli/src/public/prolog"],
+      "kibi-cli/prolog/codec": ["../cli/src/prolog/codec"],
       "kibi-cli/extractors/symbols-coordinator": [
-        "../cli/dist/public/extractors/symbols-coordinator"
+        "../cli/src/public/extractors/symbols-coordinator"
       ],
-      "kibi-cli/schemas/entity": ["../cli/dist/public/schemas/entity"],
+      "kibi-cli/schemas/entity": ["../cli/src/public/schemas/entity"],
       "kibi-cli/schemas/relationship": [
-        "../cli/dist/public/schemas/relationship"
+        "../cli/src/public/schemas/relationship"
       ],
-      "kibi-cli/schemas": ["../cli/dist/public/schemas"],
-      "kibi-cli/search-ranking": ["../cli/dist/search-ranking"],
-      "kibi-cli/public/check-types": ["../cli/dist/public/check-types"]
+      "kibi-cli/schemas": ["../cli/src/public/schemas"],
+      "kibi-cli/search-ranking": ["../cli/src/search-ranking"],
+      "kibi-cli/public/check-types": ["../cli/src/public/check-types"],
+      "kibi-cli/public/branch-resolver": ["../cli/src/public/branch-resolver"]
     }
   },
   "include": ["src/**/*"],

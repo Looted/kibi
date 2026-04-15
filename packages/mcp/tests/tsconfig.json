@@ -3,7 +3,7 @@
   "compilerOptions": {
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
-    "rootDir": "..",
+    "rootDir": "../..",
     "types": ["bun-types"]
   },
   "include": ["**/*.test.ts", "../src/**/*.d.ts"]
