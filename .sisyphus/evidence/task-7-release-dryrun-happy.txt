@@ -1,0 +1,50 @@
+Release Dry-Run Happy Path Evidence
+=====================================
+Date: 2026-04-14T16:55:43.323Z
+Branch override: GITHUB_REF_NAME=master
+
+Raw JSON output:
+{
+  "action": "PREPARE_RELEASE",
+  "packages": [
+    {
+      "name": "kibi-core",
+      "dir": "core",
+      "version": "0.5.0",
+      "alreadyPublished": false
+    },
+    {
+      "name": "kibi-cli",
+      "dir": "cli",
+      "version": "0.6.0",
+      "alreadyPublished": false
+    },
+    {
+      "name": "kibi-mcp",
+      "dir": "mcp",
+      "version": "0.7.0",
+      "alreadyPublished": false
+    },
+    {
+      "name": "kibi-opencode",
+      "dir": "opencode",
+      "version": "0.7.0",
+      "alreadyPublished": false
+    }
+  ],
+  "sourceSha": "test-sha-integration",
+  "reason": "Unpublished packages detected without pending changesets",
+  "toPublish": [
+    "core=kibi-core",
+    "cli=kibi-cli",
+    "mcp=kibi-mcp",
+    "opencode=kibi-opencode"
+  ]
+}
+
+
+Summary:
+- Action: PREPARE_RELEASE
+- Packages: kibi-core@0.5.0, kibi-cli@0.6.0, kibi-mcp@0.7.0, kibi-opencode@0.7.0
+- All unpublished: true
+- Reason: Unpublished packages detected without pending changesets

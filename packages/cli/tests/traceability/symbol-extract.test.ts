@@ -445,7 +445,7 @@ describe("symbol-extract (cache and failure branches)", () => {
         "    title: ManifestClass",
         "    links:",
         "      - REQ-FROM-MANIFEST",
-        "      - not-valid",
+        "      - not valid",
         "      - type: relates_to",
         "        target: REQ-IGNORED",
         "  - id: SYM-ENUM",
