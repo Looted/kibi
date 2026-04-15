@@ -26,7 +26,7 @@
     "dev:opencode": "bun --filter ./packages/opencode dev",
     "build": "bun run build:cli && bun run build:mcp && bun run build:opencode",
     "typecheck:cli": "tsc -p packages/cli/tsconfig.json --noEmit",
-    "typecheck:mcp": "tsc -p packages/mcp/tsconfig.json --noEmit",
+    "typecheck:mcp": "bun run build:cli && tsc -p packages/mcp/tsconfig.json --noEmit",
     "typecheck:opencode": "tsc -p packages/opencode/tsconfig.json --noEmit",
     "typecheck:cli:tests": "tsc -p packages/cli/tests/tsconfig.json --noEmit",
     "typecheck:mcp:tests": "tsc -p packages/mcp/tests/tsconfig.json --noEmit",
