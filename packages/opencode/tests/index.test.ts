@@ -1,5 +1,4 @@
 /// <reference path="../../../types/bun-test.d.ts" />
-/// <reference path="../../../types/bun-test.d.ts" />
 import {
   afterAll,
   afterEach,
