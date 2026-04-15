@@ -7,7 +7,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["node", "bun-types"]
+    "types": ["node", "bun-types"],
+    "typeRoots": ["./types", "./node_modules/@types", "./node_modules"]
   },
-  "include": ["scripts/*.ts"]
+  "include": ["scripts/*.ts", "types/js-yaml.d.ts"]
 }

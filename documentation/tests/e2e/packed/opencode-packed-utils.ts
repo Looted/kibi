@@ -65,10 +65,11 @@ export function resolveOpencodeTarball(
           const statB = statSync(join(searchDir, b));
           return statB.mtimeMs - statA.mtimeMs;
         });
-        const tarballPath = join(searchDir, files[0]);
+        const firstFile = files[0]!;
+        const tarballPath = join(searchDir, firstFile);
         // Extract version from filename
-        const match = files[0].match(/kibi-opencode-(.+)\.tgz/);
-        const version = match ? match[1] : "unknown";
+        const match = firstFile.match(/kibi-opencode-(.+)\.tgz/);
+        const version = match?.[1] ?? "unknown";
         log(`  📦 Using existing tarball: ${files[0]}`);
         return { tarballPath, version };
       }
