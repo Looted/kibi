@@ -81,6 +81,11 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
+
+      - name: Typecheck matrix (advisory)
+        continue-on-error: true
+        run: bun run typecheck
+
       - name: Build CLI package
         run: bun run build:cli
       - name: Build MCP package
