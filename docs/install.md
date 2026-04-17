@@ -54,6 +54,10 @@ npx kibi --version
 npx kibi-mcp --help
 ```
 
+Common environment check: `npx kibi doctor`.
+
+Validation command: `npx kibi check`.
+
 ### OpenCode MCP
 
 For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-array `command` field:
@@ -127,6 +131,8 @@ If you see "command not found" after installing kibi globally, you may need to a
 
 ## Development / dogfood workflow for this repository
 
+For contributors to this repository only:
+
 This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
 
 ```bash
@@ -147,23 +153,23 @@ If you encounter problems with SWI-Prolog:
 
 After installing kibi and verifying SWI-Prolog:
 
-1. Verify your environment: `kibi doctor`
-2. Initialize your project: `kibi init`
-3. Import documentation: `kibi sync`
-4. Explore the KB: `kibi search <query>`
-5. Inspect branch freshness: `kibi status`
-6. Validate integrity: `kibi check`
+1. Verify your environment: `npx kibi doctor`
+2. Initialize your project: `npx kibi init`
+3. Import documentation: `npx kibi sync`
+4. Explore the KB: `npx kibi search <query>`
+5. Inspect branch freshness: `npx kibi status`
+6. Validate integrity: `npx kibi check`
 
 See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
 Example:
 
 ```bash
-kibi doctor
-kibi init
-kibi sync
-kibi search auth
-kibi status
-kibi check
+npx kibi doctor
+npx kibi init
+npx kibi sync
+npx kibi search auth
+npx kibi status
+npx kibi check
 ```
 
 For more details, see:
