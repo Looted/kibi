@@ -153,23 +153,23 @@ If you encounter problems with SWI-Prolog:
 
 After installing kibi and verifying SWI-Prolog:
 
-1. Verify your environment: `npx kibi doctor`
-2. Initialize your project: `npx kibi init`
-3. Import documentation: `npx kibi sync`
-4. Explore the KB: `npx kibi search <query>`
-5. Inspect branch freshness: `npx kibi status`
-6. Validate integrity: `npx kibi check`
+1. Verify your environment: `npx kibi doctor`
+2. Initialize your project: `npx kibi init`
+3. Import documentation: `npx kibi sync`
+4. Explore the KB: `npx kibi search <query>`
+5. Inspect branch freshness: `npx kibi status`
+6. Validate integrity: `npx kibi check`
 
 See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
 Example:
 
 ```bash
-npx kibi doctor
-npx kibi init
-npx kibi sync
-npx kibi search auth
-npx kibi status
-npx kibi check
+npx kibi doctor
+npx kibi init
+npx kibi sync
+npx kibi search auth
+npx kibi status
+npx kibi check
 ```
 
 For more details, see:
