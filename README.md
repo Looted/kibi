@@ -53,12 +53,9 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 
 ## Installation
 
- Kibi supports two common setups:
-
-- **Repo-local dogfood workflow** in this repository, where OpenCode and MCP use locally built artifacts
+The recommended way is to install kibi as project dev dependencies:
 
 ```bash
-# Recommended: install as project dev dependencies
 npm install --save-dev kibi-cli kibi-mcp
 ```
 
