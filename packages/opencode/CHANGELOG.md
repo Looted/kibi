@@ -1,5 +1,22 @@
 # kibi-opencode
 
+## 0.7.1
+
+### Patch Changes
+
+- 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
+- 0ec1cb1: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+  fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
+- de5dbaf: Enable `exactOptionalPropertyTypes` across source packages and tighten optional property handling in exported type surfaces.
+
 ## 0.7.0
 
 ### Minor Changes
