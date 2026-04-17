@@ -45,6 +45,38 @@ Initial body.
     }
   });
 
+  test("reports missing snapshot status immediately after init before first sync", () => {
+    const initDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-status-init-"),
+    );
+
+    try {
+      execSync("git init -b main", { cwd: initDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} init`, { cwd: initDir, stdio: "pipe" });
+
+      const output = execSync(`bun ${kibiBin} status --format json`, {
+        cwd: initDir,
+        encoding: "utf8",
+      });
+
+      const result = JSON.parse(output) as {
+        branch: string;
+        dirty: boolean;
+        snapshotId: string;
+        syncedAt: string | null;
+        syncState: string;
+      };
+
+      expect(result.branch).toBe("main");
+      expect(result.snapshotId).toBe("missing");
+      expect(result.syncedAt).toBeNull();
+      expect(result.dirty).toBe(true);
+      expect(result.syncState).toBe("unknown");
+    } finally {
+      rmSync(initDir, { recursive: true, force: true });
+    }
+  }, 15000);
+
   test("reports stale status after workspace edits without sync", () => {
     writeFileSync(
       path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
