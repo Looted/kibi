@@ -1,5 +1,19 @@
 # kibi-core
 
+## 0.5.1
+
+### Patch Changes
+
+- 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
+- 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
 ## 0.5.0
 
 ### Minor Changes
