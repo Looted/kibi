@@ -39,44 +39,71 @@ You should see output like `SWI-Prolog version 10.x.x`.
 
 ## Installing kibi
 
-### Using npm (Primary)
+### Recommended: Project-local install
 
-Install the kibi CLI and MCP server globally using npm:
+For a reproducible, CI-friendly workflow, install kibi as project-level dev dependencies:
+
+```bash
+npm install --save-dev kibi-cli kibi-mcp
+```
+
+After installation, verify the tools from the local project using `npx`:
+
+```bash
+npx kibi --version
+npx kibi-mcp --help
+```
+
+### OpenCode MCP
+
+For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-array `command` field:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "command": ["npx", "-y", "kibi-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+### VS Code MCP
+
+For VS Code, create `.vscode/mcp.json`. VS Code uses a `command` string with a separate `args` array:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "kibi-mcp"]
+    }
+  }
+}
+```
+
+### Optional: Global install
+
+Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.
 
 ```bash
 npm install -g kibi-cli kibi-mcp
 ```
 
-### Using bun (Alternative)
-
-If you prefer bun as your package manager:
+Optional Bun alternative:
 
 ```bash
 bun add -g kibi-cli kibi-mcp
 ```
 
-### Verify kibi Installation
+#### Command Not Found
 
-After installation, verify that both tools are available:
-
-```bash
-kibi --version
-kibi-mcp --help
-```
-
-## Development / dogfood workflow for this repository
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
-
-```bash
-bun run build
-```
-
-## Troubleshooting Installation
-
-### Command Not Found
-
-If you see "command not found" after installing kibi, you may need to adjust your `PATH`:
+If you see "command not found" after installing kibi globally, you may need to adjust your `PATH`:
 
 1. **Check global npm/bin location:**
    ```bash
@@ -97,6 +124,16 @@ If you see "command not found" after installing kibi, you may need to adjust you
    ```bash
    source ~/.bashrc  # or source ~/.zshrc
    ```
+
+## Development / dogfood workflow for this repository
+
+This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
+
+```bash
+bun run build
+```
+
+## Troubleshooting Installation
 
 ### SWI-Prolog Issues
 

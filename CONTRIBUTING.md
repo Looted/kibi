@@ -128,7 +128,7 @@ If you ran `kibi init`, a pre-commit hook will automatically check your staged c
 You can test your staged changes manually with:
 
 ```bash
-kibi check --staged
+npx kibi check --staged
 ```
 
 For more details, see the "Staged Symbol Traceability" section in the README.
