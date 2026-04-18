@@ -4023,4 +4023,277 @@ import datetime
       );
     });
   });
+
+  // Task 1 TDD: Advisory check failure noise via injected scheduler factory
+  describe("advisory check failure noise regression (injected scheduler)", () => {
+    it("check.failed with symbol-traceability produces zero console.error via plugin", async () => {
+      const errorSpy: string[] = [];
+      const origError = console.error;
+      (console as any).error = (...args: unknown[]) => {
+        errorSpy.push(args.map(String).join(" "));
+      };
+
+      try {
+        const appLogCalls: Array<Record<string, unknown>> = [];
+        const opencodeDir = path.join(tmpDir, ".opencode");
+        fs.mkdirSync(opencodeDir, { recursive: true });
+        // Inline KB setup (cannot use setupKbStructure from other describe)
+        const kbDir = path.join(tmpDir, ".kb");
+        fs.mkdirSync(kbDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(kbDir, "config.json"),
+          JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+        );
+        [
+          "documentation/requirements",
+          "documentation/scenarios",
+          "documentation/tests",
+          "documentation/adr",
+          "documentation/flags",
+          "documentation/events",
+          "documentation/facts",
+        ].forEach((dir) =>
+          fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+        );
+        fs.writeFileSync(
+          path.join(tmpDir, "documentation", "symbols.yaml"),
+          "[]",
+        );
+
+        // Create a code file for traceability_candidate
+        const srcDir = path.join(tmpDir, "src");
+        fs.mkdirSync(srcDir, { recursive: true });
+        const codeFile = path.join(srcDir, "feature.ts");
+        fs.writeFileSync(
+          codeFile,
+          "export function doSomething() { return 42; }\n",
+        );
+
+        fs.writeFileSync(
+          path.join(opencodeDir, "kibi.json"),
+          JSON.stringify(
+            {
+              enabled: true,
+              sync: { enabled: true },
+              prompt: { enabled: true, hookMode: "auto" },
+              guidance: {
+                commentDetection: { enabled: false },
+                targetedChecks: { enabled: true },
+                smartEnforcement: { completionReminder: false },
+              },
+            },
+            null,
+            2,
+          ),
+        );
+
+        // Inject a scheduler factory that simulates check failure
+        let capturedOnRunComplete: ((meta: any) => void) | undefined;
+        (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+          capturedOnRunComplete = opts.onRunComplete;
+          return {
+            onFileEdited: () => {},
+            onToolExecuteAfter: () => {},
+            scheduleSync: () => {},
+            flush: async () => {},
+            dispose: () => {},
+          };
+        };
+
+        const mockClient = {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        };
+
+        const { default: plugin } = await import(
+          `../src/index.ts?noisy1=${Date.now()}`
+        );
+        const hooks = await plugin({
+          directory: tmpDir,
+          worktree: tmpDir,
+          client: mockClient as any,
+          project: null as any,
+          serverUrl: null as any,
+          $: {} as any,
+        });
+
+        const eventHook = hooks.event as any;
+        await eventHook({
+          event: {
+            type: "file.edited",
+            properties: { file: codeFile },
+          },
+        });
+
+        // Simulate advisory check failure via onRunComplete
+        capturedOnRunComplete?.({
+          exitCode: 0,
+          checkExitCode: 1,
+          checkRules: ["symbol-traceability"],
+        });
+
+        await new Promise((r) => setTimeout(r, 20));
+
+        // BUG: Advisory check failure currently emits console.error.
+        // The plugin is advisory in the editor — check failures should be structured-only.
+        assert.equal(
+          errorSpy.length,
+          0,
+          `Advisory check.failed for symbol-traceability must not produce console.error, got: ${JSON.stringify(errorSpy)}`,
+        );
+      } finally {
+        console.error = origError;
+        delete (globalThis as any).__kibi_test_scheduler_factory;
+      }
+    });
+
+    it("check.failed with multi-rule payload produces zero console.error via plugin", async () => {
+      const errorSpy: string[] = [];
+      const origError = console.error;
+      (console as any).error = (...args: unknown[]) => {
+        errorSpy.push(args.map(String).join(" "));
+      };
+
+      try {
+        const appLogCalls: Array<Record<string, unknown>> = [];
+        const opencodeDir = path.join(tmpDir, ".opencode");
+        fs.mkdirSync(opencodeDir, { recursive: true });
+        // Inline KB setup (cannot use setupKbStructure from other describe)
+        const kbDir2 = path.join(tmpDir, ".kb");
+        fs.mkdirSync(kbDir2, { recursive: true });
+        fs.writeFileSync(
+          path.join(kbDir2, "config.json"),
+          JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+        );
+        [
+          "documentation/requirements",
+          "documentation/scenarios",
+          "documentation/tests",
+          "documentation/adr",
+          "documentation/flags",
+          "documentation/events",
+          "documentation/facts",
+        ].forEach((dir) =>
+          fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+        );
+        fs.writeFileSync(
+          path.join(tmpDir, "documentation", "symbols.yaml"),
+          "[]",
+        );
+
+        // Create a fact file for multi-rule check
+        const factDir = path.join(tmpDir, "documentation", "facts");
+        fs.mkdirSync(factDir, { recursive: true });
+        const factFile = path.join(factDir, "FACT-001.md");
+        fs.writeFileSync(
+          factFile,
+          "---\nid: FACT-001\ntitle: Test Fact\n---\nTest content\n",
+        );
+
+        fs.writeFileSync(
+          path.join(opencodeDir, "kibi.json"),
+          JSON.stringify(
+            {
+              enabled: true,
+              sync: { enabled: true },
+              prompt: { enabled: true, hookMode: "auto" },
+              guidance: {
+                targetedChecks: { enabled: true },
+                smartEnforcement: { completionReminder: false },
+              },
+            },
+            null,
+            2,
+          ),
+        );
+
+        let capturedOnRunComplete: ((meta: any) => void) | undefined;
+        (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+          capturedOnRunComplete = opts.onRunComplete;
+          return {
+            onFileEdited: () => {},
+            onToolExecuteAfter: () => {},
+            scheduleSync: () => {},
+            flush: async () => {},
+            dispose: () => {},
+          };
+        };
+
+        const mockClient = {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        };
+
+        const { default: plugin } = await import(
+          `../src/index.ts?noisy2=${Date.now()}`
+        );
+        const hooks = await plugin({
+          directory: tmpDir,
+          worktree: tmpDir,
+          client: mockClient as any,
+          project: null as any,
+          serverUrl: null as any,
+          $: {} as any,
+        });
+
+        const eventHook = hooks.event as any;
+        await eventHook({
+          event: {
+            type: "file.edited",
+            properties: { file: factFile },
+          },
+        });
+
+        // Simulate multi-rule advisory check failure
+        capturedOnRunComplete?.({
+          exitCode: 0,
+          checkExitCode: 1,
+          checkRules: ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+        });
+
+        await new Promise((r) => setTimeout(r, 20));
+
+        assert.equal(
+          errorSpy.length,
+          0,
+          `Advisory check.failed for multi-rule payload must not produce console.error, got: ${JSON.stringify(errorSpy)}`,
+        );
+      } finally {
+        console.error = origError;
+        delete (globalThis as any).__kibi_test_scheduler_factory;
+      }
+    });
+
+    it("operational startup failure still produces console.error (control)", async () => {
+      const errorSpy: string[] = [];
+      const origError = console.error;
+      (console as any).error = (...args: unknown[]) => {
+        errorSpy.push(args.map(String).join(" "));
+      };
+
+      try {
+        // No .kb directory → bootstrap-needed → operational error
+        const hooks = await kibiOpencodePlugin({
+          ...makeInput(),
+        });
+
+        assert.ok(typeof hooks === "object");
+
+        // Operational bootstrap-needed SHOULD still emit console.error
+        assert.ok(
+          errorSpy.some((msg) => msg.includes("workspace needs Kibi bootstrap")),
+          `Operational startup error should produce console.error, got: ${JSON.stringify(errorSpy)}`,
+        );
+      } finally {
+        console.error = origError;
+      }
+    });
+});
+
 });
