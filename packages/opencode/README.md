@@ -181,14 +181,24 @@ Smart enforcement keeps the plugin advisory-only: prompt injection can warn, exp
 
 ### Logging Policy
 
-The plugin follows a **silent-except-errors** policy for terminal output:
+The plugin follows a **silent-except-operational-errors** policy for terminal output, with a three-tier failure classification:
 
-| Channel | Terminal | Structured log |
-|---------|----------|---------------|
-| Normal operation (sync success, guidance injection, session summaries) | No | Yes, via `client.app.log()` |
-| Error-class events (bootstrap-needed, sync/check failure, hook/init failure) | Yes, via `console.error` | Yes, via `client.app.log()` |
+| Classification | Examples | Surface | Terminal | Structured |
+|---------------|----------|---------|----------|------------|
+| **Advisory (background)** | scheduler check failures, degraded-mode latches | `errorStructuredOnly()` | No | Yes, via `client.app.log()` |
+| **Operational (plugin)** | bootstrap-needed, sync failure, hook/init failure | `error()` | Yes, via `console.error` | Yes, via `client.app.log()` |
+| **Authoritative external** | git hooks, CLI checks | Outside plugin surface | N/A | N/A |
 
-Routine diagnostics route through [`client.app.log()`](https://opencode.ai/docs/plugins/) and never appear in the terminal. Only error-class events break terminal silence. This keeps the developer's workspace clean while preserving full visibility in structured logs for debugging.
+### Failure Routing Contract
+
+The logger exposes two error-level surfaces with distinct routing semantics:
+
+- **`error(msg, metadata?)`** — Operational plugin failures. Always emits to `console.error` for terminal visibility, plus `client.app.log()` when a client is bound. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
+- **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound; falls back to `console.error` only when no client exists (before binding or in tests). Use for scheduler check failures and degraded-mode latches.
+
+**Contract rule:** Once `client` is bound (after `setClient()`), advisory logging MUST use `errorStructuredOnly()`. Raw `console.error` is permitted only as a fallback before client binding.
+
+Routine diagnostics route through [`client.app.log()`](https://opencode.ai/docs/plugins/) and never appear in the terminal. Only operational error-class events break terminal silence. This keeps the developer's workspace clean while preserving full visibility in structured logs for debugging.
 
 The `experimental.chat.system.transform` hook handles prompt injection (see [Hook Policy](#hook-policy)). The `chat.params` hook is compatibility-only and never carries prompt text.
 
