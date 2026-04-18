@@ -25,7 +25,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   PUBLISHABLE_DIRS,
@@ -39,12 +39,20 @@ import {
 
 const EVIDENCE_DIR = join(import.meta.dir, "../../.sisyphus/evidence");
 
-const ALL_PACKAGES = {
-  core: { name: "kibi-core", version: "0.5.0" },
-  cli: { name: "kibi-cli", version: "0.6.0" },
-  mcp: { name: "kibi-mcp", version: "0.7.0" },
-  opencode: { name: "kibi-opencode", version: "0.7.0" },
-};
+// Derive package metadata from actual package.json files so tests stay
+// future-proof across version bumps.
+function loadPackageManifest(dir: string): { name: string; version: string } {
+  const manifestPath = join(import.meta.dir, `../../packages/${dir}/package.json`);
+  const raw = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return { name: raw.name, version: raw.version };
+}
+
+const PUBLISHABLE_DIRS_LIST = ["core", "cli", "mcp", "opencode"] as const;
+
+const ALL_PACKAGES: Record<string, { name: string; version: string }> = {};
+for (const dir of PUBLISHABLE_DIRS_LIST) {
+  ALL_PACKAGES[dir] = loadPackageManifest(dir);
+}
 
 const SOURCE_COMMIT_MSG =
   "Merge branch 'develop' into master\n\nIntegration of new schema features.";
@@ -263,6 +271,14 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("integration — run-release-state.ts spawned output", () => {
     test("script produces valid JSON with PREPARE_RELEASE when run as master", () => {
+      // Fixture contract: KIBI_RELEASE_MOCK_NPM="" means the runner
+      // treats it as a mock-npm mode where nothing is published.
+      // On master, this should produce PREPARE_RELEASE with all
+      // publishable packages in toPublish.
+      //
+      // Regression sentinel: if the runner treats empty string as
+      // falsy (falling through to real npm checks), this test fails
+      // with action=NOOP instead of PREPARE_RELEASE.
       const raw = execSync("bun run scripts/run-release-state.ts", {
         encoding: "utf8",
         env: {
@@ -277,21 +293,44 @@ describe("release dry-run: no-commit master publish model", () => {
         typeof determineReleaseAction
       >;
 
+      // --- Core action assertion ---
       expect(decision.action).toBe("PREPARE_RELEASE");
-      expect(decision.packages.length).toBe(4);
+
+      // --- Package count matches PUBLISHABLE_DIRS ---
+      expect(decision.packages.length).toBe(PUBLISHABLE_DIRS_LIST.length);
+
+      // --- Source SHA forwarded from env ---
       expect(decision.sourceSha).toBe("test-sha-integration");
 
+      // --- Every package dir is present and sorted ---
       const dirs = decision.packages.map((p: { dir: string }) => p.dir).sort();
-      expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
+      expect(dirs).toEqual([...PUBLISHABLE_DIRS_LIST].sort());
 
+      // --- Nothing published: empty-string mock means zero published ---
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
 
-      // Verify toPublish is a JSON array of strings
+      // --- Every package carries the correct name from disk ---
+      for (const pkg of decision.packages) {
+        const expected = ALL_PACKAGES[pkg.dir];
+        expect(expected).toBeDefined();
+        expect(pkg.name).toBe(expected.name);
+        expect(pkg.version).toBe(expected.version);
+      }
+
+      // --- toPublish: non-empty, each entry matches dir=name ---
       expect(Array.isArray(decision.toPublish)).toBe(true);
-      for (const entry of decision.toPublish as string[]) {
-        expect(entry).toMatch(/^.+=.+$/);
+      const toPublish = decision.toPublish as string[];
+      expect(toPublish.length).toBe(PUBLISHABLE_DIRS_LIST.length);
+      for (const entry of toPublish) {
+        const [dir, name] = entry.split("=");
+        expect(dir).toBeTruthy();
+        expect(name).toBeTruthy();
+        // dir must match a known publishable dir
+        expect(PUBLISHABLE_DIRS_LIST).toContain(dir);
+        // name must match the package.json name for that dir
+        expect(name).toBe(ALL_PACKAGES[dir].name);
       }
 
       writeEvidence(
@@ -300,6 +339,7 @@ describe("release dry-run: no-commit master publish model", () => {
 =====================================
 Date: ${new Date().toISOString()}
 Branch override: GITHUB_REF_NAME=master
+Fixture: KIBI_RELEASE_MOCK_NPM="" (empty-string → nothing published)
 
 Raw JSON output:
 ${raw}
