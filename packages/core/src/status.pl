@@ -61,7 +61,8 @@ synced_at(DataFile, SyncedAt) :-
     !,
     time_file(DataFile, Timestamp),
     format_time(atom(SyncedAt), '%FT%TZ', Timestamp).
-synced_at(_, @(null)).
+% Before the first successful sync there is no kb.rdf, so the public JSON contract must expose syncedAt: null.
+synced_at(_, null).
 
 freshness_state(DataFile, true, stale) :-
     exists_file(DataFile),

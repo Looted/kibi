@@ -1,5 +1,32 @@
 # kibi-mcp
 
+## 0.7.1
+
+### Patch Changes
+
+- 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
+- 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
+- 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- de5dbaf: Enable `exactOptionalPropertyTypes` across source packages and tighten optional property handling in exported type surfaces.
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [4a74281]
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [3a11e57]
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [de5dbaf]
+  - kibi-core@0.5.1
+  - kibi-cli@0.6.1
+
 ## 0.7.0
 
 ### Minor Changes

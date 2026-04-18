@@ -53,24 +53,13 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 
 ## Installation
 
-Kibi supports two common setups:
-
-- **Global install** for normal use across repositories
-- **Repo-local dogfood workflow** in this repository, where OpenCode and MCP use locally built artifacts
+The recommended way is to install kibi as project dev dependencies:
 
 ```bash
-# Using npm (recommended)
-npm install -g kibi-cli kibi-mcp
-
-# Using bun
-bun add -g kibi-cli kibi-mcp
+npm install --save-dev kibi-cli kibi-mcp
 ```
 
-After installation, verify that kibi is available:
-
-```bash
-kibi --version
-```
+For detailed steps, global install alternatives, and troubleshooting, see [detailed installation guide](docs/install.md).
 
 ### OpenCode Plugin
 
@@ -98,6 +87,8 @@ Every GitHub release includes the latest VS Code extension build as a `.vsix` ar
 
 ### Repo-local dogfood workflow (this repo)
 
+For contributors to this repository only:
+
 This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
 
 ```bash
@@ -113,13 +104,12 @@ Create `.vscode/mcp.json`:
   "servers": {
     "kibi": {
       "type": "stdio",
-      "command": "kibi-mcp"
+      "command": "npx",
+      "args": ["-y", "kibi-mcp"]
     }
   }
 }
 ```
-
-If `kibi-mcp` is not on your `PATH`, replace `command` with the full executable path.
 
 For complete installation steps and SWI-Prolog setup, see [detailed installation guide](docs/install.md).
 
@@ -129,22 +119,22 @@ Initialize kibi in your repository:
 
 ```bash
 # Verify environment prerequisites
-kibi doctor
+npx kibi doctor
 
 # Initialize .kb/ and install git hooks
-kibi init
+npx kibi init
 
 # Parse markdown docs and symbols into branch KB
-kibi sync
+npx kibi sync
 
 # Discover relevant knowledge before exact lookups
-kibi search auth
+npx kibi search auth
 
 # Inspect current branch snapshot and freshness
-kibi status
+npx kibi status
 
 # Run integrity checks
-kibi check
+npx kibi check
 ```
 
 > **Note:** `kibi init` installs git hooks by default. Hooks automatically sync your KB on branch checkout and merge.
@@ -153,17 +143,17 @@ kibi check
 
 ```bash
 # Explore the KB first
-kibi search login
+npx kibi search login
 
 # Then follow up with exact/source-linked queries
-kibi query req --source src/auth/login.ts --format table
+npx kibi query req --source src/auth/login.ts --format table
 
 # Check branch attachment and freshness when needed
-kibi status
+npx kibi status
 
 # Ask focused reporting questions
-kibi gaps req --missing-rel specified_by,verified_by --format table
-kibi coverage --by req --format table
+npx kibi gaps req --missing-rel specified_by,verified_by --format table
+npx kibi coverage --by req --format table
 ```
 
 ## Documentation

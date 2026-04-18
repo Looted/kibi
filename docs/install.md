@@ -39,44 +39,75 @@ You should see output like `SWI-Prolog version 10.x.x`.
 
 ## Installing kibi
 
-### Using npm (Primary)
+### Recommended: Project-local install
 
-Install the kibi CLI and MCP server globally using npm:
+For a reproducible, CI-friendly workflow, install kibi as project-level dev dependencies:
+
+```bash
+npm install --save-dev kibi-cli kibi-mcp
+```
+
+After installation, verify the tools from the local project using `npx`:
+
+```bash
+npx kibi --version
+npx kibi-mcp --help
+```
+
+Common environment check: `npx kibi doctor`.
+
+Validation command: `npx kibi check`.
+
+### OpenCode MCP
+
+For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-array `command` field:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "command": ["npx", "-y", "kibi-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+### VS Code MCP
+
+For VS Code, create `.vscode/mcp.json`. VS Code uses a `command` string with a separate `args` array:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "kibi-mcp"]
+    }
+  }
+}
+```
+
+### Optional: Global install
+
+Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.
 
 ```bash
 npm install -g kibi-cli kibi-mcp
 ```
 
-### Using bun (Alternative)
-
-If you prefer bun as your package manager:
+Optional Bun alternative:
 
 ```bash
 bun add -g kibi-cli kibi-mcp
 ```
 
-### Verify kibi Installation
+#### Command Not Found
 
-After installation, verify that both tools are available:
-
-```bash
-kibi --version
-kibi-mcp --help
-```
-
-## Development / dogfood workflow for this repository
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
-
-```bash
-bun run build
-```
-
-## Troubleshooting Installation
-
-### Command Not Found
-
-If you see "command not found" after installing kibi, you may need to adjust your `PATH`:
+If you see "command not found" after installing kibi globally, you may need to adjust your `PATH`:
 
 1. **Check global npm/bin location:**
    ```bash
@@ -98,6 +129,18 @@ If you see "command not found" after installing kibi, you may need to adjust you
    source ~/.bashrc  # or source ~/.zshrc
    ```
 
+## Development / dogfood workflow for this repository
+
+For contributors to this repository only:
+
+This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
+
+```bash
+bun run build
+```
+
+## Troubleshooting Installation
+
 ### SWI-Prolog Issues
 
 If you encounter problems with SWI-Prolog:
@@ -110,23 +153,23 @@ If you encounter problems with SWI-Prolog:
 
 After installing kibi and verifying SWI-Prolog:
 
-1. Verify your environment: `kibi doctor`
-2. Initialize your project: `kibi init`
-3. Import documentation: `kibi sync`
-4. Explore the KB: `kibi search <query>`
-5. Inspect branch freshness: `kibi status`
-6. Validate integrity: `kibi check`
+1. Verify your environment: `npx kibi doctor`
+2. Initialize your project: `npx kibi init`
+3. Import documentation: `npx kibi sync`
+4. Explore the KB: `npx kibi search <query>`
+5. Inspect branch freshness: `npx kibi status`
+6. Validate integrity: `npx kibi check`
 
 See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
 Example:
 
 ```bash
-kibi doctor
-kibi init
-kibi sync
-kibi search auth
-kibi status
-kibi check
+npx kibi doctor
+npx kibi init
+npx kibi sync
+npx kibi search auth
+npx kibi status
+npx kibi check
 ```
 
 For more details, see:

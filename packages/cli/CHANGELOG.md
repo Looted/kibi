@@ -1,5 +1,52 @@
 # kibi-cli
 
+## 0.6.1
+
+### Patch Changes
+
+- 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
+- 0ec1cb1: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
+  - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
+    `config.paths.symbols` manifest before processing staged-manifest overrides.
+    This prevents code-only staged changes (where `symbols.yaml` is not staged) from
+    falling back to hash-generated IDs and incorrectly failing traceability even when
+    the symbol is already linked in the KB.
+  - Remove duplicate `toPrologString` in `temp-kb.ts` and reuse the shared
+    `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
+
+- 0ec1cb1: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+- 0ec1cb1: fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
+- 0ec1cb1: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
+  - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
+  - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
+  - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
+  - This resolves the `temp-kb.test.ts` timeout under bare `bun test` and significantly speeds up all CLI tests that spawn Prolog processes.
+
+- 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
+- 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- de5dbaf: Enable `exactOptionalPropertyTypes` across source packages and tighten optional property handling in exported type surfaces.
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [3a11e57]
+- Updated dependencies [0ec1cb1]
+  - kibi-core@0.5.1
+
 ## 0.6.0
 
 ### Minor Changes
