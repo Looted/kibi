@@ -194,9 +194,9 @@ The plugin follows a **silent-except-operational-errors** policy for terminal ou
 The logger exposes two error-level surfaces with distinct routing semantics:
 
 - **`error(msg, metadata?)`** — Operational plugin failures. Always emits to `console.error` for terminal visibility, plus `client.app.log()` when a client is bound. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
-- **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound; falls back to `console.error` only when no client exists (before binding or in tests). Use for scheduler check failures and degraded-mode latches.
+- **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound; completely silent when no client is bound (no `console.error` fallback). Use for scheduler check failures and degraded-mode latches.
 
-**Contract rule:** Once `client` is bound (after `setClient()`), advisory logging MUST use `errorStructuredOnly()`. Raw `console.error` is permitted only as a fallback before client binding.
+**Contract rule:** Once `client` is bound (after `setClient()`), advisory logging MUST use `errorStructuredOnly()`. When no client is bound, `errorStructuredOnly()` is completely silent — it does not fall back to `console.error`.
 
 Routine diagnostics route through [`client.app.log()`](https://opencode.ai/docs/plugins/) and never appear in the terminal. Only operational error-class events break terminal silence. This keeps the developer's workspace clean while preserving full visibility in structured logs for debugging.
 
