@@ -21,6 +21,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PUBLISHABLE_DIRS, determineReleaseAction } from "./release-state";
+import { resolveNpmFixture } from "./release-runner-fixture";
 
 const rootDir = join(import.meta.dir, "..");
 
@@ -58,13 +59,12 @@ for (const dir of PUBLISHABLE_DIRS) {
   }
 }
 
-// npm existence check
-const mockNpm = process.env.KIBI_RELEASE_MOCK_NPM;
+// KIBI_RELEASE_MOCK_NPM env contract: env presence (including "") activates fixture mode;
+// env absence activates live npm mode (queries the real registry).
+const fixture = resolveNpmFixture(process.env.KIBI_RELEASE_MOCK_NPM);
 const isPublishedOnNpm = (pkgName: string, version: string): boolean => {
-  if (mockNpm) {
-    // Fixture mode for deterministic tests: comma-separated list of published pkg@version
-    const published = new Set(mockNpm.split(",").map((s) => s.trim()));
-    return published.has(`${pkgName}@${version}`);
+  if (fixture.mode === "fixture") {
+    return fixture.published.has(`${pkgName}@${version}`);
   }
   try {
     execSync(`npm view ${pkgName}@${version} version`, {
