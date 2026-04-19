@@ -241,7 +241,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(9);
+    expect(tools.length).toBe(10);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -252,7 +252,9 @@ describe("MCP Server", () => {
       "kb_upsert",
       "kb_delete",
       "kb_check",
+      "kb_autopilot_generate",
     ]);
+
 
     const kbUpsert = tools.find((tool) => tool.name === "kb_upsert");
     const statusSchema = (
@@ -360,6 +362,52 @@ describe("MCP Server", () => {
     expect(contentText).not.toMatch(/kb_query_relationships/);
     expect(contentText).not.toMatch(/kb_branch_gc/);
     expect(contentText).not.toMatch(/kb_list_entity_types/);
+
+    await killServer(proc);
+  });
+
+  test("should handle tools/call for kb_autopilot_generate", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "kb_autopilot_generate",
+        arguments: {},
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result).toBeDefined();
+    expect(result.isError).toBeFalsy();
+
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content).toBeDefined();
+    expect(content.length).toBeGreaterThan(0);
+    expect(content[0].type).toBe("text");
+
+    const structured = result.structuredContent as Record<string, unknown>;
+    expect(structured).toBeDefined();
+    expect(structured.activationState).toBe("root_uninitialized");
+    expect(typeof structured.activationReason).toBe("string");
+    expect(typeof structured.applyBlocked).toBe("boolean");
+    expect(Array.isArray(structured.candidates)).toBe(true);
+    expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
+    expect(typeof structured.discoverySummary).toBe("object");
+    expect(typeof structured.payoffSummary).toBe("object");
 
     await killServer(proc);
   });

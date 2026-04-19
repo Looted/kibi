@@ -39,6 +39,14 @@
       "types": "./dist/public/extractors/symbols-coordinator.d.ts",
       "default": "./dist/public/extractors/symbols-coordinator.js"
     },
+    "./extractors/manifest": {
+      "types": "./src/public/extractors/manifest.ts",
+      "default": "./src/public/extractors/manifest.ts"
+    },
+    "./extractors/markdown": {
+      "types": "./src/public/extractors/markdown.ts",
+      "default": "./src/public/extractors/markdown.ts"
+    },
     "./schemas/entity": {
       "types": "./dist/public/schemas/entity.d.ts",
       "default": "./dist/public/schemas/entity.js"
