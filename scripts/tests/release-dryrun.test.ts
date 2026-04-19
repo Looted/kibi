@@ -133,10 +133,10 @@ describe("release dry-run: no-commit master publish model", () => {
         decision.packages.map((p) => [p.dir, p]),
       );
 
-      expect(pkgMap.core.version).toBe("0.5.0");
-      expect(pkgMap.cli.version).toBe("0.6.0");
-      expect(pkgMap.mcp.version).toBe("0.7.0");
-      expect(pkgMap.opencode.version).toBe("0.7.0");
+      expect(pkgMap.core.version).toBe("0.5.1");
+      expect(pkgMap.cli.version).toBe("0.6.1");
+      expect(pkgMap.mcp.version).toBe("0.7.1");
+      expect(pkgMap.opencode.version).toBe("0.7.1");
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -207,7 +207,7 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("partial rerun — subset of packages published", () => {
     test("partial publish + no changesets → PUBLISH_ONLY_RERUN with missing packages", () => {
-      const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
+      const published = new Set(["kibi-core@0.5.1", "kibi-cli@0.6.1"]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -228,7 +228,7 @@ describe("release dry-run: no-commit master publish model", () => {
     });
 
     test("source commit + partial publish + changesets → PREPARE_RELEASE with unpublished subset", () => {
-      const published = new Set(["kibi-core@0.5.0"]);
+      const published = new Set(["kibi-core@0.5.1"]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -247,9 +247,9 @@ describe("release dry-run: no-commit master publish model", () => {
 
     test("only mcp unpublished → rerun targets mcp alone", () => {
       const published = new Set([
-        "kibi-core@0.5.0",
-        "kibi-cli@0.6.0",
-        "kibi-opencode@0.7.0",
+        "kibi-core@0.5.1",
+        "kibi-cli@0.6.1",
+        "kibi-opencode@0.7.1",
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
