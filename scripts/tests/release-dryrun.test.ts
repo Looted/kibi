@@ -47,7 +47,8 @@ function loadPackageManifest(dir: string): { name: string; version: string } {
   return { name: raw.name, version: raw.version };
 }
 
-const PUBLISHABLE_DIRS_LIST = ["core", "cli", "mcp", "opencode"] as const;
+// Derived from the canonical constant to avoid drift when packages are added/removed.
+const PUBLISHABLE_DIRS_LIST = PUBLISHABLE_DIRS;
 
 const ALL_PACKAGES: Record<string, { name: string; version: string }> = {};
 for (const dir of PUBLISHABLE_DIRS_LIST) {
@@ -133,10 +134,10 @@ describe("release dry-run: no-commit master publish model", () => {
         decision.packages.map((p) => [p.dir, p]),
       );
 
-      expect(pkgMap.core.version).toBe("0.5.1");
-      expect(pkgMap.cli.version).toBe("0.6.1");
-      expect(pkgMap.mcp.version).toBe("0.7.1");
-      expect(pkgMap.opencode.version).toBe("0.7.1");
+      expect(pkgMap.core.version).toBe(ALL_PACKAGES.core.version);
+      expect(pkgMap.cli.version).toBe(ALL_PACKAGES.cli.version);
+      expect(pkgMap.mcp.version).toBe(ALL_PACKAGES.mcp.version);
+      expect(pkgMap.opencode.version).toBe(ALL_PACKAGES.opencode.version);
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -207,7 +208,10 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("partial rerun — subset of packages published", () => {
     test("partial publish + no changesets → PUBLISH_ONLY_RERUN with missing packages", () => {
-      const published = new Set(["kibi-core@0.5.1", "kibi-cli@0.6.1"]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -228,7 +232,7 @@ describe("release dry-run: no-commit master publish model", () => {
     });
 
     test("source commit + partial publish + changesets → PREPARE_RELEASE with unpublished subset", () => {
-      const published = new Set(["kibi-core@0.5.1"]);
+      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -247,9 +251,9 @@ describe("release dry-run: no-commit master publish model", () => {
 
     test("only mcp unpublished → rerun targets mcp alone", () => {
       const published = new Set([
-        "kibi-core@0.5.1",
-        "kibi-cli@0.6.1",
-        "kibi-opencode@0.7.1",
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+        `${ALL_PACKAGES.opencode.name}@${ALL_PACKAGES.opencode.version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
