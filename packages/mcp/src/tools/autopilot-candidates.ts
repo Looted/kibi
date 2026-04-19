@@ -263,7 +263,8 @@ export function buildGenericMarkdownCandidates(
           type,
           id: genId,
           title: heading,
-          status: type === "fact" ? "active" : "open",
+          status:
+            type === "fact" ? "active" : type === "adr" ? "proposed" : "open",
           source: `autopilot:generic:${relativePath}`,
           text_ref: `${relativePath}#L${i + 1}`,
         };

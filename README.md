@@ -127,9 +127,6 @@ npx kibi init
 # Parse markdown docs and symbols into branch KB
 npx kibi sync
 
-# Bootstrap the KB via Autopilot (discovery)
-npx kibi autopilot generate
-
 # Discover relevant knowledge before exact lookups
 npx kibi search auth
 
