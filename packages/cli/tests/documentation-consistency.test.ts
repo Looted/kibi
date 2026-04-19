@@ -92,6 +92,11 @@ describe("flag and fact canonical wording", () => {
     expect(violations).toHaveLength(0);
   });
 
+  test("README quick start must not mention nonexistent autopilot CLI command", () => {
+    const content = readDoc("README.md");
+    expect(content).not.toMatch(/npx\s+kibi\s+autopilot\s+generate/);
+  });
+
   test("docs must not describe 'workaround' as an entity type", () => {
     const filesToCheck = [
       "AGENTS.md",

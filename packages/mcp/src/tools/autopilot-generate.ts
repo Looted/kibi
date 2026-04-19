@@ -116,51 +116,6 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   // Minimal discovery + candidate assembly implementation
   const prolog = _prolog;
 
-  // Check if KB has any entities attached
-  try {
-    const checkResult = await prolog.query("once(kb_entity(_, _, _))");
-    if (!checkResult.success) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Autopilot generate: KB root not initialized. No candidates generated.",
-          },
-        ],
-        structuredContent: {
-          activationState: "root_uninitialized",
-          activationReason:
-            "KB has no entities. Autopilot requires an initialized KB with at least one entity to generate candidates.",
-          applyBlocked: true,
-          discoverySummary: {},
-          candidates: [],
-          suppressedCandidates: [],
-          payoffSummary: {},
-        },
-      };
-    }
-  } catch (error) {
-    // If prolog query failed assume uninitialized
-    return {
-      content: [
-        {
-          type: "text",
-          text: "Autopilot generate: KB root not initialized (query failure). No candidates generated.",
-        },
-      ],
-      structuredContent: {
-        activationState: "root_uninitialized",
-        activationReason:
-          "KB query failed; Autopilot cannot run without an attached KB.",
-        applyBlocked: true,
-        discoverySummary: {},
-        candidates: [],
-        suppressedCandidates: [],
-        payoffSummary: {},
-      },
-    };
-  }
-
   // Gather existing entity ids to suppress duplicates
   let existingIds = new Set<string>();
   try {
@@ -182,7 +137,10 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     activationDiscovery.candidates,
   );
 
-  if (activationState === "vendored_only") {
+  const allowGeneration =
+    activationState === "root_uninitialized" || activationState === "root_partial";
+
+  if (!allowGeneration) {
     return {
       content: [
         {
@@ -193,10 +151,10 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       structuredContent: {
         activationState,
         activationReason: activationReasonFor(activationState),
-        applyBlocked: false,
+        applyBlocked: true,
         discoverySummary: {
-          markdownFiles: 0,
-          manifestFiles: 0,
+          markdownFiles: discovery.markdownFiles.length,
+          manifestFiles: discovery.manifestFiles.length,
           vendored: activationDiscovery.summary.vendored ?? [],
         },
         candidates: [],
