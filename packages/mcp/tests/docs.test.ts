@@ -114,6 +114,12 @@ describe("MCP runtime docs: canonical modeling wording", () => {
       const prompt = findPrompt("init-kibi");
       expect(prompt.text).not.toMatch(/type:\s*bug|type:\s*workaround/i);
     });
+
+    test("must instruct agents to execute candidate applyPlan steps sequentially", () => {
+      const prompt = findPrompt("init-kibi");
+      expect(prompt.text).toMatch(/candidate\.applyPlan/i);
+      expect(prompt.text).toMatch(/sequentially/i);
+    });
   });
 
   // ─── DOC_RESOURCES ─────────────────────────────────────────────────────────

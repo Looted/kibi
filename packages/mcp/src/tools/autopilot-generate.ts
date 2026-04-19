@@ -53,9 +53,19 @@ export interface AutopilotGenerateResult {
 }
 
 interface CandidateRecord extends Record<string, unknown> {
+  candidateId?: string;
+  entityType?: string;
   confidence?: number;
   sourcePath?: string;
+  sourceKind?: string;
   applyPlan?: unknown;
+}
+
+interface SuppressedCandidateRecord extends Record<string, unknown> {
+  candidateId: string;
+  reason: string;
+  sourcePath: string;
+  entityType: string;
 }
 
 function extractTextRefFromApplyPlan(applyPlan: unknown): string {
@@ -68,6 +78,18 @@ function extractTextRefFromApplyPlan(applyPlan: unknown): string {
   const propsRecord = properties as Record<string, unknown>;
   const textRef = propsRecord.text_ref;
   return typeof textRef === "string" ? textRef : "";
+}
+
+function toSuppressedCandidate(
+  reason: string,
+  candidate: CandidateRecord,
+): SuppressedCandidateRecord {
+  return {
+    candidateId: String(candidate.candidateId ?? ""),
+    reason,
+    sourcePath: String(candidate.sourcePath ?? ""),
+    entityType: String(candidate.entityType ?? ""),
+  };
 }
 
 function activationReasonFor(state: ActivationState): string {
@@ -219,11 +241,20 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
 
   // Dedupe logic
   const seenByKey = new Map<string, CandidateRecord>();
-  const suppressed: CandidateRecord[] = [];
+  const suppressed: SuppressedCandidateRecord[] = [];
   // Helpers
   function normalizeTitle(entityType: string, title: string) {
     return `${entityType}::${String(title).trim().toLowerCase().replace(/\s+/g, " ")}`;
   }
+
+  const typedTitleKeys = new Set(
+    typedMarkdownCandidates.map((candidate) =>
+      normalizeTitle(
+        String(candidate.entityType || ""),
+        String(candidate.title || ""),
+      ),
+    ),
+  );
 
   for (const c of allCandidates) {
     const record: CandidateRecord = { ...c };
@@ -232,6 +263,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     const sourceKind = String(c.sourceKind || "");
     const sourcePath = String(c.sourcePath || "");
     const textRef = extractTextRefFromApplyPlan(c.applyPlan);
+    const titleKey = normalizeTitle(entityType, title);
 
     // entity_exists: exact entity ID present in KB
     const upsert = Array.isArray(c.applyPlan) ? c.applyPlan[0] : null;
@@ -252,12 +284,16 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       }
     }
     if (existingIds.has(upsertId)) {
-      suppressed.push({ reason: "entity_exists", candidate: record });
+      suppressed.push(toSuppressedCandidate("entity_exists", record));
+      continue;
+    }
+
+    if (sourceKind === "generic_markdown" && typedTitleKeys.has(titleKey)) {
+      suppressed.push(toSuppressedCandidate("shadowed_by_typed_source", record));
       continue;
     }
 
     // duplicate_title: same entityType + normalized title
-    const titleKey = normalizeTitle(entityType, title);
     const existing = seenByKey.get(titleKey);
     if (existing) {
       // keep the higher confidence one
@@ -265,33 +301,22 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       const thisConf = Number(c.confidence ?? 0);
       if (thisConf > existingConf) {
         // move existing to suppressed
-        suppressed.push({ reason: "duplicate_title", candidate: existing });
+        suppressed.push(toSuppressedCandidate("duplicate_title", existing));
         seenByKey.set(titleKey, record);
       } else if (thisConf < existingConf) {
-        suppressed.push({ reason: "duplicate_title", candidate: record });
+        suppressed.push(toSuppressedCandidate("duplicate_title", record));
       } else {
         // tie-break by lexicographically smallest sourcePath:textRef
         const existingRef = `${String(existing.sourcePath ?? "")}::${extractTextRefFromApplyPlan(existing.applyPlan)}`;
         const thisRef = `${sourcePath}::${textRef}`;
         if (thisRef < existingRef) {
-          suppressed.push({ reason: "duplicate_title", candidate: existing });
+          suppressed.push(toSuppressedCandidate("duplicate_title", existing));
           seenByKey.set(titleKey, record);
         } else {
-          suppressed.push({ reason: "duplicate_title", candidate: record });
+          suppressed.push(toSuppressedCandidate("duplicate_title", record));
         }
       }
       continue;
-    }
-
-    // shadowed_by_typed_source: if this candidate is generic and a typed_markdown exists with same normalized title, prefer typed
-    if (sourceKind === "generic_markdown") {
-      // search for typed candidate in typedMarkdownCandidates manifestCandidates
-      const conflict = [...typedMarkdownCandidates, ...manifestCandidates].find((t) => normalizeTitle(String(t.entityType), String(t.title)) === titleKey);
-      if (conflict) {
-        // typed candidate wins
-        suppressed.push({ reason: "shadowed_by_typed_source", candidate: record });
-        continue;
-      }
     }
 
     seenByKey.set(titleKey, record);
@@ -309,7 +334,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     structuredContent: {
       activationState,
       activationReason: activationReasonFor(activationState),
-      applyBlocked: false,
+      applyBlocked: activationState === "root_partial",
       discoverySummary: {
         markdownFiles: discovery.markdownFiles.length,
         manifestFiles: discovery.manifestFiles.length,

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { PrologProcess, type QueryResult } from "kibi-cli/prolog";
 import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
@@ -23,44 +24,44 @@ describe("autopilot generate", () => {
     delete process.env.KIBI_WORKSPACE;
   });
 
+  function createPrologStub(
+    queryImpl: (goal: string | string[]) => Promise<QueryResult>,
+  ): PrologProcess {
+    const prolog = new PrologProcess();
+    prolog.query = queryImpl;
+    return prolog;
+  }
+
+  function emptyQueryResult(): QueryResult {
+    return { success: true, bindings: {} };
+  }
+
   test("generic markdown heuristics produce only ADR/REQ/FACT candidates and suppress low confidence", async () => {
-    const readme = `# ADR: Use service mesh
-
-# Requirements
-
-# Observations
-`;
+    const readme = "# ADR: Use service mesh\n\n# Requirements\n\n# Observations\n";
     await fs.writeFile(path.join(tmp, "README.md"), readme);
 
     await fs.mkdir(path.join(tmp, "documentation"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, "documentation", "REQ-001.md"),
-      `---
-id: REQ-001
-title: Documented req
-status: open
----
-`,
+      "---\nid: REQ-001\ntitle: Documented req\nstatus: open\n---\n",
     );
 
-    const prolog: any = {
-      query: async () => ({ success: true, bindings: {} }),
-    };
+    const prolog = createPrologStub(async () => emptyQueryResult());
 
-    const res = await handleKbAutopilotGenerate(prolog as any, {
+    const res = await handleKbAutopilotGenerate(prolog, {
       includeGenericMarkdown: true,
       minConfidence: 0.8,
     });
-    const candidates = res.structuredContent.candidates as any[];
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
     expect(candidates.length).toBeGreaterThanOrEqual(1);
-    const types = candidates.map((c) => c.entityType);
-    expect(types.every((t) => ["adr", "req", "fact"].includes(t))).toBe(true);
+    const types = candidates.map((candidate) => candidate.entityType);
+    expect(types.every((type) => ["adr", "req", "fact"].includes(String(type)))).toBe(true);
   });
 
   test("generic ADR markdown candidates use proposed status", async () => {
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
     const sourcePath = path.join(tmp, "docs", "bootstrap.md");
-    await fs.writeFile(sourcePath, `# ADR: Adopt Kibi\n`);
+    await fs.writeFile(sourcePath, "# ADR: Adopt Kibi\n");
 
     const candidates = buildGenericMarkdownCandidates(
       { markdownFiles: [sourcePath] },
@@ -70,26 +71,23 @@ status: open
 
     const adrCandidate = candidates.find((candidate) => candidate.entityType === "adr");
     expect(adrCandidate).toBeDefined();
-    expect((adrCandidate?.applyPlan[0] as any).properties.status).toBe("proposed");
+    expect(adrCandidate?.applyPlan[0]?.properties?.status).toBe("proposed");
   });
 
   test("day-0 root_uninitialized generates candidates and generic ADRs use proposed status", async () => {
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, "docs", "bootstrap.md"),
-      `# ADR: Adopt Kibi
-
-# Requirements
-
-# Observations
-`,
+      "# ADR: Adopt Kibi\n\n# Requirements\n\n# Observations\n",
     );
 
-    const prolog: any = {
-      query: async () => ({ success: false, bindings: {}, error: "no entities" }),
-    };
+    const prolog = createPrologStub(async () => ({
+      success: false,
+      bindings: {},
+      error: "no entities",
+    }));
 
-    const res = await handleKbAutopilotGenerate(prolog as any, {
+    const res = await handleKbAutopilotGenerate(prolog, {
       includeGenericMarkdown: true,
       minConfidence: 0.8,
     });
@@ -97,22 +95,102 @@ status: open
     expect(res.structuredContent.activationState).toBe("root_uninitialized");
     expect(res.structuredContent.applyBlocked).toBe(false);
 
-    const candidates = res.structuredContent.candidates as any[];
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
     expect(candidates.length).toBeGreaterThan(0);
 
     const adrCandidate = candidates.find((candidate) => candidate.entityType === "adr");
     expect(adrCandidate).toBeDefined();
-    expect(adrCandidate.applyPlan[0].properties.status).toBe("proposed");
+    expect(adrCandidate?.applyPlan?.[0]?.properties?.status).toBe("proposed");
+  });
+
+  test("root_partial workspaces may scan but block apply", async () => {
+    writeRootConfig(tmp, {
+      paths: {
+        requirements: "documentation/requirements/**/*.md",
+      },
+    });
+    await fs.mkdir(path.join(tmp, "documentation", "requirements"), {
+      recursive: true,
+    });
+    await fs.writeFile(
+      path.join(tmp, "documentation", "requirements", "REQ-123.md"),
+      "---\nid: REQ-123\ntitle: Partial workspace requirement\nstatus: open\n---\n# Content\n",
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+    });
+
+    expect(res.structuredContent.activationState).toBe("root_partial");
+    expect(res.structuredContent.applyBlocked).toBe(true);
+    expect(res.structuredContent.candidates).toHaveLength(1);
+  });
+
+  test("duplicate title suppression emits flat records", async () => {
+    await fs.writeFile(path.join(tmp, "README.md"), "# ADR: Shared Decision\n");
+    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
+    await fs.writeFile(path.join(tmp, "docs", "duplicate.md"), "# ADR: Shared Decision\n");
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+    const duplicate = suppressed.find(
+      (candidate) => candidate.reason === "duplicate_title",
+    );
+
+    expect(duplicate).toBeDefined();
+    expect(duplicate?.candidateId).toEqual(expect.any(String));
+    expect(duplicate?.sourcePath).toEqual(expect.any(String));
+    expect(duplicate?.entityType).toBe("adr");
+    expect(duplicate && Object.hasOwn(duplicate, "candidate")).toBe(false);
+  });
+
+  test("generic candidates shadowed by typed sources use shadowed_by_typed_source", async () => {
+    await fs.mkdir(path.join(tmp, "documentation", "adr"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "documentation", "adr", "ADR-001.md"),
+      "---\nid: ADR-001\ntitle: \"ADR: Adopt Kibi\"\nstatus: proposed\n---\n# ADR Content\n",
+    );
+    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
+    await fs.writeFile(path.join(tmp, "docs", "decision.md"), "# ADR: Adopt Kibi\n");
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    expect(
+      candidates.filter((candidate) => candidate.title === "ADR: Adopt Kibi"),
+    ).toHaveLength(1);
+
+    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+    const shadowed = suppressed.find(
+      (candidate) => candidate.reason === "shadowed_by_typed_source",
+    );
+
+    expect(shadowed).toBeDefined();
+    expect(shadowed?.candidateId).toEqual(expect.any(String));
+    expect(shadowed?.sourcePath).toEqual(expect.any(String));
+    expect(shadowed?.entityType).toBe("adr");
+    expect(shadowed && Object.hasOwn(shadowed, "candidate")).toBe(false);
   });
 
   test("vendored_only workspaces are blocked with zero candidates", async () => {
     createVendoredTree(tmp);
 
-    const prolog: any = {
-      query: async () => ({ success: true, bindings: {} }),
-    };
+    const prolog = createPrologStub(async () => emptyQueryResult());
 
-    const res = await handleKbAutopilotGenerate(prolog as any, {
+    const res = await handleKbAutopilotGenerate(prolog, {
       includeGenericMarkdown: true,
     });
 
@@ -125,8 +203,7 @@ status: open
     ensureDocs(tmp);
     writeRootConfig(tmp, {});
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "bootstrap.md"), `# ADR: Already active
-`);
+    await fs.writeFile(path.join(tmp, "docs", "bootstrap.md"), "# ADR: Already active\n");
 
     const fakeCounts = JSON.stringify({
       rows: [
@@ -136,16 +213,15 @@ status: open
       ],
     });
 
-    const prolog: any = {
-      query: async (goal: string) => {
-        if (goal.includes("coverage_report_json")) {
-          return { success: true, bindings: { JsonString: fakeCounts } };
-        }
-        return { success: true, bindings: {} };
-      },
-    };
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.includes("coverage_report_json")) {
+        return { success: true, bindings: { JsonString: fakeCounts } };
+      }
+      return emptyQueryResult();
+    });
 
-    const res = await handleKbAutopilotGenerate(prolog as any, {
+    const res = await handleKbAutopilotGenerate(prolog, {
       includeGenericMarkdown: true,
     });
 
