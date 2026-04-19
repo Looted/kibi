@@ -351,12 +351,14 @@ describe("MCP Server", () => {
       .join(" ");
 
     // Assert that content mentions expected public tools
-    expect(contentText).toMatch(/kb_query/);
+    expect(contentText).toMatch(/kb_autopilot_generate/);
     expect(contentText).toMatch(/kb_upsert/);
     expect(contentText).toMatch(/kb_check/);
+    expect(contentText).toMatch(/kb_find_gaps/);
+    expect(contentText).toMatch(/kb_coverage/);
 
-    // Assert that content mentions bootstrap or backfill
-    expect(contentText).toMatch(/(bootstrap|backfill)/);
+    // Assert that content mentions activation workflow concepts
+    expect(contentText).toMatch(/(activationState|activation)/);
 
     // Assert that content does NOT mention non-public tools
     expect(contentText).not.toMatch(/kb_query_relationships/);

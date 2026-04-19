@@ -110,8 +110,7 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 ### Bootstrap Command
 
-OpenCode exposes Kibi MCP prompts as slash commands. The `/init-kibi` command runs the retroactive bootstrap workflow using only public MCP tools.
-
+OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap using only public MCP tools.
 ### Discovery-first MCP guidance
 
 Agent-visible guidance is intentionally limited to the curated public MCP surface:
