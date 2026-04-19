@@ -1082,7 +1082,7 @@ describe("logging policy", () => {
         }
       };
 
-      // No client set — errorStructuredOnly falls back to console.error
+      // No client set — errorStructuredOnly is intentionally silent (no console.error fallback)
       const scheduler = require("../src/scheduler") as {
         createSyncScheduler: (opts: any) => any;
       };
@@ -1110,8 +1110,7 @@ describe("logging policy", () => {
       await Promise.resolve();
       await Promise.resolve();
 
-      // BUG: check.failed uses errorStructuredOnly which falls back to console.error
-      // when no client is bound. Advisory failures should be silent in terminal.
+      // Advisory failures use errorStructuredOnly which is completely silent when no client is bound.
       assert.equal(
         errorCalls.length,
         0,

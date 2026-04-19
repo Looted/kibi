@@ -103,7 +103,10 @@ export function errorStructuredOnly(
       .log({
         body: buildBody("error", msg, metadata),
       })
-      .catch(console.error);
+      .catch(() => {
+        // Advisory failures are intentionally silent even on client logging
+        // failures — advisory noise must never pollute the TUI or terminal.
+      });
     return;
   }
   // No client bound: advisory failures are intentionally silent
