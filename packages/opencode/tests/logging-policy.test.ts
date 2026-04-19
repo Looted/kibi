@@ -11,13 +11,7 @@ describe("logging policy", () => {
   let originalConsoleError: typeof console.error;
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const logger = require("../src/logger") as {
-    setClient: (client: any) => void;
-    resetClient: () => void;
-    info: (msg: string, metadata?: Record<string, unknown>) => void;
-    warn: (msg: string, metadata?: Record<string, unknown>) => void;
-    error: (msg: string, metadata?: Record<string, unknown>) => void;
-  };
+  const logger = require("../src/logger") as typeof import("../src/logger");
 
   beforeEach(() => {
     logCalls = [];
@@ -1246,4 +1240,3 @@ describe("logging policy", () => {
 });
 
 });
-
