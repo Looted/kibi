@@ -19,6 +19,7 @@ import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
 import type { StatusArgs } from "../../src/tools/status.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
+import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 
 type MockProlog = { kind: "mock-prolog" };
 type SessionModule = typeof import("../../src/server/session.js");
@@ -45,6 +46,7 @@ const TOOL_NAMES = [
   "kb_upsert",
   "kb_delete",
   "kb_check",
+  "kb_autopilot_generate",
 ] as const;
 
 function createDeferred<T>() {
@@ -261,6 +263,12 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] = mock(
+    async (_prolog: MockProlog, args: AutopilotGenerateArgs): Promise<unknown> => ({
+      tool: "kb_autopilot_generate",
+      args,
+    }),
+  );
 
   const runtime = {
     diagnosticModeEnabled,
@@ -282,6 +290,7 @@ function createRuntime() {
     handleKbSearch,
     handleKbStatus,
     handleKbUpsert,
+    handleKbAutopilotGenerate,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -307,6 +316,7 @@ function createRuntime() {
       handleKbSearch,
       handleKbStatus,
       handleKbUpsert,
+      handleKbAutopilotGenerate,
     },
   };
 }
