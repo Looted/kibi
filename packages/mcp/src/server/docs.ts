@@ -76,7 +76,7 @@ export const PROMPTS = [
       "This tool is **read-only** — it never writes to the KB. It returns:",
       "- `activationState`: the current KB state (e.g. `root_uninitialized`, `root_partial`)",
       "- `candidates[]`: proposed entities with confidence scores and evidence",
-      "- `suppressedCandidates[]`: low-confidence proposals withheld by default",
+      "- `suppressedCandidates[]`: candidates suppressed due to duplicates, existing entities, or shadowed by typed sources",
       "- `discoverySummary` / `payoffSummary`: context for agent review",
       "",
       "## Step 2: Review Candidates",
