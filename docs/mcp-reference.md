@@ -6,6 +6,17 @@ The Kibi Model Context Protocol (MCP) server is the primary interface for LLM ag
 
 The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP.
 
+### `kb_autopilot_generate`
+
+Discover existing repository entities and bootstrap the KB via read-only candidate generation. Prefer this for day-0 activation.
+,
+**Parameters:**
+- `limit` (optional): Max results per entity type
+- `include` (optional): Filter by file pattern
+,
+**Returns:**
+Grouped candidate entities ready for review. Candidates must be explicitly applied via `kb_upsert` after validation.
+,
 ### `kb_query`
 
 Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.
@@ -188,7 +199,8 @@ Validation report with any violations found and suggested fixes.
 
 ## Recommended Agent Workflow
 
-1. **Gather Context**: Use `kb_search` for discovery and `kb_query` for exact follow-up.
+1. **Day-0 Activation**: Use \`kb_autopilot_generate\` to discover entities and bootstrap the KB. Review candidates before applying.
+2. **Gather Context**: Use \`kb_search\` for discovery and \`kb_query\` for exact follow-up.
 2. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 3. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
 4. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
