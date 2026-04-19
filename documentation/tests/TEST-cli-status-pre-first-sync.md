@@ -18,5 +18,5 @@ The test verifies that the `kibi status` command does not fail when executed in 
 
 **Coverage:**
 - Verified in `packages/cli/tests/commands/status.test.ts`
-- Tests both JSON and human-readable output formats
+- Tests pre-first-sync behavior in JSON output
 - Ensures exit code 0 in both workspace development mode and when executed as a packed binary.

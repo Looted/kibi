@@ -17,7 +17,8 @@ links:
 The test verifies that the `kibi-mcp` binary correctly handles help requests without entering an interactive loop.
 
 **Coverage:**
-- Verified in `packages/mcp/tests/cli-help.test.ts`
+- Verified in `packages/mcp/tests/cli-help.test.ts` (workspace)
+- Verified in `documentation/tests/e2e/packed/mcp-cli-help.test.ts` (packed tarball)
 - Verifies that help flags (`--help`, `-h`) result in exit code 0
 - Verifies that usage information is output to the console
 - Verifies that the process terminates automatically.
