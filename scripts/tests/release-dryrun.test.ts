@@ -396,6 +396,71 @@ Expected action: NOOP
 `,
       );
     });
+
+    test("partial rerun: comma-list fixture with core+cli published → PUBLISH_ONLY_RERUN with mcp+opencode", () => {
+      // Build comma-separated list from current core and cli package manifests.
+      // This simulates a partial rerun where core and cli are already on npm,
+      // so only mcp and opencode remain to be published.
+      const { name: coreName, version: coreVersion } = ALL_PACKAGES["core"];
+      const { name: cliName, version: cliVersion } = ALL_PACKAGES["cli"];
+      const mockNpm = `${coreName}@${coreVersion},${cliName}@${cliVersion}`;
+
+      const raw = execSync("bun run scripts/run-release-state.ts", {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_REF_NAME: "master",
+          GITHUB_SHA: "test-sha-partial-rerun",
+          KIBI_RELEASE_MOCK_NPM: mockNpm,
+        },
+      });
+
+      const decision = JSON.parse(raw) as ReturnType<
+        typeof determineReleaseAction
+      > & { toPublish: string[] };
+
+      // --- Core action assertion ---
+      expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
+
+      // --- toPublish contains only mcp and opencode ---
+      expect(Array.isArray(decision.toPublish)).toBe(true);
+      const toPublishDirs = decision.toPublish
+        .map((entry: string) => entry.split("=")[0])
+        .sort();
+      expect(toPublishDirs).toEqual(["mcp", "opencode"]);
+
+      // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
+      // The runner omits already-published packages from decision.packages.
+      expect(decision.packages).toHaveLength(2);
+      const pkgDirs = decision.packages
+        .map((p: { dir: string }) => p.dir)
+        .sort();
+      expect(pkgDirs).toEqual(["mcp", "opencode"]);
+
+      // --- None of the returned packages are already published ---
+      for (const pkg of decision.packages) {
+        expect(pkg.alreadyPublished).toBe(false);
+      }
+
+      writeEvidence(
+        "task-4-release-dryrun-partial-rerun.txt",
+        `Release Dry-Run Partial Rerun Evidence
+==========================================
+Date: ${new Date().toISOString()}
+Branch override: GITHUB_REF_NAME=master
+Fixture: KIBI_RELEASE_MOCK_NPM="${mockNpm}" (core+cli already published)
+
+Raw JSON output:
+${raw}
+
+Summary:
+- Action: ${decision.action}
+- toPublish dirs: ${toPublishDirs.join(", ")}
+- Packages in output: ${pkgDirs.join(", ")}
+- Reason: ${decision.reason}
+`,
+      );
+    }, 15_000);
   });
 
   // -------------------------------------------------------------------------
