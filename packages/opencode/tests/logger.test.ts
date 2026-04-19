@@ -188,11 +188,12 @@ describe("failure-routing contract", () => {
       const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       logger.setClient(mockClient as any);
 
-      logger.errorStructuredOnly("will-reject");
+      expect(() => logger.errorStructuredOnly("will-reject")).not.toThrow();
       await Promise.resolve();
 
-      // Rejection handler may use console.error as last resort
-      expect(spy).toHaveBeenCalled();
+      // Advisory/background logging must stay silent even if client.app.log()
+      // rejects; graceful handling means no throw and no console.error noise.
+      expect(spy).not.toHaveBeenCalled();
       expect(mockLog).toHaveBeenCalledTimes(1);
     });
 
