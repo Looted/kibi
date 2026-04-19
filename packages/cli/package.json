@@ -40,12 +40,12 @@
       "default": "./dist/public/extractors/symbols-coordinator.js"
     },
     "./extractors/manifest": {
-      "types": "./src/public/extractors/manifest.ts",
-      "default": "./src/public/extractors/manifest.ts"
+      "types": "./dist/public/extractors/manifest.d.ts",
+      "default": "./dist/public/extractors/manifest.js"
     },
     "./extractors/markdown": {
-      "types": "./src/public/extractors/markdown.ts",
-      "default": "./src/public/extractors/markdown.ts"
+      "types": "./dist/public/extractors/markdown.d.ts",
+      "default": "./dist/public/extractors/markdown.js"
     },
     "./schemas/entity": {
       "types": "./dist/public/schemas/entity.d.ts",
