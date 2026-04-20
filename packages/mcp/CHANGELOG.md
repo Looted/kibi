@@ -1,5 +1,24 @@
 # kibi-mcp
 
+## 0.8.0
+
+### Minor Changes
+
+- 2066a48: Add init-kibi autopilot generation workflow
+
+  - New MCP tool `kb_autopilot_generate` for read-only candidate generation
+  - Activation-state classification and source discovery helpers
+  - Deterministic candidate generation for Kibi docs and symbol manifests
+  - Conservative generic markdown heuristics for ADR/REQ/FACT candidates
+  - Dedupe logic and payoff summary reporting
+  - Aligned OpenCode prompt guidance with activation workflow
+
+### Patch Changes
+
+- 4c1ae86: Fix `kb_autopilot_generate` workspace discovery so it respects env-provided workspace roots, excludes vendored markdown trees during generic scanning, and returns zero candidates for vendored-only temporary repos.
+- Updated dependencies [2066a48]
+  - kibi-cli@0.6.2
+
 ## 0.7.1
 
 ### Patch Changes
