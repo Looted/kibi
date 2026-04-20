@@ -405,6 +405,52 @@ describe("briefing generate", () => {
     ).rejects.toThrow(/at least one of taskText, sourceFiles, or seedIds/i);
   });
 
+  test("uses a fast text-only path without activation or status Prolog queries", async () => {
+    const root = path.join(tmp, "text-only-workspace");
+    await ensureBriefingWorkspace(root);
+    process.env.KIBI_WORKSPACE = root;
+
+    const handleKbBriefingGenerate = await loadHandler();
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+
+      if (queryText.includes("coverage_report_json")) {
+        throw new Error("text-only path should not call coverage_report_json");
+      }
+      if (queryText.includes("status:kb_status_json")) {
+        throw new Error("text-only path should not call status:kb_status_json");
+      }
+      if (queryText.includes("graph_expand_json")) {
+        return toJsonResult({ nodes: [], edges: [], truncated: false, meta: {} });
+      }
+      if (
+        queryText.includes(
+          "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        )
+      ) {
+        return toEntityResult(READY_ENTITIES);
+      }
+
+      return toEntityResult([]);
+    });
+
+    const result = await handleKbBriefingGenerate(prolog, {
+      taskText:
+        "Generate a deterministic citation-backed briefing for MCP registration work.",
+    });
+
+    expect(result.structuredContent.activationState).toBe("root_active_thin");
+    expect(result.structuredContent.freshness).toEqual({
+      state: "unknown",
+      syncState: "unknown",
+      dirty: false,
+      syncedAt: null,
+    });
+    expect(["ready", "no_briefing"]).toContain(
+      result.structuredContent.briefingState,
+    );
+  });
+
   test("returns a full ready briefing with cited deterministic entities and zero file writes", async () => {
     const root = path.join(tmp, "ready-workspace");
     await ensureBriefingWorkspace(root);

@@ -1,5 +1,6 @@
 import type { PrologProcess } from "kibi-cli/prolog";
 import { rankEntities } from "kibi-cli/search-ranking";
+import fs from "node:fs";
 import path from "node:path";
 import {
   classifyActivationState,
@@ -124,6 +125,49 @@ function activationReasonFor(state: ActivationState): string {
     default:
       return "Workspace root is not fully initialized; briefing generation is disabled until Kibi is attached.";
   }
+}
+
+function inferTextOnlyActivationState(workspaceRoot: string): ActivationState {
+  try {
+    const vendoredMarkers = [
+      ["kibi", "opencode.json"],
+      ["kibi", "package.json"],
+      ["kibi", "packages", "mcp"],
+      ["kibi", "documentation"],
+    ];
+    const hasVendoredTree = vendoredMarkers.some((segments) =>
+      pathExists(path.join(workspaceRoot, ...segments)),
+    );
+    const hasRootConfig = pathExists(path.join(workspaceRoot, ".kb", "config.json"));
+
+    if (!hasRootConfig && hasVendoredTree) {
+      return "vendored_only";
+    }
+    if (!hasRootConfig) {
+      return "root_uninitialized";
+    }
+  } catch {
+    // Fall through to the conservative thin state below.
+  }
+
+  return "root_active_thin";
+}
+
+function pathExists(candidatePath: string): boolean {
+  try {
+    return fs.existsSync(candidatePath);
+  } catch {
+    return false;
+  }
+}
+
+function unknownFreshness(): BriefingFreshness {
+  return {
+    state: "unknown",
+    syncState: "unknown",
+    dirty: false,
+    syncedAt: null,
+  };
 }
 
 function normalizeTaskText(taskText?: string): string {
@@ -565,11 +609,14 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
     );
   }
 
-  const activationState = await classifyActivationState(workspaceRoot, prolog);
+  const useTextOnlyFastPath = taskText.length > 0 && sourceFiles.length === 0 && seedIds.length === 0;
+  const activationState = useTextOnlyFastPath
+    ? inferTextOnlyActivationState(workspaceRoot)
+    : await classifyActivationState(workspaceRoot, prolog);
   const activationReason = activationReasonFor(activationState);
-  const statusResult = await handleKbStatus(prolog, {});
-  const statusPayload = statusResult.structuredContent as StatusPayload;
-  const freshness = toFreshness(statusPayload);
+  const freshness = useTextOnlyFastPath
+    ? unknownFreshness()
+    : toFreshness((await handleKbStatus(prolog, {})).structuredContent as StatusPayload);
 
   if (
     activationState === "root_uninitialized" ||

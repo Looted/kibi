@@ -16,6 +16,11 @@ const SENTINEL = "<!-- kibi-opencode -->";
 const MAX_BULLETS = 5;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
+const AUTHORITATIVE_POSTURES: RepoPosture[] = [
+  "root_active",
+  "hybrid_root_plus_vendored",
+];
+
 function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
@@ -44,6 +49,16 @@ function enforceBudget(block: string): string {
     return words.join(" ");
   }
   return block;
+}
+
+function insertBulletAfterHeader(block: string, bullet: string): string {
+  const headerEnd = block.indexOf("\n");
+  if (headerEnd === -1) return `${block}\n${bullet}`;
+  return `${block.slice(0, headerEnd + 1)}${bullet}\n${block.slice(headerEnd + 1)}`;
+}
+
+function isAuthoritativePosture(posture: RepoPosture): boolean {
+  return AUTHORITATIVE_POSTURES.includes(posture);
 }
 
 // ── File bucket derivation ─────────────────────────────────────────────
@@ -100,13 +115,16 @@ Requirement edits need policy alignment. Run kb_check with required-fields and n
 
   behavior_candidate: `📝 **Code changes detected**
 
-Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.`,
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
+- \`covered_by\` is coverage evidence only
+- Prefer scenario-first: req→scenario→test when scenarios exist`,
 
   traceability_candidate: `📝 **Code changes detected**
 
-Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.
-- Durable knowledge comment detected — route to KB instead of inline comments
-- Use kb_upsert for FACT, ADR, or REQ entities as appropriate`,
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
+- \`covered_by\` is coverage evidence only
+- Prefer scenario-first: req→scenario→test when scenarios exist
+- Route durable knowledge comments to KB entities, not inline comments`,
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
@@ -272,6 +290,19 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     }
     } // closing brace for Priority 2-4 else block starting at 187
 
+  if (
+    selectedBlock &&
+    (riskClass === "behavior_candidate" ||
+      riskClass === "traceability_candidate") &&
+    isAuthoritativePosture(posture) &&
+    !context.maintenanceDegraded
+  ) {
+    selectedBlock = insertBulletAfterHeader(
+      selectedBlock,
+      "- Authoritative risky edit: run `/brief-kibi` before acting.",
+    );
+  }
+
   // Source-linked micro-brief: insert after header line for code risk classes
   // Inserting after the header (not prepending before it) preserves the header
   // under enforceBudget's trimming logic, which only collects non-bullet lines
@@ -294,10 +325,10 @@ If you're adding long explanatory comments, consider routing that knowledge to:
           absEdited,
         );
         if (linkedIds.length >= 1 && linkedIds.length <= 3) {
-          const headerEnd = selectedBlock.indexOf("\n");
-          if (headerEnd !== -1) {
-            selectedBlock = `${selectedBlock.slice(0, headerEnd + 1)}- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock.slice(headerEnd + 1)}`;
-          }
+          selectedBlock = insertBulletAfterHeader(
+            selectedBlock,
+            `- Existing Kibi links: ${linkedIds.join(", ")}`,
+          );
         }
       }
     } catch {
