@@ -3467,6 +3467,172 @@ import datetime
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
 
+    it("does not latch degraded mode for smart-enforcement sync failures", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async () => {},
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const startup = await runPluginStartup({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      capturedOnRunComplete?.({
+        reason: "smart-enforcement.traceability",
+        exitCode: 1,
+        checkExitCode: 0,
+      });
+
+      assert.equal(startup?.runtimeOverlay.degraded, false);
+      assert.equal(startup?.runtimeOverlay.primaryCause, undefined);
+      assert.equal(startup?.getMaintenanceDegraded(), false);
+      assert.equal(startup?.getEffectiveMode(), "strict");
+    });
+
+    it("does not latch degraded mode for smart-enforcement trailing rerun sync failures", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async () => {},
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const startup = await runPluginStartup({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      capturedOnRunComplete?.({
+        reason: "smart-enforcement.kb-doc.trailing",
+        exitCode: 1,
+        checkExitCode: 0,
+      });
+
+      assert.equal(startup?.runtimeOverlay.degraded, false);
+      assert.equal(startup?.runtimeOverlay.primaryCause, undefined);
+      assert.equal(startup?.getMaintenanceDegraded(), false);
+      assert.equal(startup?.getEffectiveMode(), "strict");
+    });
+
     it("latches scheduler_check_failed when onRunComplete has non-zero checkExitCode", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });

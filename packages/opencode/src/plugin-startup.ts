@@ -18,6 +18,16 @@ import type { PluginInput } from "./index.js";
 
 type PostureSnapshot = ReturnType<typeof detectPosture>;
 
+function isSmartEnforcementSyncReason(reason?: string): boolean {
+  if (!reason) {
+    return false;
+  }
+  const normalizedReason = reason.endsWith(".trailing")
+    ? reason.slice(0, -".trailing".length)
+    : reason;
+  return normalizedReason.startsWith("smart-enforcement.");
+}
+
 const workspaceCacheState = new Map<
   string,
   {
@@ -232,7 +242,10 @@ export async function runPluginStartup(
             worktree: input.worktree,
             config: cfg,
             onRunComplete: (meta) => {
-              if (meta.exitCode !== 0)
+              if (
+                meta.exitCode !== 0 &&
+                !isSmartEnforcementSyncReason(meta.reason)
+              )
                 latchRuntimeDegraded("scheduler_sync_failed");
               if (
                 meta.checkExitCode !== undefined &&
