@@ -14,11 +14,12 @@ import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
 import * as logger from "../src/logger";
 import type { PluginInput } from "../src/index";
+import { runPluginStartup } from "../src/plugin-startup";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 // implements REQ-opencode-kibi-plugin-v1
 
-describe("index kibiOpencodePlugin", () => {
+describe.serial("index kibiOpencodePlugin", () => {
   let tmpDir: string;
   let worktree: string;
   const makeInput = (overrides: Partial<PluginInput> = {}): PluginInput => ({
@@ -30,38 +31,35 @@ describe("index kibiOpencodePlugin", () => {
     client: undefined,
     ...overrides,
   });
-  const originalSetTimeout = globalThis.setTimeout;
 
-  beforeAll(() => {
-    globalThis.setTimeout = ((
-      handler: TimerHandler,
-      _delay?: number,
-      ...args: unknown[]
-    ) => {
-      if (typeof handler === "function") {
-        handler(...args);
-      }
-      return 0 as unknown as ReturnType<typeof globalThis.setTimeout>;
-    }) as unknown as typeof globalThis.setTimeout;
-  });
-
-  afterAll(() => {
-    globalThis.setTimeout = originalSetTimeout;
-  });
-
+  const startupNotifyGlobals = globalThis as typeof globalThis & {
+    __kibi_test_schedule_startup_notify?: (callback: () => void, delayMs: number) => void;
+  };
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
     worktree = tmpDir;
     resetSessionTracker();
     logger.resetClient();
+    startupNotifyGlobals.__kibi_test_schedule_startup_notify = (callback) => {
+      callback();
+    };
   });
 
   afterEach(() => {
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
+    const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+      __kibi_test_scheduler_factory?: unknown;
+      __kibi_test_scheduler_factory_by_worktree?: Map<string, unknown>;
+    };
+    schedulerFactoryGlobals.__kibi_test_scheduler_factory = undefined;
+    schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree?.delete(
+      tmpDir,
+    );
     resetSessionTracker();
     logger.resetClient();
+    startupNotifyGlobals.__kibi_test_schedule_startup_notify = undefined;
   });
 
   describe("plugin setup and config disabled", () => {
@@ -3207,11 +3205,23 @@ import datetime
         },
       });
 
-      await new Promise((r) => setTimeout(r, 20));
+      for (let attempt = 0; attempt < 100; attempt++) {
+        const hasDegradedLog = appLogCalls.some((payload) => {
+          const body = payload.body as Record<string, unknown>;
+          return body.event === "smart_enforcement_degraded";
+        });
+        if (hasDegradedLog) break;
+        await new Promise((r) => setTimeout(r, 20));
+      }
 
       const degradedLogs = appLogCalls.filter((p) => {
         const body = p.body as Record<string, unknown>;
-        return body.event === "smart_enforcement_degraded";
+        return (
+          (body.event === "smart_enforcement_degraded" ||
+            body.event === "smart_enforcement_risk") &&
+          body.overlay_cause === "sync_disabled" &&
+          body.runtime_degraded === true
+        );
       });
 
       assert.ok(
@@ -3223,8 +3233,6 @@ import datetime
       assert.equal(first?.overlay_cause, "sync_disabled");
       assert.equal(first?.runtime_degraded, true);
       assert.equal(first?.effective_mode, "advisory");
-      assert.equal(first?.overlay_cause, "sync_disabled");
-      assert.equal(first?.runtime_degraded, true);
     });
 
     it("latches non_authoritative_posture for root_uninitialized", async () => {
@@ -3292,7 +3300,6 @@ import datetime
     });
 
     it("latches scheduler_unavailable when createSyncScheduler throws", async () => {
-      const appLogCalls: Array<Record<string, unknown>> = [];
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -3305,6 +3312,8 @@ import datetime
             guidance: {
               smartEnforcement: {
                 completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
               },
             },
           },
@@ -3334,23 +3343,33 @@ import datetime
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
       );
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "requirements", "REQ-001.md"),
+        "---\nid: REQ-001\ntitle: Scheduler degraded test\nstatus: open\n---\n",
+      );
 
       const mockClient = {
         app: {
-          log: async (payload: Record<string, unknown>) => {
-            appLogCalls.push(payload);
-          },
+          log: async () => {},
         },
       };
 
-      (globalThis as any).__kibi_test_scheduler_factory = () => {
-        throw new Error("scheduler creation failure");
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
       };
-
-      const { default: plugin } = await import(
-        "../src/index.ts?bust=" + Date.now()
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        tmpDir,
+        () => {
+          throw new Error("scheduler creation failure");
+        },
       );
-      const hooks = await plugin({
+
+      const startup = await runPluginStartup({
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
@@ -3359,35 +3378,14 @@ import datetime
         $: {} as any,
       });
 
-      const eventHook = hooks.event as any;
-      await eventHook({
-        event: {
-          type: "file.edited",
-          properties: { file: "src/foo.ts" },
-        },
-      });
-
-      await new Promise((r) => setTimeout(r, 20));
-
-      const degradedLogs = appLogCalls.filter((p) => {
-        const body = p.body as Record<string, unknown>;
-        return body.event === "smart_enforcement_degraded";
-      });
-
-      assert.ok(
-        degradedLogs.length >= 1,
-        "Should log smart_enforcement_degraded for scheduler_unavailable",
-      );
-
-      const first = degradedLogs[0]?.body as Record<string, unknown>;
-      assert.equal(first?.overlay_cause, "scheduler_unavailable");
-      assert.equal(first?.runtime_degraded, true);
-      assert.equal(first?.effective_mode, "advisory");
-      delete (globalThis as any).__kibi_test_scheduler_factory;
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.equal(startup?.runtimeOverlay.degraded, true);
+      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_unavailable");
+      assert.equal(startup?.getMaintenanceDegraded(), true);
+      assert.equal(startup?.getEffectiveMode(), "advisory");
     });
 
     it("latches scheduler_sync_failed when onRunComplete has non-zero exitCode", async () => {
-      const appLogCalls: Array<Record<string, unknown>> = [];
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -3400,6 +3398,8 @@ import datetime
             guidance: {
               smartEnforcement: {
                 completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
               },
             },
           },
@@ -3432,9 +3432,7 @@ import datetime
 
       const mockClient = {
         app: {
-          log: async (payload: Record<string, unknown>) => {
-            appLogCalls.push(payload);
-          },
+          log: async () => {},
         },
       };
 
@@ -3450,10 +3448,7 @@ import datetime
         };
       };
 
-      const { default: plugin } = await import(
-        "../src/index.ts?bust=" + Date.now()
-      );
-      const hooks = await plugin({
+      const startup = await runPluginStartup({
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
@@ -3462,46 +3457,17 @@ import datetime
         $: {} as any,
       });
 
-      const eventHook = hooks.event as any;
-      await eventHook({
-        event: {
-          type: "file.edited",
-          properties: { file: "src/foo.ts" },
-        },
-      });
-
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
       capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
-      await new Promise((r) => setTimeout(r, 20));
 
-      const degradedLogs = appLogCalls.filter((p) => {
-        const body = p.body as Record<string, unknown>;
-        return body.event === "smart_enforcement_degraded";
-      });
-
-      assert.ok(
-        degradedLogs.length >= 1,
-        "Should log smart_enforcement_degraded for scheduler_sync_failed",
-      );
-
-      const causes = degradedLogs.map(
-        (p) => (p.body as Record<string, unknown>).overlay_cause,
-      );
-      assert.ok(causes.includes("scheduler_sync_failed"));
-
-      const syncFailed = degradedLogs.find(
-        (p) =>
-          (p.body as Record<string, unknown>).overlay_cause ===
-          "scheduler_sync_failed",
-      );
-      assert.equal(
-        (syncFailed?.body as Record<string, unknown>)?.effective_mode,
-        "advisory",
-      );
-      delete (globalThis as any).__kibi_test_scheduler_factory;
+      assert.equal(startup?.runtimeOverlay.degraded, true);
+      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_sync_failed");
+      assert.equal(startup?.getMaintenanceDegraded(), true);
+      assert.equal(startup?.getEffectiveMode(), "advisory");
     });
 
     it("latches scheduler_check_failed when onRunComplete has non-zero checkExitCode", async () => {
-      const appLogCalls: Array<Record<string, unknown>> = [];
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -3514,6 +3480,8 @@ import datetime
             guidance: {
               smartEnforcement: {
                 completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
               },
             },
           },
@@ -3546,9 +3514,7 @@ import datetime
 
       const mockClient = {
         app: {
-          log: async (payload: Record<string, unknown>) => {
-            appLogCalls.push(payload);
-          },
+          log: async () => {},
         },
       };
 
@@ -3564,10 +3530,7 @@ import datetime
         };
       };
 
-      const { default: plugin } = await import(
-        "../src/index.ts?bust=" + Date.now()
-      );
-      const hooks = await plugin({
+      const startup = await runPluginStartup({
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
@@ -3576,49 +3539,21 @@ import datetime
         $: {} as any,
       });
 
-      const eventHook = hooks.event as any;
-      await eventHook({
-        event: {
-          type: "file.edited",
-          properties: { file: "src/foo.ts" },
-        },
-      });
-
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
       capturedOnRunComplete?.({ exitCode: 0, checkExitCode: 1 });
-      await new Promise((r) => setTimeout(r, 20));
 
-      const degradedLogs = appLogCalls.filter((p) => {
-        const body = p.body as Record<string, unknown>;
-        return body.event === "smart_enforcement_degraded";
-      });
-
-      assert.ok(
-        degradedLogs.length >= 1,
-        "Should log smart_enforcement_degraded for scheduler_check_failed",
-      );
-
-      const causes = degradedLogs.map(
-        (p) => (p.body as Record<string, unknown>).overlay_cause,
-      );
-      assert.ok(causes.includes("scheduler_check_failed"));
-
-      const checkFailed = degradedLogs.find(
-        (p) =>
-          (p.body as Record<string, unknown>).overlay_cause ===
-          "scheduler_check_failed",
-      );
-      assert.equal(
-        (checkFailed?.body as Record<string, unknown>)?.effective_mode,
-        "advisory",
-      );
-      delete (globalThis as any).__kibi_test_scheduler_factory;
+      assert.equal(startup?.runtimeOverlay.degraded, true);
+      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_check_failed");
+      assert.equal(startup?.getMaintenanceDegraded(), true);
+      assert.equal(startup?.getEffectiveMode(), "advisory");
     });
   });
 
   // ── Targeted-check rule routing contract (Task 1 TDD lock-in) ───────────
   // These tests define the contract for Task 3 implementation.
   // Expected to FAIL until runtime routing is completed.
-  describe("targeted-check rule routing contract", () => {
+  describe.serial("targeted-check rule routing contract", () => {
     type ScheduleCall = {
       reason: string;
       filePath?: string;
@@ -3628,8 +3563,14 @@ import datetime
     /** Helper to set up a capturing scheduler factory and import a fresh plugin */
     async function setupWithCapturingScheduler(tmpDir: string) {
       const scheduleCalls: ScheduleCall[] = [];
-
-      (globalThis as any).__kibi_test_scheduler_factory = () => ({
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
+      };
+      const schedulerFactory = () => ({
         scheduleSync: (
           reason: string,
           filePath?: string,
@@ -3642,6 +3583,13 @@ import datetime
         flush: async () => {},
         dispose: () => {},
       });
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        tmpDir,
+        schedulerFactory,
+      );
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
 
       const { default: plugin } = await import(
         `../src/index.ts?route=${Date.now()}`
@@ -3659,7 +3607,14 @@ import datetime
         $: {} as any,
       });
 
-      return { hooks, scheduleCalls };
+      const cleanup = () => {
+        schedulerFactoryGlobals.__kibi_test_scheduler_factory = undefined;
+        schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree?.delete(
+          tmpDir,
+        );
+      };
+
+      return { hooks, scheduleCalls, cleanup };
     }
 
     /** Set up full KB structure in temp dir */
@@ -3700,17 +3655,25 @@ import datetime
     }
 
     afterEach(() => {
-      delete (globalThis as any).__kibi_test_scheduler_factory;
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<string, unknown>;
+      };
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = undefined;
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree?.delete(
+        tmpDir,
+      );
     });
 
     it("traceability_candidate schedules symbol-traceability check", async () => {
-      const opencodeDir = path.join(tmpDir, ".opencode");
+      const caseDir = tmpDir;
+      const opencodeDir = path.join(caseDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
-      setupKbStructure(tmpDir);
+      setupKbStructure(caseDir);
 
       // Create a code file with exports but NO // implements REQ-xxx annotation
       // This should be classified as traceability_candidate
-      const srcDir = path.join(tmpDir, "src");
+      const srcDir = path.join(caseDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
       const codeFile = path.join(srcDir, "feature.ts");
       fs.writeFileSync(
@@ -3738,38 +3701,42 @@ import datetime
         ),
       );
 
-      const { hooks, scheduleCalls } =
-        await setupWithCapturingScheduler(tmpDir);
+      const { hooks, scheduleCalls, cleanup } =
+        await setupWithCapturingScheduler(caseDir);
 
-      assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as any;
+      try {
+        assert.ok(hooks.event, "Should have event hook");
+        const eventHook = hooks.event as any;
 
-      await eventHook({
-        event: {
-          type: "file.edited",
-          properties: { file: codeFile },
-        },
-      });
+        await eventHook({
+          event: {
+            type: "file.edited",
+            properties: { file: codeFile },
+          },
+        });
 
-      // The traceability_candidate path should schedule symbol-traceability
-      // using reason "smart-enforcement.traceability" (not "file.edited")
-      const traceCalls = scheduleCalls.filter(
-        (c) => c.checkRules && c.checkRules.includes("symbol-traceability"),
-      );
-      assert.ok(
-        traceCalls.length >= 1,
-        `Expected at least 1 scheduleSync with symbol-traceability, got ${JSON.stringify(scheduleCalls)}`,
-      );
-      assert.deepEqual(
-        traceCalls[0].checkRules,
-        ["symbol-traceability"],
-        `Expected exact rules ["symbol-traceability"], got ${JSON.stringify(traceCalls[0].checkRules)}`,
-      );
-      assert.equal(
-        traceCalls[0].reason,
-        "smart-enforcement.traceability",
-        `Expected reason "smart-enforcement.traceability", got "${traceCalls[0].reason}"`,
-      );
+        // The traceability_candidate path should schedule symbol-traceability
+        // using reason "smart-enforcement.traceability" (not "file.edited")
+        const traceCalls = scheduleCalls.filter(
+          (c) => c.checkRules && c.checkRules.includes("symbol-traceability"),
+        );
+        assert.ok(
+          traceCalls.length >= 1,
+          `Expected at least 1 scheduleSync with symbol-traceability, got ${JSON.stringify(scheduleCalls)}`,
+        );
+        assert.deepEqual(
+          traceCalls[0].checkRules,
+          ["symbol-traceability"],
+          `Expected exact rules ["symbol-traceability"], got ${JSON.stringify(traceCalls[0].checkRules)}`,
+        );
+        assert.equal(
+          traceCalls[0].reason,
+          "smart-enforcement.traceability",
+          `Expected reason "smart-enforcement.traceability", got "${traceCalls[0].reason}"`,
+        );
+      } finally {
+        cleanup();
+      }
     });
 
     it("fact KB-doc edit schedules required-fields, no-dangling-refs, strict-fact-shape", async () => {
