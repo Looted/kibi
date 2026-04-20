@@ -36,14 +36,25 @@ const sourceSha =
   execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
 
 // Collect changeset files
-const changesetDir = join(rootDir, ".changeset");
+// KIBI_RELEASE_MOCK_CHANGESETS env contract:
+// - undefined: read real .changeset directory
+// - defined (including empty string): fixture mode from comma-list of filenames
+const mockChangesets = process.env.KIBI_RELEASE_MOCK_CHANGESETS;
 let changesetFiles: string[] = [];
-try {
-  changesetFiles = readdirSync(changesetDir).filter(
-    (f) => f.endsWith(".md") && f !== "README.md",
-  );
-} catch {
-  changesetFiles = [];
+if (mockChangesets !== undefined) {
+  changesetFiles = mockChangesets
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+} else {
+  const changesetDir = join(rootDir, ".changeset");
+  try {
+    changesetFiles = readdirSync(changesetDir).filter(
+      (f) => f.endsWith(".md") && f !== "README.md",
+    );
+  } catch {
+    changesetFiles = [];
+  }
 }
 
 // Collect package info

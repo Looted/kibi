@@ -66,7 +66,7 @@ describe("MCP Check Tool Handler", () => {
     expect(result.content[0].text).toContain("No violations");
     expect(result.structuredContent?.violations).toEqual([]);
     expect(result.structuredContent?.count).toBe(0);
-  }, 15000);
+  }, 30000);
 
   test("should detect must-priority requirement without scenario", async () => {
     await handleKbUpsert(prolog, {

@@ -416,6 +416,7 @@ Expected action: NOOP
           GITHUB_REF_NAME: "master",
           GITHUB_SHA: "test-sha-partial-rerun",
           KIBI_RELEASE_MOCK_NPM: mockNpm,
+          KIBI_RELEASE_MOCK_CHANGESETS: "",
         },
       });
 
