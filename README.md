@@ -31,7 +31,7 @@ Kibi provides concrete, day-to-day benefits for developers and teams:
 
 - **Branch-Local Memory** — Every git branch keeps its own KB snapshot. Switch contexts without losing traceability or polluting other branches.
 
-For OpenCode users, bootstrap an existing repo with `/init-kibi`.
+For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopilot_generate\`).
 
 
 > **Entity Modeling Note:** Use `flag` for runtime/config gates only. Document bugs and workarounds as `fact` entities with `fact_kind: observation` or `meta`. See [Entity Schema](docs/entity-schema.md) and [AGENTS.md](AGENTS.md) for the canonical guidance.

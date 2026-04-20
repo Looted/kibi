@@ -71,6 +71,12 @@ export interface Hooks {
 
 export type Plugin = (input: PluginInput) => Hooks | Promise<Hooks>;
 
+type StartupNotifyScheduler = (callback: () => void, delayMs: number) => void;
+
+const startupNotifyGlobals = globalThis as typeof globalThis & {
+  __kibi_test_schedule_startup_notify?: StartupNotifyScheduler;
+};
+
 /**
  * Lint requirement documents for embedded scenarios/tests and oversized content.
  */
@@ -596,7 +602,13 @@ const kibiOpencodePlugin: Plugin = async (
   logger.info("kibi-opencode: setup complete");
   if (input.client && !maintenanceDegraded) {
     const client = input.client;
-    setTimeout(() => {
+    const scheduleStartupNotify: StartupNotifyScheduler =
+      startupNotifyGlobals.__kibi_test_schedule_startup_notify ??
+      ((callback, delayMs) => {
+        setTimeout(callback, delayMs);
+      });
+
+    scheduleStartupNotify(() => {
       notifyStartup(client, {
         suppressToast: cfg.ux.toastStartup === false,
         directory: input.directory,

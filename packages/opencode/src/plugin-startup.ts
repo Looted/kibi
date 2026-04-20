@@ -209,12 +209,20 @@ export async function runPluginStartup(
 
   logger.info("kibi-opencode: setting up hooks");
 
+  const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+    __kibi_test_scheduler_factory_by_worktree?: Map<
+      string,
+      typeof createSyncScheduler
+    >;
+    __kibi_test_scheduler_factory?: typeof createSyncScheduler;
+  };
+
   const schedulerFactory: typeof createSyncScheduler =
-    (
-      globalThis as {
-        __kibi_test_scheduler_factory?: typeof createSyncScheduler;
-      }
-    ).__kibi_test_scheduler_factory ?? createSyncScheduler;
+    schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree?.get(
+      input.worktree,
+    ) ??
+    schedulerFactoryGlobals.__kibi_test_scheduler_factory ??
+    createSyncScheduler;
 
   const scheduler: ReturnType<typeof createSyncScheduler> | null = cfg.sync
     .enabled

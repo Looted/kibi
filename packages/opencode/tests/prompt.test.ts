@@ -74,6 +74,7 @@ describe("prompt", () => {
     assert.ok(result.includes("kb_upsert"), "Should mention kb_upsert");
     assert.ok(result.includes("kb_delete"), "Should mention kb_delete");
     assert.ok(result.includes("kb_check"), "Should mention kb_check");
+    assert.ok(result.includes("kb_autopilot_generate"), "Should mention kb_autopilot_generate");
 
     // Should NOT mention non-public tools
     assert.ok(
@@ -119,6 +120,10 @@ describe("prompt", () => {
     assert.ok(
       result.includes("/init-kibi"),
       "Should mention /init-kibi command",
+    );
+    assert.ok(
+      result.includes("kb_autopilot_generate"),
+      "Should mention kb_autopilot_generate for bootstrap",
     );
     assert.ok(
       result.includes("bootstrap") || result.includes("retroactive"),
@@ -167,6 +172,10 @@ describe("prompt", () => {
     assert.ok(
       result.includes("/init-kibi"),
       "Should include /init-kibi command",
+    );
+    assert.ok(
+      result.includes("kb_autopilot_generate"),
+      "Should include kb_autopilot_generate in bootstrap guidance",
     );
     assert.ok(
       !result.includes("kibi init"),
@@ -672,6 +681,10 @@ describe("prompt", () => {
     assert.ok(
       result.includes("/init-kibi"),
       "Should include /init-kibi bootstrap command",
+    );
+    assert.ok(
+      result.includes("kb_autopilot_generate"),
+      "Should include kb_autopilot_generate in bootstrap guidance",
     );
     assert.ok(
       !result.includes("kibi init"),

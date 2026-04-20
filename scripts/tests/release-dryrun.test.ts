@@ -25,7 +25,7 @@
 
 import { describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import {
   PUBLISHABLE_DIRS,
@@ -39,12 +39,21 @@ import {
 
 const EVIDENCE_DIR = join(import.meta.dir, "../../.sisyphus/evidence");
 
-const ALL_PACKAGES = {
-  core: { name: "kibi-core", version: "0.5.0" },
-  cli: { name: "kibi-cli", version: "0.6.0" },
-  mcp: { name: "kibi-mcp", version: "0.7.0" },
-  opencode: { name: "kibi-opencode", version: "0.7.0" },
-};
+// Derive package metadata from actual package.json files so tests stay
+// future-proof across version bumps.
+function loadPackageManifest(dir: string): { name: string; version: string } {
+  const manifestPath = join(import.meta.dir, `../../packages/${dir}/package.json`);
+  const raw = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return { name: raw.name, version: raw.version };
+}
+
+// Derived from the canonical constant to avoid drift when packages are added/removed.
+const PUBLISHABLE_DIRS_LIST = PUBLISHABLE_DIRS;
+
+const ALL_PACKAGES: Record<string, { name: string; version: string }> = {};
+for (const dir of PUBLISHABLE_DIRS_LIST) {
+  ALL_PACKAGES[dir] = loadPackageManifest(dir);
+}
 
 const SOURCE_COMMIT_MSG =
   "Merge branch 'develop' into master\n\nIntegration of new schema features.";
@@ -125,10 +134,10 @@ describe("release dry-run: no-commit master publish model", () => {
         decision.packages.map((p) => [p.dir, p]),
       );
 
-      expect(pkgMap.core.version).toBe("0.5.0");
-      expect(pkgMap.cli.version).toBe("0.6.0");
-      expect(pkgMap.mcp.version).toBe("0.7.0");
-      expect(pkgMap.opencode.version).toBe("0.7.0");
+      expect(pkgMap.core.version).toBe(ALL_PACKAGES.core.version);
+      expect(pkgMap.cli.version).toBe(ALL_PACKAGES.cli.version);
+      expect(pkgMap.mcp.version).toBe(ALL_PACKAGES.mcp.version);
+      expect(pkgMap.opencode.version).toBe(ALL_PACKAGES.opencode.version);
 
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
@@ -199,7 +208,10 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("partial rerun — subset of packages published", () => {
     test("partial publish + no changesets → PUBLISH_ONLY_RERUN with missing packages", () => {
-      const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -220,7 +232,7 @@ describe("release dry-run: no-commit master publish model", () => {
     });
 
     test("source commit + partial publish + changesets → PREPARE_RELEASE with unpublished subset", () => {
-      const published = new Set(["kibi-core@0.5.0"]);
+      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -239,9 +251,9 @@ describe("release dry-run: no-commit master publish model", () => {
 
     test("only mcp unpublished → rerun targets mcp alone", () => {
       const published = new Set([
-        "kibi-core@0.5.0",
-        "kibi-cli@0.6.0",
-        "kibi-opencode@0.7.0",
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+        `${ALL_PACKAGES.opencode.name}@${ALL_PACKAGES.opencode.version}`,
       ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
@@ -263,6 +275,14 @@ describe("release dry-run: no-commit master publish model", () => {
   // -------------------------------------------------------------------------
   describe("integration — run-release-state.ts spawned output", () => {
     test("script produces valid JSON with PREPARE_RELEASE when run as master", () => {
+      // Fixture contract: KIBI_RELEASE_MOCK_NPM="" means the runner
+      // treats it as a mock-npm mode where nothing is published.
+      // On master, this should produce PREPARE_RELEASE with all
+      // publishable packages in toPublish.
+      //
+      // Regression sentinel: if the runner treats empty string as
+      // falsy (falling through to real npm checks), this test fails
+      // with action=NOOP instead of PREPARE_RELEASE.
       const raw = execSync("bun run scripts/run-release-state.ts", {
         encoding: "utf8",
         env: {
@@ -277,21 +297,44 @@ describe("release dry-run: no-commit master publish model", () => {
         typeof determineReleaseAction
       >;
 
+      // --- Core action assertion ---
       expect(decision.action).toBe("PREPARE_RELEASE");
-      expect(decision.packages.length).toBe(4);
+
+      // --- Package count matches PUBLISHABLE_DIRS ---
+      expect(decision.packages.length).toBe(PUBLISHABLE_DIRS_LIST.length);
+
+      // --- Source SHA forwarded from env ---
       expect(decision.sourceSha).toBe("test-sha-integration");
 
+      // --- Every package dir is present and sorted ---
       const dirs = decision.packages.map((p: { dir: string }) => p.dir).sort();
-      expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
+      expect(dirs).toEqual([...PUBLISHABLE_DIRS_LIST].sort());
 
+      // --- Nothing published: empty-string mock means zero published ---
       for (const pkg of decision.packages) {
         expect(pkg.alreadyPublished).toBe(false);
       }
 
-      // Verify toPublish is a JSON array of strings
+      // --- Every package carries the correct name from disk ---
+      for (const pkg of decision.packages) {
+        const expected = ALL_PACKAGES[pkg.dir];
+        expect(expected).toBeDefined();
+        expect(pkg.name).toBe(expected.name);
+        expect(pkg.version).toBe(expected.version);
+      }
+
+      // --- toPublish: non-empty, each entry matches dir=name ---
       expect(Array.isArray(decision.toPublish)).toBe(true);
-      for (const entry of decision.toPublish as string[]) {
-        expect(entry).toMatch(/^.+=.+$/);
+      const toPublish = decision.toPublish as string[];
+      expect(toPublish.length).toBe(PUBLISHABLE_DIRS_LIST.length);
+      for (const entry of toPublish) {
+        const [dir, name] = entry.split("=");
+        expect(dir).toBeTruthy();
+        expect(name).toBeTruthy();
+        // dir must match a known publishable dir
+        expect(PUBLISHABLE_DIRS_LIST).toContain(dir);
+        // name must match the package.json name for that dir
+        expect(name).toBe(ALL_PACKAGES[dir].name);
       }
 
       writeEvidence(
@@ -300,6 +343,7 @@ describe("release dry-run: no-commit master publish model", () => {
 =====================================
 Date: ${new Date().toISOString()}
 Branch override: GITHUB_REF_NAME=master
+Fixture: KIBI_RELEASE_MOCK_NPM="" (empty-string → nothing published)
 
 Raw JSON output:
 ${raw}
@@ -356,6 +400,72 @@ Expected action: NOOP
 `,
       );
     });
+
+    test("partial rerun: comma-list fixture with core+cli published → PUBLISH_ONLY_RERUN with mcp+opencode", () => {
+      // Build comma-separated list from current core and cli package manifests.
+      // This simulates a partial rerun where core and cli are already on npm,
+      // so only mcp and opencode remain to be published.
+      const { name: coreName, version: coreVersion } = ALL_PACKAGES["core"];
+      const { name: cliName, version: cliVersion } = ALL_PACKAGES["cli"];
+      const mockNpm = `${coreName}@${coreVersion},${cliName}@${cliVersion}`;
+
+      const raw = execSync("bun run scripts/run-release-state.ts", {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          GITHUB_REF_NAME: "master",
+          GITHUB_SHA: "test-sha-partial-rerun",
+          KIBI_RELEASE_MOCK_NPM: mockNpm,
+          KIBI_RELEASE_MOCK_CHANGESETS: "",
+        },
+      });
+
+      const decision = JSON.parse(raw) as ReturnType<
+        typeof determineReleaseAction
+      > & { toPublish: string[] };
+
+      // --- Core action assertion ---
+      expect(decision.action).toBe("PUBLISH_ONLY_RERUN");
+
+      // --- toPublish contains only mcp and opencode ---
+      expect(Array.isArray(decision.toPublish)).toBe(true);
+      const toPublishDirs = decision.toPublish
+        .map((entry: string) => entry.split("=")[0])
+        .sort();
+      expect(toPublishDirs).toEqual(["mcp", "opencode"]);
+
+      // --- PUBLISH_ONLY_RERUN only includes unpublished packages ---
+      // The runner omits already-published packages from decision.packages.
+      expect(decision.packages).toHaveLength(2);
+      const pkgDirs = decision.packages
+        .map((p: { dir: string }) => p.dir)
+        .sort();
+      expect(pkgDirs).toEqual(["mcp", "opencode"]);
+
+      // --- None of the returned packages are already published ---
+      for (const pkg of decision.packages) {
+        expect(pkg.alreadyPublished).toBe(false);
+      }
+
+      writeEvidence(
+        "task-4-release-dryrun-partial-rerun.txt",
+        `Release Dry-Run Partial Rerun Evidence
+==========================================
+Date: ${new Date().toISOString()}
+Branch override: GITHUB_REF_NAME=master
+Fixture: KIBI_RELEASE_MOCK_NPM="${mockNpm}" (core+cli already published)
+
+Raw JSON output:
+${raw}
+
+Summary:
+- Action: ${decision.action}
+- toPublish dirs: ${toPublishDirs.join(", ")}
+- Packages in output: ${pkgDirs.join(", ")}
+- Reason: ${decision.reason}
+`,
+      );
+    }, 15_000);
   });
 
   // -------------------------------------------------------------------------

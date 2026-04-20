@@ -423,6 +423,47 @@ const BASE_TOOLS = [
       },
     },
   },
+  {
+    name: "kb_autopilot_generate",
+    description:
+      "Generate autopilot candidate batches for KB population. Read-only analysis that returns activation state, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        includeGenericMarkdown: {
+          type: "boolean",
+          default: true,
+          description:
+            "Whether to include generic markdown file content as candidate facts. Default: true.",
+        },
+        minConfidence: {
+          type: "number",
+          default: 0.8,
+          minimum: 0.6,
+          maximum: 0.95,
+          description:
+            "Minimum confidence threshold for candidates. Clamped to [0.60, 0.95]. Default: 0.80.",
+        },
+        maxCandidates: {
+          type: "integer",
+          default: 50,
+          minimum: 1,
+          maximum: 200,
+          description:
+            "Maximum number of candidates to return. Clamped to [1, 200]. Default: 50.",
+        },
+        entityTypes: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["req", "scenario", "test", "adr", "fact", "symbol"],
+          },
+          description:
+            "Optional filter to limit candidate generation to specific entity types.",
+        },
+      },
+    },
+  }
 ];
 
 /**
