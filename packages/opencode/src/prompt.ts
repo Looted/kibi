@@ -128,10 +128,11 @@ export function postureGuidance(posture: RepoPosture): string | null {
       return `🔧 **Bootstrap required**
 
 This repository does not appear to have Kibi initialized. Agents should:
-- Use \`/init-kibi\` for retroactive bootstrap of existing repos (preferred MCP command)
-- Ask the user/operator to run setup or repair outside this session if \`/init-kibi\` is insufficient
+- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
+- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
+- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
 
-Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
+Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
     case "root_partial":
       return `⚠️  **Partial KB setup detected**
 
@@ -172,17 +173,17 @@ function buildContextualGuidance(context: PromptContext): string {
     const postureBlock = postureGuidance(posture);
     if (postureBlock) selectedBlock = postureBlock;
   }
-  // Priority 4: Legacy workspace health bootstrap (only when no posture) — not cache-suppressed
   else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
 This repository does not appear to have Kibi initialized. Agents should:
-- Use \`/init-kibi\` for retroactive bootstrap of existing repos (preferred MCP command)
-- Ask the user/operator to run setup or repair outside this session if \`/init-kibi\` is insufficient
+- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
+- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
+- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
 
-Do not run \`kibi\` CLI commands directly; use the public MCP tools (kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
-  }
+Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
   // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
+  }
   else {
     // Cache check: skip repeated advisory guidance — only after critical signals are handled above
     // Allow degraded advisory to bypass cache so it is always visible
@@ -269,7 +270,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
         selectedBlock = GUIDANCE_BY_RISK.kb_doc_structural;
       }
     }
-  }
+    } // closing brace for Priority 2-4 else block starting at 187
 
   // Source-linked micro-brief: insert after header line for code risk classes
   // Inserting after the header (not prepending before it) preserves the header
@@ -434,11 +435,7 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.
-
-Do not invoke Kibi CLI commands directly from the agent.
-
-Bootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization workflow.`;
+**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\nBootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization (\`kb_autopilot_generate\`) workflow.`;
 
 /**
  * Build prompt with contextual guidance based on posture, risk class, and cache state.

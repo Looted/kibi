@@ -19,6 +19,9 @@ declare global {
   var __kibi_test_scheduler_factory:
     | ((opts: SchedulerOptions) => SyncScheduler)
     | undefined;
+  var __kibi_test_schedule_startup_notify:
+    | ((callback: () => void, delayMs: number) => void)
+    | undefined;
 }
 
 const coveragePluginModulePath = "../src/index.ts?coverage-index";
@@ -152,10 +155,14 @@ describe("index coverage", () => {
     resetSessionTracker();
     logger.resetClient();
     globalThis.__kibi_test_scheduler_factory = undefined;
+    globalThis.__kibi_test_schedule_startup_notify = (callback) => {
+      callback();
+    };
   });
 
   afterEach(() => {
     globalThis.__kibi_test_scheduler_factory = undefined;
+    globalThis.__kibi_test_schedule_startup_notify = undefined;
     logger.resetClient();
     resetSessionTracker();
     resetGuidanceCache();

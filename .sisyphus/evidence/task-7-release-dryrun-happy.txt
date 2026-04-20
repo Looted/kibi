@@ -1,7 +1,8 @@
 Release Dry-Run Happy Path Evidence
 =====================================
-Date: 2026-04-14T16:55:43.323Z
+Date: 2026-04-20T06:24:23.451Z
 Branch override: GITHUB_REF_NAME=master
+Fixture: KIBI_RELEASE_MOCK_NPM="" (empty-string → nothing published)
 
 Raw JSON output:
 {
@@ -10,30 +11,30 @@ Raw JSON output:
     {
       "name": "kibi-core",
       "dir": "core",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "alreadyPublished": false
     },
     {
       "name": "kibi-cli",
       "dir": "cli",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "alreadyPublished": false
     },
     {
       "name": "kibi-mcp",
       "dir": "mcp",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "alreadyPublished": false
     },
     {
       "name": "kibi-opencode",
       "dir": "opencode",
-      "version": "0.7.0",
+      "version": "0.7.1",
       "alreadyPublished": false
     }
   ],
   "sourceSha": "test-sha-integration",
-  "reason": "Unpublished packages detected without pending changesets",
+  "reason": "2 pending changeset(s), 4 unpublished package(s)",
   "toPublish": [
     "core=kibi-core",
     "cli=kibi-cli",
@@ -45,6 +46,6 @@ Raw JSON output:
 
 Summary:
 - Action: PREPARE_RELEASE
-- Packages: kibi-core@0.5.0, kibi-cli@0.6.0, kibi-mcp@0.7.0, kibi-opencode@0.7.0
+- Packages: kibi-core@0.5.1, kibi-cli@0.6.1, kibi-mcp@0.7.1, kibi-opencode@0.7.1
 - All unpublished: true
-- Reason: Unpublished packages detected without pending changesets
+- Reason: 2 pending changeset(s), 4 unpublished package(s)

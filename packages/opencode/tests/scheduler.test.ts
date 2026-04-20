@@ -218,3 +218,122 @@ test("onRunComplete exposes check failure via checkExitCode", async () => {
   assert.equal(completions[0]?.exitCode, 0);
   assert.equal(completions[0]?.checkExitCode, 1);
 });
+
+// Task 1 TDD: check.failed advisory noise regression tests
+test("check.failed for symbol-traceability produces zero raw console.error", async () => {
+  const clock = createFakeClock();
+  const errorSpy: string[] = [];
+  const origError = console.error;
+  (console as any).error = (...args: unknown[]) => {
+    errorSpy.push(args.map(String).join(" "));
+  };
+
+  try {
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 1 }),
+    });
+
+    scheduler.scheduleSync(
+      "smart-enforcement.traceability",
+      "src/feature.ts",
+      ["symbol-traceability"],
+    );
+    clock.advance(100);
+    await flushAsync();
+
+    // BUG: check.failed currently calls logger.error which unconditionally
+    // calls console.error. Advisory check failures should be structured-only.
+    assert.equal(
+      errorSpy.length,
+      0,
+      `Advisory check.failed for symbol-traceability must not call console.error, got: ${JSON.stringify(errorSpy)}`,
+    );
+  } finally {
+    console.error = origError;
+  }
+});
+
+test("check.failed for multi-rule payload produces zero raw console.error", async () => {
+  const clock = createFakeClock();
+  const errorSpy: string[] = [];
+  const origError = console.error;
+  (console as any).error = (...args: unknown[]) => {
+    errorSpy.push(args.map(String).join(" "));
+  };
+
+  try {
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 1 }),
+    });
+
+    scheduler.scheduleSync(
+      "smart-enforcement.kb-doc",
+      "documentation/facts/FACT-001.md",
+      ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+    );
+    clock.advance(100);
+    await flushAsync();
+
+    // Same bug for multi-rule payloads
+    assert.equal(
+      errorSpy.length,
+      0,
+      `Advisory check.failed for multi-rule must not call console.error, got: ${JSON.stringify(errorSpy)}`,
+    );
+  } finally {
+    console.error = origError;
+  }
+});
+
+test("operational sync.failed still produces console.error (control)", async () => {
+  const clock = createFakeClock();
+  const errorSpy: string[] = [];
+  const origError = console.error;
+  (console as any).error = (...args: unknown[]) => {
+    errorSpy.push(args.map(String).join(" "));
+  };
+
+  try {
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => ({ exitCode: 1 }),
+    });
+
+    scheduler.onFileEdited("documentation/requirements/REQ-001.md");
+    clock.advance(100);
+    await flushAsync();
+
+    // Operational sync failure SHOULD still emit console.error
+    assert.ok(
+      errorSpy.length >= 1,
+      `Operational sync.failed must still call console.error, got: ${JSON.stringify(errorSpy)}`,
+    );
+  } finally {
+    console.error = origError;
+  }
+});

@@ -8,7 +8,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 
 1. **Never manually read or edit files inside `.kb/`.** Interact with the knowledge base only through MCP tools.
 2. **Do not invoke `kibi` CLI commands directly from the agent.** Use MCP tools and sanctioned slash commands instead.
-3. **Start with `kb_search`, then follow with `kb_query`.** Use `kb_search` for discovery, then use `kb_query` for exact IDs, source-linked entities, and precise follow-up.
+3. **Start with \`kb_autopilot_generate\` for new repos, then use \`kb_search\`.** Use \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred day-0 workflow). Use \`kb_search\` for broad discovery, then follow up with \`kb_query\` for exact IDs and precise lookups.
 4. **Create and update entities with `kb_upsert`.** Keep requirements, scenarios, symbols, tests, ADRs, flags, events, and facts synchronized with your work.
 5. **Use relationship rows during `kb_upsert`.** Link requirements, tests, symbols, and facts as part of the same write.
 6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`, `validates`).
@@ -83,8 +83,9 @@ when semantic relationships matter.
 
 The Kibi MCP server exposes a curated public tool surface:
 
-- `kb_search`
-- `kb_query`
+- \`kb_autopilot_generate\` (Preferred for day-0 bootstrap)
+- \`kb_search\`
+- \`kb_query\`
 - `kb_status`
 - `kb_find_gaps`
 - `kb_coverage`

@@ -23,7 +23,10 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
+  PUBLISHABLE_DIRS,
   type ReleaseContext,
   determineReleaseAction,
 } from "../release-state.ts";
@@ -32,12 +35,18 @@ import {
 // Fixture helpers
 // ---------------------------------------------------------------------------
 
-const ALL_PACKAGES = {
-  core: { name: "kibi-core", version: "0.5.0" },
-  cli: { name: "kibi-cli", version: "0.6.0" },
-  mcp: { name: "kibi-mcp", version: "0.7.0" },
-  opencode: { name: "kibi-opencode", version: "0.7.0" },
-};
+function loadPackageManifest(dir: string): { name: string; version: string } {
+  const manifestPath = join(import.meta.dir, `../../packages/${dir}/package.json`);
+  const raw = JSON.parse(readFileSync(manifestPath, "utf8"));
+  return { name: raw.name, version: raw.version };
+}
+
+// Derive package metadata from actual package.json files so tests stay
+// future-proof across version bumps.
+const ALL_PACKAGES: Record<string, { name: string; version: string }> = {};
+for (const dir of PUBLISHABLE_DIRS) {
+  ALL_PACKAGES[dir] = loadPackageManifest(dir);
+}
 
 /** Human-authored merge commit from develop → master */
 const SOURCE_COMMIT_MSG =
@@ -192,7 +201,10 @@ describe("release invariants: develop-to-master model", () => {
   // -------------------------------------------------------------------------
   describe("already-published package skip", () => {
     test("excludes already-published packages from publish set", () => {
-      const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -208,7 +220,7 @@ describe("release invariants: develop-to-master model", () => {
     });
 
     test("marks already-published packages correctly", () => {
-      const published = new Set(["kibi-core@0.5.0"]);
+      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -243,7 +255,10 @@ describe("release invariants: develop-to-master model", () => {
     test("returns PUBLISH_ONLY_RERUN for partially published packages on source commit", () => {
       // Simulate: CI ran and published core+cli but mcp+opencode failed.
       // Re-running the same source commit detects partial state.
-      const published = new Set(["kibi-core@0.5.0", "kibi-cli@0.6.0"]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+        `${ALL_PACKAGES.cli.name}@${ALL_PACKAGES.cli.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: NO_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -273,7 +288,7 @@ describe("release invariants: develop-to-master model", () => {
     });
 
     test("source commit with changesets + partial publish returns PREPARE_RELEASE", () => {
-      const published = new Set(["kibi-core@0.5.0"]);
+      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
       const ctx = makeContext({
         commitMessage: SOURCE_COMMIT_MSG,
         changesetFiles: FRESH_CHANGESETS,

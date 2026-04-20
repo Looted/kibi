@@ -42,6 +42,6 @@ The OpenCode Kibi Plugin v1 must:
 6. Emit loud warnings when agents attempt manual edits under `.kb/**`, directing them toward public MCP tools (`kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`, `kb_upsert`, `kb_delete`, `kb_check`).
 7. Detect and warn on invalid Kibi authoring patterns, such as embedded scenarios/tests in requirements.
 8. Run targeted validation checks after relevant KB-document edits as a background behavior (e.g., `kb_check` with specific rules like `must-priority-coverage,no-dangling-refs`).
-9. Detect uninitialized or weakly bootstrapped repos and nudge toward `/init-kibi` slash command, escalating to the user/operator if further setup is needed.
+9. Detect uninitialized or weakly bootstrapped repos and nudge toward `/init-kibi` slash command, triggering the Autopilot MCP workflow (`kb_autopilot_generate`) to assist the agent in initial entity mapping, while escalating to the user/operator if further environment setup is needed.
  
 All plugin code symbols must reference this requirement (`REQ-opencode-kibi-plugin-v1`) to satisfy staged traceability. The implementation must not begin until this requirement is present in the KB.

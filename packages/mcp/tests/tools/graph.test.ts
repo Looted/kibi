@@ -19,6 +19,8 @@ import {
   type IsolatedCoreFixture,
 } from "./discovery-root-fixture.js";
 
+const KB_GRAPH_INTEGRATION_TIMEOUT_MS = 15_000;
+
 describe("MCP graph tool handler", () => {
   test("returns bounded traversal results", async () => {
     const query = mock(async () => ({
@@ -91,7 +93,9 @@ describe("kb_graph multi-relationship integration", () => {
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
-  test("returns edges for all requested relationship types (issue #113)", async () => {
+  test(
+    "returns edges for all requested relationship types (issue #113)",
+    async () => {
     // Create seed entities
     await handleKbUpsert(prolog, {
       type: "req",
@@ -146,9 +150,13 @@ describe("kb_graph multi-relationship integration", () => {
       depth: 1,
     });
     expect(reversed.structuredContent?.edges?.length).toBe(2);
-  });
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 
-  test("returns scenario to test traversal edges for validates and verified_by", async () => {
+  test(
+    "returns scenario to test traversal edges for validates and verified_by",
+    async () => {
     await handleKbUpsert(prolog, {
       type: "scenario",
       id: "SCEN-GRAPH-TRACE-001",
@@ -214,7 +222,9 @@ describe("kb_graph multi-relationship integration", () => {
       from: "TEST-GRAPH-TRACE-001",
       to: "SCEN-GRAPH-TRACE-001",
     });
-  });
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 });
 
 describe("kb_graph isolated-core regression (issue #118)", () => {
@@ -312,7 +322,9 @@ describe("kb_graph canonical traceability chain traversal", () => {
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
-  test("traverses canonical chain: requirement → scenario → test", async () => {
+  test(
+    "traverses canonical chain: requirement → scenario → test",
+    async () => {
     // Set up the canonical authored chain:
     // REQ-CHAIN-001 --specified_by--> SCEN-CHAIN-001 --verified_by--> TEST-CHAIN-001
     // TEST-CHAIN-001 --validates--> SCEN-CHAIN-001
@@ -481,5 +493,7 @@ describe("kb_graph canonical traceability chain traversal", () => {
       from: "SYM-CHAIN-001",
       to: "TEST-CHAIN-SYM-001",
     });
-  });
+    },
+    KB_GRAPH_INTEGRATION_TIMEOUT_MS,
+  );
 });

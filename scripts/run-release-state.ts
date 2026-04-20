@@ -21,6 +21,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { PUBLISHABLE_DIRS, determineReleaseAction } from "./release-state";
+import { resolveNpmFixture } from "./release-runner-fixture";
 
 const rootDir = join(import.meta.dir, "..");
 
@@ -35,14 +36,25 @@ const sourceSha =
   execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
 
 // Collect changeset files
-const changesetDir = join(rootDir, ".changeset");
+// KIBI_RELEASE_MOCK_CHANGESETS env contract:
+// - undefined: read real .changeset directory
+// - defined (including empty string): fixture mode from comma-list of filenames
+const mockChangesets = process.env.KIBI_RELEASE_MOCK_CHANGESETS;
 let changesetFiles: string[] = [];
-try {
-  changesetFiles = readdirSync(changesetDir).filter(
-    (f) => f.endsWith(".md") && f !== "README.md",
-  );
-} catch {
-  changesetFiles = [];
+if (mockChangesets !== undefined) {
+  changesetFiles = mockChangesets
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+} else {
+  const changesetDir = join(rootDir, ".changeset");
+  try {
+    changesetFiles = readdirSync(changesetDir).filter(
+      (f) => f.endsWith(".md") && f !== "README.md",
+    );
+  } catch {
+    changesetFiles = [];
+  }
 }
 
 // Collect package info
@@ -58,13 +70,12 @@ for (const dir of PUBLISHABLE_DIRS) {
   }
 }
 
-// npm existence check
-const mockNpm = process.env.KIBI_RELEASE_MOCK_NPM;
+// KIBI_RELEASE_MOCK_NPM env contract: env presence (including "") activates fixture mode;
+// env absence activates live npm mode (queries the real registry).
+const fixture = resolveNpmFixture(process.env.KIBI_RELEASE_MOCK_NPM);
 const isPublishedOnNpm = (pkgName: string, version: string): boolean => {
-  if (mockNpm) {
-    // Fixture mode for deterministic tests: comma-separated list of published pkg@version
-    const published = new Set(mockNpm.split(",").map((s) => s.trim()));
-    return published.has(`${pkgName}@${version}`);
+  if (fixture.mode === "fixture") {
+    return fixture.published.has(`${pkgName}@${version}`);
   }
   try {
     execSync(`npm view ${pkgName}@${version} version`, {
