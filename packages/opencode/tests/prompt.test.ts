@@ -700,6 +700,7 @@ describe("prompt", () => {
 // implements REQ-opencode-smart-enforcement-v1
 describe("completion reminder policy", () => {
   const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+  const BRIEF_KIBI_CUE = "Authoritative risky edit: run `/brief-kibi` before acting.";
 
   test("reminder appears for behavior_candidate when completionReminder=true", () => {
     const p = buildPrompt({
@@ -714,6 +715,18 @@ describe("completion reminder policy", () => {
     );
   });
 
+  test("brief-kibi cue appears for authoritative behavior_candidate guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+    });
+    assert.ok(
+      p.includes(BRIEF_KIBI_CUE),
+      "Should include /brief-kibi cue for authoritative risky code edits",
+    );
+  });
+
   test("reminder appears for traceability_candidate when completionReminder=true", () => {
     const p = buildPrompt({
       recentEdits: [{ path: "src/foo.ts", kind: "code" }],
@@ -724,6 +737,18 @@ describe("completion reminder policy", () => {
     assert.ok(
       p.includes(REMINDER_TEXT),
       "Should include reminder for traceability_candidate",
+    );
+  });
+
+  test("brief-kibi cue appears for authoritative traceability_candidate guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "hybrid_root_plus_vendored",
+      riskClass: "traceability_candidate",
+    });
+    assert.ok(
+      p.includes(BRIEF_KIBI_CUE),
+      "Should include /brief-kibi cue for authoritative traceability edits",
     );
   });
 
@@ -778,6 +803,18 @@ describe("completion reminder policy", () => {
     assert.ok(
       !p.includes(REMINDER_TEXT),
       "Should NOT include reminder for vendored_only",
+    );
+  });
+
+  test("brief-kibi cue does NOT appear for non-authoritative posture", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_partial",
+      riskClass: "behavior_candidate",
+    });
+    assert.ok(
+      !p.includes(BRIEF_KIBI_CUE),
+      "Should NOT include /brief-kibi cue for non-authoritative posture",
     );
   });
 
@@ -874,6 +911,19 @@ describe("completion reminder policy", () => {
     assert.ok(
       !p.includes(REMINDER_TEXT),
       "Should NOT include reminder when maintenanceDegraded",
+    );
+  });
+
+  test("maintenanceDegraded suppresses brief-kibi cue for authoritative risky guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      maintenanceDegraded: true,
+    });
+    assert.ok(
+      !p.includes(BRIEF_KIBI_CUE),
+      "Should NOT include /brief-kibi cue when maintenanceDegraded",
     );
   });
 
@@ -1213,6 +1263,47 @@ describe("source-linked micro-brief contract", () => {
       p.includes(REMINDER_TEXT),
       "Should still include completion reminder alongside source-linked brief",
     );
+  });
+
+  test("brief-kibi cue coexists with source-linked brief and reminder in one block", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const BRIEF_KIBI_CUE =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(p.includes(BRIEF_KIBI_CUE), "Should include /brief-kibi cue");
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should include completion reminder",
+    );
+
+    const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+    assert.equal(blocks.length, 1, "Should keep a single contextual block");
+
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-")).length;
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(bullets <= 5, `Expected <= 5 bullets, got ${bullets}`);
   });
 
   test("cache behavior remains intact with source-linked brief", () => {

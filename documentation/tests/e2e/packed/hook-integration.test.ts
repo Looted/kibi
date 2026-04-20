@@ -305,7 +305,13 @@ echo "Existing hook"
         content.includes("Existing hook"),
         "Existing hook content should be preserved",
       );
-      assert.ok(content.includes("kibi sync"), "kibi sync should be appended");
+      assert.strictEqual(
+        content,
+        `#!/bin/sh
+echo "Existing hook"
+`,
+        "Existing unmanaged hook should remain unchanged",
+      );
     });
 
     it("should not install hooks with --no-hooks", async () => {

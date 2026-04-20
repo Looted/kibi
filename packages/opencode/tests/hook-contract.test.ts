@@ -227,6 +227,30 @@ describe("hook contract", () => {
     assert.equal(output.system.length, 3, "should have 3 entries total");
   });
 
+  test("system.transform remains text-only and does not fetch live briefings", async () => {
+    const dir = makeProjectDir("system-transform");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const transform = hooks["experimental.chat.system.transform"];
+    assert.ok(transform, "system.transform hook should exist");
+
+    const output = { system: [] as string[] };
+    await transform({} as never, output as never);
+
+    const injected = output.system.join("\n");
+    assert.ok(
+      injected.includes("/brief-kibi") || injected.includes(SENTINEL),
+      "Hook should only append prompt text",
+    );
+    assert.ok(
+      !injected.includes("<!-- kibi-opencode -->\n<!-- kibi-opencode -->"),
+      "Hook should not duplicate the sentinel",
+    );
+    assert.ok(
+      !injected.includes("experimental.chat.system.transform"),
+      "Hook output should not expose hook internals",
+    );
+  });
+
   test("chat.params does not modify system array", async () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
