@@ -122,6 +122,30 @@ describe("MCP runtime docs: canonical modeling wording", () => {
     });
   });
 
+  describe("brief-kibi prompt", () => {
+    test("must instruct agents to call kb_briefing_generate first", () => {
+      const prompt = findPrompt("brief-kibi");
+      expect(prompt.text).toMatch(/kb_briefing_generate/);
+    });
+
+    test("must require inspection of briefingState including no_briefing", () => {
+      const prompt = findPrompt("brief-kibi");
+      expect(prompt.text).toMatch(/briefingState/);
+      expect(prompt.text).toMatch(/no_briefing/);
+    });
+
+    test("must require using only cited output", () => {
+      const prompt = findPrompt("brief-kibi");
+      expect(prompt.text).toMatch(/only cited output|only use cited output|use only cited output/i);
+    });
+
+    test("must not mention undocumented APIs or CLI commands", () => {
+      const prompt = findPrompt("brief-kibi");
+      expect(prompt.text).not.toMatch(/client\.tool\.execute/i);
+      expect(prompt.text).not.toMatch(/\bkibi\s+(init|sync|search|query|status|check)\b/i);
+    });
+  });
+
   // ─── DOC_RESOURCES ─────────────────────────────────────────────────────────
 
   describe("kibi docs examples resource", () => {
@@ -154,8 +178,9 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   // ─── PROMPTS array completeness ─────────────────────────────────────────────
 
   describe("PROMPTS array", () => {
-    test("must contain kibi_overview, kibi_workflow, kibi_constraints, and init-kibi", () => {
+    test("must contain kibi_overview, kibi_workflow, kibi_constraints, init-kibi, and brief-kibi", () => {
       const promptNames = PROMPTS.map((p) => p.name);
+      expect(promptNames).toContain("brief-kibi");
       expect(promptNames).toContain("kibi_overview");
       expect(promptNames).toContain("kibi_workflow");
       expect(promptNames).toContain("kibi_constraints");

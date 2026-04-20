@@ -122,7 +122,10 @@ describe("server docs coverage", () => {
     setupDocsAndPrompts(mockServer);
 
     expect(capturedResolver).toBeDefined();
-    const result = await capturedResolver!();
+    if (!capturedResolver) {
+      throw new Error("Expected prompt resolver to be captured");
+    }
+    const result = await capturedResolver();
 
     expect(result).toHaveProperty("messages");
     expect(Array.isArray(result.messages)).toBe(true);
@@ -158,7 +161,10 @@ describe("server docs coverage", () => {
     setupDocsAndPrompts(mockServer);
 
     expect(capturedResolver).toBeDefined();
-    const result = await capturedResolver!();
+    if (!capturedResolver) {
+      throw new Error("Expected resource resolver to be captured");
+    }
+    const result = await capturedResolver();
 
     expect(result).toHaveProperty("contents");
     expect(Array.isArray(result.contents)).toBe(true);
@@ -216,6 +222,7 @@ describe("server docs coverage", () => {
   test("PROMPTS has expected prompt names", () => {
     const expectedNames = [
       "init-kibi",
+      "brief-kibi",
       "kibi_overview",
       "kibi_workflow",
       "kibi_constraints",
