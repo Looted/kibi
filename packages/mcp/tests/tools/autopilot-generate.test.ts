@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { PrologProcess, type QueryResult } from "kibi-cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
 import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
@@ -10,6 +10,22 @@ import {
   ensureDocs,
   writeRootConfig,
 } from "./autopilot-workspace-fixture";
+
+type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
+
+interface CandidateWithPlan {
+  entityType?: string;
+  title?: string;
+  applyPlan?: Array<{
+    properties?: {
+      status?: string;
+    };
+  }>;
+}
+
+function getCandidateStatus(candidate: CandidateWithPlan | undefined): string | undefined {
+  return candidate?.applyPlan?.[0]?.properties?.status;
+}
 
 describe("autopilot generate", () => {
   let tmp: string;
@@ -21,18 +37,18 @@ describe("autopilot generate", () => {
 
   afterEach(async () => {
     await fs.rm(tmp, { recursive: true, force: true });
-    delete process.env.KIBI_WORKSPACE;
+    process.env.KIBI_WORKSPACE = undefined;
   });
 
   function createPrologStub(
-    queryImpl: (goal: string | string[]) => Promise<QueryResult>,
+    queryImpl: (goal: string | string[]) => Promise<PrologQueryResult>,
   ): PrologProcess {
     const prolog = new PrologProcess();
     prolog.query = queryImpl;
     return prolog;
   }
 
-  function emptyQueryResult(): QueryResult {
+  function emptyQueryResult(): PrologQueryResult {
     return { success: true, bindings: {} };
   }
 
@@ -65,13 +81,15 @@ describe("autopilot generate", () => {
 
     const candidates = buildGenericMarkdownCandidates(
       { markdownFiles: [sourcePath] },
-      { ids: new Set<string>(), workspaceRoot: tmp },
+      { ids: new Set<string>() },
       0.8,
     );
 
-    const adrCandidate = candidates.find((candidate) => candidate.entityType === "adr");
+    const adrCandidate = candidates.find(
+      (candidate) => candidate.entityType === "adr",
+    ) as CandidateWithPlan | undefined;
     expect(adrCandidate).toBeDefined();
-    expect(adrCandidate?.applyPlan[0]?.properties?.status).toBe("proposed");
+    expect(getCandidateStatus(adrCandidate)).toBe("proposed");
   });
 
   test("day-0 root_uninitialized generates candidates and generic ADRs use proposed status", async () => {
@@ -95,12 +113,15 @@ describe("autopilot generate", () => {
     expect(res.structuredContent.activationState).toBe("root_uninitialized");
     expect(res.structuredContent.applyBlocked).toBe(false);
 
-    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent
+      .candidates as Array<CandidateWithPlan>;
     expect(candidates.length).toBeGreaterThan(0);
 
-    const adrCandidate = candidates.find((candidate) => candidate.entityType === "adr");
+    const adrCandidate = candidates.find(
+      (candidate) => candidate.entityType === "adr",
+    );
     expect(adrCandidate).toBeDefined();
-    expect(adrCandidate?.applyPlan?.[0]?.properties?.status).toBe("proposed");
+    expect(getCandidateStatus(adrCandidate)).toBe("proposed");
   });
 
   test("root_partial workspaces may scan but block apply", async () => {

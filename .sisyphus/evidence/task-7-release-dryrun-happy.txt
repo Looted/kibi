@@ -1,6 +1,6 @@
 Release Dry-Run Happy Path Evidence
 =====================================
-Date: 2026-04-19T08:59:47.580Z
+Date: 2026-04-20T06:24:23.451Z
 Branch override: GITHUB_REF_NAME=master
 Fixture: KIBI_RELEASE_MOCK_NPM="" (empty-string → nothing published)
 
@@ -34,7 +34,7 @@ Raw JSON output:
     }
   ],
   "sourceSha": "test-sha-integration",
-  "reason": "1 pending changeset(s), 4 unpublished package(s)",
+  "reason": "2 pending changeset(s), 4 unpublished package(s)",
   "toPublish": [
     "core=kibi-core",
     "cli=kibi-cli",
@@ -48,4 +48,4 @@ Summary:
 - Action: PREPARE_RELEASE
 - Packages: kibi-core@0.5.1, kibi-cli@0.6.1, kibi-mcp@0.7.1, kibi-opencode@0.7.1
 - All unpublished: true
-- Reason: 1 pending changeset(s), 4 unpublished package(s)
+- Reason: 2 pending changeset(s), 4 unpublished package(s)
