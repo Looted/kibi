@@ -40,6 +40,10 @@ import {
   type AutopilotGenerateArgs,
   handleKbAutopilotGenerate,
 } from "../tools/autopilot-generate.js";
+import {
+  type BriefingGenerateArgs,
+  handleKbBriefingGenerate,
+} from "../tools/briefing-generate.js";
 
 export interface ToolConfig {
   name: string;
@@ -113,6 +117,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
   handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
   handleKbAutopilotGenerate: (prolog: TProlog, args: AutopilotGenerateArgs) => Promise<unknown>;
+  handleKbBriefingGenerate: (prolog: TProlog, args: BriefingGenerateArgs) => Promise<unknown>;
 }
 
 const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
@@ -139,6 +144,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbStatus,
   handleKbUpsert,
   handleKbAutopilotGenerate,
+  handleKbBriefingGenerate,
 };
 
 // implements REQ-008
@@ -549,6 +555,21 @@ export function registerAllTools<TProlog>(
       return runtime.handleKbAutopilotGenerate(
         prolog,
         args as unknown as AutopilotGenerateArgs,
+      );
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_briefing_generate",
+    toolDef("kb_briefing_generate").description,
+    toolDef("kb_briefing_generate").inputSchema,
+    async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbBriefingGenerate(
+        prolog,
+        args as unknown as BriefingGenerateArgs,
       );
     },
     runtime,

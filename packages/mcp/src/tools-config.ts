@@ -463,6 +463,33 @@ const BASE_TOOLS = [
         },
       },
     },
+  },
+  {
+    name: "kb_briefing_generate",
+    description:
+      "Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskText: {
+          type: "string",
+          description:
+            "Optional task description used to rank relevant cited entities for the briefing.",
+        },
+        sourceFiles: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional source-file paths used to gather cited entities for the briefing.",
+        },
+        seedIds: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional seed entity IDs used to anchor the briefing graph expansion.",
+        },
+      },
+    },
   }
 ];
 
