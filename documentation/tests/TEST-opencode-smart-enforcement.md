@@ -4,7 +4,7 @@ title: Smart Enforcement Verification and Surface Policy
 type: test
 status: passing
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-05T01:00:00Z
+updated_at: 2026-04-20T00:00:00Z
 source: documentation/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -42,6 +42,7 @@ links:
   - 1 guidance block per session injection.
   - 5 bullet points per block.
   - 120 words per block.
+  - Briefing discovery cues (`/brief-kibi`, `kb_briefing_generate`) stay within the same budgeted block.
 
 ### Cache Invalidation Triggers
 
@@ -79,6 +80,7 @@ links:
   - 5 bullet points or 120 words total for the combined sentinel + block output.
   - Degraded advisory and completion-reminder text are folded into the single block rather than appended as separate blocks.
 - **Policy Test** (`packages/opencode/tests/smart-enforcement-policy.test.ts`): Centralized contract matrix verifying the interaction of effective mode, single-block guidance outcome, completion-reminder visibility, and runtime overlay behavior.
+- **Policy Test** (`packages/opencode/tests/agent-surface-policy.test.ts`): Confirms risky-edit briefing cues still preserve the MCP-only surface and sanctioned `/brief-kibi` wording.
 - **Logging Test** (`packages/opencode/tests/logging-policy.test.ts`): Confirms the completion reminder emits exactly one matching structured `smart_enforcement_completion_reminder` log per risky context and is suppressed when `maintenanceDegraded` is active.
 ### Source-Linked Micro-Brief Verification
 

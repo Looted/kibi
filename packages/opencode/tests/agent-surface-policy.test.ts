@@ -15,7 +15,8 @@ import { fileURLToPath } from "node:url";
  * 1. Agent-visible guidance must never instruct direct `kibi` CLI commands
  * 2. Guidance should explicitly prefer the curated public MCP tools
  * 3. Bootstrap guidance should say to ask user/operator for setup if /init-kibi is insufficient
- * 4. /init-kibi is the only allowed kibi-related command in agent-facing content
+ * 4. Only sanctioned slash commands may appear in agent-facing content
+ * 5. Agent-facing policy docs should mention kb_briefing_generate where briefing is sanctioned
  */
 
 // Get repo root by going up from packages/opencode/tests
@@ -56,8 +57,16 @@ describe("agent surface policy", () => {
     "kibi gc",
   ];
 
-  // The only allowed kibi command reference in agent-facing content
-  const allowedCommand = "/init-kibi";
+  const allowedCommands = ["/init-kibi", "/brief-kibi"];
+  const briefingPolicyFiles = [
+    "documentation/requirements/REQ-opencode-kibi-plugin-v1.md",
+    "documentation/requirements/REQ-opencode-agent-mcp-only.md",
+    "documentation/requirements/REQ-opencode-smart-enforcement-v1.md",
+    "documentation/scenarios/SCEN-opencode-kibi-plugin-v1.md",
+    "documentation/scenarios/SCEN-opencode-agent-mcp-only.md",
+    "documentation/scenarios/SCEN-opencode-smart-enforcement.md",
+    "documentation/adr/ADR-018.md",
+  ];
 
   for (const relativePath of agentFacingFiles) {
     const fullPath = path.join(repoRoot, relativePath);
@@ -92,7 +101,7 @@ describe("agent surface policy", () => {
       }
     });
 
-    test(`allows /init-kibi: ${relativePath}`, () => {
+    test(`allows sanctioned slash commands: ${relativePath}`, () => {
       if (!fs.existsSync(fullPath)) {
         // Skip if file doesn't exist
         return;
@@ -100,7 +109,7 @@ describe("agent surface policy", () => {
 
       const content = fs.readFileSync(fullPath, "utf-8");
 
-      // The file should mention /init-kibi somewhere (except README which is user-facing)
+      // The file should mention sanctioned slash commands somewhere (except README which is user-facing)
       if (!relativePath.includes("README")) {
         // This is a soft check - not all files need to mention it
         // but we want to verify the pattern is allowed
@@ -108,12 +117,28 @@ describe("agent surface policy", () => {
 
       // Verify /init-kibi is present if the file discusses bootstrap
       if (content.includes("bootstrap") || content.includes("init")) {
-        const hasAllowedCmd = content.includes(allowedCommand);
+        const hasAllowedCmd = allowedCommands.some((cmd) => content.includes(cmd));
         const hasNoKibiRefs =
           !content.includes("kibi") && !content.includes("KB");
-        const msg = `${relativePath} discusses bootstrap but does not mention ${allowedCommand}. Agent-facing files should guide users to /init-kibi for bootstrapping.`;
+        const msg = `${relativePath} discusses bootstrap but does not mention a sanctioned slash command. Agent-facing files should guide users to sanctioned slash commands such as /init-kibi.`;
         assert.ok(hasAllowedCmd || hasNoKibiRefs, msg);
       }
+    });
+  }
+
+  for (const relativePath of briefingPolicyFiles) {
+    const fullPath = path.join(repoRoot, relativePath);
+
+    test(`mentions kb_briefing_generate: ${relativePath}`, () => {
+      if (!fs.existsSync(fullPath)) {
+        return;
+      }
+
+      const content = fs.readFileSync(fullPath, "utf-8");
+      assert.ok(
+        content.includes("kb_briefing_generate"),
+        `${relativePath} should mention kb_briefing_generate when briefing guidance is sanctioned`,
+      );
     });
   }
 
