@@ -16,14 +16,14 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_action: ${{ steps.decide.outputs.action }}
-      to_publish: ${{ steps.decide.outputs.to_publish }}
+      toPublish: ${{ steps.decide.outputs.toPublish }}
     permissions:
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -37,7 +37,7 @@ jobs:
           ACTION=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write(d.action)")
           TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
           echo "action=$ACTION" >> $GITHUB_OUTPUT
-          echo "to_publish<<EOF" >> $GITHUB_OUTPUT
+          echo "toPublish<<EOF" >> $GITHUB_OUTPUT
           echo "$TO_PUBLISH" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
           echo "Release action: $ACTION"
@@ -48,13 +48,13 @@ jobs:
     needs: check-release
     if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
     outputs:
-      to_publish: ${{ steps.check-packages.outputs.to_publish }}
+      toPublish: ${{ steps.check-packages.outputs.toPublish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: refs/heads/master
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
@@ -117,21 +117,21 @@ jobs:
         id: check-packages
         run: |
           cat >> $GITHUB_OUTPUT <<'EOFMARKER'
-          to_publish<<EOF
-          ${{ needs.check-release.outputs.to_publish }}
+          toPublish<<EOF
+          ${{ needs.check-release.outputs.toPublish }}
           EOF
           EOFMARKER
 
   release-gate:
     runs-on: ubuntu-latest
     needs: [build-and-check, check-release]
-    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.to_publish != '' }}
+    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           ref: refs/heads/master
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Install SWI-Prolog
         run: |
           sudo apt-get install -y software-properties-common
@@ -192,16 +192,20 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     needs: [build-and-check, release-gate, check-release]
-    if: ${{ needs.build-and-check.outputs.to_publish != '' }}
+    if: ${{ needs.build-and-check.outputs.toPublish != '' }}
     permissions:
       contents: read
       id-token: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          ref: refs/heads/master
-          fetch-depth: 0
+          bun-version: '1.3.10'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -218,7 +222,7 @@ jobs:
           path: packages
       - name: Publish packages
         run: |
-          to_publish="${{ needs.build-and-check.outputs.to_publish }}"
+          to_publish="${{ needs.build-and-check.outputs.toPublish }}"
           while IFS= read -r output; do
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
@@ -237,7 +241,7 @@ jobs:
   create-github-releases:
     runs-on: ubuntu-latest
     needs: [publish, build-and-check, check-release]
-    if: ${{ needs.publish.result == 'success' && needs.build-and-check.outputs.to_publish != '' }}
+    if: ${{ needs.publish.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
     permissions:
       contents: write
     steps:
@@ -245,7 +249,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           ref: refs/heads/master
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
@@ -259,7 +263,7 @@ jobs:
           path: packages/vscode
       - name: Create GitHub releases
         run: |
-          to_publish="${{ needs.build-and-check.outputs.to_publish }}"
+          to_publish="${{ needs.build-and-check.outputs.toPublish }}"
           vsix_file=$(ls -1 packages/vscode/*.vsix 2>/dev/null | head -1)
           while IFS= read -r output; do
             [ -z "$output" ] && continue
