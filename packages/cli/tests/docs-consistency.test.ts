@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { globSync } from "glob";
 
 const ROOT = join(__dirname, "../../..");
 const DOC_FILES = [
