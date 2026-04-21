@@ -251,6 +251,7 @@ const kibiOpencodePlugin: Plugin = async (
               "required-fields",
               "no-dangling-refs",
               ...(pathAnalysis.kind === "fact" ? ["strict-fact-shape"] : []),
+              ...(pathAnalysis.kind === "requirement" ? ["strict-req-fact-pairing"] : []),
             ]
           : null;
 
