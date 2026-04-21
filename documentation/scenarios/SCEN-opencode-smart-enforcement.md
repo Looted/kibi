@@ -85,6 +85,9 @@ The OpenCode Kibi Plugin must adjust its guidance based on the repository's Kibi
 **When** an agent edits a fact KB document
 **Then** the plugin must include `strict-fact-shape` along with `required-fields` and `no-dangling-refs` in the scheduled validation.
 
+**When** an agent edits a requirement KB document
+**Then** the plugin must include `strict-req-fact-pairing` in the scheduled validation to surface requirements not linked to strict domain facts.
+
 ### Source-Linked Micro-Brief Guidance
 
 **Given** the posture is `root_active`

@@ -69,4 +69,5 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
     - `kb_doc_structural` (fact) → `required-fields`, `no-dangling-refs`, `strict-fact-shape`
     - `kb_doc_structural` (others) → `required-fields`, `no-dangling-refs`
     - `req_policy_candidate` (priority:must) → `must-priority-coverage` plus standard checks
+    - `req_policy_candidate` (any) → `strict-req-fact-pairing` to surface unpaired requirements
 12. **MCP-Only Surface Preservation**: All smart enforcement guidance must use MCP-only terminology, never suggesting CLI commands to the agent.
