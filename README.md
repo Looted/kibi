@@ -5,6 +5,22 @@
 
 Kibi is a repo-local, per-git-branch, queryable knowledge base for software projects. It stores requirements, scenarios, tests, architecture decisions, and more as linked entities, ensuring end-to-end traceability between code and documentation.
 
+## Entity Taxonomy
+
+Kibi intentionally supports **eight core entity types**, organized into two logical groups:
+
+### Common Authoring Entities
+- **req** — Software requirements specifying functionality or constraints.
+- **scenario** — BDD scenarios describing user behavior (Given/When/Then).
+- **test** — Executable unit, integration, or e2e test cases.
+- **fact** — Atomic domain facts and invariants. Supports a **strict lane** for contradiction-sensitive modeling and a **context lane** (`observation`, `meta`) for bugs and workarounds.
+
+### Supporting & System Entities
+- **adr** — Architecture Decision Records documenting technical choices.
+- **flag** — Runtime or config gates (feature flags, kill-switches).
+- **event** — Domain or system events published/consumed by components.
+- **symbol** — Abstract code symbols (functions, classes, modules).
+
 
 ## Why Kibi
 
