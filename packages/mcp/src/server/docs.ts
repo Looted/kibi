@@ -54,7 +54,10 @@ function renderToolsDoc(): string {
   }
   lines.push("");
   lines.push(
-    "Modeling note: Kibi has eight core entity types grouped into common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol). Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; use `flag` for runtime/config gates and `fact_kind: observation` or `meta` for bug/workaround notes.",
+    "Modeling note: Kibi has eight core entity types grouped into common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol).",
+  );
+  lines.push(
+    "Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; use `flag` for runtime/config gates and `fact_kind: observation` or `meta` for bug/workaround notes.",
   );
   return lines.join("\n");
 }
@@ -248,7 +251,8 @@ function registerDocResources(): DocResource[] {
     "4. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
     '5. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }` for targeted validation',
     "",
-    "Note: Kibi has eight core entity types. Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link). Only strict domain facts are contradiction-safe. Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug/workaround notes.",
+    "Note: Kibi has eight core entity types. Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link).",
+    "Only strict domain facts are contradiction-safe. Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug/workaround notes.",
     "",
     "## Find missing coverage",
     '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',
