@@ -14,18 +14,23 @@ The KB is accessible via:
 
 ## Entity Types
 
-Kibi supports 8 entity types:
+Kibi supports eight core entity types, grouped by their primary purpose:
 
+### Common Authoring Entities (Standard Workflow)
 | Type | Description | ID Prefix | Status Values |
 |------|-------------|-----------|---------------|
 | `req` | Requirement | REQ-XXX | open, in_progress, closed, deprecated |
 | `scenario` | BDD behavior | SCEN-XXX | draft, active, deprecated |
 | `test` | Unit/integration/e2e test | TEST-XXX | passing, failing, skipped, pending |
+| `fact` | Atomic domain fact; includes strict lanes and observation/meta notes | FACT-XXX | active, deprecated |
+
+### Supporting & System Entities (Context & Infrastructure)
+| Type | Description | ID Prefix | Status Values |
+|------|-------------|-----------|---------------|
 | `adr` | Architecture Decision Record | ADR-XXX | proposed, accepted, deprecated, superseded |
 | `flag` | Feature flag / runtime config gate | FLAG-XXX | active, inactive, deprecated |
 | `event` | Domain event | EVT-XXX | active, deprecated |
-| `symbol` | Code symbol (function, class, module) | SYM-XXX | active, deprecated |
-| `fact` | Atomic domain fact; use observation/meta for bug and workaround notes | FACT-XXX | active, deprecated |
+| `symbol` | Code symbol (function, class, module) | SYM-XXX | active, deprecated, removed |
 
 ---
 
