@@ -194,7 +194,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 Run KB validation rules after mutations.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`)
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`). Note: `strict-fact-shape` is a migration check and is disabled by default. `domain-contradictions` applies only to strict-lane facts.
 
 **Returns:**
 Validation report with any violations found and suggested fixes.
@@ -235,7 +235,7 @@ Use this prompt at task start when you need a briefing grounded in current KB ev
 7. **Validate**: Run `kb_check` after structural changes.
 8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
-**Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`.
+**Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes.
 ## Error Handling
 
 The MCP server returns structured errors for:
