@@ -3965,6 +3965,70 @@ import datetime
       );
     });
 
+    it("requirement KB-doc edit schedules required-fields, no-dangling-refs, strict-req-fact-pairing", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-001.md");
+      fs.writeFileSync(
+        reqFile,
+        "---\nid: REQ-001\ntitle: Test Req\nstatus: open\n---\nTest content\n",
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: reqFile },
+        },
+      });
+
+      // Requirement KB-doc should schedule structural rules + strict-req-fact-pairing
+      const reqCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.includes("strict-req-fact-pairing"),
+      );
+      assert.ok(
+        reqCalls.length >= 1,
+        `Expected at least 1 scheduleSync with strict-req-fact-pairing for req doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.ok(
+        reqCalls[0].checkRules!.includes("required-fields"),
+        `Expected required-fields in req doc rules, got ${JSON.stringify(reqCalls[0].checkRules)}`,
+      );
+      assert.ok(
+        reqCalls[0].checkRules!.includes("no-dangling-refs"),
+        `Expected no-dangling-refs in req doc rules, got ${JSON.stringify(reqCalls[0].checkRules)}`,
+      );
+    });
+
+
     it("non-fact KB-doc edits do NOT include strict-fact-shape", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });

@@ -97,4 +97,5 @@ links:
 - **Integration Test** (`packages/opencode/tests/index.test.ts`): Verifies specific rule scheduling:
   - `traceability_candidate` triggers `symbol-traceability` with reason `smart-enforcement.traceability`.
   - Fact KB document edits trigger `strict-fact-shape` along with structural checks.
+  - Requirement KB document edits trigger `strict-req-fact-pairing` to surface unpaired requirements.
 - **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.

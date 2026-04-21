@@ -46,10 +46,10 @@ The plugin provides context-aware prompt guidance based on recent edits and work
 
 After KB-document edits, the plugin queues targeted validation rules to run via background sync operations:
 
-- **Must-priority requirement edits**: elevated validation including coverage checks (`must-priority-coverage`)
+- **Must-priority requirement edits**: elevated validation including coverage checks (`must-priority-coverage`) and `strict-req-fact-pairing`
 - **Traceability candidate code edits**: schedules `symbol-traceability` via reason `smart-enforcement.traceability`
 - **Fact KB doc edits**: includes `strict-fact-shape` validation alongside standard structural checks
-- **Other requirement/scenario/test/ADR/fact edits**: standard validation for `required-fields` and `no-dangling-refs`
+- **Requirement KB doc edits**: includes `strict-req-fact-pairing` validation alongside standard structural checks
 
 The plugin inspects requirement frontmatter to detect `priority: must` and schedules elevated validation for critical requirements. Runs in background after sync completes, non-blocking. Can be disabled via `guidance.targetedChecks.enabled: false`.
 
