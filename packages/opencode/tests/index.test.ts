@@ -3467,6 +3467,172 @@ import datetime
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
 
+    it("does not latch degraded mode for smart-enforcement sync failures", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async () => {},
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const startup = await runPluginStartup({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      capturedOnRunComplete?.({
+        reason: "smart-enforcement.traceability",
+        exitCode: 1,
+        checkExitCode: 0,
+      });
+
+      assert.equal(startup?.runtimeOverlay.degraded, false);
+      assert.equal(startup?.runtimeOverlay.primaryCause, undefined);
+      assert.equal(startup?.getMaintenanceDegraded(), false);
+      assert.equal(startup?.getEffectiveMode(), "strict");
+    });
+
+    it("does not latch degraded mode for smart-enforcement trailing rerun sync failures", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: true, debounceMs: 5 },
+            guidance: {
+              smartEnforcement: {
+                completionReminder: true,
+                mode: "strict",
+                requireRootKbForStrict: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+      [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ].forEach((dir) =>
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
+      );
+      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+
+      const mockClient = {
+        app: {
+          log: async () => {},
+        },
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          scheduleSync: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const startup = await runPluginStartup({
+        directory: tmpDir,
+        worktree: worktree,
+        client: mockClient,
+        project: null as any,
+        serverUrl: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(startup, "runPluginStartup should return startup context");
+      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      capturedOnRunComplete?.({
+        reason: "smart-enforcement.kb-doc.trailing",
+        exitCode: 1,
+        checkExitCode: 0,
+      });
+
+      assert.equal(startup?.runtimeOverlay.degraded, false);
+      assert.equal(startup?.runtimeOverlay.primaryCause, undefined);
+      assert.equal(startup?.getMaintenanceDegraded(), false);
+      assert.equal(startup?.getEffectiveMode(), "strict");
+    });
+
     it("latches scheduler_check_failed when onRunComplete has non-zero checkExitCode", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
@@ -3836,7 +4002,7 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as any;
+      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
 
       await eventHook({
         event: {
@@ -3861,6 +4027,130 @@ import datetime
         scenCalls[0].checkRules,
         ["required-fields", "no-dangling-refs"],
         `Expected only structural pair for scenario doc, got ${JSON.stringify(scenCalls[0].checkRules)}`,
+      );
+    });
+
+    it("requirement KB-doc edit schedules required-fields, no-dangling-refs, strict-req-fact-pairing", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-001.md");
+      fs.writeFileSync(
+        reqFile,
+        `---\nid: REQ-001\ntitle: Test Requirement\n---\nTest content\n`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: reqFile },
+        },
+      });
+
+      // Requirement KB-doc should schedule structural+req-fact-pairing rules
+      const reqCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.includes("strict-req-fact-pairing"),
+      );
+      assert.ok(
+        reqCalls.length >= 1,
+        `Expected at least 1 scheduleSync with strict-req-fact-pairing for requirement doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.deepEqual(
+        reqCalls[0].checkRules,
+        ["required-fields", "no-dangling-refs", "strict-req-fact-pairing"],
+        `Expected exact rules for requirement doc, got ${JSON.stringify(reqCalls[0].checkRules)}`,
+      );
+    });
+
+    it("non-requirement KB-doc edits do NOT include strict-req-fact-pairing", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      // Create a scenario file (not a requirement)
+      const scenDir = path.join(tmpDir, "documentation", "scenarios");
+      fs.mkdirSync(scenDir, { recursive: true });
+      const scenFile = path.join(scenDir, "SCEN-001.md");
+      fs.writeFileSync(
+        scenFile,
+        `---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: scenFile },
+        },
+      });
+
+      // Scenario doc should only have structural pair, NOT strict-req-fact-pairing
+      const scenCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.length > 0,
+      );
+      assert.ok(
+        scenCalls.length >= 1,
+        `Expected at least 1 scheduleSync for scenario doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.ok(
+        !scenCalls[0].checkRules!.includes("strict-req-fact-pairing"),
+        `Scenario doc should NOT include strict-req-fact-pairing, got ${JSON.stringify(scenCalls[0].checkRules)}`,
       );
     });
 
@@ -3900,7 +4190,7 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as any;
+      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
 
       await eventHook({
         event: {

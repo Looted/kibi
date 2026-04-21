@@ -298,6 +298,9 @@ import { buildPrompt, SENTINEL } from "../src/prompt";
 
 describe("smart enforcement contract matrix", () => {
   describe("single-block prompt policy", () => {
+    const BRIEF_KIBI_CUE =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+
     it("returns full base guidance when no context matches", () => {
       const p = buildPrompt();
       assert.ok(
@@ -321,6 +324,46 @@ describe("smart enforcement contract matrix", () => {
         blocks.length,
         1,
         "Should emit exactly one contextual block",
+      );
+    });
+
+    it("keeps brief-kibi cue inside the single authoritative risky block", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        completionReminder: true,
+      });
+      assert.ok(
+        p.includes(BRIEF_KIBI_CUE),
+        "Should include /brief-kibi cue for authoritative risky edits",
+      );
+      const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+      assert.equal(blocks.length, 1, "Cue must stay in the single block");
+    });
+
+    it("suppresses brief-kibi cue for non-authoritative risky blocks", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_partial",
+        riskClass: "behavior_candidate",
+      });
+      assert.ok(
+        !p.includes(BRIEF_KIBI_CUE),
+        "Should not include /brief-kibi cue outside authoritative posture",
+      );
+    });
+
+    it("suppresses brief-kibi cue when maintenance is degraded", () => {
+      const p = buildPrompt({
+        recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        maintenanceDegraded: true,
+      });
+      assert.ok(
+        !p.includes(BRIEF_KIBI_CUE),
+        "Should not include /brief-kibi cue during degraded maintenance",
       );
     });
 

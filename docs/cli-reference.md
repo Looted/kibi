@@ -36,7 +36,7 @@ Extracts entities and relationships from project documents and updates the knowl
 
 **Notes:**
 - Supports these entity types: req, scenario, test, adr, flag, event, symbol, fact
-- **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`.
+- **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** (subject, property_value) drive contradiction checks, while observation/meta facts are non-blocking notes.
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
 
@@ -167,7 +167,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` for malformed typed facts
+- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing` (both default-off) for malformed typed facts and incomplete requirement/fact pairing
 - Reports violations with actionable suggestions
 
 **Flags:**
@@ -189,7 +189,10 @@ kibi check --staged
 kibi check --rules must-priority-coverage,no-dangling-refs
 
 # Opt into strict fact migration checks
-kibi check --rules strict-fact-shape
+kibi check --rules strict-fact-shape # Migration-oriented check
+
+# Audit strict requirement/fact pairing during migration
+kibi check --rules strict-req-fact-pairing
 ```
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.

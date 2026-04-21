@@ -45,7 +45,7 @@ graph TD
 - Branch-aware: all tools accept branch parameter
 - Keeps Prolog process alive for stateful operations
 
-> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. See [Entity Schema](entity-schema.md).
+> **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is a default-off migration check.
 ### VS Code Extension
 - Located at `packages/vscode/`
 - TreeView scaffolding for KB navigation

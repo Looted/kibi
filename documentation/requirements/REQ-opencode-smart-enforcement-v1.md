@@ -3,7 +3,7 @@ id: REQ-opencode-smart-enforcement-v1
 title: "OpenCode Smart Enforcement: Posture-Aware Guidance and Risk Classification"
 status: open
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-05T01:00:00Z
+updated_at: 2026-04-20T00:00:00Z
 source: documentation/requirements/REQ-opencode-smart-enforcement-v1.md
 priority: must
 owner: opencode-team
@@ -46,6 +46,7 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
 3. **Token-Budget Policy**: To preserve context window and reduce costs, injected guidance must be concise:
    - Maximum 1 guidance block per injection.
    - Maximum 5 bullet points or 120 words total per block.
+   - Briefing discovery cues such as `/brief-kibi` and `kb_briefing_generate` must fit inside the same prompt budget rather than creating a second block.
 
 4. **Advisory Default with Hook Guarantees**: Guidance should be advisory by default (nudges/toasts) while relying on Kibi git hooks as hard guarantees for traceability and integrity.
 
@@ -62,10 +63,11 @@ The OpenCode Kibi Plugin must implement smart, posture-aware enforcement to prov
 
 8. **Guidance Block Definition**: A single injected guidance block consists of the `<!-- kibi-opencode -->` sentinel plus at most one contextual block. The combined output must never exceed 5 bullet points or 120 words. Multiple candidate messages must be combined or priority-selected into this single block. For code edits, if 1-3 concrete requirement links exist in `documentation/symbols.yaml`, a source-linked micro-brief (`- Existing Kibi links: REQ-xxx`) must be prepended to the risk-class guidance.
 9. **Prompt-Visible Completion Reminder**: When `guidance.smartEnforcement.completionReminder` is enabled and the current risk class is `behavior_candidate`, `traceability_candidate`, or `req_policy_candidate`, the plugin must append exactly one visible reminder (`Run \`kb_check\` before completing this task.`) to the guidance block per cache window. The reminder must be suppressed when `maintenanceDegraded` is active and must emit a matching structured `smart_enforcement_completion_reminder` log.
-10. **Runtime Maintenance Overlay**: The plugin must maintain a session-local runtime overlay that latches when sync is disabled, the scheduler cannot be created, or a sync/check run fails. The merged `maintenanceDegraded` state (static posture OR runtime overlay) must drive: (a) degraded-mode prompt text in `warn-once` mode, (b) skip of targeted validation checks, (c) suppression of the completion reminder, and (d) exposure in all structured smart-enforcement logs.
+10. **Runtime Maintenance Overlay**: The plugin must maintain a session-local runtime overlay that latches when sync is disabled, the scheduler cannot be created, or a sync/check run fails. The merged `maintenanceDegraded` state (static posture OR runtime overlay) must drive: (a) degraded-mode prompt text in `warn-once` mode, (b) skip of targeted validation checks, (c) suppression of the completion reminder, (d) suppression of briefing discovery cues such as `/brief-kibi` when they would imply unavailable maintenance, and (e) exposure in all structured smart-enforcement logs.
 11. **Targeted Validation Routing**: The plugin must schedule specific validation rules based on risk class:
     - `traceability_candidate` → `symbol-traceability` via reason `smart-enforcement.traceability`
     - `kb_doc_structural` (fact) → `required-fields`, `no-dangling-refs`, `strict-fact-shape`
     - `kb_doc_structural` (others) → `required-fields`, `no-dangling-refs`
     - `req_policy_candidate` (priority:must) → `must-priority-coverage` plus standard checks
+    - `req_policy_candidate` (any) → `strict-req-fact-pairing` to surface unpaired requirements
 12. **MCP-Only Surface Preservation**: All smart enforcement guidance must use MCP-only terminology, never suggesting CLI commands to the agent.

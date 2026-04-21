@@ -251,6 +251,7 @@ const kibiOpencodePlugin: Plugin = async (
               "required-fields",
               "no-dangling-refs",
               ...(pathAnalysis.kind === "fact" ? ["strict-fact-shape"] : []),
+              ...(pathAnalysis.kind === "requirement" ? ["strict-req-fact-pairing"] : []),
             ]
           : null;
 
@@ -398,12 +399,13 @@ const kibiOpencodePlugin: Plugin = async (
               "required-fields",
               "no-dangling-refs",
               "must-priority-coverage",
+              "strict-req-fact-pairing",
             ];
             logger.info(
               `kibi-opencode: must-priority requirement detected, scheduling elevated checks for ${filePath}`,
             );
           } else {
-            checkRules = ["required-fields", "no-dangling-refs"];
+            checkRules = ["required-fields", "no-dangling-refs", "strict-req-fact-pairing"];
           }
         }
         logger.info("smart-enforcement.targeted-checks", {

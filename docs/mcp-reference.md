@@ -9,14 +9,30 @@ The public MCP surface is intentionally curated. Agents can call exact lookup, d
 ### `kb_autopilot_generate`
 
 Discover existing repository entities and bootstrap the KB via read-only candidate generation. Prefer this for day-0 activation.
-,
+
 **Parameters:**
 - `limit` (optional): Max results per entity type
 - `include` (optional): Filter by file pattern
-,
+
 **Returns:**
 Grouped candidate entities ready for review. Candidates must be explicitly applied via `kb_upsert` after validation.
-,
+
+### `kb_briefing_generate`
+
+Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs.
+
+**Parameters:**
+- `taskText` (optional): Task description used to rank relevant cited entities
+- `sourceFiles` (optional): Source-file paths used to gather cited entities
+- `seedIds` (optional): Seed entity IDs used to anchor the briefing
+
+At least one of `taskText`, `sourceFiles`, or `seedIds` must be non-empty.
+
+**Returns:**
+A structured briefing with `briefingState`, `activationState`, `activationReason`, `freshness`, `confidence`, `tldr`, `promptBlock`, `entities`, `constraints`, `regressionRisks`, `missingEvidence`, and `citations`.
+
+When evidence is insufficient, the tool fails closed with `briefingState: "no_briefing"` and no speculative sections.
+
 ### `kb_query`
 
 Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.
@@ -178,7 +194,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 Run KB validation rules after mutations.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`)
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`). Note: `strict-fact-shape` and `strict-req-fact-pairing` are migration checks and are disabled by default. `domain-contradictions` applies only to strict-lane facts.
 
 **Returns:**
 Validation report with any violations found and suggested fixes.
@@ -186,8 +202,19 @@ Validation report with any violations found and suggested fixes.
 ## Discoverability
 
 - MCP clients discover available tools through `tools/list`.
+- MCP clients discover available prompts through `prompts/list` and `prompts/get`.
 - Allowed static values are encoded directly in each tool's `inputSchema` enums.
 - There are no separate runtime listing tools for entity or relationship types.
+
+## Public Prompts
+
+### `/init-kibi`
+
+Use this prompt for day-0 KB activation. It guides agents through `kb_autopilot_generate`, review, sequential `kb_upsert`, and validation.
+
+### `/brief-kibi`
+
+Use this prompt at task start when you need a briefing grounded in current KB evidence. It instructs agents to call `kb_briefing_generate`, inspect `briefingState`, and use only cited output. If the result is `no_briefing`, the prompt tells agents not to invent briefing claims.
 
 ## Branch Behavior
 
@@ -199,15 +226,16 @@ Validation report with any violations found and suggested fixes.
 
 ## Recommended Agent Workflow
 
-1. **Day-0 Activation**: Use \`kb_autopilot_generate\` to discover entities and bootstrap the KB. Review candidates before applying.
-2. **Gather Context**: Use \`kb_search\` for discovery and \`kb_query\` for exact follow-up.
-2. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
-3. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
-4. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
-5. **Validate**: Run `kb_check` after structural changes.
-6. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
+1. **Day-0 Activation**: Use `kb_autopilot_generate` to discover entities and bootstrap the KB. Review candidates before applying.
+2. **Start-task Briefing**: Use `kb_briefing_generate` or `/brief-kibi` when you need a citation-backed briefing before risky work.
+3. **Gather Context**: Use `kb_search` for discovery and `kb_query` for exact follow-up.
+4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
+5. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+6. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
+7. **Validate**: Run `kb_check` after structural changes.
+8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
 
-**Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`.
+**Modeling note:** Use `flag` for runtime/config gates. Bug and workaround notes belong in `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes.
 ## Error Handling
 
 The MCP server returns structured errors for:

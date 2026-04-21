@@ -4,7 +4,7 @@ title: Smart Enforcement Posture and Risk Classification
 type: scenario
 status: active
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-05T01:00:00Z
+updated_at: 2026-04-20T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -56,6 +56,13 @@ The OpenCode Kibi Plugin must adjust its guidance based on the repository's Kibi
 **Then** it must combine them into a single block
 **And** truncate to a maximum of 5 bullet points or 120 words.
 
+### Risky-Edit Briefing Cue
+
+**Given** the posture is `root_active` and the action is an authoritative risky edit
+**When** the plugin has enough prompt budget to add a discovery cue
+**Then** it may mention `/brief-kibi` and `kb_briefing_generate` inside the same single guidance block
+**And** it must suppress that cue when `maintenance_degraded` is active.
+
 ### Cache Invalidation
 
 **Given** the plugin has cached the current posture as `root_active`
@@ -77,6 +84,9 @@ The OpenCode Kibi Plugin must adjust its guidance based on the repository's Kibi
 
 **When** an agent edits a fact KB document
 **Then** the plugin must include `strict-fact-shape` along with `required-fields` and `no-dangling-refs` in the scheduled validation.
+
+**When** an agent edits a requirement KB document
+**Then** the plugin must include `strict-req-fact-pairing` in the scheduled validation to surface requirements not linked to strict domain facts.
 
 ### Source-Linked Micro-Brief Guidance
 

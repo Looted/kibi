@@ -1078,6 +1078,436 @@ describe("MCP Check Tool Handler", () => {
     }
   }, 15000);
 
+  test("should pass fully paired strict requirements with strict-req-fact-pairing rule", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-SUBJECT-MCP-001",
+      properties: {
+        title: "Paired Subject Fact",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+        fact_kind: "subject",
+        subject_key: "user.session",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-PROP-MCP-001",
+      properties: {
+        title: "Paired Property Fact",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+        fact_kind: "property_value",
+        subject_key: "user.session",
+        property_key: "max_age_minutes",
+        operator: "eq",
+        value_type: "int",
+        value_int: 30,
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PAIR-PASS-MCP-001",
+      properties: {
+        title: "Paired strict requirement",
+        status: "open",
+        source: "test://strict-req-fact-pairing",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-PAIR-PASS-MCP-001",
+          to: "FACT-PAIR-SUBJECT-MCP-001",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-PAIR-PASS-MCP-001",
+          to: "FACT-PAIR-PROP-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-req-fact-pairing"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "REQ-PAIR-PASS-MCP-001",
+    );
+    expect(violation).toBeUndefined();
+  }, 15000);
+
+  test("should flag strict subjects without matching requires_property facts", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-SUBJECT-MCP-002",
+      properties: {
+        title: "Missing Property Subject Fact",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+        fact_kind: "subject",
+        subject_key: "account.session",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PAIR-MISSING-PROP-MCP-001",
+      properties: {
+        title: "Missing paired property requirement",
+        status: "open",
+        source: "test://strict-req-fact-pairing",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-PAIR-MISSING-PROP-MCP-001",
+          to: "FACT-PAIR-SUBJECT-MCP-002",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-req-fact-pairing"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "strict-req-fact-pairing" &&
+        v.entityId === "REQ-PAIR-MISSING-PROP-MCP-001",
+    );
+
+    expect(violation).toBeDefined();
+    expect(violation?.description).toMatch(/requires_property/i);
+  }, 15000);
+
+  test("should flag requirements relying on legacy facts for strict pairing", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-SUBJECT-MCP-003",
+      properties: {
+        title: "Legacy Pairing Subject",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+        fact_kind: "subject",
+        subject_key: "billing.account",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-LEGACY-MCP-001",
+      properties: {
+        title: "Legacy Prose Pairing Fact",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PAIR-LEGACY-MCP-001",
+      properties: {
+        title: "Legacy strict pairing attempt",
+        status: "open",
+        source: "test://strict-req-fact-pairing",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-PAIR-LEGACY-MCP-001",
+          to: "FACT-PAIR-SUBJECT-MCP-003",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-PAIR-LEGACY-MCP-001",
+          to: "FACT-PAIR-LEGACY-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-req-fact-pairing"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "strict-req-fact-pairing" &&
+        v.entityId === "REQ-PAIR-LEGACY-MCP-001",
+    );
+
+    expect(violation).toBeDefined();
+    expect(violation?.description).toMatch(/legacy|property_value|strict/i);
+  }, 15000);
+
+  test("should allow explicit strict-req-fact-pairing opt-in even when disabled by config", async () => {
+    await fs.mkdir(path.join(testKbPath, ".kb"), { recursive: true });
+    await fs.writeFile(
+      path.join(testKbPath, ".kb", "config.json"),
+      JSON.stringify(
+        {
+          checks: {
+            rules: {
+              "strict-req-fact-pairing": false,
+            },
+          },
+        },
+        null,
+        2,
+      ),
+    );
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PAIR-SUBJECT-MCP-004",
+      properties: {
+        title: "Opt-in Subject Fact",
+        status: "active",
+        source: "test://strict-req-fact-pairing",
+        fact_kind: "subject",
+        subject_key: "org.member",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PAIR-OPTIN-MCP-001",
+      properties: {
+        title: "Opt-in pairing requirement",
+        status: "open",
+        source: "test://strict-req-fact-pairing",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-PAIR-OPTIN-MCP-001",
+          to: "FACT-PAIR-SUBJECT-MCP-004",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-req-fact-pairing"],
+      workspaceRoot: testKbPath,
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "strict-req-fact-pairing" &&
+        v.entityId === "REQ-PAIR-OPTIN-MCP-001",
+    );
+
+    expect(violation).toBeDefined();
+  }, 15000);
+
+  test("should report domain-contradictions when a closed requirement is still current", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-CLOSED-SUBJECT-001",
+      properties: {
+        title: "Closed domain contradiction subject",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "subject",
+        subject_key: "session.closed",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-CLOSED-PROP-001",
+      properties: {
+        title: "Timeout 30 minutes",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "property_value",
+        subject_key: "session.closed",
+        property_key: "timeout_minutes",
+        operator: "eq",
+        value_type: "int",
+        value_int: 30,
+        closed_world: true,
+        canonical_key: "session.closed.timeout_minutes.eq.30",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-DOMAIN-CLOSED-001",
+      properties: {
+        title: "Closed requirement stays current",
+        status: "closed",
+        source: "test://domain-contradictions",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-DOMAIN-CLOSED-001",
+          to: "FACT-DOMAIN-CLOSED-SUBJECT-001",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-DOMAIN-CLOSED-001",
+          to: "FACT-DOMAIN-CLOSED-PROP-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-CLOSED-PROP-002",
+      properties: {
+        title: "Timeout 60 minutes",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "property_value",
+        subject_key: "session.closed",
+        property_key: "timeout_minutes",
+        operator: "eq",
+        value_type: "int",
+        value_int: 60,
+        closed_world: false,
+        canonical_key: "session.closed.timeout_minutes.eq.60",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-DOMAIN-OPEN-001",
+      properties: {
+        title: "Open conflicting requirement",
+        status: "open",
+        source: "test://domain-contradictions",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-DOMAIN-OPEN-001",
+          to: "FACT-DOMAIN-CLOSED-SUBJECT-001",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-DOMAIN-OPEN-001",
+          to: "FACT-DOMAIN-CLOSED-PROP-002",
+        },
+      ],
+      _skipContradictionCheck: true,
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["domain-contradictions"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "domain-contradictions" &&
+        v.entityId.includes("REQ-DOMAIN-CLOSED-001") &&
+        v.entityId.includes("REQ-DOMAIN-OPEN-001"),
+    );
+
+    expect(violation).toBeDefined();
+    expect(violation?.description).toContain("timeout_minutes");
+  }, 15000);
+
+  test("should ignore same-subject requirements that constrain different properties", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-DIFF-SUBJECT-001",
+      properties: {
+        title: "Shared subject",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "subject",
+        subject_key: "session.config",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-DIFF-PROP-001",
+      properties: {
+        title: "Timeout 30 minutes",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "property_value",
+        subject_key: "session.config",
+        property_key: "timeout_minutes",
+        operator: "eq",
+        value_type: "int",
+        value_int: 30,
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-DOMAIN-DIFF-PROP-001",
+      properties: {
+        title: "Timeout requirement",
+        status: "open",
+        source: "test://domain-contradictions",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-DOMAIN-DIFF-PROP-001",
+          to: "FACT-DOMAIN-DIFF-SUBJECT-001",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-DOMAIN-DIFF-PROP-001",
+          to: "FACT-DOMAIN-DIFF-PROP-001",
+        },
+      ],
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-DOMAIN-DIFF-PROP-002",
+      properties: {
+        title: "Max retries 5",
+        status: "active",
+        source: "test://domain-contradictions",
+        fact_kind: "property_value",
+        subject_key: "session.config",
+        property_key: "max_retries",
+        operator: "eq",
+        value_type: "int",
+        value_int: 5,
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-DOMAIN-DIFF-PROP-002",
+      properties: {
+        title: "Retry requirement",
+        status: "open",
+        source: "test://domain-contradictions",
+      },
+      relationships: [
+        {
+          type: "constrains",
+          from: "REQ-DOMAIN-DIFF-PROP-002",
+          to: "FACT-DOMAIN-DIFF-SUBJECT-001",
+        },
+        {
+          type: "requires_property",
+          from: "REQ-DOMAIN-DIFF-PROP-002",
+          to: "FACT-DOMAIN-DIFF-PROP-002",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["domain-contradictions"],
+    });
+
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.violations).toEqual([]);
+  }, 15000);
+
   test("should pass symbol-coverage through scenario verified_by chain", async () => {
     // Canonical split semantics: symbol --implements--> req --specified_by--> scenario --verified_by--> test
     // The symbol has covered_by → test, test validates → scenario, scenario specified_by req

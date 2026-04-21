@@ -16,6 +16,11 @@ const SENTINEL = "<!-- kibi-opencode -->";
 const MAX_BULLETS = 5;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
 
+const AUTHORITATIVE_POSTURES: RepoPosture[] = [
+  "root_active",
+  "hybrid_root_plus_vendored",
+];
+
 function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
@@ -44,6 +49,16 @@ function enforceBudget(block: string): string {
     return words.join(" ");
   }
   return block;
+}
+
+function insertBulletAfterHeader(block: string, bullet: string): string {
+  const headerEnd = block.indexOf("\n");
+  if (headerEnd === -1) return `${block}\n${bullet}`;
+  return `${block.slice(0, headerEnd + 1)}${bullet}\n${block.slice(headerEnd + 1)}`;
+}
+
+function isAuthoritativePosture(posture: RepoPosture): boolean {
+  return AUTHORITATIVE_POSTURES.includes(posture);
 }
 
 // ── File bucket derivation ─────────────────────────────────────────────
@@ -100,13 +115,16 @@ Requirement edits need policy alignment. Run kb_check with required-fields and n
 
   behavior_candidate: `📝 **Code changes detected**
 
-Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.`,
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
+- \`covered_by\` is coverage evidence only
+- Prefer scenario-first: req→scenario→test when scenarios exist`,
 
   traceability_candidate: `📝 **Code changes detected**
 
-Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test). \`covered_by\` is coverage evidence only. Prefer scenario-first: req→scenario→test when scenarios exist.
-- Durable knowledge comment detected — route to KB instead of inline comments
-- Use kb_upsert for FACT, ADR, or REQ entities as appropriate`,
+Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
+- \`covered_by\` is coverage evidence only
+- Prefer scenario-first: req→scenario→test when scenarios exist
+- Route durable knowledge comments to KB entities, not inline comments`,
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
@@ -260,7 +278,7 @@ Before implementing or explaining code:
 4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
-- \`FACT\` for domain invariants, properties, limits, cardinalities
+- \`FACT\` for strict domain facts (invariants, properties, limits, cardinalities); bug/workaround notes use \`fact_kind: observation\` or \`meta\`
 - \`ADR\` for technical decisions, tradeoffs, rationale
 - \`REQ\` for system behavior requirements`;
         }
@@ -271,6 +289,19 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       }
     }
     } // closing brace for Priority 2-4 else block starting at 187
+
+  if (
+    selectedBlock &&
+    (riskClass === "behavior_candidate" ||
+      riskClass === "traceability_candidate") &&
+    isAuthoritativePosture(posture) &&
+    !context.maintenanceDegraded
+  ) {
+    selectedBlock = insertBulletAfterHeader(
+      selectedBlock,
+      "- Authoritative risky edit: run `/brief-kibi` before acting.",
+    );
+  }
 
   // Source-linked micro-brief: insert after header line for code risk classes
   // Inserting after the header (not prepending before it) preserves the header
@@ -294,10 +325,10 @@ If you're adding long explanatory comments, consider routing that knowledge to:
           absEdited,
         );
         if (linkedIds.length >= 1 && linkedIds.length <= 3) {
-          const headerEnd = selectedBlock.indexOf("\n");
-          if (headerEnd !== -1) {
-            selectedBlock = `${selectedBlock.slice(0, headerEnd + 1)}- Existing Kibi links: ${linkedIds.join(", ")}\n${selectedBlock.slice(headerEnd + 1)}`;
-          }
+          selectedBlock = insertBulletAfterHeader(
+            selectedBlock,
+            `- Existing Kibi links: ${linkedIds.join(", ")}`,
+          );
         }
       }
     } catch {
@@ -337,14 +368,19 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.cache.recordSatisfied(key, "guidance");
   }
 
+  // Apply budget enforcement before appending the completion reminder so the
+  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
+  const budgeted = selectedBlock ? enforceBudget(selectedBlock) : null;
+
   // Append completion reminder for risky classes when enabled
   const REMINDER_RISK_CLASSES: RiskClass[] = [
     "behavior_candidate",
     "traceability_candidate",
     "req_policy_candidate",
   ];
+  let finalBlock = budgeted;
   if (
-    selectedBlock &&
+    finalBlock &&
     context.completionReminder === true &&
     !context.maintenanceDegraded &&
     riskClass &&
@@ -352,12 +388,12 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     posture !== "root_uninitialized" &&
     posture !== "root_partial"
   ) {
-    selectedBlock = `${selectedBlock}\n- Run \`kb_check\` before completing this task.`;
+    finalBlock = `${finalBlock}\n- Run \`kb_check\` before completing this task.`;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)
-  return selectedBlock
-    ? `${SENTINEL}\n\n${enforceBudget(selectedBlock)}`
+  return finalBlock
+    ? `${SENTINEL}\n\n${finalBlock}`
     : SENTINEL;
 }
 
@@ -370,14 +406,14 @@ function buildCommentSuggestionGuidance(
     case "fact":
       return `🎯 **Durable knowledge detected: FACT**
 
-Your recent code edit contains a comment that looks like a **domain invariant** (properties, limits, defaults, or cardinality constraints).
+Your recent code edit contains a comment that looks like a **strict domain fact** (invariants, properties, limits, defaults, or cardinality constraints).
 
-**Action**: Instead of inline comments, route this to a FACT entity:
-- Create \`documentation/facts/FACT-xxx.md\` with the invariant
+**Action**: Route to a FACT entity in the strict fact lane:
+- Create \`documentation/facts/FACT-xxx.md\` with the invariant (use \`constrains\` + \`requires_property\` for contradiction-safe reasoning)
+- Bug/workaround notes: use \`fact_kind: observation\` or \`meta\` instead — these are non-blocking and excluded from contradiction inference
 - Link it to relevant requirements
-- Reference the FACT in code with a comment
 
-This keeps domain truths centralized and searchable.`;
+This keeps domain truths centralized, searchable, and contradiction-safe.`;
     case "adr":
       return `🎯 **Durable knowledge detected: ADR**
 

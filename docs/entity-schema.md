@@ -6,18 +6,23 @@ This document describes the entity and relationship schema for the Kibi Knowledg
 
 ## Entity Types
 
-Kibi supports eight entity types:
+Kibi intentionally supports **eight core entity types**, organized into two logical groups:
 
-| Type     | Description                                                        |
-|----------|--------------------------------------------------------------------|
-| req      | Software requirement specifying functionality or constraints       |
-| scenario | BDD scenario describing user behavior (Given/When/Then)            |
-| test     | Unit, integration, or e2e test case                                |
-| adr      | Architecture Decision Record documenting technical choices         |
-| MQ|       | flag     | Runtime or config gate (feature flag, kill-switch, deferred capability) |
-| HX|       | event    | Domain or system event published/consumed by components            |
-| MN|       | symbol   | Abstract code symbol (function, class, module) - language-agnostic |
-| JZ|       | fact     | Atomic domain fact; use observation/meta for bug and workaround notes |
+### Common Authoring Entities (Standard Workflow)
+| Type | Description |
+|------|-------------|
+| req | Software requirement specifying functionality or constraints |
+| scenario | BDD scenario describing user behavior (Given/When/Then) |
+| test | Unit, integration, or e2e test case |
+| fact | Atomic domain fact; includes strict lanes and observation/meta notes |
+
+### Supporting & System Entities (Context & Infrastructure)
+| Type | Description |
+|------|-------------|
+| adr | Architecture Decision Record documenting technical choices |
+| flag | Runtime or config gate (feature flag, kill-switch, deferred capability) |
+| event | Domain or system event published/consumed by components |
+| symbol | Abstract code symbol (function, class, module) - language-agnostic |
 
 
 ---
@@ -389,12 +394,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: EVENT-001
-title: Sample event EVENT-001
+id: EVT-001
+title: Sample event EVT-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/events/EVENT-001
+source: https://example.com/fixtures/events/EVT-001
 tags:
   - domain
 ---
@@ -420,12 +425,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: SYMBOL-001
-title: Sample symbol SYMBOL-001
+id: SYM-001
+title: Sample symbol SYM-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/symbols/SYMBOL-001
+source: https://example.com/fixtures/symbols/SYM-001
 tags:
   - code
 ---
@@ -567,24 +572,24 @@ relationship:
 
 **implements**
 ```yaml
-# symbol SYMBOL-001 implements req REQ-001
+# symbol SYM-001 implements req REQ-001
 relationship:
   type: implements
-  source: SYMBOL-001
+  source: SYM-001
   target: REQ-001
   created_at: 2026-02-17T13:25:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
 
 `implements` is frozen to requirement ownership only (`symbol -> req`).
 
 **covered_by**
 ```yaml
-# symbol SYMBOL-001 covered_by test TEST-001
+# symbol SYM-001 covered_by test TEST-001
 relationship:
   type: covered_by
-  source: SYMBOL-001
+  source: SYM-001
   target: TEST-001
   created_at: 2026-02-17T13:30:00Z
   created_by: dev
@@ -595,24 +600,24 @@ relationship:
 
 **executable_for**
 ```yaml
-# symbol SYMBOL-TEST-001 executable_for test TEST-001
+# symbol SYM-TEST-001 executable_for test TEST-001
 relationship:
   type: executable_for
-  source: SYMBOL-TEST-001
+  source: SYM-TEST-001
   target: TEST-001
   created_at: 2026-02-17T13:32:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-TEST-001
+  source: https://example.com/fixtures/symbols/SYM-TEST-001
 ```
 
 `executable_for` is frozen to executable test code identity only (`symbol -> test`).
 
 **constrained_by**
 ```yaml
-# symbol SYMBOL-001 constrained_by adr ADR-001
+# symbol SYM-001 constrained_by adr ADR-001
 relationship:
   type: constrained_by
-  source: SYMBOL-001
+  source: SYM-001
   target: ADR-001
   created_at: 2026-02-17T13:35:00Z
   created_by: architect
@@ -634,26 +639,26 @@ relationship:
 
 **publishes**
 ```yaml
-# symbol SYMBOL-001 publishes event EVENT-001
+# symbol SYM-001 publishes event EVT-001
 relationship:
   type: publishes
-  source: SYMBOL-001
-  target: EVENT-001
+  source: SYM-001
+  target: EVT-001
   created_at: 2026-02-17T13:50:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
 
 **consumes**
 ```yaml
-# symbol SYMBOL-001 consumes event EVENT-001
+# symbol SYM-001 consumes event EVT-001
 relationship:
   type: consumes
-  source: SYMBOL-001
-  target: EVENT-001
+  source: SYM-001
+  target: EVT-001
   created_at: 2026-02-17T13:55:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
 
 **constrains**

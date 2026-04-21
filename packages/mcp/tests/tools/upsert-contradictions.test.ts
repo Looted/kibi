@@ -918,6 +918,476 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
       expect(threw).toBe(true);
     });
 
+    test("closed requirements still trigger contradiction rejection", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-SUBJECT-CLOSED-001",
+        properties: {
+          title: "Closed requirement subject",
+          status: "active",
+          source: "test://closed-current",
+          fact_kind: "subject",
+          subject_key: "session.closed",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-CLOSED-001",
+        properties: {
+          title: "Timeout 30 minutes",
+          status: "active",
+          source: "test://closed-current",
+          fact_kind: "property_value",
+          subject_key: "session.closed",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 30,
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-CLOSED-CURRENT-001",
+        properties: {
+          title: "Closed requirement remains current",
+          status: "closed",
+          source: "test://closed-current",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-CLOSED-CURRENT-001",
+            to: "FACT-SUBJECT-CLOSED-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-CLOSED-CURRENT-001",
+            to: "FACT-PROP-CLOSED-001",
+          },
+        ],
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-CLOSED-002",
+        properties: {
+          title: "Timeout 60 minutes",
+          status: "active",
+          source: "test://closed-current",
+          fact_kind: "property_value",
+          subject_key: "session.closed",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 60,
+        },
+      });
+
+      await expect(
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "REQ-CLOSED-CONFLICT-001",
+          properties: {
+            title: "Conflicts with closed requirement",
+            status: "open",
+            source: "test://closed-current",
+          },
+          relationships: [
+            {
+              type: "constrains",
+              from: "REQ-CLOSED-CONFLICT-001",
+              to: "FACT-SUBJECT-CLOSED-001",
+            },
+            {
+              type: "requires_property",
+              from: "REQ-CLOSED-CONFLICT-001",
+              to: "FACT-PROP-CLOSED-002",
+            },
+          ],
+        }),
+      ).rejects.toThrow(/contradiction/i);
+    });
+
+    test("same property with non-overlapping scope is allowed", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-SUBJECT-SCOPE-001",
+        properties: {
+          title: "Scoped timeout subject",
+          status: "active",
+          source: "test://scope-overlap",
+          fact_kind: "subject",
+          subject_key: "session.scope",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-SCOPE-001",
+        properties: {
+          title: "Global timeout 30 minutes",
+          status: "active",
+          source: "test://scope-overlap",
+          fact_kind: "property_value",
+          subject_key: "session.scope",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 30,
+          scope: "global",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-SCOPE-ALLOW-001",
+        properties: {
+          title: "Global timeout requirement",
+          status: "open",
+          source: "test://scope-overlap",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-SCOPE-ALLOW-001",
+            to: "FACT-SUBJECT-SCOPE-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-SCOPE-ALLOW-001",
+            to: "FACT-PROP-SCOPE-001",
+          },
+        ],
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-SCOPE-002",
+        properties: {
+          title: "Tenant timeout 60 minutes",
+          status: "active",
+          source: "test://scope-overlap",
+          fact_kind: "property_value",
+          subject_key: "session.scope",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 60,
+          scope: "tenant",
+        },
+      });
+
+      const result = await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-SCOPE-ALLOW-002",
+        properties: {
+          title: "Tenant timeout requirement",
+          status: "open",
+          source: "test://scope-overlap",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-SCOPE-ALLOW-002",
+            to: "FACT-SUBJECT-SCOPE-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-SCOPE-ALLOW-002",
+            to: "FACT-PROP-SCOPE-002",
+          },
+        ],
+      });
+
+      expect(result.structuredContent?.created).toBe(1);
+    });
+
+    test("same property with non-overlapping validity windows is allowed", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-SUBJECT-VALIDITY-001",
+        properties: {
+          title: "Validity subject",
+          status: "active",
+          source: "test://validity-overlap",
+          fact_kind: "subject",
+          subject_key: "billing.plan",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-VALIDITY-001",
+        properties: {
+          title: "Grace period 7 days",
+          status: "active",
+          source: "test://validity-overlap",
+          fact_kind: "property_value",
+          subject_key: "billing.plan",
+          property_key: "grace_period_days",
+          operator: "eq",
+          value_type: "int",
+          value_int: 7,
+          valid_from: "2026-01-01T00:00:00Z",
+          valid_to: "2026-03-01T00:00:00Z",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-VALIDITY-ALLOW-001",
+        properties: {
+          title: "First validity window",
+          status: "open",
+          source: "test://validity-overlap",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-VALIDITY-ALLOW-001",
+            to: "FACT-SUBJECT-VALIDITY-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-VALIDITY-ALLOW-001",
+            to: "FACT-PROP-VALIDITY-001",
+          },
+        ],
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-VALIDITY-002",
+        properties: {
+          title: "Grace period 14 days",
+          status: "active",
+          source: "test://validity-overlap",
+          fact_kind: "property_value",
+          subject_key: "billing.plan",
+          property_key: "grace_period_days",
+          operator: "eq",
+          value_type: "int",
+          value_int: 14,
+          valid_from: "2026-04-01T00:00:00Z",
+          valid_to: "2026-06-01T00:00:00Z",
+        },
+      });
+
+      const result = await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-VALIDITY-ALLOW-002",
+        properties: {
+          title: "Second validity window",
+          status: "open",
+          source: "test://validity-overlap",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-VALIDITY-ALLOW-002",
+            to: "FACT-SUBJECT-VALIDITY-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-VALIDITY-ALLOW-002",
+            to: "FACT-PROP-VALIDITY-002",
+          },
+        ],
+      });
+
+      expect(result.structuredContent?.created).toBe(1);
+    });
+
+    test("different properties on the same subject do not trigger rejection", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-SUBJECT-DIFFERENT-PROP-001",
+        properties: {
+          title: "Shared subject",
+          status: "active",
+          source: "test://different-property",
+          fact_kind: "subject",
+          subject_key: "session.config",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-DIFFERENT-PROP-001",
+        properties: {
+          title: "Timeout 30 minutes",
+          status: "active",
+          source: "test://different-property",
+          fact_kind: "property_value",
+          subject_key: "session.config",
+          property_key: "timeout_minutes",
+          operator: "eq",
+          value_type: "int",
+          value_int: 30,
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-DIFFERENT-PROP-001",
+        properties: {
+          title: "Timeout requirement",
+          status: "open",
+          source: "test://different-property",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-DIFFERENT-PROP-001",
+            to: "FACT-SUBJECT-DIFFERENT-PROP-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-DIFFERENT-PROP-001",
+            to: "FACT-PROP-DIFFERENT-PROP-001",
+          },
+        ],
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-DIFFERENT-PROP-002",
+        properties: {
+          title: "Retry count 5",
+          status: "active",
+          source: "test://different-property",
+          fact_kind: "property_value",
+          subject_key: "session.config",
+          property_key: "max_retries",
+          operator: "eq",
+          value_type: "int",
+          value_int: 5,
+        },
+      });
+
+      const result = await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-DIFFERENT-PROP-002",
+        properties: {
+          title: "Retry requirement",
+          status: "open",
+          source: "test://different-property",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-DIFFERENT-PROP-002",
+            to: "FACT-SUBJECT-DIFFERENT-PROP-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-DIFFERENT-PROP-002",
+            to: "FACT-PROP-DIFFERENT-PROP-002",
+          },
+        ],
+      });
+
+      expect(result.structuredContent?.created).toBe(1);
+    });
+
+    test("reserved fields do not change contradiction rejection", async () => {
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-SUBJECT-RESERVED-001",
+        properties: {
+          title: "Reserved field subject",
+          status: "active",
+          source: "test://reserved-fields",
+          fact_kind: "subject",
+          subject_key: "user.permissions",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-RESERVED-001",
+        properties: {
+          title: "Admin true",
+          status: "active",
+          source: "test://reserved-fields",
+          fact_kind: "property_value",
+          subject_key: "user.permissions",
+          property_key: "admin_access",
+          operator: "eq",
+          value_type: "bool",
+          value_bool: true,
+          closed_world: true,
+          canonical_key: "user.permissions.admin_access.eq.true",
+        },
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-RESERVED-001",
+        properties: {
+          title: "Admin access required",
+          status: "open",
+          source: "test://reserved-fields",
+        },
+        relationships: [
+          {
+            type: "constrains",
+            from: "REQ-RESERVED-001",
+            to: "FACT-SUBJECT-RESERVED-001",
+          },
+          {
+            type: "requires_property",
+            from: "REQ-RESERVED-001",
+            to: "FACT-PROP-RESERVED-001",
+          },
+        ],
+      });
+
+      await handleKbUpsert(prolog, {
+        type: "fact",
+        id: "FACT-PROP-RESERVED-002",
+        properties: {
+          title: "Admin false",
+          status: "active",
+          source: "test://reserved-fields",
+          fact_kind: "property_value",
+          subject_key: "user.permissions",
+          property_key: "admin_access",
+          operator: "eq",
+          value_type: "bool",
+          value_bool: false,
+          closed_world: false,
+          canonical_key: "user.permissions.admin_access.eq.false",
+        },
+      });
+
+      await expect(
+        handleKbUpsert(prolog, {
+          type: "req",
+          id: "REQ-RESERVED-002",
+          properties: {
+            title: "Admin access forbidden",
+            status: "open",
+            source: "test://reserved-fields",
+          },
+          relationships: [
+            {
+              type: "constrains",
+              from: "REQ-RESERVED-002",
+              to: "FACT-SUBJECT-RESERVED-001",
+            },
+            {
+              type: "requires_property",
+              from: "REQ-RESERVED-002",
+              to: "FACT-PROP-RESERVED-002",
+            },
+          ],
+        }),
+      ).rejects.toThrow(/contradiction/i);
+    });
+
     test("rejects relationships whose source does not match the upserted entity", async () => {
       await handleKbUpsert(prolog, {
         type: "req",
@@ -1236,6 +1706,7 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
           value_type: "int",
           value_int: 100,
           closed_world: false,
+          canonical_key: "api.rate_limit.requests_per_second.eq.100",
           polarity: "require",
         },
       });
@@ -1252,6 +1723,9 @@ describe("MCP Upsert Contradictions and Typed Facts", () => {
       // Verify scalar values are preserved
       expect(entity?.value_int).toBe(100);
       expect(entity?.closed_world).toBe(false);
+      expect(entity?.canonical_key).toBe(
+        "api.rate_limit.requests_per_second.eq.100",
+      );
       expect(entity?.fact_kind).toBe("property_value");
       expect(entity?.operator).toBe("eq");
       expect(entity?.value_type).toBe("int");

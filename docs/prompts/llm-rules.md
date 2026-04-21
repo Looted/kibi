@@ -24,7 +24,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 - If the knowledge is runtime evidence, historical context, governance commentary, or a bug record, use `observation` or `meta` facts instead.
 - New requirement semantics should evolve append-only: create a new req and link it with `supersedes`.
 - Reject-on-write contradiction checks use this strict lane and treat `supersedes` as the supported escape hatch.
-- Legacy prose facts may remain during migration, but `strict-fact-shape` should be treated as an explicit migration rule, not an always-on default for old repos.
+- Legacy prose facts may remain during migration, but `strict-fact-shape` should be treated as an explicit, **default-off** migration rule, not an always-on requirement for old repos. `domain-contradictions` applies only to strict-lane facts.
 
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
 
@@ -209,7 +209,7 @@ Avoid these common mistakes:
 
 **Flag is for runtime/config gating only:** The `flag` entity represents a runtime or config gate (feature flags, kill-switches, deferred capabilities). Do NOT create a `flag` for bugs or workarounds unless there is an actual gate controlling access.
 
-**Bug/workaround notes belong in observation/meta facts:** When documenting bugs, incidents, or workarounds, use a `fact` entity with `fact_kind: observation` or `meta`. These fact kinds are excluded from contradiction inference, making them appropriate for non-blocking evidence. Do NOT use a `flag` entity for observation or meta facts.
+**Bug/workaround notes belong in observation/meta facts:** When documenting bugs, incidents, or workarounds, use a `fact` entity with `fact_kind: observation` or `meta`. These fact kinds are excluded from contradiction inference, making them appropriate for non-blocking evidence. Do NOT use a `flag` entity for observation or meta facts. **Strict facts** (subject, property_value) are reserved for contradiction-safe modeling.
 
 **Canonical mapping:**
 - `flag` = runtime/config gate (NOT for bug records)

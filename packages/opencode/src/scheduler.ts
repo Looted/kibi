@@ -230,6 +230,10 @@ class WorktreeSyncScheduler implements SyncScheduler {
     checkRules?: string[],
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
+    const normalizedReason = trigger.reason.endsWith(".trailing")
+      ? trigger.reason.slice(0, -".trailing".length)
+      : trigger.reason;
+    const isSmartEnforcementSync = normalizedReason.startsWith("smart-enforcement.");
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
@@ -243,6 +247,8 @@ class WorktreeSyncScheduler implements SyncScheduler {
 
     if (exitCode === 0) {
       logger.info(`sync.succeeded ${JSON.stringify(meta)}`);
+    } else if (isSmartEnforcementSync) {
+      logger.errorStructuredOnly(`sync.failed ${JSON.stringify(meta)}`);
     } else {
       logger.error(`sync.failed ${JSON.stringify(meta)}`);
     }

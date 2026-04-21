@@ -241,7 +241,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(10);
+    expect(tools.length).toBe(11);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -253,6 +253,7 @@ describe("MCP Server", () => {
       "kb_delete",
       "kb_check",
       "kb_autopilot_generate",
+      "kb_briefing_generate",
     ]);
 
 
@@ -298,11 +299,15 @@ describe("MCP Server", () => {
     const prompts = result.prompts as Array<Record<string, unknown>>;
     expect(prompts.length).toBeGreaterThanOrEqual(1);
 
-    // Check that init-kibi prompt is included
+    // Check that public prompts are included
     const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
+    const briefKibiPrompt = prompts.find((p) => p.name === "brief-kibi");
     expect(initKibiPrompt).toBeDefined();
+    expect(briefKibiPrompt).toBeDefined();
     expect(initKibiPrompt?.description).toBeDefined();
+    expect(briefKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
+    expect(typeof briefKibiPrompt?.description).toBe("string");
 
     await killServer(proc);
   });
@@ -368,6 +373,53 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
+  test("should handle prompts/get for brief-kibi", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "prompts/get",
+      params: {
+        name: "brief-kibi",
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result).toBeDefined();
+
+    const messages = result.messages as Array<Record<string, unknown>>;
+    expect(messages).toBeDefined();
+    expect(messages.length).toBeGreaterThan(0);
+
+    const contentText = messages
+      .map((msg) => {
+        const content = msg.content as
+          | { type: string; text: string }
+          | undefined;
+        return content?.text || "";
+      })
+      .join(" ");
+
+    expect(contentText).toMatch(/kb_briefing_generate/);
+    expect(contentText).toMatch(/briefingState/);
+    expect(contentText).toMatch(/no_briefing/);
+    expect(contentText).not.toMatch(/kibi\s+(init|sync|search|query|status|check)/i);
+
+    await killServer(proc);
+  });
+
   test("should handle tools/call for kb_autopilot_generate", async () => {
     const proc = startServer();
 
@@ -416,6 +468,65 @@ describe("MCP Server", () => {
     expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
     expect(typeof structured.discoverySummary).toBe("object");
     expect(typeof structured.payoffSummary).toBe("object");
+
+    await killServer(proc);
+  }, 15000);
+
+  test("should handle tools/call for kb_briefing_generate", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "kb_briefing_generate",
+        arguments: {
+          taskText: "Generate a task-aware citation-backed briefing for MCP registration work.",
+        },
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result).toBeDefined();
+    expect(result.isError).toBeFalsy();
+
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content).toBeDefined();
+    expect(content.length).toBeGreaterThan(0);
+    expect(content[0]?.type).toBe("text");
+
+    const structured = result.structuredContent as Record<string, unknown>;
+    expect(structured).toBeDefined();
+    expect(["ready", "no_briefing"]).toContain(structured.briefingState as string);
+    expect([
+      "root_uninitialized",
+      "root_partial",
+      "vendored_only",
+      "root_active_thin",
+      "root_active_seeded",
+    ]).toContain(structured.activationState as string);
+    expect(typeof structured.activationReason).toBe("string");
+    expect(typeof structured.freshness).toBe("object");
+    expect(typeof structured.confidence).toBe("object");
+    expect(typeof structured.tldr).toBe("string");
+    expect(typeof structured.promptBlock).toBe("string");
+    expect(Array.isArray(structured.entities)).toBe(true);
+    expect(Array.isArray(structured.constraints)).toBe(true);
+    expect(Array.isArray(structured.regressionRisks)).toBe(true);
+    expect(Array.isArray(structured.missingEvidence)).toBe(true);
+    expect(Array.isArray(structured.citations)).toBe(true);
 
     await killServer(proc);
   }, 15000);
