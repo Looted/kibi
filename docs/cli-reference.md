@@ -167,7 +167,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` (default-off) for malformed typed facts
+- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing` (both default-off) for malformed typed facts and incomplete requirement/fact pairing
 - Reports violations with actionable suggestions
 
 **Flags:**
@@ -190,6 +190,9 @@ kibi check --rules must-priority-coverage,no-dangling-refs
 
 # Opt into strict fact migration checks
 kibi check --rules strict-fact-shape # Migration-oriented check
+
+# Audit strict requirement/fact pairing during migration
+kibi check --rules strict-req-fact-pairing
 ```
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.

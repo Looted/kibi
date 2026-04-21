@@ -391,6 +391,7 @@ export async function checkCommand(
       "deprecated-adr-no-successor",
       "domain-contradictions",
       "strict-fact-shape",
+      "strict-req-fact-pairing",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -429,6 +430,7 @@ export async function checkCommand(
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
       await runCheck("strict-fact-shape", checkStrictFactShape);
+      await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
@@ -855,6 +857,31 @@ async function checkStrictFactShape(
   const result = await prolog.query(
     `findall(violation(Rule, EntityId, Desc, Sugg, Src),
       checks:strict_fact_shape_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
+  }
+
+  return violations;
+}
+
+async function checkStrictReqFactPairing(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_req_fact_pairing_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
       Violations)`,
   );
 
