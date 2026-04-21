@@ -246,6 +246,47 @@ describe("MCP check aggregated path", () => {
     expect(result.content[0]?.text).toContain("REQ-PAIRING-001");
   });
 
+  test("should include domain-contradictions violations from aggregated checks", async () => {
+    const query = mock(async (goal: string) => {
+      if (goal.includes("check_all_json_with_options")) {
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify({
+              "domain-contradictions": [
+                {
+                  rule: "domain-contradictions",
+                  entityId: "REQ-DOMAIN-CLOSED-001/REQ-DOMAIN-OPEN-001",
+                  description:
+                    "Value conflict on session.closed.timeout_minutes: eq 30 vs eq 60",
+                  suggestion:
+                    "Supersede one requirement or align both to the same required property",
+                  source: "",
+                },
+              ],
+            }),
+          },
+        };
+      }
+
+      throw new Error(`Unexpected query: ${goal}`);
+    });
+
+    const prolog = { query } as unknown as PrologProcess;
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["domain-contradictions"],
+    });
+
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.violations[0]?.rule).toBe(
+      "domain-contradictions",
+    );
+    expect(result.content[0]?.text).toContain("domain-contradictions");
+    expect(result.content[0]?.text).toContain("REQ-DOMAIN-CLOSED-001");
+    expect(result.content[0]?.text).toContain("timeout_minutes");
+  });
+
   test("should keep strict-req-fact-pairing disabled by default when no rules are requested", async () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-pairing-default-"),

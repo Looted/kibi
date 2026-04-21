@@ -681,6 +681,9 @@ canonical_key: user.session.timeout_minutes.eq.30
         expect(fact.fact_kind).toBe("property_value");
         expect(fact.value_int).toBe(30);
         expect(fact.closed_world).toBe(true);
+        expect(fact.canonical_key).toBe(
+          "user.session.timeout_minutes.eq.30",
+        );
         expect(fact.valid_from).toMatch(/^2026-03-23T00:00:00/);
       },
       TEST_TIMEOUT_MS,
@@ -727,6 +730,7 @@ canonical_key: api.client.rate_limit_rps.eq.1.5
         expect(result).toHaveLength(1);
         const fact = result[0];
         expect(fact.value_number).toBe(1.5);
+        expect(fact.canonical_key).toBe("api.client.rate_limit_rps.eq.1.5");
         expect(fact.value_int).toBeUndefined();
       },
       TEST_TIMEOUT_MS,
@@ -772,6 +776,7 @@ canonical_key: user.type.allowed_value.eq.admin
         expect(result).toHaveLength(1);
         const fact = result[0];
         expect(fact.value_string).toBe("admin");
+        expect(fact.canonical_key).toBe("user.type.allowed_value.eq.admin");
         expect(fact.value_int).toBeUndefined();
       },
       TEST_TIMEOUT_MS,
