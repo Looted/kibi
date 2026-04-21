@@ -54,7 +54,7 @@ function renderToolsDoc(): string {
   }
   lines.push("");
   lines.push(
-    "Modeling note: Prefer query-first discovery; create `fact` entities before `req` entities and express semantics via `constrains` + `requires_property`.",
+    "Modeling note: Kibi has eight core entity types grouped into common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol). Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; use `flag` for runtime/config gates and `fact_kind: observation` or `meta` for bug/workaround notes.",
   );
   return lines.join("\n");
 }
@@ -154,14 +154,14 @@ export const PROMPTS = [
       "- `kb_check`: Validate KB integrity against configurable rules",
       "",
       "Core modeling principles:",
+      "- Kibi has eight entity types: common authoring (req, scenario, test, fact) and supporting/system (adr, flag, event, symbol).",
       "- Encode requirements as linked facts: `req --constrains--> fact` plus `req --requires_property--> fact`.",
-      "- Reuse canonical fact IDs across requirements; shared constrained facts make contradictions detectable.",
+      "- Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; observation and meta facts are non-blocking notes.",
       "- Use `kb_search` first for discovery, then `kb_query` for exact follow-up before any mutation.",
       "- Use `kb_upsert` and `kb_delete` only for intentional, traceable KB changes.",
       "- Run `kb_check` after meaningful mutations to catch integrity issues early.",
       "- Prefer explicit IDs and enum values to avoid invalid parameters.",
-      "- Assume every write can affect downstream traceability queries.",
-      "- Model requirements by first creating/reusing fact entities, then express req semantics with `constrains` + `requires_property` relationships (create-before-link).",
+      "- Model requirements by first creating/reusing fact entities (create-before-link).",
       "- flag gates runtime/config behavior; use `fact` with `fact_kind: observation` or `meta` for bug and workaround notes.",
     ].join("\n"),
   },
@@ -248,7 +248,7 @@ function registerDocResources(): DocResource[] {
     "4. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
     '5. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }` for targeted validation',
     "",
-    "Note: Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link). Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug and workaround notes.",
+    "Note: Kibi has eight core entity types. Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link). Only strict domain facts are contradiction-safe. Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug/workaround notes.",
     "",
     "## Find missing coverage",
     '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',
