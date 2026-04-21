@@ -1,9 +1,12 @@
 ---
+ - deployment
+ - github-actions
+ - release-management
 id: FACT-010
 title: Publishing workflow triggers on master branch push
 status: active
 created_at: 2026-02-25T15:50:00Z
-updated_at: 2026-02-25T15:50:00Z
+updated_at: 2026-04-21T00:00:00Z
 source: documentation/facts/FACT-010.md
 tags:
   - deployment
@@ -12,7 +15,7 @@ tags:
 fact_kind: observation
 ---
 
-The npm publishing workflow is configured to trigger automatically on pushes to the `master` branch:
+The npm publishing workflow is configured to trigger automatically on pushes to the `master` branch.
 
 Triggers:
 - `push` event to `master` branch
