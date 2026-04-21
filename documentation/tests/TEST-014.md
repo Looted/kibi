@@ -15,29 +15,6 @@ links:
   - ADR-014
   - FACT-034
 ---
- - release
- - automation
- - changesets
- - verification
- - REQ-020
- - ADR-014
- - FACT-034
-id: TEST-014
-title: Verify Changesets-based release automation and fallback policy
-status: passing
-created_at: 2026-03-11T12:20:00Z
-updated_at: 2026-04-21T00:00:00Z
-source: documentation/tests/TEST-014.md
-tags:
-  - release
-  - automation
-  - changesets
-  - verification
-links:
-  - REQ-020
-  - ADR-014
-  - FACT-034
----
 
 # Test: Release Automation and Fallback Verification
 
