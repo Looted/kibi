@@ -368,14 +368,19 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.cache.recordSatisfied(key, "guidance");
   }
 
+  // Apply budget enforcement before appending the completion reminder so the
+  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
+  const budgeted = selectedBlock ? enforceBudget(selectedBlock) : null;
+
   // Append completion reminder for risky classes when enabled
   const REMINDER_RISK_CLASSES: RiskClass[] = [
     "behavior_candidate",
     "traceability_candidate",
     "req_policy_candidate",
   ];
+  let finalBlock = budgeted;
   if (
-    selectedBlock &&
+    finalBlock &&
     context.completionReminder === true &&
     !context.maintenanceDegraded &&
     riskClass &&
@@ -383,12 +388,12 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     posture !== "root_uninitialized" &&
     posture !== "root_partial"
   ) {
-    selectedBlock = `${selectedBlock}\n- Run \`kb_check\` before completing this task.`;
+    finalBlock = `${finalBlock}\n- Run \`kb_check\` before completing this task.`;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)
-  return selectedBlock
-    ? `${SENTINEL}\n\n${enforceBudget(selectedBlock)}`
+  return finalBlock
+    ? `${SENTINEL}\n\n${finalBlock}`
     : SENTINEL;
 }
 
