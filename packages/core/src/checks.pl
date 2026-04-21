@@ -16,7 +16,8 @@
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
-    run_checks_json/0               % Entry point for JSON output
+    run_checks_json/0,              % Entry point for JSON output
+    violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
 
 :- use_module(library(http/json)).
