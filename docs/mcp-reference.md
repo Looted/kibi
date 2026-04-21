@@ -194,7 +194,7 @@ Confirmation of deletion, or an error describing blocked dependents.
 Run KB validation rules after mutations.
 
 **Parameters:**
-- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`). Note: `strict-fact-shape` is a migration check and is disabled by default. `domain-contradictions` applies only to strict-lane facts.
+- `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`). Note: `strict-fact-shape` and `strict-req-fact-pairing` are migration checks and are disabled by default. `domain-contradictions` applies only to strict-lane facts.
 
 **Returns:**
 Validation report with any violations found and suggested fixes.
