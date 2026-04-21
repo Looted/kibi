@@ -22,22 +22,10 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
   };
 
   describe("Terminology Consistency", () => {
-    const REQUIRED_TERMS = [
-      "strict fact",
-      "observation",
-      "meta",
-      "domain-contradictions",
-      "strict-fact-shape"
-    ];
-
-    test.each(DOC_FILES)("%s should contain key terminology", (file) => {
-      const content = getFileContent(file).toLowerCase();
-      // We don't necessarily require ALL terms in ALL files, but most should have them.
-      // For the sake of this test, let's ensure they at least don't use old contradictory terms.
-      REQUIRED_TERMS.forEach(term => {
-        // Checking for term presence is good, but context matters.
-        // For now, let's just ensure they are present where expected.
-      });
+    test.each(DOC_FILES)("%s should not use deprecated entity prefixes", (file) => {
+      const content = getFileContent(file);
+      expect(content).not.toMatch(/EVENT-\d+/);
+      expect(content).not.toMatch(/SYMBOL-\d+/);
     });
 
     test("Canonical prefixes must be used (EVT-XXX, SYM-XXX)", () => {
