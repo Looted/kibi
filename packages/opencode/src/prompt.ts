@@ -278,7 +278,7 @@ Before implementing or explaining code:
 4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.
 
 If you're adding long explanatory comments, consider routing that knowledge to:
-- \`FACT\` for domain invariants, properties, limits, cardinalities
+- \`FACT\` for strict domain facts (invariants, properties, limits, cardinalities); bug/workaround notes use \`fact_kind: observation\` or \`meta\`
 - \`ADR\` for technical decisions, tradeoffs, rationale
 - \`REQ\` for system behavior requirements`;
         }
@@ -401,14 +401,14 @@ function buildCommentSuggestionGuidance(
     case "fact":
       return `🎯 **Durable knowledge detected: FACT**
 
-Your recent code edit contains a comment that looks like a **domain invariant** (properties, limits, defaults, or cardinality constraints).
+Your recent code edit contains a comment that looks like a **strict domain fact** (invariants, properties, limits, defaults, or cardinality constraints).
 
-**Action**: Instead of inline comments, route this to a FACT entity:
-- Create \`documentation/facts/FACT-xxx.md\` with the invariant
+**Action**: Route to a FACT entity in the strict fact lane:
+- Create \`documentation/facts/FACT-xxx.md\` with the invariant (use \`constrains\` + \`requires_property\` for contradiction-safe reasoning)
+- Bug/workaround notes: use \`fact_kind: observation\` or \`meta\` instead — these are non-blocking and excluded from contradiction inference
 - Link it to relevant requirements
-- Reference the FACT in code with a comment
 
-This keeps domain truths centralized and searchable.`;
+This keeps domain truths centralized, searchable, and contradiction-safe.`;
     case "adr":
       return `🎯 **Durable knowledge detected: ADR**
 
