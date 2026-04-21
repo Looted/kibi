@@ -89,7 +89,7 @@ const TEST_CUES = [
 /**
  * Analyze a comment or prose block and suggest most appropriate entity type.
  */
-export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
+export function classifyKnowledge(text: string): KnowledgeSuggestion | null { // implements REQ-opencode-kibi-plugin-v1
   if (!text || text.trim().length < 50) {
     return null;
   }
@@ -116,7 +116,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
       type: "fact",
       confidence: factScore >= 3 ? "high" : "medium",
       reasoning:
-        'Contains domain invariant or property cues like "must be unique", "at most", or "default is"',
+        'Contains strict domain fact cues (invariants, properties, limits, cardinalities) for the strict fact lane',
     };
   }
 

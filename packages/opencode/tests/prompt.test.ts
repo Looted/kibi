@@ -552,12 +552,48 @@ describe("prompt", () => {
       "Should include FACT-specific guidance",
     );
     assert.ok(
-      result.includes("domain invariant"),
-      "Should mention domain invariants",
+      result.includes("domain fact"),
+      "Should mention domain fact",
     );
     assert.ok(
       result.includes("documentation/facts/FACT-xxx.md"),
       "Should suggest creating FACT entity",
+    );
+  });
+
+  test("FACT guidance mentions strict fact lane for domain invariants", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/models.py", kind: "code" }],
+      recentCommentSuggestion: {
+        filePath: "src/models.py",
+        suggestionType: "fact",
+        confidence: "high",
+        reasoning: "Contains domain invariants",
+        fingerprint: "abc123",
+        sourceKind: "docstring",
+      },
+    });
+    assert.ok(
+      result.includes("strict fact lane") || result.includes("strict domain fact"),
+      "FACT guidance should mention strict fact lane or strict domain fact",
+    );
+  });
+
+  test("FACT guidance mentions observation/meta for bug and workaround notes", () => {
+    const result = injectPrompt("hello", baseConfig, {
+      recentEdits: [{ path: "src/models.py", kind: "code" }],
+      recentCommentSuggestion: {
+        filePath: "src/models.py",
+        suggestionType: "fact",
+        confidence: "high",
+        reasoning: "Contains domain invariants",
+        fingerprint: "abc123",
+        sourceKind: "docstring",
+      },
+    });
+    assert.ok(
+      result.includes("observation") || result.includes("meta"),
+      "FACT guidance should mention observation or meta for bug/workaround notes",
     );
   });
 

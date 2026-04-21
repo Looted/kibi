@@ -88,9 +88,9 @@ When editing code files, the plugin analyzes long comments and docstrings for du
 
 - **Supported languages**: JavaScript/TypeScript (`//`, `/* */`, `/** */`) and Python (`#` blocks, true docstrings)
 - **Smart filtering**: Only analyzes comments above `guidance.commentDetection.minLines` threshold
-- **Classification**: Automatically categorizes as FACT (invariants/limits), ADR (decisions/tradeoffs), REQ (behavior), SCEN (flows), or TEST (verification)
+- **Classification**: Automatically categorizes as FACT (strict domain facts: invariants/limits/cardinalities), ADR (decisions/tradeoffs), REQ (behavior), SCEN (flows), or TEST (verification)
 - **Specific routing guidance**: Injects targeted prompts based on classification:
-  - FACT: "This looks like a domain invariant; route to a FACT via Kibi"
+  - FACT: "This looks like a strict domain fact (invariant/property/limit); route to a FACT via Kibi. Bug/workaround notes use `fact_kind: observation` or `meta`."
   - ADR: "This looks like decision rationale; route to an ADR"
   - REQ: "This looks like behavior intent; route to a REQ"
 - **Deduplication**: Tracks seen comments by fingerprint to avoid repeated guidance
