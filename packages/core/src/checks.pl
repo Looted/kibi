@@ -689,8 +689,22 @@ violation_text(Val, Text) :-
     term_string(Val, Text).
 
 violation_id_text(Val, Text) :-
-    normalize_term_atom(Val, Atom),
-    atom_string(Atom, Text).
+    nonvar(Val),
+    Val =.. ['^^', Inner, _Type],
+    !,
+    violation_id_text(Inner, Text).
+violation_id_text(literal(type(_, Val)), Text) :-
+    !,
+    violation_id_text(Val, Text).
+violation_id_text(Val, Val) :-
+    string(Val),
+    !.
+violation_id_text(Val, Text) :-
+    atom(Val),
+    !,
+    atom_string(Val, Text).
+violation_id_text(Val, Text) :-
+    term_string(Val, Text).
 
 violation_source(EntityId, Type, Source) :-
     (   kb_entity(EntityId, Type, Props),

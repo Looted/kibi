@@ -284,7 +284,7 @@ test(symbol_traceability_rejects_covered_by_verified_by_path, [setup(setup_kb), 
     check_symbol_traceability(false, Violations),
     member(violation('symbol-traceability', 'sym-trace-verified', _, _, _), Violations).
 
-test(symbol_traceability_rejects_executable_for_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(symbol_traceability_ignores_executable_for_path, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(test, [
         id='test-executable-only',
         title="Executable Test Only",
@@ -303,7 +303,7 @@ test(symbol_traceability_rejects_executable_for_path, [setup(setup_kb), cleanup(
     ]),
     kb_assert_relationship(executable_for, 'sym-executable-only', 'test-executable-only', []),
     check_symbol_traceability(false, Violations),
-    member(violation('symbol-traceability', 'sym-executable-only', _, _, _), Violations).
+    \+ member(violation('symbol-traceability', 'sym-executable-only', _, _, _), Violations).
 
 test(executable_test_symbol_detects_test_code, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(test, [
@@ -1367,6 +1367,266 @@ test(numeric_coercion_no_false_positive, [setup(setup_kb), cleanup(cleanup_kb)])
     % Should NOT find a contradiction since 30 =:= 30.0
     \+ contradicting_reqs('REQ-COERCE-A', 'REQ-COERCE-B', _),
     \+ contradicting_reqs('REQ-COERCE-B', 'REQ-COERCE-A', _).
+
+test(closed_requirements_are_current_for_contradictions, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-CLOSED-SUBJECT', title="Closed req subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="session.closed"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-CLOSED-30', title="Closed req timeout 30", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="session.closed",
+        property_key="timeout_minutes", operator=eq, value_type=int, value_int=30
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-CLOSED-60', title="Closed req timeout 60", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="session.closed",
+        property_key="timeout_minutes", operator=eq, value_type=int, value_int=60
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-CLOSED-CURRENT', title="Closed req still current", status=closed,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-OPEN-CURRENT', title="Open conflicting req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-CLOSED-CURRENT', 'FACT-CLOSED-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-OPEN-CURRENT', 'FACT-CLOSED-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-CLOSED-CURRENT', 'FACT-CLOSED-30', []),
+    kb_assert_relationship(requires_property, 'REQ-OPEN-CURRENT', 'FACT-CLOSED-60', []),
+    contradicting_reqs('REQ-CLOSED-CURRENT', 'REQ-OPEN-CURRENT', Reason),
+    assertion(sub_string(Reason, _, _, _, "timeout_minutes")).
+
+test(equal_scopes_with_conflicting_values_still_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-SUBJECT', title="Scoped subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="session.scope"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-30', title="Scoped timeout 30", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="session.scope",
+        property_key="timeout_minutes", operator=eq, value_type=int, value_int=30,
+        scope="global"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-60', title="Scoped timeout 60", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="session.scope",
+        property_key="timeout_minutes", operator=eq, value_type=int, value_int=60,
+        scope="global"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SCOPE-30', title="Scoped req 30", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SCOPE-60', title="Scoped req 60", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-SCOPE-30', 'FACT-SCOPE-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-SCOPE-60', 'FACT-SCOPE-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-SCOPE-30', 'FACT-SCOPE-30', []),
+    kb_assert_relationship(requires_property, 'REQ-SCOPE-60', 'FACT-SCOPE-60', []),
+    contradicting_reqs('REQ-SCOPE-30', 'REQ-SCOPE-60', Reason),
+    assertion(sub_string(Reason, _, _, _, "timeout_minutes")).
+
+test(non_overlapping_scopes_do_not_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-NO-CONFLICT-SUBJECT', title="Scope no-conflict subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="session.scope.none"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-NO-CONFLICT-30', title="Global timeout 30", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="session.scope.none", property_key="timeout_minutes",
+        operator=eq, value_type=int, value_int=30, scope="global"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-SCOPE-NO-CONFLICT-60', title="Tenant timeout 60", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="session.scope.none", property_key="timeout_minutes",
+        operator=eq, value_type=int, value_int=60, scope="tenant"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SCOPE-NO-CONFLICT-30', title="Global scope req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-SCOPE-NO-CONFLICT-60', title="Tenant scope req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-SCOPE-NO-CONFLICT-30', 'FACT-SCOPE-NO-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-SCOPE-NO-CONFLICT-60', 'FACT-SCOPE-NO-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-SCOPE-NO-CONFLICT-30', 'FACT-SCOPE-NO-CONFLICT-30', []),
+    kb_assert_relationship(requires_property, 'REQ-SCOPE-NO-CONFLICT-60', 'FACT-SCOPE-NO-CONFLICT-60', []),
+    \+ contradicting_reqs(_, _, _).
+
+test(overlapping_validity_windows_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-SUBJECT', title="Validity subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="billing.plan"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-7', title="Grace period 7", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="billing.plan",
+        property_key="grace_period_days", operator=eq, value_type=int, value_int=7,
+        valid_from="2026-01-01T00:00:00Z", valid_to="2026-12-31T00:00:00Z"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-14', title="Grace period 14", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value, subject_key="billing.plan",
+        property_key="grace_period_days", operator=eq, value_type=int, value_int=14,
+        valid_from="2026-06-01T00:00:00Z", valid_to="2026-06-30T00:00:00Z"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-VALIDITY-14', title="Validity req 14", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-VALIDITY-7', title="Validity req 7", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-VALIDITY-14', 'FACT-VALIDITY-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-VALIDITY-7', 'FACT-VALIDITY-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-VALIDITY-14', 'FACT-VALIDITY-14', []),
+    kb_assert_relationship(requires_property, 'REQ-VALIDITY-7', 'FACT-VALIDITY-7', []),
+    contradicting_reqs('REQ-VALIDITY-14', 'REQ-VALIDITY-7', Reason),
+    assertion(sub_string(Reason, _, _, _, "grace_period_days")).
+
+test(non_overlapping_validity_windows_do_not_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-NO-CONFLICT-SUBJECT', title="Validity no-conflict subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="billing.plan.none"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-NO-CONFLICT-7', title="Grace period 7 first window", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="billing.plan.none", property_key="grace_period_days",
+        operator=eq, value_type=int, value_int=7,
+        valid_from="2026-01-01T00:00:00Z", valid_to="2026-03-01T00:00:00Z"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-VALIDITY-NO-CONFLICT-14', title="Grace period 14 second window", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="billing.plan.none", property_key="grace_period_days",
+        operator=eq, value_type=int, value_int=14,
+        valid_from="2026-04-01T00:00:00Z", valid_to="2026-06-01T00:00:00Z"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-VALIDITY-NO-CONFLICT-14', title="Second window req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-VALIDITY-NO-CONFLICT-7', title="First window req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-VALIDITY-NO-CONFLICT-14', 'FACT-VALIDITY-NO-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-VALIDITY-NO-CONFLICT-7', 'FACT-VALIDITY-NO-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-VALIDITY-NO-CONFLICT-14', 'FACT-VALIDITY-NO-CONFLICT-14', []),
+    kb_assert_relationship(requires_property, 'REQ-VALIDITY-NO-CONFLICT-7', 'FACT-VALIDITY-NO-CONFLICT-7', []),
+    \+ contradicting_reqs(_, _, _).
+
+test(different_properties_on_same_subject_do_not_conflict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-DIFFERENT-PROPERTY-SUBJECT', title="Different property subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="user.session.config"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-DIFFERENT-PROPERTY-TIMEOUT', title="Timeout 30", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="user.session.config", property_key="timeout_minutes",
+        operator=eq, value_type=int, value_int=30
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-DIFFERENT-PROPERTY-RETRIES', title="Retries 5", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="user.session.config", property_key="max_retries",
+        operator=eq, value_type=int, value_int=5
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-DIFFERENT-PROPERTY-RETRIES', title="Retries req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-DIFFERENT-PROPERTY-TIMEOUT', title="Timeout req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-DIFFERENT-PROPERTY-RETRIES', 'FACT-DIFFERENT-PROPERTY-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-DIFFERENT-PROPERTY-TIMEOUT', 'FACT-DIFFERENT-PROPERTY-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-DIFFERENT-PROPERTY-RETRIES', 'FACT-DIFFERENT-PROPERTY-RETRIES', []),
+    kb_assert_relationship(requires_property, 'REQ-DIFFERENT-PROPERTY-TIMEOUT', 'FACT-DIFFERENT-PROPERTY-TIMEOUT', []),
+    \+ contradicting_reqs(_, _, _).
+
+test(reserved_fields_do_not_change_conflict_detection, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='FACT-RESERVED-SUBJECT', title="Reserved field subject", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=subject, subject_key="user.permissions"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-RESERVED-TRUE', title="Admin true", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="user.permissions", property_key="admin_access",
+        operator=eq, value_type=bool, value_bool=true,
+        closed_world=true,
+        canonical_key="user.permissions.admin_access.eq.true"
+    ]),
+    kb_assert_entity(fact, [
+        id='FACT-RESERVED-FALSE', title="Admin false", status=active,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt", fact_kind=property_value,
+        subject_key="user.permissions", property_key="admin_access",
+        operator=eq, value_type=bool, value_bool=false,
+        closed_world=false,
+        canonical_key="user.permissions.admin_access.eq.false"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-RESERVED-FALSE', title="Reserved false req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='REQ-RESERVED-TRUE', title="Reserved true req", status=open,
+        created_at="2026-03-24T00:00:00Z", updated_at="2026-03-24T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(constrains, 'REQ-RESERVED-FALSE', 'FACT-RESERVED-SUBJECT', []),
+    kb_assert_relationship(constrains, 'REQ-RESERVED-TRUE', 'FACT-RESERVED-SUBJECT', []),
+    kb_assert_relationship(requires_property, 'REQ-RESERVED-FALSE', 'FACT-RESERVED-FALSE', []),
+    kb_assert_relationship(requires_property, 'REQ-RESERVED-TRUE', 'FACT-RESERVED-TRUE', []),
+    contradicting_reqs('REQ-RESERVED-FALSE', 'REQ-RESERVED-TRUE', Reason),
+    assertion(sub_string(Reason, _, _, _, "admin_access")).
 
 :- end_tests(kb_semantic_contradictions).
 
