@@ -4094,6 +4094,126 @@ import datetime
       );
     });
 
+    it("requirement KB-doc edit schedules required-fields, no-dangling-refs, strict-req-fact-pairing", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      const reqDir = path.join(tmpDir, "documentation", "requirements");
+      fs.mkdirSync(reqDir, { recursive: true });
+      const reqFile = path.join(reqDir, "REQ-001.md");
+      fs.writeFileSync(
+        reqFile,
+        `---\nid: REQ-001\ntitle: Test Requirement\n---\nTest content\n`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: reqFile },
+        },
+      });
+
+      // Requirement KB-doc should schedule structural+req-fact-pairing rules
+      const reqCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.includes("strict-req-fact-pairing"),
+      );
+      assert.ok(
+        reqCalls.length >= 1,
+        `Expected at least 1 scheduleSync with strict-req-fact-pairing for requirement doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.deepEqual(
+        reqCalls[0].checkRules,
+        ["required-fields", "no-dangling-refs", "strict-req-fact-pairing"],
+        `Expected exact rules for requirement doc, got ${JSON.stringify(reqCalls[0].checkRules)}`,
+      );
+    });
+
+    it("non-requirement KB-doc edits do NOT include strict-req-fact-pairing", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      setupKbStructure(tmpDir);
+
+      // Create a scenario file (not a requirement)
+      const scenDir = path.join(tmpDir, "documentation", "scenarios");
+      fs.mkdirSync(scenDir, { recursive: true });
+      const scenFile = path.join(scenDir, "SCEN-001.md");
+      fs.writeFileSync(
+        scenFile,
+        `---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n`,
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+            prompt: { enabled: true, hookMode: "auto" },
+            guidance: {
+              targetedChecks: { enabled: true },
+              smartEnforcement: {
+                completionReminder: false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const { hooks, scheduleCalls } =
+        await setupWithCapturingScheduler(tmpDir);
+
+      assert.ok(hooks.event, "Should have event hook");
+      const eventHook = hooks.event as any;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: scenFile },
+        },
+      });
+
+      // Scenario doc should only have structural pair, NOT strict-req-fact-pairing
+      const scenCalls = scheduleCalls.filter(
+        (c) => c.checkRules && c.checkRules.length > 0,
+      );
+      assert.ok(
+        scenCalls.length >= 1,
+        `Expected at least 1 scheduleSync for scenario doc, got ${JSON.stringify(scheduleCalls)}`,
+      );
+      assert.ok(
+        !scenCalls[0].checkRules!.includes("strict-req-fact-pairing"),
+        `Scenario doc should NOT include strict-req-fact-pairing, got ${JSON.stringify(scenCalls[0].checkRules)}`,
+      );
+    });
+
     it("targeted checks are skipped when targetedChecks.enabled is false", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
