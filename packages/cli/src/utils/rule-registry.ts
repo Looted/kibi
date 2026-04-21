@@ -112,6 +112,13 @@ export const RULES: readonly RuleDefinition[] = [
     defaultEnabled: false,
     category: "integrity",
   },
+  {
+    name: "strict-req-fact-pairing",
+    description:
+      "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
+    defaultEnabled: false,
+    category: "integrity",
+  },
 ] as const;
 
 /**

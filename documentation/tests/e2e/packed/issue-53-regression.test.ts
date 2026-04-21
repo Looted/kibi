@@ -246,6 +246,7 @@ if (RUN_NODE_TEST_SUITE) {
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
                 "kb_autopilot_generate",
+                "kb_briefing_generate",
                 "kb_check",
                 "kb_coverage",
                 "kb_delete",

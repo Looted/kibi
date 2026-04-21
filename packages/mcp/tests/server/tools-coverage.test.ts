@@ -20,6 +20,7 @@ import type { SearchArgs } from "../../src/tools/search.js";
 import type { StatusArgs } from "../../src/tools/status.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
+import type { BriefingGenerateArgs } from "../../src/tools/briefing-generate.js";
 
 type MockProlog = { kind: "mock-prolog" };
 type SessionModule = typeof import("../../src/server/session.js");
@@ -47,6 +48,7 @@ const TOOL_NAMES = [
   "kb_delete",
   "kb_check",
   "kb_autopilot_generate",
+  "kb_briefing_generate",
 ] as const;
 
 function createDeferred<T>() {
@@ -269,6 +271,12 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbBriefingGenerate: ToolsRuntime<MockProlog>["handleKbBriefingGenerate"] = mock(
+    async (_prolog: MockProlog, args: BriefingGenerateArgs): Promise<unknown> => ({
+      tool: "kb_briefing_generate",
+      args,
+    }),
+  );
 
   const runtime = {
     diagnosticModeEnabled,
@@ -291,6 +299,7 @@ function createRuntime() {
     handleKbStatus,
     handleKbUpsert,
     handleKbAutopilotGenerate,
+    handleKbBriefingGenerate,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -317,6 +326,7 @@ function createRuntime() {
       handleKbStatus,
       handleKbUpsert,
       handleKbAutopilotGenerate,
+      handleKbBriefingGenerate,
     },
   };
 }
@@ -667,6 +677,14 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbCheck).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_check"),
+    );
+    expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_autopilot_generate"),
+    );
+    expect(spies.handleKbBriefingGenerate).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_briefing_generate"),
     );
   });
 

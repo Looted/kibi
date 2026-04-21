@@ -15,7 +15,9 @@
     check_deprecated_adrs/1,        % Returns list of deprecated ADR violations
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
-    run_checks_json/0               % Entry point for JSON output
+    check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
+    run_checks_json/0,              % Entry point for JSON output
+    violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
 
 :- use_module(library(http/json)).
@@ -47,6 +49,7 @@ check_all(ViolationsDict) :-
     check_deprecated_adrs(DeprecatedADRs),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
+    check_strict_req_fact_pairing(StrictReqFactPairing),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -56,7 +59,8 @@ check_all(ViolationsDict) :-
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
         domain_contradictions: Contradictions,
-        strict_fact_shape: StrictFactShape
+        strict_fact_shape: StrictFactShape,
+        strict_req_fact_pairing: StrictReqFactPairing
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -445,6 +449,138 @@ check_domain_contradictions(Violations) :-
         Violations
     ).
 
+%% check_strict_req_fact_pairing(-Violations)
+% Finds current requirements attempting strict-lane modeling with incomplete
+% subject/property pairing or wrong-lane fact targets.
+check_strict_req_fact_pairing(Violations) :-
+    findall(
+        Violation,
+        strict_req_fact_pairing_violation(Violation),
+        Violations0
+    ),
+    sort(Violations0, Violations).
+
+strict_req_fact_pairing_violation(violation(
+    'strict-req-fact-pairing',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    strict_req_fact_pairing_issue(ReqId, Description, Suggestion),
+    violation_source(ReqId, req, Source).
+
+strict_req_fact_pairing_issue(
+    ReqId,
+    Description,
+    "Add a property_value fact via requires_property for the same subject_key"
+) :-
+    kb:current_req(ReqId),
+    kb_relationship(constrains, ReqId, SubjectFactId),
+    strict_req_fact_pairing_fact_kind(SubjectFactId, subject),
+    kb:fact_subject_key(SubjectFactId, SubjectKey),
+    \+ kb:effective_req_property_fact(
+        ReqId,
+        SubjectKey,
+        _PropertyFactId,
+        _PropertyKey,
+        _Operator,
+        _ValueType,
+        _Value,
+        _Unit,
+        _Scope,
+        _Polarity,
+        _ValidFrom,
+        _ValidTo
+    ),
+    format(
+        string(Description),
+        "Requirement constrains ~w (~w) but has no matching strict requires_property fact",
+        [SubjectFactId, SubjectKey]
+    ).
+
+strict_req_fact_pairing_issue(
+    ReqId,
+    Description,
+    "Add a subject fact via constrains for the same subject_key or remove the mismatched requires_property link"
+) :-
+    kb:current_req(ReqId),
+    kb_relationship(requires_property, ReqId, PropertyFactId),
+    strict_req_fact_pairing_fact_kind(PropertyFactId, property_value),
+    kb:fact_property_tuple(
+        PropertyFactId,
+        SubjectKey,
+        _PropertyKey,
+        _Operator,
+        _ValueType,
+        _Value,
+        _Unit,
+        _Scope,
+        _Polarity
+    ),
+    \+ kb:effective_req_property_fact(
+        ReqId,
+        SubjectKey,
+        PropertyFactId,
+        _MatchedPropertyKey,
+        _MatchedOperator,
+        _MatchedValueType,
+        _MatchedValue,
+        _MatchedUnit,
+        _MatchedScope,
+        _MatchedPolarity,
+        _MatchedValidFrom,
+        _MatchedValidTo
+    ),
+    format(
+        string(Description),
+        "Requirement requires_property ~w (~w) but has no matching strict subject fact via constrains",
+        [PropertyFactId, SubjectKey]
+    ).
+
+strict_req_fact_pairing_issue(
+    ReqId,
+    Description,
+    "Use a subject fact with constrains for contradiction-safe semantics; keep non-subject facts out of strict pairing"
+) :-
+    kb:current_req(ReqId),
+    kb_relationship(constrains, ReqId, FactId),
+    strict_req_fact_pairing_fact_kind(FactId, Kind),
+    Kind \= subject,
+    strict_req_fact_pairing_kind_label(Kind, KindLabel),
+    format(
+        string(Description),
+        "Requirement links ~w via constrains using ~w; contradiction-safe constrains links must target subject facts",
+        [FactId, KindLabel]
+    ).
+
+strict_req_fact_pairing_issue(
+    ReqId,
+    Description,
+    "Use a property_value fact with requires_property for contradiction-safe semantics; keep non-property facts out of strict pairing"
+) :-
+    kb:current_req(ReqId),
+    kb_relationship(requires_property, ReqId, FactId),
+    strict_req_fact_pairing_fact_kind(FactId, Kind),
+    Kind \= property_value,
+    strict_req_fact_pairing_kind_label(Kind, KindLabel),
+    format(
+        string(Description),
+        "Requirement links ~w via requires_property using ~w; contradiction-safe requires_property links must target property_value facts",
+        [FactId, KindLabel]
+    ).
+
+strict_req_fact_pairing_fact_kind(FactId, Kind) :-
+    kb_entity(FactId, fact, Props),
+    (   memberchk(fact_kind=RawKind, Props)
+    ->  normalize_term_atom(RawKind, Kind)
+    ;   Kind = legacy
+    ).
+
+strict_req_fact_pairing_kind_label(legacy, "a legacy fact without fact_kind").
+strict_req_fact_pairing_kind_label(Kind, Label) :-
+    format(string(Label), "a fact_kind=~w fact", [Kind]).
+
 %% run_checks_json
 % Entry point for JSON output. Prints all violations as JSON to stdout.
 run_checks_json :-
@@ -492,6 +628,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_deprecated_adrs(DeprecatedADRs),
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
+    check_strict_req_fact_pairing(StrictReqFactPairing),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -501,7 +638,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         required_fields: RequiredFields,
         deprecated_adr_no_successor: DeprecatedADRs,
         domain_contradictions: Contradictions,
-        strict_fact_shape: StrictFactShape
+        strict_fact_shape: StrictFactShape,
+        strict_req_fact_pairing: StrictReqFactPairing
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)
@@ -552,8 +690,22 @@ violation_text(Val, Text) :-
     term_string(Val, Text).
 
 violation_id_text(Val, Text) :-
-    normalize_term_atom(Val, Atom),
-    atom_string(Atom, Text).
+    nonvar(Val),
+    Val =.. ['^^', Inner, _Type],
+    !,
+    violation_id_text(Inner, Text).
+violation_id_text(literal(type(_, Val)), Text) :-
+    !,
+    violation_id_text(Val, Text).
+violation_id_text(Val, Val) :-
+    string(Val),
+    !.
+violation_id_text(Val, Text) :-
+    atom(Val),
+    !,
+    atom_string(Val, Text).
+violation_id_text(Val, Text) :-
+    term_string(Val, Text).
 
 violation_source(EntityId, Type, Source) :-
     (   kb_entity(EntityId, Type, Props),

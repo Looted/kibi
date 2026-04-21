@@ -1292,6 +1292,87 @@ Legacy prose fact without strict shape
     TEST_TIMEOUT_MS,
   );
 
+  test(
+    "should detect requires_property facts without matching strict subject linkage",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-PAIR-SUBJECT-CLI-001.md"),
+        `---
+id: FACT-PAIR-SUBJECT-CLI-001
+title: CLI Pairing Subject
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-PAIR-SUBJECT-CLI-001.md
+fact_kind: subject
+subject_key: account.session
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(factDir, "FACT-PAIR-PROP-CLI-001.md"),
+        `---
+id: FACT-PAIR-PROP-CLI-001
+title: CLI Pairing Property
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-PAIR-PROP-CLI-001.md
+fact_kind: property_value
+subject_key: billing.account
+property_key: max_sessions
+operator: eq
+value_type: int
+value_int: 1
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-PAIRING-CLI-001.md"),
+        `---
+id: REQ-PAIRING-CLI-001
+title: CLI strict pairing mismatch
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-PAIRING-CLI-001.md
+links:
+  - type: constrains
+    target: FACT-PAIR-SUBJECT-CLI-001
+  - type: requires_property
+    target: FACT-PAIR-PROP-CLI-001
+---
+
+# CLI strict pairing mismatch
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-req-fact-pairing"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      expect(status).toBe(1);
+      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("REQ-PAIRING-CLI-001");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
   // === Staged E2E Traceability Matrix ===
   // Each test stages source + manifest + docs in one commit without prior kibi sync.
   // The staged pipeline must resolve traceability end-to-end.

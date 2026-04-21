@@ -224,7 +224,7 @@ test("check.failed for symbol-traceability produces zero raw console.error", asy
   const clock = createFakeClock();
   const errorSpy: string[] = [];
   const origError = console.error;
-  (console as any).error = (...args: unknown[]) => {
+  console.error = (...args: unknown[]) => {
     errorSpy.push(args.map(String).join(" "));
   };
 
@@ -266,7 +266,7 @@ test("check.failed for multi-rule payload produces zero raw console.error", asyn
   const clock = createFakeClock();
   const errorSpy: string[] = [];
   const origError = console.error;
-  (console as any).error = (...args: unknown[]) => {
+  console.error = (...args: unknown[]) => {
     errorSpy.push(args.map(String).join(" "));
   };
 
@@ -303,11 +303,107 @@ test("check.failed for multi-rule payload produces zero raw console.error", asyn
   }
 });
 
+test("smart-enforcement sync.failed produces zero raw console.error", async () => {
+  const clock = createFakeClock();
+  const errorSpy: string[] = [];
+  const origError = console.error;
+  console.error = (...args: unknown[]) => {
+    errorSpy.push(args.map(String).join(" "));
+  };
+
+  try {
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => ({ exitCode: 1 }),
+    });
+
+    scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts");
+    clock.advance(100);
+    await flushAsync();
+
+    assert.equal(
+      errorSpy.length,
+      0,
+      `Advisory smart-enforcement sync.failed must not call console.error, got: ${JSON.stringify(errorSpy)}`,
+    );
+  } finally {
+    console.error = origError;
+  }
+});
+
+test("smart-enforcement trailing sync.failed produces zero raw console.error", async () => {
+  const clock = createFakeClock();
+  const errorSpy: string[] = [];
+  const origError = console.error;
+  console.error = (...args: unknown[]) => {
+    errorSpy.push(args.map(String).join(" "));
+  };
+
+  let firstResolver: () => void = () => {};
+  const firstDone = new Promise<void>((resolve) => {
+    firstResolver = () => resolve();
+  });
+  let secondStartedResolver: () => void = () => {};
+  const secondStarted = new Promise<void>((resolve) => {
+    secondStartedResolver = () => resolve();
+  });
+  let runs = 0;
+
+  try {
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => {
+        runs += 1;
+        if (runs === 1) {
+          await firstDone;
+        } else {
+          secondStartedResolver();
+        }
+        return { exitCode: 1 };
+      },
+    });
+
+    scheduler.scheduleSync("smart-enforcement.kb-doc", "documentation/facts/FACT-001.md");
+    clock.advance(100);
+    await flushAsync();
+
+    scheduler.scheduleSync("smart-enforcement.kb-doc", "documentation/facts/FACT-002.md");
+    clock.advance(100);
+    await flushAsync();
+
+    firstResolver();
+    await secondStarted;
+    await flushAsync();
+
+    assert.equal(
+      errorSpy.length,
+      0,
+      `Advisory smart-enforcement trailing sync.failed must not call console.error, got: ${JSON.stringify(errorSpy)}`,
+    );
+  } finally {
+    console.error = origError;
+  }
+});
+
 test("operational sync.failed still produces console.error (control)", async () => {
   const clock = createFakeClock();
   const errorSpy: string[] = [];
   const origError = console.error;
-  (console as any).error = (...args: unknown[]) => {
+  console.error = (...args: unknown[]) => {
     errorSpy.push(args.map(String).join(" "));
   };
 

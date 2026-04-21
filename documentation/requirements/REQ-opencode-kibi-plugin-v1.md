@@ -3,7 +3,7 @@ id: REQ-opencode-kibi-plugin-v1
 title: "OpenCode Kibi Plugin v1: Prompt Guidance, Debounced Sync, Non-blocking UX"
 status: open
 created_at: 2026-03-13T00:00:00Z
-updated_at: 2026-03-22T12:30:00Z
+updated_at: 2026-04-20T00:00:00Z
 source: packages/opencode/
 priority: must
 owner: opencode-team
@@ -43,5 +43,6 @@ The OpenCode Kibi Plugin v1 must:
 7. Detect and warn on invalid Kibi authoring patterns, such as embedded scenarios/tests in requirements.
 8. Run targeted validation checks after relevant KB-document edits as a background behavior (e.g., `kb_check` with specific rules like `must-priority-coverage,no-dangling-refs`).
 9. Detect uninitialized or weakly bootstrapped repos and nudge toward `/init-kibi` slash command, triggering the Autopilot MCP workflow (`kb_autopilot_generate`) to assist the agent in initial entity mapping, while escalating to the user/operator if further environment setup is needed.
+10. When a session starts or authoritative risky work needs a focused Kibi briefing, surface `/brief-kibi` as a sanctioned slash command that invokes the public MCP briefing workflow (`kb_briefing_generate`) without replacing `/init-kibi` bootstrap guidance.
  
 All plugin code symbols must reference this requirement (`REQ-opencode-kibi-plugin-v1`) to satisfy staged traceability. The implementation must not begin until this requirement is present in the KB.

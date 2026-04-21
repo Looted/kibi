@@ -415,10 +415,11 @@ const BASE_TOOLS = [
               "deprecated-adr-no-successor",
               "domain-contradictions",
               "strict-fact-shape",
+              "strict-req-fact-pairing",
             ],
           },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing. If omitted, server runs all.",
         },
       },
     },
@@ -460,6 +461,33 @@ const BASE_TOOLS = [
           },
           description:
             "Optional filter to limit candidate generation to specific entity types.",
+        },
+      },
+    },
+  },
+  {
+    name: "kb_briefing_generate",
+    description:
+      "Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs. No mutation side effects.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        taskText: {
+          type: "string",
+          description:
+            "Optional task description used to rank relevant cited entities for the briefing.",
+        },
+        sourceFiles: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional source-file paths used to gather cited entities for the briefing.",
+        },
+        seedIds: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional seed entity IDs used to anchor the briefing graph expansion.",
         },
       },
     },

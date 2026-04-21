@@ -3,7 +3,7 @@ id: TEST-opencode-kibi-plugin-v1
 title: OpenCode Kibi Plugin v1 Automated Verification
 status: active
 created_at: 2026-03-13T00:00:00Z
-updated_at: 2026-03-22T00:00:00Z
+updated_at: 2026-04-20T00:00:00Z
 priority: must
 tags:
   - opencode
@@ -28,6 +28,7 @@ Automated verification for the OpenCode Kibi Plugin v1 requirement includes:
 - Integration tests for targeted background validation checks after KB-document edits (via MCP `kb_check`).
 - Tests for loud warning behavior when `.kb/**` files are edited, directing agents to MCP tools.
 - Tests for bootstrap/health detection and nudges toward `/init-kibi` slash command with operator escalation for further setup.
+- Regression tests for start-task briefing guidance, ensuring `/brief-kibi` and `kb_briefing_generate` appear only on the sanctioned MCP-facing surface.
 - **Packed package loader-safety test** verifying that root exports are OpenCode-loader compatible (only plugin function, no helper function exports).
 - **Tarball install + plugin invocation E2E test** (`documentation/tests/e2e/packed/opencode-install.test.ts`): packs `kibi-opencode`, installs the tarball into an isolated npm prefix, dynamically imports `dist/index.js`, invokes the plugin default export with a mock `PluginInput`, and asserts a valid hooks object is returned without throwing. Also verifies installed version matches source and all subpath exports are accessible.
 JQ|
