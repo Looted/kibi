@@ -394,12 +394,12 @@ tags:
 **Example:**
 ```yaml
 ---
-EVT-001
-EVT-001
+id: EVT-001
+title: Sample event EVT-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-EVT-001
+source: https://example.com/fixtures/events/EVT-001
 tags:
   - domain
 ---
@@ -425,12 +425,12 @@ tags:
 **Example:**
 ```yaml
 ---
-SYM-001
-SYM-001
+id: SYM-001
+title: Sample symbol SYM-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-SYM-001
+source: https://example.com/fixtures/symbols/SYM-001
 tags:
   - code
 ---
