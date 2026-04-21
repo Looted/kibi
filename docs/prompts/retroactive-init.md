@@ -145,9 +145,9 @@ Follow this tightened bootstrap sequencing:
    ```
    This prevents duplicate entity creation in partially-bootstrapped repos.
 
-3. **Create shared facts first** - Extract atomic, contradiction-safe domain facts and create fact entities. Facts represent invariants like "User must have unique email" or "Session expires after 30 minutes". Use `constrains` and `requires_property` relationships to express how requirements interact with facts.
+3. **Create shared facts first** - Extract atomic, contradiction-safe domain facts and create fact entities. Facts represent invariants like "User must have unique email" or "Session expires after 30 minutes". Use `constrains` and `requires_property` relationships to express how requirements interact with facts. **Strict facts** (subject, property_value) drive contradiction checks.
    - Use `fact_kind: subject` + `fact_kind: property_value` for rules that should block contradictions.
-   - Use `observation` or `meta` for runtime evidence, historical notes, and governance commentary that should not block contradictions.
+   - Use `observation` or `meta` for runtime evidence, historical notes, and governance commentary that should not block contradictions (**non-blocking lane**).
 
 4. **Create req/scenario/test/symbol entities in small batches** - Process 5-10 entities at a time:
    - Create requirements first with fact relationships
@@ -238,4 +238,4 @@ Then propose the candidate fact entities you intend to create, followed by one s
 
 **Do NOT create a `flag` for bugs or workarounds without an actual gate:** The `flag` entity is for runtime/config gates only (feature flags, kill-switches, deferred capabilities). Never create a flag entity just to document a bug or workaround.
 
-**Use `fact` with observation/meta for bug/workaround notes:** When documenting bugs, incidents, or workarounds, create a `fact` entity with `fact_kind: observation` or `meta`. This keeps non-blocking evidence separate from contradiction-sensitive facts.
+**Use `fact` with observation/meta for bug/workaround notes:** When documenting bugs, incidents, or workarounds, create a `fact` entity with `fact_kind: observation` or `meta`. This keeps non-blocking evidence separate from contradiction-sensitive **strict facts**. `domain-contradictions` check applies only to strict lane. `strict-fact-shape` is a default-off migration check.

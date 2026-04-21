@@ -94,7 +94,9 @@ Use the following prefixes:
 
 When documenting issues or workarounds in the KB:
 
-- Use `fact` with `fact_kind: observation` or `meta` for bug records and workaround notes
+- Use `fact` with `fact_kind: observation` or `meta` for bug records and workaround notes (**non-blocking lane**)
+- Use `flag` only for actual runtime/config gates (not for bug records)
+- **Strict facts** (subject, property_value) drive contradiction checks. `domain-contradictions` applies only to strict lane. `strict-fact-shape` is a default-off migration check.
 - Use `flag` only for actual runtime/config gates (not for bug records)
 - See [Entity Schema](docs/entity-schema.md) and [AGENTS.md](AGENTS.md) for the canonical entity-choice guidance
 ---
