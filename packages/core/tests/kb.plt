@@ -1739,6 +1739,31 @@ test(requires_property_to_subject_fact_fails, [setup(setup_kb), cleanup(cleanup_
 
 :- end_tests(kb_strict_lane_pairing).
 
+:- begin_tests(violation_id_text_regression).
+
+% Regression tests for violation_id_text/2 typed-literal unwrapping (beea1b8).
+% These paths are exercised when entity IDs arrive as RDF-typed literals.
+
+test(plain_atom) :-
+    violation_id_text('REQ-001', Text),
+    Text == "REQ-001".
+
+test(plain_string) :-
+    violation_id_text("REQ-002", Text),
+    Text == "REQ-002".
+
+test(rdf_typed_literal_unwrap) :-
+    % ^^(Value, Type) form — RDF typed literal
+    violation_id_text('^^'('REQ-003', 'http://www.w3.org/2001/XMLSchema#string'), Text),
+    Text == "REQ-003".
+
+test(prolog_literal_type_unwrap) :-
+    % literal(type(_, Val)) form — Prolog literal wrapper
+    violation_id_text(literal(type('http://www.w3.org/2001/XMLSchema#string', 'REQ-004')), Text),
+    Text == "REQ-004".
+
+:- end_tests(violation_id_text_regression).
+
 % Test setup/cleanup helpers
 setup_kb :-
     cleanup_test_kb,

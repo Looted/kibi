@@ -509,6 +509,7 @@ We assert that the response should return success.
               "required-fields",
               "no-dangling-refs",
               "must-priority-coverage",
+              "strict-req-fact-pairing",
             ]),
       ),
     );
@@ -518,7 +519,11 @@ We assert that the response should return success.
           call.reason === "file.edited" &&
           call.filePath === "documentation/requirements/REQ-SHOULD.md" &&
           JSON.stringify(call.checkRules) ===
-            JSON.stringify(["required-fields", "no-dangling-refs"]),
+            JSON.stringify([
+              "required-fields",
+              "no-dangling-refs",
+              "strict-req-fact-pairing",
+            ]),
       ),
     );
   });
