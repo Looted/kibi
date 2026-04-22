@@ -176,10 +176,10 @@ const entities: EntityDef[] = [
     type: "adr",
     id: "ADR-002",
     properties: {
-      title: "Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess",
+      title: "Public API exports via re-export modules",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
-      tags: ["cli", "bun", "nodejs"],
+      source: "documentation/adr/ADR-002.md",
+      tags: ["architecture", "publishing", "exports"],
     },
   },
   {
@@ -220,7 +220,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Monorepo structure: core (Prolog) + cli + mcp + vscode packages",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "documentation/adr/ADR-006.md",
       tags: ["monorepo", "structure"],
     },
   },
@@ -230,7 +230,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Defer graph visualization and full VS Code features to post-v0",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "documentation/adr/ADR-007.md",
       tags: ["vscode", "scope", "deferred"],
     },
   },
@@ -242,8 +242,8 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "vscode-full-features: full VS Code extension with graph visualization",
-      status: "inactive",
-      source: ".sisyphus/plans/kibi-v0.md",
+      status: "active",
+      source: "documentation/flags/FLAG-001.md",
       tags: ["vscode", "deferred", "post-v0"],
     },
   },
@@ -296,7 +296,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "v0.0.1 released as Functional Alpha",
       status: "active",
-      source: ".sisyphus/CONTINUATION-PLAN.md",
+      source: "documentation/events/EVT-001.md",
       tags: ["release", "v0"],
     },
   },
@@ -346,10 +346,10 @@ const entities: EntityDef[] = [
     type: "scenario",
     id: "SCEN-001",
     properties: {
-      title: "Agent queries requirements from KB via MCP kb_query tool",
-      status: "passing",
-      source: ".sisyphus/plans/kibi-v0.md",
-      tags: ["mcp", "query", "agent"],
+      title: "Critical Feature Scenario",
+      status: "active",
+      source: "documentation/scenarios/SCEN-001.md",
+      tags: ["critical"],
     },
   },
   {
