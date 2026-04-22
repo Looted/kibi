@@ -1,2 +1,0 @@
-bun test packages/opencode/tests/config.test.ts
-PASS: 10 tests, 0 failures
