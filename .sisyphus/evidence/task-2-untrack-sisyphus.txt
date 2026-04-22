@@ -1,0 +1,21 @@
+=== POST-CLEANUP git ls-files .sisyphus ===
+
+=== git status --short ===
+D  .sisyphus/evidence/.gitkeep
+D  .sisyphus/evidence/task-1-startup-config.txt
+D  .sisyphus/evidence/task-1-truth-table-rejections.txt
+D  .sisyphus/evidence/task-1-truth-table.txt
+D  .sisyphus/evidence/task-4-startup-wireup-fallback.txt
+D  .sisyphus/evidence/task-4-startup-wireup.txt
+D  .sisyphus/evidence/task-7-release-dryrun-happy.txt
+D  .sisyphus/evidence/task-7-release-dryrun-rerun.txt
+D  .sisyphus/notepads/opencode-plugin-toast-and-architecture-plan/debug-toast-blocking.md
+D  .sisyphus/notepads/opencode-plugin-toast-and-architecture-plan/debug-toast-diagnostics.md
+D  .sisyphus/notepads/opencode-plugin-toast-and-architecture-plan/debug-toast-tests.md
+D  .sisyphus/notepads/opencode-plugin-toast-and-architecture-plan/learnings.md
+D  .sisyphus/notepads/traceability-consumer-scope/learnings.md
+D  .sisyphus/notepads/type-safety-audit/issues.md
+D  .sisyphus/notepads/type-safety-audit/learnings.md
+
+=== git check-ignore -v .sisyphus/smoke.txt ===
+.gitignore:53:.sisyphus	.sisyphus/smoke.txt
