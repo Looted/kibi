@@ -1,1 +1,0 @@
-2026-04-12: Mocked `globalThis.setTimeout` in `packages/opencode/tests/index.test.ts` so startup toast/log assertions run synchronously during plugin setup. Restored the original timer after the suite; `bun test packages/opencode/tests/index.test.ts` and `bun run build:opencode` both passed.
