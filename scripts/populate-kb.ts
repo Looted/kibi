@@ -178,7 +178,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "scripts/populate-kb.ts",
       tags: ["cli", "bun", "nodejs"],
     },
   },
@@ -220,7 +220,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Monorepo structure: core (Prolog) + cli + mcp + vscode packages",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "documentation/adr/ADR-006.md",
       tags: ["monorepo", "structure"],
     },
   },
@@ -230,7 +230,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Defer graph visualization and full VS Code features to post-v0",
       status: "accepted",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "documentation/adr/ADR-007.md",
       tags: ["vscode", "scope", "deferred"],
     },
   },
@@ -243,7 +243,7 @@ const entities: EntityDef[] = [
       title:
         "vscode-full-features: full VS Code extension with graph visualization",
       status: "inactive",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "documentation/flags/FLAG-001.md",
       tags: ["vscode", "deferred", "post-v0"],
     },
   },
@@ -296,7 +296,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "v0.0.1 released as Functional Alpha",
       status: "active",
-      source: ".sisyphus/CONTINUATION-PLAN.md",
+      source: "documentation/events/EVT-001.md",
       tags: ["release", "v0"],
     },
   },
@@ -348,7 +348,7 @@ const entities: EntityDef[] = [
     properties: {
       title: "Agent queries requirements from KB via MCP kb_query tool",
       status: "passing",
-      source: ".sisyphus/plans/kibi-v0.md",
+      source: "scripts/populate-kb.ts",
       tags: ["mcp", "query", "agent"],
     },
   },
