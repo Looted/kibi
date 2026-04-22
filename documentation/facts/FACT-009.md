@@ -1,8 +1,4 @@
 ---
- - deployment
- - github-actions
- - npm
- - ci-cd
 id: FACT-009
 title: GitHub Actions workflow handles npm publishing
 status: active

@@ -1,7 +1,4 @@
 ---
- - deployment
- - github-actions
- - release-management
 id: FACT-010
 title: Publishing workflow triggers on master branch push
 status: active
