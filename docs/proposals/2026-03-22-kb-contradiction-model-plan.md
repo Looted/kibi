@@ -37,5 +37,7 @@ The following product decisions are frozen for v1 and must not be expanded or mo
 - [x] Convert existing proposal into this canonical remediation document.
 - [ ] Update `docs/entity-schema.md` to reflect the exhaustive fact field list and frozen lanes.
 - [ ] Update `AGENTS.md` to clarify the "audit-first" stance on legacy prose facts.
-
-... (rest of tasks preserved from original plan)
+- [ ] Add `strict-req-fact-pairing` and `invalid-supersession` integrity rules to `checks.pl`.
+- [ ] Enable `strict-fact-shape` by default in config once migration path is confirmed.
+- [ ] Add polarity (`require`/`forbid`) and scope overlap detection to `contradicting_reqs/3`.
+- [ ] Update `retroactive-init.md` and `llm-rules.md` with explicit "audit-first" prompts for legacy prose facts.
