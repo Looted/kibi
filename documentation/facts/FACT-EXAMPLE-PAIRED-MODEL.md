@@ -3,13 +3,14 @@ id: FACT-EXAMPLE-PAIRED-MODEL
 title: "Paired modeling example: strict domain fact + requirement constraint"
 status: active
 created_at: 2026-03-27T10:00:00Z
-updated_at: 2026-04-21T10:00:00Z
+updated_at: 2026-04-22T10:00:00Z
 source: documentation/facts/FACT-EXAMPLE-PAIRED-MODEL.md
 tags:
   - example
   - modeling
   - strict-lane
 fact_kind: subject
+subject_key: kibi.example.strict_lanes
 links:
   - type: relates_to
     target: REQ-018
