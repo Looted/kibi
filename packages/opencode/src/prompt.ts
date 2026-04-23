@@ -32,14 +32,14 @@ function countBullets(lines: string[]): number {
   return lines.filter((l) => l.startsWith("-")).length;
 }
 
-function enforceBudget(block: string): string {
+function enforceBudget(block: string, maxBullets: number = MAX_BULLETS): string {
   const lines = block.split("\n");
-  if (countBullets(lines) > MAX_BULLETS || countWords(block) > MAX_WORDS) {
-    // Trim to budget: keep header + first MAX_BULLETS bullet lines
+  if (countBullets(lines) > maxBullets || countWords(block) > MAX_WORDS) {
+    // Trim to budget: keep header + first maxBullets bullet lines
     const header: string[] = [];
     const bullets: string[] = [];
     for (const line of lines) {
-      if (line.startsWith("-") && bullets.length < MAX_BULLETS) {
+      if (line.startsWith("-") && bullets.length < maxBullets) {
         bullets.push(line);
       } else if (!line.startsWith("-")) {
         if (bullets.length === 0) header.push(line);
@@ -207,8 +207,7 @@ function buildContextualGuidance(context: PromptContext): string {
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
   const readyAutoBriefingAvailable =
-    context.autoBriefResult?.state === "ready" &&
-    context.autoBriefResult.promptBlock.trim() !== "";
+    context.autoBriefResult?.showManualCue === false;
   const suppressSourceLinkedBrief =
     context.autoBriefResult?.state === "ready" ||
     context.autoBriefResult?.state === "tldr_fallback";
@@ -427,16 +426,30 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.cache.recordSatisfied(key, "guidance");
   }
 
-  // Apply budget enforcement before appending the completion reminder so the
-  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
-  const budgeted = selectedBlock ? enforceBudget(selectedBlock) : null;
-
-  // Append completion reminder for risky classes when enabled
   const REMINDER_RISK_CLASSES: RiskClass[] = [
     "behavior_candidate",
     "traceability_candidate",
     "req_policy_candidate",
   ];
+  const reminderWillBeAppended =
+    !!selectedBlock &&
+    context.completionReminder === true &&
+    !context.maintenanceDegraded &&
+    riskClass != null &&
+    REMINDER_RISK_CLASSES.includes(riskClass) &&
+    posture !== "root_uninitialized" &&
+    posture !== "root_partial";
+  const effectiveMaxBullets = reminderWillBeAppended
+    ? MAX_BULLETS - 1
+    : MAX_BULLETS;
+
+  // Apply budget enforcement before appending the completion reminder so the
+  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
+  const budgeted = selectedBlock
+    ? enforceBudget(selectedBlock, effectiveMaxBullets)
+    : null;
+
+  // Append completion reminder for risky classes when enabled
   let finalBlock = budgeted;
   if (
     finalBlock &&

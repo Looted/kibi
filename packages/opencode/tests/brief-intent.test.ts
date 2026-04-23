@@ -25,7 +25,6 @@ type BriefIntentResult = {
   fingerprint: string;
   sourceFiles: string[];
   seedIds: string[];
-  keepManualCue: boolean;
 };
 
 type BriefIntentModule = {
@@ -117,7 +116,7 @@ describe("deriveBriefIntent", () => {
 
     assert.equal(result.eligible, true);
     assert.equal(result.reason, "Eligible for auto-briefing");
-    assert.equal(result.keepManualCue, true);
+    assert.equal(Object.prototype.hasOwnProperty.call(result, "keepManualCue"), false);
     assert.deepEqual(result.sourceFiles, ["/workspace/src/foo.ts"]);
     assert.deepEqual(result.seedIds, []);
   });
@@ -245,10 +244,10 @@ describe("deriveBriefIntent", () => {
     );
   });
 
-  test("keeps keepManualCue true even when result is ineligible", async () => {
+  test("does not expose keepManualCue even when result is ineligible", async () => {
     const result = await derive({ posture: "vendored_only" });
 
-    assert.equal(result.keepManualCue, true);
+    assert.equal(Object.prototype.hasOwnProperty.call(result, "keepManualCue"), false);
   });
 
   test("uses pre-fetched seedIds directly and truncates to three", async () => {

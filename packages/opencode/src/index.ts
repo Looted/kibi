@@ -539,7 +539,9 @@ const kibiOpencodePlugin: Plugin = async (
           autoBriefResults.set(fingerprint, result);
           if (!toastedFingerprints.has(fingerprint)) {
             toastedFingerprints.add(fingerprint);
-            void sendToast(client, { message: result.toastMessage });
+            void sendToast(client, { message: result.toastMessage }).catch(() => {
+              // toast delivery failure is non-fatal
+            });
           }
         });
       }

@@ -17,6 +17,7 @@ import kibiOpencodePlugin from "../src/index";
 import * as briefingRuntimeModule from "../src/briefing-runtime";
 import * as logger from "../src/logger";
 import * as promptModule from "../src/prompt";
+import * as toastModule from "../src/toast";
 import type { PluginInput } from "../src/index";
 import { runPluginStartup } from "../src/plugin-startup";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
@@ -3437,6 +3438,73 @@ import datetime
       });
     });
 
+    it("treats auto-brief toast delivery failure as non-fatal", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client } = createAutoBriefClient();
+      const unhandledRejections: unknown[] = [];
+      const handleUnhandledRejection = (reason: unknown) => {
+        unhandledRejections.push(reason);
+      };
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const sendToastSpy = spyOn(toastModule, "sendToast").mockImplementation(() =>
+        Promise.reject(new Error("toast failed")),
+      );
+      process.on("unhandledRejection", handleUnhandledRejection);
+
+      try {
+        const plugin = await loadFreshPlugin();
+        const hooks = await plugin(makeInput({ client }));
+
+        assert.ok(hooks.event);
+        const eventHook = hooks.event as (input: {
+          event: { type: string; properties: { file: string } };
+        }) => Promise<void>;
+
+        await eventHook({
+          event: {
+            type: "file.edited",
+            properties: { file: "src/feature.ts" },
+          },
+        });
+        await waitForCondition(
+          () => fetchSpy.mock.calls.length === 1 && sendToastSpy.mock.calls.length === 1,
+        );
+        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        assert.equal(fetchSpy.mock.calls.length, 1);
+        assert.equal(sendToastSpy.mock.calls.length, 1);
+        assert.equal(
+          unhandledRejections.length,
+          0,
+          "Toast delivery failures should be caught and stay non-fatal",
+        );
+      } finally {
+        process.off("unhandledRejection", handleUnhandledRejection);
+      }
+    });
+
     it("sends exactly one toast for repeated same-fingerprint edit events", async () => {
       setupAuthoritativeWorkspace(tmpDir);
       installNoopScheduler(tmpDir);
@@ -3871,6 +3939,50 @@ import datetime
         },
       });
       await Promise.resolve();
+      assert.equal(fetchSpy.mock.calls.length, 0);
+
+      const testsDir = path.join(tmpDir, "tests");
+      fs.mkdirSync(testsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(testsDir, "feature.test.ts"),
+        "import { test, expect } from 'bun:test';\ntest('safe', () => expect(true).toBe(true));\n",
+      );
+      const { client: safeTestClient } = createAutoBriefClient();
+      const safeTestPlugin = await loadFreshPlugin();
+      const safeTestHooks = await safeTestPlugin(makeInput({ client: safeTestClient }));
+      assert.ok(safeTestHooks.event);
+
+      const safeTestEventHook = safeTestHooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      await safeTestEventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "tests/feature.test.ts" },
+        },
+      });
+      await Promise.resolve();
+      assert.equal(fetchSpy.mock.calls.length, 0);
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(path.join(kbDir, "manual-edit.json"), "{}\n");
+      const { client: manualKbClient } = createAutoBriefClient();
+      const manualKbPlugin = await loadFreshPlugin();
+      const manualKbHooks = await manualKbPlugin(makeInput({ client: manualKbClient }));
+      assert.ok(manualKbHooks.event);
+
+      const manualKbEventHook = manualKbHooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      await manualKbEventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: ".kb/manual-edit.json" },
+        },
+      });
+      await Promise.resolve();
+      assert.equal(fetchSpy.mock.calls.length, 0);
 
       writePluginConfig(tmpDir, {
         enabled: true,

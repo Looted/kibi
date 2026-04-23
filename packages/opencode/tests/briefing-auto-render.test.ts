@@ -135,9 +135,8 @@ function makeIntent(
       `brief:${workspaceCtx.workspaceRoot}\0${workspaceCtx.branch}\0${editedFilePath}\0behavior_candidate`,
     sourceFiles: overrides.sourceFiles ?? [editedFilePath],
     seedIds: overrides.seedIds ?? ["REQ-001"],
-    keepManualCue: overrides.keepManualCue ?? true,
     ...overrides,
-  };
+  } as BriefIntentResult;
 }
 
 function promptResponseFromJson(value: unknown): unknown {
