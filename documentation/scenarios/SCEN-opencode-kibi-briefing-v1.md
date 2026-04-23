@@ -1,7 +1,7 @@
 ---
 id: SCEN-opencode-kibi-briefing-v1
 title: "OpenCode surfaces a cue for /brief-kibi without executing it"
-status: draft
+status: deprecated
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-20T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v1.md
@@ -17,6 +17,9 @@ links:
     target: REQ-mcp-kibi-briefing-v1
 ---
 
+
+20#YT|> **Note**: This scenario is DEPRECATED and superseded by SCEN-opencode-kibi-briefing-v2. 
+21#YT|> It documents the historical v1 cue-driven behavior.
 **Scenario: Authoritative risky edit gets a start-task cue**
 
 **GIVEN** an OpenCode session is in an authoritative, non-degraded posture
