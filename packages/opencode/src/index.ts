@@ -165,6 +165,7 @@ const kibiOpencodePlugin: Plugin = async (
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
   const autoBriefResults = new Map<string, BriefingRuntimeResult>();
+  const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
   let lastEditedFilePath: string | null = null;
   let degradedWarnedOnce = false;
@@ -526,6 +527,7 @@ const kibiOpencodePlugin: Plugin = async (
           posture.state === "hybrid_root_plus_vendored")
       ) {
         const client = input.client;
+        const fingerprint = intentResult.fingerprint;
         const workspaceCtx: BriefingWorkspaceCtx = {
           workspaceRoot: input.worktree,
           branch: currentBranch,
@@ -534,8 +536,11 @@ const kibiOpencodePlugin: Plugin = async (
         };
 
         void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
-          autoBriefResults.set(intentResult.fingerprint, result);
-          void sendToast(client, { message: result.toastMessage });
+          autoBriefResults.set(fingerprint, result);
+          if (!toastedFingerprints.has(fingerprint)) {
+            toastedFingerprints.add(fingerprint);
+            void sendToast(client, { message: result.toastMessage });
+          }
         });
       }
     }
