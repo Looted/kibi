@@ -215,6 +215,9 @@ const kibiOpencodePlugin: Plugin = async (
       riskClass === "safe_docs_only" && precomputedSuggestion
         ? "traceability_candidate"
         : riskClass;
+    const isAutoBriefRisk =
+      effectiveRiskClass === "behavior_candidate" ||
+      effectiveRiskClass === "traceability_candidate";
     lastRiskClass = effectiveRiskClass;
     lastEditedFilePath = filePath;
 
@@ -358,7 +361,9 @@ const kibiOpencodePlugin: Plugin = async (
         posture: posture.state,
         posture_state: posture.state,
       });
-      return;
+      if (!isAutoBriefRisk) {
+        return;
+      }
     }
 
     logger.info("smart-enforcement.cache", {
@@ -467,10 +472,7 @@ const kibiOpencodePlugin: Plugin = async (
       return;
     }
 
-    if (
-      effectiveRiskClass === "behavior_candidate" ||
-      effectiveRiskClass === "traceability_candidate"
-    ) {
+    if (isAutoBriefRisk) {
       if (
         pathAnalysis.kind === "code" &&
         cfg.guidance.commentDetection.enabled

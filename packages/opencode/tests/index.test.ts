@@ -3489,6 +3489,68 @@ import datetime
       assert.equal(promptCalls.length, 1);
     });
 
+    it("still calls fetchBriefingResult after guidance cache is satisfied for the same risky edit", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, createCalls, promptCalls } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: unknown,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => fetchSpy.mock.calls.length === 1 && promptCalls.length === 1);
+
+      await transformHook({}, { system: ["prompt"] });
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => fetchSpy.mock.calls.length === 2);
+
+      assert.equal(fetchSpy.mock.calls.length, 2);
+      assert.equal(createCalls.length, 1);
+      assert.equal(promptCalls.length, 1);
+    });
+
     it("does not call fetchBriefingResult for non-eligible or degraded contexts", async () => {
       setupAuthoritativeWorkspace(tmpDir);
       const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
