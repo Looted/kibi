@@ -607,6 +607,9 @@ describe("briefing generate", () => {
     expect(unsupported.structuredContent.briefingState).toBe("no_briefing");
     expect(unsupported.structuredContent.activationState).toBe("vendored_only");
     expect(unsupported.structuredContent.promptBlock).toBe("");
+    expect(unsupported.content).toEqual([
+      { type: "text", text: "No briefing is available." },
+    ]);
     expect(unsupported.structuredContent.entities).toEqual([]);
     expect(unsupported.structuredContent.constraints).toEqual([]);
     expect(unsupported.structuredContent.regressionRisks).toEqual([]);
@@ -640,6 +643,9 @@ describe("briefing generate", () => {
       dirty: true,
       syncedAt: "2026-04-19T12:00:00Z",
     });
+    expect(stale.content).toEqual([
+      { type: "text", text: "No briefing is available." },
+    ]);
     expect(stale.structuredContent.promptBlock).toBe("");
     expect(stale.structuredContent.entities).toEqual([]);
     expect(stale.structuredContent.constraints).toEqual([]);

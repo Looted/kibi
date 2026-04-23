@@ -249,6 +249,10 @@ describe("hook contract", () => {
       !injected.includes("experimental.chat.system.transform"),
       "Hook output should not expose hook internals",
     );
+    assert.ok(
+      !injected.includes("kb_briefing_generate") && !injected.includes("briefingState"),
+      "Hook output should not embed live briefing execution or structured briefing payloads",
+    );
   });
 
   test("chat.params does not modify system array", async () => {

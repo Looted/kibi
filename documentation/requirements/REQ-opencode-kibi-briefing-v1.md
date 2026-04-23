@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v1
 title: "OpenCode Kibi Briefings v1: Cue-Driven Discovery Through /brief-kibi"
-status: open
+status: deprecated
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-20T00:00:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v1.md
@@ -28,6 +28,9 @@ links:
     target: ADR-018
 ---
 
+
+> **Note**: This requirement is DEPRECATED and superseded by REQ-opencode-kibi-briefing-v2. 
+> It remains here for historical context and to document the v1 cue-driven contract.
 The OpenCode briefing experience must expose Kibi Briefings v1 as a sanctioned, cue-driven start-task workflow rather than an automatic runtime fetch.
 
 1. **Sanctioned Command**: `/brief-kibi` must be the sanctioned start-task command for requesting a Kibi briefing in OpenCode.

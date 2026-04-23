@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
+import type { BriefingRuntimeResult } from "./briefing-runtime.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
@@ -14,7 +15,9 @@ const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
 const MAX_BULLETS = 5;
+const MAX_AUTO_BRIEF_BULLETS_WITH_REMINDER = 4;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
+const AUTO_BRIEF_HEADER = "🧠 **Kibi briefing available**";
 
 const AUTHORITATIVE_POSTURES: RepoPosture[] = [
   "root_active",
@@ -29,14 +32,14 @@ function countBullets(lines: string[]): number {
   return lines.filter((l) => l.startsWith("-")).length;
 }
 
-function enforceBudget(block: string): string {
+function enforceBudget(block: string, maxBullets: number = MAX_BULLETS): string {
   const lines = block.split("\n");
-  if (countBullets(lines) > MAX_BULLETS || countWords(block) > MAX_WORDS) {
-    // Trim to budget: keep header + first MAX_BULLETS bullet lines
+  if (countBullets(lines) > maxBullets || countWords(block) > MAX_WORDS) {
+    // Trim to budget: keep header + first maxBullets bullet lines
     const header: string[] = [];
     const bullets: string[] = [];
     for (const line of lines) {
-      if (line.startsWith("-") && bullets.length < MAX_BULLETS) {
+      if (line.startsWith("-") && bullets.length < maxBullets) {
         bullets.push(line);
       } else if (!line.startsWith("-")) {
         if (bullets.length === 0) header.push(line);
@@ -55,6 +58,39 @@ function insertBulletAfterHeader(block: string, bullet: string): string {
   const headerEnd = block.indexOf("\n");
   if (headerEnd === -1) return `${block}\n${bullet}`;
   return `${block.slice(0, headerEnd + 1)}${bullet}\n${block.slice(headerEnd + 1)}`;
+}
+
+// implements REQ-opencode-kibi-briefing-v2
+function buildAutoBriefingGuidance(
+  autoBriefResult: BriefingRuntimeResult | undefined,
+  completionReminder: boolean,
+): string | null {
+  if (!autoBriefResult) return null;
+
+  if (autoBriefResult.state === "ready") {
+    const promptBlock = autoBriefResult.promptBlock.trim();
+    if (!promptBlock) return null;
+
+    const maxBullets = completionReminder
+      ? MAX_AUTO_BRIEF_BULLETS_WITH_REMINDER
+      : MAX_BULLETS;
+    const briefingLines = promptBlock
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.startsWith("-"))
+      .slice(0, maxBullets);
+
+    if (briefingLines.length === 0) return null;
+    return `${AUTO_BRIEF_HEADER}\n${briefingLines.join("\n")}`;
+  }
+
+  if (autoBriefResult.state === "tldr_fallback") {
+    const promptBlock = autoBriefResult.promptBlock.trim();
+    if (!promptBlock) return null;
+    return `${AUTO_BRIEF_HEADER}\n${promptBlock}`;
+  }
+
+  return null;
 }
 
 function isAuthoritativePosture(posture: RepoPosture): boolean {
@@ -92,6 +128,8 @@ export interface PromptContext {
   degradedMode?: "warn-once" | "structured-only";
   /** Whether to show the degraded advisory block this invocation */
   showDegradedAdvisory?: boolean;
+  /** Stored auto-brief runtime result for the current fingerprint */
+  autoBriefResult?: BriefingRuntimeResult;
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -168,6 +206,11 @@ Root .kb/config.json exists but some configured KB targets are missing. Guidance
 function buildContextualGuidance(context: PromptContext): string {
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
+  const readyAutoBriefingAvailable =
+    context.autoBriefResult?.showManualCue === false;
+  const suppressSourceLinkedBrief =
+    context.autoBriefResult?.state === "ready" ||
+    context.autoBriefResult?.state === "tldr_fallback";
   const showDegraded =
     context.showDegradedAdvisory === true &&
     context.maintenanceDegraded === true &&
@@ -231,18 +274,31 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
       riskClass !== "safe_docs_only" &&
       riskClass !== "safe_test_only"
     ) {
-      // For behavior/traceability with comment suggestions, use suggestion guidance
-      if (
-        (riskClass === "behavior_candidate" ||
-          riskClass === "traceability_candidate") &&
-        context.recentCommentSuggestion
-      ) {
-        selectedBlock = buildCommentSuggestionGuidance(
-          context.recentCommentSuggestion,
-        );
+      const autoBriefBlock =
+        riskClass === "behavior_candidate" ||
+        riskClass === "traceability_candidate"
+          ? buildAutoBriefingGuidance(
+              context.autoBriefResult,
+              context.completionReminder === true,
+            )
+          : null;
+
+      if (autoBriefBlock) {
+        selectedBlock = autoBriefBlock;
       } else {
-        const block = GUIDANCE_BY_RISK[riskClass];
-        if (block) selectedBlock = block;
+        // For behavior/traceability with comment suggestions, use suggestion guidance
+        if (
+          (riskClass === "behavior_candidate" ||
+            riskClass === "traceability_candidate") &&
+          context.recentCommentSuggestion
+        ) {
+          selectedBlock = buildCommentSuggestionGuidance(
+            context.recentCommentSuggestion,
+          );
+        } else {
+          const block = GUIDANCE_BY_RISK[riskClass];
+          if (block) selectedBlock = block;
+        }
       }
     }
     // Priority 6: Legacy path-kind fallback (when no risk class)
@@ -295,7 +351,8 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     (riskClass === "behavior_candidate" ||
       riskClass === "traceability_candidate") &&
     isAuthoritativePosture(posture) &&
-    !context.maintenanceDegraded
+    !context.maintenanceDegraded &&
+    !readyAutoBriefingAvailable
   ) {
     selectedBlock = insertBulletAfterHeader(
       selectedBlock,
@@ -311,7 +368,8 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     selectedBlock &&
     (riskClass === "behavior_candidate" ||
       riskClass === "traceability_candidate") &&
-    context.workspaceRoot
+    context.workspaceRoot &&
+    !suppressSourceLinkedBrief
   ) {
     try {
       const lastEdit = context.recentEdits[context.recentEdits.length - 1];
@@ -368,16 +426,30 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.cache.recordSatisfied(key, "guidance");
   }
 
-  // Apply budget enforcement before appending the completion reminder so the
-  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
-  const budgeted = selectedBlock ? enforceBudget(selectedBlock) : null;
-
-  // Append completion reminder for risky classes when enabled
   const REMINDER_RISK_CLASSES: RiskClass[] = [
     "behavior_candidate",
     "traceability_candidate",
     "req_policy_candidate",
   ];
+  const reminderWillBeAppended =
+    !!selectedBlock &&
+    context.completionReminder === true &&
+    !context.maintenanceDegraded &&
+    riskClass != null &&
+    REMINDER_RISK_CLASSES.includes(riskClass) &&
+    posture !== "root_uninitialized" &&
+    posture !== "root_partial";
+  const effectiveMaxBullets = reminderWillBeAppended
+    ? MAX_BULLETS - 1
+    : MAX_BULLETS;
+
+  // Apply budget enforcement before appending the completion reminder so the
+  // reminder bullet is never silently trimmed when bullet count exceeds MAX_BULLETS.
+  const budgeted = selectedBlock
+    ? enforceBudget(selectedBlock, effectiveMaxBullets)
+    : null;
+
+  // Append completion reminder for risky classes when enabled
   let finalBlock = budgeted;
   if (
     finalBlock &&

@@ -1,4 +1,10 @@
 import * as path from "node:path";
+import { computeBriefIntent } from "./brief-intent.js";
+import {
+  fetchBriefingResult,
+  type BriefingRuntimeResult,
+  type BriefingWorkspaceCtx,
+} from "./briefing-runtime.js";
 import {
   type CommentAnalysisResult,
   analyzeCodeFile,
@@ -13,6 +19,7 @@ import { type RiskClass, classifyRisk } from "./risk-classifier.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { notifyStartup } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
+import { sendToast } from "./toast.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -31,6 +38,7 @@ function deriveFileBucket(kind: PathKind): string {
 export interface PluginInput {
   worktree: string;
   directory: string;
+  workspace?: string;
   project?: unknown;
   serverUrl?: unknown;
   $?: unknown;
@@ -156,7 +164,11 @@ const kibiOpencodePlugin: Plugin = async (
   let hasRecentKbEdit = false;
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
+  const autoBriefResults = new Map<string, BriefingRuntimeResult>();
+  const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
+  let lastEditedFilePath: string | null = null;
+  let lastBriefFingerprint: string | null = null;
   let degradedWarnedOnce = false;
 
   hooks.event = async ({ event }) => {
@@ -205,7 +217,11 @@ const kibiOpencodePlugin: Plugin = async (
       riskClass === "safe_docs_only" && precomputedSuggestion
         ? "traceability_candidate"
         : riskClass;
+    const isAutoBriefRisk =
+      effectiveRiskClass === "behavior_candidate" ||
+      effectiveRiskClass === "traceability_candidate";
     lastRiskClass = effectiveRiskClass;
+    lastEditedFilePath = filePath;
 
     logger.info("smart-enforcement.risk", {
       event: "smart_enforcement_risk",
@@ -347,7 +363,9 @@ const kibiOpencodePlugin: Plugin = async (
         posture: posture.state,
         posture_state: posture.state,
       });
-      return;
+      if (!isAutoBriefRisk) {
+        return;
+      }
     }
 
     logger.info("smart-enforcement.cache", {
@@ -456,10 +474,7 @@ const kibiOpencodePlugin: Plugin = async (
       return;
     }
 
-    if (
-      effectiveRiskClass === "behavior_candidate" ||
-      effectiveRiskClass === "traceability_candidate"
-    ) {
+    if (isAutoBriefRisk) {
       if (
         pathAnalysis.kind === "code" &&
         cfg.guidance.commentDetection.enabled
@@ -495,6 +510,44 @@ const kibiOpencodePlugin: Plugin = async (
       } else {
         recentCommentSuggestion = null;
       }
+
+      const intentResult = computeBriefIntent({
+        riskClass: effectiveRiskClass,
+        posture: posture.state,
+        maintenanceDegraded: getMaintenanceDegraded(),
+        editedFile: filePath,
+        worktreeRoot: input.worktree,
+        branch: currentBranch,
+      });
+
+      lastBriefFingerprint = intentResult.fingerprint;
+
+      if (
+        intentResult.eligible &&
+        input.client &&
+        !getMaintenanceDegraded() &&
+        (posture.state === "root_active" ||
+          posture.state === "hybrid_root_plus_vendored")
+      ) {
+        const client = input.client;
+        const fingerprint = intentResult.fingerprint;
+        const workspaceCtx: BriefingWorkspaceCtx = {
+          workspaceRoot: input.worktree,
+          branch: currentBranch,
+          directory: input.directory,
+          ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
+        };
+
+        void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
+          autoBriefResults.set(fingerprint, result);
+          if (!toastedFingerprints.has(fingerprint)) {
+            toastedFingerprints.add(fingerprint);
+            void sendToast(client, { message: result.toastMessage }).catch(() => {
+              // toast delivery failure is non-fatal
+            });
+          }
+        });
+      }
     }
 
     return;
@@ -515,6 +568,9 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded &&
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
+        const autoBriefResult = lastBriefFingerprint != null
+          ? autoBriefResults.get(lastBriefFingerprint)
+          : undefined;
 
         // Build only the guidance block and append it; existing entries are preserved
         const guidance = buildPrompt({
@@ -530,6 +586,7 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
+          ...(autoBriefResult !== undefined ? { autoBriefResult } : {}),
           ...(lastRiskClass != null ? { riskClass: lastRiskClass } : {}),
         });
 

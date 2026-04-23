@@ -4,10 +4,16 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import type { BriefingRuntimeResult } from "../src/briefing-runtime";
 import type { KibiConfig } from "../src/config";
 import { GuidanceCache } from "../src/guidance-cache";
 import type { CacheKey } from "../src/guidance-cache";
-import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
+import {
+  SENTINEL,
+  buildPrompt,
+  injectPrompt,
+  type PromptContext,
+} from "../src/prompt";
 
 const baseConfig: KibiConfig = {
   enabled: true,
@@ -38,6 +44,24 @@ const baseConfig: KibiConfig = {
   },
   logLevel: "info",
 };
+
+function makeAutoBriefResult(
+  overrides: Partial<BriefingRuntimeResult> = {},
+): BriefingRuntimeResult {
+  const state = overrides.state ?? "ready";
+  const promptBlock = overrides.promptBlock ?? "- REQ-001: Auto summary";
+
+  return {
+    state,
+    promptBlock,
+    tldr: overrides.tldr ?? "Auto summary",
+    citations: overrides.citations ?? [],
+    showManualCue:
+      overrides.showManualCue ?? !(state === "ready" && promptBlock.trim() !== ""),
+    toastMessage: "Kibi brief ready — summary added to guidance.",
+    ...overrides,
+  };
+}
 
 describe("prompt", () => {
   test("buildPrompt returns guidance with sentinel", () => {
@@ -1038,6 +1062,247 @@ describe("completion reminder policy", () => {
   });
 });
 
+describe("auto-brief prompt rendering", () => {
+  const BRIEF_KIBI_CUE =
+    "Authoritative risky edit: run `/brief-kibi` before acting.";
+  const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-auto-brief-"));
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+  });
+
+  function writeSymbolsYamlForPrompt(): void {
+    const docDir = path.join(tmpDir, "documentation");
+    fs.mkdirSync(docDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(docDir, "symbols.yaml"),
+      [
+        "symbols:",
+        "  - id: SYM-buildPrompt",
+        "    sourceFile: packages/opencode/src/prompt.ts",
+        "    links:",
+        "      - REQ-opencode-kibi-briefing-v2",
+      ].join("\n"),
+    );
+  }
+
+  function buildRiskyPrompt(
+    overrides: Partial<PromptContext> = {},
+  ): string {
+    const context: PromptContext = {
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+    };
+
+    return buildPrompt({ ...context, ...overrides });
+  }
+
+  test("renders ready-state auto-brief block and suppresses the risky cue", () => {
+    const p = buildRiskyPrompt({
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
+      }),
+    });
+
+    assert.ok(
+      p.includes("🧠 **Kibi briefing available**"),
+      "Should render the auto-brief header",
+    );
+    assert.ok(
+      p.includes("- REQ-001: Session timeout"),
+      "Should render first imported briefing bullet",
+    );
+    assert.ok(
+      p.includes("- REQ-002: Session invalidation"),
+      "Should render second imported briefing bullet",
+    );
+    assert.ok(
+      !p.includes(BRIEF_KIBI_CUE),
+      "Should suppress /brief-kibi cue when a ready-state prompt block exists",
+    );
+    assert.ok(
+      !p.includes("Code changes detected"),
+      "Should replace the normal risky guidance body",
+    );
+  });
+
+  test("ready-state auto-brief honors showManualCue when deciding whether to suppress /brief-kibi", () => {
+    const briefKibiCue =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+    const p = buildRiskyPrompt({
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: "- REQ-001: Session timeout",
+        showManualCue: true,
+      }),
+    });
+
+    assert.ok(
+      p.includes("🧠 **Kibi briefing available**"),
+      "Should still render the auto-brief header",
+    );
+    assert.ok(
+      p.includes(briefKibiCue),
+      "Should preserve /brief-kibi cue when showManualCue requests it",
+    );
+  });
+
+  test("ready-state auto-brief suppresses source-linked micro-brief insertion", () => {
+    writeSymbolsYamlForPrompt();
+
+    const p = buildRiskyPrompt({
+      workspaceRoot: tmpDir,
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: "- REQ-001: Session timeout",
+      }),
+    });
+
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Should suppress source-linked micro-brief when rendering ready-state auto-brief content",
+    );
+  });
+
+  test("tldr fallback keeps the manual cue and suppresses source-linked micro-brief insertion", () => {
+    writeSymbolsYamlForPrompt();
+
+    const p = buildRiskyPrompt({
+      workspaceRoot: tmpDir,
+      autoBriefResult: makeAutoBriefResult({
+        state: "tldr_fallback",
+        promptBlock: "- Session rules summary\n- Full details: run /brief-kibi.",
+        toastMessage:
+          "Kibi brief summary added — use /brief-kibi for full details.",
+      }),
+    });
+
+    assert.ok(
+      p.includes("🧠 **Kibi briefing available**"),
+      "Should render the fallback auto-brief header",
+    );
+    assert.ok(
+      p.includes("- Session rules summary"),
+      "Should render the TLDR fallback content",
+    );
+    assert.ok(
+      p.includes(BRIEF_KIBI_CUE),
+      "Should keep the outer /brief-kibi cue for TLDR fallback",
+    );
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Should suppress source-linked micro-brief when fallback content is present",
+    );
+  });
+
+  test("no_briefing auto-brief result preserves the existing risky guidance path", () => {
+    const baseline = buildRiskyPrompt();
+    const withNoBriefing = buildRiskyPrompt({
+      autoBriefResult: makeAutoBriefResult({
+        state: "no_briefing",
+        promptBlock: "",
+        tldr: "",
+        toastMessage: "Kibi brief unavailable — keeping /brief-kibi manual path.",
+      }),
+    });
+
+    assert.equal(
+      withNoBriefing,
+      baseline,
+      "no_briefing should behave identically to the pre-existing risky guidance path",
+    );
+  });
+
+  test("ready-state auto-brief still respects the 5-bullet prompt budget without a reminder", () => {
+    const p = buildRiskyPrompt({
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: [
+          "- REQ-001: One",
+          "- REQ-002: Two",
+          "- REQ-003: Three",
+          "- REQ-004: Four",
+          "- REQ-005: Five",
+          "- REQ-006: Six",
+        ].join("\n"),
+      }),
+    });
+
+    const importedBullets = p
+      .split("\n")
+      .filter((line) => line.startsWith("- REQ-"));
+
+    assert.equal(
+      importedBullets.length,
+      5,
+      "Ready-state imported briefing content should cap at 5 bullets without a reminder",
+    );
+    assert.ok(!p.includes("- REQ-006: Six"), "Sixth bullet should be trimmed");
+  });
+
+  test("completion reminder trims ready-state imported briefing bullets to four", () => {
+    const p = buildRiskyPrompt({
+      completionReminder: true,
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: [
+          "- REQ-001: One",
+          "- REQ-002: Two",
+          "- REQ-003: Three",
+          "- REQ-004: Four",
+          "- REQ-005: Five",
+          "- REQ-006: Six",
+        ].join("\n"),
+      }),
+    });
+
+    const importedBullets = p
+      .split("\n")
+      .filter((line) => line.startsWith("- REQ-"));
+    const allBullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+
+    assert.equal(
+      importedBullets.length,
+      4,
+      "Ready-state imported briefing content should cap at 4 bullets when reminder is enabled",
+    );
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should still append the completion reminder",
+    );
+    assert.equal(
+      allBullets.length,
+      5,
+      "Imported bullets plus reminder should stay within the 5-bullet cap",
+    );
+    assert.ok(!p.includes("- REQ-005: Five"), "Fifth imported bullet should be trimmed");
+  });
+
+  test("ready-state auto-brief stays inside a single contextual block", () => {
+    const p = buildRiskyPrompt({
+      completionReminder: true,
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
+      }),
+    });
+
+    const blocks = p.split(SENTINEL).filter((segment) => segment.trim().length > 0);
+    assert.equal(blocks.length, 1, "Auto-brief rendering must stay within one contextual block");
+  });
+});
+
 // ── Source-linked micro-brief contract (Task 1 TDD lock-in) ───────────
 // These tests define the contract for Task 2 implementation.
 // Expected to FAIL until runtime source-linked guidance is implemented.
@@ -1340,6 +1605,41 @@ describe("source-linked micro-brief contract", () => {
       .filter((line) => line.trimStart().startsWith("-")).length;
     assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
     assert.ok(bullets <= 5, `Expected <= 5 bullets, got ${bullets}`);
+  });
+
+  test("traceability guidance with source-linked brief and reminder stays within 5 bullets", () => {
+    const reminderText = "Run `kb_check` before completing this task.";
+    const briefKibiCue =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "traceability_candidate",
+      completionReminder: true,
+      workspaceRoot: tmpDir,
+    });
+
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+
+    assert.ok(p.includes("- Existing Kibi links:"), "Should include source-linked brief");
+    assert.ok(p.includes(briefKibiCue), "Should include /brief-kibi cue");
+    assert.ok(p.includes(reminderText), "Should include completion reminder");
+    assert.equal(
+      bullets.length,
+      5,
+      "Traceability guidance plus reminder should stay within the 5-bullet cap",
+    );
   });
 
   test("cache behavior remains intact with source-linked brief", () => {
