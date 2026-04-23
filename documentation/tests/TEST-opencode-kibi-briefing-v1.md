@@ -17,8 +17,8 @@ links:
 ---
 
 
-19#YT|> **Note**: This test doc is DEPRECATED and superseded by TEST-opencode-kibi-briefing-v2. 
-20#YT|> Historical verification for v1 cue-driven briefings remains documented below.
+> **Note**: This test doc is DEPRECATED and superseded by TEST-opencode-kibi-briefing-v2. 
+> Historical verification for v1 cue-driven briefings remains documented below.
 Automated verification for the OpenCode Kibi Briefings v1 contract includes:
 
 1. **Sanctioned Command Policy Test**: Verify that agent-facing OpenCode guidance treats `/brief-kibi` as a sanctioned start-task command.
