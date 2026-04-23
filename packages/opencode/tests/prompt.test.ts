@@ -48,12 +48,16 @@ const baseConfig: KibiConfig = {
 function makeAutoBriefResult(
   overrides: Partial<BriefingRuntimeResult> = {},
 ): BriefingRuntimeResult {
+  const state = overrides.state ?? "ready";
+  const promptBlock = overrides.promptBlock ?? "- REQ-001: Auto summary";
+
   return {
-    state: "ready",
-    promptBlock: "- REQ-001: Auto summary",
-    tldr: "Auto summary",
-    citations: [],
-    showManualCue: true,
+    state,
+    promptBlock,
+    tldr: overrides.tldr ?? "Auto summary",
+    citations: overrides.citations ?? [],
+    showManualCue:
+      overrides.showManualCue ?? !(state === "ready" && promptBlock.trim() !== ""),
     toastMessage: "Kibi brief ready — summary added to guidance.",
     ...overrides,
   };
@@ -1131,6 +1135,27 @@ describe("auto-brief prompt rendering", () => {
     );
   });
 
+  test("ready-state auto-brief honors showManualCue when deciding whether to suppress /brief-kibi", () => {
+    const briefKibiCue =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+    const p = buildRiskyPrompt({
+      autoBriefResult: makeAutoBriefResult({
+        state: "ready",
+        promptBlock: "- REQ-001: Session timeout",
+        showManualCue: true,
+      }),
+    });
+
+    assert.ok(
+      p.includes("🧠 **Kibi briefing available**"),
+      "Should still render the auto-brief header",
+    );
+    assert.ok(
+      p.includes(briefKibiCue),
+      "Should preserve /brief-kibi cue when showManualCue requests it",
+    );
+  });
+
   test("ready-state auto-brief suppresses source-linked micro-brief insertion", () => {
     writeSymbolsYamlForPrompt();
 
@@ -1580,6 +1605,41 @@ describe("source-linked micro-brief contract", () => {
       .filter((line) => line.trimStart().startsWith("-")).length;
     assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
     assert.ok(bullets <= 5, `Expected <= 5 bullets, got ${bullets}`);
+  });
+
+  test("traceability guidance with source-linked brief and reminder stays within 5 bullets", () => {
+    const reminderText = "Run `kb_check` before completing this task.";
+    const briefKibiCue =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "traceability_candidate",
+      completionReminder: true,
+      workspaceRoot: tmpDir,
+    });
+
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+
+    assert.ok(p.includes("- Existing Kibi links:"), "Should include source-linked brief");
+    assert.ok(p.includes(briefKibiCue), "Should include /brief-kibi cue");
+    assert.ok(p.includes(reminderText), "Should include completion reminder");
+    assert.equal(
+      bullets.length,
+      5,
+      "Traceability guidance plus reminder should stay within the 5-bullet cap",
+    );
   });
 
   test("cache behavior remains intact with source-linked brief", () => {

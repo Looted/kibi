@@ -51,12 +51,14 @@ export function hasLegacyToast(
 export function sendToast(
   client: ToastCapableClient,
   payload: ToastPayload,
-): void | Promise<void> {
+): Promise<void> {
   if (hasShowToast(client)) {
-    return client.tui.showToast({ body: payload });
+    return Promise.resolve(client.tui.showToast({ body: payload }));
   }
 
   if (hasLegacyToast(client)) {
-    return client.tui.toast(payload);
+    return Promise.resolve(client.tui.toast(payload));
   }
+
+  return Promise.resolve();
 }

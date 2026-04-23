@@ -30,7 +30,6 @@ export interface BriefIntentResult {
   fingerprint: string;
   sourceFiles: string[];
   seedIds: string[];
-  keepManualCue: boolean;
 }
 
 export interface BriefIntentInputs {
@@ -79,7 +78,6 @@ export function deriveBriefIntent(
       fingerprint,
       sourceFiles,
       seedIds,
-      keepManualCue: true,
     };
   }
 
@@ -90,7 +88,6 @@ export function deriveBriefIntent(
       fingerprint,
       sourceFiles,
       seedIds,
-      keepManualCue: true,
     };
   }
 
@@ -101,7 +98,6 @@ export function deriveBriefIntent(
       fingerprint,
       sourceFiles,
       seedIds,
-      keepManualCue: true,
     };
   }
 
@@ -112,7 +108,6 @@ export function deriveBriefIntent(
       fingerprint,
       sourceFiles,
       seedIds,
-      keepManualCue: true,
     };
   }
 
@@ -122,7 +117,6 @@ export function deriveBriefIntent(
     fingerprint,
     sourceFiles,
     seedIds,
-    keepManualCue: true,
   };
 }
 
