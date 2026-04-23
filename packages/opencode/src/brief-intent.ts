@@ -1,5 +1,6 @@
 // implements REQ-opencode-kibi-briefing-v2, REQ-opencode-smart-enforcement-v1
 
+import * as path from "node:path";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
@@ -55,9 +56,13 @@ function deriveSeedIds(params: BriefIntentParams): string[] {
     return params.seedIds.slice(0, 3);
   }
 
+  const absoluteEditedPath = path.isAbsolute(params.editedFilePath)
+    ? params.editedFilePath
+    : path.join(params.workspaceRoot, params.editedFilePath);
+
   return getSourceLinkedRequirementIds(
     params.workspaceRoot,
-    params.editedFilePath,
+    absoluteEditedPath,
   ).slice(0, 3);
 }
 
