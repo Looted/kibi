@@ -34,15 +34,13 @@ links:
 **THEN** it must NOT inject speculative content into the prompt
 **AND** it must show a toast: `"Kibi brief unavailable — keeping /brief-kibi manual path."`
 **AND** the manual discovery cue for `/brief-kibi` must be preserved in prompt guidance.
-37#RB|
-38#BR|**Scenario: Verification via MCP tool — manual check of context fingerprint via `kb_briefing_generate`**
-39#MS|
-40#ZJ|**GIVEN** an agent is in an OpenCode session and receives a Kibi-briefing-enabled prompt
-41#XZ|**WHEN** the agent needs to verify the current context fingerprint or force a briefing refresh
-42#VS|**THEN** the agent must use the `kb_briefing_generate` MCP tool instead of any direct CLI commands.
-43#ZP|**AND** the tool must return the current context fingerprint and any available briefing content.
-44#TW|
-45#NN|**Scenario: TLdr fallback — empty promptBlock but non-empty tldr, fallback block shown**
+
+**Scenario: Verification via MCP tool — manual check of context fingerprint via `kb_briefing_generate`**
+
+**GIVEN** an agent is in an OpenCode session and receives a Kibi-briefing-enabled prompt
+**WHEN** the agent needs to verify the current context fingerprint or force a briefing refresh
+**THEN** the agent must use the `kb_briefing_generate` MCP tool instead of any direct CLI commands.
+**AND** the tool must return the current context fingerprint and any available briefing content.
 
 **Scenario: TLdr fallback — empty promptBlock but non-empty tldr, fallback block shown**
 
