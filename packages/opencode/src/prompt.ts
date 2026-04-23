@@ -1,5 +1,6 @@
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
+import type { BriefingRuntimeResult } from "./briefing-runtime.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
@@ -92,6 +93,8 @@ export interface PromptContext {
   degradedMode?: "warn-once" | "structured-only";
   /** Whether to show the degraded advisory block this invocation */
   showDegradedAdvisory?: boolean;
+  /** Stored auto-brief runtime result for the current fingerprint */
+  autoBriefResult?: BriefingRuntimeResult;
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────

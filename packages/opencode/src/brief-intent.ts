@@ -33,6 +33,16 @@ export interface BriefIntentResult {
   keepManualCue: boolean;
 }
 
+export interface BriefIntentInputs {
+  riskClass: RiskClass;
+  posture: RepoPosture;
+  maintenanceDegraded: boolean;
+  worktreeRoot: string;
+  branch: string;
+  editedFile: string | undefined;
+  seedIds?: string[];
+}
+
 function hasEditedFilePath(editedFilePath: string | undefined): editedFilePath is string {
   return typeof editedFilePath === "string" && editedFilePath.length > 0;
 }
@@ -114,4 +124,18 @@ export function deriveBriefIntent(
     seedIds,
     keepManualCue: true,
   };
+}
+
+export function computeBriefIntent( // implements REQ-opencode-kibi-briefing-v2
+  inputs: BriefIntentInputs,
+): BriefIntentResult {
+  return deriveBriefIntent({
+    riskClass: inputs.riskClass,
+    posture: inputs.posture,
+    maintenanceDegraded: inputs.maintenanceDegraded,
+    workspaceRoot: inputs.worktreeRoot,
+    branch: inputs.branch,
+    editedFilePath: inputs.editedFile,
+    ...(inputs.seedIds !== undefined ? { seedIds: inputs.seedIds } : {}),
+  });
 }

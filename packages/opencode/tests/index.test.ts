@@ -6,16 +6,21 @@ import {
   beforeEach,
   describe,
   it,
+  mock,
+  spyOn,
 } from "bun:test";
 import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
+import * as briefingRuntimeModule from "../src/briefing-runtime";
 import * as logger from "../src/logger";
+import * as promptModule from "../src/prompt";
 import type { PluginInput } from "../src/index";
 import { runPluginStartup } from "../src/plugin-startup";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
+import type { BriefingRuntimeResult } from "../src/briefing-runtime";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -60,6 +65,8 @@ describe.serial("index kibiOpencodePlugin", () => {
     resetSessionTracker();
     logger.resetClient();
     startupNotifyGlobals.__kibi_test_schedule_startup_notify = undefined;
+    mock.restore();
+    mock.clearAllMocks();
   });
 
   describe("plugin setup and config disabled", () => {
@@ -3145,6 +3152,495 @@ import datetime
         0,
         "Should NOT log smart_enforcement_completion_reminder for safe_docs_only",
       );
+    });
+  });
+
+  describe("auto brief event integration", () => {
+    const READY_TOAST = "Kibi brief ready — summary added to guidance.";
+    let freshPluginCounter = 0;
+
+    type AutoBriefPromptPart = {
+      type: "text";
+      text: string;
+    };
+
+    type AutoBriefSessionCreateParams = {
+      directory?: string;
+      title?: string;
+    };
+
+    type AutoBriefSessionPromptParams = {
+      sessionID: string;
+      tools?: Record<string, boolean>;
+      format?: Record<string, unknown>;
+      parts?: AutoBriefPromptPart[];
+    };
+
+    type AutoBriefClient = NonNullable<PluginInput["client"]> & {
+      session: {
+        create: (params?: AutoBriefSessionCreateParams) => Promise<unknown>;
+        prompt: (params: AutoBriefSessionPromptParams) => Promise<unknown>;
+      };
+      tui: {
+        showToast: (payload: unknown) => Promise<unknown>;
+      };
+    };
+
+    function setupAuthoritativeWorkspace(workspaceDir: string): void {
+      const kbDir = path.join(workspaceDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            paths: {
+              requirements: "documentation/requirements/**/*.md",
+              scenarios: "documentation/scenarios/**/*.md",
+              tests: "documentation/tests/**/*.md",
+              adr: "documentation/adr/**/*.md",
+              flags: "documentation/flags/**/*.md",
+              events: "documentation/events/**/*.md",
+              facts: "documentation/facts/**/*.md",
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(workspaceDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(path.join(workspaceDir, "documentation", "symbols.yaml"), "[]");
+    }
+
+    function writePluginConfig(workspaceDir: string, config: Record<string, unknown>): void {
+      const opencodeDir = path.join(workspaceDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(path.join(opencodeDir, "kibi.json"), JSON.stringify(config, null, 2));
+    }
+
+    function installNoopScheduler(workspaceDir: string): void {
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<string, (...args: unknown[]) => unknown>;
+      };
+      const schedulerFactory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??= new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        workspaceDir,
+        schedulerFactory,
+      );
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
+    }
+
+    function makeReadyPromptResponse(
+      overrides: Partial<{
+        briefingState: string;
+        tldr: string;
+        promptBlock: string;
+        citations: Array<Record<string, string>>;
+      }> = {},
+    ): unknown {
+      return {
+        data: {
+          info: {
+            id: "message-1",
+            role: "assistant",
+          },
+          parts: [
+            {
+              type: "text",
+              text: JSON.stringify({
+                briefingState: "ready",
+                tldr: "Requirement context is ready.",
+                promptBlock: "- REQ-001: Honor the linked invariant.",
+                citations: [
+                  {
+                    id: "REQ-001",
+                    type: "req",
+                    title: "Linked requirement",
+                  },
+                ],
+                ...overrides,
+              }),
+            },
+          ],
+        },
+      };
+    }
+
+    function createAutoBriefClient(options: { promptResults?: unknown[] } = {}) {
+      const createCalls: AutoBriefSessionCreateParams[] = [];
+      const promptCalls: AutoBriefSessionPromptParams[] = [];
+      const showToastCalls: unknown[] = [];
+      const logCalls: Record<string, unknown>[] = [];
+      let promptCallIndex = 0;
+
+      const client: AutoBriefClient = {
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            logCalls.push(payload);
+          },
+        },
+        session: {
+          create: async (params?: AutoBriefSessionCreateParams) => {
+            createCalls.push(params ?? {});
+            return {
+              data: {
+                id: "session-1",
+              },
+            };
+          },
+          prompt: async (params: AutoBriefSessionPromptParams) => {
+            promptCalls.push(params);
+            const result =
+              options.promptResults?.[promptCallIndex] ??
+              options.promptResults?.[options.promptResults.length - 1] ??
+              makeReadyPromptResponse();
+            promptCallIndex += 1;
+            return result;
+          },
+        },
+        tui: {
+          showToast: async (payload: unknown) => {
+            showToastCalls.push(payload);
+            return true;
+          },
+        },
+      };
+
+      return {
+        client,
+        createCalls,
+        promptCalls,
+        showToastCalls,
+        logCalls,
+      };
+    }
+
+    async function waitForCondition(
+      predicate: () => boolean,
+      attempts = 25,
+    ): Promise<void> {
+      for (let attempt = 0; attempt < attempts; attempt += 1) {
+        if (predicate()) {
+          return;
+        }
+        await Promise.resolve();
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+
+      assert.fail("Timed out waiting for auto-brief async work");
+    }
+
+    async function loadFreshPlugin() {
+      freshPluginCounter += 1;
+      const mod = await import(`../src/index.ts?auto-brief=${freshPluginCounter}`);
+      return mod.default;
+    }
+
+    it("triggers fetchBriefingResult for authoritative risky edits and sends a toast", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, showToastCalls } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin({
+        ...makeInput({ client }),
+        workspace: "workspace://demo",
+      } as PluginInput & { workspace: string });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      await waitForCondition(
+        () => fetchSpy.mock.calls.length === 1 && showToastCalls.length === 1,
+      );
+
+      assert.equal(fetchSpy.mock.calls.length, 1);
+      assert.equal(fetchSpy.mock.calls[0]?.[0], client);
+      assert.equal(
+        (fetchSpy.mock.calls[0]?.[1] as { workspaceRoot: string }).workspaceRoot,
+        tmpDir,
+      );
+      assert.equal(
+        (fetchSpy.mock.calls[0]?.[1] as { directory?: string }).directory,
+        tmpDir,
+      );
+      assert.equal(
+        (fetchSpy.mock.calls[0]?.[1] as { workspace?: string }).workspace,
+        "workspace://demo",
+      );
+      assert.equal(
+        (fetchSpy.mock.calls[0]?.[2] as { eligible: boolean }).eligible,
+        true,
+      );
+      assert.deepEqual(
+        (fetchSpy.mock.calls[0]?.[2] as { sourceFiles: string[] }).sourceFiles,
+        ["src/feature.ts"],
+      );
+      assert.equal(
+        (fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }).fingerprint.endsWith(
+          "\0behavior_candidate",
+        ),
+        true,
+      );
+      assert.deepEqual(showToastCalls[0], {
+        body: {
+          message: READY_TOAST,
+        },
+      });
+    });
+
+    it("reuses briefing-runtime cache for same-fingerprint repeated edits before guidance cache records", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, createCalls, promptCalls } = createAutoBriefClient();
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => promptCalls.length === 1);
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => createCalls.length === 1 && promptCalls.length === 1);
+
+      assert.equal(createCalls.length, 1);
+      assert.equal(promptCalls.length, 1);
+    });
+
+    it("does not call fetchBriefingResult for non-eligible or degraded contexts", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const { client: safeDocsClient } = createAutoBriefClient();
+      installNoopScheduler(tmpDir);
+      const safeDocsPlugin = await loadFreshPlugin();
+      const safeDocsHooks = await safeDocsPlugin(makeInput({ client: safeDocsClient }));
+      assert.ok(safeDocsHooks.event);
+      fs.writeFileSync(path.join(tmpDir, "README.md"), "# Safe docs\n");
+
+      const safeDocsEventHook = safeDocsHooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      await safeDocsEventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "README.md" },
+        },
+      });
+      await Promise.resolve();
+
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: false },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "degraded.ts"),
+        "export function degraded() { return 1; } // implements REQ-001\n",
+      );
+      const { client: degradedClient } = createAutoBriefClient();
+      const degradedPlugin = await loadFreshPlugin();
+      const degradedHooks = await degradedPlugin(makeInput({ client: degradedClient }));
+      assert.ok(degradedHooks.event);
+
+      const degradedEventHook = degradedHooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      await degradedEventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/degraded.ts" },
+        },
+      });
+      await Promise.resolve();
+
+      assert.equal(fetchSpy.mock.calls.length, 0);
+    });
+
+    it("passes the stored autoBriefResult to buildPrompt from the transform hook", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const expectedAutoBriefResult: BriefingRuntimeResult = {
+        state: "ready",
+        promptBlock: "- REQ-001: Honor the linked invariant.",
+        tldr: "Requirement context is ready.",
+        citations: [
+          {
+            id: "REQ-001",
+            type: "req",
+            title: "Linked requirement",
+          },
+        ],
+        showManualCue: false,
+        toastMessage: READY_TOAST,
+      };
+      const { client, promptCalls } = createAutoBriefClient({
+        promptResults: [
+          makeReadyPromptResponse({
+            tldr: expectedAutoBriefResult.tldr,
+            promptBlock: expectedAutoBriefResult.promptBlock,
+            citations: expectedAutoBriefResult.citations.map((citation) => ({
+              id: citation.id,
+              type: citation.type ?? "",
+              title: citation.title ?? "",
+            })),
+          }),
+        ],
+      });
+      const buildPromptSpy = spyOn(promptModule, "buildPrompt");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => promptCalls.length === 1);
+
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: unknown,
+        output: { system: string[] },
+      ) => Promise<void>;
+      await transformHook({}, { system: ["prompt"] });
+
+      assert.ok(buildPromptSpy.mock.calls.length >= 1);
+      const buildPromptContext = buildPromptSpy.mock.calls.at(-1)?.[0] as {
+        autoBriefResult?: BriefingRuntimeResult;
+      };
+      assert.deepEqual(buildPromptContext.autoBriefResult, expectedAutoBriefResult);
     });
   });
 
