@@ -3437,6 +3437,292 @@ import datetime
       });
     });
 
+    it("sends exactly one toast for repeated same-fingerprint edit events", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const expectedAutoBriefResult: BriefingRuntimeResult = {
+        state: "ready",
+        promptBlock: "- REQ-001: Honor the linked invariant.",
+        tldr: "Requirement context is ready.",
+        citations: [],
+        showManualCue: false,
+        toastMessage: READY_TOAST,
+      };
+      const { client, showToastCalls } = createAutoBriefClient();
+      let resolveBriefing: ((result: BriefingRuntimeResult) => void) | undefined;
+      const briefingGate = new Promise<BriefingRuntimeResult>((resolve) => {
+        resolveBriefing = resolve;
+      });
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult").mockImplementation(
+        () => briefingGate,
+      );
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => fetchSpy.mock.calls.length === 2);
+
+      resolveBriefing?.(expectedAutoBriefResult);
+      await waitForCondition(() => showToastCalls.length > 0);
+      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      assert.equal(fetchSpy.mock.calls.length, 2);
+      assert.equal(showToastCalls.length, 1);
+      assert.deepEqual(showToastCalls[0], {
+        body: {
+          message: READY_TOAST,
+        },
+      });
+    });
+
+    it("renders ready auto-brief guidance without the inline /brief-kibi cue", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+        promptResults: [
+          makeReadyPromptResponse({
+            tldr: "Requirement context is ready.",
+            promptBlock: "- REQ-001: Honor the linked invariant.\n- SCEN-001: Preserve the canonical flow.",
+            citations: [
+              {
+                id: "REQ-001",
+                type: "req",
+                title: "Linked requirement",
+              },
+            ],
+          }),
+        ],
+      });
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: unknown,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      const output = { system: ["prompt"] };
+      await transformHook({}, output);
+
+      const rendered = output.system.at(-1) ?? "";
+      assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
+      assert.ok(rendered.includes("- REQ-001: Honor the linked invariant."));
+      assert.ok(!rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+    });
+
+    it("renders tldr fallback guidance with the manual /brief-kibi path preserved", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+        promptResults: [
+          makeReadyPromptResponse({
+            tldr: "Some summary here",
+            promptBlock: "",
+            citations: [
+              {
+                id: "REQ-001",
+                type: "req",
+                title: "Linked requirement",
+              },
+            ],
+          }),
+        ],
+      });
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: unknown,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      const renderedOutput = { system: ["prompt"] };
+      await transformHook({}, renderedOutput);
+
+      const rendered = renderedOutput.system.at(-1) ?? "";
+      assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
+      assert.ok(rendered.includes("Some summary here"));
+      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(rendered.includes("Full details: run /brief-kibi."));
+    });
+
+    it("does not surface fabricated auto-brief content when runtime reports no_briefing", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+        promptResults: [
+          makeReadyPromptResponse({
+            briefingState: "no_briefing",
+            tldr: "This text must not be surfaced.",
+            promptBlock: "- fabricated",
+            citations: [
+              {
+                id: "REQ-001",
+                type: "req",
+                title: "Linked requirement",
+              },
+            ],
+          }),
+        ],
+      });
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: { file: string } };
+      }) => Promise<void>;
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: unknown,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      const renderedOutput = { system: ["prompt"] };
+      await transformHook({}, renderedOutput);
+
+      const rendered = renderedOutput.system.at(-1) ?? "";
+      assert.ok(rendered.includes("📝 **Code changes detected**"));
+      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(!rendered.includes("🧠 **Kibi briefing available**"));
+      assert.ok(!rendered.includes("This text must not be surfaced."));
+      assert.ok(!rendered.includes("- fabricated"));
+    });
+
     it("reuses briefing-runtime cache for same-fingerprint repeated edits before guidance cache records", async () => {
       setupAuthoritativeWorkspace(tmpDir);
       installNoopScheduler(tmpDir);
