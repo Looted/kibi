@@ -176,10 +176,10 @@ const entities: EntityDef[] = [
     type: "adr",
     id: "ADR-002",
     properties: {
-      title: "Use Bun/Node.js as CLI wrapper around SWI-Prolog subprocess",
+      title: "Public API exports via re-export modules",
       status: "accepted",
-      source: "scripts/populate-kb.ts",
-      tags: ["cli", "bun", "nodejs"],
+      source: "documentation/adr/ADR-002.md",
+      tags: ["architecture", "publishing", "exports"],
     },
   },
   {
@@ -242,7 +242,7 @@ const entities: EntityDef[] = [
     properties: {
       title:
         "vscode-full-features: full VS Code extension with graph visualization",
-      status: "inactive",
+      status: "active",
       source: "documentation/flags/FLAG-001.md",
       tags: ["vscode", "deferred", "post-v0"],
     },
@@ -346,10 +346,10 @@ const entities: EntityDef[] = [
     type: "scenario",
     id: "SCEN-001",
     properties: {
-      title: "Agent queries requirements from KB via MCP kb_query tool",
-      status: "passing",
-      source: "scripts/populate-kb.ts",
-      tags: ["mcp", "query", "agent"],
+      title: "Critical Feature Scenario",
+      status: "active",
+      source: "documentation/scenarios/SCEN-001.md",
+      tags: ["critical"],
     },
   },
   {
