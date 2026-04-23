@@ -3,7 +3,7 @@ id: TEST-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefings v2 Verification"
 status: pending
 created_at: 2026-04-23T00:00:00Z
-updated_at: 2026-04-23T00:00:00Z
+updated_at: 2026-04-23T14:52:50Z
 source: documentation/tests/TEST-opencode-kibi-briefing-v2.md
 priority: must
 tags:
@@ -14,7 +14,7 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-kibi-briefing-v2
-  - type: supersedes
+  - type: relates_to
     target: TEST-opencode-kibi-briefing-v1
 ---
 

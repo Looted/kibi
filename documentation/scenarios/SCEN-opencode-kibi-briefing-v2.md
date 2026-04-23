@@ -3,7 +3,7 @@ id: SCEN-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefing v2: Auto-Show and Fallback Behaviors"
 status: draft
 created_at: 2026-04-23T00:00:00Z
-updated_at: 2026-04-23T00:00:00Z
+updated_at: 2026-04-23T14:52:50Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v2.md
 tags:
   - scenario
@@ -13,7 +13,7 @@ tags:
 links:
   - type: relates_to
     target: REQ-opencode-kibi-briefing-v2
-  - type: supersedes
+  - type: relates_to
     target: SCEN-opencode-kibi-briefing-v1
 ---
 
