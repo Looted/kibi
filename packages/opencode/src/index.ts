@@ -1,4 +1,10 @@
 import * as path from "node:path";
+import { computeBriefIntent } from "./brief-intent.js";
+import {
+  fetchBriefingResult,
+  type BriefingRuntimeResult,
+  type BriefingWorkspaceCtx,
+} from "./briefing-runtime.js";
 import {
   type CommentAnalysisResult,
   analyzeCodeFile,
@@ -13,6 +19,7 @@ import { type RiskClass, classifyRisk } from "./risk-classifier.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { notifyStartup } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
+import { sendToast } from "./toast.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -31,6 +38,7 @@ function deriveFileBucket(kind: PathKind): string {
 export interface PluginInput {
   worktree: string;
   directory: string;
+  workspace?: string;
   project?: unknown;
   serverUrl?: unknown;
   $?: unknown;
@@ -156,7 +164,9 @@ const kibiOpencodePlugin: Plugin = async (
   let hasRecentKbEdit = false;
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
+  const autoBriefResults = new Map<string, BriefingRuntimeResult>();
   let lastRiskClass: RiskClass | null = null;
+  let lastEditedFilePath: string | null = null;
   let degradedWarnedOnce = false;
 
   hooks.event = async ({ event }) => {
@@ -206,6 +216,7 @@ const kibiOpencodePlugin: Plugin = async (
         ? "traceability_candidate"
         : riskClass;
     lastRiskClass = effectiveRiskClass;
+    lastEditedFilePath = filePath;
 
     logger.info("smart-enforcement.risk", {
       event: "smart_enforcement_risk",
@@ -495,6 +506,36 @@ const kibiOpencodePlugin: Plugin = async (
       } else {
         recentCommentSuggestion = null;
       }
+
+      const intentResult = computeBriefIntent({
+        riskClass: effectiveRiskClass,
+        posture: posture.state,
+        maintenanceDegraded: getMaintenanceDegraded(),
+        editedFile: filePath,
+        worktreeRoot: input.worktree,
+        branch: currentBranch,
+      });
+
+      if (
+        intentResult.eligible &&
+        input.client &&
+        !getMaintenanceDegraded() &&
+        (posture.state === "root_active" ||
+          posture.state === "hybrid_root_plus_vendored")
+      ) {
+        const client = input.client;
+        const workspaceCtx: BriefingWorkspaceCtx = {
+          workspaceRoot: input.worktree,
+          branch: currentBranch,
+          directory: input.directory,
+          ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
+        };
+
+        void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
+          autoBriefResults.set(intentResult.fingerprint, result);
+          void sendToast(client, { message: result.toastMessage });
+        });
+      }
     }
 
     return;
@@ -515,6 +556,22 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded &&
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
+        const autoBriefResult = (() => {
+          if (lastRiskClass == null || lastEditedFilePath == null) {
+            return undefined;
+          }
+
+          const intentResult = computeBriefIntent({
+            riskClass: lastRiskClass,
+            posture: posture.state,
+            maintenanceDegraded,
+            editedFile: lastEditedFilePath,
+            worktreeRoot: input.worktree,
+            branch: currentBranch,
+          });
+
+          return autoBriefResults.get(intentResult.fingerprint);
+        })();
 
         // Build only the guidance block and append it; existing entries are preserved
         const guidance = buildPrompt({
@@ -530,6 +587,7 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
+          ...(autoBriefResult !== undefined ? { autoBriefResult } : {}),
           ...(lastRiskClass != null ? { riskClass: lastRiskClass } : {}),
         });
 
