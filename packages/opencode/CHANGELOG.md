@@ -1,5 +1,15 @@
 # kibi-opencode
 
+## 0.9.0
+
+### Minor Changes
+
+- 2bd0804: Kibi can now generate citation-backed start-task briefings through MCP with `kb_briefing_generate`, making it easier for agents to begin risky work from source-linked project context.
+
+  OpenCode now surfaces that workflow through `/brief-kibi`, so teams can trigger the same Kibi briefing path directly from the editor before acting.
+
+- f9258c6: OpenCode now auto-fetches Kibi briefings from the event path when authoritative risky edits are detected. Ready-state briefings appear in a toast notification and inside the agent guidance block (headed `🧠 **Kibi briefing available**`). The `/brief-kibi` manual command remains available as a fallback.
+
 ## 0.8.0
 
 ### Minor Changes
