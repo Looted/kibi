@@ -22,7 +22,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 588
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:27.653Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:36.676Z'
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -40,7 +40,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 247
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:27.871Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:36.968Z'
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -55,7 +55,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 97
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:27.882Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:36.972Z'
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -73,7 +73,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 216
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:28.052Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.118Z'
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -91,7 +91,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 967
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:28.333Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.345Z'
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -106,7 +106,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 197
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:28.460Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.434Z'
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -121,7 +121,7 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 57
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.067Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.808Z'
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -139,7 +139,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 967
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.073Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.814Z'
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -156,7 +156,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 106
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.076Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.816Z'
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -192,7 +192,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 91
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.077Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.817Z'
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -209,7 +209,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 338
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.263Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.950Z'
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -224,7 +224,7 @@ symbols:
     sourceColumn: 10
     sourceEndLine: 214
     sourceEndColumn: 3
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.266Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.951Z'
   - id: SYM-parseSymbolsManifest
     title: parseSymbolsManifest
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -241,7 +241,7 @@ symbols:
     sourceColumn: 9
     sourceEndLine: 197
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.266Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:37.952Z'
   - id: SYM-getKbExistenceTargets
     title: getKbExistenceTargets
     sourceFile: packages/opencode/src/file-filter.ts
@@ -256,7 +256,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 102
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.453Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.071Z'
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
@@ -271,7 +271,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 96
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.604Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.206Z'
   - id: SYM-detectPosture
     title: detectPosture
     sourceFile: packages/opencode/src/repo-posture.ts
@@ -289,7 +289,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 241
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.607Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.210Z'
   - id: SYM-classifyRisk
     title: classifyRisk
     sourceFile: packages/opencode/src/risk-classifier.ts
@@ -307,7 +307,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 175
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.749Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.326Z'
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
@@ -325,7 +325,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 162
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:29.885Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.439Z'
   - id: SYM-buildPrompt
     title: buildPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -344,11 +344,11 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-agent-mcp-only
-    sourceLine: 479
+    sourceLine: 551
     sourceColumn: 16
-    sourceEndLine: 484
+    sourceEndLine: 556
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:30.085Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.599Z'
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -361,7 +361,7 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 67
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:30.085Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.600Z'
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -374,7 +374,7 @@ symbols:
     sourceColumn: 13
     sourceEndLine: 28
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-23T08:34:30.086Z'
+    coordinatesGeneratedAt: '2026-04-23T14:54:38.600Z'
   - id: SYM-kb-status-json
     title: kb_status/0 (JSON)
     sourceFile: packages/core/src/status.pl
@@ -406,16 +406,12 @@ symbols:
   - id: SYM-cli-status-pre-first-sync-test
     title: cli status pre-sync test
     sourceFile: packages/cli/tests/commands/status.test.ts
-    links:
-      - TEST-cli-status-pre-first-sync
     relationships:
       - type: executable_for
         target: TEST-cli-status-pre-first-sync
   - id: SYM-mcp-cli-help-test
     title: mcp cli help test
     sourceFile: packages/mcp/tests/cli-help.test.ts
-    links:
-      - TEST-mcp-cli-help
     relationships:
       - type: executable_for
         target: TEST-mcp-cli-help
