@@ -1,256 +1,312 @@
-// TDD: These tests will FAIL first, then brief-intent.ts implementation will make them pass.
-// implements REQ-opencode-smart-enforcement-v1
+/// <reference types="bun-types" />
+// implements REQ-opencode-kibi-briefing-v2
 
-import { describe, it } from "node:test";
-import assert from "node:assert";
-import type { RepoPosture } from "../src/repo-posture.js";
-import type { RiskClass } from "../src/risk-classifier.js";
-import {
-  computeBriefIntent,
-  type BriefIntentInputs,
-  type BriefIntentResult,
-} from "../src/brief-intent.js";
+import { afterEach, beforeEach, describe, test } from "bun:test";
+import { strict as assert } from "node:assert";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import type { RepoPosture } from "../src/repo-posture";
+import type { RiskClass } from "../src/risk-classifier";
 
-// Helper to create inputs with required defaults
-function makeInputs(overrides: Partial<BriefIntentInputs> = {}): BriefIntentInputs {
+type BriefIntentParams = {
+  riskClass: RiskClass;
+  posture: RepoPosture;
+  maintenanceDegraded: boolean;
+  workspaceRoot: string;
+  branch: string;
+  editedFilePath: string | undefined;
+  seedIds?: string[];
+};
+
+type BriefIntentResult = {
+  eligible: boolean;
+  reason: string;
+  fingerprint: string;
+  sourceFiles: string[];
+  seedIds: string[];
+  keepManualCue: boolean;
+};
+
+type BriefIntentModule = {
+  deriveBriefIntent?: (params: BriefIntentParams) => BriefIntentResult;
+};
+
+function makeParams(overrides: Partial<BriefIntentParams> = {}): BriefIntentParams {
   return {
-    workspaceRoot: "/test-workspace",
-    branch: "main",
-    editedFilePath: "src/foo.ts",
-    posture: "root_active",
     riskClass: "behavior_candidate",
+    posture: "root_active",
     maintenanceDegraded: false,
-    getSourceLinkedRequirementIds: () => [],
+    workspaceRoot: "/workspace",
+    branch: "feature/task-3",
+    editedFilePath: "/workspace/src/foo.ts",
     ...overrides,
   };
 }
 
-// Test: behavior_candidate + authoritative posture -> eligible=true with seedIds
-describe("brief-intent: behavior_candidate with authoritative posture", () => {
-  it("returns eligible=true and populates seedIds when source-linked IDs exist", () => {
-    const inputs = makeInputs({
-      getSourceLinkedRequirementIds: () => ["REQ-001", "REQ-002"],
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, true, "Should be eligible for authoritative risky code");
-    assert.deepStrictEqual(result.seedIds, ["REQ-001", "REQ-002"], "Should include source-linked IDs");
-    assert.strictEqual(result.keepManualCue, true, "Should keep manual cue by default");
-  });
-});
+async function loadModule(): Promise<BriefIntentModule> {
+  try {
+    return (await import("../src/brief-intent.js")) as unknown as BriefIntentModule;
+  } catch {
+    return {};
+  }
+}
 
-// Test: traceability_candidate + authoritative posture -> eligible=true
-describe("brief-intent: traceability_candidate with authoritative posture", () => {
-  it("returns eligible=true for traceability_candidate", () => {
-    const inputs = makeInputs({
+async function derive(
+  overrides: Partial<BriefIntentParams> = {},
+): Promise<BriefIntentResult> {
+  const mod = await loadModule();
+  const deriveBriefIntent = mod.deriveBriefIntent;
+  assert.equal(
+    typeof deriveBriefIntent,
+    "function",
+    "Expected brief-intent.ts to export deriveBriefIntent(params)",
+  );
+  if (typeof deriveBriefIntent !== "function") {
+    throw new Error("deriveBriefIntent export missing");
+  }
+  return deriveBriefIntent(makeParams(overrides));
+}
+
+describe("deriveBriefIntent", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-brief-intent-"));
+  });
+
+  afterEach(() => {
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
+  });
+
+  function writeSymbolsYaml(
+    entries: Array<{
+      id: string;
+      sourceFile: string;
+      links?: string[];
+      relationships?: Array<{ type: string; target: string }>;
+    }>,
+  ) {
+    const documentationDir = path.join(tmpDir, "documentation");
+    fs.mkdirSync(documentationDir, { recursive: true });
+    const yaml = entries
+      .map((entry) => {
+        let content = `  - id: ${entry.id}\n    sourceFile: ${entry.sourceFile}\n`;
+        if (entry.links?.length) {
+          content += "    links:\n";
+          for (const link of entry.links) {
+            content += `      - ${link}\n`;
+          }
+        }
+        if (entry.relationships?.length) {
+          content += "    relationships:\n";
+          for (const relationship of entry.relationships) {
+            content += `      - type: ${relationship.type}\n        target: ${relationship.target}\n`;
+          }
+        }
+        return content;
+      })
+      .join("\n");
+    fs.writeFileSync(path.join(documentationDir, "symbols.yaml"), yaml);
+  }
+
+  test("returns eligible for behavior_candidate in root_active posture", async () => {
+    const result = await derive();
+
+    assert.equal(result.eligible, true);
+    assert.equal(result.reason, "Eligible for auto-briefing");
+    assert.equal(result.keepManualCue, true);
+    assert.deepEqual(result.sourceFiles, ["/workspace/src/foo.ts"]);
+    assert.deepEqual(result.seedIds, []);
+  });
+
+  test("returns eligible for traceability_candidate in hybrid_root_plus_vendored posture", async () => {
+    const result = await derive({
+      riskClass: "traceability_candidate",
+      posture: "hybrid_root_plus_vendored",
+    });
+
+    assert.equal(result.eligible, true);
+    assert.equal(result.reason, "Eligible for auto-briefing");
+  });
+
+  test("returns ineligible for vendored_only posture", async () => {
+    const result = await derive({ posture: "vendored_only" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("posture"));
+    assert.ok(result.reason.includes("vendored_only"));
+  });
+
+  test("returns ineligible for root_partial posture", async () => {
+    const result = await derive({ posture: "root_partial" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("root_partial"));
+  });
+
+  test("returns ineligible for root_uninitialized posture", async () => {
+    const result = await derive({ posture: "root_uninitialized" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("root_uninitialized"));
+  });
+
+  test("returns ineligible when maintenance is degraded", async () => {
+    const result = await derive({ maintenanceDegraded: true });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("degraded"));
+  });
+
+  test("returns ineligible for safe_docs_only", async () => {
+    const result = await derive({ riskClass: "safe_docs_only" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("safe_docs_only"));
+  });
+
+  test("returns ineligible for safe_test_only", async () => {
+    const result = await derive({ riskClass: "safe_test_only" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("safe_test_only"));
+  });
+
+  test("returns ineligible for req_policy_candidate", async () => {
+    const result = await derive({ riskClass: "req_policy_candidate" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("req_policy_candidate"));
+  });
+
+  test("returns ineligible for kb_doc_structural", async () => {
+    const result = await derive({ riskClass: "kb_doc_structural" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("kb_doc_structural"));
+  });
+
+  test("returns ineligible for manual_kb_edit", async () => {
+    const result = await derive({ riskClass: "manual_kb_edit" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("manual_kb_edit"));
+  });
+
+  test("returns ineligible when editedFilePath is undefined", async () => {
+    const result = await derive({ editedFilePath: undefined, seedIds: ["REQ-001"] });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("edited file"));
+    assert.deepEqual(result.sourceFiles, []);
+    assert.deepEqual(result.seedIds, []);
+  });
+
+  test("returns ineligible when editedFilePath is empty", async () => {
+    const result = await derive({ editedFilePath: "" });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.includes("edited file"));
+    assert.deepEqual(result.sourceFiles, []);
+    assert.deepEqual(result.seedIds, []);
+  });
+
+  test("produces identical fingerprint for the same params twice", async () => {
+    const first = await derive({
+      workspaceRoot: "/repo",
+      branch: "feature/brief",
+      editedFilePath: "/repo/packages/opencode/src/prompt.ts",
       riskClass: "traceability_candidate",
     });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, true, "Should be eligible for traceability_candidate");
-  });
-});
-
-// Test: non-authoritative posture -> eligible=false
-describe("brief-intent: non-authoritative posture", () => {
-  it("returns ineligible for vendored_only posture", () => {
-    const inputs = makeInputs({
-      posture: "vendored_only",
+    const second = await derive({
+      workspaceRoot: "/repo",
+      branch: "feature/brief",
+      editedFilePath: "/repo/packages/opencode/src/prompt.ts",
+      riskClass: "traceability_candidate",
     });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for vendored_only");
+
+    assert.equal(first.fingerprint, second.fingerprint);
   });
 
-  it("returns ineligible for root_partial posture", () => {
-    const inputs = makeInputs({
-      posture: "root_partial",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for root_partial");
-  });
-
-  it("returns ineligible for root_uninitialized posture", () => {
-    const inputs = makeInputs({
-      posture: "root_uninitialized",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for root_uninitialized");
-  });
-});
-
-// Test: maintenance_degraded -> eligible=false
-describe("brief-intent: maintenance degraded", () => {
-  it("returns ineligible when maintenanceDegraded=true", () => {
-    const inputs = makeInputs({
-      maintenanceDegraded: true,
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible when maintenance degraded");
-  });
-});
-
-// Test: safe_docs_only -> eligible=false
-describe("brief-intent: safe_docs_only", () => {
-  it("returns ineligible for safe_docs_only", () => {
-    const inputs = makeInputs({
-      riskClass: "safe_docs_only",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for safe_docs_only");
-  });
-});
-
-// Test: safe_test_only -> eligible=false
-describe("brief-intent: safe_test_only", () => {
-  it("returns ineligible for safe_test_only", () => {
-    const inputs = makeInputs({
-      riskClass: "safe_test_only",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for safe_test_only");
-  });
-});
-
-// Test: manual_kb_edit -> eligible=false
-describe("brief-intent: manual_kb_edit", () => {
-  it("returns ineligible for manual_kb_edit", () => {
-    const inputs = makeInputs({
-      riskClass: "manual_kb_edit",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for manual_kb_edit");
-  });
-});
-
-// Test: eligible class but empty source-linked IDs and no sourceFiles -> eligible=false
-describe("brief-intent: empty source-linked IDs", () => {
-  it("returns ineligible when no sourceFiles and no seedIds", () => {
-    const inputs = makeInputs({
-      editedFilePath: "",  // Empty path means no source file
-      getSourceLinkedRequirementIds: () => [],
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible without source context");
-  });
-
-  it("returns eligible with sourceFiles even when seedIds are empty", () => {
-    const inputs = makeInputs({
-      editedFilePath: "src/foo.ts",
-      getSourceLinkedRequirementIds: () => [],
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, true, "Should be eligible with sourceFiles");
-  });
-});
-
-// Test: same-fingerprint repeated invocations produce identical results (determinism)
-describe("brief-intent: determinism", () => {
-  it("produces identical results for same inputs", () => {
-    const inputs = makeInputs({
-      workspaceRoot: "/ws",
-      branch: "feature",
-      editedFilePath: "src/bar.ts",
+  test("uses the exact fingerprint serialization pattern", async () => {
+    const result = await derive({
+      workspaceRoot: "/repo",
+      branch: "feature/brief",
+      editedFilePath: "/repo/src/feature.ts",
       riskClass: "behavior_candidate",
-      posture: "root_active",
     });
-    const result1 = computeBriefIntent(inputs);
-    const result2 = computeBriefIntent(inputs);
-    assert.strictEqual(result1.fingerprint, result2.fingerprint, "Fingerprint should be deterministic");
-    assert.strictEqual(result1.eligible, result2.eligible, "Eligibility should be deterministic");
-    assert.strictEqual(result1.reason, result2.reason, "Reason should be deterministic");
-    assert.deepStrictEqual(result1.sourceFiles, result2.sourceFiles, "sourceFiles should be deterministic");
-    assert.deepStrictEqual(result1.seedIds, result2.seedIds, "seedIds should be deterministic");
-  });
-});
 
-// Test: req_policy_candidate -> eligible=false
-describe("brief-intent: req_policy_candidate", () => {
-  it("returns ineligible for req_policy_candidate", () => {
-    const inputs = makeInputs({
-      riskClass: "req_policy_candidate",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for req_policy_candidate");
-  });
-});
-
-// Test: kb_doc_structural -> eligible=false
-describe("brief-intent: kb_doc_structural", () => {
-  it("returns ineligible for kb_doc_structural", () => {
-    const inputs = makeInputs({
-      riskClass: "kb_doc_structural",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, false, "Should NOT be eligible for kb_doc_structural");
-  });
-});
-
-// Test: fingerprint construction
-describe("brief-intent: fingerprint", () => {
-  it("includes workspaceRoot, branch, editedFilePath, and riskClass", () => {
-    const inputs = makeInputs({
-      workspaceRoot: "/my-workspace",
-      branch: "develop",
-      editedFilePath: "src/utils.ts",
-      riskClass: "traceability_candidate",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.ok(
-      result.fingerprint.includes("/my-workspace") &&
-      result.fingerprint.includes("develop") &&
-      result.fingerprint.includes("src/utils.ts") &&
-      result.fingerprint.includes("traceability_candidate"),
-      "Fingerprint should contain all key components",
+    assert.equal(
+      result.fingerprint,
+      "brief:/repo\0feature/brief\0/repo/src/feature.ts\0behavior_candidate",
     );
   });
-});
 
-// Test: sourceFiles defaults to edited file
-describe("brief-intent: sourceFiles defaults", () => {
-  it("defaults sourceFiles to edited file path", () => {
-    const inputs = makeInputs({
-      editedFilePath: "src/auth/login.ts",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.deepStrictEqual(result.sourceFiles, ["src/auth/login.ts"], "Should default to edited file");
+  test("keeps keepManualCue true even when result is ineligible", async () => {
+    const result = await derive({ posture: "vendored_only" });
+
+    assert.equal(result.keepManualCue, true);
   });
 
-  it("returns empty sourceFiles when editedFilePath is empty", () => {
-    const inputs = makeInputs({
-      editedFilePath: "",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.deepStrictEqual(result.sourceFiles, [], "Should be empty when no file");
-  });
-});
+  test("uses pre-fetched seedIds directly and truncates to three", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-foo",
+        sourceFile: "src/foo.ts",
+        relationships: [{ type: "implements", target: "REQ-from-disk" }],
+      },
+    ]);
 
-// Test: hybrid_root_plus_vendored is authoritative
-describe("brief-intent: hybrid_root_plus_vendored authoritative", () => {
-  it("returns eligible=true for hybrid_root_plus_vendored with behavior_candidate", () => {
-    const inputs = makeInputs({
-      posture: "hybrid_root_plus_vendored",
-      riskClass: "behavior_candidate",
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      editedFilePath: path.join(tmpDir, "src/foo.ts"),
+      seedIds: ["REQ-001", "REQ-002", "REQ-003", "REQ-004"],
     });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, true, "Should be eligible for hybrid_root_plus_vendored");
+
+    assert.deepEqual(result.seedIds, ["REQ-001", "REQ-002", "REQ-003"]);
   });
 
-  it("returns eligible=true for hybrid_root_plus_vendored with traceability_candidate", () => {
-    const inputs = makeInputs({
-      posture: "hybrid_root_plus_vendored",
-      riskClass: "traceability_candidate",
-    });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.eligible, true, "Should be eligible for hybrid_root_plus_vendored");
-  });
-});
+  test("derives seedIds from source-linked guidance when not pre-fetched", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-foo",
+        sourceFile: "src/foo.ts",
+        relationships: [
+          { type: "implements", target: "REQ-001" },
+          { type: "implements", target: "REQ-002" },
+          { type: "implements", target: "REQ-003" },
+          { type: "implements", target: "REQ-004" },
+        ],
+      },
+    ]);
 
-// Test: up to 3 seedIds
-describe("brief-intent: seedIds limit", () => {
-  it("includes up to 3 source-linked requirement IDs", () => {
-    const inputs = makeInputs({
-      getSourceLinkedRequirementIds: () => ["REQ-001", "REQ-002", "REQ-003", "REQ-004"],
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      editedFilePath: path.join(tmpDir, "src/foo.ts"),
     });
-    const result = computeBriefIntent(inputs);
-    assert.strictEqual(result.seedIds.length, 3, "Should limit to 3 seedIds");
-    assert.deepStrictEqual(result.seedIds, ["REQ-001", "REQ-002", "REQ-003"]);
+
+    assert.deepEqual(result.seedIds, ["REQ-001", "REQ-002", "REQ-003"]);
+  });
+
+  test("returns eligible when source-linked guidance finds no requirement IDs", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-other",
+        sourceFile: "src/other.ts",
+        relationships: [{ type: "implements", target: "REQ-999" }],
+      },
+    ]);
+
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      editedFilePath: path.join(tmpDir, "src/foo.ts"),
+    });
+
+    assert.equal(result.eligible, true);
+    assert.deepEqual(result.seedIds, []);
+    assert.deepEqual(result.sourceFiles, [path.join(tmpDir, "src/foo.ts")]);
   });
 });
