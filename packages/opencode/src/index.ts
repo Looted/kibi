@@ -168,6 +168,7 @@ const kibiOpencodePlugin: Plugin = async (
   const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
   let lastEditedFilePath: string | null = null;
+  let lastBriefFingerprint: string | null = null;
   let degradedWarnedOnce = false;
 
   hooks.event = async ({ event }) => {
@@ -519,6 +520,8 @@ const kibiOpencodePlugin: Plugin = async (
         branch: currentBranch,
       });
 
+      lastBriefFingerprint = intentResult.fingerprint;
+
       if (
         intentResult.eligible &&
         input.client &&
@@ -565,22 +568,9 @@ const kibiOpencodePlugin: Plugin = async (
           maintenanceDegraded &&
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
-        const autoBriefResult = (() => {
-          if (lastRiskClass == null || lastEditedFilePath == null) {
-            return undefined;
-          }
-
-          const intentResult = computeBriefIntent({
-            riskClass: lastRiskClass,
-            posture: posture.state,
-            maintenanceDegraded,
-            editedFile: lastEditedFilePath,
-            worktreeRoot: input.worktree,
-            branch: currentBranch,
-          });
-
-          return autoBriefResults.get(intentResult.fingerprint);
-        })();
+        const autoBriefResult = lastBriefFingerprint != null
+          ? autoBriefResults.get(lastBriefFingerprint)
+          : undefined;
 
         // Build only the guidance block and append it; existing entries are preserved
         const guidance = buildPrompt({
