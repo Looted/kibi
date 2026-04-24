@@ -130,6 +130,64 @@ describe("init-helpers", () => {
     expect(content).toContain("node_modules/");
     expect(content).toContain(".kb/");
   });
+  test("copySchemaFiles includes sourceFile in copied schema", async () => {
+    const sourceDir = path.join(tmpDir, "source");
+    mkdirSync(sourceDir);
+    // Create a minimal entities.pl with sourceFile
+    writeFileSync(
+      path.join(sourceDir, "entities.pl"),
+      "entity_property(_, sourceFile, uri).\n",
+    );
+
+    const kbDir = path.join(tmpDir, ".kb");
+    mkdirSync(kbDir);
+    mkdirSync(path.join(kbDir, "schema"));
+
+    await copySchemaFiles(kbDir, sourceDir);
+
+    const copied = readFileSync(path.join(kbDir, "schema/entities.pl"), "utf8");
+    expect(copied).toContain("sourceFile");
+  });
+
+  test("copySchemaFiles includes executable_for in copied schema", async () => {
+    const sourceDir = path.join(tmpDir, "source");
+    mkdirSync(sourceDir);
+    // Create a minimal relationships.pl with executable_for
+    writeFileSync(
+      path.join(sourceDir, "relationships.pl"),
+      "relationship_type(executable_for).\nvalid_relationship(executable_for, symbol, test).\n",
+    );
+
+    const kbDir = path.join(tmpDir, ".kb");
+    mkdirSync(kbDir);
+    mkdirSync(path.join(kbDir, "schema"));
+
+    await copySchemaFiles(kbDir, sourceDir);
+
+    const copied = readFileSync(path.join(kbDir, "schema/relationships.pl"), "utf8");
+    expect(copied).toContain("executable_for");
+  });
+
+  test("CLI schema files contain required entries (sourceFile, executable_for)", () => {
+    // These files are copied during kibi init and kibi sync
+    const cliEntitiesPath = path.join(__dirname, "..", "..", "schema", "entities.pl");
+    const cliRelationshipsPath = path.join(__dirname, "..", "..", "schema", "relationships.pl");
+
+    const entitiesContent = readFileSync(cliEntitiesPath, "utf8");
+    const relationshipsContent = readFileSync(cliRelationshipsPath, "utf8");
+
+    // entities.pl must contain sourceFile property
+    expect(entitiesContent).toContain("sourceFile");
+
+    // relationships.pl must contain executable_for relationship type
+    expect(relationshipsContent).toContain("executable_for");
+
+    // relationships.pl must have verified_by from scenario to test
+    expect(relationshipsContent).toContain("verified_by, scenario, test");
+
+    // relationships.pl must have validates from test to scenario
+    expect(relationshipsContent).toContain("validates, test, scenario");
+  });
 
   test("copySchemaFiles copies .pl files", async () => {
     const sourceDir = path.join(tmpDir, "source");

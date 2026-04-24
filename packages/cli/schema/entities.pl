@@ -20,6 +20,7 @@ entity_property(_, status, atom).
 entity_property(_, created_at, datetime).
 entity_property(_, updated_at, datetime).
 entity_property(_, source, uri).
+entity_property(_, sourceFile, uri).
 
 % Optional properties
 entity_property(_, tags, list).
