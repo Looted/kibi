@@ -1161,6 +1161,7 @@ describe("auto-brief prompt rendering", () => {
 
     const p = buildRiskyPrompt({
       workspaceRoot: tmpDir,
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
       autoBriefResult: makeAutoBriefResult({
         state: "ready",
         promptBlock: "- REQ-001: Session timeout",
@@ -1536,6 +1537,80 @@ describe("source-linked micro-brief contract", () => {
       !p.includes("- Existing Kibi links:"),
       "Source-linked brief should NOT appear for requirement edits",
     );
+  });
+
+  test("source-linked brief prefers explicit focusEdit over the most recent edit", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+        ],
+      },
+      {
+        id: "SYM-classifyRisk",
+        sourceFile: "packages/opencode/src/risk-classifier.ts",
+        links: ["REQ-first", "REQ-second"],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/risk-classifier.ts", kind: "code" },
+        { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      ],
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("REQ-opencode-smart-enforcement-v1"),
+      "Should use the explicit focusEdit for source-linked hints",
+    );
+    assert.ok(
+      !p.includes("REQ-first") && !p.includes("REQ-second"),
+      "Should ignore non-focused/reverted file links",
+    );
+  });
+
+  test("cache key derivation prefers focusEdit kind when present", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: tmpDir,
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "documentation/requirements/REQ-001.md", kind: "requirement" }],
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: tmpDir,
+      branch: "main",
+    });
+
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Cache hit should use focusEdit-derived key and suppress guidance",
+    );
+    assert.equal(p.trim(), SENTINEL, "Cache hit should return sentinel only");
   });
 
   test("completion reminder still works alongside source-linked brief", () => {

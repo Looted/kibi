@@ -15,7 +15,8 @@ type BriefIntentParams = {
   maintenanceDegraded: boolean;
   workspaceRoot: string;
   branch: string;
-  editedFilePath: string | undefined;
+  sourceFiles: string[];
+  focusFilePath?: string;
   seedIds?: string[];
 };
 
@@ -38,7 +39,7 @@ function makeParams(overrides: Partial<BriefIntentParams> = {}): BriefIntentPara
     maintenanceDegraded: false,
     workspaceRoot: "/workspace",
     branch: "feature/task-3",
-    editedFilePath: "/workspace/src/foo.ts",
+    sourceFiles: ["/workspace/src/foo.ts"],
     ...overrides,
   };
 }
@@ -195,35 +196,27 @@ describe("deriveBriefIntent", () => {
     assert.ok(result.reason.includes("manual_kb_edit"));
   });
 
-  test("returns ineligible when editedFilePath is undefined", async () => {
-    const result = await derive({ editedFilePath: undefined, seedIds: ["REQ-001"] });
+  test("returns ineligible when sourceFiles is empty", async () => {
+    const result = await derive({ sourceFiles: [], seedIds: ["REQ-001"] });
 
     assert.equal(result.eligible, false);
-    assert.ok(result.reason.includes("edited file"));
-    assert.deepEqual(result.sourceFiles, []);
-    assert.deepEqual(result.seedIds, []);
-  });
-
-  test("returns ineligible when editedFilePath is empty", async () => {
-    const result = await derive({ editedFilePath: "" });
-
-    assert.equal(result.eligible, false);
-    assert.ok(result.reason.includes("edited file"));
+    assert.ok(result.reason.includes("no source files"));
     assert.deepEqual(result.sourceFiles, []);
     assert.deepEqual(result.seedIds, []);
   });
 
   test("produces identical fingerprint for the same params twice", async () => {
+    const files = ["/repo/packages/opencode/src/prompt.ts"];
     const first = await derive({
       workspaceRoot: "/repo",
       branch: "feature/brief",
-      editedFilePath: "/repo/packages/opencode/src/prompt.ts",
+      sourceFiles: files,
       riskClass: "traceability_candidate",
     });
     const second = await derive({
       workspaceRoot: "/repo",
       branch: "feature/brief",
-      editedFilePath: "/repo/packages/opencode/src/prompt.ts",
+      sourceFiles: files,
       riskClass: "traceability_candidate",
     });
 
@@ -234,14 +227,50 @@ describe("deriveBriefIntent", () => {
     const result = await derive({
       workspaceRoot: "/repo",
       branch: "feature/brief",
-      editedFilePath: "/repo/src/feature.ts",
+      sourceFiles: ["/repo/src/feature.ts"],
       riskClass: "behavior_candidate",
     });
 
     assert.equal(
       result.fingerprint,
-      "brief:/repo\0feature/brief\0/repo/src/feature.ts\0behavior_candidate",
+      "brief:/repo\0feature/brief\0behavior_candidate\0/repo/src/feature.ts",
     );
+  });
+
+  test("fingerprint is stable across sourceFiles reordering", async () => {
+    const first = await derive({
+      workspaceRoot: "/repo",
+      branch: "main",
+      sourceFiles: ["/repo/src/b.ts", "/repo/src/a.ts", "/repo/src/c.ts"],
+      riskClass: "behavior_candidate",
+    });
+    const second = await derive({
+      workspaceRoot: "/repo",
+      branch: "main",
+      sourceFiles: ["/repo/src/c.ts", "/repo/src/a.ts", "/repo/src/b.ts"],
+      riskClass: "behavior_candidate",
+    });
+
+    assert.equal(first.fingerprint, second.fingerprint);
+    // Both should produce sorted order
+    assert.deepEqual(first.sourceFiles, ["/repo/src/a.ts", "/repo/src/b.ts", "/repo/src/c.ts"]);
+    assert.deepEqual(second.sourceFiles, ["/repo/src/a.ts", "/repo/src/b.ts", "/repo/src/c.ts"]);
+  });
+
+  test("sourceFiles are deduped", async () => {
+    const result = await derive({
+      sourceFiles: ["/workspace/src/foo.ts", "/workspace/src/bar.ts", "/workspace/src/foo.ts"],
+    });
+
+    assert.deepEqual(result.sourceFiles, ["/workspace/src/bar.ts", "/workspace/src/foo.ts"]);
+  });
+
+  test("sourceFiles are sorted", async () => {
+    const result = await derive({
+      sourceFiles: ["/workspace/src/z.ts", "/workspace/src/a.ts", "/workspace/src/m.ts"],
+    });
+
+    assert.deepEqual(result.sourceFiles, ["/workspace/src/a.ts", "/workspace/src/m.ts", "/workspace/src/z.ts"]);
   });
 
   test("does not expose keepManualCue even when result is ineligible", async () => {
@@ -261,11 +290,70 @@ describe("deriveBriefIntent", () => {
 
     const result = await derive({
       workspaceRoot: tmpDir,
-      editedFilePath: path.join(tmpDir, "src/foo.ts"),
+      sourceFiles: [path.join(tmpDir, "src/foo.ts")],
       seedIds: ["REQ-001", "REQ-002", "REQ-003", "REQ-004"],
     });
 
     assert.deepEqual(result.seedIds, ["REQ-001", "REQ-002", "REQ-003"]);
+  });
+
+  test("prefers pre-fetched seedIds over focusFilePath derivation", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-foo",
+        sourceFile: "src/foo.ts",
+        relationships: [{ type: "implements", target: "REQ-DISK" }],
+      },
+    ]);
+
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      sourceFiles: [path.join(tmpDir, "src/foo.ts")],
+      focusFilePath: path.join(tmpDir, "src/foo.ts"),
+      seedIds: ["REQ-PREFETCHED"],
+    });
+
+    assert.deepEqual(result.seedIds, ["REQ-PREFETCHED"]);
+  });
+
+  test("derives seedIds from focusFilePath when no seedIds provided", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-focus",
+        sourceFile: "src/focus.ts",
+        relationships: [
+          { type: "implements", target: "REQ-FOCUS-1" },
+          { type: "implements", target: "REQ-FOCUS-2" },
+        ],
+      },
+    ]);
+
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      sourceFiles: [path.join(tmpDir, "src/other.ts")],
+      focusFilePath: path.join(tmpDir, "src/focus.ts"),
+    });
+
+    assert.deepEqual(result.seedIds, ["REQ-FOCUS-1", "REQ-FOCUS-2"]);
+  });
+
+  test("derives seedIds from sourceFiles[0] when no focusFilePath and no seedIds", async () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-first",
+        sourceFile: "src/first.ts",
+        relationships: [
+          { type: "implements", target: "REQ-FIRST-1" },
+        ],
+      },
+    ]);
+
+    const result = await derive({
+      workspaceRoot: tmpDir,
+      sourceFiles: [path.join(tmpDir, "src/first.ts")],
+    });
+
+    assert.deepEqual(result.seedIds, ["REQ-FIRST-1"]);
   });
 
   test("derives seedIds from source-linked guidance when not pre-fetched", async () => {
@@ -284,7 +372,7 @@ describe("deriveBriefIntent", () => {
 
     const result = await derive({
       workspaceRoot: tmpDir,
-      editedFilePath: path.join(tmpDir, "src/foo.ts"),
+      sourceFiles: [path.join(tmpDir, "src/foo.ts")],
     });
 
     assert.deepEqual(result.seedIds, ["REQ-001", "REQ-002", "REQ-003"]);
@@ -301,11 +389,39 @@ describe("deriveBriefIntent", () => {
 
     const result = await derive({
       workspaceRoot: tmpDir,
-      editedFilePath: path.join(tmpDir, "src/foo.ts"),
+      sourceFiles: [path.join(tmpDir, "src/foo.ts")],
     });
 
     assert.equal(result.eligible, true);
     assert.deepEqual(result.seedIds, []);
     assert.deepEqual(result.sourceFiles, [path.join(tmpDir, "src/foo.ts")]);
+  });
+
+  test("multi-file fingerprint includes sorted source files", async () => {
+    const result = await derive({
+      workspaceRoot: "/repo",
+      branch: "develop",
+      sourceFiles: ["/repo/src/b.ts", "/repo/src/a.ts"],
+      riskClass: "traceability_candidate",
+    });
+
+    assert.equal(
+      result.fingerprint,
+      "brief:/repo\0develop\0traceability_candidate\0/repo/src/a.ts\0/repo/src/b.ts",
+    );
+    assert.deepEqual(result.sourceFiles, ["/repo/src/a.ts", "/repo/src/b.ts"]);
+  });
+
+  test("focusFilePath does not appear in fingerprint or sourceFiles", async () => {
+    const result = await derive({
+      workspaceRoot: "/repo",
+      branch: "main",
+      sourceFiles: ["/repo/src/main.ts"],
+      focusFilePath: "/repo/src/main.ts",
+      riskClass: "behavior_candidate",
+    });
+
+    assert.equal(result.fingerprint, "brief:/repo\0main\0behavior_candidate\0/repo/src/main.ts");
+    assert.deepEqual(result.sourceFiles, ["/repo/src/main.ts"]);
   });
 });

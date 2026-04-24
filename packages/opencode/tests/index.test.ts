@@ -3427,7 +3427,7 @@ import datetime
       );
       assert.equal(
         (fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }).fingerprint.endsWith(
-          "\0behavior_candidate",
+          "\0src/feature.ts",
         ),
         true,
       );
