@@ -20,7 +20,8 @@ export interface BriefIntentParams {
   maintenanceDegraded: boolean;
   workspaceRoot: string;
   branch: string;
-  editedFilePath: string | undefined;
+  sourceFiles: string[];
+  focusFilePath?: string;
   seedIds?: string[];
 }
 
@@ -38,26 +39,28 @@ export interface BriefIntentInputs {
   maintenanceDegraded: boolean;
   worktreeRoot: string;
   branch: string;
-  editedFile: string | undefined;
+  sourceFiles: string[];
+  focusFilePath?: string;
   seedIds?: string[];
 }
 
-function hasEditedFilePath(editedFilePath: string | undefined): editedFilePath is string {
-  return typeof editedFilePath === "string" && editedFilePath.length > 0;
+function sortAndDedup(files: string[]): string[] {
+  return [...new Set(files)].sort();
 }
 
 function deriveSeedIds(params: BriefIntentParams): string[] {
-  if (!hasEditedFilePath(params.editedFilePath)) {
-    return [];
+  if (params.seedIds !== undefined && params.seedIds.length > 0) {
+    return params.seedIds.slice(0, 3);
   }
 
-  if (params.seedIds !== undefined) {
-    return params.seedIds.slice(0, 3);
+  const focusFile = params.focusFilePath ?? params.sourceFiles[0];
+  if (!focusFile) {
+    return [];
   }
 
   return getSourceLinkedRequirementIds(
     params.workspaceRoot,
-    params.editedFilePath,
+    focusFile,
   ).slice(0, 3);
 }
 
@@ -65,19 +68,17 @@ function deriveSeedIds(params: BriefIntentParams): string[] {
 export function deriveBriefIntent(
   params: BriefIntentParams,
 ): BriefIntentResult {
-  const fingerprint = `brief:${params.workspaceRoot}\0${params.branch}\0${params.editedFilePath ?? ""}\0${params.riskClass}`;
-  const sourceFiles = hasEditedFilePath(params.editedFilePath)
-    ? [params.editedFilePath]
-    : [];
+  const sortedSourceFiles = sortAndDedup(params.sourceFiles);
+  const fingerprint = `brief:${params.workspaceRoot}\0${params.branch}\0${params.riskClass}\0${sortedSourceFiles.join("\0")}`;
   const seedIds = deriveSeedIds(params);
 
-  if (!hasEditedFilePath(params.editedFilePath)) {
+  if (sortedSourceFiles.length === 0) {
     return {
       eligible: false,
-      reason: "Ineligible: edited file path is missing",
+      reason: "Ineligible: no source files in session",
       fingerprint,
-      sourceFiles,
-      seedIds,
+      sourceFiles: sortedSourceFiles,
+      seedIds: [],
     };
   }
 
@@ -86,7 +87,7 @@ export function deriveBriefIntent(
       eligible: false,
       reason: `Ineligible: riskClass ${params.riskClass} is not auto-brief eligible`,
       fingerprint,
-      sourceFiles,
+      sourceFiles: sortedSourceFiles,
       seedIds,
     };
   }
@@ -96,7 +97,7 @@ export function deriveBriefIntent(
       eligible: false,
       reason: `Ineligible: posture ${params.posture} is not authoritative`,
       fingerprint,
-      sourceFiles,
+      sourceFiles: sortedSourceFiles,
       seedIds,
     };
   }
@@ -106,7 +107,7 @@ export function deriveBriefIntent(
       eligible: false,
       reason: "Ineligible: maintenance is degraded",
       fingerprint,
-      sourceFiles,
+      sourceFiles: sortedSourceFiles,
       seedIds,
     };
   }
@@ -115,7 +116,7 @@ export function deriveBriefIntent(
     eligible: true,
     reason: "Eligible for auto-briefing",
     fingerprint,
-    sourceFiles,
+    sourceFiles: sortedSourceFiles,
     seedIds,
   };
 }
@@ -129,7 +130,8 @@ export function computeBriefIntent( // implements REQ-opencode-kibi-briefing-v2
     maintenanceDegraded: inputs.maintenanceDegraded,
     workspaceRoot: inputs.worktreeRoot,
     branch: inputs.branch,
-    editedFilePath: inputs.editedFile,
+    sourceFiles: inputs.sourceFiles,
+    ...(inputs.focusFilePath !== undefined ? { focusFilePath: inputs.focusFilePath } : {}),
     ...(inputs.seedIds !== undefined ? { seedIds: inputs.seedIds } : {}),
   });
 }

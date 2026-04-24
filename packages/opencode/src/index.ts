@@ -510,11 +510,14 @@ const kibiOpencodePlugin: Plugin = async (
         recentCommentSuggestion = null;
       }
 
+      const sessionSourceFiles = recentEdits.map((e) => e.path);
+
       const intentResult = computeBriefIntent({
         riskClass: effectiveRiskClass,
         posture: posture.state,
         maintenanceDegraded: getMaintenanceDegraded(),
-        editedFile: filePath,
+        sourceFiles: sessionSourceFiles,
+        focusFilePath: filePath,
         worktreeRoot: input.worktree,
         branch: currentBranch,
       });
@@ -570,11 +573,14 @@ const kibiOpencodePlugin: Plugin = async (
             return undefined;
           }
 
+          const promptSourceFiles = recentEdits.map((e) => e.path);
+
           const intentResult = computeBriefIntent({
             riskClass: lastRiskClass,
             posture: posture.state,
             maintenanceDegraded,
-            editedFile: lastEditedFilePath,
+            sourceFiles: promptSourceFiles,
+            focusFilePath: lastEditedFilePath,
             worktreeRoot: input.worktree,
             branch: currentBranch,
           });

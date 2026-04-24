@@ -103,10 +103,17 @@ function deriveFileBucket(pathKind: PathKind): string {
   return pathKind;
 }
 
+function getFocusEdit(
+  context: PromptContext,
+): { path: string; kind: PathKind } | undefined {
+  return context.focusEdit ?? context.recentEdits[context.recentEdits.length - 1];
+}
+
 // ── PromptContext ──────────────────────────────────────────────────────
 
 export interface PromptContext {
   recentEdits: Array<{ path: string; kind: PathKind }>;
+  focusEdit?: { path: string; kind: PathKind } | null;
   workspaceHealth?: WorkspaceHealth;
   hasRecentKbEdit?: boolean;
   recentCommentSuggestion?: CommentAnalysisResult | null;
@@ -255,13 +262,13 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
       context.branch &&
       riskClass
     ) {
-      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+      const focusEdit = getFocusEdit(context);
       const key: CacheKey = {
         workspaceRoot: context.workspaceRoot,
         branch: context.branch,
         posture,
         riskClass,
-        fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
+        fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
       };
       if (context.cache.isSatisfied(key)) {
         return SENTINEL; // skip guidance — recently satisfied
@@ -372,9 +379,9 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     !suppressSourceLinkedBrief
   ) {
     try {
-      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
-      if (lastEdit?.path) {
-        const editedPath = lastEdit.path;
+      const focusEdit = getFocusEdit(context);
+      if (focusEdit?.path) {
+        const editedPath = focusEdit.path;
         const absEdited = path.isAbsolute(editedPath)
           ? editedPath
           : path.join(context.workspaceRoot, editedPath);
@@ -415,13 +422,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.branch &&
     riskClass
   ) {
-    const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+    const focusEdit = getFocusEdit(context);
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
       posture,
       riskClass,
-      fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
+      fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
     };
     context.cache.recordSatisfied(key, "guidance");
   }
