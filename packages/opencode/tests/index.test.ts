@@ -4187,6 +4187,96 @@ import datetime
       assert.equal(fetchSpy.mock.calls.length, 0);
     });
 
+    it("eventless programmatic edit recovers via transform fallback", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+
+      const { client, showToastCalls } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: { focusFilePath?: string },
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const firstOutput = { system: ["prompt"] };
+      await transformHook({ focusFilePath: "src/feature.ts" }, firstOutput);
+
+      const firstRendered = firstOutput.system.at(-1) ?? "";
+      assert.ok(
+        firstRendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."),
+      );
+      assert.ok(!firstRendered.includes("🧠 **Kibi briefing available**"));
+
+      await waitForCondition(
+        () => fetchSpy.mock.calls.length === 1 && showToastCalls.length === 1,
+      );
+
+      const secondOutput = { system: ["prompt"] };
+      await transformHook({ focusFilePath: "src/feature.ts" }, secondOutput);
+
+      const secondRendered = secondOutput.system.at(-1) ?? "";
+      assert.equal(fetchSpy.mock.calls.length, 1);
+      assert.ok(secondRendered.includes("🧠 **Kibi briefing available**"));
+      assert.ok(secondRendered.includes("- REQ-001: Honor the linked invariant."));
+    });
+
+    it("no session delta means no fallback fetch", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const { client } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: Record<string, never>,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await transformHook({}, { system: ["prompt"] });
+      await Promise.resolve();
+
+      assert.equal(fetchSpy.mock.calls.length, 0);
+    });
+
     it("passes the stored autoBriefResult to buildPrompt from the transform hook", async () => {
       setupAuthoritativeWorkspace(tmpDir);
       installNoopScheduler(tmpDir);

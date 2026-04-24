@@ -20,7 +20,10 @@ import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { notifyStartup } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
 import { sendToast } from "./toast.js";
-import { createSessionEditState } from "./session-edit-state.js";
+import {
+  createSessionEditState,
+  type SessionEditEntry,
+} from "./session-edit-state.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -67,6 +70,17 @@ interface EventHookInput {
 
 interface SystemTransformOutput {
   system: string[];
+}
+
+interface SystemTransformInput {
+  focusFilePath?: string;
+  filePath?: string;
+  path?: string;
+  file?: string;
+  focusEdit?: {
+    path?: string;
+    filePath?: string;
+  } | null;
 }
 
 export interface Hooks {
@@ -168,50 +182,80 @@ const kibiOpencodePlugin: Plugin = async (
   const autoBriefResults = new Map<string, BriefingRuntimeResult>();
   const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
+  let lastRiskFilePath: string | null = null;
   const sessionEditState = createSessionEditState({ worktree: input.worktree });
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
-  hooks.event = async ({ event }) => {
-    if (event.type !== "file.edited") return;
-    const filePath = (event as { type: string; properties: { file: string } })
-      .properties.file;
-    if (!filePath) return;
+  function normalizeSessionPath(filePath: string): string {
+    if (path.isAbsolute(filePath)) {
+      const relativePath = path.relative(input.worktree, filePath);
+      return relativePath.startsWith("..") ? filePath : relativePath;
+    }
+    return filePath;
+  }
 
-    const pathAnalysis = analyzePath(filePath, input.worktree);
+  function resolveWorktreePath(filePath: string): string {
+    return input.worktree && !path.isAbsolute(filePath)
+      ? path.join(input.worktree, filePath)
+      : filePath;
+  }
 
-    sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
-    sessionEditState.reconcilePath(filePath);
-    pathKindCache.set(filePath, pathAnalysis.kind);
-    const sessionEdits = sessionEditState.getSessionEdits();
-    const focusEdit = sessionEditState.getFocusEdit();
+  function getTransformFocusFilePath(transformInput: unknown): string | null {
+    if (!transformInput || typeof transformInput !== "object") {
+      return null;
+    }
+    const inputRecord = transformInput as SystemTransformInput;
+    const directPath =
+      inputRecord.focusFilePath ??
+      inputRecord.filePath ??
+      inputRecord.path ??
+      inputRecord.file ??
+      inputRecord.focusEdit?.path ??
+      inputRecord.focusEdit?.filePath;
+    if (typeof directPath !== "string" || directPath.length === 0) {
+      return null;
+    }
+    return normalizeSessionPath(directPath);
+  }
 
-    let fileContent = "";
+  function readFileContent(filePath: string): string {
     try {
-      const resolvedPath =
-        input.worktree && !path.isAbsolute(filePath)
-          ? path.join(input.worktree, filePath)
-          : filePath;
-      fileContent = fs.readFileSync(resolvedPath, "utf-8");
-    } catch {}
+      return fs.readFileSync(resolveWorktreePath(filePath), "utf-8");
+    } catch {
+      return "";
+    }
+  }
 
+  function updateRecentEditsFromSession(sessionEdits: SessionEditEntry[]): RecentEdit[] {
+    recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((entry) => ({
+      path: entry.filePath,
+      kind: pathKindCache.get(entry.filePath) ?? "unknown",
+      timestamp: entry.lastReconciledAt,
+    }));
+    return recentEdits;
+  }
+
+  function deriveRiskContext(filePath: string): {
+    effectiveRiskClass: RiskClass;
+    pathAnalysis: ReturnType<typeof analyzePath>;
+    hasMustPriority: boolean;
+    precomputedSuggestion: CommentAnalysisResult | null;
+  } {
+    const normalizedFilePath = normalizeSessionPath(filePath);
+    const pathAnalysis = analyzePath(normalizedFilePath, input.worktree);
+    pathKindCache.set(normalizedFilePath, pathAnalysis.kind);
+    const fileContent = readFileContent(normalizedFilePath);
     const hasMustPriority =
       pathAnalysis.kind === "requirement"
-        ? isMustPriorityRequirement(filePath, input.worktree)
+        ? isMustPriorityRequirement(normalizedFilePath, input.worktree)
         : false;
-
     let precomputedSuggestion: CommentAnalysisResult | null = null;
     if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
-      const resolvedPath =
-        input.worktree && !path.isAbsolute(filePath)
-          ? path.join(input.worktree, filePath)
-          : filePath;
-
-      precomputedSuggestion = analyzeCodeFile(resolvedPath, {
+      precomputedSuggestion = analyzeCodeFile(resolveWorktreePath(normalizedFilePath), {
         minLines: cfg.guidance.commentDetection.minLines,
       });
     }
-
     const { riskClass } = classifyRisk({
       pathKind: pathAnalysis.kind,
       isUnderKb: pathAnalysis.isUnderKb,
@@ -219,15 +263,81 @@ const kibiOpencodePlugin: Plugin = async (
       hasDurableComment: !!precomputedSuggestion,
       fileContent,
     });
-
     const effectiveRiskClass: RiskClass =
       riskClass === "safe_docs_only" && precomputedSuggestion
         ? "traceability_candidate"
         : riskClass;
+    recentCommentSuggestion = pathAnalysis.kind === "code" ? precomputedSuggestion : null;
+    lastRiskClass = effectiveRiskClass;
+    lastRiskFilePath = normalizedFilePath;
+    return {
+      effectiveRiskClass,
+      pathAnalysis,
+      hasMustPriority,
+      precomputedSuggestion,
+    };
+  }
+
+  function buildBriefingWorkspaceContext(): BriefingWorkspaceCtx {
+    return {
+      workspaceRoot: input.worktree,
+      branch: currentBranch,
+      directory: input.directory,
+      ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
+    };
+  }
+
+  function queueBriefingFetch(
+    intentResult: ReturnType<typeof computeBriefIntent>,
+    options: { skipIfCachedResultExists?: boolean } = {},
+  ): void {
+    if (
+      !intentResult.eligible ||
+      !input.client ||
+      getMaintenanceDegraded() ||
+      (posture.state !== "root_active" &&
+        posture.state !== "hybrid_root_plus_vendored")
+    ) {
+      return;
+    }
+    if (
+      options.skipIfCachedResultExists === true &&
+      autoBriefResults.has(intentResult.fingerprint)
+    ) {
+      return;
+    }
+    const client = input.client;
+    const fingerprint = intentResult.fingerprint;
+    const workspaceCtx = buildBriefingWorkspaceContext();
+    void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
+      autoBriefResults.set(fingerprint, result);
+      if (!toastedFingerprints.has(fingerprint)) {
+        toastedFingerprints.add(fingerprint);
+        void sendToast(client, { message: result.toastMessage }).catch(() => {
+          // toast delivery failure is non-fatal
+        });
+      }
+    });
+  }
+
+  hooks.event = async ({ event }) => {
+    if (event.type !== "file.edited") return;
+    const rawFilePath = (event as { type: string; properties: { file: string } })
+      .properties.file;
+    if (!rawFilePath) return;
+
+    const filePath = normalizeSessionPath(rawFilePath);
+    const hintedKind = pathKindCache.get(filePath) ?? analyzePath(filePath, input.worktree).kind;
+
+    sessionEditState.recordEventHint(filePath, hintedKind, Date.now());
+    sessionEditState.reconcilePath(filePath);
+    const sessionEdits = sessionEditState.getSessionEdits();
+    const focusEdit = sessionEditState.getFocusEdit();
+    const { effectiveRiskClass, pathAnalysis, hasMustPriority, precomputedSuggestion } =
+      deriveRiskContext(filePath);
     const isAutoBriefRisk =
       effectiveRiskClass === "behavior_candidate" ||
       effectiveRiskClass === "traceability_candidate";
-    lastRiskClass = effectiveRiskClass;
 
     logger.info("smart-enforcement.risk", {
       event: "smart_enforcement_risk",
@@ -304,13 +414,7 @@ const kibiOpencodePlugin: Plugin = async (
       }
     }
 
-    recentEdits = sessionEdits
-      .slice(-MAX_RECENT_EDITS)
-      .map((e) => ({
-        path: e.filePath,
-        kind: pathKindCache.get(e.filePath) ?? "unknown",
-        timestamp: e.lastReconciledAt,
-      }));
+    updateRecentEditsFromSession(sessionEdits);
 
     if (
       effectiveRiskClass === "safe_docs_only" ||
@@ -530,32 +634,7 @@ const kibiOpencodePlugin: Plugin = async (
         branch: currentBranch,
       });
 
-      if (
-        intentResult.eligible &&
-        input.client &&
-        !getMaintenanceDegraded() &&
-        (posture.state === "root_active" ||
-          posture.state === "hybrid_root_plus_vendored")
-      ) {
-        const client = input.client;
-        const fingerprint = intentResult.fingerprint;
-        const workspaceCtx: BriefingWorkspaceCtx = {
-          workspaceRoot: input.worktree,
-          branch: currentBranch,
-          directory: input.directory,
-          ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
-        };
-
-        void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
-          autoBriefResults.set(fingerprint, result);
-          if (!toastedFingerprints.has(fingerprint)) {
-            toastedFingerprints.add(fingerprint);
-            void sendToast(client, { message: result.toastMessage }).catch(() => {
-              // toast delivery failure is non-fatal
-            });
-          }
-        });
-      }
+      queueBriefingFetch(intentResult);
     }
 
     return;
@@ -565,52 +644,99 @@ const kibiOpencodePlugin: Plugin = async (
     const hookMode = cfg.prompt.hookMode;
 
     if (hookMode === "system-transform" || hookMode === "auto") {
-      hooks["experimental.chat.system.transform"] = async (_input, output) => {
+      hooks["experimental.chat.system.transform"] = async (transformInput, output) => {
         // Skip if sentinel already present in any existing entry
         if (output.system.some((entry: string) => entry.includes(SENTINEL))) {
           return;
         }
 
+        const transformFocusFilePath = getTransformFocusFilePath(transformInput);
+        sessionEditState.reconcileKnownPaths();
+        if (transformFocusFilePath) {
+          sessionEditState.forceEdit(transformFocusFilePath);
+        }
+
+        const transformSessionEdits = sessionEditState.getSessionEdits();
+        const transformFocusEdit = sessionEditState.getFocusEdit();
+        const transformRecentEdits = transformSessionEdits
+          .slice(-MAX_RECENT_EDITS)
+          .map((entry) => ({
+            path: entry.filePath,
+            kind: pathKindCache.get(entry.filePath) ?? "unknown",
+          }));
+        const transformPromptFocusEdit = transformFocusEdit
+          ? {
+              path: transformFocusEdit.filePath,
+              kind: pathKindCache.get(transformFocusEdit.filePath) ?? "unknown",
+            }
+          : null;
         const maintenanceDegraded = getMaintenanceDegraded();
         const showDegradedAdvisory =
           maintenanceDegraded &&
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
-        const autoBriefResult = (() => {
-          const transformFocusEdit = sessionEditState.getFocusEdit();
-          if (lastRiskClass == null || !transformFocusEdit) {
-            return undefined;
+        const riskContextFilePath = transformFocusEdit?.filePath ?? transformFocusFilePath;
+        let effectiveRiskClass: RiskClass | null =
+          riskContextFilePath && lastRiskFilePath === riskContextFilePath ? lastRiskClass : null;
+        if (
+          riskContextFilePath &&
+          (lastRiskClass === null || lastRiskFilePath !== riskContextFilePath)
+        ) {
+          const riskCtx = deriveRiskContext(riskContextFilePath);
+          effectiveRiskClass = riskCtx.effectiveRiskClass;
+          // Preserve suggestion from event path if present and we're on the same file
+          if (!recentCommentSuggestion && riskCtx.precomputedSuggestion) {
+            recentCommentSuggestion = riskCtx.precomputedSuggestion;
           }
+        }
+        // Fallback: if no current context but we have cached risk state, use it
+        if (effectiveRiskClass === null && lastRiskClass !== null) {
+          effectiveRiskClass = lastRiskClass;
+        }
+          riskContextFilePath && lastRiskFilePath === riskContextFilePath ? lastRiskClass : null;
+        if (
+          riskContextFilePath &&
+          (lastRiskClass === null || lastRiskFilePath !== riskContextFilePath)
+        ) {
+          const riskCtx = deriveRiskContext(riskContextFilePath);
+          effectiveRiskClass = riskCtx.effectiveRiskClass;
+          // Preserve suggestion from event path if present and we're on the same file
+          if (!recentCommentSuggestion && riskCtx.precomputedSuggestion) {
+            recentCommentSuggestion = riskCtx.precomputedSuggestion;
+          }
+        }
 
-          const transformSessionEdits = sessionEditState.getSessionEdits();
-          const promptSourceFiles = transformSessionEdits.map((e) => e.filePath);
+        const promptSourceFiles = transformSessionEdits.map((entry) => entry.filePath);
+        const promptFocusFilePath: string | undefined =
+          transformFocusEdit?.filePath ?? transformFocusFilePath ?? undefined;
+        const intentResult = effectiveRiskClass
+          ? computeBriefIntent({
+              riskClass: effectiveRiskClass,
+              posture: posture.state,
+              maintenanceDegraded,
+              sourceFiles: promptSourceFiles,
+              worktreeRoot: input.worktree,
+              branch: currentBranch,
+              ...(promptFocusFilePath !== undefined
+                ? {
+                    focusFilePath: promptFocusFilePath,
+                  }
+                : {}),
+            })
+          : null;
+        const autoBriefResult = intentResult
+          ? autoBriefResults.get(intentResult.fingerprint)
+          : undefined;
+        const isAutoBriefRisk =
+          effectiveRiskClass === "behavior_candidate" ||
+          effectiveRiskClass === "traceability_candidate";
+        if (!autoBriefResult && isAutoBriefRisk && intentResult) {
+          queueBriefingFetch(intentResult, { skipIfCachedResultExists: true });
+        }
 
-          const intentResult = computeBriefIntent({
-            riskClass: lastRiskClass,
-            posture: posture.state,
-            maintenanceDegraded,
-            sourceFiles: promptSourceFiles,
-            focusFilePath: transformFocusEdit.filePath,
-            worktreeRoot: input.worktree,
-            branch: currentBranch,
-          });
-
-          return autoBriefResults.get(intentResult.fingerprint);
-        })();
-
-        const transformFocusEdit = sessionEditState.getFocusEdit();
-        const transformSessionEdits = sessionEditState.getSessionEdits();
-        const transformRecentEdits = transformSessionEdits
-          .slice(-MAX_RECENT_EDITS)
-          .map((e) => ({
-            path: e.filePath,
-            kind: pathKindCache.get(e.filePath) ?? "unknown",
-          }));
         const guidance = buildPrompt({
           recentEdits: transformRecentEdits,
-          focusEdit: transformFocusEdit
-            ? { path: transformFocusEdit.filePath, kind: pathKindCache.get(transformFocusEdit.filePath) ?? "unknown" }
-            : null,
+          focusEdit: transformPromptFocusEdit,
           workspaceHealth,
           hasRecentKbEdit,
           recentCommentSuggestion,
@@ -623,7 +749,7 @@ const kibiOpencodePlugin: Plugin = async (
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
           ...(autoBriefResult !== undefined ? { autoBriefResult } : {}),
-          ...(lastRiskClass != null ? { riskClass: lastRiskClass } : {}),
+          ...(effectiveRiskClass != null ? { riskClass: effectiveRiskClass } : {}),
         });
 
         logger.info("smart-enforcement.guidance", {
@@ -635,8 +761,8 @@ const kibiOpencodePlugin: Plugin = async (
             guidance.trim() !== "" && guidance.trim() !== SENTINEL
               ? "emit"
               : "skip",
-          risk_class: lastRiskClass,
-          recent_edits: recentEdits.length,
+          risk_class: effectiveRiskClass,
+          recent_edits: transformRecentEdits.length,
           static_degraded: posture.maintenanceDegraded,
           runtime_degraded: runtimeOverlay.degraded,
           merged_degraded: maintenanceDegraded,
@@ -652,7 +778,7 @@ const kibiOpencodePlugin: Plugin = async (
         ) {
           logger.info("smart-enforcement.completion-reminder", {
             event: "smart_enforcement_completion_reminder",
-            risk_class: lastRiskClass,
+            risk_class: effectiveRiskClass,
             posture: posture.state,
             posture_state: posture.state,
             guidance_action: "completion_reminder",

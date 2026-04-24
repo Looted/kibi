@@ -26,6 +26,7 @@ export interface SessionEditState {
   getSessionEdits(): SessionEditEntry[];
   getFocusEdit(): SessionEditEntry | null;
   hasSessionEdits(): boolean;
+  forceEdit(filePath: string, kind?: EditEventKind, timestamp?: number): void;
 }
 
 // ---------------------------------------------------------------------------
@@ -209,6 +210,42 @@ export function createSessionEditState(opts: {
     return false;
   }
 
+  /**
+   * Force a file to be treated as a session edit without requiring a prior baseline.
+   * Used for eventless edits where the host signals a change via transform hook
+   * but no file.edited event was emitted to establish a pre-change baseline.
+   */
+  function forceEdit(
+    filePath: string,
+    kind?: EditEventKind,
+    timestamp?: number,
+  ): void {
+    const rel = resolveToRelative(filePath);
+    let entry = tracked.get(rel);
+    if (!entry) {
+      entry = {
+        baselineHash: undefined,
+        currentHash: undefined,
+        lastReconciledAt: 0,
+        eventHints: [],
+      };
+      tracked.set(rel, entry);
+    }
+
+    // Set a synthetic baseline that will never match real file content
+    if (entry.baselineHash === undefined) {
+      entry.baselineHash = hashContent(`__FORCED_BASELINE__${rel}`);
+    }
+
+    const abs = resolveToAbsolute(rel);
+    entry.currentHash = hashFile(abs);
+    entry.lastReconciledAt = timestamp ?? now();
+
+    if (kind) {
+      entry.eventHints.push({ kind, timestamp: timestamp ?? now() });
+    }
+  }
+
   return {
     recordEventHint,
     reconcilePath,
@@ -216,5 +253,6 @@ export function createSessionEditState(opts: {
     getSessionEdits,
     getFocusEdit,
     hasSessionEdits,
+    forceEdit,
   };
 }
