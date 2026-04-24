@@ -623,7 +623,7 @@ export function connectDatabase() { return true; }
     fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "src", "behavior.ts"),
-      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+      "// startup seed\nexport function behavior() { return 0; }\n",
     );
 
     const hooks = await createHooks(tmpDir, logs, {
@@ -636,6 +636,20 @@ export function connectDatabase() { return true; }
         smartEnforcement: { completionReminder: true },
       },
     });
+
+    await fireEdit(hooks, "src/behavior.ts");
+
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "behavior.ts"),
+      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+    );
+
+    await fireEdit(hooks, "src/behavior.ts");
+
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "behavior.ts"),
+      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+    );
 
     await fireEdit(hooks, "src/behavior.ts");
 
@@ -750,6 +764,14 @@ export function connectDatabase() { return true; }
       await fireEdit(hooks, `README-${index}.md`);
     }
 
+    for (let index = 0; index < 6; index += 1) {
+      fs.writeFileSync(
+        path.join(tmpDir, `README-${index}.md`),
+        `Document ${index} updated\n`,
+      );
+      await fireEdit(hooks, `README-${index}.md`);
+    }
+
     const output = { system: [] as string[] };
     await runSystemTransform(hooks, output);
 
@@ -786,6 +808,11 @@ export function connectDatabase() { return true; }
       },
     });
 
+    await fireEdit(initialHooks, "src/cache.ts");
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "cache.ts"),
+      "// implements REQ-789\nexport function cacheable() { return 2; }\n",
+    );
     await fireEdit(initialHooks, "src/cache.ts");
     await runSystemTransform(initialHooks, { system: [] });
 
