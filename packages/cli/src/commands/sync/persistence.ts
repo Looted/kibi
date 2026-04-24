@@ -125,11 +125,11 @@ export async function persistEntities(
       }
     }
   }
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     entityIds.add(entity.id);
   }
 
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     try {
       const props = [
         `id=${toPrologAtom(entity.id)}`,
@@ -151,6 +151,8 @@ export async function persistEntities(
         props.push(`severity=${toPrologAtom(entity.severity)}`);
       if (entity.text_ref)
         props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+      if (sourceFile)
+        props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       // Add typed fact fields for fact entities
       if (entity.type === "fact") {
