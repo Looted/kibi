@@ -164,14 +164,29 @@ describe("init-helpers", () => {
 
     await copySchemaFiles(kbDir, sourceDir);
 
-    const copied = readFileSync(path.join(kbDir, "schema/relationships.pl"), "utf8");
+    const copied = readFileSync(
+      path.join(kbDir, "schema/relationships.pl"),
+      "utf8",
+    );
     expect(copied).toContain("executable_for");
   });
 
   test("CLI schema files contain required entries (sourceFile, executable_for)", () => {
     // These files are copied during kibi init and kibi sync
-    const cliEntitiesPath = path.join(__dirname, "..", "..", "schema", "entities.pl");
-    const cliRelationshipsPath = path.join(__dirname, "..", "..", "schema", "relationships.pl");
+    const cliEntitiesPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "schema",
+      "entities.pl",
+    );
+    const cliRelationshipsPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "schema",
+      "relationships.pl",
+    );
 
     const entitiesContent = readFileSync(cliEntitiesPath, "utf8");
     const relationshipsContent = readFileSync(cliRelationshipsPath, "utf8");

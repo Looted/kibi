@@ -9,15 +9,15 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  persistEntities,
+  persistRelationships,
+} from "../../../src/commands/sync/persistence.js";
 import type {
   ExtractedEntity,
   ExtractedRelationship,
   ExtractionResult,
 } from "../../../src/extractors/markdown.js";
-import {
-  persistEntities,
-  persistRelationships,
-} from "../../../src/commands/sync/persistence.js";
 import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
 
 // --- Mocks ---
