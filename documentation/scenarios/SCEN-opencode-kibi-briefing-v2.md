@@ -1,9 +1,9 @@
 ---
 id: SCEN-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefing v2: Auto-Show and Fallback Behaviors"
-status: draft
+status: active
 created_at: 2026-04-23T00:00:00Z
-updated_at: 2026-04-23T14:52:50Z
+updated_at: 2026-04-24T09:15:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v2.md
 tags:
   - scenario
