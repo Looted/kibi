@@ -356,11 +356,17 @@ convert_legacy_prop(Prop, Prop, true).
 kb_entities_by_source(SourcePath, Ids) :-
     findall(Id,
         (kb_entity(Id, _Type, Props),
-         memberchk(source=RawSource, Props),
-         source_value_atom(RawSource, SourceAtom),
+         entity_source_atom(Props, SourceAtom),
          sub_atom(SourceAtom, _, _, _, SourcePath)),
         RawIds),
     sort(RawIds, Ids).
+
+entity_source_atom(Props, SourceAtom) :-
+    (   memberchk(sourceFile=RawSourceFile, Props)
+    ->  source_value_atom(RawSourceFile, SourceAtom)
+    ;   memberchk(source=RawSource, Props),
+        source_value_atom(RawSource, SourceAtom)
+    ).
 
 source_value_atom(Value, Atom) :-
     (   atom(Value)
