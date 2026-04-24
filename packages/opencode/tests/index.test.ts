@@ -3376,7 +3376,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, showToastCalls } = createAutoBriefClient();
@@ -3391,6 +3391,18 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3458,7 +3470,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client } = createAutoBriefClient();
@@ -3480,6 +3492,18 @@ import datetime
         const eventHook = hooks.event as (input: {
           event: { type: string; properties: { file: string } };
         }) => Promise<void>;
+
+        await eventHook({
+          event: {
+            type: "file.edited",
+            properties: { file: "src/feature.ts" },
+          },
+        });
+
+        fs.writeFileSync(
+          path.join(srcDir, "feature.ts"),
+          "export function feature() { return 42; } // implements REQ-001\n",
+        );
 
         await eventHook({
           event: {
@@ -3525,7 +3549,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const expectedAutoBriefResult: BriefingRuntimeResult = {
@@ -3551,6 +3575,18 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3600,7 +3636,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, promptCalls, showToastCalls } = createAutoBriefClient({
@@ -3631,6 +3667,80 @@ import datetime
         input: unknown,
         output: { system: string[] },
       ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3669,7 +3779,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, promptCalls, showToastCalls } = createAutoBriefClient({
@@ -3700,6 +3810,18 @@ import datetime
         input: unknown,
         output: { system: string[] },
       ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3739,7 +3861,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, promptCalls, showToastCalls } = createAutoBriefClient({
@@ -3771,6 +3893,25 @@ import datetime
         input: unknown,
         output: { system: string[] },
       ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
 
       await eventHook({
         event: {
@@ -3811,7 +3952,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, createCalls, promptCalls } = createAutoBriefClient();
@@ -3822,6 +3963,18 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3863,7 +4016,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, createCalls, promptCalls } = createAutoBriefClient();
@@ -3881,6 +4034,18 @@ import datetime
         input: unknown,
         output: { system: string[] },
       ) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -4042,7 +4207,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const expectedAutoBriefResult: BriefingRuntimeResult = {
@@ -4082,6 +4247,19 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
       await eventHook({
         event: {
           type: "file.edited",

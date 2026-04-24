@@ -20,6 +20,7 @@ import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { notifyStartup } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
 import { sendToast } from "./toast.js";
+import { createSessionEditState } from "./session-edit-state.js";
 
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 
@@ -167,8 +168,9 @@ const kibiOpencodePlugin: Plugin = async (
   const autoBriefResults = new Map<string, BriefingRuntimeResult>();
   const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
-  let lastEditedFilePath: string | null = null;
+  const sessionEditState = createSessionEditState({ worktree: input.worktree });
   let degradedWarnedOnce = false;
+  const pathKindCache = new Map<string, PathKind>();
 
   hooks.event = async ({ event }) => {
     if (event.type !== "file.edited") return;
@@ -177,6 +179,12 @@ const kibiOpencodePlugin: Plugin = async (
     if (!filePath) return;
 
     const pathAnalysis = analyzePath(filePath, input.worktree);
+
+    sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
+    sessionEditState.reconcilePath(filePath);
+    pathKindCache.set(filePath, pathAnalysis.kind);
+    const sessionEdits = sessionEditState.getSessionEdits();
+    const focusEdit = sessionEditState.getFocusEdit();
 
     let fileContent = "";
     try {
@@ -220,7 +228,6 @@ const kibiOpencodePlugin: Plugin = async (
       effectiveRiskClass === "behavior_candidate" ||
       effectiveRiskClass === "traceability_candidate";
     lastRiskClass = effectiveRiskClass;
-    lastEditedFilePath = filePath;
 
     logger.info("smart-enforcement.risk", {
       event: "smart_enforcement_risk",
@@ -297,17 +304,13 @@ const kibiOpencodePlugin: Plugin = async (
       }
     }
 
-    const now = Date.now();
-
-    recentEdits.push({
-      path: filePath,
-      kind: pathAnalysis.kind,
-      timestamp: now,
-    });
-
-    if (recentEdits.length > MAX_RECENT_EDITS) {
-      recentEdits = recentEdits.slice(-MAX_RECENT_EDITS);
-    }
+    recentEdits = sessionEdits
+      .slice(-MAX_RECENT_EDITS)
+      .map((e) => ({
+        path: e.filePath,
+        kind: pathKindCache.get(e.filePath) ?? "unknown",
+        timestamp: e.lastReconciledAt,
+      }));
 
     if (
       effectiveRiskClass === "safe_docs_only" ||
@@ -510,14 +513,19 @@ const kibiOpencodePlugin: Plugin = async (
         recentCommentSuggestion = null;
       }
 
-      const sessionSourceFiles = recentEdits.map((e) => e.path);
+      if (!focusEdit) {
+        // No surviving edits (all reverted to baseline) — skip auto-brief fetch
+        return;
+      }
+
+      const sessionSourceFiles = sessionEdits.map((e) => e.filePath);
 
       const intentResult = computeBriefIntent({
         riskClass: effectiveRiskClass,
         posture: posture.state,
         maintenanceDegraded: getMaintenanceDegraded(),
         sourceFiles: sessionSourceFiles,
-        focusFilePath: filePath,
+        focusFilePath: focusEdit.filePath,
         worktreeRoot: input.worktree,
         branch: currentBranch,
       });
@@ -569,18 +577,20 @@ const kibiOpencodePlugin: Plugin = async (
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
         const autoBriefResult = (() => {
-          if (lastRiskClass == null || lastEditedFilePath == null) {
+          const transformFocusEdit = sessionEditState.getFocusEdit();
+          if (lastRiskClass == null || !transformFocusEdit) {
             return undefined;
           }
 
-          const promptSourceFiles = recentEdits.map((e) => e.path);
+          const transformSessionEdits = sessionEditState.getSessionEdits();
+          const promptSourceFiles = transformSessionEdits.map((e) => e.filePath);
 
           const intentResult = computeBriefIntent({
             riskClass: lastRiskClass,
             posture: posture.state,
             maintenanceDegraded,
             sourceFiles: promptSourceFiles,
-            focusFilePath: lastEditedFilePath,
+            focusFilePath: transformFocusEdit.filePath,
             worktreeRoot: input.worktree,
             branch: currentBranch,
           });
@@ -588,9 +598,19 @@ const kibiOpencodePlugin: Plugin = async (
           return autoBriefResults.get(intentResult.fingerprint);
         })();
 
-        // Build only the guidance block and append it; existing entries are preserved
+        const transformFocusEdit = sessionEditState.getFocusEdit();
+        const transformSessionEdits = sessionEditState.getSessionEdits();
+        const transformRecentEdits = transformSessionEdits
+          .slice(-MAX_RECENT_EDITS)
+          .map((e) => ({
+            path: e.filePath,
+            kind: pathKindCache.get(e.filePath) ?? "unknown",
+          }));
         const guidance = buildPrompt({
-          recentEdits,
+          recentEdits: transformRecentEdits,
+          focusEdit: transformFocusEdit
+            ? { path: transformFocusEdit.filePath, kind: pathKindCache.get(transformFocusEdit.filePath) ?? "unknown" }
+            : null,
           workspaceHealth,
           hasRecentKbEdit,
           recentCommentSuggestion,
