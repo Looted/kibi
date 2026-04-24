@@ -38,9 +38,5 @@ links:
 **THEN** the plugin must force a fresh **reconcile** with the background worker
 **AND** the full briefing must be rendered even if a compact summary was previously shown.
 
-**Scenario: MCP-Only Enforcement — No CLI tools used**
 
-**GIVEN** an agent trying to refresh the KB briefing
-**WHEN** the agent considers using `kibi sync` or `kibi check`
-**THEN** the agent must instead use the `kb_briefing_generate` MCP tool
-**AND** the plugin guidance must never suggest forbidden CLI commands.
+
