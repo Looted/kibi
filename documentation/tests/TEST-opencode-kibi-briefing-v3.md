@@ -23,6 +23,8 @@ Verification plan for the Session-Local Reconcile briefing architecture:
 3.  **Baseline Reset Test**: Verify that switching git branches triggers an immediate **revert-to-baseline** and cache clear, preventing branch-to-branch context leakage.
 4.  **Multi-file Fingerprint Stability**: Verify that the context fingerprint remains stable when edits are made across multiple files that are already part of the session scope.
 5.  **Manual Refresh Guarantee**: Verify that `/brief-kibi` forces a full **reconcile** even when an auto-briefing is already present.
+- MCP-only guidance must reference `kb_briefing_generate` for briefing operations
+
 6.  **MCP Isolation Test**: Verify that no forbidden CLI commands (sync, init, check) are used or suggested in the v3 implementation or guidance.
 7.  **Performance Check**: Verify that the reconcile cycle (fingerprint + fetch) completes within the latency budget for `file.edited` events.
 

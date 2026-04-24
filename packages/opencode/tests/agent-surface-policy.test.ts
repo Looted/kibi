@@ -46,6 +46,10 @@ describe("agent surface policy", () => {
     "documentation/tests/TEST-opencode-agent-mcp-only.md",
     "documentation/tests/TEST-opencode-smart-enforcement.md",
     "documentation/adr/ADR-019.md",
+    "documentation/requirements/REQ-opencode-kibi-briefing-v3.md",
+    "documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md",
+    "documentation/tests/TEST-opencode-kibi-briefing-v3.md",
+    "documentation/adr/ADR-020.md",
   ];
 
   // Forbidden CLI commands - these should never appear in agent-facing guidance
@@ -71,6 +75,10 @@ describe("agent surface policy", () => {
     "documentation/scenarios/SCEN-opencode-agent-mcp-only.md",
     "documentation/scenarios/SCEN-opencode-smart-enforcement.md",
     "documentation/adr/ADR-018.md",
+    "documentation/requirements/REQ-opencode-kibi-briefing-v3.md",
+    "documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md",
+    "documentation/tests/TEST-opencode-kibi-briefing-v3.md",
+    "documentation/adr/ADR-020.md",
   ];
 
   for (const relativePath of agentFacingFiles) {
