@@ -10,6 +10,7 @@ import { GuidanceCache } from "../src/guidance-cache";
 import type { CacheKey } from "../src/guidance-cache";
 import {
   SENTINEL,
+  buildAutoBriefingGuidance,
   buildPrompt,
   injectPrompt,
   type PromptContext,
@@ -1221,6 +1222,20 @@ describe("auto-brief prompt rendering", () => {
       baseline,
       "no_briefing should behave identically to the pre-existing risky guidance path",
     );
+  });
+
+  test("auto-brief guidance does not surface idle-brief markers", () => {
+    const result = buildAutoBriefingGuidance(
+      {
+        schemaVersion: "1.0",
+        briefId: "brief-123",
+        type: "success",
+        promptBlock: "- generated while idle",
+      } as unknown as Parameters<typeof buildAutoBriefingGuidance>[0],
+      false,
+    );
+
+    assert.equal(result, null);
   });
 
   test("ready-state auto-brief still respects the 5-bullet prompt budget without a reminder", () => {

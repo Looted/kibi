@@ -61,11 +61,21 @@ function insertBulletAfterHeader(block: string, bullet: string): string {
 }
 
 // implements REQ-opencode-kibi-briefing-v2
-function buildAutoBriefingGuidance(
+export function buildAutoBriefingGuidance(
   autoBriefResult: BriefingRuntimeResult | undefined,
   completionReminder: boolean,
 ): string | null {
   if (!autoBriefResult) return null;
+
+  // Defensive: idle-brief results are persisted to .kb/briefs/, never injected into prompts.
+  // This function only handles auto-briefs from the file.edited risk-classification flow.
+  if (
+    typeof autoBriefResult === "object" &&
+    autoBriefResult !== null &&
+    ("briefId" in autoBriefResult || "schemaVersion" in autoBriefResult)
+  ) {
+    return null;
+  }
 
   if (autoBriefResult.state === "ready") {
     const promptBlock = autoBriefResult.promptBlock.trim();

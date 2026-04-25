@@ -197,6 +197,9 @@ const kibiOpencodePlugin: Plugin = async (
   let hasRecentKbEdit = false;
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
+  // NOTE: autoBriefResults is ONLY for prompt-time auto-brief guidance (file.edited flow).
+  // Idle-brief runtime (session.idle flow) writes directly to .kb/briefs/ via generateIdleBrief()
+  // and MUST NEVER store results in this map or leak into prompt guidance.
   const autoBriefResults = new Map<string, BriefingRuntimeResult>();
   const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
@@ -395,8 +398,10 @@ function queueBriefingFetch(
 
           // Generate brief
           const workspaceCtx = buildBriefingWorkspaceContext();
+          const client = input.client;
+          if (!client) return;
           const result = await generateIdleBrief(
-            input.client!,
+            client,
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
@@ -408,7 +413,7 @@ function queueBriefingFetch(
               !idleBriefToastedFingerprints.has(result.envelope.contentHash)
             ) {
               idleBriefToastedFingerprints.add(result.envelope.contentHash);
-              void sendToast(input.client!, {
+              void sendToast(client, {
                 message: result.toastMessage,
                 variant:
                   result.envelope.type === "warning" ? "warning" : "success",
