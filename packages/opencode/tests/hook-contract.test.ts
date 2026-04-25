@@ -269,5 +269,66 @@ describe("hook contract", () => {
       !("system" in output),
       "chat.params must not create a system property",
     );
+});
+
+describe("session.idle hook", () => {
+  test("session.idle triggers async brief generation", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    assert.ok(hooks.event, "event hook should exist");
+
+    const client = {
+      tui: {
+        showToast: async () => {},
+      },
+      app: {
+        log: async () => {},
+      },
+    };
+
+    await hooks.event({
+      event: { type: "session.idle" },
+    } as never, { client: client as never, worktree: dir, directory: dir });
   });
+
+  test("second idle event while in-flight sets trailing rerun flag", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    const client = {
+      tui: {
+        showToast: async () => {},
+      },
+      app: {
+        log: async () => {},
+      },
+    };
+
+    await hooks.event({
+      event: { type: "session.idle" },
+    } as never, { client: client as never, worktree: dir, directory: dir });
+
+    await hooks.event({
+      event: { type: "session.idle" },
+    } as never, { client: client as never, worktree: dir, directory: dir });
+  });
+
+  test("idle event with no client returns early", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    await hooks.event({
+      event: { type: "session.idle" },
+    } as never, { worktree: dir, directory: dir, client: undefined });
+  });
+
+  test("file.edited still works alongside session.idle", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    await hooks.event({
+      event: { type: "file.edited", properties: { file: "test.ts" } },
+    } as never, { worktree: dir, directory: dir });
+  });
+});
 });
