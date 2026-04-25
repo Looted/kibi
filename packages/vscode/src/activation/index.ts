@@ -18,3 +18,4 @@ export {
 } from "./traceability";
 export { registerContextOnOpen } from "./contextOnOpen";
 export { registerBriefWatcher } from "./briefs";
+export { BriefDocumentProvider } from "../briefDocumentProvider";

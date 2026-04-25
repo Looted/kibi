@@ -1,13 +1,16 @@
 /*
  * Brief watcher registration utilities for Kibi VS Code extension
  */
+import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 import {
   parseLatestBrief,
   readBriefId,
   markBriefRead,
+  type BriefModel,
 } from "../briefs";
+import { BriefDocumentProvider } from "../briefDocumentProvider";
 
 export interface BriefWatcherResult {
   watcher: vscode.FileSystemWatcher;
@@ -81,7 +84,7 @@ export function registerBriefWatcher(
 
     if (selection === "View Brief") {
       // Open the brief document
-      await showLatestBriefCommand(workspaceRoot, branch, brief.briefId);
+      await showLatestBriefCommand(context.workspaceState, workspaceRoot, branch, brief.briefId);
     }
 
     // Mark as read when user dismisses (or views) the notification
@@ -120,10 +123,11 @@ export function registerBriefWatcher(
 
 /**
  * Command handler for kibi.showLatestBrief command.
- * Opens the latest brief document or shows a message if none available.
+ * Opens the latest brief document, marks it as read, and shows a message if none available.
  */
 export async function showLatestBriefCommand(
   // implements REQ-vscode-kibi-briefing-v1
+  workspaceState: vscode.Memento,
   workspaceRoot: string,
   branch: string,
   _briefId?: string,
@@ -136,11 +140,33 @@ export async function showLatestBriefCommand(
     return;
   }
 
-  // Open virtual document (URI scheme handled by document provider - Task 8)
-  const doc = await vscode.workspace.openTextDocument(
-    vscode.Uri.parse(
-      `kibi-brief://${workspaceRoot}/${branch}/${brief.briefId}.md`
-    )
+  // Find brief file path for markBriefRead
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  if (fs.existsSync(briefsDir)) {
+    const files = fs.readdirSync(briefsDir)
+      .filter((f) => f.endsWith("_brief.json"))
+      .map((f) => {
+        const fullPath = path.join(briefsDir, f);
+        try {
+          const content = fs.readFileSync(fullPath, "utf-8");
+          const b: BriefModel = JSON.parse(content);
+          return { path: fullPath, brief: b };
+        } catch {
+          return null;
+        }
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .filter((item) => item.brief.briefId === brief.briefId);
+
+    if (files.length > 0) {
+      markBriefRead(workspaceState, workspaceRoot, branch, brief.briefId, files[0].path);
+    }
+  }
+
+  // Open virtual document via document provider
+  const uri = vscode.Uri.parse(
+    `${BriefDocumentProvider.scheme}://${encodeURIComponent(workspaceRoot)}/${branch}/${brief.briefId}.md`
   );
+  const doc = await vscode.workspace.openTextDocument(uri);
   await vscode.window.showTextDocument(doc, { preview: false });
 }
