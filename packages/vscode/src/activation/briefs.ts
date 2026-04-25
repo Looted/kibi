@@ -11,6 +11,7 @@ import {
   type BriefModel,
 } from "../briefs";
 import { BriefDocumentProvider } from "../briefDocumentProvider";
+import { KIBI_SHOW_LATEST_BRIEF_COMMAND } from "../extensionIds";
 
 export interface BriefWatcherResult {
   watcher: vscode.FileSystemWatcher;
@@ -123,7 +124,7 @@ export function registerBriefWatcher(
 
   // Register showLatestBrief command
   const showLatestBriefDisposable = vscode.commands.registerCommand(
-    "kibi.showLatestBrief",
+    KIBI_SHOW_LATEST_BRIEF_COMMAND,
     () => showLatestBriefCommand(context.workspaceState, workspaceRoot, branch)
   );
   context.subscriptions.push(showLatestBriefDisposable);
