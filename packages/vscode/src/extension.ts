@@ -86,8 +86,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   const subscriptions: vscode.Disposable[] = [
     treeViewResult.watcher,
+    treeViewResult.treeView,
+    treeViewResult.refreshCommand,
     briefWatcherResult.watcher,
-    navigationCommands.openEntityCommand,
     navigationCommands.openEntityCommand,
     navigationCommands.openEntityByIdCommand,
     navigationCommands.openTreeItemSourceCommand,
