@@ -4,6 +4,7 @@
 import { afterEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { BriefIntentResult } from "../src/brief-intent";
+import { buildAutoBriefingGuidance } from "../src/prompt";
 
 const READY_TOAST = "Kibi brief ready — summary added to guidance.";
 const TLDR_FALLBACK_TOAST =
@@ -538,5 +539,19 @@ describe("fetchBriefingResult", () => {
     assert.equal(first.promptBlock, "- First fingerprint bullet");
     assert.equal(second.promptBlock, "- Second fingerprint bullet");
     assert.notEqual(firstIntent.fingerprint, secondIntent.fingerprint);
+  });
+
+  test("does not render idle-brief envelope in auto-brief guidance", () => {
+    const idleBriefEnvelope = {
+      schemaVersion: "1.0",
+      briefId: "brief-123",
+      type: "success",
+      promptBlock: "- generated while idle",
+      state: "ready",
+    } as unknown as Parameters<typeof buildAutoBriefingGuidance>[0];
+
+    const result = buildAutoBriefingGuidance(idleBriefEnvelope, false);
+
+    assert.equal(result, null);
   });
 });
