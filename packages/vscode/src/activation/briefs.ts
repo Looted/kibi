@@ -93,7 +93,15 @@ export function registerBriefWatcher(
       const allBriefs = await vscode.workspace.findFiles(
         new vscode.RelativePattern(workspaceRoot, ".kb/briefs/*_brief.json")
       );
-      const matchingBrief = allBriefs.find((u) => u.fsPath.includes(brief.briefId));
+      const matchingBrief = allBriefs.find((u) => {
+        try {
+          const content = fs.readFileSync(u.fsPath, "utf-8");
+          const b: BriefModel = JSON.parse(content);
+          return b.briefId === brief.briefId;
+        } catch {
+          return false;
+        }
+      });
       if (matchingBrief) {
         markBriefRead(
           context.workspaceState,
@@ -112,6 +120,13 @@ export function registerBriefWatcher(
 
   // Register watcher so it gets disposed with the extension
   context.subscriptions.push(watcher);
+
+  // Register showLatestBrief command
+  const showLatestBriefDisposable = vscode.commands.registerCommand(
+    "kibi.showLatestBrief",
+    () => showLatestBriefCommand(context.workspaceState, workspaceRoot, branch)
+  );
+  context.subscriptions.push(showLatestBriefDisposable);
 
   return {
     watcher,
@@ -159,7 +174,10 @@ export async function showLatestBriefCommand(
       .filter((item) => item.brief.briefId === brief.briefId);
 
     if (files.length > 0) {
-      markBriefRead(workspaceState, workspaceRoot, branch, brief.briefId, files[0].path);
+      const firstFile = files[0];
+      if (firstFile) {
+        markBriefRead(workspaceState, workspaceRoot, branch, brief.briefId, firstFile.path);
+      }
     }
   }
 
