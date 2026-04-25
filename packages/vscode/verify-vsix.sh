@@ -49,4 +49,15 @@ if ! grep -q '"kibi.refreshTree"' "$PACKAGE_JSON"; then
   exit 1
 fi
 
+# Also verify the bundled extension.js contains the runtime registrations
+if ! grep -q 'kibi-knowledge-base' "$EXTENSION_JS"; then
+  echo "ERROR: extension/dist/extension.js must contain kibi-knowledge-base runtime registration" >&2
+  exit 1
+fi
+
+if ! grep -q 'kibi.refreshTree' "$EXTENSION_JS"; then
+  echo "ERROR: extension/dist/extension.js must contain kibi.refreshTree runtime registration" >&2
+  exit 1
+fi
+
 echo "✅ VSIX verification passed: $VSIX_FILE"
