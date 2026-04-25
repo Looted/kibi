@@ -28,19 +28,30 @@ import {
 } from "./activation";
 import { BriefDocumentProvider } from "./briefDocumentProvider";
 
-// implements REQ-vscode-traceability
-export function activate(context: vscode.ExtensionContext) {
-  const output = vscode.window.createOutputChannel("Kibi");
-  output.appendLine("Activating Kibi extension...");
-  context.subscriptions.push(output);
+// Flag to ensure workspace features are initialized exactly once (idempotency)
+let workspaceFeaturesInitialized = false;
 
-  const workspaceRoot = resolveWorkspaceRoot(output);
-  if (!workspaceRoot) {
+/**
+ * Shared helper to initialize all workspace-dependent features.
+ * Called either immediately during activation or deferred via workspace folder change listener.
+ */
+function initializeWorkspaceFeatures(
+  context: vscode.ExtensionContext,
+  output: vscode.OutputChannel,
+  workspaceRoot: string,
+): void {
+  // Idempotency: ensure features are initialized exactly once
+  if (workspaceFeaturesInitialized) {
+    output.appendLine(
+      "Workspace features already initialized. Skipping duplicate initialization.",
+    );
     return;
   }
+  workspaceFeaturesInitialized = true;
 
   const workspaceFolderUri = getWorkspaceFolderUri(workspaceRoot);
 
+  // Keep validateMcpServerPath non-blocking - it logs warnings but doesn't fail activation
   validateMcpServerPath(output);
 
   const treeViewResult = registerTreeView(
@@ -80,8 +91,8 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.workspace.registerTextDocumentContentProvider(
       BriefDocumentProvider.scheme,
-      briefProvider
-    )
+      briefProvider,
+    ),
   );
 
   const subscriptions: vscode.Disposable[] = [
@@ -113,5 +124,35 @@ export function activate(context: vscode.ExtensionContext) {
   output.appendLine("Kibi extension activation complete.");
 }
 
+export function activate(context: vscode.ExtensionContext) {
+  const output = vscode.window.createOutputChannel("Kibi");
+  output.appendLine("Activating Kibi extension...");
+  context.subscriptions.push(output);
+
+  const workspaceRoot = resolveWorkspaceRoot(output);
+  if (!workspaceRoot) {
+    // Workspace not available at activation time.
+    // Register a listener to initialize features when a workspace becomes available.
+    output.appendLine(
+      "Workspace folder not available. Deferring activation until workspace opens...",
+    );
+    const workspaceFolderChangeListener = vscode.workspace.onDidChangeWorkspaceFolders(
+      () => {
+        const newWorkspaceRoot = resolveWorkspaceRoot(output);
+        if (newWorkspaceRoot) {
+          // Workspace is now available - initialize features
+          initializeWorkspaceFeatures(context, output, newWorkspaceRoot);
+        }
+      },
+    );
+    context.subscriptions.push(workspaceFolderChangeListener);
+    return;
+  }
+
+  // Workspace is immediately available - initialize features now
+  initializeWorkspaceFeatures(context, output, workspaceRoot);
+}
+
 // implements REQ-vscode-traceability
 export function deactivate() {}
+
