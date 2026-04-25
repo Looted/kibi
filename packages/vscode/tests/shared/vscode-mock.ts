@@ -87,6 +87,11 @@ function createOutputChannel() {
 }
 
 // implements REQ-vscode-traceability
+function createTreeViewCaptureList() {
+  return [] as Array<{ id: string; options: unknown }>;
+}
+
+// implements REQ-vscode-traceability
 function createTextEditor() {
   return {
     selection: undefined as unknown,
@@ -275,6 +280,14 @@ export class DefaultFileSystemWatcher {
 
 // implements REQ-vscode-traceability
 function createDefaultState(): VscodeMockState {
+  const createTreeViewCalls = createTreeViewCaptureList();
+  const registerCommandCalls = [] as Array<{
+    commandId: string;
+    callback: unknown;
+  }>;
+  const openTextDocumentListeners = [] as Array<(value: unknown) => void>;
+  const workspaceFolderChangeListeners = [] as Array<(value: unknown) => void>;
+
   return {
     EventEmitter: DefaultEventEmitter,
     ThemeIcon: DefaultThemeIcon,
@@ -304,9 +317,11 @@ function createDefaultState(): VscodeMockState {
       showQuickPick: mock(async (_items: unknown[]) => undefined),
       showTextDocument: mock(async (_doc: unknown) => createTextEditor()),
       createOutputChannel: mock((_name: string) => createOutputChannel()),
-      createTreeView: mock((_id: string, _options: unknown) =>
-        createDisposable(),
-      ),
+      createTreeViewCalls,
+      createTreeView: mock((id: string, options: unknown) => {
+        createTreeViewCalls.push({ id, options });
+        return createDisposable();
+      }),
     },
     workspace: {
       createFileSystemWatcher: mock(
@@ -317,12 +332,33 @@ function createDefaultState(): VscodeMockState {
         get: <T>(_key: string, defaultValue?: T) => defaultValue as T,
       })),
       workspaceFolders: undefined,
-      onDidOpenTextDocument: mock((_listener: unknown) => createDisposable()),
+      openTextDocumentListeners,
+      workspaceFolderChangeListeners,
+      onDidOpenTextDocument: mock((listener: (value: unknown) => void) => {
+        openTextDocumentListeners.push(listener);
+        return createDisposable();
+      }),
+      onDidChangeWorkspaceFolders: mock((listener: (value: unknown) => void) => {
+        workspaceFolderChangeListeners.push(listener);
+        return createDisposable();
+      }),
+      emitOpenTextDocument(value: unknown) {
+        for (const listener of openTextDocumentListeners) {
+          listener(value);
+        }
+      },
+      emitWorkspaceFoldersChange(value: unknown) {
+        for (const listener of workspaceFolderChangeListeners) {
+          listener(value);
+        }
+      },
     },
     commands: {
-      registerCommand: mock((_command: string, _callback: unknown) =>
-        createDisposable(),
-      ),
+      registerCommandCalls,
+      registerCommand: mock((commandId: string, callback: unknown) => {
+        registerCommandCalls.push({ commandId, callback });
+        return createDisposable();
+      }),
       executeCommand: mock(
         async (_command: string, ..._args: unknown[]) => undefined,
       ),

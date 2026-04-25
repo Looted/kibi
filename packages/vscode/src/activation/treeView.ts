@@ -3,8 +3,7 @@
  */
 import * as vscode from "vscode";
 import { KibiTreeDataProvider } from "../treeProvider";
-
-const KIBI_VIEW_ID = "kibi-knowledge-base";
+import { KIBI_REFRESH_TREE_COMMAND, KIBI_VIEW_ID } from "../extensionIds";
 
 export interface TreeViewRegistrationResult {
   treeDataProvider: KibiTreeDataProvider;
@@ -32,7 +31,7 @@ export function registerTreeView(
   output.appendLine(`Tree view registered: ${KIBI_VIEW_ID}`);
 
   const refreshCommand = vscode.commands.registerCommand(
-    "kibi.refreshTree",
+    KIBI_REFRESH_TREE_COMMAND,
     () => {
       treeDataProvider.refresh();
     },
