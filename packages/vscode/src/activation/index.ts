@@ -2,7 +2,7 @@
  * Activation module entry point
  * Provides all registration helpers for the Kibi VS Code extension
  */
-export { resolveWorkspaceRoot, getWorkspaceFolderUri } from "./workspace";
+export { resolveWorkspaceRoot, getWorkspaceFolderUri, getCurrentBranch } from "./workspace";
 export { validateMcpServerPath, findKibiMcpInPath } from "./mcp";
 export {
   registerTreeView,
@@ -17,3 +17,4 @@ export {
   type TraceabilityRegistrationResult,
 } from "./traceability";
 export { registerContextOnOpen } from "./contextOnOpen";
+export { registerBriefWatcher } from "./briefs";

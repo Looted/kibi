@@ -15,9 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-import * as vscode from "vscode";
 import {
+  getCurrentBranch,
   getWorkspaceFolderUri,
+  registerBriefWatcher,
   registerContextOnOpen,
   registerNavigationCommands,
   registerTraceability,
@@ -48,6 +49,17 @@ export function activate(context: vscode.ExtensionContext) {
     workspaceFolderUri,
   );
 
+  // Get current branch for brief watching
+  const currentBranch = getCurrentBranch(workspaceRoot);
+
+  // Register brief watcher for toast notifications
+  const briefWatcherResult = registerBriefWatcher(
+    context,
+    output,
+    workspaceRoot,
+    currentBranch,
+  );
+
   const navigationCommands = registerNavigationCommands(
     output,
     treeViewResult.treeDataProvider,
@@ -63,9 +75,9 @@ export function activate(context: vscode.ExtensionContext) {
   registerContextOnOpen(context, output, workspaceRoot);
 
   const subscriptions: vscode.Disposable[] = [
-    treeViewResult.refreshCommand,
-    treeViewResult.treeView,
     treeViewResult.watcher,
+    briefWatcherResult.watcher,
+    navigationCommands.openEntityCommand,
     navigationCommands.openEntityCommand,
     navigationCommands.openEntityByIdCommand,
     navigationCommands.openTreeItemSourceCommand,

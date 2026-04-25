@@ -12,7 +12,8 @@
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
-    "onCommand:kibi.focusKnowledgeBase"
+    "onCommand:kibi.focusKnowledgeBase",
+    "onCommand:kibi.showLatestBrief"
   ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
@@ -76,6 +77,11 @@
       {
         "command": "kibi.focusKnowledgeBase",
         "title": "Kibi: Focus Knowledge Base"
+      },
+      {
+        "command": "kibi.showLatestBrief",
+        "title": "Show Latest Kibi Brief",
+        "category": "Kibi"
       }
     ],
     "menus": {
