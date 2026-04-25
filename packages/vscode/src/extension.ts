@@ -26,6 +26,7 @@ import {
   resolveWorkspaceRoot,
   validateMcpServerPath,
 } from "./activation";
+import { BriefDocumentProvider } from "./briefDocumentProvider";
 
 // implements REQ-vscode-traceability
 export function activate(context: vscode.ExtensionContext) {
@@ -74,6 +75,15 @@ export function activate(context: vscode.ExtensionContext) {
 
   registerContextOnOpen(context, output, workspaceRoot);
 
+  // Register brief document provider for virtual document viewing
+  const briefProvider = new BriefDocumentProvider();
+  context.subscriptions.push(
+    vscode.workspace.registerTextDocumentContentProvider(
+      BriefDocumentProvider.scheme,
+      briefProvider
+    )
+  );
+
   const subscriptions: vscode.Disposable[] = [
     treeViewResult.watcher,
     briefWatcherResult.watcher,
@@ -102,4 +112,5 @@ export function activate(context: vscode.ExtensionContext) {
   output.appendLine("Kibi extension activation complete.");
 }
 
+// implements REQ-vscode-traceability
 export function deactivate() {}
