@@ -64,7 +64,8 @@ export interface PluginStartupContext {
   ) => void;
 }
 
-function resolveCurrentBranch(cwd: string): string {
+export function resolveCurrentBranch(cwd: string): string {
+  // implements REQ-opencode-kibi-briefing-v3
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = process.env.KIBI_BRANCH?.trim();
   if (envBranch && envBranch.length > 0) {

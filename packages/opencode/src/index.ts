@@ -24,8 +24,20 @@ import {
   createSessionEditState,
   type SessionEditEntry,
 } from "./session-edit-state.js";
+import {
+  computeAuditDelta,
+  getLatestAuditCursor,
+  guardBranchChanged,
+} from "./idle-brief-audit.js";
+import { generateIdleBrief } from "./idle-brief-runtime.js";
+import { resolveCurrentBranch } from "./plugin-startup.js";
 
-// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
+
+
+
+
+
+
 
 interface RecentEdit {
   path: string;
@@ -35,6 +47,8 @@ interface RecentEdit {
 
 import * as fs from "node:fs";
 
+
+
 function deriveFileBucket(kind: PathKind): string {
   return kind;
 }
@@ -42,6 +56,10 @@ function deriveFileBucket(kind: PathKind): string {
 export interface PluginInput {
   worktree: string;
   directory: string;
+  sessionId?: string;
+
+
+
   workspace?: string;
   project?: unknown;
   serverUrl?: unknown;
@@ -187,6 +205,11 @@ const kibiOpencodePlugin: Plugin = async (
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
+  // Idle-brief state
+  let idleBriefInFlight = false;
+  let idleBriefTrailingRerun = false;
+  const idleBriefToastedFingerprints = new Set<string>();
+
 
 function normalizeSessionPath(filePath: string): string {
   if (path.isAbsolute(filePath)) {
@@ -322,6 +345,99 @@ function queueBriefingFetch(
 }
 
   hooks.event = async ({ event }) => {
+
+    // Handle session.idle for idle-brief generation
+    if (event.type === "session.idle") {
+      if (!input.client || getMaintenanceDegraded()) return;
+
+      const idleBranch = currentBranch;
+      const idleWorkspaceRoot = input.worktree;
+
+      // Single-flight guard
+      if (idleBriefInFlight) {
+        idleBriefTrailingRerun = true;
+        return;
+      }
+
+      idleBriefInFlight = true;
+      idleBriefTrailingRerun = false;
+
+
+      const runIdleBrief = async () => {
+        try {
+          // Gather session edits
+          const sessionEdits = sessionEditState.getSessionEdits();
+          const sourceFiles = sessionEdits.map((e) => e.filePath);
+
+          if (sourceFiles.length === 0) return;
+
+          // Compute audit delta
+          const latestCursor = getLatestAuditCursor(idleWorkspaceRoot, idleBranch);
+          const auditDelta = computeAuditDelta(
+            idleWorkspaceRoot,
+            idleBranch,
+            latestCursor,
+          );
+
+          if (!auditDelta.hasChanges) return;
+
+
+          // Branch switch guard
+          const currentBranchNow = resolveCurrentBranch(input.worktree);
+          if (guardBranchChanged(idleBranch, currentBranchNow)) {
+            logger.info("idle-brief.branch-changed", {
+              event: "idle_brief_branch_changed",
+              idleBranch,
+              currentBranch: currentBranchNow,
+            });
+            return;
+          }
+
+          // Generate brief
+          const workspaceCtx = buildBriefingWorkspaceContext();
+          const result = await generateIdleBrief(
+            input.client!,
+            workspaceCtx,
+            auditDelta,
+            input.sessionId ?? "unknown",
+          );
+
+          if (result.success && result.envelope) {
+            // Deduplicate toast by contentHash
+            if (
+              !idleBriefToastedFingerprints.has(result.envelope.contentHash)
+            ) {
+              idleBriefToastedFingerprints.add(result.envelope.contentHash);
+              void sendToast(input.client!, {
+                message: result.toastMessage,
+                variant:
+                  result.envelope.type === "warning" ? "warning" : "success",
+              }).catch(() => {
+                // toast delivery failure is non-fatal
+              });
+            }
+          }
+        } catch (error) {
+          logger.error("idle-brief.error", {
+            event: "idle_brief_error",
+            error: error instanceof Error ? error.message : String(error),
+          });
+        } finally {
+          idleBriefInFlight = false;
+          // If trailing rerun was requested, run again
+          if (idleBriefTrailingRerun) {
+            idleBriefTrailingRerun = false;
+            void runIdleBrief();
+          }
+        }
+      };
+
+      // Fire-and-forget: do NOT await
+      void runIdleBrief();
+      return;
+    }
+
+    if (event.type !== "file.edited") return;
     if (event.type !== "file.edited") return;
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
