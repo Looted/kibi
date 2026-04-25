@@ -122,7 +122,9 @@
     "build": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
     "watch": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify --watch",
     "package": "./package-vsix.sh",
-    "test": "bun test tests/*.test.ts",
+    "test": "bun test tests/**/*.test.ts",
+    "package:clean": "./package-vsix.sh --clean",
+    "verify:vsix": "./verify-vsix.sh",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
