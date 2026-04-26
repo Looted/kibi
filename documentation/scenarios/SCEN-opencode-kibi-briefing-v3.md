@@ -14,6 +14,39 @@ links:
   - type: relates_to
     target: REQ-opencode-kibi-briefing-v3
 ---
+id: SCEN-opencode-kibi-briefing-v3
+title: "OpenCode Kibi Briefing v3: Session Reconciliation and Cache Management"
+status: active
+created_at: 2026-04-24T00:00:00Z
+updated_at: 2026-04-24T00:00:00Z
+source: documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md
+tags:
+  - scenario
+  - opencode
+  - briefing
+  - reconcile
+links:
+  - type: relates_to
+    target: REQ-opencode-kibi-briefing-v3
+
+**Scenario: Config-Governed Delivery — Brief gating by channel**
+
+**GIVEN** a shared config in `.kb/config.json` with `briefs.enabled: true`
+**AND** `briefs.channels.tui: true`
+**WHEN** the idle delivery worker completes a briefing generation
+**THEN** it must respect `briefs.enabled` gate before delivery
+**AND** it must respect `briefs.channels.tui` for TUI channel delivery
+**AND** when `ux.briefs.autoSubmit` is `true` (default), TUI delivery proceeds automatically
+
+**Scenario: AutoSubmit Override — Manual control preserved**
+
+**GIVEN** a session where `ux.briefs.autoSubmit: false` in `.opencode/kibi.json`
+**WHEN** the idle delivery worker completes a briefing generation
+**THEN** it must NOT auto-submit to TUI channel
+**AND** the agent must use `/brief-kibi` to retrieve the briefing manually
+  - type: relates_to
+    target: REQ-opencode-kibi-briefing-v3
+---
 
 **Scenario: Session Reconcile — Multi-file edit triggers briefing update**
 
