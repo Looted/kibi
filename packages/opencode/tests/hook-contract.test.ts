@@ -277,14 +277,14 @@ describe("session.idle hook", () => {
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
     assert.ok(hooks.event, "event hook should exist");
 
-    const client = {
-      tui: {
-        showToast: async () => {},
-      },
-      app: {
-        log: async () => {},
-      },
-    };
+  const client = {
+    tui: {
+      toast: async (payload?: { variant?: string; title?: string; message?: string; duration?: number; }) => {},
+    },
+    app: {
+      log: async () => {},
+    },
+  };
 
     await hooks.event({
       event: { type: "session.idle" },
@@ -295,14 +295,14 @@ describe("session.idle hook", () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
-    const client = {
-      tui: {
-        showToast: async () => {},
-      },
-      app: {
-        log: async () => {},
-      },
-    };
+  const client = {
+    tui: {
+      toast: async (payload?: { variant?: string; title?: string; message?: string; duration?: number; }) => {},
+    },
+    app: {
+      log: async () => {},
+    },
+  };
 
     await hooks.event({
       event: { type: "session.idle" },

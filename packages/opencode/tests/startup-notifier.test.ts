@@ -6,58 +6,7 @@ import {
 } from "../src/startup-notifier";
 
 describe("notifyStartup", () => {
-  test("uses server-plugin showToast capability when available", async () => {
-    const showToastCalls: unknown[] = [];
-    const logCalls: unknown[] = [];
-    const showToast = async (payload: unknown) => {
-      showToastCalls.push(payload);
-    };
-    const log = async (payload: unknown) => {
-      logCalls.push(payload);
-    };
-    const client = {
-      tui: {
-        showToast,
-      },
-      app: {
-        log,
-      },
-    };
-
-    notifyStartup(client as unknown as StartupNotifierClient, {
-      version: "1.2.3",
-    });
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    assert.equal(showToastCalls.length, 1);
-    assert.equal(logCalls.length, 2);
-    assert.deepEqual(showToastCalls[0], {
-      body: {
-        variant: "success",
-        title: "Kibi OpenCode",
-        message: "kibi-opencode started",
-        duration: 4000,
-      },
-    });
-    assert.deepEqual(logCalls[0], {
-      body: {
-        service: "kibi-opencode",
-        level: "info",
-        message: "kibi-opencode started",
-        version: "1.2.3",
-      },
-    });
-    assert.deepEqual(logCalls[1], {
-      body: {
-        service: "kibi-opencode",
-        level: "info",
-        message: "startup toast result",
-        result: "undefined",
-      },
-    });
-  });
-
-  test("falls back to legacy runtime toast capability when available", async () => {
+  test("uses toast capability when available", async () => {
     const toastCalls: unknown[] = [];
     const logCalls: unknown[] = [];
     const toast = async (payload: unknown) => {
@@ -81,7 +30,7 @@ describe("notifyStartup", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     assert.equal(toastCalls.length, 1);
-    assert.equal(logCalls.length, 1);
+    assert.equal(logCalls.length, 2);
     assert.deepEqual(toastCalls[0], {
       variant: "success",
       title: "Kibi OpenCode",
@@ -94,6 +43,14 @@ describe("notifyStartup", () => {
         level: "info",
         message: "kibi-opencode started",
         version: "1.2.3",
+      },
+    });
+    assert.deepEqual(logCalls[1], {
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "startup toast result",
+        result: "undefined",
       },
     });
   });
@@ -121,7 +78,25 @@ describe("notifyStartup", () => {
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      assert.equal(logCalls.length, 1);
+      assert.equal(logCalls.length, 2);
+      assert.equal(consoleLog.mock.calls.length, 0);
+      assert.equal(consoleWarn.mock.calls.length, 0);
+      assert.deepEqual(logCalls[0], {
+        body: {
+          service: "kibi-opencode",
+          level: "info",
+          message: "kibi-opencode started",
+          version: "1.2.3",
+        },
+      });
+      assert.deepEqual(logCalls[1], {
+        body: {
+          service: "kibi-opencode",
+          level: "info",
+          message: "startup toast result",
+          result: "undefined",
+        },
+      });
       assert.equal(consoleLog.mock.calls.length, 0);
       assert.equal(consoleWarn.mock.calls.length, 0);
       assert.deepEqual(logCalls[0], {
@@ -139,17 +114,17 @@ describe("notifyStartup", () => {
   });
 
   test("suppresses toast but still logs structured startup when requested", async () => {
-    const showToastCalls: unknown[] = [];
+    const toastCalls: unknown[] = [];
     const logCalls: unknown[] = [];
-    const showToast = async (payload: unknown) => {
-      showToastCalls.push(payload);
+    const toast = async (payload: unknown) => {
+      toastCalls.push(payload);
     };
     const log = async (payload: unknown) => {
       logCalls.push(payload);
     };
     const client = {
       tui: {
-        showToast,
+        toast,
       },
       app: {
         log,
@@ -162,7 +137,7 @@ describe("notifyStartup", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    assert.equal(showToastCalls.length, 0);
+    assert.equal(toastCalls.length, 0);
     assert.equal(logCalls.length, 1);
     assert.deepEqual(logCalls[0], {
       body: {
@@ -174,8 +149,8 @@ describe("notifyStartup", () => {
     });
   });
 
-  test("logs toast failures when showToast rejects", async () => {
-    const showToast = async () => {
+  test("logs toast failures when toast rejects", async () => {
+    const toast = async () => {
       throw new Error("boom");
     };
     const logCalls: unknown[] = [];
@@ -190,7 +165,7 @@ describe("notifyStartup", () => {
     console.error = consoleError;
     const client = {
       tui: {
-        showToast,
+        toast,
       },
       app: {
         log,
@@ -232,11 +207,11 @@ describe("notifyStartup", () => {
     }
   });
 
-  test("logs boolean toast result when showToast resolves to true", async () => {
-    const showToastCalls: unknown[] = [];
+  test("logs boolean toast result when toast resolves to true", async () => {
+    const toastCalls: unknown[] = [];
     const logCalls: unknown[] = [];
-    const showToast = async (payload: unknown) => {
-      showToastCalls.push(payload);
+    const toast = async (payload: unknown) => {
+      toastCalls.push(payload);
       return true;
     };
     const log = async (payload: unknown) => {
@@ -244,7 +219,7 @@ describe("notifyStartup", () => {
     };
     const client = {
       tui: {
-        showToast,
+        toast,
       },
       app: {
         log,
@@ -256,7 +231,7 @@ describe("notifyStartup", () => {
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    assert.equal(showToastCalls.length, 1);
+    assert.equal(toastCalls.length, 1);
     assert.equal(logCalls.length, 2);
     assert.deepEqual(logCalls[0], {
       body: {
