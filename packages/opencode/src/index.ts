@@ -415,11 +415,20 @@ function queueBriefingFetch(
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
               const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? false };
               void deliverBriefTui(client as ToastCapableClient, result.envelope, sharedPolicy, localConfig)
-                .catch(() => {
+                .catch((err) => {
+                  logger.error("idle-brief.delivery-failed", {
+                    event: "idle_brief_delivery_failed",
+                    error: err instanceof Error ? err.message : String(err),
+                  });
                   void sendToast(client, {
                     message: result.toastMessage,
                     variant: result.envelope!.type === 'warning' ? 'warning' : 'success'
-                  }).catch(() => {});
+                  }).catch((toastErr) => {
+                    logger.error("idle-brief.fallback-toast-failed", {
+                      event: "idle_brief_fallback_toast_failed",
+                      error: toastErr instanceof Error ? toastErr.message : String(toastErr),
+                    });
+                  });
                 });
             }
           }
@@ -443,7 +452,6 @@ function queueBriefingFetch(
       return;
     }
 
-    if (event.type !== "file.edited") return;
     if (event.type !== "file.edited") return;
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
