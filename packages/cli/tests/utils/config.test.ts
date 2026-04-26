@@ -53,6 +53,7 @@ describe("config", () => {
       const config = loadConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_CONFIG.paths);
+      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -117,6 +118,60 @@ describe("config", () => {
       expect(config.paths.scenarios).toBe(DEFAULT_CONFIG.paths.scenarios);
       expect(config.paths.tests).toBe(DEFAULT_CONFIG.paths.tests);
       expect(config.paths.adr).toBe(DEFAULT_CONFIG.paths.adr);
+    });
+
+    test("merges briefs config - legacy config gets defaults", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "custom/req",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadConfig(tmpDir);
+
+      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
+    });
+
+    test("merges briefs config - partial override preserves defaults", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          briefs: {
+            enabled: false,
+            channels: {
+              tui: false,
+            },
+            tui: {
+              toast: false,
+            },
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadConfig(tmpDir);
+
+      expect(config.briefs).toEqual({
+        enabled: false,
+        channels: {
+          vscode: true,
+          tui: false,
+        },
+        tui: {
+          toast: false,
+          appendPrompt: true,
+        },
+      });
     });
 
     test("merges all user paths with defaults", () => {
@@ -341,6 +396,7 @@ describe("config", () => {
       const config = loadSyncConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_SYNC_PATHS);
+      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -404,6 +460,60 @@ describe("config", () => {
       expect(config.paths.scenarios).toBe(DEFAULT_SYNC_PATHS.scenarios);
       expect(config.paths.tests).toBe(DEFAULT_SYNC_PATHS.tests);
       expect(config.paths.adr).toBe(DEFAULT_SYNC_PATHS.adr);
+    });
+
+    test("merges briefs config - legacy config gets defaults", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "custom/**/*.md",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadSyncConfig(tmpDir);
+
+      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
+    });
+
+    test("merges briefs config - partial override preserves defaults", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          briefs: {
+            enabled: false,
+            channels: {
+              vscode: false,
+            },
+            tui: {
+              appendPrompt: false,
+            },
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadSyncConfig(tmpDir);
+
+      expect(config.briefs).toEqual({
+        enabled: false,
+        channels: {
+          vscode: false,
+          tui: true,
+        },
+        tui: {
+          toast: true,
+          appendPrompt: false,
+        },
+      });
     });
 
     test("merges all user paths with DEFAULT_SYNC_PATHS", () => {
@@ -634,6 +744,20 @@ describe("config", () => {
       expect(DEFAULT_CONFIG.paths.events).toBeDefined();
       expect(DEFAULT_CONFIG.paths.facts).toBeDefined();
       expect(DEFAULT_CONFIG.paths.symbols).toBeDefined();
+    });
+
+    test("DEFAULT_CONFIG has briefs config", () => {
+      expect(DEFAULT_CONFIG.briefs).toEqual({
+        enabled: true,
+        channels: {
+          vscode: true,
+          tui: true,
+        },
+        tui: {
+          toast: true,
+          appendPrompt: true,
+        },
+      });
     });
 
     test("DEFAULT_CONFIG has checks config", () => {
