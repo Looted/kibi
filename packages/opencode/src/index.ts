@@ -17,7 +17,7 @@ import { SENTINEL, buildPrompt } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
-import { notifyStartup } from "./startup-notifier.js";
+import { notifyStartup, type StartupNotifierClient } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
 import { sendToast } from "./toast.js";
 import {
@@ -68,7 +68,7 @@ export interface PluginInput {
   $?: unknown;
   client?: {
     tui?: {
-      toast?: (payload: {
+      showToast?: (payload: {
         variant?: "info" | "success" | "warning" | "error";
         title?: string;
         message: string;
@@ -172,6 +172,20 @@ function lintRequirementDoc(
 const kibiOpencodePlugin: Plugin = async (
   input: PluginInput,
 ): Promise<Hooks> => {
+  const makeToastClient = (
+    client: NonNullable<typeof input.client>,
+  ): ToastCapableClient =>
+    client.tui?.showToast
+      ? { tui: { showToast: client.tui.showToast } }
+      : {};
+
+  const makeStartupClient = (
+    client: NonNullable<typeof input.client>,
+  ): StartupNotifierClient => ({
+    ...makeToastClient(client),
+    app: client.app,
+  });
+
   const startup = await runPluginStartup(input);
   if (!startup) {
     return {};
@@ -342,7 +356,7 @@ function queueBriefingFetch(
     autoBriefResults.set(fingerprint, result);
     if (!toastedFingerprints.has(fingerprint)) {
       toastedFingerprints.add(fingerprint);
-      void sendToast(client, { message: result.toastMessage }).catch(() => {
+      void sendToast(makeToastClient(client), { message: result.toastMessage }).catch(() => {
         // toast delivery failure is non-fatal
       });
     }
@@ -353,7 +367,7 @@ function queueBriefingFetch(
 
     // Handle session.idle for idle-brief generation
     if (event.type === "session.idle") {
-  if (!input.client || !input.$ || getMaintenanceDegraded()) return;
+      if (!input.client || getMaintenanceDegraded()) return;
 
       const idleBranch = currentBranch;
       const idleWorkspaceRoot = input.worktree;
@@ -403,27 +417,28 @@ function queueBriefingFetch(
           const client = input.client;
           if (!client) return;
           const result = await generateIdleBrief(
-            input.$,
+            input.client,
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
           );
 
           if (result.success && result.envelope) {
+            const envelope = result.envelope;
             if (!idleBriefToastedFingerprints.has(result.envelope.contentHash)) {
-              idleBriefToastedFingerprints.add(result.envelope.contentHash);
+              idleBriefToastedFingerprints.add(envelope.contentHash);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-              const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? false };
-              if (input.client) {
-                void deliverBriefTui(input.client, result.envelope, sharedPolicy, localConfig)
+              const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+              if (client) {
+                void deliverBriefTui(makeToastClient(client), envelope, sharedPolicy, localConfig)
                   .catch((err) => {
                     logger.error("idle-brief.delivery-failed", {
                       event: "idle_brief_delivery_failed",
                       error: err instanceof Error ? err.message : String(err),
                     });
-                    void sendToast(input.client!, {
+                    void sendToast(makeToastClient(client), {
                       message: result.toastMessage,
-                      variant: result.envelope!.type === 'warning' ? 'warning' : 'success'
+                      variant: envelope.type === 'warning' ? 'warning' : 'success'
                     }).catch((toastErr) => {
                       logger.error("idle-brief.fallback-toast-failed", {
                         event: "idle_brief_fallback_toast_failed",
@@ -1000,7 +1015,7 @@ function queueBriefingFetch(
       });
 
     scheduleStartupNotify(() => {
-      notifyStartup(client, {
+      notifyStartup(makeStartupClient(client), {
         suppressToast: cfg.ux.toastStartup === false,
         directory: input.directory,
       });

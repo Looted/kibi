@@ -17,7 +17,7 @@ describe("notifyStartup", () => {
     };
     const client = {
       tui: {
-        toast,
+        showToast: toast,
       },
       app: {
         log,
@@ -124,7 +124,7 @@ describe("notifyStartup", () => {
     };
     const client = {
       tui: {
-        toast,
+        showToast: toast,
       },
       app: {
         log,
@@ -165,7 +165,7 @@ describe("notifyStartup", () => {
     console.error = consoleError;
     const client = {
       tui: {
-        toast,
+        showToast: toast,
       },
       app: {
         log,
@@ -219,7 +219,7 @@ describe("notifyStartup", () => {
     };
     const client = {
       tui: {
-        toast,
+        showToast: toast,
       },
       app: {
         log,

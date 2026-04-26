@@ -20,7 +20,10 @@ export type ToastPayload = {
 
 export type ToastCapableClient = {
   tui?: {
-    toast?: (payload: ToastPayload) => void | Promise<void>;
+    showToast?: (payload: ToastPayload) => void | Promise<void>;
+    appendPrompt?: (text: string) => void | Promise<void>;
+    clearPrompt?: () => void | Promise<void>;
+    submitPrompt?: () => void | Promise<void>;
   };
 };
 
@@ -46,10 +49,13 @@ export type LocalBriefConfig = {
  * Delivers a Kibi briefing to the TUI via OpenCode client capabilities.
  *
  * Uses the REAL OpenCode plugin API:
- * - client.tui.toast(payload) - legacy toast API
+ * - client.tui.showToast(payload)
+ * - client.tui.appendPrompt(text)
+ * - client.tui.clearPrompt()
+ * - client.tui.submitPrompt()
  *
- * Note: autoSubmit via appendPrompt/clearPrompt/submitPrompt is NOT supported
- * because OpenCode doesn't provide these APIs.
+ * Note: autoSubmit requires the real TUI prompt APIs above. If available,
+ * the briefing prompt block is appended to the prompt and submitted.
  *
  * @param client - OpenCode client with optional TUI capabilities
  * @param envelope - Idle brief envelope containing briefing content
@@ -72,9 +78,9 @@ export async function deliverBriefTui(
   const { tldr: summary } = envelope.briefing;
   const { toast } = sharedPolicy.briefs.tui;
 
-  // Show toast using legacy API (the real OpenCode API)
-  if (toast && typeof client.tui?.toast === "function") {
-    await client.tui.toast({
+  // Show toast using the real OpenCode API
+  if (toast && typeof client.tui?.showToast === "function") {
+    await client.tui.showToast({
       variant: envelope.type === "warning" ? "warning" : "info",
       title: "Kibi",
       message: summary,
@@ -82,9 +88,16 @@ export async function deliverBriefTui(
     });
   }
 
-  // Note: appendPrompt/submitPrompt are not available in OpenCode
-  // autoSubmit is ignored - user must use /brief-kibi manually
-  if (localConfig.autoSubmit) {
-    logger.info("autoSubmit requested but not supported by OpenCode API");
+  if (localConfig.autoSubmit && sharedPolicy.briefs.tui.appendPrompt) {
+    const tui = client.tui;
+    if (
+      typeof tui?.appendPrompt === "function" &&
+      typeof tui?.submitPrompt === "function"
+    ) {
+      await tui.appendPrompt(envelope.briefing.promptBlock);
+      await tui.submitPrompt();
+    } else {
+      logger.info("autoSubmit requested but TUI prompt APIs are unavailable");
+    }
   }
 }

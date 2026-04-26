@@ -179,7 +179,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -300,7 +300,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -460,7 +460,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          toast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -3181,7 +3181,7 @@ import datetime
         prompt: (params: AutoBriefSessionPromptParams) => Promise<unknown>;
       };
       tui: {
-        toast: (payload: unknown) => Promise<unknown>;
+        showToast: (payload: unknown) => Promise<unknown>;
       };
     };
 
@@ -3317,7 +3317,7 @@ import datetime
           },
         },
         tui: {
-          toast: async (payload: unknown) => {
+          showToast: async (payload: unknown) => {
             toastCalls.push(payload);
             return true;
           },

@@ -7,27 +7,38 @@ import type { AuditDelta } from "../src/idle-brief-audit";
 import { generateIdleBrief, type CheckResult, type IdleBriefingResult } from "../src/idle-brief-runtime";
 import { resolveBriefFilePath, resolveBriefsDir } from "../src/idle-brief-paths";
 
-function createMock$(checkResult: CheckResult, briefingResult: IdleBriefingResult) {
-  return (strings: TemplateStringsArray, ...values: unknown[]) => {
-    const cmd = strings.reduce((acc, str, i) => acc + str + (values[i] ?? ""), "");
-    if (cmd.includes("kibi check")) {
-      return {
-        json: () => Promise.resolve(checkResult),
-        text: () => Promise.resolve(JSON.stringify(checkResult)),
-      };
-    }
-
-    if (cmd.includes("kibi briefing")) {
-      return {
-        json: () => Promise.resolve(briefingResult),
-        text: () => Promise.resolve(JSON.stringify(briefingResult)),
-      };
-    }
-
-    return {
-      json: () => Promise.resolve({}),
-      text: () => Promise.resolve(""),
-    };
+function createMockClient(checkResult: CheckResult, briefingResult: IdleBriefingResult) {
+  return {
+    session: {
+      create: async () => ({
+        data: { id: "worker-session-1" },
+      }),
+      prompt: async (parameters: { sessionID: string; parts: Array<{ type: string; text: string }> }) => {
+        const request = JSON.parse(parameters.parts[0]?.text ?? "{}");
+        if (request.tool === "kb_check") {
+          return {
+            data: {
+              info: { id: "msg-1", role: "assistant" },
+              parts: [{ type: "text", text: JSON.stringify(checkResult) }],
+            },
+          };
+        }
+        if (request.tool === "kb_briefing_generate") {
+          return {
+            data: {
+              info: { id: "msg-1", role: "assistant" },
+              parts: [{ type: "text", text: JSON.stringify(briefingResult) }],
+            },
+          };
+        }
+        return {
+          data: {
+            info: { id: "msg-1", role: "assistant" },
+            parts: [{ type: "text", text: "{}" }],
+          },
+        };
+      },
+    },
   };
 }
 
@@ -88,8 +99,8 @@ describe("idle-brief-runtime", () => {
         citations: [{ id: "REQ-001", title: "Test Requirement" }],
       };
 
-      const $ = createMock$(checkResult, briefingResult);
-      const result = await generateIdleBrief($, workspaceCtx, auditDelta, "session-1");
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
 
       expect(result.success).toBe(true);
       expect(result.briefPath).not.toBeNull();
@@ -127,8 +138,8 @@ describe("idle-brief-runtime", () => {
         citations: [],
       };
 
-      const $ = createMock$(checkResult, briefingResult);
-      const result = await generateIdleBrief($, workspaceCtx, auditDelta, "session-1");
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
 
       expect(result.success).toBe(true);
       expect(result.envelope?.type).toBe("warning");
@@ -140,14 +151,14 @@ describe("idle-brief-runtime", () => {
       const workspaceCtx = createWorkspaceCtx(tempDir);
       const auditDelta = createAuditDelta([]);
 
-      const $ = createMock$({ violations: [], count: 0, diagnostics: [] }, {
+      const client = createMockClient({ violations: [], count: 0, diagnostics: [] }, {
         briefingState: "no_briefing",
         tldr: "",
         promptBlock: "",
         citations: [],
       });
 
-      const result = await generateIdleBrief($, workspaceCtx, auditDelta, "session-1");
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
 
       expect(result.success).toBe(true);
       expect(result.envelope).toBeNull();
@@ -160,12 +171,15 @@ describe("idle-brief-runtime", () => {
         { timestamp: "2024-01-01T00:00:00Z", operation: "upsert", entityId: "REQ-001" },
       ]);
 
-      const failing$ = () => ({
-        json: () => Promise.reject(new Error("Command failed")),
-        text: () => Promise.resolve(""),
-      });
+      const failingClient = {
+        session: {
+          create: async () => { throw new Error("Command failed"); },
+          prompt: async () => { throw new Error("Command failed"); },
+        },
+      };
 
-      const result = await generateIdleBrief(failing$, workspaceCtx, auditDelta, "session-1");
+
+      const result = await generateIdleBrief(failingClient, workspaceCtx, auditDelta, "session-1");
 
       expect(result.success).toBe(true);
       expect(result.envelope).not.toBeNull();
@@ -186,8 +200,8 @@ describe("idle-brief-runtime", () => {
         citations: [],
       };
 
-      const $ = createMock$(checkResult, briefingResult);
-      const result = await generateIdleBrief($, workspaceCtx, auditDelta, "session-1");
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
 
       expect(result.briefPath).not.toBeNull();
       // duplicate block removed
@@ -215,11 +229,12 @@ describe("idle-brief-runtime", () => {
         citations: [],
       };
 
-      const $ = createMock$(checkResult, briefingResult);
-      const result = await generateIdleBrief($, workspaceCtx, auditDelta, "session-1");
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
 
       expect(result.envelope?.contentHash).toBeDefined();
       expect(result.envelope?.contentHash.length).toBe(64); // SHA-256 hex
     });
   });
 });
+

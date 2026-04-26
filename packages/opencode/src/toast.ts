@@ -7,7 +7,7 @@ export type ToastPayload = {
 
 export type ToastCapableClient = {
   tui?: {
-    toast?: (payload: ToastPayload) => void | Promise<void>;
+    showToast?: (payload: ToastPayload) => void | Promise<void>;
   };
 };
 
@@ -16,8 +16,8 @@ export function sendToast(
   client: ToastCapableClient,
   payload: ToastPayload,
 ): Promise<void> {
-  if (typeof client.tui?.toast === "function") {
-    return Promise.resolve(client.tui.toast(payload));
+  if (typeof client.tui?.showToast === "function") {
+    return Promise.resolve(client.tui.showToast(payload));
   }
 
   return Promise.resolve();

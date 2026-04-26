@@ -1,0 +1,46 @@
+{
+  "enabled": true,
+  "prompt": {
+    "enabled": true,
+    "hookMode": "auto"
+  },
+  "sync": {
+    "enabled": true,
+    "debounceMs": 2000
+  },
+  "ux": {
+    "toastStartup": true,
+    "toastFailures": true,
+    "toastSuccesses": false,
+    "toastCooldownMs": 10000,
+    "briefs": {
+      "autoSubmit": true
+    }
+  },
+  "guidance": {
+    "dynamic": true,
+    "warnOnKbEdits": true,
+    "factFirstDomainRouting": true,
+    "commentDetection": {
+      "enabled": true,
+      "minLines": 6
+    },
+    "targetedChecks": {
+      "enabled": true
+    },
+    "sessionSummary": {
+      "enabled": true,
+      "logIntervalMs": 1800000
+    },
+    "smartEnforcement": {
+      "enabled": true,
+      "mode": "advisory",
+      "preflightTtlMs": 600000,
+      "idleResetMs": 1800000,
+      "degradedMode": "warn-once",
+      "requireRootKbForStrict": true,
+      "completionReminder": true
+    }
+  },
+  "logLevel": "info"
+}
