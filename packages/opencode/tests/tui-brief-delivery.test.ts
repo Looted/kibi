@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
-import type { BriefingEnvelope } from "../src/idle-brief-runtime.js";
+import type { IdleBriefEnvelope } from "../src/idle-brief-store.js";
 import { deliverBriefTui } from "../src/tui-brief-delivery.js";
 
 describe("tui-brief-delivery", () => {
@@ -41,7 +41,7 @@ describe("tui-brief-delivery", () => {
     autoSubmit: boolean;
   };
 
-  let envelope: BriefingEnvelope;
+  let envelope: IdleBriefEnvelope;
 
   beforeEach(() => {
     mockClient = {
@@ -72,16 +72,36 @@ describe("tui-brief-delivery", () => {
     };
 
     envelope = {
-      id: "test-id",
+      schemaVersion: "1.0",
+      briefId: "test-id",
+      type: "success",
       sessionId: "test-session",
-      contentHash: "test-hash",
+      branch: "main",
       createdAt: new Date().toISOString(),
-      briefing: {
-        summary: "Test summary",
-        citedReqs: ["REQ-001"],
-        citedSyms: ["SYM-001"],
-        promptBlock: "Test prompt block",
+      unread: false,
+      auditCursor: {
+        lastTimestamp: "2024-01-01T00:00:00Z",
+        lastOperation: "test",
+        entryCount: 0,
+        fileSize: 0,
       },
+      summary: "Test summary",
+      counts: {
+        requirementsAdded: 0,
+        relationshipsAdded: 0,
+        entitiesDeleted: 0,
+      },
+      validation: {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      },
+      briefing: {
+        tldr: "Test summary",
+        promptBlock: "Test prompt block",
+        citations: [{ id: "REQ-001", type: "req", title: "Linked requirement" }],
+      },
+      contentHash: "test-hash",
     };
   });
 
@@ -139,9 +159,12 @@ describe("tui-brief-delivery", () => {
   });
 
   test("skips append/submit when promptBlock is empty", async () => {
-    envelope.briefing.promptBlock = "";
+    const emptyEnvelope: IdleBriefEnvelope = {
+      ...envelope,
+      briefing: { ...envelope.briefing, promptBlock: "" },
+    };
 
-    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+    await deliverBriefTui(mockClient, emptyEnvelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui!.appendPrompt).not.toHaveBeenCalled();
     expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
@@ -154,5 +177,70 @@ describe("tui-brief-delivery", () => {
 
     expect(mockClient.tui!.appendPrompt).not.toHaveBeenCalled();
     expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
+  });
+
+  // New tests: missing prompt capabilities (coverage for Task 5)
+  test("missing appendPrompt capability still shows toast in non-autoSubmit mode", async () => {
+    const partialClient = {
+      tui: {
+        showToast: mock(),
+        clearPrompt: mock(),
+        // appendPrompt: undefined (missing)
+        submitPrompt: mock(),
+      },
+    };
+    localConfig.autoSubmit = false;
+
+    await deliverBriefTui(partialClient as any, envelope, sharedPolicy, localConfig);
+
+    expect(partialClient.tui!.showToast).toHaveBeenCalled();
+  });
+
+  test("empty promptBlock with no TUI capabilities returns early silently", async () => {
+    const noToastClient = {
+      tui: {
+        // No showToast
+        appendPrompt: mock(),
+        clearPrompt: mock(),
+        submitPrompt: mock(),
+      },
+    };
+    const emptyEnvelope: IdleBriefEnvelope = {
+      ...envelope,
+      briefing: { ...envelope.briefing, promptBlock: "" },
+    };
+
+    await deliverBriefTui(noToastClient as any, emptyEnvelope, sharedPolicy, localConfig);
+
+    expect(noToastClient.tui!.appendPrompt).not.toHaveBeenCalled();
+    expect(noToastClient.tui!.clearPrompt).not.toHaveBeenCalled();
+    expect(noToastClient.tui!.submitPrompt).not.toHaveBeenCalled();
+  });
+
+  // New tests: envelope type variants (coverage for Task 5)
+  test("uses warning toast variant for warning envelope type", async () => {
+    envelope.type = "warning";
+    sharedPolicy.briefs.tui.toast = true;
+
+    await deliverBriefTui(mockClient as any, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui!.showToast).toHaveBeenCalledWith({
+      body: expect.objectContaining({
+        variant: "warning",
+      }),
+    });
+  });
+
+  test("uses info toast variant for default envelope type", async () => {
+    envelope.type = "success";
+    sharedPolicy.briefs.tui.toast = true;
+
+    await deliverBriefTui(mockClient as any, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui!.showToast).toHaveBeenCalledWith({
+      body: expect.objectContaining({
+        variant: "info",
+      }),
+    });
   });
 });

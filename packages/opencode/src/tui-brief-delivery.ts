@@ -94,7 +94,7 @@ export async function deliverBriefTui(
     return;
   }
 
-  const { summary } = envelope.briefing;
+  const { tldr: summary } = envelope.briefing;
   const { toast, appendPrompt: appendPromptEnabled } = sharedPolicy.briefs.tui;
 
   // Show toast if enabled
