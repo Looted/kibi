@@ -1,6 +1,5 @@
 // implements REQ-opencode-kibi-briefing-v3
 
-import type { ToastCapableClient } from "./toast.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
 import {
@@ -48,73 +47,6 @@ export interface IdleBriefingResult {
   }>;
 }
 
-type SessionCreateParams = {
-  directory: string;
-  title: string;
-};
-
-type PromptTextPart = {
-  type: "text";
-  text: string;
-};
-
-type SessionPromptParams = {
-  sessionID: string;
-  tools: {
-    [key: string]: boolean;
-  };
-  format: {
-    type: "json_schema";
-    schema: Record<string, unknown>;
-  };
-  parts: PromptTextPart[];
-};
-
-type SessionApi = {
-  create: (parameters: SessionCreateParams) => Promise<unknown>;
-  prompt: (parameters: SessionPromptParams) => Promise<unknown>;
-};
-
-const workerSessionIds = new Map<string, string>();
-const workerSessionPromises = new Map<string, Promise<string>>();
-
-const CHECK_PROMPT_INSTRUCTION =
-  "Call kb_check with the current workspace. Return the validation result as JSON with fields: violations (array), count (number), diagnostics (array).";
-
-const CHECK_PROMPT_FORMAT: SessionPromptParams["format"] = {
-  type: "json_schema",
-  schema: {
-    type: "object",
-    properties: {
-      violations: { type: "array", items: { type: "object" } },
-      count: { type: "number" },
-      diagnostics: { type: "array", items: { type: "object" } },
-    },
-    required: ["violations", "count"],
-  },
-};
-
-const BRIEFING_PROMPT_INSTRUCTION =
-  "Call kb_briefing_generate with sourceFiles from the current workspace. Return the briefing as JSON with fields: briefingState, tldr, promptBlock, citations.";
-
-const BRIEFING_PROMPT_FORMAT: SessionPromptParams["format"] = {
-  type: "json_schema",
-  schema: {
-    type: "object",
-    properties: {
-      briefingState: { type: "string" },
-      tldr: { type: "string" },
-      promptBlock: { type: "string" },
-      citations: { type: "array", items: { type: "object" } },
-    },
-    required: ["briefingState"],
-  },
-};
-
-function workspaceSessionKey(workspaceCtx: BriefingWorkspaceCtx): string {
-  return `${workspaceCtx.workspaceRoot}\0${workspaceCtx.branch}`;
-}
-
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
     ? (value as Record<string, unknown>)
@@ -129,177 +61,76 @@ function asNumber(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
-function extractParts(response: unknown): unknown[] {
-  const root = asRecord(response);
-  if (!root) {
-    return [];
+function parseCheckResult(response: unknown): CheckResult {
+  const record = asRecord(response);
+  if (!record || !("violations" in record)) {
+    return { violations: [], count: 0, diagnostics: [] };
   }
 
-  const data = asRecord(root.data);
-  const parts = data?.parts ?? root.parts;
-
-  return Array.isArray(parts) ? parts : [];
-}
-
-function extractSessionId(response: unknown): string | null {
-  const root = asRecord(response);
-  if (!root) {
-    return null;
-  }
-
-  const directId = asString(root.id).trim();
-  if (directId) {
-    return directId;
-  }
-
-  const data = asRecord(root.data);
-  const dataId = asString(data?.id).trim();
-
-  return dataId || null;
-}
-
-function getSessionApi(client: unknown): SessionApi | null {
-  const root = asRecord(client);
-  const session = asRecord(root?.session);
-
-  if (!session) {
-    return null;
-  }
-
-  const create = session.create;
-  const prompt = session.prompt;
-  if (typeof create !== "function" || typeof prompt !== "function") {
-    return null;
-  }
+  const violations = Array.isArray(record.violations)
+    ? record.violations.map((v) => asRecord(v) ?? {})
+    : [];
+  const diagnostics = Array.isArray(record.diagnostics)
+    ? record.diagnostics.map((d) => asRecord(d) ?? {})
+    : [];
 
   return {
-    create: create as SessionApi["create"],
-    prompt: prompt as SessionApi["prompt"],
+    violations: violations.map((v) => ({
+      rule: asString(v.rule),
+      entityId: asString(v.entityId),
+      description: asString(v.description),
+      suggestion: asString(v.suggestion),
+      source: asString(v.source),
+    })),
+    count: asNumber(record.count),
+    diagnostics: diagnostics.map((d) => ({
+      category: asString(d.category),
+      severity: asString(d.severity),
+      message: asString(d.message),
+      file: asString(d.file),
+      suggestion: asString(d.suggestion),
+    })),
   };
 }
 
-async function getWorkerSessionId(
-  sessionApi: SessionApi,
+async function loadCheckResult(
+  $: any,
   workspaceCtx: BriefingWorkspaceCtx,
-): Promise<string> {
-  const key = workspaceSessionKey(workspaceCtx);
-  const existing = workerSessionIds.get(key);
-  if (existing) {
-    return existing;
+): Promise<CheckResult> {
+  try {
+    const result = await $`kibi check --json --cwd ${workspaceCtx.workspaceRoot}`.json();
+    return parseCheckResult(result);
+  } catch {
+    return { violations: [], count: 0, diagnostics: [] };
   }
-
-  const pending = workerSessionPromises.get(key);
-  if (pending) {
-    return pending;
-  }
-
-  const promise = (async () => {
-    const response = await sessionApi.create({
-      directory: workspaceCtx.workspaceRoot,
-      title: "Kibi Auto Brief Worker",
-    });
-    const sessionId = extractSessionId(response);
-    if (!sessionId) {
-      throw new Error("Failed to resolve worker session ID");
-    }
-
-    workerSessionIds.set(key, sessionId);
-    return sessionId;
-  })().finally(() => {
-    workerSessionPromises.delete(key);
-  });
-
-  workerSessionPromises.set(key, promise);
-  return promise;
 }
 
-function parseCheckResult(response: unknown): CheckResult {
-  const parts = extractParts(response);
-
-  for (let index = parts.length - 1; index >= 0; index -= 1) {
-    const part = asRecord(parts[index]);
-    if (!part || part.type !== "text") {
-      continue;
+async function loadBriefingResultForIdle(
+  $: any,
+  workspaceCtx: BriefingWorkspaceCtx,
+): Promise<IdleBriefingResult> {
+  try {
+    const result = await $`kibi briefing --json --cwd ${workspaceCtx.workspaceRoot}`.json();
+    const record = asRecord(result);
+    if (record && "briefingState" in record) {
+      const citations = Array.isArray(record.citations)
+        ? record.citations.map((c: unknown) => asRecord(c) ?? {})
+        : [];
+      return {
+        briefingState: asString(record.briefingState),
+        tldr: asString(record.tldr),
+        promptBlock: asString(record.promptBlock),
+        citations: citations.map((c) => ({
+          id: asString(c.id),
+          type: asString(c.type),
+          title: asString(c.title),
+          source: asString(c.source),
+          textRef: asString(c.textRef),
+        })),
+      };
     }
-
-    const text = asString(part.text);
-    if (!text) {
-      continue;
-    }
-
-    try {
-      const parsed = JSON.parse(text) as unknown;
-      const record = asRecord(parsed);
-      if (record && "violations" in record) {
-        const violations = Array.isArray(record.violations)
-          ? record.violations.map((v) => asRecord(v) ?? {})
-          : [];
-        const diagnostics = Array.isArray(record.diagnostics)
-          ? record.diagnostics.map((d) => asRecord(d) ?? {})
-          : [];
-        return {
-          violations: violations.map((v) => ({
-            rule: asString(v.rule),
-            entityId: asString(v.entityId),
-            description: asString(v.description),
-            suggestion: asString(v.suggestion),
-            source: asString(v.source),
-          })),
-          count: asNumber(record.count),
-          diagnostics: diagnostics.map((d) => ({
-            category: asString(d.category),
-            severity: asString(d.severity),
-            message: asString(d.message),
-            file: asString(d.file),
-            suggestion: asString(d.suggestion),
-          })),
-        };
-      }
-    } catch {
-      // malformed, continue
-    }
-  }
-
-  return { violations: [], count: 0, diagnostics: [] };
-}
-
-function parseBriefingResult(response: unknown): IdleBriefingResult {
-  const parts = extractParts(response);
-
-  for (let index = parts.length - 1; index >= 0; index -= 1) {
-    const part = asRecord(parts[index]);
-    if (!part || part.type !== "text") {
-      continue;
-    }
-
-    const text = asString(part.text);
-    if (!text) {
-      continue;
-    }
-
-    try {
-      const parsed = JSON.parse(text) as unknown;
-      const record = asRecord(parsed);
-      if (record && "briefingState" in record) {
-        const citations = Array.isArray(record.citations)
-          ? record.citations.map((c) => asRecord(c) ?? {})
-          : [];
-        return {
-          briefingState: asString(record.briefingState),
-          tldr: asString(record.tldr),
-          promptBlock: asString(record.promptBlock),
-          citations: citations.map((c) => ({
-            id: asString(c.id),
-            type: asString(c.type),
-            title: asString(c.title),
-            source: asString(c.source),
-            textRef: asString(c.textRef),
-          })),
-        };
-      }
-    } catch {
-      // malformed, continue
-    }
+  } catch {
+    // briefing command not available or failed
   }
 
   return {
@@ -308,53 +139,6 @@ function parseBriefingResult(response: unknown): IdleBriefingResult {
     promptBlock: "",
     citations: [],
   };
-}
-
-async function loadCheckResult(
-  sessionApi: SessionApi,
-  workspaceCtx: BriefingWorkspaceCtx,
-): Promise<CheckResult> {
-  const sessionID = await getWorkerSessionId(sessionApi, workspaceCtx);
-  const response = await sessionApi.prompt({
-    sessionID,
-    tools: { kb_check: true },
-    format: CHECK_PROMPT_FORMAT,
-    parts: [
-      {
-        type: "text",
-        text: CHECK_PROMPT_INSTRUCTION,
-      },
-    ],
-  });
-
-  return parseCheckResult(response);
-}
-
-async function loadBriefingResultForIdle(
-  sessionApi: SessionApi,
-  workspaceCtx: BriefingWorkspaceCtx,
-): Promise<IdleBriefingResult> {
-  const sessionID = await getWorkerSessionId(sessionApi, workspaceCtx);
-  const response = await sessionApi.prompt({
-    sessionID,
-    tools: { kb_briefing_generate: true },
-    format: BRIEFING_PROMPT_FORMAT,
-    parts: [
-      {
-        type: "text",
-        text: BRIEFING_PROMPT_INSTRUCTION,
-      },
-      {
-        type: "text",
-        text: JSON.stringify({
-          sourceFiles: [workspaceCtx.workspaceRoot],
-          seedIds: [],
-        }),
-      },
-    ],
-  });
-
-  return parseBriefingResult(response);
 }
 
 function computeCounts(auditDelta: AuditDelta): {
@@ -397,13 +181,11 @@ function computeSummary(
 
   const validationText = violationsCount === 0
     ? "clean"
-    : `${violationsCount} violation${violationsCount > 1 ? "s" : ""} found.`;
+    : `${violationsCount} issue${violationsCount > 1 ? "s" : ""}`;
 
-  if (parts.length > 0) {
-    return `${parts.join(". ")}. KB validation: ${validationText}`;
-  }
+  const changeText = parts.length > 0 ? parts.join(", ") : "no changes";
 
-  return `No changes detected. KB validation: ${validationText}`;
+  return `${changeText} | ${validationText}`;
 }
 
 function buildEnvelopeParts(
@@ -435,7 +217,7 @@ function buildEnvelopeParts(
       diagnostics: checkResult.diagnostics,
     },
     briefing: {
-      tldr: briefingResult.tldr,
+      tldr: briefingResult.tldr || summary,
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
     },
@@ -444,7 +226,7 @@ function buildEnvelopeParts(
 
 // implements REQ-opencode-kibi-briefing-v3
 export async function generateIdleBrief(
-  client: ToastCapableClient,
+  $: any,
   workspaceCtx: BriefingWorkspaceCtx,
   auditDelta: AuditDelta,
   sessionId: string,
@@ -458,27 +240,17 @@ export async function generateIdleBrief(
     };
   }
 
-  const sessionApi = getSessionApi(client);
-  if (!sessionApi) {
-    return {
-      success: false,
-      briefPath: null,
-      envelope: null,
-      toastMessage: "Kibi: Worker session unavailable. Brief failed.",
-    };
-  }
-
   let checkResult: CheckResult;
   let briefingResult: IdleBriefingResult;
 
   try {
-    checkResult = await loadCheckResult(sessionApi, workspaceCtx);
+    checkResult = await loadCheckResult($, workspaceCtx);
   } catch {
     checkResult = { violations: [], count: 0, diagnostics: [] };
   }
 
   try {
-    briefingResult = await loadBriefingResultForIdle(sessionApi, workspaceCtx);
+    briefingResult = await loadBriefingResultForIdle($, workspaceCtx);
   } catch {
     briefingResult = {
       briefingState: "no_briefing",

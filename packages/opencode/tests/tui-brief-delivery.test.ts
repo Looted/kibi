@@ -8,18 +8,16 @@
  * (at your option) any later version.
  */
 
-import { beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import type { IdleBriefEnvelope } from "../src/idle-brief-store.js";
 import { deliverBriefTui } from "../src/tui-brief-delivery.js";
+import * as logger from "../src/logger.js";
 
 describe("tui-brief-delivery", () => {
   let mockClient: {
-    tui: {
-      showToast?: (payload: { body: { variant?: string; title?: string; message: string; duration?: number } }) => void | Promise<void>;
-      appendPrompt?: (text: string) => void | Promise<void>;
-      clearPrompt?: () => void | Promise<void>;
-      submitPrompt?: () => void | Promise<void>;
+    tui?: {
+      toast?: ReturnType<typeof mock>;
     };
   };
 
@@ -32,7 +30,6 @@ describe("tui-brief-delivery", () => {
       };
       tui: {
         toast: boolean;
-        appendPrompt: boolean;
       };
     };
   };
@@ -42,14 +39,15 @@ describe("tui-brief-delivery", () => {
   };
 
   let envelope: IdleBriefEnvelope;
+  let mockLog: ReturnType<typeof mock>;
 
   beforeEach(() => {
+    mockLog = mock(() => Promise.resolve());
+    logger.setClient({ app: { log: mockLog } } as any);
+
     mockClient = {
       tui: {
-        showToast: mock(),
-        appendPrompt: mock(),
-        clearPrompt: mock(),
-        submitPrompt: mock(),
+        toast: mock(() => {}),
       },
     };
 
@@ -62,13 +60,12 @@ describe("tui-brief-delivery", () => {
         },
         tui: {
           toast: true,
-          appendPrompt: true,
         },
       },
     };
 
     localConfig = {
-      autoSubmit: true,
+      autoSubmit: false,
     };
 
     envelope = {
@@ -105,15 +102,16 @@ describe("tui-brief-delivery", () => {
     };
   });
 
+  afterEach(() => {
+    logger.resetClient();
+  });
+
   test("returns early when TUI delivery is disabled", async () => {
     sharedPolicy.briefs.channels.tui = false;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui!.showToast).not.toHaveBeenCalled();
-    expect(mockClient.tui!.appendPrompt).not.toHaveBeenCalled();
-    expect(mockClient.tui!.clearPrompt).not.toHaveBeenCalled();
-    expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
+    expect(mockClient.tui?.toast).not.toHaveBeenCalled();
   });
 
   test("shows toast when enabled", async () => {
@@ -121,12 +119,11 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui!.showToast).toHaveBeenCalledWith({
-      body: expect.objectContaining({
-        message: "Test summary",
-        variant: "info",
-        title: "Kibi",
-      }),
+    expect(mockClient.tui?.toast).toHaveBeenCalledWith({
+      variant: "info",
+      title: "Kibi",
+      message: "Test summary",
+      duration: 5000,
     });
   });
 
@@ -135,112 +132,53 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui!.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.toast).not.toHaveBeenCalled();
   });
 
-  test("auto-submit mode clears, appends, and submits", async () => {
-    localConfig.autoSubmit = true;
-
-    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
-
-    expect(mockClient.tui!.clearPrompt).toHaveBeenCalled();
-    expect(mockClient.tui!.appendPrompt).toHaveBeenCalledWith("/brief-kibi");
-    expect(mockClient.tui!.submitPrompt).toHaveBeenCalled();
-  });
-
-  test("append-only mode appends one-line hint", async () => {
-    localConfig.autoSubmit = false;
-
-    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
-
-    expect(mockClient.tui!.clearPrompt).not.toHaveBeenCalled();
-    expect(mockClient.tui!.appendPrompt).toHaveBeenCalledWith("Kibi: Test summary. Full brief: /brief-kibi");
-    expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
-  });
-
-  test("skips append/submit when promptBlock is empty", async () => {
-    const emptyEnvelope: IdleBriefEnvelope = {
-      ...envelope,
-      briefing: { ...envelope.briefing, promptBlock: "" },
-    };
-
-    await deliverBriefTui(mockClient, emptyEnvelope, sharedPolicy, localConfig);
-
-    expect(mockClient.tui!.appendPrompt).not.toHaveBeenCalled();
-    expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
-  });
-
-  test("skips toast when appendPrompt is disabled", async () => {
-    sharedPolicy.briefs.tui.appendPrompt = false;
-
-    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
-
-    expect(mockClient.tui!.appendPrompt).not.toHaveBeenCalled();
-    expect(mockClient.tui!.submitPrompt).not.toHaveBeenCalled();
-  });
-
-  // New tests: missing prompt capabilities (coverage for Task 5)
-  test("missing appendPrompt capability still shows toast in non-autoSubmit mode", async () => {
-    const partialClient = {
-      tui: {
-        showToast: mock(),
-        clearPrompt: mock(),
-        // appendPrompt: undefined (missing)
-        submitPrompt: mock(),
-      },
-    };
-    localConfig.autoSubmit = false;
-
-    await deliverBriefTui(partialClient as any, envelope, sharedPolicy, localConfig);
-
-    expect(partialClient.tui!.showToast).toHaveBeenCalled();
-  });
-
-  test("empty promptBlock with no TUI capabilities returns early silently", async () => {
-    const noToastClient = {
-      tui: {
-        // No showToast
-        appendPrompt: mock(),
-        clearPrompt: mock(),
-        submitPrompt: mock(),
-      },
-    };
-    const emptyEnvelope: IdleBriefEnvelope = {
-      ...envelope,
-      briefing: { ...envelope.briefing, promptBlock: "" },
-    };
-
-    await deliverBriefTui(noToastClient as any, emptyEnvelope, sharedPolicy, localConfig);
-
-    expect(noToastClient.tui!.appendPrompt).not.toHaveBeenCalled();
-    expect(noToastClient.tui!.clearPrompt).not.toHaveBeenCalled();
-    expect(noToastClient.tui!.submitPrompt).not.toHaveBeenCalled();
-  });
-
-  // New tests: envelope type variants (coverage for Task 5)
   test("uses warning toast variant for warning envelope type", async () => {
     envelope.type = "warning";
     sharedPolicy.briefs.tui.toast = true;
 
-    await deliverBriefTui(mockClient as any, envelope, sharedPolicy, localConfig);
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui!.showToast).toHaveBeenCalledWith({
-      body: expect.objectContaining({
+    expect(mockClient.tui?.toast).toHaveBeenCalledWith(
+      expect.objectContaining({
         variant: "warning",
       }),
-    });
+    );
   });
 
-  test("uses info toast variant for default envelope type", async () => {
+  test("uses info toast variant for success envelope type", async () => {
     envelope.type = "success";
     sharedPolicy.briefs.tui.toast = true;
 
-    await deliverBriefTui(mockClient as any, envelope, sharedPolicy, localConfig);
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui!.showToast).toHaveBeenCalledWith({
-      body: expect.objectContaining({
+    expect(mockClient.tui?.toast).toHaveBeenCalledWith(
+      expect.objectContaining({
         variant: "info",
       }),
-    });
+    );
+  });
+
+  test("does not throw when client.tui is undefined", async () => {
+    const clientWithoutTui = {};
+
+    await expect(
+      deliverBriefTui(clientWithoutTui as any, envelope, sharedPolicy, localConfig),
+    ).resolves.toBeUndefined();
+  });
+
+  test("logs autoSubmit message when enabled", async () => {
+    localConfig.autoSubmit = true;
+    sharedPolicy.briefs.tui.toast = true;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockLog).toHaveBeenCalled();
+    const call = mockLog.mock.calls[0];
+    expect(call[0].body.message).toBe(
+      "autoSubmit requested but not supported by OpenCode API",
+    );
   });
 });

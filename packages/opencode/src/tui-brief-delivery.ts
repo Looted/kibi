@@ -11,31 +11,16 @@
 import type { IdleBriefEnvelope } from "./idle-brief-store.js";
 import * as logger from "./logger.js";
 
-type ShowToastPayload = {
-  body: {
-    variant?: "info" | "success" | "warning" | "error";
-    title?: string;
-    message: string;
-    duration?: number;
-  };
-};
-
-type ShowToast = (payload: ShowToastPayload) => void | Promise<void>;
-
-type TuiCapabilities = {
-  showToast?: ShowToast;
-  appendPrompt?: (text: string) => void | Promise<void>;
-  clearPrompt?: () => void | Promise<void>;
-  submitPrompt?: () => void | Promise<void>;
+export type ToastPayload = {
+  variant?: "info" | "success" | "warning" | "error";
+  title?: string;
+  message: string;
+  duration?: number;
 };
 
 export type ToastCapableClient = {
-  tui?: TuiCapabilities;
-};
-
-type ClientWithShowToast = ToastCapableClient & {
-  tui: TuiCapabilities & {
-    showToast: ShowToast;
+  tui?: {
+    toast?: (payload: ToastPayload) => void | Promise<void>;
   };
 };
 
@@ -57,29 +42,19 @@ export type LocalBriefConfig = {
   autoSubmit: boolean;
 };
 
-function hasShowToast(
-  client: ToastCapableClient,
-): client is ClientWithShowToast {
-  return typeof client.tui?.showToast === "function";
-}
-
 /**
  * Delivers a Kibi briefing to the TUI via OpenCode client capabilities.
  *
- * This helper models TUI capabilities (showToast, appendPrompt, clearPrompt, submitPrompt)
- * and orchestrates brief delivery based on shared policy and local config.
+ * Uses the REAL OpenCode plugin API:
+ * - client.tui.toast(payload) - legacy toast API
+ *
+ * Note: autoSubmit via appendPrompt/clearPrompt/submitPrompt is NOT supported
+ * because OpenCode doesn't provide these APIs.
  *
  * @param client - OpenCode client with optional TUI capabilities
  * @param envelope - Idle brief envelope containing briefing content
  * @param sharedPolicy - Shared brief policy from `.kb/config.json`
  * @param localConfig - Local OpenCode config with autoSubmit preference
- *
- * Delivery behavior:
- * - Returns early if sharedPolicy.briefs.channels.tui is false
- * - Shows toast if sharedPolicy.briefs.tui.toast is true
- * - If localConfig.autoSubmit is true: clearPrompt → appendPrompt('/brief-kibi') → submitPrompt()
- * - If localConfig.autoSubmit is false: appendPrompt('Kibi: <summary>. Full brief: /brief-kibi')
- * - Skips append/submit if envelope.briefing.promptBlock is empty or sharedPolicy.briefs.tui.appendPrompt is false
  */
 // implements REQ-opencode-kibi-plugin-v1
 export async function deliverBriefTui(
@@ -95,45 +70,21 @@ export async function deliverBriefTui(
   }
 
   const { tldr: summary } = envelope.briefing;
-  const { toast, appendPrompt: appendPromptEnabled } = sharedPolicy.briefs.tui;
+  const { toast } = sharedPolicy.briefs.tui;
 
-  // Show toast if enabled
-  if (toast && hasShowToast(client)) {
-    await client.tui!.showToast({
-      body: {
-        variant: envelope.type === "warning" ? "warning" : "info",
-        title: "Kibi",
-        message: summary,
-        duration: 5000,
-      },
+  // Show toast using legacy API (the real OpenCode API)
+  if (toast && typeof client.tui?.toast === "function") {
+    await client.tui.toast({
+      variant: envelope.type === "warning" ? "warning" : "info",
+      title: "Kibi",
+      message: summary,
+      duration: 5000,
     });
   }
 
-  // Skip prompt operations if appendPrompt is disabled or promptBlock is empty
-  if (!appendPromptEnabled || !envelope.briefing.promptBlock?.trim()) {
-    logger.info(
-      `Skipping prompt delivery: appendPrompt=${appendPromptEnabled}, promptBlockPresent=${!!envelope.briefing.promptBlock?.trim()}`,
-    );
-    return;
-  }
-
-  const { autoSubmit } = localConfig;
-  const appendText = autoSubmit ? "/brief-kibi" : `Kibi: ${summary}. Full brief: /brief-kibi`;
-
-  // Deliver based on autoSubmit mode
-  if (autoSubmit) {
-    if (client.tui?.clearPrompt) {
-      await client.tui.clearPrompt();
-    }
-    if (client.tui?.appendPrompt) {
-      await client.tui.appendPrompt(appendText);
-    }
-    if (client.tui?.submitPrompt) {
-      await client.tui.submitPrompt();
-    }
-  } else {
-    if (client.tui?.appendPrompt) {
-      await client.tui.appendPrompt(appendText);
-    }
+  // Note: appendPrompt/submitPrompt are not available in OpenCode
+  // autoSubmit is ignored - user must use /brief-kibi manually
+  if (localConfig.autoSubmit) {
+    logger.info("autoSubmit requested but not supported by OpenCode API");
   }
 }

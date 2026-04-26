@@ -353,7 +353,7 @@ function queueBriefingFetch(
 
     // Handle session.idle for idle-brief generation
     if (event.type === "session.idle") {
-      if (!input.client || getMaintenanceDegraded()) return;
+  if (!input.client || !input.$ || getMaintenanceDegraded()) return;
 
       const idleBranch = currentBranch;
       const idleWorkspaceRoot = input.worktree;
@@ -403,7 +403,7 @@ function queueBriefingFetch(
           const client = input.client;
           if (!client) return;
           const result = await generateIdleBrief(
-            client,
+            input.$,
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
@@ -414,22 +414,24 @@ function queueBriefingFetch(
               idleBriefToastedFingerprints.add(result.envelope.contentHash);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
               const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? false };
-              void deliverBriefTui(client as ToastCapableClient, result.envelope, sharedPolicy, localConfig)
-                .catch((err) => {
-                  logger.error("idle-brief.delivery-failed", {
-                    event: "idle_brief_delivery_failed",
-                    error: err instanceof Error ? err.message : String(err),
-                  });
-                  void sendToast(client, {
-                    message: result.toastMessage,
-                    variant: result.envelope!.type === 'warning' ? 'warning' : 'success'
-                  }).catch((toastErr) => {
-                    logger.error("idle-brief.fallback-toast-failed", {
-                      event: "idle_brief_fallback_toast_failed",
-                      error: toastErr instanceof Error ? toastErr.message : String(toastErr),
+              if (input.client) {
+                void deliverBriefTui(input.client, result.envelope, sharedPolicy, localConfig)
+                  .catch((err) => {
+                    logger.error("idle-brief.delivery-failed", {
+                      event: "idle_brief_delivery_failed",
+                      error: err instanceof Error ? err.message : String(err),
+                    });
+                    void sendToast(input.client!, {
+                      message: result.toastMessage,
+                      variant: result.envelope!.type === 'warning' ? 'warning' : 'success'
+                    }).catch((toastErr) => {
+                      logger.error("idle-brief.fallback-toast-failed", {
+                        event: "idle_brief_fallback_toast_failed",
+                        error: toastErr instanceof Error ? toastErr.message : String(toastErr),
+                      });
                     });
                   });
-                });
+              }
             }
           } else {
             logger.info("idle-brief.no-brief-generated", {

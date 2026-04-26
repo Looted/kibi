@@ -179,7 +179,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          toast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -240,12 +240,10 @@ describe.serial("index kibiOpencodePlugin", () => {
 
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
-        body: {
-          variant: "success",
-          title: "Kibi OpenCode",
-          message: "kibi-opencode started",
-          duration: 4000,
-        },
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started",
+        duration: 4000,
       });
       assert.equal(startupConfirmations.length, 1);
 
@@ -302,7 +300,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          toast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -462,7 +460,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          toast: async (payload: Record<string, unknown>) => {
             toastCalls.push(payload);
           },
         },
@@ -3183,7 +3181,7 @@ import datetime
         prompt: (params: AutoBriefSessionPromptParams) => Promise<unknown>;
       };
       tui: {
-        showToast: (payload: unknown) => Promise<unknown>;
+        toast: (payload: unknown) => Promise<unknown>;
       };
     };
 
@@ -3289,7 +3287,7 @@ import datetime
     function createAutoBriefClient(options: { promptResults?: unknown[] } = {}) {
       const createCalls: AutoBriefSessionCreateParams[] = [];
       const promptCalls: AutoBriefSessionPromptParams[] = [];
-      const showToastCalls: unknown[] = [];
+      const toastCalls: unknown[] = [];
       const logCalls: Record<string, unknown>[] = [];
       let promptCallIndex = 0;
 
@@ -3319,8 +3317,8 @@ import datetime
           },
         },
         tui: {
-          showToast: async (payload: unknown) => {
-            showToastCalls.push(payload);
+          toast: async (payload: unknown) => {
+            toastCalls.push(payload);
             return true;
           },
         },
@@ -3330,7 +3328,7 @@ import datetime
         client,
         createCalls,
         promptCalls,
-        showToastCalls,
+        toastCalls,
         logCalls,
       };
     }
@@ -3379,7 +3377,7 @@ import datetime
         "export function feature() { return 0; }\n",
       );
 
-      const { client, showToastCalls } = createAutoBriefClient();
+      const { client, toastCalls } = createAutoBriefClient();
       const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
       const plugin = await loadFreshPlugin();
       const hooks = await plugin({
@@ -3412,7 +3410,7 @@ import datetime
       });
 
       await waitForCondition(
-        () => fetchSpy.mock.calls.length === 1 && showToastCalls.length === 1,
+        () => fetchSpy.mock.calls.length === 1 && toastCalls.length === 1,
       );
 
       assert.equal(fetchSpy.mock.calls.length, 1);
@@ -3443,10 +3441,8 @@ import datetime
         ),
         true,
       );
-      assert.deepEqual(showToastCalls[0], {
-        body: {
-          message: READY_TOAST,
-        },
+      assert.deepEqual(toastCalls[0], {
+        message: READY_TOAST,
       });
     });
 
@@ -3560,7 +3556,7 @@ import datetime
         showManualCue: false,
         toastMessage: READY_TOAST,
       };
-      const { client, showToastCalls } = createAutoBriefClient();
+      const { client, toastCalls } = createAutoBriefClient();
       let resolveBriefing: ((result: BriefingRuntimeResult) => void) | undefined;
       const briefingGate = new Promise<BriefingRuntimeResult>((resolve) => {
         resolveBriefing = resolve;
@@ -3603,16 +3599,17 @@ import datetime
       await waitForCondition(() => fetchSpy.mock.calls.length === 2);
 
       resolveBriefing?.(expectedAutoBriefResult);
-      await waitForCondition(() => showToastCalls.length > 0);
+      await waitForCondition(() => toastCalls.length > 0);
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       assert.equal(fetchSpy.mock.calls.length, 2);
-      assert.equal(showToastCalls.length, 1);
-      assert.deepEqual(showToastCalls[0], {
-        body: {
-          message: READY_TOAST,
-        },
+      assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
+        message: READY_TOAST,
+      });
+      assert.deepEqual(toastCalls[0], {
+        message: READY_TOAST,
       });
     });
 
@@ -3639,7 +3636,7 @@ import datetime
         "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             tldr: "Requirement context is ready.",
@@ -3748,7 +3745,7 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
 
       const output = { system: ["prompt"] };
       await transformHook({}, output);
@@ -3782,7 +3779,7 @@ import datetime
         "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             tldr: "Some summary here",
@@ -3829,7 +3826,7 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
@@ -3864,7 +3861,7 @@ import datetime
         "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             briefingState: "no_briefing",
@@ -3919,7 +3916,7 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
@@ -4206,7 +4203,7 @@ import datetime
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
 
-      const { client, showToastCalls } = createAutoBriefClient();
+      const { client, toastCalls } = createAutoBriefClient();
       const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
       const plugin = await loadFreshPlugin();
       const hooks = await plugin(makeInput({ client }));
@@ -4232,7 +4229,7 @@ import datetime
       assert.ok(!firstRendered.includes("🧠 **Kibi briefing available**"));
 
       await waitForCondition(
-        () => fetchSpy.mock.calls.length === 1 && showToastCalls.length === 1,
+        () => fetchSpy.mock.calls.length === 1 && toastCalls.length === 1,
       );
 
       const secondOutput = { system: ["prompt"] };

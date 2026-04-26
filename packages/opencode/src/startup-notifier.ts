@@ -1,6 +1,4 @@
 import {
-  hasLegacyToast,
-  hasShowToast,
   sendToast,
   type ToastCapableClient,
   type ToastPayload,
@@ -34,48 +32,42 @@ export function notifyStartup(
   };
 
   if (!cfg.suppressToast) {
-    if (hasShowToast(client)) {
-      void Promise.resolve(sendToast(client, toastPayload))
-        .then(
-          (result) =>
-            void Promise.resolve(
-              client.app.log({
-                body: {
-                  service: "kibi-opencode",
-                  level: "info",
-                  message: "startup toast result",
-                  result: String(result),
-                  ...(cfg.directory ? { directory: cfg.directory } : {}),
-                },
-              }),
-            ).catch((logErr) => {
-              console.error(
-                "[kibi-opencode] startup toast result log failed:",
-                logErr,
-              );
-            }),
-        )
-        .catch((err) => {
-          console.error("[kibi-opencode] startup toast failed:", err);
+    void Promise.resolve(sendToast(client, toastPayload))
+      .then(
+        (result) =>
           void Promise.resolve(
             client.app.log({
               body: {
                 service: "kibi-opencode",
-                level: "warn",
-                message: "startup toast failed",
-                error: String(err),
+                level: "info",
+                message: "startup toast result",
+                result: String(result),
                 ...(cfg.directory ? { directory: cfg.directory } : {}),
               },
             }),
           ).catch((logErr) => {
-            console.error("[kibi-opencode] startup toast log failed:", logErr);
-          });
-        });
-    } else if (hasLegacyToast(client)) {
-      void Promise.resolve(sendToast(client, toastPayload)).catch((err) => {
+            console.error(
+              "[kibi-opencode] startup toast result log failed:",
+              logErr,
+            );
+          }),
+      )
+      .catch((err) => {
         console.error("[kibi-opencode] startup toast failed:", err);
+        void Promise.resolve(
+          client.app.log({
+            body: {
+              service: "kibi-opencode",
+              level: "warn",
+              message: "startup toast failed",
+              error: String(err),
+              ...(cfg.directory ? { directory: cfg.directory } : {}),
+            },
+          }),
+        ).catch((logErr) => {
+          console.error("[kibi-opencode] startup toast log failed:", logErr);
+        });
       });
-    }
   }
 
   void Promise.resolve(
