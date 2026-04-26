@@ -431,6 +431,13 @@ function queueBriefingFetch(
                   });
                 });
             }
+          } else {
+            logger.info("idle-brief.no-brief-generated", {
+              event: "idle_brief_no_brief_generated",
+              success: result.success,
+              hasEnvelope: !!result.envelope,
+              toastMessage: result.toastMessage,
+            });
           }
         } catch (error) {
           logger.error("idle-brief.error", {
