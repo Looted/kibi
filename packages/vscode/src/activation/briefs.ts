@@ -4,7 +4,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import {
+import { 
   parseLatestBrief,
   readBriefId,
   markBriefRead,
@@ -12,6 +12,33 @@ import {
 } from "../briefs";
 import { BriefDocumentProvider } from "../briefDocumentProvider";
 import { KIBI_SHOW_LATEST_BRIEF_COMMAND } from "../extensionIds";
+// Lightweight, optional loadable brief-config loader with safe fallbacks
+declare const require: (module: string) => unknown;
+type BriefPolicy = { briefs: { enabled: boolean; channels: { vscode: boolean } } };
+interface LoadBriefConfigModule {
+  loadBriefConfig: (workspaceRoot: string) => BriefPolicy;
+}
+let __loadBriefConfig: (workspaceRoot: string) => BriefPolicy = (workspaceRoot: string) => ({ briefs: { enabled: true, channels: { vscode: true } } });
+try {
+  const tmp = require("kibi-cli/brief-config") as unknown;
+  if (typeof tmp === "object" && tmp !== null) {
+    const t = tmp as LoadBriefConfigModule;
+    if (typeof t.loadBriefConfig === "function") {
+      __loadBriefConfig = t.loadBriefConfig;
+    }
+  }
+} catch {}
+try {
+  const tmp2 = require("../../cli/brief-config") as unknown;
+  if (typeof tmp2 === "object" && tmp2 !== null) {
+    const t2 = tmp2 as LoadBriefConfigModule;
+    if (typeof t2.loadBriefConfig === "function") {
+      __loadBriefConfig = t2.loadBriefConfig;
+    }
+  }
+} catch {
+  // keep default behavior
+}
 
 export interface BriefWatcherResult {
   watcher: vscode.FileSystemWatcher;
@@ -56,6 +83,16 @@ export function registerBriefWatcher(
 
     // Skip briefs that are already marked as read
     if (!brief.unread) {
+      return;
+    }
+
+    // Gate: read shared brief config and skip notifications if gating is enabled/disabled by policy
+    const sharedPolicy = __loadBriefConfig(workspaceRoot);
+    if (
+      sharedPolicy?.briefs?.enabled === false ||
+      sharedPolicy?.briefs?.channels?.vscode === false
+    ) {
+      // Do not show notification and do not mark as read when gating is off
       return;
     }
 
