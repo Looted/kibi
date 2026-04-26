@@ -27,6 +27,9 @@ Verification plan for the Session-Local Reconcile briefing architecture:
 
 6.  **MCP Isolation Test**: Verify that no forbidden CLI commands (sync, init, check) are used or suggested in the v3 implementation or guidance.
 7.  **Performance Check**: Verify that the reconcile cycle (fingerprint + fetch) completes within the latency budget for `file.edited` events.
+8.  **Config Split Test**: Verify that TUI channel respects both shared `briefs.channels.tui` from `.kb/config.json` and `ux.briefs.autoSubmit` from `.opencode/kibi.json`.
+9.  **AutoSubmit Override Test**: Verify that when `ux.briefs.autoSubmit: false`, TUI auto-delivery is suppressed and `/brief-kibi` remains the functional retrieval path.
+10. **Canonical Command Test**: Verify that `/brief-kibi` always works regardless of `autoSubmit` setting.
 
 ### Verified By
 

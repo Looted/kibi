@@ -32,3 +32,8 @@ The OpenCode Kibi Briefing system must transition to a session-grounded reconcil
 6.  **Manual Escape Hatch**: The `/brief-kibi` command must be preserved as the canonical manual refresh mechanism.
 7.  **MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden.
 8.  **Toast Invariant**: Toast notification behavior from v2 must be preserved, but grounded in the new reconcile-ready state.
+9.  **Config Split**: Brief policy is split across two locations:
+    - Shared policy (`.kb/config.json`): `briefs.enabled`, `briefs.channels.vscode`, `briefs.channels.tui`, `briefs.tui.toast`, `briefs.tui.appendPrompt`
+    - OpenCode-local (`.opencode/kibi.json`): `ux.briefs.autoSubmit` (default: `true`)
+10. **Canonical Retrieval**: The `/brief-kibi` command remains the canonical manual refresh mechanism, unaffected by `autoSubmit` settings.
+11. **MCP Constraint**: All briefing generation must continue to use the `kb_briefing_generate` MCP tool. Direct use of `kibi` CLI commands (init, sync, check, etc.) by agents is strictly forbidden.

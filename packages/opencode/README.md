@@ -165,7 +165,9 @@ Config files (project overrides global):
 | `ux.toastStartup` | boolean | `true` | Show the startup confirmation toast independently from sync-status toasts |
 | `ux.toastFailures` | boolean | `true` | Show failure toasts for sync/check issues |
 | `ux.toastSuccesses` | boolean | `false` | Show success toasts for sync/check completion |
-| `ux.toastCooldownMs` | number | `10000` | Cooldown between repeated UX toasts |
+SB|| `ux.toastCooldownMs` | number | `10000` | Cooldown between repeated UX toasts |
+NX|| `ux.briefs.autoSubmit` | boolean | `true` | Auto-submit briefs to TUI; disable to require manual `/brief-kibi` retrieval |
+PP|| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.warnOnKbEdits` | boolean | `true` | Enable loud warnings for .kb/** edits |
 | `guidance.factFirstDomainRouting` | boolean | `true` | Enable FACT-first domain routing suggestions |

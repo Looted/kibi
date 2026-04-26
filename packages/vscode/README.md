@@ -104,7 +104,31 @@ Or edit `settings.json` directly:
 
 This extension includes MCP (Model Context Protocol) server integration for AI assistant interaction with your knowledge base. The extension relies on the curated public MCP surface, using `kb_search` for discovery and `kb_query` for source-linked exact lookups.
 
-When branch freshness or reporting matters, the same public surface also exposes `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
+ZR|When branch freshness or reporting matters, the same public surface also exposes `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
+
+QK|## Brief Notifications
+NX|
+NV|The extension supports brief notifications that provide contextual guidance when enabled. Brief notifications are governed by shared configuration in `.kb/config.json`:
+
+BP|```json
+BB|{
+KB|  "briefs": {
+JX|    "enabled": true,
+QX|    "channels": {
+QW|      "vscode": true,
+YM|      "tui": true
+NM|    }
+BP|  }
+BB|}
+BN|```
+
+KX|- **`briefs.enabled`**: Master switch for all brief functionality (default: `true`)
+YH|- **`briefs.channels.vscode`**: Enable/disable VS Code channel for brief notifications (default: `true`)
+XP|- **`briefs.channels.tui`**: Enable/disable OpenCode TUI channel for brief delivery (default: `true`)
+
+QB|When a brief is available and the VS Code channel is enabled, the extension can display brief notifications. Use `/brief-kibi` in OpenCode for manual brief retrieval regardless of channel settings.
+
+JP|## Current Limitations (v0.1)
 
 ## Current Limitations (v0.1)
 
