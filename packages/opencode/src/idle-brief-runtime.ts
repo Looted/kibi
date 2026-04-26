@@ -61,6 +61,82 @@ function asNumber(value: unknown): number {
   return typeof value === "number" ? value : 0;
 }
 
+type SessionApi = {
+  create: (parameters: { directory: string; title: string }) => Promise<unknown>;
+  prompt: (parameters: {
+    sessionID: string;
+    parts: Array<{ type: "text"; text: string }>;
+    tools: { [key: string]: boolean };
+    format: { type: "json_schema"; schema: Record<string, unknown> };
+  }) => Promise<unknown>;
+};
+
+function getSessionApi(client: unknown): SessionApi | null {
+  const root = asRecord(client);
+  const session = asRecord(root?.session);
+  if (!session) {
+    return null;
+  }
+
+  const create = session.create;
+  const prompt = session.prompt;
+  if (typeof create !== "function" || typeof prompt !== "function") {
+    return null;
+  }
+
+  return {
+    create: create as SessionApi["create"],
+    prompt: prompt as SessionApi["prompt"],
+  };
+}
+
+function extractSessionId(response: unknown): string | null {
+  const root = asRecord(response);
+  if (!root) {
+    return null;
+  }
+
+  const directId = asString(root.id).trim();
+  if (directId) {
+    return directId;
+  }
+
+  const data = asRecord(root.data);
+  return asString(data?.id).trim() || null;
+}
+
+function extractPromptResponseJson(response: unknown): Record<string, unknown> | null {
+  const root = asRecord(response);
+  if (!root) return null;
+  const data = asRecord(root.data);
+  const parts = Array.isArray(data?.parts) ? data.parts : Array.isArray(root.parts) ? root.parts : null;
+  if (!parts) return null;
+  for (const part of parts) {
+    const partRecord = asRecord(part);
+    if (partRecord?.type === "text") {
+      const text = asString(partRecord.text);
+      if (text) {
+        try {
+          const parsed = JSON.parse(text);
+          return asRecord(parsed) ?? null;
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+const CHECK_PROMPT_FORMAT = {
+  type: "json_schema" as const,
+  schema: { type: "object", properties: { violations: { type: "array" }, count: { type: "number" }, diagnostics: { type: "array" } }, required: ["violations", "count", "diagnostics"] },
+};
+
+const BRIEFING_PROMPT_FORMAT = {
+  type: "json_schema" as const,
+  schema: { type: "object", properties: { briefingState: { type: "string" }, tldr: { type: "string" }, promptBlock: { type: "string" }, citations: { type: "array" } }, required: ["briefingState"] },
+};
+
 function parseCheckResult(response: unknown): CheckResult {
   const record = asRecord(response);
   if (!record || !("violations" in record)) {
@@ -94,24 +170,54 @@ function parseCheckResult(response: unknown): CheckResult {
 }
 
 async function loadCheckResult(
-  $: any,
+  client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
 ): Promise<CheckResult> {
+  const sessionApi = getSessionApi(client);
+  if (!sessionApi) return { violations: [], count: 0, diagnostics: [] };
+
   try {
-    const result = await $`kibi check --json --cwd ${workspaceCtx.workspaceRoot}`.json();
-    return parseCheckResult(result);
+    const worker = await sessionApi.create({ directory: workspaceCtx.workspaceRoot, title: "Kibi Idle Brief Worker" });
+    const sessionID = extractSessionId(worker);
+    if (!sessionID) throw new Error("Failed to resolve worker session ID");
+    const result = await sessionApi.prompt({
+      sessionID,
+      parts: [{ type: "text", text: JSON.stringify({ tool: "kb_check", args: {}}) }],
+      tools: { kb_check: true },
+      format: CHECK_PROMPT_FORMAT,
+    });
+    return parseCheckResult(extractPromptResponseJson(result));
   } catch {
     return { violations: [], count: 0, diagnostics: [] };
   }
 }
 
 async function loadBriefingResultForIdle(
-  $: any,
+  client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
 ): Promise<IdleBriefingResult> {
+  const sessionApi = getSessionApi(client);
+  if (!sessionApi) {
+    return {
+      briefingState: "no_briefing",
+      tldr: "",
+      promptBlock: "",
+      citations: [],
+    };
+  }
+
   try {
-    const result = await $`kibi briefing --json --cwd ${workspaceCtx.workspaceRoot}`.json();
-    const record = asRecord(result);
+    const worker = await sessionApi.create({ directory: workspaceCtx.workspaceRoot, title: "Kibi Idle Brief Worker" });
+    const sessionID = extractSessionId(worker);
+    if (!sessionID) throw new Error("Failed to resolve worker session ID");
+    const result = await sessionApi.prompt({
+      sessionID,
+      parts: [{ type: "text", text: JSON.stringify({ tool: "kb_briefing_generate", args: {}}) }],
+      tools: { kb_briefing_generate: true },
+      format: BRIEFING_PROMPT_FORMAT,
+    });
+    const record = extractPromptResponseJson(result);
+
     if (record && "briefingState" in record) {
       const citations = Array.isArray(record.citations)
         ? record.citations.map((c: unknown) => asRecord(c) ?? {})
@@ -226,11 +332,14 @@ function buildEnvelopeParts(
 
 // implements REQ-opencode-kibi-briefing-v3
 export async function generateIdleBrief(
-  $: any,
+  client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
   auditDelta: AuditDelta,
   sessionId: string,
 ): Promise<IdleBriefResult> {
+  if (!client) {
+    return { success: true, briefPath: null, envelope: null, toastMessage: "Kibi: No changes detected. Brief skipped." };
+  }
   if (!auditDelta.hasChanges) {
     return {
       success: true,
@@ -244,13 +353,13 @@ export async function generateIdleBrief(
   let briefingResult: IdleBriefingResult;
 
   try {
-    checkResult = await loadCheckResult($, workspaceCtx);
+    checkResult = await loadCheckResult(client, workspaceCtx);
   } catch {
     checkResult = { violations: [], count: 0, diagnostics: [] };
   }
 
   try {
-    briefingResult = await loadBriefingResultForIdle($, workspaceCtx);
+    briefingResult = await loadBriefingResultForIdle(client, workspaceCtx);
   } catch {
     briefingResult = {
       briefingState: "no_briefing",

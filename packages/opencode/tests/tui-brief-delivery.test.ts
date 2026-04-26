@@ -17,7 +17,7 @@ import * as logger from "../src/logger.js";
 describe("tui-brief-delivery", () => {
   let mockClient: {
     tui?: {
-      toast?: ReturnType<typeof mock>;
+      showToast?: ReturnType<typeof mock>;
     };
   };
 
@@ -47,7 +47,7 @@ describe("tui-brief-delivery", () => {
 
     mockClient = {
       tui: {
-        toast: mock(() => {}),
+        showToast: mock(() => {}),
       },
     };
 
@@ -111,7 +111,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.toast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
   test("shows toast when enabled", async () => {
@@ -119,7 +119,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.toast).toHaveBeenCalledWith({
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith({
       variant: "info",
       title: "Kibi",
       message: "Test summary",
@@ -132,7 +132,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.toast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
   test("uses warning toast variant for warning envelope type", async () => {
@@ -141,7 +141,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.toast).toHaveBeenCalledWith(
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: "warning",
       }),
@@ -154,7 +154,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.toast).toHaveBeenCalledWith(
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: "info",
       }),
@@ -169,16 +169,22 @@ describe("tui-brief-delivery", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("logs autoSubmit message when enabled", async () => {
+  test("calls appendPrompt when autoSubmit is enabled", async () => {
     localConfig.autoSubmit = true;
     sharedPolicy.briefs.tui.toast = true;
+    sharedPolicy.briefs.tui.appendPrompt = true;
+
+    const appendPromptMock = mock(() => Promise.resolve());
+    const submitPromptMock = mock(() => Promise.resolve());
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      appendPrompt: appendPromptMock,
+      submitPrompt: submitPromptMock,
+    };
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockLog).toHaveBeenCalled();
-    const call = mockLog.mock.calls[0];
-    expect(call[0].body.message).toBe(
-      "autoSubmit requested but not supported by OpenCode API",
-    );
+    expect(appendPromptMock).toHaveBeenCalledWith(envelope.briefing.promptBlock);
+    expect(submitPromptMock).toHaveBeenCalled();
   });
 });
