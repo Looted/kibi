@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "briefId": "test-brief-001",
+  "type": "success",
+  "sessionId": "test-session-001",
+  "branch": "develop",
+  "createdAt": "2026-04-26T12:00:00Z",
+  "unread": false,
+  "auditCursor": {
+    "lastTimestamp": "2026-04-26T12:00:00Z",
+    "lastOperation": "test",
+    "entryCount": 1,
+    "fileSize": 1024
+  },
+  "summary": "Test brief for VSCode notification integration",
+  "counts": {
+    "requirementsAdded": 1,
+    "relationshipsAdded": 0,
+    "entitiesDeleted": 0
+  },
+  "validation": {
+    "violations": [],
+    "count": 0,
+    "diagnostics": []
+  },
+  "briefing": {
+    "tldr": "This is a test brief to verify the VSCode extension notification integration.",
+    "promptBlock": "Test brief notification integration.",
+    "citations": []
+  },
+  "contentHash": "abc123def456"
+}

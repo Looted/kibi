@@ -61,6 +61,45 @@
       "description": "[DEPRECATED] No longer used. Branch lifecycle now follows git naturally without requiring a configured default. This field is ignored but kept for backward compatibility.",
       "deprecated": true
     },
+    "briefs": {
+      "type": "object",
+      "description": "Configuration for shared brief delivery defaults",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "channels": {
+          "type": "object",
+          "properties": {
+            "vscode": {
+              "type": "boolean",
+              "default": true
+            },
+            "tui": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "tui": {
+          "type": "object",
+          "properties": {
+            "toast": {
+              "type": "boolean",
+              "default": true
+            },
+            "appendPrompt": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "checks": {
       "type": "object",
       "description": "Configuration for KB validation rules",
