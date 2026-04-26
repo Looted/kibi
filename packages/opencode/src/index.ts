@@ -32,7 +32,7 @@ import {
 import { generateIdleBrief } from "./idle-brief-runtime.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
 import { loadBriefConfig } from "kibi-cli/brief-config";
-import { deliverBriefTui } from "./tui-brief-delivery.js";
+import { deliverBriefTui, type ToastCapableClient } from "./tui-brief-delivery.js";
 
 
 
@@ -409,20 +409,20 @@ function queueBriefingFetch(
             input.sessionId ?? "unknown",
           );
 
-if (result.success && result.envelope) {
-  if (!idleBriefToastedFingerprints.has(result.envelope.contentHash)) {
-    idleBriefToastedFingerprints.add(result.envelope.contentHash);
-    const sharedPolicy = loadBriefConfig(input.worktree);
-    const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? false };
-    void deliverBriefTui(client, result.envelope, sharedPolicy, localConfig)
-      .catch(() => {
-        void sendToast(client, {
-          message: result.toastMessage,
-          variant: result.envelope.type === 'warning' ? 'warning' : 'success'
-        }).catch(() => {});
-      });
-  }
-}
+          if (result.success && result.envelope) {
+            if (!idleBriefToastedFingerprints.has(result.envelope.contentHash)) {
+              idleBriefToastedFingerprints.add(result.envelope.contentHash);
+              const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
+              const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? false };
+              void deliverBriefTui(client as ToastCapableClient, result.envelope, sharedPolicy, localConfig)
+                .catch(() => {
+                  void sendToast(client, {
+                    message: result.toastMessage,
+                    variant: result.envelope!.type === 'warning' ? 'warning' : 'success'
+                  }).catch(() => {});
+                });
+            }
+          }
         } catch (error) {
           logger.error("idle-brief.error", {
             event: "idle_brief_error",
