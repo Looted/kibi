@@ -49,7 +49,7 @@ export function computeAuditDelta(
   }
   
   const content = fs.readFileSync(auditPath, "utf-8");
-  const lines = content.split("\n").filter((l) => l.trim().startsWith("changeset("));
+  const lines = content.split("\n").filter((l) => l.trim().includes("changeset("));
   const fileSize = Buffer.byteLength(content, "utf-8");
   
   // If no previous cursor or file hasn't grown, check if content changed
