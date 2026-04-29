@@ -51,10 +51,10 @@ export interface IdleBriefEnvelope {
   contentHash: string;
 }
 
-export function createBriefId(): string { // implements REQ-opencode-kibi-briefing-v3
+export function createBriefId(): string { // implements REQ-opencode-kibi-briefing-v4
   return `brief-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function computeContentHash(payload: object): string { // implements REQ-opencode-kibi-briefing-v3
+export function computeContentHash(payload: object): string { // implements REQ-opencode-kibi-briefing-v4
   return crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
 }

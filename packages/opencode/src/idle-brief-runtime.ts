@@ -1,4 +1,4 @@
-// implements REQ-opencode-kibi-briefing-v3
+// implements REQ-opencode-kibi-briefing-v4
 
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
@@ -13,7 +13,6 @@ export interface IdleBriefResult {
   success: boolean;
   briefPath: string | null;
   envelope: IdleBriefEnvelope | null;
-  toastMessage: string;
 }
 
 export interface CheckResult {
@@ -330,7 +329,7 @@ function buildEnvelopeParts(
   };
 }
 
-// implements REQ-opencode-kibi-briefing-v3
+// implements REQ-opencode-kibi-briefing-v4
 export async function generateIdleBrief(
   client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
@@ -338,17 +337,15 @@ export async function generateIdleBrief(
   sessionId: string,
 ): Promise<IdleBriefResult> {
   if (!client) {
-    return { success: true, briefPath: null, envelope: null, toastMessage: "Kibi: No changes detected. Brief skipped." };
+    return { success: true, briefPath: null, envelope: null };
   }
   if (!auditDelta.hasChanges) {
     return {
       success: true,
       briefPath: null,
       envelope: null,
-      toastMessage: "Kibi: No changes detected. Brief skipped.",
     };
   }
-
   let checkResult: CheckResult;
   let briefingResult: IdleBriefingResult;
 
@@ -412,15 +409,9 @@ export async function generateIdleBrief(
     // still return envelope
   }
 
-  const changesCount = auditDelta.entries.length;
-  const toastMessage = isSuccess
-    ? `Kibi: Session idle. ${changesCount} changes detected. KB healthy. Brief saved.`
-    : `Kibi: Session idle. ${changesCount} changes detected. ${violationsCount} validation issues found. Brief saved.`;
-
   return {
     success: true,
     briefPath,
     envelope,
-    toastMessage,
   };
 }

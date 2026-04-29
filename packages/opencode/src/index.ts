@@ -257,10 +257,10 @@ const kibiOpencodePlugin: Plugin = async (
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
-  // Idle-brief state
+  // Idle-brief state — dedupe via briefId + contentHash (persisted envelope is the delivery authority)
   let idleBriefInFlight = false;
   let idleBriefTrailingRerun = false;
-  const idleBriefToastedFingerprints = new Set<string>();
+  const idleBriefDeliveredHashes = new Set<string>();
 
 
 function normalizeSessionPath(filePath: string): string {
@@ -456,8 +456,10 @@ function queueBriefingFetch(
 
           if (result.success && result.envelope) {
             const envelope = result.envelope;
-            if (!idleBriefToastedFingerprints.has(result.envelope.contentHash)) {
-              idleBriefToastedFingerprints.add(envelope.contentHash);
+            // Dedupe by briefId + contentHash — persisted envelope is the delivery authority
+            const dedupeKey = `${envelope.briefId}:${envelope.contentHash}`;
+            if (!idleBriefDeliveredHashes.has(dedupeKey)) {
+              idleBriefDeliveredHashes.add(dedupeKey);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
               const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
               if (client) {
@@ -467,10 +469,6 @@ function queueBriefingFetch(
                       event: "idle_brief_delivery_failed",
                       error: err instanceof Error ? err.message : String(err),
                     });
-                    void sendToast(makeToastClient(client), {
-                      message: result.toastMessage,
-                      variant: envelope.type === 'warning' ? 'warning' : 'success'
-                    });
                   });
               }
             }
@@ -479,7 +477,6 @@ function queueBriefingFetch(
               event: "idle_brief_no_brief_generated",
               success: result.success,
               hasEnvelope: !!result.envelope,
-              toastMessage: result.toastMessage,
             });
           }
         } catch (error) {
