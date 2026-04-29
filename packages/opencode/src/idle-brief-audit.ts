@@ -30,7 +30,7 @@ function parseChangesetLine(line: string): { timestamp: string; operation: strin
   return { timestamp: match[1]!, operation: match[2]!, entityId: match[3]! };
 }
 
-// implements REQ-opencode-kibi-briefing-v3
+// implements REQ-opencode-kibi-briefing-v4
 // Read audit log and compute delta since last cursor
 export function computeAuditDelta(
   workspaceRoot: string,
@@ -99,7 +99,7 @@ function computeSimpleHash(lines: string[]): string {
   return crypto.createHash("sha256").update(lines.join("\n")).digest("hex").slice(0, 16);
 }
 
-// implements REQ-opencode-kibi-briefing-v3
+// implements REQ-opencode-kibi-briefing-v4
 // Extract the latest audit cursor from the most recent brief for this branch
 export function getLatestAuditCursor(
   workspaceRoot: string,
@@ -132,7 +132,7 @@ export function getLatestAuditCursor(
   return null;
 }
 
-// implements REQ-opencode-kibi-briefing-v3
+// implements REQ-opencode-kibi-briefing-v4
 // Guard: abort if branch changed since idle-start
 export function guardBranchChanged(startBranch: string, currentBranch: string): boolean {
   return startBranch !== currentBranch;

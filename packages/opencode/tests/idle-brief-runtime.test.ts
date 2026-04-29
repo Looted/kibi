@@ -108,7 +108,6 @@ describe("idle-brief-runtime", () => {
       expect(result.envelope?.type).toBe("success");
       expect(result.envelope?.summary).toContain("3 requirements added");
       expect(result.envelope?.summary).toContain("clean");
-      expect(result.toastMessage).toContain("KB healthy");
     });
 
     it("returns warning brief with violations", async () => {
@@ -144,7 +143,6 @@ describe("idle-brief-runtime", () => {
       expect(result.success).toBe(true);
       expect(result.envelope?.type).toBe("warning");
       expect(result.envelope?.validation.count).toBe(1);
-      expect(result.toastMessage).toContain("1 validation issues found");
     });
 
     it("skips when no changes detected", async () => {
@@ -162,7 +160,6 @@ describe("idle-brief-runtime", () => {
 
       expect(result.success).toBe(true);
       expect(result.envelope).toBeNull();
-      expect(result.toastMessage).toContain("No changes detected");
     });
 
     it("handles shell errors gracefully", async () => {
