@@ -51,6 +51,8 @@ describe("tui-brief-delivery", () => {
     mockClient = {
       tui: {
         showToast: mock(() => {}),
+        appendPrompt: mock(() => Promise.resolve()),
+        submitPrompt: mock(() => Promise.resolve()),
       },
     };
 
@@ -63,7 +65,7 @@ describe("tui-brief-delivery", () => {
         },
         tui: {
           toast: true,
-          appendPrompt: false,
+          appendPrompt: true,
         },
       },
     };
@@ -110,15 +112,106 @@ describe("tui-brief-delivery", () => {
     logger.resetClient();
   });
 
-  test("returns early when TUI delivery is disabled", async () => {
+  // --- Channel gating ---
+
+  test("returns early when TUI delivery is disabled by shared policy", async () => {
     sharedPolicy.briefs.channels.tui = false;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.appendPrompt).not.toHaveBeenCalled();
   });
 
-  test("shows toast when enabled", async () => {
+  // --- Append-only rendering (primary path) ---
+
+  test("appends promptBlock to prompt buffer", async () => {
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
+      "Test prompt block",
+    );
+  });
+
+  test("never calls submitPrompt regardless of autoSubmit config", async () => {
+    localConfig.autoSubmit = true;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.submitPrompt).not.toHaveBeenCalled();
+  });
+
+  test("appends even when autoSubmit is false", async () => {
+    localConfig.autoSubmit = false;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
+      "Test prompt block",
+    );
+  });
+
+  // --- Empty promptBlock fallback ---
+
+  test("falls back to summary when promptBlock is empty", async () => {
+    envelope.briefing.promptBlock = "";
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
+    expect(calledWith).toContain("Test summary");
+    expect(calledWith).not.toBe("");
+  });
+
+  test("includes citations in fallback when promptBlock is empty", async () => {
+    envelope.briefing.promptBlock = "";
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
+    expect(calledWith).toContain("REQ-001");
+    expect(calledWith).toContain("Linked requirement");
+  });
+
+  test("includes validation signal in fallback when violations exist", async () => {
+    envelope.briefing.promptBlock = "";
+    envelope.validation.count = 3;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
+    expect(calledWith).toContain("Validation: 3 issue(s)");
+  });
+
+  test("produces non-empty fallback even with minimal envelope", async () => {
+    envelope.briefing.promptBlock = "";
+    envelope.summary = "";
+    envelope.briefing.tldr = "";
+    envelope.briefing.citations = [];
+    envelope.validation.count = 0;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
+    expect(calledWith.length).toBeGreaterThan(0);
+    expect(calledWith).toBe("Brief available");
+  });
+
+  test("uses tldr as fallback when summary is empty", async () => {
+    envelope.briefing.promptBlock = "";
+    envelope.summary = "";
+    envelope.briefing.tldr = "TLDR fallback";
+    envelope.briefing.citations = [];
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
+    expect(calledWith).toBe("TLDR fallback");
+  });
+
+  // --- Optional toast (not a success-path requirement) ---
+
+  test("shows optional toast when toast is enabled and capability exists", async () => {
     sharedPolicy.briefs.tui.toast = true;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
@@ -167,6 +260,18 @@ describe("tui-brief-delivery", () => {
     );
   });
 
+  test("appends prompt even when toast is disabled", async () => {
+    sharedPolicy.briefs.tui.toast = false;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
+      "Test prompt block",
+    );
+  });
+
+  // --- Graceful no-op when TUI capability unavailable ---
+
   test("does not throw when client.tui is undefined", async () => {
     const clientWithoutTui: Parameters<typeof deliverBriefTui>[0] = {};
 
@@ -175,39 +280,29 @@ describe("tui-brief-delivery", () => {
     ).resolves.toBeUndefined();
   });
 
-  test("calls appendPrompt when autoSubmit is enabled", async () => {
-    localConfig.autoSubmit = true;
-    sharedPolicy.briefs.tui.toast = true;
-    sharedPolicy.briefs.tui.appendPrompt = true;
-
-    const appendPromptMock = mock(() => Promise.resolve());
-    const submitPromptMock = mock(() => Promise.resolve());
+  test("does not throw when appendPrompt is missing but showToast exists", async () => {
     mockClient.tui = {
       showToast: mock(() => {}),
-      appendPrompt: appendPromptMock,
-      submitPrompt: submitPromptMock,
+    };
+
+    await expect(
+      deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig),
+    ).resolves.toBeUndefined();
+  });
+
+  test("logs info when appendPrompt is unavailable", async () => {
+    mockClient.tui = {
+      showToast: mock(() => {}),
     };
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(appendPromptMock).toHaveBeenCalledWith(envelope.briefing.promptBlock);
-    expect(submitPromptMock).toHaveBeenCalled();
-  });
-
-  test("wraps showToast payload with body in TUI briefing delivery", async () => {
-    sharedPolicy.briefs.tui.toast = true;
-
-    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
-
-    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
+    expect(mockLog).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          variant: "info",
-          title: "Kibi",
-          message: "Test summary",
-          duration: 5000,
+          message: expect.stringContaining("appendPrompt API unavailable"),
         }),
       }),
     );
-});
+  });
 });
