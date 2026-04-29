@@ -35,6 +35,10 @@ JQ|
 - **Bootstrap path regression tests** (`documentation/tests/e2e/packed/opencode-bootstrap-paths.test.ts`): verifies healthy relocated-path workspaces (`kibi-docs/*` with `.kb/config.json`) do not emit false bootstrap warnings, and missing configured targets still emit exactly one real bootstrap warning.
 - **Release-gate verification** (`.github/workflows/publish.yml`): the `Opencode packed behavior verification` step runs packed tests against downloaded tarballs using `KIBI_TEST_TARBALLS`, ensuring the published artifact matches source behavior.
 - **Local e2e build freshness** (`package.json` `test:e2e:local`): ensures `packages/opencode/dist` is rebuilt before local e2e tests, preventing stale dist from breaking dogfood confidence.
+- **Toast transport contract tests** (`packages/opencode/tests/toast.test.ts`): verifies legacy `client.tui.toast(payload)` preference, SDK `client.tui.showToast({ body: payload })` wrapping, `SendToastResult` discriminated union outcomes (`delivered`, `unavailable`, `failed`), timeout handling, and absence of raw HTTP fetch fallback or `console.error` trace noise.
+- **Startup toast structured outcome tests** (`packages/opencode/tests/startup-notifier.test.ts`): verifies truthful structured logging for toast delivery results (`startup toast delivered`, `startup toast unavailable`, `startup toast delivery failed`) without `console.error` leakage.
+- **Logger contract tests** (`packages/opencode/tests/logger.test.ts`): verifies advisory paths (`info`, `warn`, `errorStructuredOnly`) remain terminal-silent even when `client.app.log()` rejects, and operational `error()` emits exactly one prefixed `console.error` without secondary spam from structured log rejection.
+- **Built-artifact toast regression** (`documentation/tests/e2e/opencode-plugin-local.test.ts`): imports `packages/opencode/dist/toast.js` directly and asserts the compiled artifact uses the structured SDK contract with no raw fallback.
 
 All test code must reference `REQ-opencode-kibi-plugin-v1` for traceability.
 All test code must reference `REQ-opencode-kibi-plugin-v1` for traceability.

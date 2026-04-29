@@ -32,10 +32,12 @@ describe("notifyStartup", () => {
     assert.equal(toastCalls.length, 1);
     assert.equal(logCalls.length, 2);
     assert.deepEqual(toastCalls[0], {
-      variant: "success",
-      title: "Kibi OpenCode",
-      message: "kibi-opencode started",
-      duration: 4000,
+      body: {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started",
+        duration: 4000,
+      },
     });
     assert.deepEqual(logCalls[0], {
       body: {
@@ -49,8 +51,8 @@ describe("notifyStartup", () => {
       body: {
         service: "kibi-opencode",
         level: "info",
-        message: "startup toast result",
-        result: "undefined",
+        message: "startup toast delivered",
+        transport: "sdk",
       },
     });
   });
@@ -60,6 +62,7 @@ describe("notifyStartup", () => {
     const log = async (payload: unknown) => {
       logCalls.push(payload);
     };
+    const consoleError = mock(() => {});
     const client = {
       app: {
         log,
@@ -67,8 +70,10 @@ describe("notifyStartup", () => {
     };
     const consoleLog = mock(() => {});
     const consoleWarn = mock(() => {});
+    const originalError = console.error;
     const originalLog = console.log;
     const originalWarn = console.warn;
+    console.error = consoleError;
     console.log = consoleLog;
     console.warn = consoleWarn;
 
@@ -81,6 +86,7 @@ describe("notifyStartup", () => {
       assert.equal(logCalls.length, 2);
       assert.equal(consoleLog.mock.calls.length, 0);
       assert.equal(consoleWarn.mock.calls.length, 0);
+      assert.equal(consoleError.mock.calls.length, 0);
       assert.deepEqual(logCalls[0], {
         body: {
           service: "kibi-opencode",
@@ -93,21 +99,12 @@ describe("notifyStartup", () => {
         body: {
           service: "kibi-opencode",
           level: "info",
-          message: "startup toast result",
-          result: "undefined",
-        },
-      });
-      assert.equal(consoleLog.mock.calls.length, 0);
-      assert.equal(consoleWarn.mock.calls.length, 0);
-      assert.deepEqual(logCalls[0], {
-        body: {
-          service: "kibi-opencode",
-          level: "info",
-          message: "kibi-opencode started",
-          version: "1.2.3",
+          message: "startup toast unavailable",
+          reason: "missing-capability",
         },
       });
     } finally {
+      console.error = originalError;
       console.log = originalLog;
       console.warn = originalWarn;
     }
@@ -154,14 +151,11 @@ describe("notifyStartup", () => {
       throw new Error("boom");
     };
     const logCalls: unknown[] = [];
-    const consoleErrorCalls: unknown[][] = [];
     const log = async (payload: unknown) => {
       logCalls.push(payload);
     };
-    const consoleError = (...args: unknown[]) => {
-      consoleErrorCalls.push(args);
-    };
     const originalError = console.error;
+    const consoleError = mock(() => {});
     console.error = consoleError;
     const client = {
       tui: {
@@ -173,18 +167,12 @@ describe("notifyStartup", () => {
     };
 
     try {
-      notifyStartup(client as StartupNotifierClient, {
+      notifyStartup(client as unknown as StartupNotifierClient, {
         directory: "/tmp/worktree",
       });
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       assert.equal(logCalls.length, 2);
-      assert.equal(consoleErrorCalls.length, 1);
-      assert.equal(
-        consoleErrorCalls[0]?.[0],
-        "[kibi-opencode] startup toast failed:",
-      );
-      assert.ok(consoleErrorCalls[0]?.[1] instanceof Error);
       assert.deepEqual(logCalls[0], {
         body: {
           service: "kibi-opencode",
@@ -197,8 +185,10 @@ describe("notifyStartup", () => {
         body: {
           service: "kibi-opencode",
           level: "warn",
-          message: "startup toast failed",
-          error: "Error: boom",
+          message: "startup toast delivery failed",
+          transport: "sdk",
+          reason: "rejected",
+          error: "boom",
           directory: "/tmp/worktree",
         },
       });
@@ -207,12 +197,15 @@ describe("notifyStartup", () => {
     }
   });
 
-  test("logs boolean toast result when toast resolves to true", async () => {
+  test("logs delivered result when toast succeeds", async () => {
     const toastCalls: unknown[] = [];
     const logCalls: unknown[] = [];
     const toast = async (payload: unknown) => {
       toastCalls.push(payload);
-      return true;
+      return {
+        status: "delivered" as const,
+        transport: "sdk" as const,
+      };
     };
     const log = async (payload: unknown) => {
       logCalls.push(payload);
@@ -239,6 +232,14 @@ describe("notifyStartup", () => {
         level: "info",
         message: "kibi-opencode started",
         version: "1.2.3",
+      },
+    });
+    assert.deepEqual(logCalls[1], {
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "startup toast delivered",
+        transport: "sdk",
       },
     });
   });

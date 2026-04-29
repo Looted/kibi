@@ -142,7 +142,7 @@ Internal maintenance automatically syncs the knowledge base after relevant file 
 ### Non-Blocking UX
 
 - Sync runs in background, never blocks OpenCode
-- Failures reported via console logs only, never as blocking UI elements
+- **Non-blocking toast delivery**: Toast transport is best-effort. The plugin detects available OpenCode TUI capabilities (`client.tui.toast` or `client.tui.showToast`) and uses the official SDK contract. Toast failures resolve to structured `SendToastResult` objects (`delivered`, `unavailable`, `failed`) rather than throwing or falling back to raw HTTP requests.
 
 ## Configuration
 
@@ -197,20 +197,30 @@ The plugin follows a **silent-except-operational-errors** policy for terminal ou
 
 | Classification | Examples | Surface | Terminal | Structured |
 |---------------|----------|---------|----------|------------|
-| **Advisory (background)** | scheduler check failures, degraded-mode latches | `errorStructuredOnly()` | No | Yes, via `client.app.log()` |
-| **Operational (plugin)** | bootstrap-needed, sync failure, hook/init failure | `error()` | Yes, via `console.error` | Yes, via `client.app.log()` |
+| **Advisory (background)** | routine `info()`, `warn()`, scheduler check failures, degraded-mode latches, `errorStructuredOnly()` | `client.app.log()` | No | Yes, via `client.app.log()` |
+| **Operational (plugin)** | bootstrap-needed, sync failure, hook/init failure | `error()` | Yes, exactly one prefixed `console.error` (`[kibi-opencode]`) | Yes, via `client.app.log()` |
 | **Authoritative external** | git hooks, CLI checks | Outside plugin surface | N/A | N/A |
 
 ### Failure Routing Contract
 
 The logger exposes two error-level surfaces with distinct routing semantics:
 
-- **`error(msg, metadata?)`** — Operational plugin failures. Always emits to `console.error` for terminal visibility, plus `client.app.log()` when a client is bound. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
-- **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound; completely silent when no client is bound (no `console.error` fallback). Use for scheduler check failures and degraded-mode latches.
+- **`error(msg, metadata?)`** — Operational plugin failures. Emits exactly one prefixed `console.error` (`[kibi-opencode]`) for terminal visibility, plus `client.app.log()` when a client is bound. Structured log rejection does not emit secondary console noise. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
+- **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound and remains terminal-silent even when the structured transport rejects. Use for scheduler check failures and degraded-mode latches.
 
-**Contract rule:** Once `client` is bound (after `setClient()`), advisory logging MUST use `errorStructuredOnly()`. When no client is bound, `errorStructuredOnly()` is completely silent — it does not fall back to `console.error`.
+**Contract rule:** Once `client` is bound (after `setClient()`), advisory paths (`info()`, `warn()`, `errorStructuredOnly()`) MUST stay on `client.app.log()` and remain terminal-silent. Operational failures use `error()` for a single prefixed terminal emission without duplicating console output when structured logging rejects.
 
 Routine diagnostics route through [`client.app.log()`](https://opencode.ai/docs/plugins/) and never appear in the terminal. Only operational error-class events break terminal silence. This keeps the developer's workspace clean while preserving full visibility in structured logs for debugging.
+
+### Toast Transport Contract
+
+The plugin uses the official OpenCode toast APIs with automatic capability detection:
+
+1. **Legacy transport**: `client.tui.toast(payload)` — used when available in plugin context
+2. **SDK transport**: `client.tui.showToast({ body: payload })` — used as fallback
+3. **No capability**: Returns `{ status: "unavailable", reason: "missing-capability" }`
+
+All toast delivery is best-effort and non-blocking. The `sendToast` helper returns a discriminated `SendToastResult` union and never throws. There is no raw HTTP fallback.
 
 The `experimental.chat.system.transform` hook handles prompt injection (see [Hook Policy](#hook-policy)). The `chat.params` hook is compatibility-only and never carries prompt text.
 

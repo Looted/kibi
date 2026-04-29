@@ -32,7 +32,6 @@ describe.serial("index kibiOpencodePlugin", () => {
     directory: tmpDir,
     worktree,
     project: undefined,
-    serverUrl: undefined,
     $: undefined,
     client: undefined,
     ...overrides,
@@ -179,7 +178,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -229,7 +235,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: client as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -240,11 +245,13 @@ describe.serial("index kibiOpencodePlugin", () => {
 
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
-        variant: "success",
-        title: "Kibi OpenCode",
-        message: "kibi-opencode started",
+        body: {
+variant: "success",
+title: "Kibi OpenCode",
+message: "kibi-opencode started",
         duration: 4000,
-      });
+        },
+});
       assert.equal(startupConfirmations.length, 1);
 
       assert.equal(
@@ -258,6 +265,83 @@ describe.serial("index kibiOpencodePlugin", () => {
       delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
         .__kibi_test_scheduler_factory;
     });
+
+    it("bound showToast capability", async () => {
+      const toastCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        tui: {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
+            toastCalls.push(payload);
+          },
+        },
+        app: {
+          log: async () => {},
+        },
+      };
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: client as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
+        body: {
+          variant: "success",
+          title: "Kibi OpenCode",
+          message: "kibi-opencode started",
+          duration: 4000,
+        },
+      });
+
+      delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+        .__kibi_test_scheduler_factory;
+    });
+
 
     it("does not emit startup confirmation when disabled", async () => {
       const logCalls: Array<Record<string, unknown>> = [];
@@ -281,7 +365,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: client as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -300,7 +383,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -358,7 +448,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -438,7 +527,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -460,7 +548,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -490,7 +585,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -553,7 +647,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -618,7 +711,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -665,7 +757,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -707,7 +798,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -747,7 +837,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -778,7 +867,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -809,7 +897,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -839,7 +926,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -878,7 +964,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -922,7 +1007,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -984,7 +1068,6 @@ Then action occurs
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1043,7 +1126,6 @@ Then the response is returned
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1101,7 +1183,6 @@ We assert that this works correctly.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1159,7 +1240,6 @@ title: Test
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1217,7 +1297,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1260,7 +1339,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1308,7 +1386,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1342,7 +1419,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1384,7 +1460,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1418,7 +1493,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1449,7 +1523,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1487,7 +1560,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1518,7 +1590,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1555,7 +1626,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1613,7 +1683,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1680,7 +1749,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1747,7 +1815,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1814,7 +1881,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1881,7 +1947,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1948,7 +2013,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2027,7 +2091,6 @@ This is a must-priority requirement.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2104,7 +2167,6 @@ This is a should-priority requirement.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2180,7 +2242,6 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2223,7 +2284,6 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2263,7 +2323,6 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2328,7 +2387,6 @@ class User:
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2405,7 +2463,6 @@ import psycopg2
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2481,7 +2538,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2543,7 +2599,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2606,7 +2661,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2694,7 +2748,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2768,7 +2821,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2826,7 +2878,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2859,7 +2910,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2892,7 +2942,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2947,7 +2996,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3034,7 +3082,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3121,7 +3168,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3181,7 +3227,14 @@ import datetime
         prompt: (params: AutoBriefSessionPromptParams) => Promise<unknown>;
       };
       tui: {
-        showToast: (payload: unknown) => Promise<unknown>;
+        showToast: (payload: {
+          body: {
+            variant?: string;
+            title?: string;
+            message: string;
+            duration?: number;
+          };
+        }) => Promise<void>;
       };
     };
 
@@ -3317,9 +3370,15 @@ import datetime
           },
         },
         tui: {
-          showToast: async (payload: unknown) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
-            return true;
           },
         },
       };
@@ -3442,87 +3501,10 @@ import datetime
         true,
       );
       assert.deepEqual(toastCalls[0], {
+        body: {
         message: READY_TOAST,
-      });
-    });
-
-    it("treats auto-brief toast delivery failure as non-fatal", async () => {
-      setupAuthoritativeWorkspace(tmpDir);
-      installNoopScheduler(tmpDir);
-      writePluginConfig(tmpDir, {
-        enabled: true,
-        prompt: { enabled: true, hookMode: "auto" },
-        sync: { enabled: true },
-        ux: { toastStartup: false },
-        guidance: {
-          commentDetection: { enabled: false },
-          smartEnforcement: {
-            completionReminder: false,
-          },
         },
-      });
-
-      const srcDir = path.join(tmpDir, "src");
-      fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(srcDir, "feature.ts"),
-        "export function feature() { return 0; }\n",
-      );
-
-      const { client } = createAutoBriefClient();
-      const unhandledRejections: unknown[] = [];
-      const handleUnhandledRejection = (reason: unknown) => {
-        unhandledRejections.push(reason);
-      };
-      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
-      const sendToastSpy = spyOn(toastModule, "sendToast").mockImplementation(() =>
-        Promise.reject(new Error("toast failed")),
-      );
-      process.on("unhandledRejection", handleUnhandledRejection);
-
-      try {
-        const plugin = await loadFreshPlugin();
-        const hooks = await plugin(makeInput({ client }));
-
-        assert.ok(hooks.event);
-        const eventHook = hooks.event as (input: {
-          event: { type: string; properties: { file: string } };
-        }) => Promise<void>;
-
-        await eventHook({
-          event: {
-            type: "file.edited",
-            properties: { file: "src/feature.ts" },
-          },
-        });
-
-        fs.writeFileSync(
-          path.join(srcDir, "feature.ts"),
-          "export function feature() { return 42; } // implements REQ-001\n",
-        );
-
-        await eventHook({
-          event: {
-            type: "file.edited",
-            properties: { file: "src/feature.ts" },
-          },
-        });
-        await waitForCondition(
-          () => fetchSpy.mock.calls.length === 1 && sendToastSpy.mock.calls.length === 1,
-        );
-        await Promise.resolve();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        assert.equal(fetchSpy.mock.calls.length, 1);
-        assert.equal(sendToastSpy.mock.calls.length, 1);
-        assert.equal(
-          unhandledRejections.length,
-          0,
-          "Toast delivery failures should be caught and stay non-fatal",
-        );
-      } finally {
-        process.off("unhandledRejection", handleUnhandledRejection);
-      }
+});
     });
 
     it("sends exactly one toast for repeated same-fingerprint edit events", async () => {
@@ -3606,11 +3588,10 @@ import datetime
       assert.equal(fetchSpy.mock.calls.length, 2);
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
+        body: {
         message: READY_TOAST,
-      });
-      assert.deepEqual(toastCalls[0], {
-        message: READY_TOAST,
-      });
+        },
+});
     });
 
     it("renders ready auto-brief guidance without the inline /brief-kibi cue", async () => {
@@ -4414,7 +4395,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4491,7 +4471,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4595,7 +4574,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4674,7 +4652,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4753,7 +4730,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4836,7 +4812,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4922,7 +4897,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4990,7 +4964,6 @@ import datetime
           },
         } as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -5594,7 +5567,6 @@ import datetime
           worktree: tmpDir,
           client: mockClient as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
 
@@ -5716,7 +5688,6 @@ import datetime
           worktree: tmpDir,
           client: mockClient as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
 

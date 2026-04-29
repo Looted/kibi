@@ -90,7 +90,7 @@ describe("opencode/logger", () => {
     expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "only-console");
   });
 
-  it("handles client.app.log rejection gracefully and logs the rejection to console.error", async () => {
+  it("info rejection remains terminal-silent", async () => {
     const err = new Error("boom");
     const mockLog = vi.fn().mockRejectedValue(err);
     const mockClient = { app: { log: mockLog } };
@@ -101,7 +101,23 @@ describe("opencode/logger", () => {
 
     await Promise.resolve();
 
-    expect(spy).toHaveBeenCalled();
+    expect(spy).not.toHaveBeenCalled();
+    expect(mockLog).toHaveBeenCalledTimes(1);
+  });
+
+  it("error logs only once when structured logging rejects", async () => {
+    const err = new Error("structured-boom");
+    const mockLog = vi.fn().mockRejectedValue(err);
+    const mockClient = { app: { log: mockLog } };
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    logger.setClient(mockClient as any);
+    logger.error("operational-failure");
+
+    await Promise.resolve();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "operational-failure");
     expect(mockLog).toHaveBeenCalledTimes(1);
   });
 
