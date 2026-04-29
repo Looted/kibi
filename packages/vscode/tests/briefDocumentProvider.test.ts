@@ -361,6 +361,172 @@ describe("provideTextDocumentContent", () => {
     const result = provider.provideTextDocumentContent(uri);
     expect(result).toContain("## Summary");
   });
+
+  test("renders ## Briefing section with promptBlock when present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "promptblock-brief",
+      briefing: {
+        tldr: "Short summary",
+        promptBlock: "This is the full briefing body.\nIt has multiple lines.",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "promptblock-brief_brief.json"),
+      JSON.stringify(brief)
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/promptblock-brief.md",
+    } as any;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Briefing");
+    expect(result).toContain("This is the full briefing body.\nIt has multiple lines.");
+    // Should NOT show the fallback notice
+    expect(result).not.toContain("No full briefing body available");
+    // Existing sections should still be present
+    expect(result).toContain("## Summary");
+    expect(result).toContain("## Changes");
+    expect(result).toContain("## Validation");
+  });
+
+  test("renders ## Briefing fallback when promptBlock is empty", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "fallback-brief",
+      briefing: {
+        tldr: "Fallback TL;DR text",
+        promptBlock: "",
+        citations: [
+          { id: "REQ-100", title: "Test req" },
+        ],
+      },
+      validation: {
+        violations: [
+          {
+            rule: "no-dangling-refs",
+            entityId: "REQ-100",
+            description: "Missing ref",
+          },
+        ],
+        count: 1,
+        diagnostics: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "fallback-brief_brief.json"),
+      JSON.stringify(brief)
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/fallback-brief.md",
+    } as any;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Briefing");
+    expect(result).toContain("No full briefing body available");
+    expect(result).toContain("**TL;DR:** Fallback TL;DR text");
+    expect(result).toContain("**Cited entities:** REQ-100");
+    expect(result).toContain("**Validation issues:** 1 violation(s) found.");
+    // Existing sections should still be present
+    expect(result).toContain("## Summary");
+    expect(result).toContain("## Changes");
+    expect(result).toContain("## Validation Issues");
+    expect(result).toContain("## Citations");
+  });
+
+  test("renders fallback with only tldr when no citations or violations", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "tldr-only-brief",
+      briefing: {
+        tldr: "Just the TL;DR",
+        promptBlock: "",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "tldr-only-brief_brief.json"),
+      JSON.stringify(brief)
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/tldr-only-brief.md",
+    } as any;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Briefing");
+    expect(result).toContain("No full briefing body available");
+    expect(result).toContain("**TL;DR:** Just the TL;DR");
+    // Should NOT contain cited entities or validation issues lines
+    expect(result).not.toContain("**Cited entities:**");
+    expect(result).not.toContain("**Validation issues:**");
+  });
+
+  test("preserves all existing sections when promptBlock is present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "full-sections-brief",
+      summary: "Full sections test",
+      counts: {
+        requirementsAdded: 3,
+        relationshipsAdded: 7,
+        entitiesDeleted: 1,
+      },
+      briefing: {
+        tldr: "Short",
+        promptBlock: "Full briefing body content.",
+        citations: [
+          { id: "REQ-200", title: "Some requirement", source: "docs/req.md" },
+        ],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "full-sections-brief_brief.json"),
+      JSON.stringify(brief)
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/full-sections-brief.md",
+    } as any;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    // All sections present in order
+    expect(result).toContain("## Briefing");
+    expect(result).toContain("Full briefing body content.");
+    expect(result).toContain("## Summary");
+    expect(result).toContain("Full sections test");
+    expect(result).toContain("## Changes");
+    expect(result).toContain("Requirements added: 3");
+    expect(result).toContain("Relationships added: 7");
+    expect(result).toContain("Entities deleted: 1");
+    expect(result).toContain("## Validation");
+    expect(result).toContain("## Citations");
+    expect(result).toContain("**REQ-200**: Some requirement (docs/req.md)");
+    expect(result).toContain("Brief ID: full-sections-brief");
+  });
 });
 
 describe("BriefDocumentProvider.scheme", () => {

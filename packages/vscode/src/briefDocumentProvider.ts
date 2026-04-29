@@ -3,13 +3,13 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import type { BriefModel } from "./briefs";
 
-export class BriefDocumentProvider implements vscode.TextDocumentContentProvider { // implements REQ-vscode-kibi-briefing-v1
+export class BriefDocumentProvider implements vscode.TextDocumentContentProvider { // implements REQ-vscode-kibi-briefing-v2
   static scheme = "kibi-brief";
 
   private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this._onDidChange.event;
 
-  provideTextDocumentContent(uri: vscode.Uri): string { // implements REQ-vscode-kibi-briefing-v1
+  provideTextDocumentContent(uri: vscode.Uri): string { // implements REQ-vscode-kibi-briefing-v2
     const workspaceRoot = decodeURIComponent(uri.authority);
     const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
 
@@ -55,6 +55,29 @@ export class BriefDocumentProvider implements vscode.TextDocumentContentProvider
     lines.push(`**Session:** ${brief.sessionId}`);
     lines.push(`**Unread:** ${brief.unread ? "Yes" : "No"}`);
     lines.push("");
+
+    // Briefing section: render promptBlock when present, fallback otherwise
+    if (brief.briefing.promptBlock) {
+      lines.push("## Briefing");
+      lines.push(brief.briefing.promptBlock);
+      lines.push("");
+    } else {
+      lines.push("## Briefing");
+      lines.push("*No full briefing body available. Showing summary from TL;DR and available data.*");
+      lines.push("");
+      if (brief.briefing.tldr) {
+        lines.push(`**TL;DR:** ${brief.briefing.tldr}`);
+        lines.push("");
+      }
+      if (brief.briefing.citations.length > 0) {
+        lines.push("**Cited entities:** " + brief.briefing.citations.map((c) => c.id).join(", "));
+        lines.push("");
+      }
+      if (brief.validation.violations.length > 0) {
+        lines.push(`**Validation issues:** ${brief.validation.count} violation(s) found.`);
+        lines.push("");
+      }
+    }
 
     lines.push("## Summary");
     lines.push(brief.summary);
