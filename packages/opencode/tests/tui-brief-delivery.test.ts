@@ -18,6 +18,8 @@ describe("tui-brief-delivery", () => {
   let mockClient: {
     tui?: {
       showToast?: ReturnType<typeof mock>;
+      appendPrompt?: ReturnType<typeof mock>;
+      submitPrompt?: ReturnType<typeof mock>;
     };
   };
 
@@ -30,6 +32,7 @@ describe("tui-brief-delivery", () => {
       };
       tui: {
         toast: boolean;
+        appendPrompt: boolean;
       };
     };
   };
@@ -43,7 +46,7 @@ describe("tui-brief-delivery", () => {
 
   beforeEach(() => {
     mockLog = mock(() => Promise.resolve());
-    logger.setClient({ app: { log: mockLog } } as any);
+    logger.setClient({ app: { log: mockLog } });
 
     mockClient = {
       tui: {
@@ -60,6 +63,7 @@ describe("tui-brief-delivery", () => {
         },
         tui: {
           toast: true,
+          appendPrompt: false,
         },
       },
     };
@@ -120,10 +124,12 @@ describe("tui-brief-delivery", () => {
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith({
-      variant: "info",
-      title: "Kibi",
-      message: "Test summary",
-      duration: 5000,
+      body: {
+        variant: "info",
+        title: "Kibi",
+        message: "Test summary",
+        duration: 5000,
+      },
     });
   });
 
@@ -143,7 +149,7 @@ describe("tui-brief-delivery", () => {
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: "warning",
+        body: expect.objectContaining({ variant: "warning" }),
       }),
     );
   });
@@ -156,16 +162,16 @@ describe("tui-brief-delivery", () => {
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: "info",
+        body: expect.objectContaining({ variant: "info" }),
       }),
     );
   });
 
   test("does not throw when client.tui is undefined", async () => {
-    const clientWithoutTui = {};
+    const clientWithoutTui: Parameters<typeof deliverBriefTui>[0] = {};
 
     await expect(
-      deliverBriefTui(clientWithoutTui as any, envelope, sharedPolicy, localConfig),
+      deliverBriefTui(clientWithoutTui, envelope, sharedPolicy, localConfig),
     ).resolves.toBeUndefined();
   });
 
@@ -187,4 +193,21 @@ describe("tui-brief-delivery", () => {
     expect(appendPromptMock).toHaveBeenCalledWith(envelope.briefing.promptBlock);
     expect(submitPromptMock).toHaveBeenCalled();
   });
+
+  test("wraps showToast payload with body in TUI briefing delivery", async () => {
+    sharedPolicy.briefs.tui.toast = true;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          variant: "info",
+          title: "Kibi",
+          message: "Test summary",
+          duration: 5000,
+        }),
+      }),
+    );
+});
 });

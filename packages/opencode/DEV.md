@@ -79,6 +79,14 @@ Run the relevant plugin tests:
 bun test packages/opencode/tests
 ```
 
+### Built-artifact verification
+
+Verify the compiled `dist/` artifact reflects the repaired toast contract:
+
+```bash
+node --test documentation/tests/e2e/opencode-plugin-local.test.ts
+```
+
 ## Publishing
 
 When preparing a release for `kibi-opencode`:

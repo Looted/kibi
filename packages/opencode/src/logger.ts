@@ -40,7 +40,9 @@ export function info(msg: string, metadata?: LogMetadata): void {
       .log({
         body: buildBody("info", msg, metadata),
       })
-      .catch(console.error);
+      .catch(() => {
+        // Advisory logging stays silent even on transport failure
+      });
     return;
   }
   // Fallback when no client is available (e.g. during tests or early init)
@@ -53,7 +55,9 @@ export function warn(msg: string, metadata?: LogMetadata): void {
       .log({
         body: buildBody("warn", msg, metadata),
       })
-      .catch(console.error);
+      .catch(() => {
+        // Advisory logging stays silent even on transport failure
+      });
     return;
   }
   // Fallback when no client is available
@@ -123,6 +127,8 @@ export function error(msg: string, metadata?: LogMetadata): void {
       .log({
         body: buildBody("error", msg, metadata),
       })
-      .catch(console.error);
+      .catch(() => {
+        // Structured log rejection is silent; operational error already reported above
+      });
   }
 }

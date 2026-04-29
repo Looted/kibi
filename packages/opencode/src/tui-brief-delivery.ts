@@ -20,7 +20,7 @@ export type ToastPayload = {
 
 export type ToastCapableClient = {
   tui?: {
-    showToast?: (payload: ToastPayload) => void | Promise<void>;
+    showToast?: (payload: { body: ToastPayload }) => void | Promise<void>;
     appendPrompt?: (text: string) => void | Promise<void>;
     clearPrompt?: () => void | Promise<void>;
     submitPrompt?: () => void | Promise<void>;
@@ -79,14 +79,16 @@ export async function deliverBriefTui(
   const { toast } = sharedPolicy.briefs.tui;
 
   // Show toast using the real OpenCode API
-  if (toast && typeof client.tui?.showToast === "function") {
+if (toast && typeof client.tui?.showToast === "function") {
     await client.tui.showToast({
-      variant: envelope.type === "warning" ? "warning" : "info",
-      title: "Kibi",
-      message: summary,
+      body: {
+variant: envelope.type === "warning" ? "warning" : "info",
+title: "Kibi",
+message: summary,
       duration: 5000,
-    });
-  }
+      },
+});
+}
 
   if (localConfig.autoSubmit && sharedPolicy.briefs.tui.appendPrompt) {
     const tui = client.tui;

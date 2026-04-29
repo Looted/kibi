@@ -19,7 +19,7 @@ import { type RiskClass, classifyRisk } from "./risk-classifier.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import { notifyStartup, type StartupNotifierClient } from "./startup-notifier.js";
 import { runPluginStartup } from "./plugin-startup.js";
-import { sendToast } from "./toast.js";
+import { sendToast, type ToastCapableClient as SendToastClient } from "./toast.js";
 import {
   createSessionEditState,
   type SessionEditEntry,
@@ -32,7 +32,12 @@ import {
 import { generateIdleBrief } from "./idle-brief-runtime.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
 import { loadBriefConfig } from "kibi-cli/brief-config";
-import { deliverBriefTui, type ToastCapableClient } from "./tui-brief-delivery.js";
+import {
+  deliverBriefTui,
+  type ToastCapableClient as BriefToastClient,
+} from "./tui-brief-delivery.js";
+
+type ToastCapableClient = SendToastClient & BriefToastClient;
 
 
 
@@ -59,21 +64,32 @@ export interface PluginInput {
   worktree: string;
   directory: string;
   sessionId?: string;
+  serverUrl?: unknown;
 
 
 
   workspace?: string;
   project?: unknown;
-  serverUrl?: unknown;
   $?: unknown;
   client?: {
     tui?: {
-      showToast?: (payload: {
+      toast?: (payload: {
         variant?: "info" | "success" | "warning" | "error";
         title?: string;
         message: string;
         duration?: number;
       }) => void | Promise<void>;
+      showToast?: (payload: {
+        body: {
+          variant?: "info" | "success" | "warning" | "error";
+          title?: string;
+          message: string;
+          duration?: number;
+        };
+      }) => void | Promise<void>;
+      appendPrompt?: (text: string) => void | Promise<void>;
+      clearPrompt?: () => void | Promise<void>;
+      submitPrompt?: () => void | Promise<void>;
     };
     app: { log: (payload: Record<string, unknown>) => Promise<void> };
   };
@@ -174,10 +190,27 @@ const kibiOpencodePlugin: Plugin = async (
 ): Promise<Hooks> => {
   const makeToastClient = (
     client: NonNullable<typeof input.client>,
-  ): ToastCapableClient =>
-    client.tui?.showToast
-      ? { tui: { showToast: client.tui.showToast } }
-      : {};
+  ): ToastCapableClient => {
+    const tui = client.tui;
+    if (!tui) return {};
+    const mappedTui: NonNullable<ToastCapableClient["tui"]> = {};
+    if (typeof tui.toast === "function") {
+      mappedTui.toast = tui.toast.bind(tui);
+    }
+    if (typeof tui.showToast === "function") {
+      mappedTui.showToast = tui.showToast.bind(tui);
+    }
+    if (typeof tui.appendPrompt === "function") {
+      mappedTui.appendPrompt = tui.appendPrompt.bind(tui);
+    }
+    if (typeof tui.clearPrompt === "function") {
+      mappedTui.clearPrompt = tui.clearPrompt.bind(tui);
+    }
+    if (typeof tui.submitPrompt === "function") {
+      mappedTui.submitPrompt = tui.submitPrompt.bind(tui);
+    }
+    return { tui: mappedTui };
+  };
 
   const makeStartupClient = (
     client: NonNullable<typeof input.client>,
@@ -356,9 +389,7 @@ function queueBriefingFetch(
     autoBriefResults.set(fingerprint, result);
     if (!toastedFingerprints.has(fingerprint)) {
       toastedFingerprints.add(fingerprint);
-      void sendToast(makeToastClient(client), { message: result.toastMessage }).catch(() => {
-        // toast delivery failure is non-fatal
-      });
+      void sendToast(makeToastClient(client), { message: result.toastMessage });
     }
   });
 }
@@ -439,11 +470,6 @@ function queueBriefingFetch(
                     void sendToast(makeToastClient(client), {
                       message: result.toastMessage,
                       variant: envelope.type === 'warning' ? 'warning' : 'success'
-                    }).catch((toastErr) => {
-                      logger.error("idle-brief.fallback-toast-failed", {
-                        event: "idle_brief_fallback_toast_failed",
-                        error: toastErr instanceof Error ? toastErr.message : String(toastErr),
-                      });
                     });
                   });
               }
