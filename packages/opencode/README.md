@@ -285,6 +285,18 @@ A proposed enhancement would inject Kibi context hints into file-read results (e
 
 Current workaround: static system prompt guidance directs agents to query Kibi explicitly.
 
+### File-Context Guidance
+
+The plugin provides proactive guidance when agents interact with specific files for the first time in a session:
+
+- **First-read focused guidance**: When an agent reads a file that has linked Kibi requirements (e.g., via `documentation/symbols.yaml`), the plugin injects a one-time reminder to check Kibi for that specific path.
+
+- **First-delete safety guidance**: When an agent attempts to delete a file, the plugin injects a safety check reminding the agent to verify if the file implements any Kibi requirements before removal.
+
+- **Session suppression**: To minimize prompt noise, this guidance is suppressed after the first occurrence per path per session.
+
+- **Current-host scope**: This feature uses host-side event monitoring to detect intent; it does not intercept or modify the actual file content returned by the Read tool.
+
 ## License
 
 AGPL-3.0-or-later
