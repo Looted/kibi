@@ -74,6 +74,9 @@ export function selectLatestUnreadBrief(
     return null;
   }
 
+  // Sort by filename timestamp descending — latest first
+  candidates.sort((a, b) => b.timestamp - a.timestamp);
+
   const latest = candidates[0];
   if (!latest) {
     return null;
