@@ -60,6 +60,9 @@ describe("idle-brief-reader", () => {
       writeBrief(3000, makeBrief({ briefId: "brief-3" }));
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-3");
+      expect(result?.filePath).toBe(path.join(briefsDir, "3000_brief.json"));
     });
 
     it("ignores read briefs (unread === false)", () => {
@@ -68,6 +71,8 @@ describe("idle-brief-reader", () => {
       writeBrief(3000, makeBrief({ briefId: "brief-3", unread: false }));
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-1");
     });
 
     it("ignores briefs from other branches", () => {
@@ -76,6 +81,8 @@ describe("idle-brief-reader", () => {
       writeBrief(3000, makeBrief({ briefId: "brief-3", branch: "feature-x" }));
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-1");
     });
 
     it("ignores files ending in .tmp", () => {
@@ -85,6 +92,8 @@ describe("idle-brief-reader", () => {
       fs.writeFileSync(tmpPath, JSON.stringify(makeBrief({ briefId: "tmp-brief" }), null, 2), "utf-8");
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-1");
     });
 
     it("ignores invalid JSON files", () => {
@@ -92,14 +101,18 @@ describe("idle-brief-reader", () => {
       // Write an invalid JSON file with a later timestamp
       const invalidPath = path.join(briefsDir, "9999_brief.json");
       fs.writeFileSync(invalidPath, "this is not valid json{{{", "utf-8");
+      // }}}
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-1");
     });
 
     it("returns null when no unread briefs exist", () => {
       writeBrief(1000, makeBrief({ briefId: "brief-1", unread: false }));
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).toBeNull();
     });
 
     it("returns null when briefs directory does not exist", () => {
@@ -107,6 +120,7 @@ describe("idle-brief-reader", () => {
       fs.rmSync(briefsDir, { recursive: true, force: true });
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).toBeNull();
     });
 
     it("ignores briefs with wrong schemaVersion", () => {
@@ -116,6 +130,7 @@ describe("idle-brief-reader", () => {
       writeBrief(1000, wrongSchema);
 
       const result = selectLatestUnreadBrief(tmpDir, "main");
+      expect(result).toBeNull();
     });
   });
 
@@ -177,6 +192,17 @@ describe("idle-brief-reader", () => {
       const updated = JSON.parse(raw) as IdleBriefEnvelope;
       expect(updated.unread).toBe(false);
       expect(updated.briefId).toBe("brief-atomic");
+    });
+
+    it("rejects paths outside .kb/briefs directory", () => {
+      const brief = makeBrief({ briefId: "brief-security", unread: true });
+      const filePath = writeBrief(1000, brief);
+      const outsidePath = path.join(tmpDir, "outside.json");
+      fs.writeFileSync(outsidePath, JSON.stringify(brief, null, 2), "utf-8");
+      expect(() => markBriefRead(tmpDir, outsidePath)).toThrow("not inside");
+      const raw = fs.readFileSync(filePath, "utf-8");
+      const updated = JSON.parse(raw) as IdleBriefEnvelope;
+      expect(updated.unread).toBe(true);
     });
   });
 });

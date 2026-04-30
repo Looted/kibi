@@ -102,6 +102,17 @@ export function markBriefRead(
   workspaceRoot: string,
   briefPath: string,
 ): void {
+  const briefsDir = resolveBriefsDir(workspaceRoot);
+  const resolvedBriefPath = path.resolve(briefPath);
+  const resolvedBriefsDir = path.resolve(briefsDir);
+
+  // Security: ensure the brief path is within the expected briefs directory
+  if (!resolvedBriefPath.startsWith(resolvedBriefsDir + path.sep)) {
+    throw new Error(
+      `Invalid brief path: ${briefPath} is not inside ${briefsDir}`
+    );
+  }
+
   const raw = fs.readFileSync(briefPath, "utf-8");
   const brief = JSON.parse(raw) as IdleBriefEnvelope;
 
