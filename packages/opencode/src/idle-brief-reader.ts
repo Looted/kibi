@@ -23,9 +23,10 @@ function extractTimestamp(filename: string): number | null {
  * `unread === true`. Returns the brief with the highest filename timestamp,
  * or null if no unread briefs exist.
  */
-export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefing-v4
+export function selectLatestUnreadBrief(
+  // implements REQ-opencode-kibi-briefing-v4
   workspaceRoot: string,
-  branch: string
+  branch: string,
 ): { envelope: IdleBriefEnvelope; filePath: string } | null {
   const briefsDir = resolveBriefsDir(workspaceRoot);
 
@@ -35,7 +36,11 @@ export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefin
 
   const files = fs.readdirSync(briefsDir);
 
-  const candidates: Array<{ timestamp: number; envelope: IdleBriefEnvelope; filePath: string }> = [];
+  const candidates: Array<{
+    timestamp: number;
+    envelope: IdleBriefEnvelope;
+    filePath: string;
+  }> = [];
 
   for (const file of files) {
     // Ignore .tmp files
@@ -69,10 +74,15 @@ export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefin
     return null;
   }
 
-  // Sort by filename timestamp descending — latest first
-  candidates.sort((a, b) => b.timestamp - a.timestamp);
+  const latest = candidates[0];
+  if (!latest) {
+    return null;
+  }
 
-  return { envelope: candidates[0]!.envelope, filePath: candidates[0]!.filePath };
+  return {
+    envelope: latest.envelope,
+    filePath: latest.filePath,
+  };
 }
 
 /**
@@ -84,9 +94,10 @@ export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefin
  * @param workspaceRoot - The root of the workspace
  * @param briefPath - Absolute path to the brief file to mark as read
  */
-export function markBriefRead( // implements REQ-opencode-kibi-briefing-v4
+export function markBriefRead(
+  // implements REQ-opencode-kibi-briefing-v4
   workspaceRoot: string,
-  briefPath: string
+  briefPath: string,
 ): void {
   const raw = fs.readFileSync(briefPath, "utf-8");
   const brief = JSON.parse(raw) as IdleBriefEnvelope;
