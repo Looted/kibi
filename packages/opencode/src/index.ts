@@ -30,6 +30,7 @@ import {
   guardBranchChanged,
 } from "./idle-brief-audit.js";
 import { generateIdleBrief } from "./idle-brief-runtime.js";
+import { markBriefRead } from "./idle-brief-reader.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
 import { loadBriefConfig } from "kibi-cli/brief-config";
 import {
@@ -463,13 +464,22 @@ function queueBriefingFetch(
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
               const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
               if (client) {
-                void deliverBriefTui(makeToastClient(client), envelope, sharedPolicy, localConfig)
-                  .catch((err) => {
-                    logger.error("idle-brief.delivery-failed", {
-                      event: "idle_brief_delivery_failed",
-                      error: err instanceof Error ? err.message : String(err),
-                    });
+                try {
+                  const deliveryResult = await deliverBriefTui(
+                    makeToastClient(client),
+                    envelope,
+                    sharedPolicy,
+                    localConfig,
+                  );
+                  if (deliveryResult.appended && result.briefPath) {
+                    markBriefRead(idleWorkspaceRoot, result.briefPath);
+                  }
+                } catch (err) {
+                  logger.error("idle-brief.delivery-failed", {
+                    event: "idle_brief_delivery_failed",
+                    error: err instanceof Error ? err.message : String(err),
                   });
+                }
               }
             }
           } else {

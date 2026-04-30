@@ -45,6 +45,10 @@ export type LocalBriefConfig = {
   autoSubmit: boolean;
 };
 
+export type DeliverResult = {
+  appended: boolean;
+};
+
 /**
  * Builds a deterministic render block from the envelope content.
  * Uses promptBlock when available; falls back to summary + citations.
@@ -108,33 +112,47 @@ export async function deliverBriefTui(
   envelope: IdleBriefEnvelope,
   sharedPolicy: SharedBriefPolicy,
   localConfig: LocalBriefConfig,
-): Promise<void> {
+): Promise<DeliverResult> {
   // Early exit if TUI delivery is disabled
   if (!sharedPolicy.briefs.channels.tui) {
     logger.info("TUI brief delivery disabled by shared policy");
-    return;
+    return { appended: false };
   }
 
   const tui = client.tui;
 
   // Optional toast notification (best-effort, not a success-path requirement)
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
-    await tui.showToast({
-      body: {
-        variant: envelope.type === "warning" ? "warning" : "info",
-        title: "Kibi",
-        message: envelope.briefing.tldr,
-        duration: 5000,
-      },
-    });
+    try {
+      await tui.showToast({
+        body: {
+          variant: envelope.type === "warning" ? "warning" : "info",
+          title: "Kibi",
+          message: envelope.briefing.tldr,
+          duration: 5000,
+        },
+      });
+    } catch {
+      // Toast is best-effort; do not let failures affect appended status
+    }
   }
 
   // Passive render-first: append the briefing block to the prompt buffer
   const appendPrompt = tui?.appendPrompt;
   if (typeof appendPrompt === "function") {
-    const renderBlock = buildRenderBlock(envelope);
-    await appendPrompt(renderBlock);
+    try {
+      const renderBlock = buildRenderBlock(envelope);
+      await appendPrompt(renderBlock);
+      return { appended: true };
+    } catch (err) {
+      logger.error("Failed to append brief to prompt buffer", {
+        event: "idle_brief_append_failed",
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return { appended: false };
+    }
   } else {
     logger.info("TUI appendPrompt API unavailable, brief not rendered to buffer");
+    return { appended: false };
   }
 }
