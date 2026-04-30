@@ -1,17 +1,20 @@
+import * as cp from "node:child_process";
 /*
  * Workspace resolution utilities for Kibi VS Code extension
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import * as cp from "node:child_process";
 
 let workspaceExistsSync: typeof fs.existsSync = fs.existsSync;
 let workspaceReadFileSync: typeof fs.readFileSync = fs.readFileSync;
 
 export function _setWorkspaceFsDepsForTests(
   // implements REQ-vscode-traceability
-  overrides: { existsSync?: typeof fs.existsSync; readFileSync?: typeof fs.readFileSync },
+  overrides: {
+    existsSync?: typeof fs.existsSync;
+    readFileSync?: typeof fs.readFileSync;
+  },
 ): void {
   workspaceExistsSync = overrides.existsSync ?? fs.existsSync;
   workspaceReadFileSync = overrides.readFileSync ?? fs.readFileSync;
@@ -78,11 +81,13 @@ export function getWorkspaceFolderUri(workspaceRoot: string): vscode.Uri {
 export function getCurrentBranch(workspaceRoot: string): string {
   // implements REQ-vscode-kibi-briefing-v1
   try {
-    const branch = cp.execSync("git branch --show-current", {
-      cwd: workspaceRoot,
-      encoding: "utf-8",
-      timeout: 5000,
-    }).trim();
+    const branch = cp
+      .execSync("git branch --show-current", {
+        cwd: workspaceRoot,
+        encoding: "utf-8",
+        timeout: 5000,
+      })
+      .trim();
     return branch || "main";
   } catch {
     // Fallback: try to read from .git/HEAD ref

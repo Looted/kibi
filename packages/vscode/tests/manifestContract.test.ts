@@ -30,9 +30,7 @@ describe("VS Code manifest contract", () => {
     );
 
     expect(packageJson.contributes.views[KIBI_CONTAINER_ID]).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ id: KIBI_VIEW_ID }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ id: KIBI_VIEW_ID })]),
     );
 
     expect(packageJson.contributes.commands).toEqual(

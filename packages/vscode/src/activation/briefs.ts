@@ -4,21 +4,25 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { 
+import { BriefDocumentProvider } from "../briefDocumentProvider";
+import {
+  type BriefModel,
+  markBriefRead,
   parseLatestBrief,
   readBriefId,
-  markBriefRead,
-  type BriefModel,
 } from "../briefs";
-import { BriefDocumentProvider } from "../briefDocumentProvider";
 import { KIBI_SHOW_LATEST_BRIEF_COMMAND } from "../extensionIds";
 // Lightweight, optional loadable brief-config loader with safe fallbacks
 declare const require: (module: string) => unknown;
-type BriefPolicy = { briefs: { enabled: boolean; channels: { vscode: boolean } } };
+type BriefPolicy = {
+  briefs: { enabled: boolean; channels: { vscode: boolean } };
+};
 interface LoadBriefConfigModule {
   loadBriefConfig: (workspaceRoot: string) => BriefPolicy;
 }
-let __loadBriefConfig: (workspaceRoot: string) => BriefPolicy = (workspaceRoot: string) => ({ briefs: { enabled: true, channels: { vscode: true } } });
+let __loadBriefConfig: (workspaceRoot: string) => BriefPolicy = (
+  workspaceRoot: string,
+) => ({ briefs: { enabled: true, channels: { vscode: true } } });
 try {
   const tmp = require("kibi-cli/brief-config") as unknown;
   if (typeof tmp === "object" && tmp !== null) {
@@ -49,7 +53,7 @@ export interface BriefWatcherResult {
  * In-memory deduplication set for notifications in this session.
  * Ensures we don't notify about the same brief twice.
  */
-const notifiedBriefIds = new Set<string>();
+const notifiedBriefContentHashes = new Set<string>();
 
 /**
  * Registers a file system watcher for brief JSON files in .kb/briefs/.
@@ -64,7 +68,7 @@ export function registerBriefWatcher(
 ): BriefWatcherResult {
   const briefsPattern = new vscode.RelativePattern(
     workspaceRoot,
-    ".kb/briefs/*_brief.json"
+    ".kb/briefs/*_brief.json",
   );
 
   const watcher = vscode.workspace.createFileSystemWatcher(briefsPattern);
@@ -96,40 +100,50 @@ export function registerBriefWatcher(
       return;
     }
 
-    // Check workspaceState for previously seen brief (persistent dedupe)
-    const seenBriefId = readBriefId(context.workspaceState, workspaceRoot, branch);
-    if (seenBriefId === brief.briefId) {
+    // Check workspaceState for previously seen brief content (persistent dedupe by semantic hash)
+    const seenContentHash = readBriefId(
+      context.workspaceState,
+      workspaceRoot,
+      branch,
+    );
+    if (seenContentHash === brief.contentHash) {
       return;
     }
 
     // In-memory dedupe for this session (suppresses duplicate create+change events)
-    if (notifiedBriefIds.has(brief.briefId)) {
+    if (notifiedBriefContentHashes.has(brief.contentHash)) {
       return;
     }
-    notifiedBriefIds.add(brief.briefId);
+    notifiedBriefContentHashes.add(brief.contentHash);
 
     // Build notification message
-    const message = brief.type === "warning"
-      ? `New Kibi Brief: ${brief.summary} (warning)`
-      : `New Kibi Brief: ${brief.summary}`;
+    const message =
+      brief.type === "warning"
+        ? `New Kibi Brief: ${brief.summary} (warning)`
+        : `New Kibi Brief: ${brief.summary}`;
 
     // Show toast with "View Brief" and "Dismiss" actions
     const selection = await vscode.window.showInformationMessage(
       message,
       "View Brief",
-      "Dismiss"
+      "Dismiss",
     );
 
     if (selection === "View Brief") {
       // Open the brief document
-      await showLatestBriefCommand(context.workspaceState, workspaceRoot, branch, brief.briefId);
+      await showLatestBriefCommand(
+        context.workspaceState,
+        workspaceRoot,
+        branch,
+        brief.briefId,
+      );
     }
 
     // Mark as read when user dismisses (or views) the notification
     if (selection === "Dismiss" || selection === "View Brief") {
       // Find actual brief file path
       const allBriefs = await vscode.workspace.findFiles(
-        new vscode.RelativePattern(workspaceRoot, ".kb/briefs/*_brief.json")
+        new vscode.RelativePattern(workspaceRoot, ".kb/briefs/*_brief.json"),
       );
       const matchingBrief = allBriefs.find((u) => {
         try {
@@ -145,8 +159,8 @@ export function registerBriefWatcher(
           context.workspaceState,
           workspaceRoot,
           branch,
-          brief.briefId,
-          matchingBrief.fsPath
+          brief.contentHash,
+          matchingBrief.fsPath,
         );
       }
     }
@@ -162,7 +176,7 @@ export function registerBriefWatcher(
   // Register showLatestBrief command
   const showLatestBriefDisposable = vscode.commands.registerCommand(
     KIBI_SHOW_LATEST_BRIEF_COMMAND,
-    () => showLatestBriefCommand(context.workspaceState, workspaceRoot, branch)
+    () => showLatestBriefCommand(context.workspaceState, workspaceRoot, branch),
   );
   context.subscriptions.push(showLatestBriefDisposable);
 
@@ -188,7 +202,7 @@ export async function showLatestBriefCommand(
   const brief = parseLatestBrief(workspaceRoot, branch);
   if (!brief) {
     vscode.window.showInformationMessage(
-      "No Kibi briefs available for this branch."
+      "No Kibi briefs available for this branch.",
     );
     return;
   }
@@ -196,7 +210,8 @@ export async function showLatestBriefCommand(
   // Find brief file path for markBriefRead
   const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
   if (fs.existsSync(briefsDir)) {
-    const files = fs.readdirSync(briefsDir)
+    const files = fs
+      .readdirSync(briefsDir)
       .filter((f) => f.endsWith("_brief.json"))
       .map((f) => {
         const fullPath = path.join(briefsDir, f);
@@ -214,14 +229,20 @@ export async function showLatestBriefCommand(
     if (files.length > 0) {
       const firstFile = files[0];
       if (firstFile) {
-        markBriefRead(workspaceState, workspaceRoot, branch, brief.briefId, firstFile.path);
+        markBriefRead(
+          workspaceState,
+          workspaceRoot,
+          branch,
+          brief.contentHash,
+          firstFile.path,
+        );
       }
     }
   }
 
   // Open virtual document via document provider
   const uri = vscode.Uri.parse(
-    `${BriefDocumentProvider.scheme}://${encodeURIComponent(workspaceRoot)}/${branch}/${brief.briefId}.md`
+    `${BriefDocumentProvider.scheme}://${encodeURIComponent(workspaceRoot)}/${branch}/${brief.briefId}.md`,
   );
   const doc = await vscode.workspace.openTextDocument(uri);
   await vscode.window.showTextDocument(doc, { preview: false });

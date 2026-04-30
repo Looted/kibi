@@ -137,15 +137,14 @@ export function activate(context: vscode.ExtensionContext) {
     output.appendLine(
       "Workspace folder not available. Deferring activation until workspace opens...",
     );
-    const workspaceFolderChangeListener = vscode.workspace.onDidChangeWorkspaceFolders(
-      () => {
+    const workspaceFolderChangeListener =
+      vscode.workspace.onDidChangeWorkspaceFolders(() => {
         const newWorkspaceRoot = resolveWorkspaceRoot(output);
         if (newWorkspaceRoot) {
           // Workspace is now available - initialize features
           initializeWorkspaceFeatures(context, output, newWorkspaceRoot);
         }
-      },
-    );
+      });
     context.subscriptions.push(workspaceFolderChangeListener);
     return;
   }
@@ -156,4 +155,3 @@ export function activate(context: vscode.ExtensionContext) {
 
 // implements REQ-vscode-traceability
 export function deactivate() {}
-

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "briefId": "brief-1777548581468-je0ixi",
+  "type": "success",
+  "sessionId": "unknown",
+  "branch": "develop",
+  "createdAt": "2026-04-30T11:29:41.468Z",
+  "unread": false,
+  "auditCursor": {
+    "lastTimestamp": "2026-04-30T13:22:28+02:00",
+    "lastOperation": "upsert_rel",
+    "entryCount": 240,
+    "fileSize": 43017
+  },
+  "summary": "32 requirements added, 208 relationships added | clean",
+  "counts": {
+    "requirementsAdded": 32,
+    "relationshipsAdded": 208,
+    "entitiesDeleted": 0
+  },
+  "validation": {
+    "violations": [],
+    "count": 0,
+    "diagnostics": []
+  },
+  "briefing": {
+    "tldr": "32 requirements added, 208 relationships added | clean",
+    "promptBlock": "",
+    "citations": []
+  },
+  "contentHash": "8be44bb20694a2ce0166c3a131847cbebba6766e6870edd865303dadfc1fdbb5"
+}

@@ -253,11 +253,14 @@ const kibiOpencodePlugin: Plugin = async (
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
-  // Idle-brief state — dedupe via briefId + contentHash (persisted envelope is the delivery authority)
+  // Idle-brief state — dedupe via semantic contentHash (persisted envelope is the delivery authority)
   let idleBriefInFlight = false;
   let idleBriefTrailingRerun = false;
   const idleBriefDeliveredHashes = new Set<string>();
-  const replayedBriefIds = new Set<string>();
+  const replayedBriefContentHashes = new Set<string>();
+  // Session-local baseline cursor: captured once per session/worktree/branch from the audit-log tail,
+  // so the first idle brief in a fresh session only reports post-baseline changes.
+  let sessionBaselineCursor: ReturnType<typeof getLatestAuditCursor> | undefined = undefined;
 
   function normalizeSessionPath(filePath: string): string {
     if (path.isAbsolute(filePath)) {
@@ -425,15 +428,19 @@ const kibiOpencodePlugin: Plugin = async (
 
           if (sourceFiles.length === 0) return;
 
-          // Compute audit delta
-          const latestCursor = getLatestAuditCursor(
-            idleWorkspaceRoot,
-            idleBranch,
-          );
+          // Capture session-local baseline once per session/worktree/branch
+          // This ensures a fresh session only reports changes after session start,
+          // not the entire branch audit history.
+          if (sessionBaselineCursor === undefined) {
+            sessionBaselineCursor = getLatestAuditCursor(
+              idleWorkspaceRoot,
+              idleBranch,
+            );
+          }
           const auditDelta = computeAuditDelta(
             idleWorkspaceRoot,
             idleBranch,
-            latestCursor,
+            sessionBaselineCursor,
           );
 
           if (!auditDelta.hasChanges) return;
@@ -462,8 +469,8 @@ const kibiOpencodePlugin: Plugin = async (
 
           if (result.success && result.envelope) {
             const envelope = result.envelope;
-            // Dedupe by briefId + contentHash — persisted envelope is the delivery authority
-            const dedupeKey = `${envelope.briefId}:${envelope.contentHash}`;
+            // Dedupe by semantic contentHash — persisted envelope is the delivery authority
+            const dedupeKey = `${idleWorkspaceRoot}:${idleBranch}:tui:${envelope.contentHash}`;
             if (!idleBriefDeliveredHashes.has(dedupeKey)) {
               idleBriefDeliveredHashes.add(dedupeKey);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
@@ -980,7 +987,7 @@ const kibiOpencodePlugin: Plugin = async (
           );
           if (
             unreadBrief &&
-            !replayedBriefIds.has(unreadBrief.envelope.briefId)
+            !replayedBriefContentHashes.has(unreadBrief.envelope.contentHash)
           ) {
             const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
             const localConfig = {
@@ -996,7 +1003,7 @@ const kibiOpencodePlugin: Plugin = async (
               );
               if (deliveryResult.appended) {
                 markBriefRead(input.worktree, unreadBrief.filePath);
-                replayedBriefIds.add(unreadBrief.envelope.briefId);
+                replayedBriefContentHashes.add(unreadBrief.envelope.contentHash);
               }
             } catch (err) {
               logger.error("idle-brief.replay-failed", {

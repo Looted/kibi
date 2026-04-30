@@ -252,4 +252,103 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       expect(guardBranchChanged("main", "feature-xyz")).toBe(true);
     });
   });
+
+  describe("session-baseline behavior", () => {
+    it("computeAuditDelta with session baseline cursor returns only post-baseline entries", () => {
+      // Simulate pre-existing audit history (before session started)
+      const auditPath = resolveAuditLogPath(tmpDir, "main");
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(auditPath,
+        `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).\n` +
+        `changeset('2026-04-25T10:01:00+00:00',upsert,'REQ-002',req-[id='REQ-002']).\n` +
+        `changeset('2026-04-25T10:02:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='REQ-001']).`,
+        "utf-8"
+      );
+
+      // First read captures baseline cursor (simulating session start)
+      const baselineResult = computeAuditDelta(tmpDir, "main", null);
+      const sessionBaseline = baselineResult.newCursor;
+      expect(baselineResult.entries.length).toBe(3);
+
+      // Simulate new activity after session started
+      fs.appendFileSync(auditPath,
+        `\nchangeset('2026-04-25T10:03:00+00:00',upsert,'REQ-003',req-[id='REQ-003']).`,
+        "utf-8"
+      );
+
+      // Second read with session baseline should only return post-baseline entry
+      const delta = computeAuditDelta(tmpDir, "main", sessionBaseline);
+      expect(delta.hasChanges).toBe(true);
+      expect(delta.entries.length).toBe(1);
+      expect(delta.entries[0].entityId).toBe("REQ-003");
+    });
+
+    it("fresh session with no prior briefs uses null baseline (entire audit tail)", () => {
+      const auditPath = resolveAuditLogPath(tmpDir, "main");
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(auditPath,
+        `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).`,
+        "utf-8"
+      );
+
+      // getLatestAuditCursor returns null when no briefs exist
+      const baseline = getLatestAuditCursor(tmpDir, "main");
+      expect(baseline).toBeNull();
+
+      // computeAuditDelta with null cursor returns all entries
+      const delta = computeAuditDelta(tmpDir, "main", null);
+      expect(delta.hasChanges).toBe(true);
+      expect(delta.entries.length).toBe(1);
+    });
+
+    it("session baseline captured from audit tail ignores pre-existing briefs", () => {
+      // Write a pre-existing brief (from a prior session)
+      const briefsDir = path.join(tmpDir, ".kb", "briefs");
+      fs.mkdirSync(briefsDir, { recursive: true });
+      const priorBrief = {
+        schemaVersion: "1.0",
+        briefId: "prior-1",
+        type: "success",
+        sessionId: "old-session",
+        branch: "main",
+        createdAt: "2026-04-25T09:00:00Z",
+        unread: false,
+        auditCursor: {
+          lastTimestamp: "2026-04-25T09:00:00+00:00",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "old", promptBlock: "", citations: [] },
+        contentHash: "old-hash",
+      };
+      fs.writeFileSync(
+        path.join(briefsDir, "1000000000_brief.json"),
+        JSON.stringify(priorBrief),
+        "utf-8"
+      );
+
+      // Write audit log with entries AFTER the prior brief cursor
+      const auditPath = resolveAuditLogPath(tmpDir, "main");
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(auditPath,
+        `changeset('2026-04-25T09:00:00+00:00',upsert,'REQ-OLD',req-[id='REQ-OLD']).\n` +
+        `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-NEW',req-[id='REQ-NEW']).`,
+        "utf-8"
+      );
+
+      // getLatestAuditCursor returns prior brief cursor
+      const priorCursor = getLatestAuditCursor(tmpDir, "main");
+      expect(priorCursor).not.toBeNull();
+      expect(priorCursor?.lastTimestamp).toBe("2026-04-25T09:00:00+00:00");
+
+      // Using the prior cursor, delta should only return post-prior entries
+      const delta = computeAuditDelta(tmpDir, "main", priorCursor);
+      expect(delta.hasChanges).toBe(true);
+      expect(delta.entries.length).toBe(1);
+      expect(delta.entries[0].entityId).toBe("REQ-NEW");
+    });
+  });
 });

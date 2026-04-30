@@ -5852,7 +5852,7 @@ import datetime
       assert.ok(briefAfter.unread === false, "Brief should be marked as read after successful append");
     });
     
-    it("does not replay the same briefId twice", async () => {
+    it("does not replay the same contentHash twice", async () => {
       process.env.KIBI_BRANCH = "main";
       
       const opencodeDir = path.join(tmpDir, ".opencode");
@@ -6052,6 +6052,169 @@ import datetime
       
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
       assert.ok(briefAfter.unread === false, "Brief should be marked read after successful append");
+    });
+
+    it("semantic dedupe: different briefIds with same visible content only delivered once", async () => {
+      process.env.KIBI_BRANCH = "main";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      // First brief with briefId-A
+      const briefFilePath1 = path.join(kbDir, "briefs", "9999999995_brief.json");
+      const briefEnvelope1 = {
+        schemaVersion: "1.0" as const,
+        briefId: "brief-alpha",
+        type: "success" as const,
+        sessionId: "session-1",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        summary: "Semantic dedupe test",
+        counts: { requirementsAdded: 2, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Same TLDR", promptBlock: "Same prompt", citations: [] },
+        contentHash: "semantic-hash-aaa",
+      };
+      fs.writeFileSync(briefFilePath1, JSON.stringify(briefEnvelope1, null, 2), "utf-8");
+      
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      let appendCount = 0;
+      const appendedTexts: string[] = [];
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+      );
+      
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async (text: string) => { appendCount++; appendedTexts.push(text); },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      
+      // First call: deliver brief-alpha
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(appendCount, 1, "First call should append brief-alpha");
+      
+      // Now replace the file with a brief that has different briefId but same visible content
+      // (simulating a regenerated brief with same semantic content)
+      const briefEnvelope2 = {
+        ...briefEnvelope1,
+        briefId: "brief-beta",
+        createdAt: "2026-04-30T11:00:00Z",
+        sessionId: "session-2",
+        contentHash: "semantic-hash-aaa",
+      };
+      fs.writeFileSync(briefFilePath1, JSON.stringify({...briefEnvelope2, unread: true}, null, 2), "utf-8");
+      
+      // Second call: same contentHash should NOT re-deliver
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(appendCount, 1, "Second call should not re-deliver same semantic content");
+    });
+    
+    it("semantic dedupe: changed content in same session re-triggers once", async () => {
+      process.env.KIBI_BRANCH = "main";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      const briefFilePath = path.join(kbDir, "briefs", "9999999994_brief.json");
+      const briefEnvelope1 = {
+        schemaVersion: "1.0" as const,
+        briefId: "brief-first",
+        type: "success" as const,
+        sessionId: "session-1",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        summary: "Original content",
+        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Original TLDR", promptBlock: "", citations: [] },
+        contentHash: "content-hash-v1",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope1, null, 2), "utf-8");
+      
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      let appendCount = 0;
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+      );
+      
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async () => { appendCount++; },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      
+      // First delivery
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(appendCount, 1, "First call should append");
+      
+      // Update brief with NEW visible content (different contentHash)
+      const briefEnvelope2 = {
+        ...briefEnvelope1,
+        briefId: "brief-second",
+        summary: "Updated content",
+        briefing: { tldr: "Updated TLDR", promptBlock: "", citations: [] },
+        contentHash: "content-hash-v2",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify({...briefEnvelope2, unread: true}, null, 2), "utf-8");
+      
+      // Second call with new content should re-trigger
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(appendCount, 2, "Changed content should re-trigger delivery once");
+      
+      // Third call with same content should NOT trigger again
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(appendCount, 2, "Same content should not trigger again");
     });
   });
 

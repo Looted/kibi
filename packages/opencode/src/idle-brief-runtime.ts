@@ -33,6 +33,11 @@ export interface CheckResult {
   }>;
 }
 
+export interface IdleBriefStatement {
+  statement: string;
+  citationIds: string[];
+}
+
 export interface IdleBriefingResult {
   briefingState: string;
   tldr: string;
@@ -44,6 +49,9 @@ export interface IdleBriefingResult {
     source?: string;
     textRef?: string;
   }>;
+  constraints?: IdleBriefStatement[];
+  regressionRisks?: IdleBriefStatement[];
+  missingEvidence?: IdleBriefStatement[];
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -133,7 +141,7 @@ const CHECK_PROMPT_FORMAT = {
 
 const BRIEFING_PROMPT_FORMAT = {
   type: "json_schema" as const,
-  schema: { type: "object", properties: { briefingState: { type: "string" }, tldr: { type: "string" }, promptBlock: { type: "string" }, citations: { type: "array" } }, required: ["briefingState"] },
+  schema: { type: "object", properties: { briefingState: { type: "string" }, tldr: { type: "string" }, promptBlock: { type: "string" }, citations: { type: "array" }, constraints: { type: "array" }, regressionRisks: { type: "array" }, missingEvidence: { type: "array" } }, required: ["briefingState"] },
 };
 
 function parseCheckResult(response: unknown): CheckResult {
@@ -191,6 +199,22 @@ async function loadCheckResult(
   }
 }
 
+function parseBriefStatements(value: unknown): IdleBriefStatement[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item: unknown) => {
+      const rec = asRecord(item);
+      if (!rec) return null;
+      return {
+        statement: asString(rec.statement),
+        citationIds: Array.isArray(rec.citationIds)
+          ? rec.citationIds.map((id: unknown) => String(id))
+          : [],
+      };
+    })
+    .filter((s): s is IdleBriefStatement => s !== null);
+}
+
 async function loadBriefingResultForIdle(
   client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
@@ -232,6 +256,9 @@ async function loadBriefingResultForIdle(
           source: asString(c.source),
           textRef: asString(c.textRef),
         })),
+        constraints: parseBriefStatements(record.constraints),
+        regressionRisks: parseBriefStatements(record.regressionRisks),
+        missingEvidence: parseBriefStatements(record.missingEvidence),
       };
     }
   } catch {
@@ -274,14 +301,15 @@ function computeSummary(
 ): string {
   const parts: string[] = [];
 
+  // Display accurate semantics: upsert → "entities changed", not "requirements added"
   if (counts.requirementsAdded > 0) {
-    parts.push(`${counts.requirementsAdded} requirement${counts.requirementsAdded > 1 ? "s" : ""} added`);
+    parts.push(`${counts.requirementsAdded} entit${counts.requirementsAdded > 1 ? "ies" : "y"} changed`);
   }
   if (counts.relationshipsAdded > 0) {
-    parts.push(`${counts.relationshipsAdded} relationship${counts.relationshipsAdded > 1 ? "s" : ""} added`);
+    parts.push(`${counts.relationshipsAdded} relationship${counts.relationshipsAdded > 1 ? "s" : ""} changed`);
   }
   if (counts.entitiesDeleted > 0) {
-    parts.push(`${counts.entitiesDeleted} deleted`);
+    parts.push(`${counts.entitiesDeleted} entit${counts.entitiesDeleted > 1 ? "ies" : "y"} deleted`);
   }
 
   const validationText = violationsCount === 0
@@ -325,6 +353,9 @@ function buildEnvelopeParts(
       tldr: briefingResult.tldr || summary,
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
+      ...(briefingResult.constraints && briefingResult.constraints.length > 0 ? { constraints: briefingResult.constraints } : {}),
+      ...(briefingResult.regressionRisks && briefingResult.regressionRisks.length > 0 ? { regressionRisks: briefingResult.regressionRisks } : {}),
+      ...(briefingResult.missingEvidence && briefingResult.missingEvidence.length > 0 ? { missingEvidence: briefingResult.missingEvidence } : {}),
     },
   };
 }

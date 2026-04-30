@@ -1,15 +1,19 @@
-import * as vscode from "vscode";
-import * as path from "node:path";
 import * as fs from "node:fs";
+import * as path from "node:path";
+import * as vscode from "vscode";
 import type { BriefModel } from "./briefs";
 
-export class BriefDocumentProvider implements vscode.TextDocumentContentProvider { // implements REQ-vscode-kibi-briefing-v2
+export class BriefDocumentProvider
+  implements vscode.TextDocumentContentProvider
+{
+  // implements REQ-vscode-kibi-briefing-v2
   static scheme = "kibi-brief";
 
   private _onDidChange = new vscode.EventEmitter<vscode.Uri>();
   onDidChange = this._onDidChange.event;
 
-  provideTextDocumentContent(uri: vscode.Uri): string { // implements REQ-vscode-kibi-briefing-v2
+  provideTextDocumentContent(uri: vscode.Uri): string {
+    // implements REQ-vscode-kibi-briefing-v2
     const workspaceRoot = decodeURIComponent(uri.authority);
     const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
 
@@ -18,7 +22,8 @@ export class BriefDocumentProvider implements vscode.TextDocumentContentProvider
     }
 
     const briefId = path.basename(uri.path, ".md");
-    const files = fs.readdirSync(briefsDir)
+    const files = fs
+      .readdirSync(briefsDir)
       .filter((f) => f.endsWith("_brief.json"))
       .map((f) => {
         const fullPath = path.join(briefsDir, f);
@@ -48,7 +53,9 @@ export class BriefDocumentProvider implements vscode.TextDocumentContentProvider
   private renderBriefAsMarkdown(brief: BriefModel): string {
     const lines: string[] = [];
 
-    lines.push(`# Kibi Brief: ${brief.type === "warning" ? "⚠️ Warning" : "✅ Success"}`);
+    lines.push(
+      `# Kibi Brief: ${brief.type === "warning" ? "⚠️ Warning" : "✅ Success"}`,
+    );
     lines.push("");
     lines.push(`**Branch:** ${brief.branch}`);
     lines.push(`**Created:** ${brief.createdAt}`);
@@ -56,66 +63,122 @@ export class BriefDocumentProvider implements vscode.TextDocumentContentProvider
     lines.push(`**Unread:** ${brief.unread ? "Yes" : "No"}`);
     lines.push("");
 
-    // Briefing section: render promptBlock when present, fallback otherwise
-    if (brief.briefing.promptBlock) {
-      lines.push("## Briefing");
+    // 1. Overview
+    lines.push("## Overview");
+    if (brief.briefing.tldr) {
+      lines.push(brief.briefing.tldr);
+    } else if (brief.briefing.promptBlock) {
       lines.push(brief.briefing.promptBlock);
+    } else {
+      lines.push("*No overview available.*");
+    }
+    lines.push("");
+
+    // 2. Session Summary
+    lines.push("## Session Summary");
+    lines.push(brief.summary);
+    lines.push("");
+
+    // 3. What Changed
+    lines.push("## What Changed");
+    lines.push(
+      `- ${brief.counts.requirementsAdded} entit${brief.counts.requirementsAdded === 1 ? "y" : "ies"} changed`,
+    );
+    lines.push(
+      `- ${brief.counts.relationshipsAdded} relationship${brief.counts.relationshipsAdded === 1 ? "" : "s"} changed`,
+    );
+    lines.push(
+      `- ${brief.counts.entitiesDeleted} entit${brief.counts.entitiesDeleted === 1 ? "y" : "ies"} deleted`,
+    );
+    lines.push("");
+
+    // 4. Relevant KB Context
+    lines.push("## Relevant KB Context");
+    const hasContext =
+      brief.briefing.citations.length > 0 ||
+      (brief.briefing.constraints && brief.briefing.constraints.length > 0) ||
+      (brief.briefing.regressionRisks &&
+        brief.briefing.regressionRisks.length > 0);
+    if (!hasContext) {
+      lines.push("*No relevant context available.*");
       lines.push("");
     } else {
-      lines.push("## Briefing");
-      lines.push("*No full briefing body available. Showing summary from TL;DR and available data.*");
-      lines.push("");
-      if (brief.briefing.tldr) {
-        lines.push(`**TL;DR:** ${brief.briefing.tldr}`);
-        lines.push("");
-      }
       if (brief.briefing.citations.length > 0) {
-        lines.push("**Cited entities:** " + brief.briefing.citations.map((c) => c.id).join(", "));
+        lines.push("### Citations");
+        for (const c of brief.briefing.citations) {
+          lines.push(
+            `- **${c.id}**${c.title ? `: ${c.title}` : ""}${c.source ? ` (${c.source})` : ""}`,
+          );
+        }
         lines.push("");
       }
-      if (brief.validation.violations.length > 0) {
-        lines.push(`**Validation issues:** ${brief.validation.count} violation(s) found.`);
+      if (brief.briefing.constraints && brief.briefing.constraints.length > 0) {
+        lines.push("### Constraints");
+        for (const c of brief.briefing.constraints) {
+          lines.push(`- ${c.statement} (${c.citationIds.join(", ")})`);
+        }
+        lines.push("");
+      }
+      if (
+        brief.briefing.regressionRisks &&
+        brief.briefing.regressionRisks.length > 0
+      ) {
+        lines.push("### Regression Risks");
+        for (const r of brief.briefing.regressionRisks) {
+          lines.push(`- ${r.statement} (${r.citationIds.join(", ")})`);
+        }
         lines.push("");
       }
     }
 
-    lines.push("## Summary");
-    lines.push(brief.summary);
-    lines.push("");
+    // 5. Validation Status
+    lines.push("## Validation Status");
+    const hasViolations = brief.validation.violations.length > 0;
+    const hasMissingEvidence =
+      brief.briefing.missingEvidence &&
+      brief.briefing.missingEvidence.length > 0;
 
-    lines.push("## Changes");
-    lines.push(`- Requirements added: ${brief.counts.requirementsAdded}`);
-    lines.push(`- Relationships added: ${brief.counts.relationshipsAdded}`);
-    lines.push(`- Entities deleted: ${brief.counts.entitiesDeleted}`);
-    lines.push("");
-
-    if (brief.validation.violations.length > 0) {
-      lines.push("## Validation Issues");
-      lines.push(`**Total violations:** ${brief.validation.count}`);
+    if (hasViolations) {
+      lines.push(
+        `**Validation issues:** ${brief.validation.count} violation(s) found.`,
+      );
       lines.push("");
       for (const v of brief.validation.violations) {
-        lines.push(`### ${v.rule}`);
-        lines.push(`- **Entity:** ${v.entityId}`);
-        lines.push(`- **Description:** ${v.description}`);
-        if (v.suggestion) lines.push(`- **Suggestion:** ${v.suggestion}`);
-        lines.push("");
+        lines.push(
+          `- **${v.rule}** on ${v.entityId}: ${v.description}${v.suggestion ? ` (${v.suggestion})` : ""}`,
+        );
       }
+      lines.push("");
     } else {
-      lines.push("## Validation");
       lines.push("✅ No validation issues found.");
       lines.push("");
     }
 
-    if (brief.briefing.citations.length > 0) {
-      lines.push("## Citations");
-      for (const c of brief.briefing.citations) {
-        lines.push(`- **${c.id}**${c.title ? `: ${c.title}` : ""}${c.source ? ` (${c.source})` : ""}`);
+    if (hasMissingEvidence) {
+      lines.push("### Missing Evidence");
+      for (const m of brief.briefing.missingEvidence ?? []) {
+        lines.push(`- ${m.statement} (${m.citationIds.join(", ")})`);
       }
       lines.push("");
     }
 
+    // 6. Next Step
+    lines.push("## Next Step");
+    if (hasViolations) {
+      lines.push("Address validation issues first");
+    } else if (hasMissingEvidence) {
+      lines.push("Review missing evidence");
+    } else if (brief.briefing.citations.length > 0) {
+      lines.push("Open cited entities for details");
+    } else {
+      lines.push("Use `/brief-kibi` for a fresh briefing");
+    }
+    lines.push("");
+
     lines.push("---");
-    lines.push(`*Brief ID: ${brief.briefId} | Content Hash: ${brief.contentHash}*`);
+    lines.push(
+      `*Brief ID: ${brief.briefId} | Content Hash: ${brief.contentHash}*`,
+    );
 
     return lines.join("\n");
   }

@@ -11,10 +11,10 @@ import * as os from "node:os";
 import * as path from "node:path";
 import type { Memento } from "vscode";
 import {
+  markBriefRead,
   parseLatestBrief,
   readBriefId,
   selectLatestBrief,
-  markBriefRead,
 } from "../src/briefs";
 
 /**
@@ -40,13 +40,15 @@ class FakeMemento implements Memento {
 /**
  * Creates a minimal valid brief JSON object
  */
-function createBrief(overrides: Partial<{
-  briefId: string;
-  branch: string;
-  unread: boolean;
-  sessionId: string;
-  schemaVersion: string;
-}> = {}): object {
+function createBrief(
+  overrides: Partial<{
+    briefId: string;
+    branch: string;
+    unread: boolean;
+    sessionId: string;
+    schemaVersion: string;
+  }> = {},
+): object {
   return {
     schemaVersion: "1.0",
     briefId: "brief-123",
@@ -265,7 +267,9 @@ describe("markBriefRead", () => {
 
     markBriefRead(memento, tmpDir, "develop", "brief-789", briefPath);
 
-    const recorded = memento.get<string>(`kibi.briefs.seen::${tmpDir}::develop`);
+    const recorded = memento.get<string>(
+      `kibi.briefs.seen::${tmpDir}::develop`,
+    );
     expect(recorded).toBe("brief-789");
   });
 
@@ -277,7 +281,9 @@ describe("markBriefRead", () => {
     const briefPath = path.join(briefsDir, "brief-1_brief.json");
     fs.writeFileSync(
       briefPath,
-      JSON.stringify(createBrief({ briefId: "brief-atom", branch: "develop", unread: true })),
+      JSON.stringify(
+        createBrief({ briefId: "brief-atom", branch: "develop", unread: true }),
+      ),
     );
 
     markBriefRead(memento, tmpDir, "develop", "brief-atom", briefPath);
@@ -315,7 +321,9 @@ describe("markBriefRead", () => {
     // This should not throw - workspaceState still records the read
     markBriefRead(memento, tmpDir, "develop", "brief-fail", nonexistentPath);
 
-    const recorded = memento.get<string>(`kibi.briefs.seen::${tmpDir}::develop`);
+    const recorded = memento.get<string>(
+      `kibi.briefs.seen::${tmpDir}::develop`,
+    );
     expect(recorded).toBe("brief-fail");
   });
 });

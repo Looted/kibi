@@ -277,58 +277,40 @@ describe("session.idle hook", () => {
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
     assert.ok(hooks.event, "event hook should exist");
 
-  const client = {
-    tui: {
-      toast: async (payload?: { variant?: string; title?: string; message?: string; duration?: number; }) => {},
-    },
-    app: {
-      log: async () => {},
-    },
-  };
-
-    await hooks.event({
+    await hooks.event!({
       event: { type: "session.idle" },
-    } as never, { client: client as never, worktree: dir, directory: dir });
+    } as never);
   });
 
   test("second idle event while in-flight sets trailing rerun flag", async () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
-  const client = {
-    tui: {
-      toast: async (payload?: { variant?: string; title?: string; message?: string; duration?: number; }) => {},
-    },
-    app: {
-      log: async () => {},
-    },
-  };
-
-    await hooks.event({
+    await hooks.event!({
       event: { type: "session.idle" },
-    } as never, { client: client as never, worktree: dir, directory: dir });
+    } as never);
 
-    await hooks.event({
+    await hooks.event!({
       event: { type: "session.idle" },
-    } as never, { client: client as never, worktree: dir, directory: dir });
+    } as never);
   });
 
   test("idle event with no client returns early", async () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
-    await hooks.event({
+    await hooks.event!({
       event: { type: "session.idle" },
-    } as never, { worktree: dir, directory: dir, client: undefined });
+    } as never);
   });
 
   test("file.edited still works alongside session.idle", async () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
-    await hooks.event({
+    await hooks.event!({
       event: { type: "file.edited", properties: { file: "test.ts" } },
-    } as never, { worktree: dir, directory: dir });
+    } as never);
   });
 });
 });

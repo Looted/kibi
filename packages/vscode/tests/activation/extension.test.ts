@@ -23,7 +23,10 @@ function getWorkspaceMock() {
   return getVscodeMockModule().workspace as {
     workspaceFolders: Array<{ uri: WorkspaceFolderUri }> | undefined;
     createTreeViewCalls: Array<{ id: string; options: unknown }>;
-    registerTextDocumentContentProvider: (scheme: string, provider: unknown) => unknown;
+    registerTextDocumentContentProvider: (
+      scheme: string,
+      provider: unknown,
+    ) => unknown;
     emitWorkspaceFoldersChange: (value: unknown) => void;
   };
 }
@@ -51,7 +54,11 @@ function setupMinimalWorkspace(tmpDir: string) {
   fs.mkdirSync(kbConfigDir, { recursive: true });
   fs.writeFileSync(
     path.join(kbConfigDir, "config.json"),
-    JSON.stringify({ paths: { symbols: "documentation/symbols.yaml" } }, null, 2)
+    JSON.stringify(
+      { paths: { symbols: "documentation/symbols.yaml" } },
+      null,
+      2,
+    ),
   );
   const branchDir = path.join(tmpDir, ".kb", "branches", "develop");
   fs.mkdirSync(branchDir, { recursive: true });
@@ -60,12 +67,12 @@ function setupMinimalWorkspace(tmpDir: string) {
     `<?xml version="1.0" encoding="UTF-8"?>
 <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns:kb="http://kibi.dev/kb/">
-</rdf:RDF>`
+</rdf:RDF>`,
   );
   fs.mkdirSync(path.join(tmpDir, "documentation"), { recursive: true });
   fs.writeFileSync(
     path.join(tmpDir, "documentation", "symbols.yaml"),
-    "symbols: []\n"
+    "symbols: []\n",
   );
 
   // Stub git so getCurrentBranch returns "develop"
@@ -82,8 +89,11 @@ function setupMinimalWorkspace(tmpDir: string) {
 // Helper to import extension module with fresh vscode mock
 async function importExtensionModule() {
   (globalThis as { vscode?: unknown }).vscode = getVscodeMockModule();
-  (getVscodeMockModule().workspace as { registerTextDocumentContentProvider?: unknown }).registerTextDocumentContentProvider =
-    mock(() => ({ dispose() {} }));
+  (
+    getVscodeMockModule().workspace as {
+      registerTextDocumentContentProvider?: unknown;
+    }
+  ).registerTextDocumentContentProvider = mock(() => ({ dispose() {} }));
   mock.module("vscode", () => getVscodeMockModule());
   const module = await import(
     `../../src/extension?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -128,7 +138,10 @@ test("activate defers workspace-dependent features when workspaceFolders is unde
 
   // Should have registered a workspace folder change listener
   const workspace = getWorkspaceMock();
-  expect(((workspace as unknown) as { workspaceFolderChangeListeners: unknown[] }).workspaceFolderChangeListeners).toHaveLength(1);
+  expect(
+    (workspace as unknown as { workspaceFolderChangeListeners: unknown[] })
+      .workspaceFolderChangeListeners,
+  ).toHaveLength(1);
 
   // Should NOT have created tree view or registered commands yet (deferred)
   const window = getWindowMock();
@@ -136,7 +149,7 @@ test("activate defers workspace-dependent features when workspaceFolders is unde
 
   const commands = getCommandsMock();
   const refreshCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.refreshTree"
+    (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(0);
 });
@@ -160,7 +173,10 @@ test("activate initializes features exactly once when workspace becomes availabl
 
   // Should have registered workspace folder change listener
   const workspace = getWorkspaceMock();
-  expect(((workspace as unknown) as { workspaceFolderChangeListeners: unknown[] }).workspaceFolderChangeListeners).toHaveLength(1);
+  expect(
+    (workspace as unknown as { workspaceFolderChangeListeners: unknown[] })
+      .workspaceFolderChangeListeners,
+  ).toHaveLength(1);
 
   // Should NOT have initialized yet
   let window = getWindowMock();
@@ -168,7 +184,7 @@ test("activate initializes features exactly once when workspace becomes availabl
 
   let commands = getCommandsMock();
   let refreshCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.refreshTree"
+    (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(0);
 
@@ -190,7 +206,7 @@ test("activate initializes features exactly once when workspace becomes availabl
 
   commands = getCommandsMock();
   refreshCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.refreshTree"
+    (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(1);
 
@@ -206,7 +222,7 @@ test("activate initializes features exactly once when workspace becomes availabl
 
   commands = getCommandsMock();
   refreshCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.refreshTree"
+    (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(1);
 });
@@ -247,11 +263,14 @@ test("activate logs deferral message when workspace is not available", async () 
     activate(context);
 
     // Should have logged a deferral message
-    expect(appendLineCalls.some((msg) =>
-      msg.toLowerCase().includes("deferred") ||
-      msg.toLowerCase().includes("waiting") ||
-      msg.toLowerCase().includes("workspace")
-    )).toBe(true);
+    expect(
+      appendLineCalls.some(
+        (msg) =>
+          msg.toLowerCase().includes("deferred") ||
+          msg.toLowerCase().includes("waiting") ||
+          msg.toLowerCase().includes("workspace"),
+      ),
+    ).toBe(true);
   } finally {
     // Restore original mock
     windowMock.createOutputChannel = originalCreateOutputChannel;
@@ -285,28 +304,28 @@ test("activate happy path: registers everything once when workspace is immediate
   // Should have registered kibi.refreshTree command
   const commands = getCommandsMock();
   const refreshCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.refreshTree"
+    (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(1);
 
   // Should have registered navigation commands
   const openEntityCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.openEntity"
+    (c) => c.commandId === "kibi.openEntity",
   );
   expect(openEntityCommands).toHaveLength(1);
 
   const openEntityByIdCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.openEntityById"
+    (c) => c.commandId === "kibi.openEntityById",
   );
   expect(openEntityByIdCommands).toHaveLength(1);
 
   const openTreeItemSourceCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.openTreeItemSource"
+    (c) => c.commandId === "kibi.openTreeItemSource",
   );
   expect(openTreeItemSourceCommands).toHaveLength(1);
 
   const focusKnowledgeBaseCommands = commands.registerCommandCalls.filter(
-    (c) => c.commandId === "kibi.focusKnowledgeBase"
+    (c) => c.commandId === "kibi.focusKnowledgeBase",
   );
   expect(focusKnowledgeBaseCommands).toHaveLength(1);
 });

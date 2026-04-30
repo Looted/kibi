@@ -106,7 +106,7 @@ describe("idle-brief-runtime", () => {
       expect(result.briefPath).not.toBeNull();
       expect(result.envelope).not.toBeNull();
       expect(result.envelope?.type).toBe("success");
-      expect(result.envelope?.summary).toContain("3 requirements added");
+      expect(result.envelope?.summary).toContain("3 entities changed");
       expect(result.envelope?.summary).toContain("clean");
     });
 
@@ -231,6 +231,125 @@ describe("idle-brief-runtime", () => {
 
       expect(result.envelope?.contentHash).toBeDefined();
       expect(result.envelope?.contentHash.length).toBe(64); // SHA-256 hex
+    });
+
+    it("uses accurate display wording: entities changed, relationships changed, entities deleted", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      // Mixed delta: upsert + upsert_rel + delete
+      const auditDelta = createAuditDelta([
+        { timestamp: "2024-01-01T00:00:00Z", operation: "upsert", entityId: "REQ-001" },
+        { timestamp: "2024-01-01T00:00:01Z", operation: "upsert_rel", entityId: "REQ-001->SCEN-001" },
+        { timestamp: "2024-01-01T00:00:02Z", operation: "upsert", entityId: "REQ-002" },
+        { timestamp: "2024-01-01T00:00:03Z", operation: "delete", entityId: "REQ-003" },
+      ]);
+
+      const checkResult: CheckResult = { violations: [], count: 0, diagnostics: [] };
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "ready",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+
+      expect(result.success).toBe(true);
+      expect(result.envelope).not.toBeNull();
+      // Display text must say "entities changed" not "requirements added"
+      expect(result.envelope?.summary).toContain("2 entities changed");
+      expect(result.envelope?.summary).toContain("1 relationship changed");
+      expect(result.envelope?.summary).toContain("1 entity deleted");
+      // Must NOT contain old misleading wording
+      expect(result.envelope?.summary).not.toContain("requirement");
+      expect(result.envelope?.summary).not.toContain("added");
+      // Envelope field names stay backward compatible
+      expect(result.envelope?.counts.requirementsAdded).toBe(2);
+      expect(result.envelope?.counts.relationshipsAdded).toBe(1);
+      expect(result.envelope?.counts.entitiesDeleted).toBe(1);
+    });
+
+    it("relationship-only delta shows only relationships in summary", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        { timestamp: "2024-01-01T00:00:00Z", operation: "upsert_rel", entityId: "REQ-001->SCEN-001" },
+        { timestamp: "2024-01-01T00:00:01Z", operation: "upsert_rel", entityId: "REQ-001->TEST-001" },
+      ]);
+
+      const checkResult: CheckResult = { violations: [], count: 0, diagnostics: [] };
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "ready",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+
+      expect(result.success).toBe(true);
+      expect(result.envelope?.summary).toContain("2 relationships changed");
+      expect(result.envelope?.summary).not.toContain("entities changed");
+      // Envelope counts reflect only relationships
+      expect(result.envelope?.counts.requirementsAdded).toBe(0);
+      expect(result.envelope?.counts.relationshipsAdded).toBe(2);
+    });
+
+    it("singular forms for single items", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        { timestamp: "2024-01-01T00:00:00Z", operation: "upsert", entityId: "REQ-001" },
+      ]);
+
+      const checkResult: CheckResult = { violations: [], count: 0, diagnostics: [] };
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "ready",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+
+      expect(result.envelope?.summary).toContain("1 entity changed");
+      // Must NOT be plural
+      expect(result.envelope?.summary).not.toContain("1 entities changed");
+    });
+
+    it("persists constraints, regressionRisks, and missingEvidence through the envelope", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        { timestamp: "2024-01-01T00:00:00Z", operation: "upsert", entityId: "REQ-001" },
+      ]);
+
+      const checkResult: CheckResult = { violations: [], count: 0, diagnostics: [] };
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "ready",
+        tldr: "Brief with constraints",
+        promptBlock: "- REQ-001: Respect constraints.",
+        citations: [{ id: "REQ-001", type: "req", title: "Test" }],
+        constraints: [
+          { statement: "Keep tool read-only.", citationIds: ["ADR-001"] },
+        ],
+        regressionRisks: [
+          { statement: "Preserve ordering.", citationIds: ["TEST-001"] },
+        ],
+        missingEvidence: [],
+      };
+
+      const client = createMockClient(checkResult, briefingResult);
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+
+      expect(result.success).toBe(true);
+      expect(result.envelope?.briefing.constraints).toEqual([
+        { statement: "Keep tool read-only.", citationIds: ["ADR-001"] },
+      ]);
+      expect(result.envelope?.briefing.regressionRisks).toEqual([
+        { statement: "Preserve ordering.", citationIds: ["TEST-001"] },
+      ]);
+      // missingEvidence is empty so should be omitted (spread only if non-empty)
+      expect(result.envelope?.briefing.missingEvidence).toBeUndefined();
     });
   });
 });

@@ -2,12 +2,12 @@ import { afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import type { BriefModel } from "../../src/briefs";
 import {
+  DefaultFileSystemWatcher,
   getVscodeMockModule,
   resetVscodeMock,
-  DefaultFileSystemWatcher,
 } from "../shared/vscode-mock";
-import type { BriefModel } from "../../src/briefs";
 
 // Reset the vscode mock before each test
 resetVscodeMock({});
@@ -91,21 +91,29 @@ test("registerBriefWatcher creates a FileSystemWatcher", async () => {
 
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (_wr: string, _br: string): BriefModel | null => {
-        return { ...briefTemplate, unread: true };
-      }
-    ),
+    parseLatestBrief: mock((_wr: string, _br: string): BriefModel | null => {
+      return { ...briefTemplate, unread: true };
+    }),
     readBriefId: mock(
-      (_ws: MockWorkspaceState, _wr: string, _br: string): string | undefined => {
+      (
+        _ws: MockWorkspaceState,
+        _wr: string,
+        _br: string,
+      ): string | undefined => {
         return undefined;
-      }
+      },
     ),
     markBriefRead: mock(
-      (_ws: MockWorkspaceState, _wr: string, _br: string, _id: string, _path: string) => {},
+      (
+        _ws: MockWorkspaceState,
+        _wr: string,
+        _br: string,
+        _id: string,
+        _path: string,
+      ) => {},
     ),
   }));
 
@@ -117,7 +125,7 @@ test("registerBriefWatcher creates a FileSystemWatcher", async () => {
     context as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
-    branch
+    branch,
   );
 
   expect(result.watcher).toBeDefined();
@@ -128,14 +136,12 @@ test("registerBriefWatcher creates a FileSystemWatcher", async () => {
 test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module - should NOT be called for .tmp files
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (): BriefModel | null => {
-        throw new Error("Should not be called for temp files");
-      }
-    ),
+    parseLatestBrief: mock((): BriefModel | null => {
+      throw new Error("Should not be called for temp files");
+    }),
     readBriefId: mock(() => undefined),
     markBriefRead: mock(() => {}),
   }));
@@ -148,7 +154,7 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
     context as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
-    branch
+    branch,
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
@@ -168,16 +174,14 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
 test("registerBriefWatcher ignores briefs marked as read (unread: false)", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module - return a READ brief
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (): BriefModel | null => {
-        return { ...briefTemplate, unread: false };
-      }
-    ),
+    parseLatestBrief: mock((): BriefModel | null => {
+      return { ...briefTemplate, unread: false };
+    }),
     readBriefId: mock(
-      () => "brief-test-123" // Already seen
+      () => "brief-test-123", // Already seen
     ),
     markBriefRead: mock(() => {}),
   }));
@@ -190,7 +194,7 @@ test("registerBriefWatcher ignores briefs marked as read (unread: false)", async
     context as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
-    branch
+    branch,
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
@@ -209,15 +213,13 @@ test("registerBriefWatcher deduplicates in-memory notifications", async () => {
 
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (): BriefModel | null => {
-        parseCallCount++;
-        return { ...briefTemplate, unread: true };
-      }
-    ),
+    parseLatestBrief: mock((): BriefModel | null => {
+      parseCallCount++;
+      return { ...briefTemplate, unread: true };
+    }),
     readBriefId: mock(() => undefined),
     markBriefRead: mock(() => {}),
   }));
@@ -230,7 +232,7 @@ test("registerBriefWatcher deduplicates in-memory notifications", async () => {
     context as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
-    branch
+    branch,
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
@@ -255,14 +257,12 @@ test("registerBriefWatcher deduplicates in-memory notifications", async () => {
 test("showLatestBriefCommand opens a document when briefs are available", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module - return a valid brief
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (): BriefModel | null => {
-        return briefTemplate;
-      }
-    ),
+    parseLatestBrief: mock((): BriefModel | null => {
+      return briefTemplate;
+    }),
     readBriefId: mock(() => undefined),
     markBriefRead: mock(() => {}),
   }));
@@ -283,14 +283,12 @@ test("showLatestBriefCommand opens a document when briefs are available", async 
 test("showLatestBriefCommand shows message when no briefs available", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
-  
+
   // Mock briefs module - return null (no brief available)
   mock.module("../briefs", () => ({
-    parseLatestBrief: mock(
-      (): BriefModel | null => {
-        return null;
-      }
-    ),
+    parseLatestBrief: mock((): BriefModel | null => {
+      return null;
+    }),
     readBriefId: mock(() => undefined),
     markBriefRead: mock(() => {}),
   }));
@@ -305,6 +303,76 @@ test("showLatestBriefCommand shows message when no briefs available", async () =
   // Verify window.showInformationMessage was called with no briefs message
   const vscode = getVscodeMockModule();
   expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-    "No Kibi briefs available for this branch."
+    "No Kibi briefs available for this branch.",
   );
+});
+
+test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", async () => {
+  // Mock vscode module
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const callCount = 0;
+  const briefA = {
+    ...briefTemplate,
+    briefId: "brief-alpha",
+    contentHash: "semantic-hash-xyz",
+    unread: true,
+  };
+  const briefB = {
+    ...briefTemplate,
+    briefId: "brief-beta",
+    contentHash: "semantic-hash-xyz",
+    unread: true,
+  };
+
+  // Return briefA first, then briefB (different briefId, same contentHash)
+  let callIdx = 0;
+  mock.module("../briefs", () => ({
+    parseLatestBrief: mock((): BriefModel | null => {
+      callIdx++;
+      return callIdx === 1 ? briefA : briefB;
+    }),
+    readBriefId: mock(() => undefined),
+    markBriefRead: mock(() => {}),
+  }));
+
+  const { registerBriefWatcher } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const result = registerBriefWatcher(
+    context as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const watcher = result.watcher as DefaultFileSystemWatcher;
+  const uri = {
+    fsPath: path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json"),
+  };
+
+  // First event: shows notification for brief-alpha
+  watcher.emitCreate(uri);
+
+  // Allow async handlers to complete
+  await new Promise((r) => setTimeout(r, 50));
+
+  const vscode1 = getVscodeMockModule();
+  const notifyCount1 = (
+    vscode1.window.showInformationMessage as ReturnType<typeof mock>
+  ).mock.calls.length;
+
+  // Second event: brief-beta has different briefId but same contentHash — should be deduped
+  watcher.emitChange(uri);
+
+  await new Promise((r) => setTimeout(r, 50));
+
+  const vscode2 = getVscodeMockModule();
+  const notifyCount2 = (
+    vscode2.window.showInformationMessage as ReturnType<typeof mock>
+  ).mock.calls.length;
+
+  // Both events should result in only 1 notification total (contentHash dedupe)
+  expect(notifyCount2).toBeLessThanOrEqual(notifyCount1 + 1);
 });

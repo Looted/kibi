@@ -58,6 +58,18 @@ export interface BriefModel {
       source?: string;
       textRef?: string;
     }>;
+    constraints?: Array<{
+      statement: string;
+      citationIds: string[];
+    }>;
+    regressionRisks?: Array<{
+      statement: string;
+      citationIds: string[];
+    }>;
+    missingEvidence?: Array<{
+      statement: string;
+      citationIds: string[];
+    }>;
   };
   contentHash: string;
 }
