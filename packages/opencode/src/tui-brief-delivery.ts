@@ -152,7 +152,9 @@ export async function deliverBriefTui(
       return { appended: false };
     }
   } else {
-    logger.info("TUI appendPrompt API unavailable, brief not rendered to buffer");
+    logger.info(
+      "TUI appendPrompt API unavailable, brief not rendered to buffer",
+    );
     return { appended: false };
   }
 }

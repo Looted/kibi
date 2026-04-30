@@ -1,9 +1,10 @@
 import * as path from "node:path";
+import { loadBriefConfig } from "kibi-cli/brief-config";
 import { computeBriefIntent } from "./brief-intent.js";
 import {
-  fetchBriefingResult,
   type BriefingRuntimeResult,
   type BriefingWorkspaceCtx,
+  fetchBriefingResult,
 } from "./briefing-runtime.js";
 import {
   type CommentAnalysisResult,
@@ -11,41 +12,39 @@ import {
 } from "./comment-analysis.js";
 import * as fileFilter from "./file-filter.js";
 import type { CacheKey } from "./guidance-cache.js";
-import * as logger from "./logger.js";
-import { type PathKind, analyzePath } from "./path-kind.js";
-import { SENTINEL, buildPrompt } from "./prompt.js";
-import { isMustPriorityRequirement } from "./requirement-doc.js";
-import { type RiskClass, classifyRisk } from "./risk-classifier.js";
-import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
-import { notifyStartup, type StartupNotifierClient } from "./startup-notifier.js";
-import { runPluginStartup } from "./plugin-startup.js";
-import { sendToast, type ToastCapableClient as SendToastClient } from "./toast.js";
-import {
-  createSessionEditState,
-  type SessionEditEntry,
-} from "./session-edit-state.js";
 import {
   computeAuditDelta,
   getLatestAuditCursor,
   guardBranchChanged,
 } from "./idle-brief-audit.js";
-import { generateIdleBrief } from "./idle-brief-runtime.js";
 import { markBriefRead, selectLatestUnreadBrief } from "./idle-brief-reader.js";
+import { generateIdleBrief } from "./idle-brief-runtime.js";
+import * as logger from "./logger.js";
+import { type PathKind, analyzePath } from "./path-kind.js";
+import { runPluginStartup } from "./plugin-startup.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
-import { loadBriefConfig } from "kibi-cli/brief-config";
+import { SENTINEL, buildPrompt } from "./prompt.js";
+import { isMustPriorityRequirement } from "./requirement-doc.js";
+import { type RiskClass, classifyRisk } from "./risk-classifier.js";
 import {
-  deliverBriefTui,
+  type SessionEditEntry,
+  createSessionEditState,
+} from "./session-edit-state.js";
+import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
+import {
+  type StartupNotifierClient,
+  notifyStartup,
+} from "./startup-notifier.js";
+import {
+  type ToastCapableClient as SendToastClient,
+  sendToast,
+} from "./toast.js";
+import {
   type ToastCapableClient as BriefToastClient,
+  deliverBriefTui,
 } from "./tui-brief-delivery.js";
 
 type ToastCapableClient = SendToastClient & BriefToastClient;
-
-
-
-
-
-
-
 
 interface RecentEdit {
   path: string;
@@ -54,8 +53,6 @@ interface RecentEdit {
 }
 
 import * as fs from "node:fs";
-
-
 
 function deriveFileBucket(kind: PathKind): string {
   return kind;
@@ -66,8 +63,6 @@ export interface PluginInput {
   directory: string;
   sessionId?: string;
   serverUrl?: unknown;
-
-
 
   workspace?: string;
   project?: unknown;
@@ -264,140 +259,148 @@ const kibiOpencodePlugin: Plugin = async (
   const idleBriefDeliveredHashes = new Set<string>();
   const replayedBriefIds = new Set<string>();
 
-
-function normalizeSessionPath(filePath: string): string {
-  if (path.isAbsolute(filePath)) {
-    const relativePath = path.relative(input.worktree, filePath);
-    return relativePath.startsWith("..") ? filePath : relativePath;
-  }
-  return filePath;
-}
-
-function resolveWorktreePath(filePath: string): string {
-  return input.worktree && !path.isAbsolute(filePath)
-    ? path.join(input.worktree, filePath)
-    : filePath;
-}
-
-function getTransformFocusFilePath(transformInput: unknown): string | null {
-  if (!transformInput || typeof transformInput !== "object") {
-    return null;
-  }
-  const inputRecord = transformInput as SystemTransformInput;
-  const directPath =
-    inputRecord.focusFilePath ??
-    inputRecord.filePath ??
-    inputRecord.path ??
-    inputRecord.file ??
-    inputRecord.focusEdit?.path ??
-    inputRecord.focusEdit?.filePath;
-  if (typeof directPath !== "string" || directPath.length === 0) {
-    return null;
-  }
-  return normalizeSessionPath(directPath);
-}
-
-function readFileContent(filePath: string): string {
-  try {
-    return fs.readFileSync(resolveWorktreePath(filePath), "utf-8");
-  } catch {
-    return "";
-  }
-}
-
-function updateRecentEditsFromSession(sessionEdits: SessionEditEntry[]): RecentEdit[] {
-  recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((entry) => ({
-    path: entry.filePath,
-    kind: pathKindCache.get(entry.filePath) ?? "unknown",
-    timestamp: entry.lastReconciledAt,
-  }));
-  return recentEdits;
-}
-
-function deriveRiskContext(filePath: string): {
-  effectiveRiskClass: RiskClass;
-  pathAnalysis: ReturnType<typeof analyzePath>;
-  hasMustPriority: boolean;
-  precomputedSuggestion: CommentAnalysisResult | null;
-} {
-  const normalizedFilePath = normalizeSessionPath(filePath);
-  const pathAnalysis = analyzePath(normalizedFilePath, input.worktree);
-  pathKindCache.set(normalizedFilePath, pathAnalysis.kind);
-  const fileContent = readFileContent(normalizedFilePath);
-  const hasMustPriority =
-    pathAnalysis.kind === "requirement"
-      ? isMustPriorityRequirement(normalizedFilePath, input.worktree)
-      : false;
-  let precomputedSuggestion: CommentAnalysisResult | null = null;
-  if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
-    precomputedSuggestion = analyzeCodeFile(resolveWorktreePath(normalizedFilePath), {
-      minLines: cfg.guidance.commentDetection.minLines,
-    });
-  }
-  const { riskClass } = classifyRisk({
-    pathKind: pathAnalysis.kind,
-    isUnderKb: pathAnalysis.isUnderKb,
-    hasMustPriority,
-    hasDurableComment: !!precomputedSuggestion,
-    fileContent,
-  });
-  const effectiveRiskClass: RiskClass =
-    riskClass === "safe_docs_only" && precomputedSuggestion
-      ? "traceability_candidate"
-      : riskClass;
-  recentCommentSuggestion = pathAnalysis.kind === "code" ? precomputedSuggestion : null;
-  lastRiskClass = effectiveRiskClass;
-  lastRiskFilePath = normalizedFilePath;
-  return {
-    effectiveRiskClass,
-    pathAnalysis,
-    hasMustPriority,
-    precomputedSuggestion,
-  };
-}
-
-function buildBriefingWorkspaceContext(): BriefingWorkspaceCtx {
-  return {
-    workspaceRoot: input.worktree,
-    branch: currentBranch,
-    directory: input.directory,
-    ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
-  };
-}
-
-function queueBriefingFetch(
-  intentResult: ReturnType<typeof computeBriefIntent>,
-  options: { skipIfCachedResultExists?: boolean } = {},
-): void {
-  if (
-    !intentResult.eligible ||
-    !input.client ||
-    getMaintenanceDegraded() ||
-    (posture.state !== "root_active" &&
-      posture.state !== "hybrid_root_plus_vendored")
-  ) {
-    return;
-  }
-  if (
-    options.skipIfCachedResultExists === true &&
-    autoBriefResults.has(intentResult.fingerprint)
-  ) {
-    return;
-  }
-  const client = input.client;
-  const fingerprint = intentResult.fingerprint;
-  const workspaceCtx = buildBriefingWorkspaceContext();
-  void fetchBriefingResult(client, workspaceCtx, intentResult).then((result) => {
-    autoBriefResults.set(fingerprint, result);
-    if (!toastedFingerprints.has(fingerprint)) {
-      toastedFingerprints.add(fingerprint);
-      void sendToast(makeToastClient(client), { message: result.toastMessage });
+  function normalizeSessionPath(filePath: string): string {
+    if (path.isAbsolute(filePath)) {
+      const relativePath = path.relative(input.worktree, filePath);
+      return relativePath.startsWith("..") ? filePath : relativePath;
     }
-  });
-}
+    return filePath;
+  }
+
+  function resolveWorktreePath(filePath: string): string {
+    return input.worktree && !path.isAbsolute(filePath)
+      ? path.join(input.worktree, filePath)
+      : filePath;
+  }
+
+  function getTransformFocusFilePath(transformInput: unknown): string | null {
+    if (!transformInput || typeof transformInput !== "object") {
+      return null;
+    }
+    const inputRecord = transformInput as SystemTransformInput;
+    const directPath =
+      inputRecord.focusFilePath ??
+      inputRecord.filePath ??
+      inputRecord.path ??
+      inputRecord.file ??
+      inputRecord.focusEdit?.path ??
+      inputRecord.focusEdit?.filePath;
+    if (typeof directPath !== "string" || directPath.length === 0) {
+      return null;
+    }
+    return normalizeSessionPath(directPath);
+  }
+
+  function readFileContent(filePath: string): string {
+    try {
+      return fs.readFileSync(resolveWorktreePath(filePath), "utf-8");
+    } catch {
+      return "";
+    }
+  }
+
+  function updateRecentEditsFromSession(
+    sessionEdits: SessionEditEntry[],
+  ): RecentEdit[] {
+    recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((entry) => ({
+      path: entry.filePath,
+      kind: pathKindCache.get(entry.filePath) ?? "unknown",
+      timestamp: entry.lastReconciledAt,
+    }));
+    return recentEdits;
+  }
+
+  function deriveRiskContext(filePath: string): {
+    effectiveRiskClass: RiskClass;
+    pathAnalysis: ReturnType<typeof analyzePath>;
+    hasMustPriority: boolean;
+    precomputedSuggestion: CommentAnalysisResult | null;
+  } {
+    const normalizedFilePath = normalizeSessionPath(filePath);
+    const pathAnalysis = analyzePath(normalizedFilePath, input.worktree);
+    pathKindCache.set(normalizedFilePath, pathAnalysis.kind);
+    const fileContent = readFileContent(normalizedFilePath);
+    const hasMustPriority =
+      pathAnalysis.kind === "requirement"
+        ? isMustPriorityRequirement(normalizedFilePath, input.worktree)
+        : false;
+    let precomputedSuggestion: CommentAnalysisResult | null = null;
+    if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
+      precomputedSuggestion = analyzeCodeFile(
+        resolveWorktreePath(normalizedFilePath),
+        {
+          minLines: cfg.guidance.commentDetection.minLines,
+        },
+      );
+    }
+    const { riskClass } = classifyRisk({
+      pathKind: pathAnalysis.kind,
+      isUnderKb: pathAnalysis.isUnderKb,
+      hasMustPriority,
+      hasDurableComment: !!precomputedSuggestion,
+      fileContent,
+    });
+    const effectiveRiskClass: RiskClass =
+      riskClass === "safe_docs_only" && precomputedSuggestion
+        ? "traceability_candidate"
+        : riskClass;
+    recentCommentSuggestion =
+      pathAnalysis.kind === "code" ? precomputedSuggestion : null;
+    lastRiskClass = effectiveRiskClass;
+    lastRiskFilePath = normalizedFilePath;
+    return {
+      effectiveRiskClass,
+      pathAnalysis,
+      hasMustPriority,
+      precomputedSuggestion,
+    };
+  }
+
+  function buildBriefingWorkspaceContext(): BriefingWorkspaceCtx {
+    return {
+      workspaceRoot: input.worktree,
+      branch: currentBranch,
+      directory: input.directory,
+      ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
+    };
+  }
+
+  function queueBriefingFetch(
+    intentResult: ReturnType<typeof computeBriefIntent>,
+    options: { skipIfCachedResultExists?: boolean } = {},
+  ): void {
+    if (
+      !intentResult.eligible ||
+      !input.client ||
+      getMaintenanceDegraded() ||
+      (posture.state !== "root_active" &&
+        posture.state !== "hybrid_root_plus_vendored")
+    ) {
+      return;
+    }
+    if (
+      options.skipIfCachedResultExists === true &&
+      autoBriefResults.has(intentResult.fingerprint)
+    ) {
+      return;
+    }
+    const client = input.client;
+    const fingerprint = intentResult.fingerprint;
+    const workspaceCtx = buildBriefingWorkspaceContext();
+    void fetchBriefingResult(client, workspaceCtx, intentResult).then(
+      (result) => {
+        autoBriefResults.set(fingerprint, result);
+        if (!toastedFingerprints.has(fingerprint)) {
+          toastedFingerprints.add(fingerprint);
+          void sendToast(makeToastClient(client), {
+            message: result.toastMessage,
+          });
+        }
+      },
+    );
+  }
 
   hooks.event = async ({ event }) => {
-
     // Handle session.idle for idle-brief generation
     if (event.type === "session.idle") {
       if (!input.client || getMaintenanceDegraded()) return;
@@ -414,7 +417,6 @@ function queueBriefingFetch(
       idleBriefInFlight = true;
       idleBriefTrailingRerun = false;
 
-
       const runIdleBrief = async () => {
         try {
           // Gather session edits
@@ -424,7 +426,10 @@ function queueBriefingFetch(
           if (sourceFiles.length === 0) return;
 
           // Compute audit delta
-          const latestCursor = getLatestAuditCursor(idleWorkspaceRoot, idleBranch);
+          const latestCursor = getLatestAuditCursor(
+            idleWorkspaceRoot,
+            idleBranch,
+          );
           const auditDelta = computeAuditDelta(
             idleWorkspaceRoot,
             idleBranch,
@@ -432,7 +437,6 @@ function queueBriefingFetch(
           );
 
           if (!auditDelta.hasChanges) return;
-
 
           // Branch switch guard
           const currentBranchNow = resolveCurrentBranch(input.worktree);
@@ -463,7 +467,9 @@ function queueBriefingFetch(
             if (!idleBriefDeliveredHashes.has(dedupeKey)) {
               idleBriefDeliveredHashes.add(dedupeKey);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-              const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+              const localConfig = {
+                autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true,
+              };
               if (client) {
                 try {
                   const deliveryResult = await deliverBriefTui(
@@ -610,7 +616,9 @@ function queueBriefingFetch(
               "required-fields",
               "no-dangling-refs",
               ...(pathAnalysis.kind === "fact" ? ["strict-fact-shape"] : []),
-              ...(pathAnalysis.kind === "requirement" ? ["strict-req-fact-pairing"] : []),
+              ...(pathAnalysis.kind === "requirement"
+                ? ["strict-req-fact-pairing"]
+                : []),
             ]
           : null;
 
@@ -641,13 +649,11 @@ function queueBriefingFetch(
       }
     }
 
-    recentEdits = sessionEdits
-      .slice(-MAX_RECENT_EDITS)
-      .map((e) => ({
-        path: e.filePath,
-        kind: pathKindCache.get(e.filePath) ?? "unknown",
-        timestamp: e.lastReconciledAt,
-      }));
+    recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((e) => ({
+      path: e.filePath,
+      kind: pathKindCache.get(e.filePath) ?? "unknown",
+      timestamp: e.lastReconciledAt,
+    }));
 
     if (
       effectiveRiskClass === "safe_docs_only" ||
@@ -762,7 +768,11 @@ function queueBriefingFetch(
               `kibi-opencode: must-priority requirement detected, scheduling elevated checks for ${filePath}`,
             );
           } else {
-            checkRules = ["required-fields", "no-dangling-refs", "strict-req-fact-pairing"];
+            checkRules = [
+              "required-fields",
+              "no-dangling-refs",
+              "strict-req-fact-pairing",
+            ];
           }
         }
         logger.info("smart-enforcement.targeted-checks", {
@@ -877,7 +887,10 @@ function queueBriefingFetch(
     const hookMode = cfg.prompt.hookMode;
 
     if (hookMode === "system-transform" || hookMode === "auto") {
-      hooks["experimental.chat.system.transform"] = async (transformInput, output) => {
+      hooks["experimental.chat.system.transform"] = async (
+        transformInput,
+        output,
+      ) => {
         // Skip if sentinel already present in any existing entry
         if (output.system.some((entry: string) => entry.includes(SENTINEL))) {
           return;
@@ -888,7 +901,8 @@ function queueBriefingFetch(
           maintenanceDegraded &&
           cfg.guidance.smartEnforcement.degradedMode === "warn-once" &&
           !degradedWarnedOnce;
-        const transformFocusFilePath = getTransformFocusFilePath(transformInput);
+        const transformFocusFilePath =
+          getTransformFocusFilePath(transformInput);
         sessionEditState.reconcileKnownPaths();
         if (transformFocusFilePath) {
           sessionEditState.forceEdit(transformFocusFilePath);
@@ -908,9 +922,12 @@ function queueBriefingFetch(
               kind: pathKindCache.get(transformFocusEdit.filePath) ?? "unknown",
             }
           : null;
-        const riskContextFilePath = transformFocusEdit?.filePath ?? transformFocusFilePath;
+        const riskContextFilePath =
+          transformFocusEdit?.filePath ?? transformFocusFilePath;
         let effectiveRiskClass: RiskClass | null =
-          riskContextFilePath && lastRiskFilePath === riskContextFilePath ? lastRiskClass : null;
+          riskContextFilePath && lastRiskFilePath === riskContextFilePath
+            ? lastRiskClass
+            : null;
         if (
           riskContextFilePath &&
           (lastRiskClass === null || lastRiskFilePath !== riskContextFilePath)
@@ -925,7 +942,9 @@ function queueBriefingFetch(
           effectiveRiskClass = lastRiskClass;
         }
 
-        const promptSourceFiles = transformSessionEdits.map((entry) => entry.filePath);
+        const promptSourceFiles = transformSessionEdits.map(
+          (entry) => entry.filePath,
+        );
         const promptFocusFilePath: string | undefined =
           transformFocusEdit?.filePath ?? transformFocusFilePath ?? undefined;
         const intentResult = effectiveRiskClass
@@ -955,64 +974,18 @@ function queueBriefingFetch(
 
         // Replay latest unread idle brief if available // implements REQ-opencode-kibi-briefing-v4
         if (input.worktree && currentBranch && input.client) {
-          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
-          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
+          const unreadBrief = selectLatestUnreadBrief(
+            input.worktree,
+            currentBranch,
+          );
+          if (
+            unreadBrief &&
+            !replayedBriefIds.has(unreadBrief.envelope.briefId)
+          ) {
             const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
-            const client = input.client;
-            try {
-              const deliveryResult = await deliverBriefTui(
-                makeToastClient(client),
-                unreadBrief.envelope,
-                sharedPolicy,
-                localConfig,
-              );
-              if (deliveryResult.appended) {
-                markBriefRead(input.worktree, unreadBrief.filePath);
-                replayedBriefIds.add(unreadBrief.envelope.briefId);
-              }
-            } catch (err) {
-              logger.error("idle-brief.replay-failed", {
-                event: "idle_brief_replay_failed",
-                error: err instanceof Error ? err.message : String(err),
-              });
-            }
-          }
-        }
-        console.log("REPLAY DEBUG:", { maintenanceDegraded, worktree: input.worktree, currentBranch, hasClient: !!input.client });
-        if (!maintenanceDegraded && input.worktree && currentBranch && input.client) {
-          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
-          console.log("REPLAY DEBUG: unreadBrief =", unreadBrief ? unreadBrief.envelope.briefId : null);
-          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
-            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-            console.log("REPLAY DEBUG: sharedPolicy =", sharedPolicy);
-            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
-            const client = input.client;
-            try {
-              const deliveryResult = await deliverBriefTui(
-                makeToastClient(client),
-                unreadBrief.envelope,
-                sharedPolicy,
-                localConfig,
-              );
-              console.log("REPLAY DEBUG: deliveryResult =", deliveryResult);
-              if (deliveryResult.appended) {
-                markBriefRead(input.worktree, unreadBrief.filePath);
-                replayedBriefIds.add(unreadBrief.envelope.briefId);
-              }
-            } catch (err) {
-              logger.error("idle-brief.replay-failed", {
-                event: "idle_brief_replay_failed",
-                error: err instanceof Error ? err.message : String(err),
-              });
-            }
-          }
-        }
-        if (!maintenanceDegraded && input.worktree && currentBranch && input.client) {
-          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
-          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
-            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+            const localConfig = {
+              autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true,
+            };
             const client = input.client;
             try {
               const deliveryResult = await deliverBriefTui(
@@ -1049,7 +1022,9 @@ function queueBriefingFetch(
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
           ...(autoBriefResult !== undefined ? { autoBriefResult } : {}),
-          ...(effectiveRiskClass != null ? { riskClass: effectiveRiskClass } : {}),
+          ...(effectiveRiskClass != null
+            ? { riskClass: effectiveRiskClass }
+            : {}),
         });
 
         logger.info("smart-enforcement.guidance", {
