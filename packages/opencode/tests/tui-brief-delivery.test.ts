@@ -277,7 +277,7 @@ describe("tui-brief-delivery", () => {
 
     await expect(
       deliverBriefTui(clientWithoutTui, envelope, sharedPolicy, localConfig),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ appended: false });
   });
 
   test("does not throw when appendPrompt is missing but showToast exists", async () => {
@@ -287,7 +287,7 @@ describe("tui-brief-delivery", () => {
 
     await expect(
       deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig),
-    ).resolves.toBeUndefined();
+    ).resolves.toEqual({ appended: false });
   });
 
   test("logs info when appendPrompt is unavailable", async () => {
@@ -304,5 +304,48 @@ describe("tui-brief-delivery", () => {
         }),
       }),
     );
+  });
+
+  // --- Delivery result contract ---
+
+  test("returns appended result when appendPrompt succeeds", async () => {
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result).toEqual({ appended: true });
+  });
+
+  test("returns append-unavailable result when appendPrompt is missing", async () => {
+    mockClient.tui = {
+      showToast: mock(() => {}),
+    };
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result).toEqual({ appended: false });
+  });
+
+  test("returns append-failed result when appendPrompt throws", async () => {
+    mockClient.tui!.appendPrompt = mock(() => {
+      throw new Error("append failed");
+    });
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result).toEqual({ appended: false });
+    expect(mockLog).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: expect.stringContaining("Failed to append"),
+        }),
+      }),
+    );
+  });
+
+  test("returns not-appended when TUI channel disabled", async () => {
+    sharedPolicy.briefs.channels.tui = false;
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result).toEqual({ appended: false });
   });
 });

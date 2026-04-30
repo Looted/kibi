@@ -85,6 +85,9 @@ export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefin
  * @param briefPath - Absolute path to the brief file to mark as read
  */
 export function markBriefRead( // implements REQ-opencode-kibi-briefing-v4
+  workspaceRoot: string,
+  briefPath: string
+): void {
   const raw = fs.readFileSync(briefPath, "utf-8");
   const brief = JSON.parse(raw) as IdleBriefEnvelope;
 
