@@ -161,6 +161,86 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       expect(cursor?.lastTimestamp).toBe("2026-04-25T10:00:00+00:00");
       expect(cursor?.entryCount).toBe(5);
     });
+
+    it("prefers newest brief by immutable ordering after read rewrite", () => {
+      const briefsDir = path.join(tmpDir, ".kb", "briefs");
+      fs.mkdirSync(briefsDir, { recursive: true });
+
+      const olderTimestamp = 1000000000;
+      const newerTimestamp = 2000000000;
+
+      const olderBrief = {
+        schemaVersion: "1.0" as const,
+        briefId: "older-brief",
+        type: "success" as const,
+        sessionId: "session-1",
+        branch: "main",
+        createdAt: "2026-04-25T09:00:00Z",
+        unread: false,
+        auditCursor: {
+          lastTimestamp: "2026-04-25T09:00:00+00:00",
+          lastOperation: "upsert",
+          entryCount: 3,
+          fileSize: 512,
+        },
+        summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "older", promptBlock: "", citations: [] },
+        contentHash: "older-hash",
+      };
+
+      const newerBrief = {
+        schemaVersion: "1.0" as const,
+        briefId: "newer-brief",
+        type: "success" as const,
+        sessionId: "session-2",
+        branch: "main",
+        createdAt: "2026-04-25T10:00:00Z",
+        unread: false,
+        auditCursor: {
+          lastTimestamp: "2026-04-25T10:00:00+00:00",
+          lastOperation: "upsert_rel",
+          entryCount: 7,
+          fileSize: 2048,
+        },
+        summary: { requirementsAdded: 2, relationshipsAdded: 1, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "newer", promptBlock: "", citations: [] },
+        contentHash: "newer-hash",
+      };
+
+      // Write both briefs
+      fs.writeFileSync(
+        path.join(briefsDir, `${olderTimestamp}_brief.json`),
+        JSON.stringify(olderBrief),
+        "utf-8"
+      );
+      fs.writeFileSync(
+        path.join(briefsDir, `${newerTimestamp}_brief.json`),
+        JSON.stringify(newerBrief),
+        "utf-8"
+      );
+
+      // First call: should return newer brief's cursor
+      const cursorBefore = getLatestAuditCursor(tmpDir, "main");
+      expect(cursorBefore).not.toBe(null);
+      expect(cursorBefore?.lastTimestamp).toBe("2026-04-25T10:00:00+00:00");
+      expect(cursorBefore?.entryCount).toBe(7);
+
+      // Simulate mark-read on the OLDER brief (rewrite its file, changing mtime)
+      const rewrittenOlder = { ...olderBrief, unread: true };
+      fs.writeFileSync(
+        path.join(briefsDir, `${olderTimestamp}_brief.json`),
+        JSON.stringify(rewrittenOlder),
+        "utf-8"
+      );
+
+      // Second call: should STILL return newer brief's cursor (not the older one whose mtime changed)
+      const cursorAfter = getLatestAuditCursor(tmpDir, "main");
+      expect(cursorAfter).not.toBe(null);
+      expect(cursorAfter?.lastTimestamp).toBe("2026-04-25T10:00:00+00:00");
+      expect(cursorAfter?.entryCount).toBe(7);
+    });
   });
 
   describe("guardBranchChanged", () => {

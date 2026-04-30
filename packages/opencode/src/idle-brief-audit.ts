@@ -113,10 +113,10 @@ export function getLatestAuditCursor(
     .filter((f) => f.endsWith("_brief.json") && !f.endsWith(".tmp"))
     .map((f) => {
       const fullPath = path.join(briefsDir, f);
-      const stat = fs.statSync(fullPath);
-      return { path: fullPath, mtime: stat.mtimeMs };
+      const timestamp = parseInt(f.split("_")[0]!, 10);
+      return { path: fullPath, timestamp: isNaN(timestamp) ? 0 : timestamp };
     })
-    .sort((a, b) => b.mtime - a.mtime);
+    .sort((a, b) => b.timestamp - a.timestamp);
   
   for (const file of files) {
     try {
