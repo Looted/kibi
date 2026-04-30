@@ -338,10 +338,12 @@ function createDefaultState(): VscodeMockState {
         openTextDocumentListeners.push(listener);
         return createDisposable();
       }),
-      onDidChangeWorkspaceFolders: mock((listener: (value: unknown) => void) => {
-        workspaceFolderChangeListeners.push(listener);
-        return createDisposable();
-      }),
+      onDidChangeWorkspaceFolders: mock(
+        (listener: (value: unknown) => void) => {
+          workspaceFolderChangeListeners.push(listener);
+          return createDisposable();
+        },
+      ),
       emitOpenTextDocument(value: unknown) {
         for (const listener of openTextDocumentListeners) {
           listener(value);

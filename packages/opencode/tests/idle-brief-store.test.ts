@@ -29,21 +29,67 @@ describe("idle-brief-store", () => {
   });
 
   describe("computeContentHash", () => {
+    const baseEnvelope = {
+      schemaVersion: "1.0" as const,
+      briefId: "brief-1",
+      type: "success" as const,
+      sessionId: "session-1",
+      branch: "main",
+      createdAt: "2026-04-30T10:00:00Z",
+      unread: true,
+      auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+      summary: "Test summary",
+      counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+      validation: { violations: [], count: 0, diagnostics: [] },
+      briefing: { tldr: "TLDR", promptBlock: "prompt block", citations: [{ id: "REQ-001", title: "Test req" }] },
+      contentHash: "",
+    };
+
     it("returns deterministic sha256 hex for same input", () => {
-      const payload = { a: 1, b: "test" };
-      const h1 = computeContentHash(payload);
-      const h2 = computeContentHash(payload);
+      const h1 = computeContentHash(baseEnvelope);
+      const h2 = computeContentHash(baseEnvelope);
       expect(h1).toBe(h2);
       expect(h1.length).toBe(64);
     });
 
-    it("returns different hash for different input", () => {
-      const h1 = computeContentHash({ a: 1 });
-      const h2 = computeContentHash({ a: 2 });
-      expect(h1).not.toBe(h2);
+    it("returns different hash when visible content differs", () => {
+      const env1 = { ...baseEnvelope, summary: "Summary A" };
+      const env2 = { ...baseEnvelope, summary: "Summary B" };
+      expect(computeContentHash(env1)).not.toBe(computeContentHash(env2));
+    });
+
+    it("ignores volatile fields: briefId, createdAt, sessionId, unread, auditCursor", () => {
+      const env1 = { ...baseEnvelope, briefId: "brief-alpha", createdAt: "2026-01-01T00:00:00Z", sessionId: "sess-1", unread: true };
+      const env2 = { ...baseEnvelope, briefId: "brief-beta", createdAt: "2026-12-31T23:59:59Z", sessionId: "sess-2", unread: false };
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
+    it("normalizes whitespace in string fields", () => {
+      const env1 = { ...baseEnvelope, summary: "Hello  world" };
+      const env2 = { ...baseEnvelope, summary: "  Hello   world  " };
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
+    it("produces same hash for same visible content across two envelopes with different briefIds", () => {
+      const env1 = { ...baseEnvelope, briefId: "brief-aaa" };
+      const env2 = { ...baseEnvelope, briefId: "brief-bbb" };
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
+    it("detects change when tldr differs", () => {
+      const env1 = { ...baseEnvelope, briefing: { ...baseEnvelope.briefing, tldr: "Same" } };
+      const env2 = { ...baseEnvelope, briefing: { ...baseEnvelope.briefing, tldr: "Different" } };
+      expect(computeContentHash(env1)).not.toBe(computeContentHash(env2));
+    });
+
+    it("detects change when validation violations differ", () => {
+      const env1 = { ...baseEnvelope, validation: { violations: [], count: 0, diagnostics: [] } };
+      const env2 = { ...baseEnvelope, validation: { violations: [{ rule: "no-dangling-refs", entityId: "REQ-001", description: "Dangling ref" }], count: 1, diagnostics: [] } };
+      expect(computeContentHash(env1)).not.toBe(computeContentHash(env2));
     });
   });
 });
+
 
 describe("idle-brief-paths", () => {
   const workspaceRoot = "/fake/workspace";

@@ -3,7 +3,9 @@ import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 
 type MockVscode = {
   workspace: {
-    onDidChangeWorkspaceFolders: (listener: (event: unknown) => void) => unknown;
+    onDidChangeWorkspaceFolders: (
+      listener: (event: unknown) => void,
+    ) => unknown;
     emitWorkspaceFoldersChange: (event: unknown) => void;
     onDidOpenTextDocument: (listener: (doc: unknown) => void) => unknown;
     emitOpenTextDocument: (doc: unknown) => void;

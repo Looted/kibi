@@ -2,8 +2,8 @@
  * Tree view registration utilities for Kibi VS Code extension
  */
 import * as vscode from "vscode";
-import { KibiTreeDataProvider } from "../treeProvider";
 import { KIBI_REFRESH_TREE_COMMAND, KIBI_VIEW_ID } from "../extensionIds";
+import { KibiTreeDataProvider } from "../treeProvider";
 
 export interface TreeViewRegistrationResult {
   treeDataProvider: KibiTreeDataProvider;
