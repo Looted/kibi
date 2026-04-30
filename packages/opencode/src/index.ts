@@ -30,7 +30,7 @@ import {
   guardBranchChanged,
 } from "./idle-brief-audit.js";
 import { generateIdleBrief } from "./idle-brief-runtime.js";
-import { markBriefRead } from "./idle-brief-reader.js";
+import { markBriefRead, selectLatestUnreadBrief } from "./idle-brief-reader.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
 import { loadBriefConfig } from "kibi-cli/brief-config";
 import {
@@ -262,6 +262,7 @@ const kibiOpencodePlugin: Plugin = async (
   let idleBriefInFlight = false;
   let idleBriefTrailingRerun = false;
   const idleBriefDeliveredHashes = new Set<string>();
+  const replayedBriefIds = new Set<string>();
 
 
 function normalizeSessionPath(filePath: string): string {
@@ -950,6 +951,87 @@ function queueBriefingFetch(
           effectiveRiskClass === "traceability_candidate";
         if (!autoBriefResult && isAutoBriefRisk && intentResult) {
           queueBriefingFetch(intentResult, { skipIfCachedResultExists: true });
+        }
+
+        // Replay latest unread idle brief if available // implements REQ-opencode-kibi-briefing-v4
+        if (input.worktree && currentBranch && input.client) {
+          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
+          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
+            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
+            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+            const client = input.client;
+            try {
+              const deliveryResult = await deliverBriefTui(
+                makeToastClient(client),
+                unreadBrief.envelope,
+                sharedPolicy,
+                localConfig,
+              );
+              if (deliveryResult.appended) {
+                markBriefRead(input.worktree, unreadBrief.filePath);
+                replayedBriefIds.add(unreadBrief.envelope.briefId);
+              }
+            } catch (err) {
+              logger.error("idle-brief.replay-failed", {
+                event: "idle_brief_replay_failed",
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+        }
+        console.log("REPLAY DEBUG:", { maintenanceDegraded, worktree: input.worktree, currentBranch, hasClient: !!input.client });
+        if (!maintenanceDegraded && input.worktree && currentBranch && input.client) {
+          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
+          console.log("REPLAY DEBUG: unreadBrief =", unreadBrief ? unreadBrief.envelope.briefId : null);
+          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
+            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
+            console.log("REPLAY DEBUG: sharedPolicy =", sharedPolicy);
+            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+            const client = input.client;
+            try {
+              const deliveryResult = await deliverBriefTui(
+                makeToastClient(client),
+                unreadBrief.envelope,
+                sharedPolicy,
+                localConfig,
+              );
+              console.log("REPLAY DEBUG: deliveryResult =", deliveryResult);
+              if (deliveryResult.appended) {
+                markBriefRead(input.worktree, unreadBrief.filePath);
+                replayedBriefIds.add(unreadBrief.envelope.briefId);
+              }
+            } catch (err) {
+              logger.error("idle-brief.replay-failed", {
+                event: "idle_brief_replay_failed",
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
+        }
+        if (!maintenanceDegraded && input.worktree && currentBranch && input.client) {
+          const unreadBrief = selectLatestUnreadBrief(input.worktree, currentBranch);
+          if (unreadBrief && !replayedBriefIds.has(unreadBrief.envelope.briefId)) {
+            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
+            const localConfig = { autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true };
+            const client = input.client;
+            try {
+              const deliveryResult = await deliverBriefTui(
+                makeToastClient(client),
+                unreadBrief.envelope,
+                sharedPolicy,
+                localConfig,
+              );
+              if (deliveryResult.appended) {
+                markBriefRead(input.worktree, unreadBrief.filePath);
+                replayedBriefIds.add(unreadBrief.envelope.briefId);
+              }
+            } catch (err) {
+              logger.error("idle-brief.replay-failed", {
+                event: "idle_brief_replay_failed",
+                error: err instanceof Error ? err.message : String(err),
+              });
+            }
+          }
         }
 
         const guidance = buildPrompt({

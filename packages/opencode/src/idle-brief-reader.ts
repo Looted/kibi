@@ -26,7 +26,7 @@ function extractTimestamp(filename: string): number | null {
 export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefing-v4
   workspaceRoot: string,
   branch: string
-): IdleBriefEnvelope | null {
+): { envelope: IdleBriefEnvelope; filePath: string } | null {
   const briefsDir = resolveBriefsDir(workspaceRoot);
 
   if (!fs.existsSync(briefsDir)) {
@@ -72,7 +72,7 @@ export function selectLatestUnreadBrief( // implements REQ-opencode-kibi-briefin
   // Sort by filename timestamp descending — latest first
   candidates.sort((a, b) => b.timestamp - a.timestamp);
 
-  return candidates[0]!.envelope;
+  return { envelope: candidates[0]!.envelope, filePath: candidates[0]!.filePath };
 }
 
 /**
