@@ -51,6 +51,10 @@ describe.serial("index kibiOpencodePlugin", () => {
   });
 
   afterEach(() => {
+    delete process.env.KIBI_BRANCH;
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
@@ -5744,5 +5748,312 @@ import datetime
       }
     });
 });
+
+  describe("idle brief replay in transform hook", () => {
+    it("replays an unread brief and marks it read", async () => {
+      // Set KIBI_BRANCH to match brief's branch
+      process.env.KIBI_BRANCH = "test-branch";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      // Setup KB structure with briefs directory
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      // Write unread brief
+      const briefFilePath = path.join(kbDir, "briefs", "9999999999_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-replay",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "test-branch",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Test brief summary",
+        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Test TLDR", promptBlock: "", citations: [] },
+        contentHash: "abc123",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
+      
+      // Setup .kb/config.json to enable TUI delivery
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      // Setup opencode config
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      // Mock TUI client with appendPrompt
+      let appendedPrompt = "";
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async (text: string) => {
+            appendedPrompt = text;
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = {
+        worktree: tmpDir,
+      };
+      const mockOutput = { system: ["original system prompt"] };
+      
+      // Verify brief is unread before replay
+      const briefBefore = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(briefBefore.unread === true, "Brief should be unread before replay");
+      
+      await transformHook(mockInput, mockOutput);
+      
+      // Verify brief was appended
+      assert.ok(appendedPrompt.length > 0, "Brief should have been appended to prompt");
+      assert.ok(appendedPrompt.includes("Test brief summary"), "Appended prompt should contain brief content");
+      assert.ok(appendedPrompt.includes("Test brief summary"), "Appended prompt should contain brief content");
+      
+      // Verify brief was marked as read
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(briefAfter.unread === false, "Brief should be marked as read after successful append");
+    });
+    
+    it("does not replay the same briefId twice", async () => {
+      process.env.KIBI_BRANCH = "main";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      const briefFilePath = path.join(kbDir, "briefs", "9999999998_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-dedupe",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        summary: "Dedupe test brief",
+        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Dedupe TLDR", promptBlock: "", citations: [] },
+        contentHash: "def456",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
+      
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      let appendCount = 0;
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+      );
+      
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async () => { appendCount++; },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+      
+      await transformHook(mockInput, mockOutput);
+      assert.equal(appendCount, 1, "First call should append brief once");
+      
+      await transformHook(mockInput, mockOutput);
+      assert.equal(appendCount, 1, "Second call should not append same brief again");
+    });
+    
+    it("leaves brief unread if appendPrompt fails", async () => {
+      process.env.KIBI_BRANCH = "main";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      const briefFilePath = path.join(kbDir, "briefs", "9999999997_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-fail",
+        type: "warning" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        summary: "Fail test brief",
+        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Fail TLDR", promptBlock: "", citations: [] },
+        contentHash: "ghi789",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
+      
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+      );
+      
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async () => { throw new Error("Append failed"); },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+      
+      await transformHook(mockInput, mockOutput);
+      
+      // Verify brief is still unread after failed append
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(briefAfter.unread === true, "Brief should remain unread after append failure");
+    });
+    
+    it("replays even when maintenanceDegraded is true", async () => {
+      process.env.KIBI_BRANCH = "main";
+      
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+      
+      const briefFilePath = path.join(kbDir, "briefs", "9999999996_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-degraded",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        summary: "Degraded test brief",
+        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Degraded TLDR", promptBlock: "", citations: [] },
+        contentHash: "jkl012",
+      };
+      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
+      
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: true }, // maintenance degraded
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+          },
+          null,
+          2,
+        ),
+      );
+      
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+      );
+      
+      let appendCount = 0;
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          appendPrompt: async () => { appendCount++; },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+      
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+      
+      await transformHook(mockInput, mockOutput);
+      
+      assert.equal(appendCount, 1, "Brief should be appended even when maintenance is degraded");
+      
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(briefAfter.unread === false, "Brief should be marked read after successful append");
+    });
+  });
+
 
 });
