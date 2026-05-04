@@ -83,7 +83,6 @@ export interface PluginInput {
           duration?: number;
         };
       }) => void | Promise<void>;
-      appendPrompt?: (text: string) => void | Promise<void>;
       clearPrompt?: () => void | Promise<void>;
       submitPrompt?: () => void | Promise<void>;
     };
@@ -195,9 +194,6 @@ const kibiOpencodePlugin: Plugin = async (
     }
     if (typeof tui.showToast === "function") {
       mappedTui.showToast = tui.showToast.bind(tui);
-    }
-    if (typeof tui.appendPrompt === "function") {
-      mappedTui.appendPrompt = tui.appendPrompt.bind(tui);
     }
     if (typeof tui.clearPrompt === "function") {
       mappedTui.clearPrompt = tui.clearPrompt.bind(tui);
@@ -485,7 +481,7 @@ const kibiOpencodePlugin: Plugin = async (
                     sharedPolicy,
                     localConfig,
                   );
-                  if (deliveryResult.appended && result.briefPath) {
+                  if (deliveryResult.delivered && result.briefPath) {
                     markBriefRead(idleWorkspaceRoot, result.briefPath);
                   }
                 } catch (err) {
@@ -1001,7 +997,7 @@ const kibiOpencodePlugin: Plugin = async (
                 sharedPolicy,
                 localConfig,
               );
-              if (deliveryResult.appended) {
+              if (deliveryResult.delivered) {
                 markBriefRead(input.worktree, unreadBrief.filePath);
                 replayedBriefContentHashes.add(unreadBrief.envelope.contentHash);
               }

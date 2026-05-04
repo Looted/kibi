@@ -18,8 +18,6 @@ describe("tui-brief-delivery", () => {
   let mockClient: {
     tui?: {
       showToast?: ReturnType<typeof mock>;
-      appendPrompt?: ReturnType<typeof mock>;
-      submitPrompt?: ReturnType<typeof mock>;
     };
   };
 
@@ -32,7 +30,6 @@ describe("tui-brief-delivery", () => {
       };
       tui: {
         toast: boolean;
-        appendPrompt: boolean;
       };
     };
   };
@@ -51,8 +48,6 @@ describe("tui-brief-delivery", () => {
     mockClient = {
       tui: {
         showToast: mock(() => {}),
-        appendPrompt: mock(() => Promise.resolve()),
-        submitPrompt: mock(() => Promise.resolve()),
       },
     };
 
@@ -65,7 +60,6 @@ describe("tui-brief-delivery", () => {
         },
         tui: {
           toast: true,
-          appendPrompt: true,
         },
       },
     };
@@ -120,71 +114,84 @@ describe("tui-brief-delivery", () => {
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
-    expect(mockClient.tui?.appendPrompt).not.toHaveBeenCalled();
   });
 
-  // --- Append-only rendering (primary path) ---
+  // --- Toast rendering (primary path) ---
 
-  test("appends promptBlock to prompt buffer", async () => {
+  test("shows toast with summary by default", async () => {
+    envelope.briefing.citations = [];
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
-      "Test prompt block",
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: "Test summary",
+        }),
+      }),
     );
   });
 
   test("never calls submitPrompt regardless of autoSubmit config", async () => {
     localConfig.autoSubmit = true;
+    envelope.briefing.citations = [];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.submitPrompt).not.toHaveBeenCalled();
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
   });
 
-  test("appends even when autoSubmit is false", async () => {
+  test("shows toast even when autoSubmit is false", async () => {
     localConfig.autoSubmit = false;
+    envelope.briefing.citations = [];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
-      "Test prompt block",
-    );
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
   });
 
-  // --- Empty promptBlock fallback ---
+  // --- Empty summary fallback ---
 
-  test("falls back to summary when promptBlock is empty", async () => {
-    envelope.briefing.promptBlock = "";
+  test("falls back to tldr when summary is empty", async () => {
+    envelope.summary = "";
+    envelope.briefing.tldr = "Test summary";
+    envelope.briefing.citations = [];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
-    expect(calledWith).toContain("Test summary");
-    expect(calledWith).not.toBe("");
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain("Test summary");
   });
 
-  test("includes citations in fallback when promptBlock is empty", async () => {
-    envelope.briefing.promptBlock = "";
+  test("includes citations in toast message when citations exist", async () => {
+    envelope.briefing.citations = [
+      { id: "REQ-001", type: "req", title: "Linked requirement" },
+      { id: "REQ-002", type: "req", title: "Another requirement" },
+    ];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
-    expect(calledWith).toContain("REQ-001");
-    expect(calledWith).toContain("Linked requirement");
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain("Test summary");
+    expect(calledWith.body?.message).toContain("2 citation(s)");
   });
 
-  test("includes validation signal in fallback when violations exist", async () => {
-    envelope.briefing.promptBlock = "";
+  test("includes validation signal in toast when violations exist", async () => {
+    envelope.briefing.citations = [];
     envelope.validation.count = 3;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
-    expect(calledWith).toContain("Validation: 3 issue(s)");
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain("Validation: 3 issue(s)");
   });
 
-  test("produces non-empty fallback even with minimal envelope", async () => {
-    envelope.briefing.promptBlock = "";
+  test("produces non-empty toast even with minimal envelope", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.citations = [];
@@ -192,36 +199,39 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
-    expect(calledWith.length).toBeGreaterThan(0);
-    expect(calledWith).toBe("Brief available");
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toBe("Brief available");
   });
 
   test("uses tldr as fallback when summary is empty", async () => {
-    envelope.briefing.promptBlock = "";
     envelope.summary = "";
     envelope.briefing.tldr = "TLDR fallback";
     envelope.briefing.citations = [];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.appendPrompt?.mock.calls[0]?.[0] as string;
-    expect(calledWith).toBe("TLDR fallback");
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toBe("TLDR fallback");
   });
 
   // --- Optional toast (not a success-path requirement) ---
 
   test("shows optional toast when toast is enabled and capability exists", async () => {
     sharedPolicy.briefs.tui.toast = true;
+    envelope.briefing.citations = [];
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith({
       body: {
         variant: "info",
-        title: "Kibi",
+        title: "Kibi Brief",
         message: "Test summary",
-        duration: 5000,
+        duration: 8000,
       },
     });
   });
@@ -260,14 +270,12 @@ describe("tui-brief-delivery", () => {
     );
   });
 
-  test("appends prompt even when toast is disabled", async () => {
+  test("does not show toast when toast is disabled", async () => {
     sharedPolicy.briefs.tui.toast = false;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(mockClient.tui?.appendPrompt).toHaveBeenCalledWith(
-      "Test prompt block",
-    );
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
   // --- Graceful no-op when TUI capability unavailable ---
@@ -277,30 +285,26 @@ describe("tui-brief-delivery", () => {
 
     await expect(
       deliverBriefTui(clientWithoutTui, envelope, sharedPolicy, localConfig),
-    ).resolves.toEqual({ appended: false });
+    ).resolves.toEqual({ delivered: false });
   });
 
-  test("does not throw when appendPrompt is missing but showToast exists", async () => {
-    mockClient.tui = {
-      showToast: mock(() => {}),
-    };
+  test("does not throw when showToast is missing", async () => {
+    mockClient.tui = {};
 
     await expect(
       deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig),
-    ).resolves.toEqual({ appended: false });
+    ).resolves.toEqual({ delivered: false });
   });
 
-  test("logs info when appendPrompt is unavailable", async () => {
-    mockClient.tui = {
-      showToast: mock(() => {}),
-    };
+  test("logs info when showToast is unavailable", async () => {
+    mockClient.tui = {};
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockLog).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          message: expect.stringContaining("appendPrompt API unavailable"),
+          message: expect.stringContaining("showToast API unavailable"),
         }),
       }),
     );
@@ -308,44 +312,44 @@ describe("tui-brief-delivery", () => {
 
   // --- Delivery result contract ---
 
-  test("returns appended result when appendPrompt succeeds", async () => {
+  test("returns delivered result when showToast succeeds", async () => {
     const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(result).toEqual({ appended: true });
+    expect(result).toEqual({ delivered: true });
   });
 
-  test("returns append-unavailable result when appendPrompt is missing", async () => {
+  test("returns not-delivered result when showToast is missing", async () => {
+    mockClient.tui = {};
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result).toEqual({ delivered: false });
+  });
+
+  test("returns not-delivered result when showToast throws", async () => {
     mockClient.tui = {
-      showToast: mock(() => {}),
+      showToast: mock(() => {
+      throw new Error("showToast failed");
+      }),
     };
 
     const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(result).toEqual({ appended: false });
-  });
-
-  test("returns append-failed result when appendPrompt throws", async () => {
-    mockClient.tui!.appendPrompt = mock(() => {
-      throw new Error("append failed");
-    });
-
-    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
-
-    expect(result).toEqual({ appended: false });
+    expect(result).toEqual({ delivered: false });
     expect(mockLog).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          message: expect.stringContaining("Failed to append"),
+          message: expect.stringContaining("Failed to deliver brief toast"),
         }),
       }),
     );
   });
 
-  test("returns not-appended when TUI channel disabled", async () => {
+  test("returns not-delivered when TUI channel disabled", async () => {
     sharedPolicy.briefs.channels.tui = false;
 
     const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    expect(result).toEqual({ appended: false });
+    expect(result).toEqual({ delivered: false });
   });
 });

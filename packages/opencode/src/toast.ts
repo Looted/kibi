@@ -16,7 +16,6 @@ export type ToastCapableClient = {
     toast?: (payload: ToastPayload) => void | Promise<void>;
     /** SDK toast - receives { body: ToastPayload } */
     showToast?: (payload: { body: ToastPayload }) => void | Promise<void>;
-    appendPrompt?: (text: string) => void | Promise<void>;
     clearPrompt?: () => void | Promise<void>;
     submitPrompt?: () => void | Promise<void>;
   };

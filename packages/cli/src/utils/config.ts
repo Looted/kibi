@@ -46,7 +46,6 @@ export interface BriefsConfig {
   };
   tui: {
     toast: boolean;
-    appendPrompt: boolean;
   };
 }
 
@@ -78,7 +77,6 @@ const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
   },
   tui: {
     toast: true,
-    appendPrompt: true,
   },
 };
 
@@ -103,7 +101,7 @@ export const DEFAULT_CONFIG: KbConfig & { $schema: string } = { // implements RE
 /**
  * Default paths used by sync command (backward compatible glob patterns).
  */
-export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
+export const DEFAULT_SYNC_PATHS: KbConfigPaths = { // implements REQ-003
   requirements: "requirements/**/*.md",
   scenarios: "scenarios/**/*.md",
   tests: "tests/**/*.md",
