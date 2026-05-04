@@ -82,7 +82,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
   scheduleSync(reason: string, filePath?: string, checkRules?: string[]): void {
     if (!this.config.sync.enabled) return;
 
-    if (reason === "file.edited") {
+    // Treat file.created, file.edited, and file.deleted same relevance-wise
+    const isFileLifecycle = reason === "file.edited" || reason === "file.created" || reason === "file.deleted";
+    if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
       this.lastFileEditedAt = this.now();

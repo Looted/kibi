@@ -10,6 +10,7 @@ import {
   type CommentAnalysisResult,
   analyzeCodeFile,
 } from "./comment-analysis.js";
+import { createFileOperationState, type FileLifecycle } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
 import * as fileFilter from "./file-filter.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
@@ -246,6 +247,7 @@ const kibiOpencodePlugin: Plugin = async (
   let lastRiskClass: RiskClass | null = null;
   let lastRiskFilePath: string | null = null;
   const sessionEditState = createSessionEditState({ worktree: input.worktree });
+  const fileOperationState = createFileOperationState({ worktree: input.worktree }); // implements REQ-opencode-file-context-guidance-v1
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
@@ -519,12 +521,49 @@ const kibiOpencodePlugin: Plugin = async (
       return;
     }
 
-    if (event.type !== "file.edited") return;
+    // Accept file.created, file.edited, and file.deleted lifecycle events
+    const isFileLifecycle =
+      event.type === "file.created" ||
+      event.type === "file.edited" || event.type === "file.deleted";
+    if (!isFileLifecycle) return;
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
     if (!filePath) return;
 
+    // Record lifecycle event into file-operation-state // implements REQ-opencode-file-context-guidance-v1
+    const lifecycle: FileLifecycle =
+      event.type === "file.created"
+        ? "created"
+        : event.type === "file.deleted"
+          ? "deleted"
+          : "edited";
+    fileOperationState.recordLifecycle(filePath, lifecycle, Date.now());
+    fileOperationState.normalizePath(filePath);
+
     const pathAnalysis = analyzePath(filePath, input.worktree);
+
+    // For file.deleted: derive path kind without reading content, classify for reminder routing only
+    if (lifecycle === "deleted") {
+      // Preserve last known semantic risk if path was already tracked during session
+      const lastKnownKind = pathKindCache.get(filePath);
+      if (lastKnownKind) {
+        // Path was tracked — preserve last known semantic risk for reminder routing
+        pathKindCache.set(filePath, pathAnalysis.kind);
+      } else {
+        // Not tracked — classify only for reminder routing, not auto-briefing
+        pathKindCache.set(filePath, pathAnalysis.kind);
+      }
+      sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
+      sessionEditState.reconcilePath(filePath);
+      const sessionEdits = sessionEditState.getSessionEdits();
+      recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((e) => ({
+        path: e.filePath,
+        kind: pathKindCache.get(e.filePath) ?? "unknown",
+        timestamp: e.lastReconciledAt,
+      }));
+      return;
+    }
+
 
     sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
     sessionEditState.reconcilePath(filePath);

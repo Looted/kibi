@@ -2266,7 +2266,7 @@ This requirement has no priority field.
   });
 
   describe("event hook edge cases", () => {
-    it("ignores non-file.edited events", async () => {
+    it("handles file.created events", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -2274,9 +2274,7 @@ This requirement has no priority field.
         JSON.stringify(
           {
             enabled: true,
-            sync: {
-              enabled: true,
-            },
+            sync: { enabled: true },
           },
           null,
           2,
@@ -2292,17 +2290,84 @@ This requirement has no priority field.
       });
 
       assert.ok(hooks.event);
-
       const eventHook = hooks.event as any;
-      const eventTypes = ["file.created", "file.deleted", "other.event"];
-      for (const eventType of eventTypes) {
-        const mockEvent = {
-          event: {
-            type: eventType,
+      // file.created should be accepted (not thrown)
+      const mockEvent = {
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-file.ts" },
+        },
+      };
+      await eventHook(mockEvent);
+    });
+
+    it("handles file.deleted events", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
           },
-        };
-        await eventHook(mockEvent);
-      }
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as any;
+      // file.deleted should be accepted (not thrown)
+      const mockEvent = {
+        event: {
+          type: "file.deleted",
+          properties: { file: "src/old-file.ts" },
+        },
+      };
+      await eventHook(mockEvent);
+    });
+
+    it("ignores other.event events", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as any;
+      // other.event should be silently ignored
+      const mockEvent = {
+        event: {
+          type: "other.event",
+        },
+      };
+      await eventHook(mockEvent);
     });
 
     it("handles events without file property", async () => {

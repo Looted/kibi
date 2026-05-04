@@ -312,5 +312,23 @@ describe("session.idle hook", () => {
       event: { type: "file.edited", properties: { file: "test.ts" } },
     } as never);
   });
+
+  test("file.created event is handled alongside file.edited", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    await hooks.event!({
+      event: { type: "file.created", properties: { file: "new-file.ts" } },
+    } as never);
+  });
+
+  test("file.deleted event is handled alongside file.edited", async () => {
+    const dir = makeProjectDir("auto");
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+
+    await hooks.event!({
+      event: { type: "file.deleted", properties: { file: "old-file.ts" } },
+    } as never);
+  });
 });
 });

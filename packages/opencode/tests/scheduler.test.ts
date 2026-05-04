@@ -156,7 +156,65 @@ describe("sync scheduler", () => {
     await flushAsync();
     assert.equal(runs, 1);
   });
-});
+  });
+
+  test("file.created reason treated same as file.edited for sync scheduling", async () => {
+    const clock = createFakeClock();
+    let runs = 0;
+
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => {
+        runs += 1;
+        return { exitCode: 0 };
+      },
+    });
+
+    scheduler.scheduleSync("file.created", "documentation/requirements/REQ-001.md");
+
+    clock.advance(99);
+    assert.equal(runs, 0);
+
+    clock.advance(1);
+    await flushAsync();
+    assert.equal(runs, 1);
+  });
+
+  test("file.deleted reason treated same as file.edited for sync scheduling", async () => {
+    const clock = createFakeClock();
+    let runs = 0;
+
+    const scheduler = createSyncScheduler({
+      worktree: process.cwd(),
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+      },
+      now: clock.now,
+      setTimeoutFn: clock.setTimeoutFn,
+      clearTimeoutFn: clock.clearTimeoutFn,
+      runSync: async () => {
+        runs += 1;
+        return { exitCode: 0 };
+      },
+    });
+
+    scheduler.scheduleSync("file.deleted", "documentation/requirements/REQ-001.md");
+
+    clock.advance(99);
+    assert.equal(runs, 0);
+
+    clock.advance(1);
+    await flushAsync();
+    assert.equal(runs, 1);
+  });
 test("onRunComplete exposes sync failure via exitCode", async () => {
   const clock = createFakeClock();
   const completions: SyncRunMetadata[] = [];
