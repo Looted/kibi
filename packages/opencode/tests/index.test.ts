@@ -5791,7 +5791,7 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
@@ -5813,13 +5813,13 @@ import datetime
         ),
       );
       
-      // Mock TUI client with appendPrompt
-      let appendedPrompt = "";
+      // Mock TUI client with showToast
+      let shownToast: any = null;
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async (text: string) => {
-            appendedPrompt = text;
+          showToast: async (payload: any) => {
+            shownToast = payload;
           },
         },
       };
@@ -5842,10 +5842,9 @@ import datetime
       
       await transformHook(mockInput, mockOutput);
       
-      // Verify brief was appended
-      assert.ok(appendedPrompt.length > 0, "Brief should have been appended to prompt");
-      assert.ok(appendedPrompt.includes("Test brief summary"), "Appended prompt should contain brief content");
-      assert.ok(appendedPrompt.includes("Test brief summary"), "Appended prompt should contain brief content");
+      // Verify brief was shown as a toast
+      assert.ok(shownToast, "Brief should have been shown as a toast");
+      assert.ok(JSON.stringify(shownToast).includes("Test brief summary"), "Toast payload should contain brief content");
       
       // Verify brief was marked as read
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
@@ -5884,14 +5883,14 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
         ),
       );
       
-      let appendCount = 0;
+      let showToastCount = 0;
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
@@ -5900,7 +5899,7 @@ import datetime
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async () => { appendCount++; },
+          showToast: async () => { showToastCount++; },
         },
       };
       const hooks = await kibiOpencodePlugin({
@@ -5913,13 +5912,13 @@ import datetime
       const mockOutput = { system: ["original"] };
       
       await transformHook(mockInput, mockOutput);
-      assert.equal(appendCount, 1, "First call should append brief once");
+      assert.equal(showToastCount, 1, "First call should show brief once");
       
       await transformHook(mockInput, mockOutput);
-      assert.equal(appendCount, 1, "Second call should not append same brief again");
+      assert.equal(showToastCount, 1, "Second call should not show same brief again");
     });
-    
-    it("leaves brief unread if appendPrompt fails", async () => {
+
+    it("leaves brief unread if showToast fails", async () => {
       process.env.KIBI_BRANCH = "main";
       
       const opencodeDir = path.join(tmpDir, ".opencode");
@@ -5951,7 +5950,7 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
@@ -5966,7 +5965,7 @@ import datetime
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async () => { throw new Error("Append failed"); },
+          showToast: async () => { throw new Error("Toast failed"); },
         },
       };
       const hooks = await kibiOpencodePlugin({
@@ -6017,7 +6016,7 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: true }, // maintenance degraded
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
@@ -6029,11 +6028,11 @@ import datetime
         JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
       );
       
-      let appendCount = 0;
+      let showToastCount = 0;
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async () => { appendCount++; },
+          showToast: async () => { showToastCount++; },
         },
       };
 
@@ -6048,7 +6047,7 @@ import datetime
       
       await transformHook(mockInput, mockOutput);
       
-      assert.equal(appendCount, 1, "Brief should be appended even when maintenance is degraded");
+      assert.equal(showToastCount, 1, "Brief should be shown even when maintenance is degraded");
       
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
       assert.ok(briefAfter.unread === false, "Brief should be marked read after successful append");
@@ -6087,15 +6086,15 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
         ),
       );
       
-      let appendCount = 0;
-      const appendedTexts: string[] = [];
+      let showToastCount = 0;
+      const shownToastPayloads: any[] = [];
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
@@ -6104,7 +6103,7 @@ import datetime
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async (text: string) => { appendCount++; appendedTexts.push(text); },
+          showToast: async (payload: any) => { showToastCount++; shownToastPayloads.push(payload); },
         },
       };
       const hooks = await kibiOpencodePlugin({
@@ -6117,7 +6116,7 @@ import datetime
       
       // First call: deliver brief-alpha
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(appendCount, 1, "First call should append brief-alpha");
+      assert.equal(showToastCount, 1, "First call should show brief-alpha");
       
       // Now replace the file with a brief that has different briefId but same visible content
       // (simulating a regenerated brief with same semantic content)
@@ -6132,7 +6131,7 @@ import datetime
       
       // Second call: same contentHash should NOT re-deliver
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(appendCount, 1, "Second call should not re-deliver same semantic content");
+      assert.equal(showToastCount, 1, "Second call should not re-deliver same semantic content");
     });
     
     it("semantic dedupe: changed content in same session re-triggers once", async () => {
@@ -6167,14 +6166,14 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: false, appendPrompt: true } },
+            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
           },
           null,
           2,
         ),
       );
       
-      let appendCount = 0;
+      let showToastCount = 0;
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
@@ -6183,7 +6182,7 @@ import datetime
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          appendPrompt: async () => { appendCount++; },
+          showToast: async () => { showToastCount++; },
         },
       };
       const hooks = await kibiOpencodePlugin({
@@ -6196,7 +6195,7 @@ import datetime
       
       // First delivery
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(appendCount, 1, "First call should append");
+      assert.equal(showToastCount, 1, "First call should show toast");
       
       // Update brief with NEW visible content (different contentHash)
       const briefEnvelope2 = {
@@ -6210,11 +6209,11 @@ import datetime
       
       // Second call with new content should re-trigger
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(appendCount, 2, "Changed content should re-trigger delivery once");
+      assert.equal(showToastCount, 2, "Changed content should re-trigger delivery once");
       
       // Third call with same content should NOT trigger again
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(appendCount, 2, "Same content should not trigger again");
+      assert.equal(showToastCount, 2, "Same content should not trigger again");
     });
   });
 

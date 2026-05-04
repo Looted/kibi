@@ -21,9 +21,6 @@ export type ToastPayload = {
 export type ToastCapableClient = {
   tui?: {
     showToast?: (payload: { body: ToastPayload }) => void | Promise<void>;
-    appendPrompt?: (text: string) => void | Promise<void>;
-    clearPrompt?: () => void | Promise<void>;
-    submitPrompt?: () => void | Promise<void>;
   };
 };
 
@@ -36,7 +33,6 @@ export type SharedBriefPolicy = {
     };
     tui: {
       toast: boolean;
-      appendPrompt: boolean;
     };
   };
 };
@@ -46,60 +42,17 @@ export type LocalBriefConfig = {
 };
 
 export type DeliverResult = {
-  appended: boolean;
+  delivered: boolean;
 };
 
 /**
- * Builds a deterministic render block from the envelope content.
- * Uses promptBlock when available; falls back to summary + citations.
- */
-function buildRenderBlock(envelope: IdleBriefEnvelope): string {
-  if (envelope.briefing.promptBlock.trim()) {
-    return envelope.briefing.promptBlock;
-  }
-
-  // Fallback: deterministic non-empty render from stored envelope content
-  const parts: string[] = [];
-
-  const summary = envelope.summary || envelope.briefing.tldr;
-  if (summary) {
-    parts.push(summary);
-  }
-
-  const { citations } = envelope.briefing;
-  if (citations.length > 0) {
-    parts.push("");
-    parts.push(
-      citations
-        .map((c) => `- ${c.id}${c.title ? `: ${c.title}` : ""}`)
-        .join("\n"),
-    );
-  }
-
-  // Validation signal
-  if (envelope.validation.count > 0) {
-    parts.push("");
-    parts.push(`Validation: ${envelope.validation.count} issue(s)`);
-  }
-
-  // Ensure non-empty output
-  if (parts.length === 0) {
-    parts.push("Brief available");
-  }
-
-  return parts.join("\n");
-}
-
-/**
- * Delivers a Kibi briefing to the TUI via passive render-first append.
+ * Delivers a Kibi briefing to the TUI via toast notification.
  *
  * Uses the REAL OpenCode plugin API:
- * - client.tui.showToast(payload) — optional notification, not a success-path requirement
- * - client.tui.appendPrompt(text) — primary passive rendering
+ * - client.tui.showToast(payload) — primary (and only) delivery mechanism
  *
- * The briefing block is appended to the prompt buffer without auto-submit.
- * When promptBlock is empty, a deterministic fallback is derived from
- * the envelope's summary, citations, and validation signal.
+ * The toast contains a rich summary from the envelope and is displayed
+ * for 8 seconds so users can read the content.
  *
  * @param client - OpenCode client with optional TUI capabilities
  * @param envelope - Idle brief envelope containing briefing content
@@ -111,50 +64,53 @@ export async function deliverBriefTui(
   client: ToastCapableClient,
   envelope: IdleBriefEnvelope,
   sharedPolicy: SharedBriefPolicy,
-  localConfig: LocalBriefConfig,
+  _localConfig: LocalBriefConfig,
 ): Promise<DeliverResult> {
   // Early exit if TUI delivery is disabled
   if (!sharedPolicy.briefs.channels.tui) {
     logger.info("TUI brief delivery disabled by shared policy");
-    return { appended: false };
+    return { delivered: false };
   }
 
   const tui = client.tui;
 
-  // Optional toast notification (best-effort, not a success-path requirement)
+  // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
     try {
+      const summaryLine = envelope.summary || envelope.briefing.tldr || "Brief available";
+      const toastLines = [summaryLine];
+      if (envelope.validation.count > 0) {
+        toastLines.push(`⚠️ Validation: ${envelope.validation.count} issue(s)`);
+      }
+      if (envelope.briefing.citations.length > 0) {
+        toastLines.push(`📎 ${envelope.briefing.citations.length} citation(s)`);
+      }
+      if ((envelope.briefing.missingEvidence?.length ?? 0) > 0) {
+        toastLines.push(
+          `❓ Missing evidence: ${envelope.briefing.missingEvidence?.length} item(s)`,
+        );
+      }
+
       await tui.showToast({
         body: {
           variant: envelope.type === "warning" ? "warning" : "info",
-          title: "Kibi",
-          message: envelope.briefing.tldr,
-          duration: 5000,
+          title: "Kibi Brief",
+          message: toastLines.join("\n"),
+          duration: 8000,
         },
       });
-    } catch {
-      // Toast is best-effort; do not let failures affect appended status
-    }
-  }
-
-  // Passive render-first: append the briefing block to the prompt buffer
-  const appendPrompt = tui?.appendPrompt;
-  if (typeof appendPrompt === "function") {
-    try {
-      const renderBlock = buildRenderBlock(envelope);
-      await appendPrompt(renderBlock);
-      return { appended: true };
+      return { delivered: true };
     } catch (err) {
-      logger.error("Failed to append brief to prompt buffer", {
-        event: "idle_brief_append_failed",
+      logger.error("Failed to deliver brief toast", {
+        event: "idle_brief_toast_failed",
         error: err instanceof Error ? err.message : String(err),
       });
-      return { appended: false };
+      return { delivered: false };
     }
   } else {
     logger.info(
-      "TUI appendPrompt API unavailable, brief not rendered to buffer",
+      "TUI showToast API unavailable, brief not delivered",
     );
-    return { appended: false };
+    return { delivered: false };
   }
 }
