@@ -15,8 +15,6 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-smart-enforcement
-#NS|  - type: validates
-#NS|    target: SCEN-opencode-file-context-guidance-v1
 ---
 
 ## Test Coverage
@@ -88,8 +86,7 @@ links:
 
 - **Unit Test** (`packages/opencode/tests/source-linked-guidance.test.ts`): Verifies synchronization with `documentation/symbols.yaml` and ID resolution:
   - Extracts up to 3 deduped REQ IDs.
-  - Prioritizes `implements` relationships.
-  - Falls back to static `links`.
+  - Prioritizes `implements` relationships only (no static `links` fallback).
   - Handles both YAML formats (array and `{ symbols: [...] }`).
 - **Unit Test** (`packages/opencode/tests/prompt.test.ts`): Asserts that the micro-brief is prepended to `behavior_candidate` and `traceability_candidate` guidance.
 - **Integration Test** (`packages/opencode/tests/index.test.ts`): Confirms that micro-briefs are only shown for concrete hits and suppressed on cache hits.
@@ -101,7 +98,9 @@ links:
   - Fact KB document edits trigger `strict-fact-shape` along with structural checks.
   - Requirement KB document edits trigger `strict-req-fact-pairing` to surface unpaired requirements.
 - **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.
-#NX|### File-Context and E2E Verification
-#NX|
+
+### File-Context and E2E Verification
+
+
 - **Unit Test** (`packages/opencode/tests/file-operation-state.test.ts`, `packages/opencode/tests/file-operation-reminders.test.ts`): Verifies guidance triggers for `file.created`, `file.edited`, and `file.deleted`.
 - **Unit Test** (`packages/opencode/tests/e2e-coverage-signals.test.ts`): Verifies authoritative vs heuristic E2E detection logic.
