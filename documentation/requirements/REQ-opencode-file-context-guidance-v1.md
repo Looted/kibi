@@ -43,3 +43,7 @@ The plugin must distinguish between authoritative E2E evidence and heuristic cue
 - **Current-Host Only**: Guidance is based on host-side event monitoring; the plugin must not attempt first-read interception or modify file content returned by tools.
 - **Single-Block Policy**: All lifecycle and E2E guidance must be folded into the standard single-block prompt behavior defined in REQ-opencode-kibi-plugin-v1.
 - **Non-Blocking**: Guidance is advisory and must never block the agent's workflow.
+
+### 4. Integration
+- **Bootstrap**: Repositories without Kibi initialized should use `/init-kibi` to run `kb_autopilot_generate` for initial setup.
+- **Briefing**: Agents should use `kb_briefing_generate` to discover contextual briefings for the current edit fingerprint.

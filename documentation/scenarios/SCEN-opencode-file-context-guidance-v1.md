@@ -41,3 +41,6 @@ An agent is editing a file `src/app/core.ts`.
    - **Outcome**: Guidance provides a soft-worded heuristic reminder about potential E2E relevance.
 4. **Case C (Umbrella)**: The only link found is to a package-level `TEST-opencode-umbrella`.
    - **Outcome**: Guidance does not claim exact E2E evidence.
+
+### Notes
+- Agents should use `kb_briefing_generate` to discover contextual briefings when file-context guidance is active.
