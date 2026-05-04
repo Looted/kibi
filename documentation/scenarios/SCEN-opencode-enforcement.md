@@ -15,6 +15,8 @@ tags:
 links:
   - type: relates_to
     target: SCEN-opencode-smart-enforcement
+#NS|  - type: relates_to
+#NS|    target: SCEN-opencode-file-context-guidance-v1
 ---
 
 ## Scenario
@@ -40,6 +42,8 @@ An AI agent is working on code changes and Kibi documentation in an OpenCode ses
 10. Plugin runs targeted background validation (`kb_check` with specific rules like `must-priority-coverage,no-dangling-refs`).
 11. Agent attempts to create a new repo without Kibi initialized.
 12. Plugin detects missing `.kb/config.json` and injects bootstrap guidance for `/init-kibi` slash command, escalating to operator if further setup is needed.
+#RB|13. Agent deletes a file with linked requirements.
+#RB|14. Plugin detects file deletion and injects safety guidance.
 
 ### Expected Outcomes
 
