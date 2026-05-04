@@ -32,6 +32,15 @@ function countBullets(lines: string[]): number {
   return lines.filter((l) => l.startsWith("-")).length;
 }
 
+const ENTITY_ID_RE = /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
+
+// implements REQ-opencode-file-context-guidance-v1
+function hasOverlappingEntityIds(textA: string, textB: string): boolean {
+  const idsA = new Set(textA.match(ENTITY_ID_RE) ?? []);
+  const idsB = textB.match(ENTITY_ID_RE) ?? [];
+  return idsB.length > 0 && idsB.some((id) => idsA.has(id));
+}
+
 function enforceBudget(block: string, maxBullets: number = MAX_BULLETS): string {
   const lines = block.split("\n");
   if (countBullets(lines) > maxBullets || countWords(block) > MAX_WORDS) {
@@ -147,6 +156,12 @@ export interface PromptContext {
   showDegradedAdvisory?: boolean;
   /** Stored auto-brief runtime result for the current fingerprint */
   autoBriefResult?: BriefingRuntimeResult;
+  /** File-operation reminder from lifecycle and e2e coverage signals */
+  fileOperationReminder?: {
+    path: string;
+    lifecycleReminder: string | null;
+    e2eReminder: string | null;
+  };
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -232,6 +247,11 @@ function buildContextualGuidance(context: PromptContext): string {
     context.showDegradedAdvisory === true &&
     context.maintenanceDegraded === true &&
     context.degradedMode === "warn-once";
+  const fileOpReminder = context.fileOperationReminder;
+  const hasFileOpReminders =
+    fileOpReminder !== undefined &&
+    (fileOpReminder.lifecycleReminder !== null ||
+      fileOpReminder.e2eReminder !== null);
 
   // ── Single-block priority selection ──
   // Priority order (highest wins): manual_kb_edit > posture > risk_class > safe/none
@@ -265,6 +285,8 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
   else {
     // Cache check: skip repeated advisory guidance — only after critical signals are handled above
     // Allow degraded advisory to bypass cache so it is always visible
+    // File-operation reminders also bypass cache (per-path suppression handled by caller)
+    let cacheSuppressedSemantic = false;
     if (
       !showDegraded &&
       context.cache &&
@@ -281,12 +303,17 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
         fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
       };
       if (context.cache.isSatisfied(key)) {
-        return SENTINEL; // skip guidance — recently satisfied
+        if (hasFileOpReminders) {
+          cacheSuppressedSemantic = true;
+        } else {
+          return SENTINEL; // skip guidance — recently satisfied
+        }
       }
     }
 
     // Priority 5: Risk-class-driven guidance (for non-safe classes)
     if (
+      !cacheSuppressedSemantic &&
       riskClass &&
       riskClass !== "safe_docs_only" &&
       riskClass !== "safe_test_only"
@@ -319,7 +346,7 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
       }
     }
     // Priority 6: Legacy path-kind fallback (when no risk class)
-    else if (!riskClass) {
+    else if (!cacheSuppressedSemantic && !riskClass) {
       const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
       const reqEdits = context.recentEdits.filter(
         (e) => e.kind === "requirement",
@@ -408,6 +435,45 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       }
     } catch {
       // Non-fatal: source-linked brief is best-effort
+    }
+  }
+
+  // ── File-operation reminder folding ─────────────────────────────────
+  // File-operation reminders bypass generic GuidanceCache suppression but
+  // are subject to prompt budget trimming. Per-path suppression is handled
+  // by the caller via file-operation-state hasShown/markShown.
+  // implements REQ-opencode-file-context-guidance-v1
+  if (hasFileOpReminders && fileOpReminder) {
+    const foBullets: string[] = [];
+
+    if (fileOpReminder.lifecycleReminder) {
+      // Skip lifecycleReminder if source-linked brief already shows the same IDs
+      const hasSourceLinked =
+        selectedBlock !== null &&
+        selectedBlock.includes("- Existing Kibi links:");
+      const lifecycleHasEntities =
+        fileOpReminder.lifecycleReminder.includes("Kibi entities:");
+      if (
+        !(hasSourceLinked && lifecycleHasEntities && hasOverlappingEntityIds(selectedBlock!, fileOpReminder.lifecycleReminder))
+      ) {
+        foBullets.push(fileOpReminder.lifecycleReminder);
+      }
+    }
+
+    if (fileOpReminder.e2eReminder) {
+      foBullets.push(fileOpReminder.e2eReminder);
+    }
+
+    if (foBullets.length > 0) {
+      if (selectedBlock) {
+        // Fold into existing semantic block
+        for (const bullet of foBullets) {
+          selectedBlock = insertBulletAfterHeader(selectedBlock, bullet);
+        }
+      } else {
+        // Create file-operation-only compact block
+        selectedBlock = `🧠 **File operation detected**\n${foBullets.join("\n")}`;
+      }
     }
   }
 
