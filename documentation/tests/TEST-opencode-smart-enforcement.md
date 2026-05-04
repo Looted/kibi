@@ -103,5 +103,5 @@ links:
 - **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.
 #NX|### File-Context and E2E Verification
 #NX|
-#NX|- **Unit Test** (`packages/opencode/tests/lifecycle-guidance.test.ts`): Verifies guidance triggers for `file.created`, `file.edited`, and `file.deleted`.
-#NX|- **Unit Test** (`packages/opencode/tests/e2e-evidence.test.ts`): Verifies authoritative vs heuristic E2E detection logic.
+- **Unit Test** (`packages/opencode/tests/file-operation-state.test.ts`, `packages/opencode/tests/file-operation-reminders.test.ts`): Verifies guidance triggers for `file.created`, `file.edited`, and `file.deleted`.
+- **Unit Test** (`packages/opencode/tests/e2e-coverage-signals.test.ts`): Verifies authoritative vs heuristic E2E detection logic.

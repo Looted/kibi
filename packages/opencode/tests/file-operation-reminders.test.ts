@@ -16,6 +16,7 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: [], source: "none" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "traceability_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -25,7 +26,7 @@ describe("deriveFileOperationReminder", () => {
       expect(result.reminderKindsToMark).toEqual(["kibi_write"]);
     });
 
-    test("created requirement doc returns new file reminder and kibi_write kind", () => {
+    test("created requirement doc does NOT return new file reminder (not a code file)", () => {
       const result = deriveFileOperationReminder({
         normalizedPath: "documentation/requirements/REQ-001.md",
         lifecycle: "created",
@@ -33,6 +34,39 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: [], source: "none" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "req_policy_candidate",
+        posture: "root_active",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
+    });
+
+    test("created code file in non-authoritative posture returns no reminder", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/new-file.ts",
+        lifecycle: "created",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "traceability_candidate",
+        posture: "root_uninitialized",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
+    });
+
+    test("created code file in hybrid_root_plus_vendored posture returns reminder", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/new-file.ts",
+        lifecycle: "created",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "traceability_candidate",
+        posture: "hybrid_root_plus_vendored",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -52,6 +86,7 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBeNull();
@@ -67,6 +102,7 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: [], source: "none" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "safe_docs_only",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBeNull();
@@ -87,6 +123,7 @@ describe("deriveFileOperationReminder", () => {
         },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -104,6 +141,7 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: ["REQ-001"], source: "doc-path" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "req_policy_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -121,6 +159,7 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: [], source: "none" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "safe_docs_only",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -128,6 +167,25 @@ describe("deriveFileOperationReminder", () => {
       );
       expect(result.e2eReminder).toBeNull();
       expect(result.reminderKindsToMark).toEqual(["kibi_delete"]);
+    });
+
+    test("deleted file in non-authoritative posture returns no reminder", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/deleted.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: {
+          ids: ["REQ-001"],
+          source: "symbols",
+        },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "behavior_candidate",
+        posture: "root_partial",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
     });
   });
 
@@ -145,6 +203,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
         },
         currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBeNull();
@@ -167,6 +226,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
         },
         currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -191,6 +251,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
         },
         currentSemanticRisk: "traceability_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBeNull();
@@ -213,6 +274,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
         },
         currentSemanticRisk: "traceability_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -232,16 +294,40 @@ describe("deriveFileOperationReminder", () => {
         linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
         e2eSignal: { level: "none", evidence: [], reminderText: null },
         currentSemanticRisk: "behavior_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBeNull();
       expect(result.e2eReminder).toBeNull();
       expect(result.reminderKindsToMark).toEqual([]);
     });
+
+    test("e2e reminders are NOT posture-gated (emitted even in non-authoritative posture)", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: {
+          level: "exact",
+          evidence: ["TEST-001"],
+          reminderText:
+            "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+        },
+        currentSemanticRisk: "behavior_candidate",
+        posture: "vendored_only",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBe(
+        "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["e2e_write"]);
+    });
   });
 
   describe("combined reminders", () => {
-    test("created file with exact e2e returns both lifecycle and e2e reminders", () => {
+    test("created code file with exact e2e returns both lifecycle and e2e reminders", () => {
       const result = deriveFileOperationReminder({
         normalizedPath: "packages/opencode/src/new.ts",
         lifecycle: "created",
@@ -254,6 +340,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
         },
         currentSemanticRisk: "traceability_candidate",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(
@@ -278,6 +365,7 @@ describe("deriveFileOperationReminder", () => {
             "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
         },
         currentSemanticRisk: "safe_docs_only",
+        posture: "root_active",
       });
 
       expect(result.lifecycleReminder).toBe(

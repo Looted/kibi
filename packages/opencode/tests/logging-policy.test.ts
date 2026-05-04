@@ -1266,6 +1266,14 @@ describe("logging policy", () => {
         ),
       );
 
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       // Create code file
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -1450,7 +1458,16 @@ describe("logging policy", () => {
         "export const w = 4;",
       );
 
+      // Create .kb/config.json so posture detects root_active
+      const kbDir2 = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir2, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir2, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       logger.setClient({
+
         app: {
           log: async (payload: Record<string, unknown>) => {
             appLogCalls.push(payload);

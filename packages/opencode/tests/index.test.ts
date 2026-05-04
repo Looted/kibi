@@ -6293,6 +6293,14 @@ import datetime
         JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
       );
 
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       // Create the file that will be the focus
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -6337,6 +6345,14 @@ import datetime
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
       );
 
       const srcDir = path.join(tmpDir, "src");
@@ -6385,6 +6401,14 @@ import datetime
         JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
       );
 
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
       });
@@ -6420,6 +6444,14 @@ import datetime
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
       );
 
       const srcDir = path.join(tmpDir, "src");
