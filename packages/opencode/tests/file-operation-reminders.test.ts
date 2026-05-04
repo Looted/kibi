@@ -1,0 +1,292 @@
+// implements REQ-opencode-file-context-guidance-v1
+import { describe, test, expect } from "bun:test";
+import {
+  deriveFileOperationReminder,
+} from "../src/file-operation-reminders.js";
+import type { PathKind } from "../src/path-kind.js";
+import type { RiskClass } from "../src/risk-classifier.js";
+
+describe("deriveFileOperationReminder", () => {
+  describe("created lifecycle", () => {
+    test("created code file returns new file reminder and kibi_write kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/new-file.ts",
+        lifecycle: "created",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "traceability_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.",
+      );
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual(["kibi_write"]);
+    });
+
+    test("created requirement doc returns new file reminder and kibi_write kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "documentation/requirements/REQ-001.md",
+        lifecycle: "created",
+        pathKind: "requirement",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "req_policy_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.",
+      );
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual(["kibi_write"]);
+    });
+  });
+
+  describe("edited lifecycle", () => {
+    test("edited risky code file returns no lifecycle reminder (existing guidance is primary)", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "behavior_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
+    });
+
+    test("edited safe_docs_only file returns no lifecycle reminder", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "README.md",
+        lifecycle: "edited",
+        pathKind: "unknown",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "safe_docs_only",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
+    });
+  });
+
+  describe("deleted lifecycle", () => {
+    test("deleted file with linked IDs returns reminder with IDs and kibi_delete kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/deleted.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: {
+          ids: ["REQ-001", "TEST-002"],
+          source: "symbols",
+        },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "behavior_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had linked Kibi entities: REQ-001, TEST-002. Update Kibi to keep traceability accurate.",
+      );
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete"]);
+    });
+
+    test("deleted file with doc-path identity returns reminder with ID and kibi_delete kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "documentation/requirements/REQ-001.md",
+        lifecycle: "deleted",
+        pathKind: "requirement",
+        linkedEntityResult: { ids: ["REQ-001"], source: "doc-path" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "req_policy_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had linked Kibi entities: REQ-001. Update Kibi to keep traceability accurate.",
+      );
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete"]);
+    });
+
+    test("deleted file without linked IDs returns reminder without IDs and kibi_delete kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/no-links.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "safe_docs_only",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had no linked Kibi entities. Update Kibi if this removal changes documented behavior or traceability.",
+      );
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete"]);
+    });
+  });
+
+  describe("e2e reminders", () => {
+    test("exact e2e with non-delete lifecycle returns e2e reminder and e2e_write kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: {
+          level: "exact",
+          evidence: ["TEST-001"],
+          reminderText:
+            "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+        },
+        currentSemanticRisk: "behavior_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBe(
+        "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["e2e_write"]);
+    });
+
+    test("exact e2e with delete lifecycle returns e2e reminder and e2e_delete kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/deleted.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: {
+          level: "exact",
+          evidence: ["TEST-001"],
+          reminderText:
+            "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+        },
+        currentSemanticRisk: "behavior_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had linked Kibi entities: REQ-001. Update Kibi to keep traceability accurate.",
+      );
+      expect(result.e2eReminder).toBe(
+        "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete", "e2e_delete"]);
+    });
+
+    test("heuristic e2e with non-delete lifecycle returns e2e reminder and e2e_write kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: {
+          level: "heuristic",
+          evidence: ["TEST-001 (doc names path: ...)"],
+          reminderText:
+            "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+        },
+        currentSemanticRisk: "traceability_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBe(
+        "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["e2e_write"]);
+    });
+
+    test("heuristic e2e with delete lifecycle returns e2e reminder and e2e_delete kind", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/deleted.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: {
+          level: "heuristic",
+          evidence: ["TEST-001 (doc names path: ...)"],
+          reminderText:
+            "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+        },
+        currentSemanticRisk: "traceability_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had linked Kibi entities: REQ-001. Update Kibi to keep traceability accurate.",
+      );
+      expect(result.e2eReminder).toBe(
+        "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete", "e2e_delete"]);
+    });
+
+    test("no e2e signal returns no e2e reminder", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/existing.ts",
+        lifecycle: "edited",
+        pathKind: "code",
+        linkedEntityResult: { ids: ["REQ-001"], source: "symbols" },
+        e2eSignal: { level: "none", evidence: [], reminderText: null },
+        currentSemanticRisk: "behavior_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBeNull();
+      expect(result.e2eReminder).toBeNull();
+      expect(result.reminderKindsToMark).toEqual([]);
+    });
+  });
+
+  describe("combined reminders", () => {
+    test("created file with exact e2e returns both lifecycle and e2e reminders", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/new.ts",
+        lifecycle: "created",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: {
+          level: "exact",
+          evidence: ["TEST-001"],
+          reminderText:
+            "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+        },
+        currentSemanticRisk: "traceability_candidate",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.",
+      );
+      expect(result.e2eReminder).toBe(
+        "- This file has existing e2e coverage. Check whether e2e tests and linked TEST entities need updates.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["kibi_write", "e2e_write"]);
+    });
+
+    test("deleted file with no linked IDs and heuristic e2e returns both lifecycle and e2e reminders", () => {
+      const result = deriveFileOperationReminder({
+        normalizedPath: "packages/opencode/src/deleted.ts",
+        lifecycle: "deleted",
+        pathKind: "code",
+        linkedEntityResult: { ids: [], source: "none" },
+        e2eSignal: {
+          level: "heuristic",
+          evidence: ["TEST-001 (doc names path: ...)"],
+          reminderText:
+            "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+        },
+        currentSemanticRisk: "safe_docs_only",
+      });
+
+      expect(result.lifecycleReminder).toBe(
+        "- Deleted file had no linked Kibi entities. Update Kibi if this removal changes documented behavior or traceability.",
+      );
+      expect(result.e2eReminder).toBe(
+        "- This file may have related e2e coverage. Check linked e2e tests if this change affects behavior.",
+      );
+      expect(result.reminderKindsToMark).toEqual(["kibi_delete", "e2e_delete"]);
+    });
+  });
+});
