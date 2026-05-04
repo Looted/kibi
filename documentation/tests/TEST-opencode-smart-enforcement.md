@@ -15,6 +15,8 @@ tags:
 links:
   - type: validates
     target: SCEN-opencode-smart-enforcement
+#NS|  - type: validates
+#NS|    target: SCEN-opencode-file-context-guidance-v1
 ---
 
 ## Test Coverage
@@ -99,3 +101,7 @@ links:
   - Fact KB document edits trigger `strict-fact-shape` along with structural checks.
   - Requirement KB document edits trigger `strict-req-fact-pairing` to surface unpaired requirements.
 - **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.
+#NX|### File-Context and E2E Verification
+#NX|
+#NX|- **Unit Test** (`packages/opencode/tests/lifecycle-guidance.test.ts`): Verifies guidance triggers for `file.created`, `file.edited`, and `file.deleted`.
+#NX|- **Unit Test** (`packages/opencode/tests/e2e-evidence.test.ts`): Verifies authoritative vs heuristic E2E detection logic.
