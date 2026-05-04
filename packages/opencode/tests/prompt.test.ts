@@ -1563,11 +1563,19 @@ describe("source-linked micro-brief contract", () => {
           "REQ-opencode-smart-enforcement-v1",
           "REQ-opencode-kibi-plugin-v1",
         ],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+          { type: "implements", target: "REQ-opencode-kibi-plugin-v1" },
+        ],
       },
       {
         id: "SYM-classifyRisk",
         sourceFile: "packages/opencode/src/risk-classifier.ts",
         links: ["REQ-first", "REQ-second"],
+        relationships: [
+          { type: "implements", target: "REQ-first" },
+          { type: "implements", target: "REQ-second" },
+        ],
       },
     ]);
 
@@ -1634,6 +1642,9 @@ describe("source-linked micro-brief contract", () => {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -1662,6 +1673,9 @@ describe("source-linked micro-brief contract", () => {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -1707,6 +1721,9 @@ describe("source-linked micro-brief contract", () => {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -2036,6 +2053,9 @@ describe("file-operation reminder integration", () => {
           "    sourceFile: packages/opencode/src/prompt.ts",
           "    links:",
           "      - REQ-opencode-smart-enforcement-v1",
+          "    relationships:",
+          "      - type: implements",
+          "        target: REQ-opencode-smart-enforcement-v1",
         ].join("\n"),
       );
 
@@ -2086,6 +2106,9 @@ describe("file-operation reminder integration", () => {
           "    sourceFile: packages/opencode/src/prompt.ts",
           "    links:",
           "      - REQ-opencode-smart-enforcement-v1",
+          "    relationships:",
+          "      - type: implements",
+          "        target: REQ-opencode-smart-enforcement-v1",
         ].join("\n"),
       );
 
