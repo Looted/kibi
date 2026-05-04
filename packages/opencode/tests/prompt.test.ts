@@ -1768,3 +1768,372 @@ describe("source-linked micro-brief contract", () => {
     assert.equal(p.trim(), SENTINEL, "Cache hit should return sentinel only");
   });
 });
+
+// implements REQ-opencode-file-context-guidance-v1
+describe("file-operation reminder integration", () => {
+  const LIFECYCLE_NEW_FILE =
+    "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.";
+  const LIFECYCLE_DELETED_NO_IDS =
+    "- Deleted file had no linked Kibi entities. Update Kibi if this removal changes documented behavior or traceability.";
+  const E2E_REMINDER =
+    "- E2e coverage signal detected for this file. Verify related e2e tests remain accurate.";
+
+  test("lifecycle reminder folds into existing semantic block", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(p.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      p.includes("Code changes detected"),
+      "Should include semantic block header",
+    );
+    assert.ok(p.includes("New file detected"), "Should include lifecycle reminder");
+
+    // Single-block policy
+    const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+    assert.equal(blocks.length, 1, "Should stay within one contextual block");
+  });
+
+  test("lifecycle and e2e reminders fold into existing semantic block", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(
+      p.includes("E2e coverage signal"),
+      "Should include e2e reminder",
+    );
+  });
+
+  test("file-operation-only block when no semantic block exists", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/deleted.ts",
+        lifecycleReminder: LIFECYCLE_DELETED_NO_IDS,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(p.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      p.includes("File operation detected"),
+      "Should include file-operation header",
+    );
+    assert.ok(
+      p.includes("Deleted file had no linked Kibi entities"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(
+      !p.includes("Code changes detected"),
+      "Should NOT include code guidance",
+    );
+  });
+
+  test("file-operation-only block with both reminders", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    assert.ok(
+      p.includes("File operation detected"),
+      "Should include file-operation header",
+    );
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(
+      p.includes("E2e coverage signal"),
+      "Should include e2e reminder",
+    );
+  });
+
+  test("completion reminder preserved alongside file-operation reminders", () => {
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(
+      p.includes(REMINDER_TEXT),
+      "Should include completion reminder",
+    );
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+  });
+
+  test("file-operation reminders bypass cache suppression", () => {
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: "/ws",
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+
+    assert.ok(
+      p.includes("New file detected"),
+      "File-operation reminder should bypass cache suppression",
+    );
+    assert.ok(
+      !p.includes("Code changes detected"),
+      "Cache should still suppress semantic guidance",
+    );
+  });
+
+  test("file-operation-only block bypasses cache suppression with no risk class", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(
+      p.includes("File operation detected"),
+      "File-operation-only block should appear without risk class",
+    );
+  });
+
+  test("null lifecycleReminder and e2eReminder produces no file-operation block", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: null,
+        e2eReminder: null,
+      },
+    });
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "Should produce sentinel only when both reminders are null",
+    );
+  });
+
+  test("file-operation-only block stays within budget", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("semantic block with file-operation reminders stays within budget", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("file-operation reminders do NOT appear for vendored_only posture", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "vendored_only",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "vendored_only should suppress all guidance including file-operation reminders",
+    );
+  });
+
+  test("lifecycle reminder deduplicates when source-linked brief shows same IDs", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-fo-dedup-"));
+    try {
+      const docDir = path.join(tmpDir, "documentation");
+      fs.mkdirSync(docDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        [
+          "symbols:",
+          "  - id: SYM-buildPrompt",
+          "    sourceFile: packages/opencode/src/prompt.ts",
+          "    links:",
+          "      - REQ-opencode-smart-enforcement-v1",
+        ].join("\n"),
+      );
+
+      const deletedWithIds =
+        "- Deleted file had linked Kibi entities: REQ-opencode-smart-enforcement-v1. Update Kibi to keep traceability accurate.";
+
+      const p = buildPrompt({
+        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        workspaceRoot: tmpDir,
+        fileOperationReminder: {
+          path: "packages/opencode/src/prompt.ts",
+          lifecycleReminder: deletedWithIds,
+          e2eReminder: null,
+        },
+      });
+
+      // Source-linked brief should be present
+      assert.ok(
+        p.includes("- Existing Kibi links:"),
+        "Should include source-linked brief",
+      );
+      assert.ok(
+        p.includes("REQ-opencode-smart-enforcement-v1"),
+        "Should reference the requirement ID",
+      );
+      // Lifecycle reminder should be deduplicated (NOT appear since IDs overlap)
+      assert.ok(
+        !p.includes("Deleted file had linked Kibi entities"),
+        "Should NOT duplicate lifecycle reminder when IDs overlap with source-linked brief",
+      );
+    } finally {
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    }
+  });
+
+  test("lifecycle reminder without overlapping IDs is NOT deduplicated", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-fo-nodedup-"));
+    try {
+      const docDir = path.join(tmpDir, "documentation");
+      fs.mkdirSync(docDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        [
+          "symbols:",
+          "  - id: SYM-buildPrompt",
+          "    sourceFile: packages/opencode/src/prompt.ts",
+          "    links:",
+          "      - REQ-opencode-smart-enforcement-v1",
+        ].join("\n"),
+      );
+
+      // Lifecycle reminder references a different ID than the source-linked brief
+      const deletedWithDifferentIds =
+        "- Deleted file had linked Kibi entities: REQ-other-requirement. Update Kibi to keep traceability accurate.";
+
+      const p = buildPrompt({
+        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        workspaceRoot: tmpDir,
+        fileOperationReminder: {
+          path: "packages/opencode/src/prompt.ts",
+          lifecycleReminder: deletedWithDifferentIds,
+          e2eReminder: null,
+        },
+      });
+
+      // Both should appear since IDs don't overlap
+      assert.ok(
+        p.includes("- Existing Kibi links:"),
+        "Should include source-linked brief",
+      );
+      assert.ok(
+        p.includes("Deleted file had linked Kibi entities: REQ-other-requirement"),
+        "Should include lifecycle reminder with non-overlapping IDs",
+      );
+    } finally {
+      try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    }
+  });
+
+  test("file-operation reminders do not trigger /brief-kibi cue without semantic risk", () => {
+    const BRIEF_KIBI_CUE =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(
+      !p.includes(BRIEF_KIBI_CUE),
+      "File-operation reminders should NOT trigger /brief-kibi cue without semantic risk",
+    );
+  });
+});
