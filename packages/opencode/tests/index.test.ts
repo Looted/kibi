@@ -6283,4 +6283,177 @@ import datetime
   });
 
 
+  // implements REQ-opencode-file-context-guidance-v1
+  describe("file-operation reminder transform integration", () => {
+    it("emits lifecycle reminder for file.created event followed by transform", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      // Create the file that will be the focus
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const createdFile = path.join(srcDir, "new-module.ts");
+      fs.writeFileSync(createdFile, "export function hello() {}");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.created event
+      await eventHook({
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-module.ts" },
+        },
+      });
+
+      // Now fire transform hook with focus on the created file
+      const output = { system: ["original prompt"] };
+      await transformHook(
+        { focusFilePath: "src/new-module.ts" },
+        output,
+      );
+
+      // Guidance should contain new file reminder
+      const combinedGuidance = output.system.join("\n");
+      assert.ok(
+        combinedGuidance.includes("New file detected"),
+        `Guidance should contain new file reminder, got: ${combinedGuidance}`,
+      );
+    });
+
+    it("suppresses lifecycle reminder on repeat transform", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const createdFile = path.join(srcDir, "another-module.ts");
+      fs.writeFileSync(createdFile, "export function bye() {}");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.created event
+      await eventHook({
+        event: {
+          type: "file.created",
+          properties: { file: "src/another-module.ts" },
+        },
+      });
+
+      // First transform: should emit reminder
+      const output1 = { system: ["original prompt"] };
+      await transformHook(
+        { focusFilePath: "src/another-module.ts" },
+        output1,
+      );
+      const guidance1 = output1.system.join("\n");
+      assert.ok(guidance1.includes("New file detected"), "First transform should emit reminder");
+
+      // Second transform for same file: should NOT emit reminder again
+      const output2 = { system: ["original prompt"] };
+      await transformHook(
+        { focusFilePath: "src/another-module.ts" },
+        output2,
+      );
+      const guidance2 = output2.system.join("\n");
+      assert.ok(!guidance2.includes("New file detected"), "Second transform should suppress reminder");
+    });
+
+    it("emits deleted-file reminder when file content is unavailable", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.deleted event for a file that no longer exists
+      await eventHook({
+        event: {
+          type: "file.deleted",
+          properties: { file: "src/deleted-module.ts" },
+        },
+      });
+
+      // Transform with focus on the deleted file
+      const output = { system: ["original prompt"] };
+      await transformHook(
+        { focusFilePath: "src/deleted-module.ts" },
+        output,
+      );
+
+      // Guidance should contain deleted file reminder (no linked entities case)
+      const guidance = output.system.join("\n");
+      assert.ok(
+        guidance.includes("Deleted file had no linked Kibi entities") || guidance.includes("Deleted file had linked Kibi entities"),
+        `Guidance should contain deleted file reminder, got: ${guidance}`,
+      );
+    });
+
+    it("does not emit file-operation reminder when no pending lifecycle", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "existing-file.ts");
+      fs.writeFileSync(codeFile, "export const x = 1;");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.edited event (edited lifecycle has no generic reminder)
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/existing-file.ts" },
+        },
+      });
+
+      const output = { system: ["original prompt"] };
+      await transformHook(
+        { focusFilePath: "src/existing-file.ts" },
+        output,
+      );
+
+      // For edited files, there's no generic lifecycle reminder text
+      const guidance = output.system.join("\n");
+      assert.ok(
+        !guidance.includes("New file detected") && !guidance.includes("Deleted file"),
+        `Guidance should NOT contain lifecycle reminder for edited file, got: ${guidance}`,
+      );
+    });
+  });
+
 });

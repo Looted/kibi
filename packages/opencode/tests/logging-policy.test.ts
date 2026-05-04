@@ -1236,6 +1236,289 @@ describe("logging policy", () => {
       );
     });
 
+  });
+  // implements REQ-opencode-file-context-guidance-v1
+  describe("file-operation reminder logging policy", () => {
+    test("file-operation reminder produces structured log on emission", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-log-emit-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create code file
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "new-thing.ts"),
+        "export const y = 2;",
+      );
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-thing.ts" },
+        },
+      });
+
+      // Trigger transform hook with focus on the created file
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/new-thing.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      });
+
+      assert.ok(
+        reminderLogs.length >= 1,
+        "Should emit file-operation reminder structured log",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("file-operation reminder does NOT emit log when reminder text is absent", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-no-log-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "existing.ts"),
+        "export const z = 3;",
+      );
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      // Fire file.edited event (edited lifecycle has no generic lifecycle reminder)
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/existing.ts" },
+        },
+      });
+
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/existing.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT emit file-operation reminder log for edited file (no reminder text)",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("file-operation reminder is suppressed on repeat prompt", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-suppress-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "repeat.ts"),
+        "export const w = 4;",
+      );
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      // Fire file.created event
+      await hooks.event({
+        event: {
+          type: "file.created",
+          properties: { file: "src/repeat.ts" },
+        },
+      });
+
+      // First transform: should emit log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/repeat.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+      const firstCount = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      }).length;
+
+      assert.ok(firstCount >= 1, "First transform should emit reminder log");
+
+      // Second transform: should NOT emit log (suppressed)
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/repeat.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+      const secondCount = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      }).length;
+
+      assert.equal(
+        secondCount,
+        firstCount,
+        "Second transform should NOT emit additional reminder log (suppressed)",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
 });
 
 });
