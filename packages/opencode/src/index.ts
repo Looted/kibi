@@ -11,6 +11,9 @@ import {
   analyzeCodeFile,
 } from "./comment-analysis.js";
 import { createFileOperationState, type FileLifecycle } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
+import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
+import { getE2eCoverageSignal } from "./e2e-coverage-signals.js"; // implements REQ-opencode-file-context-guidance-v1
+import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements REQ-opencode-file-context-guidance-v1
 import * as fileFilter from "./file-filter.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
@@ -1049,6 +1052,45 @@ const kibiOpencodePlugin: Plugin = async (
           }
         }
 
+        // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
+        let fileOperationReminder: { path: string; lifecycleReminder: string | null; e2eReminder: string | null } | undefined;
+        const focusPathForReminder = transformFocusFilePath ?? promptFocusFilePath;
+        if (focusPathForReminder) {
+          const normalizedFocusPath = fileOperationState.normalizePath(focusPathForReminder);
+          const pendingLifecycle = fileOperationState.peekPending(normalizedFocusPath);
+          if (pendingLifecycle) {
+            // Check if any reminder kind for this lifecycle has not yet been shown
+            const reminderKindsForLifecycle: import("./file-operation-state.js").ReminderKind[] =
+              pendingLifecycle.lifecycle === "deleted"
+                ? ["kibi_delete", "e2e_delete"]
+                : pendingLifecycle.lifecycle === "created"
+                  ? ["kibi_write", "e2e_write"]
+                  : ["e2e_write"];
+            const hasUnshownReminder = reminderKindsForLifecycle.some(
+              (kind) => !fileOperationState.hasShown(normalizedFocusPath, kind),
+            );
+            if (hasUnshownReminder) {
+              // Resolve linked entities and e2e signal
+              const linkedEntityResult = getFileLinkedEntityIds(input.worktree, focusPathForReminder);
+              const e2eSignal = getE2eCoverageSignal(input.worktree, focusPathForReminder);
+              const focusPathKind = pathKindCache.get(normalizedFocusPath) ?? "unknown";
+              const reminderResult = deriveFileOperationReminder({
+                normalizedPath: normalizedFocusPath,
+                lifecycle: pendingLifecycle.lifecycle,
+                pathKind: focusPathKind as import("./path-kind.js").PathKind,
+                linkedEntityResult,
+                e2eSignal,
+                currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
+              });
+              fileOperationReminder = {
+                path: normalizedFocusPath,
+                lifecycleReminder: reminderResult.lifecycleReminder,
+                e2eReminder: reminderResult.e2eReminder,
+              };
+            }
+          }
+        }
+
         const guidance = buildPrompt({
           recentEdits: transformRecentEdits,
           focusEdit: transformPromptFocusEdit,
@@ -1067,6 +1109,7 @@ const kibiOpencodePlugin: Plugin = async (
           ...(effectiveRiskClass != null
             ? { riskClass: effectiveRiskClass }
             : {}),
+          ...(fileOperationReminder !== undefined ? { fileOperationReminder } : {}),
         });
 
         logger.info("smart-enforcement.guidance", {
@@ -1105,6 +1148,55 @@ const kibiOpencodePlugin: Plugin = async (
             merged_degraded: maintenanceDegraded,
             overlay_cause: runtimeOverlay.primaryCause ?? null,
           });
+        }
+
+        // Step 6: After prompt generation, mark reminders as shown if guidance contains the text // implements REQ-opencode-file-context-guidance-v1
+        if (fileOperationReminder) {
+          const lifecycleReminderText = fileOperationReminder.lifecycleReminder;
+          const e2eReminderText = fileOperationReminder.e2eReminder;
+          const focusPathForConsume = fileOperationReminder.path;
+
+          // Determine which reminders were actually emitted in guidance
+          const lifecycleEmitted = lifecycleReminderText !== null && guidance.includes(lifecycleReminderText);
+          const e2eEmitted = e2eReminderText !== null && guidance.includes(e2eReminderText);
+
+          // Mark shown and log only for reminders that were actually emitted
+          if (lifecycleEmitted) {
+            const kind: import("./file-operation-state.js").ReminderKind =
+              fileOperationState.peekPending(focusPathForConsume)?.lifecycle === "deleted"
+                ? "kibi_delete"
+                : "kibi_write";
+            fileOperationState.markShown(focusPathForConsume, kind);
+            logger.info("smart-enforcement.file-operation-reminder", {
+              event: "smart_enforcement_file_operation_reminder",
+              file: focusPathForConsume,
+              lifecycle: fileOperationState.peekPending(focusPathForConsume)?.lifecycle ?? null,
+              posture_state: posture.state,
+              risk_class: effectiveRiskClass,
+            });
+          }
+
+          if (e2eEmitted) {
+            const kind: import("./file-operation-state.js").ReminderKind =
+              fileOperationState.peekPending(focusPathForConsume)?.lifecycle === "deleted"
+                ? "e2e_delete"
+                : "e2e_write";
+            fileOperationState.markShown(focusPathForConsume, kind);
+            const e2eSignalForLog = getE2eCoverageSignal(input.worktree, focusPathForConsume);
+            logger.info("smart-enforcement.e2e-reminder", {
+              event: "smart_enforcement_e2e_reminder",
+              file: focusPathForConsume,
+              lifecycle: fileOperationState.peekPending(focusPathForConsume)?.lifecycle ?? null,
+              signal_level: e2eSignalForLog.level,
+              posture_state: posture.state,
+              risk_class: effectiveRiskClass,
+            });
+          }
+
+          // Consume pending only if at least one reminder was emitted
+          if (lifecycleEmitted || e2eEmitted) {
+            fileOperationState.consumePending(focusPathForConsume);
+          }
         }
 
         // Latch degraded advisory warning-once state
