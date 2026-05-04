@@ -287,15 +287,17 @@ Current workaround: static system prompt guidance directs agents to query Kibi e
 
 ### File-Context Guidance
 
-The plugin provides proactive guidance when agents interact with specific files for the first time in a session:
+The plugin provides proactive guidance when agents perform file operations:
 
-- **First-read focused guidance**: When an agent reads a file that has linked Kibi requirements (e.g., via `documentation/symbols.yaml`), the plugin injects a one-time reminder to check Kibi for that specific path.
+- **File-create/edit guidance**: When an agent creates or edits a source file, the plugin may inject reminders to check Kibi for that path if e2e evidence exists.
 
-- **First-delete safety guidance**: When an agent attempts to delete a file, the plugin injects a safety check reminding the agent to verify if the file implements any Kibi requirements before removal.
+- **File-delete safety guidance**: When an agent attempts to delete a file, the plugin injects a safety check reminding the agent to verify if the file implements any Kibi requirements before removal.
+
+- **E2e reminder evidence**: File-operation reminders use exact Kibi graph evidence first (`covered_by` links to `[e2e]`-tagged entities or `/e2e/`-sourced entities) and narrow path heuristics second. Package-level e2e tests do not trigger "authoritative evidence" flags at the file level.
 
 - **Session suppression**: To minimize prompt noise, this guidance is suppressed after the first occurrence per path per session.
 
-- **Current-host scope**: This feature uses host-side event monitoring to detect intent; it does not intercept or modify the actual file content returned by the Read tool.
+- **Current-host scope**: This feature uses host-side event monitoring to detect intent; it does not intercept or modify actual file content returned by the Read tool.
 
 ## License
 

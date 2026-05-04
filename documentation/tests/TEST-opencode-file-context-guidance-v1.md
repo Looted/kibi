@@ -20,13 +20,12 @@ links:
 ## Test Coverage
 
 ### 1. Lifecycle Event Hooking
-- **Unit Test** (`packages/opencode/tests/lifecycle-guidance.test.ts`):
-  - Asserts that `file.created`, `file.edited`, and `file.deleted` events trigger guidance injection.
-  - Verifies that guidance is suppressed for `vendored_only` or `root_uninitialized` postures.
-  - Verifies session-based suppression after the first hit per path.
+- **Unit Tests** (`packages/opencode/tests/file-operation-state.test.ts`, `packages/opencode/tests/file-operation-reminders.test.ts`):
+  - `file-operation-state.test.ts`: Asserts that `file.created`, `file.edited`, and `file.deleted` events are tracked and trigger state transitions.
+  - `file-operation-reminders.test.ts`: Verifies that guidance is suppressed for `vendored_only` or `root_uninitialized` postures, and session-based suppression after the first hit per path.
 
 ### 2. E2E Evidence Logic
-- **Unit Test** (`packages/opencode/tests/e2e-evidence.test.ts`):
+- **Unit Tests** (`packages/opencode/tests/e2e-coverage-signals.test.ts`):
   - Asserts that `covered_by` links to entities with `tags: [e2e]` are treated as authoritative.
   - Asserts that `covered_by` links to entities with `source` under `/e2e/` are treated as authoritative.
   - Verifies that heuristic path-matching results in soft-worded advisory text.
