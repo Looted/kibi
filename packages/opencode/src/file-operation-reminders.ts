@@ -1,4 +1,5 @@
 // implements REQ-opencode-file-context-guidance-v1
+import type { RepoPosture } from "./repo-posture.js";
 import type { PathKind } from "./path-kind.js";
 import type { RiskClass } from "./risk-classifier.js";
 import type { ReminderKind } from "./file-operation-state.js";
@@ -20,6 +21,7 @@ export interface DeriveFileOperationReminderParams {
   linkedEntityResult: LinkedEntityResult;
   e2eSignal: E2eCoverageSignal;
   currentSemanticRisk: RiskClass;
+  posture: RepoPosture;
 }
 
 export interface DeriveFileOperationReminderResult {
@@ -47,32 +49,44 @@ export function deriveFileOperationReminder(
 ): DeriveFileOperationReminderResult {
   const {
     lifecycle,
+    pathKind,
     linkedEntityResult,
     e2eSignal,
+    posture,
   } = params;
+
+  // Check if posture allows lifecycle reminders
+  const isAuthoritativePosture =
+    posture === "root_active" || posture === "hybrid_root_plus_vendored";
 
   // Derive lifecycle reminder
   let lifecycleReminder: string | null = null;
   const reminderKindsToMark: ReminderKind[] = [];
 
-  if (lifecycle === "created") {
-    lifecycleReminder = NEW_FILE_REMINDER;
-    reminderKindsToMark.push("kibi_write");
-  } else if (lifecycle === "edited") {
-    // No generic lifecycle reminder for edited files
-    // Existing semantic risk guidance remains primary
-  } else if (lifecycle === "deleted") {
-    const ids = linkedEntityResult.ids;
-    if (ids.length > 0) {
-      lifecycleReminder = DELETED_WITH_IDS_REMINDER(ids.join(", "));
-      reminderKindsToMark.push("kibi_delete");
-    } else {
-      lifecycleReminder = DELETED_NO_IDS_REMINDER;
-      reminderKindsToMark.push("kibi_delete");
+  if (isAuthoritativePosture) {
+    if (lifecycle === "created") {
+      // Only emit create reminder for code files (not documentation, not KB docs)
+      if (pathKind === "code") {
+        lifecycleReminder = NEW_FILE_REMINDER;
+        reminderKindsToMark.push("kibi_write");
+      }
+    } else if (lifecycle === "edited") {
+      // No generic lifecycle reminder for edited files
+      // Existing semantic risk guidance remains primary
+    } else if (lifecycle === "deleted") {
+      const ids = linkedEntityResult.ids;
+      if (ids.length > 0) {
+        lifecycleReminder = DELETED_WITH_IDS_REMINDER(ids.join(", "));
+        reminderKindsToMark.push("kibi_delete");
+      } else {
+        lifecycleReminder = DELETED_NO_IDS_REMINDER;
+        reminderKindsToMark.push("kibi_delete");
+      }
     }
   }
 
   // Derive e2e reminder (only when e2e signal exists)
+  // E2e reminders are NOT posture-gated - they're always relevant
   let e2eReminder: string | null = null;
   if (e2eSignal.level !== "none" && e2eSignal.reminderText !== null) {
     e2eReminder = e2eSignal.reminderText;

@@ -564,6 +564,11 @@ const kibiOpencodePlugin: Plugin = async (
         kind: pathKindCache.get(e.filePath) ?? "unknown",
         timestamp: e.lastReconciledAt,
       }));
+      // Schedule background sync for deleted files that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
+      if (cfg.sync.enabled && scheduler && fileFilter.shouldHandleFile(filePath, input.worktree)) {
+        scheduler.scheduleSync("file.deleted", filePath);
+      }
+
       return;
     }
 
@@ -573,6 +578,11 @@ const kibiOpencodePlugin: Plugin = async (
     pathKindCache.set(filePath, pathAnalysis.kind);
     const sessionEdits = sessionEditState.getSessionEdits();
     const focusEdit = sessionEditState.getFocusEdit();
+
+    // Schedule background sync for file.created/file.edited that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
+    if (cfg.sync.enabled && scheduler && fileFilter.shouldHandleFile(filePath, input.worktree)) {
+      scheduler.scheduleSync(lifecycle === "created" ? "file.created" : "file.edited", filePath);
+    }
 
     let fileContent = "";
     try {
@@ -1081,6 +1091,7 @@ const kibiOpencodePlugin: Plugin = async (
                 linkedEntityResult,
                 e2eSignal,
                 currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
+                posture: posture.state,
               });
               fileOperationReminder = {
                 path: normalizedFocusPath,
