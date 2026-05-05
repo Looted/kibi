@@ -23,7 +23,7 @@ links:
 **AND** captures the declared context from the user's responses
 **WHEN** the agent invokes the `kb_autopilot_generate` MCP tool with the gathered context
 **THEN** the MCP server synthesizes candidate entities and relationships grounded in both declared intent and discovered evidence
-**AND** returns a structured list of candidates and a proposed `plan` for linking them
+**AND** returns additive `structuredContent` including `promptBlock`, `recommendedActions`, `declaredContext`, `confidence`, `bootstrapMode`, `candidates`, and `discoverySummary`
 **AND** the agent presents a preview of the proposed changes to the user for approval
 **WHEN** the user approves the plan
 **THEN** the agent uses `kb_upsert` to sequentially create the approved entities and relationships in the KB
