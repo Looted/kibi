@@ -359,11 +359,12 @@ describe("MCP Server", () => {
     expect(contentText).toMatch(/kb_autopilot_generate/);
     expect(contentText).toMatch(/kb_upsert/);
     expect(contentText).toMatch(/kb_check/);
-    expect(contentText).toMatch(/kb_find_gaps/);
-    expect(contentText).toMatch(/kb_coverage/);
+    expect(contentText).toMatch(/Project Summary/);
+    expect(contentText).toMatch(/Source of Truth/);
+    expect(contentText).toMatch(/read-only/);
 
     // Assert that content mentions activation workflow concepts
-    expect(contentText).toMatch(/(activationState|activation)/);
+    expect(contentText).toMatch(/(activationState|activation|approval)/);
 
     // Assert that content does NOT mention non-public tools
     expect(contentText).not.toMatch(/kb_query_relationships/);
@@ -464,10 +465,26 @@ describe("MCP Server", () => {
     ]).toContain(structured.activationState as string);
     expect(typeof structured.activationReason).toBe("string");
     expect(typeof structured.applyBlocked).toBe("boolean");
+    expect([
+      "cold_start_bootstrap",
+      "repair_bootstrap",
+      "attached_thin_handoff",
+      "attached_seeded_handoff",
+      "vendored_blocked",
+    ]).toContain(structured.bootstrapMode as string);
+    expect(typeof structured.tldr).toBe("string");
+    expect(typeof structured.promptBlock).toBe("string");
+    expect(typeof structured.confidence).toBe("object");
+    expect(typeof structured.declaredContext).toBe("object");
+    expect(Array.isArray(structured.recommendedActions)).toBe(true);
     expect(Array.isArray(structured.candidates)).toBe(true);
     expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
     expect(typeof structured.discoverySummary).toBe("object");
     expect(typeof structured.payoffSummary).toBe("object");
+
+    expect(result.candidates).toEqual(structured.candidates);
+    expect(result.suppressedCandidates).toEqual(structured.suppressedCandidates);
+    expect(result.payoffSummary).toEqual(structured.payoffSummary);
 
     await killServer(proc);
   }, 15000);
