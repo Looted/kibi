@@ -46,6 +46,7 @@ export interface BriefsConfig {
   };
   tui: {
     toast: boolean;
+    appendPrompt: boolean;
   };
 }
 
@@ -77,6 +78,7 @@ const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
   },
   tui: {
     toast: true,
+    appendPrompt: true,
   },
 };
 
