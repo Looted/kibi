@@ -308,6 +308,8 @@ describe("MCP Server", () => {
     expect(briefKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
     expect(typeof briefKibiPrompt?.description).toBe("string");
+    expect(initKibiPrompt?.description).toMatch(/interactive activation|new or empty/i);
+    expect(briefKibiPrompt?.description).toMatch(/citation-backed/i);
 
     await killServer(proc);
   });
@@ -361,6 +363,7 @@ describe("MCP Server", () => {
     expect(contentText).toMatch(/kb_check/);
     expect(contentText).toMatch(/Project Summary/);
     expect(contentText).toMatch(/Source of Truth/);
+    expect(contentText).toMatch(/Wait for explicit approval/i);
     expect(contentText).toMatch(/read-only/);
 
     // Assert that content mentions activation workflow concepts
