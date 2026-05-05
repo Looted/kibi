@@ -217,7 +217,7 @@ describe("autopilot generate", () => {
 
     const confidence = res.structuredContent.confidence as ConfidenceRecord;
     expect(typeof confidence.score).toBe("number");
-    expect(["high", "medium", "low"]).toContain(confidence.level);
+    expect(["high", "medium", "low"]).toContain(confidence.level ?? "");
     expect(Array.isArray(confidence.reasons)).toBe(true);
     expect((confidence.reasons ?? []).length).toBeGreaterThan(0);
 
@@ -672,8 +672,8 @@ describe("autopilot generate", () => {
     expect(candidates.length).toBeGreaterThan(0);
 
     // Discovery summary should have provider results
-    const summary = res.structuredContent.discoverySummary as DiscoverySummaryRecord;
-    expect(summary.providersRun!.length).toBeGreaterThan(0);
+    const summary = res.structuredContent.discoverySummary as unknown as DiscoverySummaryRecord;
+    expect((summary.providersRun ?? []).length).toBeGreaterThan(0);
 
     // PromptBlock should be non-empty with guidance
     const promptBlock = String(res.structuredContent.promptBlock ?? "");
@@ -681,8 +681,8 @@ describe("autopilot generate", () => {
 
     // Confidence should be present and valid
     const confidence = res.structuredContent.confidence as ConfidenceRecord;
-    expect(["high", "medium", "low"]).toContain(confidence.level);
-    expect(["full_actions", "review_required", "handoff_only"]).toContain(confidence.policy);
+    expect(["high", "medium", "low"]).toContain(confidence.level ?? "");
+    expect(["full_actions", "review_required", "handoff_only"]).toContain(confidence.policy ?? "");
   });
 
   test("confidence level transitions at correct thresholds", async () => {
@@ -719,8 +719,8 @@ describe("autopilot generate", () => {
     });
     const medConf = medRes.structuredContent.confidence as ConfidenceRecord;
     // With candidates but no context, should be medium or high
-    expect(["high", "medium"]).toContain(medConf.level);
-    expect(["full_actions", "review_required"]).toContain(medConf.policy);
+    expect(["high", "medium"]).toContain(medConf.level ?? "");
+    expect(["full_actions", "review_required"]).toContain(medConf.policy ?? "");
 
     // Vendored repo → low confidence
     const vendoredRoot = path.join(tmp, "vendored-check");
