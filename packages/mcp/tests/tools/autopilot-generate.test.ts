@@ -154,7 +154,7 @@ describe("autopilot generate", () => {
     });
 
     const summary = res.structuredContent
-      .discoverySummary as DiscoverySummaryRecord;
+      .discoverySummary as unknown as DiscoverySummaryRecord;
     const candidates = res.structuredContent
       .candidates as Array<Record<string, unknown>>;
 
@@ -164,11 +164,13 @@ describe("autopilot generate", () => {
       "repo_metadata",
       "repo_layout",
       "test_topology",
+      "source_symbols",
     ]);
     expect(summary.providerCounts?.typed_kibi_docs).toBe(0);
     expect(summary.providerCounts?.repo_metadata).toBeGreaterThan(0);
     expect(summary.providerCounts?.repo_layout).toBeGreaterThan(0);
     expect(summary.providerCounts?.test_topology).toBeGreaterThan(0);
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
     expect(summary.detectedLanguages).toContain("typescript");
     expect(summary.detectedTestFrameworks).toContain("bun:test");
     expect(summary.excludedRoots).toEqual(
@@ -228,7 +230,7 @@ describe("autopilot generate", () => {
     ).toBe(false);
 
     const summary = res.structuredContent
-      .discoverySummary as DiscoverySummaryRecord;
+      .discoverySummary as unknown as DiscoverySummaryRecord;
     expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
   });
 
@@ -245,16 +247,85 @@ describe("autopilot generate", () => {
     expect(res.structuredContent.activationMode).toBe("repair_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(true);
     const summary = res.structuredContent
-      .discoverySummary as DiscoverySummaryRecord;
+      .discoverySummary as unknown as DiscoverySummaryRecord;
     expect(summary.providersRun).toEqual([
       "typed_kibi_docs",
       "generic_repo_docs",
       "repo_metadata",
       "repo_layout",
       "test_topology",
+      "source_symbols",
     ]);
     expect(summary.providerCounts?.typed_kibi_docs).toBeGreaterThanOrEqual(1);
     expect(res.structuredContent.candidates.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("cold-start repos add source symbol evidence from parser-backed JS/TS analysis", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
+    expect(
+      candidates.some(
+        (candidate) =>
+          candidate.entityType === "fact" &&
+          candidate.sourceKind === "source_symbols" &&
+          String(candidate.title).includes("Source symbols:"),
+      ),
+    ).toBe(true);
+  });
+
+  test("unsupported-language repos keep source symbol provider graceful with fallback module evidence", async () => {
+    await fs.mkdir(path.join(tmp, "src"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nBootstrap the Python project.\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "src", "main.py"),
+      ["def bootstrap_main():", "    return True", ""].join("\n"),
+    );
+    await fs.writeFile(
+      path.join(tmp, "pyproject.toml"),
+      ["[project]", 'name = "python-bootstrap"', 'version = "0.1.0"', ""].join(
+        "\n",
+      ),
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
+    expect(summary.detectedLanguages).toContain("python");
+    expect(
+      candidates.some(
+        (candidate) =>
+          candidate.entityType === "fact" &&
+          candidate.sourceKind === "source_symbols" &&
+          String(candidate.title).includes("Source module:") &&
+          String(candidate.sourcePath).endsWith("src/main.py"),
+      ),
+    ).toBe(true);
   });
 
   test("duplicate title suppression emits flat records", async () => {

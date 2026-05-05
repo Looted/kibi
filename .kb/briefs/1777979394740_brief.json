@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "briefId": "brief-1777979394740-o3uymy",
+  "type": "success",
+  "sessionId": "unknown",
+  "branch": "develop",
+  "createdAt": "2026-05-05T11:09:54.740Z",
+  "unread": false,
+  "auditCursor": {
+    "lastTimestamp": "2026-05-05T12:58:45+02:00",
+    "lastOperation": "upsert_rel",
+    "entryCount": 236,
+    "fileSize": 41736
+  },
+  "summary": "30 entities changed, 206 relationships changed | clean",
+  "counts": {
+    "requirementsAdded": 30,
+    "relationshipsAdded": 206,
+    "entitiesDeleted": 0
+  },
+  "validation": {
+    "violations": [],
+    "count": 0,
+    "diagnostics": []
+  },
+  "briefing": {
+    "tldr": "30 entities changed, 206 relationships changed | clean",
+    "promptBlock": "",
+    "citations": []
+  },
+  "contentHash": "870fee32218286cca22ea8445f5c325a91de5d5041e53e276f18c148bdeb3dd1"
+}
