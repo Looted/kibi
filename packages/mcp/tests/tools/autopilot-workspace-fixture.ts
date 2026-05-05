@@ -101,6 +101,9 @@ function ensureDocsAt(docRoot: string, prefix = "ROOT") {
 
 function createNoise(root: string) {
   const noisyFiles = [
+    ".git/notes.md",
+    ".kb/notes.md",
+    "node_modules/kibi/readme.md",
     "vendor/README.md",
     "vendors/internal.md",
     "third_party/guide.md",
@@ -163,6 +166,77 @@ export function ensureDocs(root: string) {
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function createColdStartRepo(root: string) {
   ensureDir(root);
+  ensureDir(path.join(root, "src", "routes"));
+  ensureDir(path.join(root, "tests"));
+
+  fs.writeFileSync(
+    path.join(root, "package.json"),
+    JSON.stringify(
+      {
+        name: "cold-start-app",
+        private: true,
+        packageManager: "bun@1.3.10",
+        bin: {
+          "cold-start-app": "./src/cli.ts",
+        },
+        scripts: {
+          dev: "bun run src/server.ts",
+          test: "bun test",
+        },
+      },
+      null,
+      2,
+    ),
+  );
+  fs.writeFileSync(path.join(root, "bun.lock"), "# bun lockfile\n");
+  fs.writeFileSync(
+    path.join(root, "tsconfig.json"),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: "ES2022",
+          module: "ESNext",
+        },
+      },
+      null,
+      2,
+    ),
+  );
+  fs.writeFileSync(
+    path.join(root, "src", "cli.ts"),
+    [
+      "export function main() {",
+      "  return \"cli\";",
+      "}",
+      "",
+    ].join("\n"),
+  );
+  fs.writeFileSync(
+    path.join(root, "src", "server.ts"),
+    [
+      "export function serve() {",
+      "  return \"server\";",
+      "}",
+      "",
+    ].join("\n"),
+  );
+  fs.writeFileSync(
+    path.join(root, "src", "routes", "health.ts"),
+    ["export const healthRoute = \"/health\";", ""].join("\n"),
+  );
+  fs.writeFileSync(
+    path.join(root, "tests", "server.test.ts"),
+    [
+      'import { describe, expect, test } from "bun:test";',
+      "",
+      'describe("server", () => {',
+      '  test("starts", () => {',
+      "    expect(true).toBe(true);",
+      "  });",
+      "});",
+      "",
+    ].join("\n"),
+  );
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1

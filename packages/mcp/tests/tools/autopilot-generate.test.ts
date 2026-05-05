@@ -7,6 +7,7 @@ import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candid
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
+  createNoisyRepo,
   createPartialRepo,
   createSeededRepo,
   createThinRepo,
@@ -23,6 +24,16 @@ interface CandidateWithPlan {
       status?: string;
     };
   }>;
+}
+
+interface DiscoverySummaryRecord extends Record<string, unknown> {
+  providersRun?: string[];
+  providerCounts?: Record<string, number>;
+  detectedLanguages?: string[];
+  detectedTestFrameworks?: string[];
+  excludedRoots?: string[];
+  truncated?: boolean;
+  scanWarnings?: string[];
 }
 
 function getCandidateStatus(candidate: CandidateWithPlan | undefined): string | undefined {
@@ -128,6 +139,99 @@ describe("autopilot generate", () => {
     expect(getCandidateStatus(adrCandidate)).toBe("proposed");
   });
 
+  test("cold-start repos without Kibi docs still report provider evidence in discoverySummary", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => ({
+      success: false,
+      bindings: {},
+      error: "no entities",
+    }));
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providersRun).toEqual([
+      "typed_kibi_docs",
+      "generic_repo_docs",
+      "repo_metadata",
+      "repo_layout",
+      "test_topology",
+    ]);
+    expect(summary.providerCounts?.typed_kibi_docs).toBe(0);
+    expect(summary.providerCounts?.repo_metadata).toBeGreaterThan(0);
+    expect(summary.providerCounts?.repo_layout).toBeGreaterThan(0);
+    expect(summary.providerCounts?.test_topology).toBeGreaterThan(0);
+    expect(summary.detectedLanguages).toContain("typescript");
+    expect(summary.detectedTestFrameworks).toContain("bun:test");
+    expect(summary.excludedRoots).toEqual(
+      expect.arrayContaining([
+        ".git",
+        ".kb",
+        "node_modules",
+        "vendor",
+        "vendors",
+        "third_party",
+        "dist",
+        "coverage",
+        "build",
+        "target",
+        ".venv",
+        "venv",
+      ]),
+    );
+    expect(summary.truncated).toBe(false);
+    expect(summary.scanWarnings).toEqual([]);
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(
+      candidates.some((candidate) => candidate.entityType === "fact"),
+    ).toBe(true);
+  });
+
+  test("generic repo docs include non-doc markdown and ignore excluded trees", async () => {
+    createColdStartRepo(tmp);
+    createNoisyRepo(tmp);
+    await fs.mkdir(path.join(tmp, "notes"), { recursive: true });
+    await fs.mkdir(path.join(tmp, "vendor"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "notes", "decision.md"),
+      "# ADR: Project Runtime\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "vendor", "decision.md"),
+      "# ADR: Ignored Vendor Decision\n",
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+    expect(
+      candidates.some((candidate) => candidate.title === "ADR: Project Runtime"),
+    ).toBe(true);
+    expect(
+      candidates.some(
+        (candidate) => candidate.title === "ADR: Ignored Vendor Decision",
+      ),
+    ).toBe(false);
+
+    const summary = res.structuredContent
+      .discoverySummary as DiscoverySummaryRecord;
+    expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
+  });
+
   test("root_partial workspaces may scan but block apply", async () => {
     createPartialRepo(tmp);
 
@@ -140,7 +244,16 @@ describe("autopilot generate", () => {
     expect(res.structuredContent.activationState).toBe("root_partial");
     expect(res.structuredContent.activationMode).toBe("repair_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(true);
-    expect(res.structuredContent.discoverySummary.markdownFiles).toBeGreaterThanOrEqual(2);
+    const summary = res.structuredContent
+      .discoverySummary as DiscoverySummaryRecord;
+    expect(summary.providersRun).toEqual([
+      "typed_kibi_docs",
+      "generic_repo_docs",
+      "repo_metadata",
+      "repo_layout",
+      "test_topology",
+    ]);
+    expect(summary.providerCounts?.typed_kibi_docs).toBeGreaterThanOrEqual(1);
     expect(res.structuredContent.candidates.length).toBeGreaterThanOrEqual(1);
   });
 
