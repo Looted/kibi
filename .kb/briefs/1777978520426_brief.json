@@ -5,7 +5,7 @@
   "sessionId": "unknown",
   "branch": "develop",
   "createdAt": "2026-05-05T10:55:20.426Z",
-  "unread": true,
+  "unread": false,
   "auditCursor": {
     "lastTimestamp": "2026-05-05T12:00:46+02:00",
     "lastOperation": "upsert_rel",

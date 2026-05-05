@@ -19,10 +19,12 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import path from "node:path";
 import {
   type Candidate,
+  collectSourceOnlyAuthoringSignals,
   buildGenericMarkdownCandidates,
   buildProviderEvidenceCandidates,
   buildTypedMarkdownCandidates,
   buildSymbolManifestCandidates,
+  type SourceOnlyAuthoringSignal,
 } from "./autopilot-candidates.js";
 import {
   type DiscoverySummary,
@@ -34,6 +36,36 @@ import {
 import { loadEntities } from "./entity-query.js";
 import { resolveWorkspaceRoot } from "../workspace.js";
 
+export interface AutopilotBootstrapContext {
+  projectSummary?: string;
+  sourceOfTruthPaths?: string[];
+  sourceOfTruthNotes?: string[];
+  priorityRoots?: string[];
+  verificationAnchors?: string[];
+}
+
+export interface AutopilotConfidence {
+  score: number;
+  level: "high" | "medium" | "low";
+  reasons: string[];
+  policy: "full_actions" | "review_required" | "handoff_only";
+}
+
+export interface AutopilotRecommendedAction {
+  order: number;
+  kind: "query" | "upsert" | "check" | "handoff";
+  description: string;
+  candidateIds?: string[];
+}
+
+export interface AutopilotDeclaredContext {
+  projectSummary?: string;
+  sourceOfTruthPaths: string[];
+  sourceOfTruthNotes: string[];
+  priorityRoots: string[];
+  verificationAnchors: string[];
+}
+
 export interface AutopilotGenerateArgs {
   includeGenericMarkdown?: boolean;
   minConfidence?: number;
@@ -41,21 +73,39 @@ export interface AutopilotGenerateArgs {
   entityTypes?: Array<
     "req" | "scenario" | "test" | "adr" | "fact" | "symbol"
   >;
+  bootstrapContext?: AutopilotBootstrapContext;
+}
+
+interface PayoffSummary extends Record<string, unknown> {
+  current: Record<string, number>;
+  projectedIfAllApplied: Record<string, number>;
+  delta: Record<string, number>;
+}
+
+interface AutopilotStructuredContent {
+  activationState: string;
+  activationMode: string;
+  bootstrapMode: ActivationMode;
+  activationReason: string;
+  applyBlocked: boolean;
+  handoffMessage?: string;
+  confidence: AutopilotConfidence;
+  tldr: string;
+  promptBlock: string;
+  recommendedActions: AutopilotRecommendedAction[];
+  declaredContext: AutopilotDeclaredContext;
+  discoverySummary: DiscoverySummary;
+  candidates: Array<Record<string, unknown>>;
+  suppressedCandidates: Array<Record<string, unknown>>;
+  payoffSummary: PayoffSummary;
 }
 
 export interface AutopilotGenerateResult {
   content: Array<{ type: "text"; text: string }>;
-  structuredContent: {
-    activationState: string;
-    activationMode: string;
-    activationReason: string;
-    applyBlocked: boolean;
-    handoffMessage?: string;
-    discoverySummary: DiscoverySummary;
-    candidates: Array<Record<string, unknown>>;
-    suppressedCandidates: Array<Record<string, unknown>>;
-    payoffSummary: Record<string, unknown>;
-  };
+  structuredContent: AutopilotStructuredContent;
+  candidates: Array<Record<string, unknown>>;
+  suppressedCandidates: Array<Record<string, unknown>>;
+  payoffSummary: PayoffSummary;
 }
 
 interface CandidateRecord extends Record<string, unknown> {
@@ -72,6 +122,412 @@ interface SuppressedCandidateRecord extends Record<string, unknown> {
   reason: string;
   sourcePath: string;
   entityType: string;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function normalizeOptionalString(value: string | undefined): string | undefined {
+  const trimmed = String(value ?? "").trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function normalizeStringArray(values: string[] | undefined): string[] {
+  const seen = new Set<string>();
+  const normalized: string[] = [];
+
+  for (const value of values ?? []) {
+    const trimmed = String(value ?? "").trim();
+    if (!trimmed || seen.has(trimmed)) continue;
+    seen.add(trimmed);
+    normalized.push(trimmed);
+  }
+
+  return normalized;
+}
+
+function normalizeBootstrapContext(
+  bootstrapContext?: AutopilotBootstrapContext,
+): AutopilotDeclaredContext {
+  const projectSummary = normalizeOptionalString(bootstrapContext?.projectSummary);
+  return {
+    ...(projectSummary ? { projectSummary } : {}),
+    sourceOfTruthPaths: normalizeStringArray(bootstrapContext?.sourceOfTruthPaths),
+    sourceOfTruthNotes: normalizeStringArray(bootstrapContext?.sourceOfTruthNotes),
+    priorityRoots: normalizeStringArray(bootstrapContext?.priorityRoots),
+    verificationAnchors: normalizeStringArray(bootstrapContext?.verificationAnchors),
+  };
+}
+
+function roundScore(score: number): number {
+  return Math.round(clamp(score, 0, 1) * 100) / 100;
+}
+
+function toWorkspaceRelativePath(workspaceRoot: string, targetPath: string): string {
+  const relative = path.relative(workspaceRoot, targetPath);
+  if (!relative.startsWith("..") && !path.isAbsolute(relative)) {
+    return relative.split(path.sep).join("/");
+  }
+  return targetPath.split(path.sep).join("/");
+}
+
+function listSummary(values: string[], limit = 3): string {
+  if (values.length === 0) return "workspace evidence";
+  if (values.length <= limit) return values.join(", ");
+  return `${values.slice(0, limit).join(", ")} +${values.length - limit} more`;
+}
+
+function countCandidatesByType(
+  candidateRecords: CandidateRecord[],
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const candidate of candidateRecords) {
+    const entityType = String(candidate.entityType ?? "unknown");
+    counts[entityType] = (counts[entityType] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function formatCandidateTypeCounts(candidateRecords: CandidateRecord[]): string {
+  const counts = countCandidatesByType(candidateRecords);
+  return Object.keys(counts)
+    .sort()
+    .map((entityType) => `${entityType} ${counts[entityType] ?? 0}`)
+    .join(", ");
+}
+
+function summarizeSignalKinds(signals: SourceOnlyAuthoringSignal[]): string {
+  const labels = Array.from(new Set(signals.map((signal) => signal.kind.toUpperCase())));
+  return labels.join("/");
+}
+
+function trimPromptBlock(bullets: string[]): string {
+  const limitedBullets = bullets.filter(Boolean).slice(0, 5);
+  let promptBlock = limitedBullets.join("\n");
+  const words = promptBlock.split(/\s+/).filter(Boolean);
+
+  if (words.length <= 120) return promptBlock;
+
+  const truncated: string[] = [];
+  let wordCount = 0;
+  for (const bullet of limitedBullets) {
+    const bulletWords = bullet.split(/\s+/).filter(Boolean);
+    if (wordCount + bulletWords.length > 120) {
+      const remaining = 120 - wordCount;
+      if (remaining > 3) {
+        truncated.push(`${bulletWords.slice(0, remaining).join(" ")}…`);
+      }
+      break;
+    }
+    truncated.push(bullet);
+    wordCount += bulletWords.length;
+  }
+  promptBlock = truncated.join("\n");
+  return promptBlock;
+}
+
+function buildPromptBlock(
+  workspaceRoot: string,
+  activationState: ActivationState,
+  activationMode: ActivationMode,
+  activationReason: string,
+  applyBlocked: boolean,
+  declaredContext: AutopilotDeclaredContext,
+  candidateRecords: CandidateRecord[],
+  sourceOnlySignals: SourceOnlyAuthoringSignal[],
+  scanWarnings: string[],
+): string {
+  const signalPaths = Array.from(
+    new Set(
+      sourceOnlySignals.map((signal) =>
+        toWorkspaceRelativePath(workspaceRoot, signal.sourcePath),
+      ),
+    ),
+  );
+  const bullets: string[] = [];
+
+  bullets.push(
+    applyBlocked
+      ? `- Apply blocked: ${activationReason}`
+      : `- Mode: ${activationMode} (${activationState}).`,
+  );
+  if (declaredContext.projectSummary) {
+    bullets.push(`- Summary: ${declaredContext.projectSummary}`);
+  }
+  if (declaredContext.sourceOfTruthPaths.length > 0) {
+    bullets.push(
+      `- Source of truth: ${listSummary(declaredContext.sourceOfTruthPaths, 3)}.`,
+    );
+  }
+  if (candidateRecords.length > 0) {
+    bullets.push(
+      `- Safe candidates: ${candidateRecords.length} (${formatCandidateTypeCounts(candidateRecords)}).`,
+    );
+  }
+  if (sourceOnlySignals.length > 0) {
+    bullets.push(
+      `- Author ${summarizeSignalKinds(sourceOnlySignals)} manually from ${listSummary(signalPaths, 3)}; keep them out of speculative candidate output.`,
+    );
+  } else if (declaredContext.verificationAnchors.length > 0) {
+    bullets.push(
+      `- Verify after kb_check with ${listSummary(declaredContext.verificationAnchors, 2)}.`,
+    );
+  }
+  if (activationMode === "attached_thin_handoff" || activationMode === "attached_seeded_handoff") {
+    bullets.push("- Handoff: use kb_search, kb_briefing_generate, or kb_find_gaps to work with existing KB.");
+  }
+  if (scanWarnings.length > 0) {
+    bullets.push(`- Scan diagnostics: ${scanWarnings.length} warning(s) during evidence collection.`);
+  }
+
+  return trimPromptBlock(bullets);
+}
+
+function buildPayoffSummary(candidateRecords: CandidateRecord[]): PayoffSummary {
+  const current: Record<string, number> = {};
+  const projectedIfAllApplied = { ...current };
+  for (const candidate of candidateRecords) {
+    const entityType = String(candidate.entityType ?? "unknown");
+    projectedIfAllApplied[entityType] =
+      (projectedIfAllApplied[entityType] ?? 0) + 1;
+  }
+
+  const delta: Record<string, number> = {};
+  for (const entityType of Object.keys(projectedIfAllApplied)) {
+    delta[entityType] =
+      (projectedIfAllApplied[entityType] ?? 0) - (current[entityType] ?? 0);
+  }
+
+  return { current, projectedIfAllApplied, delta };
+}
+
+function buildSourceOnlyActionDescription(
+  workspaceRoot: string,
+  sourceOnlySignals: SourceOnlyAuthoringSignal[],
+): string {
+  const paths = Array.from(
+    new Set(
+      sourceOnlySignals.map((signal) =>
+        toWorkspaceRelativePath(workspaceRoot, signal.sourcePath),
+      ),
+    ),
+  );
+  return `Author ${summarizeSignalKinds(sourceOnlySignals)} entities manually from source-only evidence in ${listSummary(paths, 3)}; do not auto-create them from scan output.`;
+}
+
+function buildCheckDescription(
+  declaredContext: AutopilotDeclaredContext,
+): string {
+  if (declaredContext.verificationAnchors.length > 0) {
+    return `After approved kb_upsert calls, run kb_check and verify ${listSummary(declaredContext.verificationAnchors, 2)}.`;
+  }
+  return "After approved kb_upsert calls, run kb_check to validate the resulting graph.";
+}
+
+function buildRecommendedActions(
+  workspaceRoot: string,
+  activationMode: ActivationMode,
+  activationReason: string,
+  handoffMessage: string | undefined,
+  applyBlocked: boolean,
+  declaredContext: AutopilotDeclaredContext,
+  candidateRecords: CandidateRecord[],
+  sourceOnlySignals: SourceOnlyAuthoringSignal[],
+): AutopilotRecommendedAction[] {
+  const actions: AutopilotRecommendedAction[] = [];
+  let order = 1;
+  const reviewTargets = Array.from(
+    new Set([
+      ...declaredContext.sourceOfTruthPaths,
+      ...declaredContext.priorityRoots,
+      ...sourceOnlySignals.map((signal) =>
+        toWorkspaceRelativePath(workspaceRoot, signal.sourcePath),
+      ),
+    ]),
+  );
+  const candidateIds = candidateRecords
+    .map((candidate) => String(candidate.candidateId ?? ""))
+    .filter(Boolean);
+  const isActiveRepo =
+    activationMode === "attached_thin_handoff" || activationMode === "attached_seeded_handoff";
+
+  actions.push({
+    order: order++,
+    kind: "query",
+    description:
+      reviewTargets.length > 0
+        ? `Review ${listSummary(reviewTargets, 3)} before authoring or applying bootstrap output.`
+        : "Review the workspace evidence and any existing KB records before authoring or applying bootstrap output.",
+  });
+
+  if (isActiveRepo) {
+    actions.push({
+      order: order++,
+      kind: "handoff",
+      description:
+        "Use kb_search to explore existing KB entities and understand current coverage.",
+    });
+    actions.push({
+      order: order++,
+      kind: "handoff",
+      description:
+        "Use kb_briefing_generate with task-relevant seed IDs for a citation-backed briefing.",
+    });
+    actions.push({
+      order: order++,
+      kind: "handoff",
+      description:
+        activationMode === "attached_thin_handoff"
+          ? "Use kb_find_gaps to identify coverage holes and guide incremental KB growth."
+          : "Use kb_coverage to review traceability and identify areas needing attention.",
+    });
+  }
+
+  if (applyBlocked) {
+    actions.push({
+      order: order++,
+      kind: "handoff",
+      description: handoffMessage ?? blockedActivationMessage(activationMode, activationReason),
+    });
+  } else if (candidateIds.length > 0) {
+    actions.push({
+      order: order++,
+      kind: "upsert",
+      description: `Review and optionally upsert ${candidateIds.length} safe candidate(s) from typed or deterministic evidence.`,
+      candidateIds,
+    });
+  }
+
+  if (sourceOnlySignals.length > 0) {
+    actions.push({
+      order: order++,
+      kind: "handoff",
+      description: buildSourceOnlyActionDescription(workspaceRoot, sourceOnlySignals),
+    });
+  }
+
+  actions.push({
+    order: order++,
+    kind: "check",
+    description: buildCheckDescription(declaredContext),
+  });
+
+  return actions;
+}
+
+function buildConfidence(
+  activationMode: ActivationMode,
+  applyBlocked: boolean,
+  declaredContext: AutopilotDeclaredContext,
+  candidateRecords: CandidateRecord[],
+  sourceOnlySignals: SourceOnlyAuthoringSignal[],
+  promptBlock: string,
+): AutopilotConfidence {
+  const reasons: string[] = [];
+  let score = candidateRecords.length > 0 ? 0.68 : 0.44;
+
+  if (applyBlocked) {
+    score -= 0.24;
+    reasons.push("Current workspace posture blocks direct application.");
+  } else {
+    score += 0.12;
+    reasons.push("Workspace posture allows read-only bootstrap synthesis.");
+  }
+
+  switch (activationMode) {
+    case "cold_start_bootstrap":
+      score += 0.1;
+      reasons.push("Cold-start mode is a strong fit for bootstrap synthesis.");
+      break;
+    case "repair_bootstrap":
+      score -= 0.05;
+      reasons.push("Repair mode favors staged recovery before apply.");
+      break;
+    case "attached_thin_handoff":
+      score -= 0.12;
+      reasons.push("Thin attached KB favors handoff/query guidance.");
+      break;
+    case "attached_seeded_handoff":
+      score -= 0.18;
+      reasons.push("Seeded attached KB already has enough history to prefer handoff guidance.");
+      break;
+    case "vendored_blocked":
+      score -= 0.25;
+      reasons.push("Vendored-only posture blocks bootstrap output from becoming actionable.");
+      break;
+  }
+
+  if (
+    declaredContext.projectSummary ||
+    declaredContext.sourceOfTruthPaths.length > 0 ||
+    declaredContext.sourceOfTruthNotes.length > 0 ||
+    declaredContext.priorityRoots.length > 0 ||
+    declaredContext.verificationAnchors.length > 0
+  ) {
+    score += 0.08;
+    reasons.push("Declared bootstrap context grounds the output.");
+  } else {
+    reasons.push("No declared bootstrap context was supplied.");
+  }
+
+  if (sourceOnlySignals.length > 0) {
+    score += 0.04;
+    reasons.push(
+      "Source-only evidence was routed into authoring guidance instead of speculative REQ/SCEN/TEST candidates.",
+    );
+  }
+
+  if (candidateRecords.length === 0) {
+    score -= 0.08;
+    reasons.push("No safe candidates were synthesized from current evidence.");
+  } else {
+    reasons.push(`${candidateRecords.length} safe candidate(s) are ready for review.`);
+  }
+
+  if (!promptBlock) {
+    score -= 0.05;
+    reasons.push("Prompt block could not be assembled within the handoff budget.");
+  }
+
+  const rounded = roundScore(score);
+  const level: "high" | "medium" | "low" =
+    rounded > 0.7 ? "high" : rounded >= 0.4 ? "medium" : "low";
+  const policy: "full_actions" | "review_required" | "handoff_only" =
+    level === "high" ? "full_actions" : level === "medium" ? "review_required" : "handoff_only";
+  if (policy === "review_required") {
+    reasons.push("Medium confidence: review recommended before applying.");
+  } else if (policy === "handoff_only") {
+    reasons.push("Low confidence: handoff-only output with diagnostic guidance.");
+  }
+  return {
+    score: rounded,
+    level,
+    reasons,
+    policy,
+  };
+}
+
+function buildTldr(
+  activationMode: ActivationMode,
+  applyBlocked: boolean,
+  candidateRecords: CandidateRecord[],
+  sourceOnlySignals: SourceOnlyAuthoringSignal[],
+  activationReason: string,
+  handoffMessage?: string,
+): string {
+  if (applyBlocked) {
+    if (candidateRecords.length > 0 || sourceOnlySignals.length > 0) {
+      return `Bootstrap guidance is ready in ${activationMode}: ${candidateRecords.length} safe candidate(s), ${sourceOnlySignals.length} source-only authoring follow-up(s), and apply remains blocked.`;
+    }
+    return handoffMessage ?? blockedActivationMessage(activationMode, activationReason);
+  }
+
+  if (candidateRecords.length > 0 || sourceOnlySignals.length > 0) {
+    return `Bootstrap output is ready with ${candidateRecords.length} safe candidate(s) and ${sourceOnlySignals.length} source-only authoring follow-up(s).`;
+  }
+
+  return "Bootstrap output found no safe candidates; follow the recommended actions to continue.";
 }
 
 function extractTextRefFromApplyPlan(applyPlan: unknown): string {
@@ -143,8 +599,10 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     minConfidence = 0.8,
     maxCandidates = 50,
     entityTypes,
+    bootstrapContext,
   } = args;
-  // Minimal discovery + candidate assembly implementation
+  const normalizedMinConfidence = clamp(minConfidence, 0.6, 0.95);
+  const normalizedMaxCandidates = clamp(maxCandidates, 1, 200);
   const prolog = _prolog;
 
   // Gather existing entity ids to suppress duplicates
@@ -164,6 +622,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   const activation = await resolveActivationPolicy(workspaceRoot, prolog);
   const activationState = activation.activationState;
   const activationDiscovery = discoverProviderEvidence(workspaceRoot, activation);
+  const declaredContext = normalizeBootstrapContext(bootstrapContext);
   const discoveredCandidatePaths = activationDiscovery.evidence.reduce<string[]>(
     (acc, item) => {
       const relativePath = item.relativePath;
@@ -182,93 +641,39 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     discoveredCandidatePaths,
   );
 
-  if (!activation.allowCandidateGeneration) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: blockedActivationMessage(
-            activation.activationMode,
-            activation.reason,
-            activation.handoffMessage,
-          ),
-        },
-      ],
-      structuredContent: {
-        activationState,
-        activationMode: activation.activationMode,
-        activationReason: activation.reason,
-        applyBlocked: activation.applyBlocked,
-        ...(activation.handoffMessage
-          ? { handoffMessage: activation.handoffMessage }
-          : {}),
-        discoverySummary: activationDiscovery.summary,
-        candidates: [],
-        suppressedCandidates: [],
-        payoffSummary: {
-          current: {},
-          projectedIfAllApplied: {},
-          delta: {},
-        },
-      },
-    };
-  }
-
   const candidateDiscovery = {
     ...discovery,
     evidence: activationDiscovery.evidence,
   };
-  const typedMarkdownCandidates = buildTypedMarkdownCandidates(candidateDiscovery, {
-    ids: existingIds,
-    workspaceRoot,
-  });
-  const manifestCandidates = buildSymbolManifestCandidates(candidateDiscovery, {
-    ids: existingIds,
-    workspaceRoot,
-  });
-  let genericCandidates: Candidate[] = [];
-  if (includeGenericMarkdown) {
-    genericCandidates = buildGenericMarkdownCandidates(
-      candidateDiscovery,
-      {
-        ids: existingIds,
-        workspaceRoot,
-      },
-      minConfidence,
-    );
-  }
-  const providerEvidenceCandidates = buildProviderEvidenceCandidates(
-    candidateDiscovery,
+  const guidanceDiscovery = includeGenericMarkdown
+    ? candidateDiscovery
+    : {
+        ...candidateDiscovery,
+        markdownFiles: [],
+        evidence: candidateDiscovery.evidence.filter(
+          (item) => item.kind !== "generic_markdown",
+        ),
+      };
+  let sourceOnlySignals = collectSourceOnlyAuthoringSignals(
+    guidanceDiscovery,
     {
       ids: existingIds,
       workspaceRoot,
     },
-    minConfidence,
+    normalizedMinConfidence,
   );
-
-  // Merge and filter candidates by requested entityTypes and minConfidence
-  let allCandidates = [
-    ...typedMarkdownCandidates,
-    ...manifestCandidates,
-    ...genericCandidates,
-    ...providerEvidenceCandidates,
-  ];
   if (entityTypes && entityTypes.length > 0) {
-    const allowed = new Set(entityTypes as string[]);
-    allCandidates = allCandidates.filter((c) => allowed.has(c.entityType));
+    const allowedSignals = new Set(entityTypes as string[]);
+    sourceOnlySignals = sourceOnlySignals.filter((signal) =>
+      allowedSignals.has(signal.kind),
+    );
   }
-  allCandidates = allCandidates.filter((c) => c.confidence >= minConfidence);
 
-  // Limit and deterministic sort (confidence desc, sourcePath asc)
-  allCandidates.sort((a, b) => {
-    if (b.confidence !== a.confidence) return b.confidence - a.confidence;
-    if (a.sourcePath < b.sourcePath) return -1;
-    if (a.sourcePath > b.sourcePath) return 1;
-    return 0;
-  });
-  allCandidates = allCandidates.slice(0, maxCandidates);
-
-  // Dedupe logic
+  let typedMarkdownCandidates: Candidate[] = [];
+  let manifestCandidates: Candidate[] = [];
+  let genericCandidates: Candidate[] = [];
+  let providerEvidenceCandidates: Candidate[] = [];
+  let allCandidates: Candidate[] = [];
   const seenByKey = new Map<string, CandidateRecord>();
   const suppressed: SuppressedCandidateRecord[] = [];
   // Helpers
@@ -276,124 +681,207 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     return `${entityType}::${String(title).trim().toLowerCase().replace(/\s+/g, " ")}`;
   }
 
-  const typedTitleKeys = new Set(
-    typedMarkdownCandidates.map((candidate) =>
-      normalizeTitle(
-        String(candidate.entityType || ""),
-        String(candidate.title || ""),
+  if (activation.allowCandidateGeneration) {
+    typedMarkdownCandidates = buildTypedMarkdownCandidates(candidateDiscovery, {
+      ids: existingIds,
+      workspaceRoot,
+    });
+    manifestCandidates = buildSymbolManifestCandidates(candidateDiscovery, {
+      ids: existingIds,
+      workspaceRoot,
+    });
+    if (includeGenericMarkdown) {
+      genericCandidates = buildGenericMarkdownCandidates(
+        candidateDiscovery,
+        {
+          ids: existingIds,
+          workspaceRoot,
+        },
+        normalizedMinConfidence,
+      );
+    }
+    providerEvidenceCandidates = buildProviderEvidenceCandidates(
+      candidateDiscovery,
+      {
+        ids: existingIds,
+        workspaceRoot,
+      },
+      normalizedMinConfidence,
+    );
+
+    allCandidates = [
+      ...typedMarkdownCandidates,
+      ...manifestCandidates,
+      ...genericCandidates,
+      ...providerEvidenceCandidates,
+    ];
+    if (entityTypes && entityTypes.length > 0) {
+      const allowed = new Set(entityTypes as string[]);
+      allCandidates = allCandidates.filter((candidate) =>
+        allowed.has(candidate.entityType),
+      );
+    }
+    allCandidates = allCandidates.filter(
+      (candidate) => candidate.confidence >= normalizedMinConfidence,
+    );
+
+    allCandidates.sort((left, right) => {
+      if (right.confidence !== left.confidence) {
+        return right.confidence - left.confidence;
+      }
+      if (left.sourcePath < right.sourcePath) return -1;
+      if (left.sourcePath > right.sourcePath) return 1;
+      return 0;
+    });
+    allCandidates = allCandidates.slice(0, normalizedMaxCandidates);
+
+    const typedTitleKeys = new Set(
+      typedMarkdownCandidates.map((candidate) =>
+        normalizeTitle(
+          String(candidate.entityType || ""),
+          String(candidate.title || ""),
+        ),
       ),
-    ),
-  );
+    );
 
-  for (const c of allCandidates) {
-    const record: CandidateRecord = { ...c };
-    const entityType = String(c.entityType || "");
-    const title = String(c.title || "");
-    const sourceKind = String(c.sourceKind || "");
-    const sourcePath = String(c.sourcePath || "");
-    const textRef = extractTextRefFromApplyPlan(c.applyPlan);
-    const titleKey = normalizeTitle(entityType, title);
+    for (const candidate of allCandidates) {
+      const record: CandidateRecord = { ...candidate };
+      const entityType = String(candidate.entityType || "");
+      const title = String(candidate.title || "");
+      const sourceKind = String(candidate.sourceKind || "");
+      const sourcePath = String(candidate.sourcePath || "");
+      const textRef = extractTextRefFromApplyPlan(candidate.applyPlan);
+      const titleKey = normalizeTitle(entityType, title);
 
-    // entity_exists: exact entity ID present in KB
-    const upsert = Array.isArray(c.applyPlan) ? c.applyPlan[0] : null;
-    let upsertId = "";
-    if (upsert && typeof upsert === "object") {
-      const upsertRecord = upsert as Record<string, unknown>;
-      const directId = upsertRecord.id;
-      if (typeof directId === "string" && directId.length > 0) {
-        upsertId = directId;
-      } else {
-        const properties = upsertRecord.properties;
-        if (properties && typeof properties === "object") {
-          const nestedId = (properties as Record<string, unknown>).id;
-          if (typeof nestedId === "string" && nestedId.length > 0) {
-            upsertId = nestedId;
+      const upsert = Array.isArray(candidate.applyPlan) ? candidate.applyPlan[0] : null;
+      let upsertId = "";
+      if (upsert && typeof upsert === "object") {
+        const upsertRecord = upsert as Record<string, unknown>;
+        const directId = upsertRecord.id;
+        if (typeof directId === "string" && directId.length > 0) {
+          upsertId = directId;
+        } else {
+          const properties = upsertRecord.properties;
+          if (properties && typeof properties === "object") {
+            const nestedId = (properties as Record<string, unknown>).id;
+            if (typeof nestedId === "string" && nestedId.length > 0) {
+              upsertId = nestedId;
+            }
           }
         }
       }
-    }
-    if (existingIds.has(upsertId)) {
-      suppressed.push(toSuppressedCandidate("entity_exists", record));
-      continue;
-    }
+      if (existingIds.has(upsertId)) {
+        suppressed.push(toSuppressedCandidate("entity_exists", record));
+        continue;
+      }
 
-    if (sourceKind === "generic_markdown" && typedTitleKeys.has(titleKey)) {
-      suppressed.push(toSuppressedCandidate("shadowed_by_typed_source", record));
-      continue;
-    }
+      if (sourceKind === "generic_markdown" && typedTitleKeys.has(titleKey)) {
+        suppressed.push(toSuppressedCandidate("shadowed_by_typed_source", record));
+        continue;
+      }
 
-    // duplicate_title: same entityType + normalized title
-    const existing = seenByKey.get(titleKey);
-    if (existing) {
-      // keep the higher confidence one
-      const existingConf = Number(existing.confidence ?? 0);
-      const thisConf = Number(c.confidence ?? 0);
-      if (thisConf > existingConf) {
-        // move existing to suppressed
-        suppressed.push(toSuppressedCandidate("duplicate_title", existing));
-        seenByKey.set(titleKey, record);
-      } else if (thisConf < existingConf) {
-        suppressed.push(toSuppressedCandidate("duplicate_title", record));
-      } else {
-        // tie-break by lexicographically smallest sourcePath:textRef
-        const existingRef = `${String(existing.sourcePath ?? "")}::${extractTextRefFromApplyPlan(existing.applyPlan)}`;
-        const thisRef = `${sourcePath}::${textRef}`;
-        if (thisRef < existingRef) {
+      const existing = seenByKey.get(titleKey);
+      if (existing) {
+        const existingConf = Number(existing.confidence ?? 0);
+        const thisConf = Number(candidate.confidence ?? 0);
+        if (thisConf > existingConf) {
           suppressed.push(toSuppressedCandidate("duplicate_title", existing));
           seenByKey.set(titleKey, record);
-        } else {
+        } else if (thisConf < existingConf) {
           suppressed.push(toSuppressedCandidate("duplicate_title", record));
+        } else {
+          const existingRef = `${String(existing.sourcePath ?? "")}::${extractTextRefFromApplyPlan(existing.applyPlan)}`;
+          const thisRef = `${sourcePath}::${textRef}`;
+          if (thisRef < existingRef) {
+            suppressed.push(toSuppressedCandidate("duplicate_title", existing));
+            seenByKey.set(titleKey, record);
+          } else {
+            suppressed.push(toSuppressedCandidate("duplicate_title", record));
+          }
         }
+        continue;
       }
-      continue;
-    }
 
-    seenByKey.set(titleKey, record);
+      seenByKey.set(titleKey, record);
+    }
   }
 
   const candidateRecords: CandidateRecord[] = Array.from(seenByKey.values());
+  const payoffSummary = buildPayoffSummary(candidateRecords);
+  const promptBlock = buildPromptBlock(
+    workspaceRoot,
+    activationState,
+    activation.activationMode,
+    activation.reason,
+    activation.applyBlocked,
+    declaredContext,
+    candidateRecords,
+    sourceOnlySignals,
+    activationDiscovery.summary.scanWarnings,
+  );
+  const confidence = buildConfidence(
+    activation.activationMode,
+    activation.applyBlocked,
+    declaredContext,
+    candidateRecords,
+    sourceOnlySignals,
+    promptBlock,
+  );
+  const recommendedActions = buildRecommendedActions(
+    workspaceRoot,
+    activation.activationMode,
+    activation.reason,
+    activation.handoffMessage,
+    activation.applyBlocked,
+    declaredContext,
+    candidateRecords,
+    sourceOnlySignals,
+  );
+  const tldr = buildTldr(
+    activation.activationMode,
+    activation.applyBlocked,
+    candidateRecords,
+    sourceOnlySignals,
+    activation.reason,
+    activation.handoffMessage,
+  );
+  // Apply confidence policy: medium and low confidence force applyBlocked
+  const effectiveApplyBlocked =
+    activation.applyBlocked || confidence.level === "medium" || confidence.level === "low";
+  const effectiveTldr =
+    confidence.level === "low" && !activation.applyBlocked
+      ? `Low-confidence bootstrap (${confidence.score}): review diagnostics before proceeding. ${tldr}`
+      : tldr;
+  const structuredContent: AutopilotStructuredContent = {
+    activationState,
+    activationMode: activation.activationMode,
+    bootstrapMode: activation.activationMode,
+    activationReason: activation.reason,
+    applyBlocked: effectiveApplyBlocked,
+    ...(activation.handoffMessage
+      ? { handoffMessage: activation.handoffMessage }
+      : {}),
+    confidence,
+    tldr,
+    promptBlock,
+    recommendedActions,
+    declaredContext,
+    discoverySummary: activationDiscovery.summary,
+    candidates: candidateRecords,
+    suppressedCandidates: suppressed,
+    payoffSummary,
+  };
 
   return {
     content: [
       {
         type: "text",
-        text: `Autopilot generated ${allCandidates.length} candidate(s).`,
+        text: effectiveTldr,
       },
     ],
-    structuredContent: {
-      activationState,
-      activationMode: activation.activationMode,
-      activationReason: activation.reason,
-      applyBlocked: activation.applyBlocked,
-      ...(activation.handoffMessage
-        ? { handoffMessage: activation.handoffMessage }
-        : {}),
-      discoverySummary: activationDiscovery.summary,
-      candidates: candidateRecords,
-      suppressedCandidates: suppressed,
-      payoffSummary: (() => {
-        // current counts by type
-        const current: Record<string, number> = {};
-        try {
-          // compute from existingIds via loadEntities would be expensive; fall back to empty
-        } catch (e) {
-          // noop
-        }
-        // projected if all applied
-        const projected: Record<string, number> = { ...current };
-        for (const r of candidateRecords) {
-          const t = String(r.entityType || "unknown");
-          projected[t] = (projected[t] || 0) + 1;
-        }
-
-        const delta: Record<string, number> = {};
-        for (const k of Object.keys(projected)) {
-          const projectedValue = projected[k] ?? 0;
-          const currentValue = current[k] ?? 0;
-          delta[k] = projectedValue - currentValue;
-        }
-        return { current, projectedIfAllApplied: projected, delta };
-      })(),
-    },
+    structuredContent,
+    candidates: candidateRecords,
+    suppressedCandidates: suppressed,
+    payoffSummary,
   };
 }
