@@ -19,11 +19,14 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import path from "node:path";
 import {
   type Candidate,
+  buildGenericMarkdownCandidates,
+  buildProviderEvidenceCandidates,
   buildTypedMarkdownCandidates,
   buildSymbolManifestCandidates,
 } from "./autopilot-candidates.js";
 import {
-  discoverSources as discoverActivationSources,
+  type DiscoverySummary,
+  discoverProviderEvidence,
   resolveActivationPolicy,
   type ActivationMode,
   type ActivationState,
@@ -48,7 +51,7 @@ export interface AutopilotGenerateResult {
     activationReason: string;
     applyBlocked: boolean;
     handoffMessage?: string;
-    discoverySummary: Record<string, unknown>;
+    discoverySummary: DiscoverySummary;
     candidates: Array<Record<string, unknown>>;
     suppressedCandidates: Array<Record<string, unknown>>;
     payoffSummary: Record<string, unknown>;
@@ -160,10 +163,23 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   const workspaceRoot = resolveWorkspaceRoot();
   const activation = await resolveActivationPolicy(workspaceRoot, prolog);
   const activationState = activation.activationState;
-  const activationDiscovery = discoverActivationSources(workspaceRoot, activation);
+  const activationDiscovery = discoverProviderEvidence(workspaceRoot, activation);
+  const discoveredCandidatePaths = activationDiscovery.evidence.reduce<string[]>(
+    (acc, item) => {
+      const relativePath = item.relativePath;
+      if (
+        typeof relativePath === "string" &&
+        (relativePath.endsWith(".md") || /symbols\.ya?ml$/i.test(relativePath))
+      ) {
+        acc.push(relativePath);
+      }
+      return acc;
+    },
+    [],
+  );
   const discovery = splitDiscoveredSources(
     workspaceRoot,
-    activationDiscovery.candidates,
+    discoveredCandidatePaths,
   );
 
   if (!activation.allowCandidateGeneration) {
@@ -186,15 +202,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
         ...(activation.handoffMessage
           ? { handoffMessage: activation.handoffMessage }
           : {}),
-        discoverySummary: {
-          markdownFiles: discovery.markdownFiles.length,
-          manifestFiles: discovery.manifestFiles.length,
-          vendored: activationDiscovery.summary.vendored ?? [],
-          activationMode: activationDiscovery.summary.activationMode,
-          ...(activationDiscovery.summary.handoffMessage
-            ? { handoffMessage: activationDiscovery.summary.handoffMessage }
-            : {}),
-        },
+        discoverySummary: activationDiscovery.summary,
         candidates: [],
         suppressedCandidates: [],
         payoffSummary: {
@@ -206,40 +214,45 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     };
   }
 
-  const typedMarkdownCandidates = buildTypedMarkdownCandidates(discovery, {
+  const candidateDiscovery = {
+    ...discovery,
+    evidence: activationDiscovery.evidence,
+  };
+  const typedMarkdownCandidates = buildTypedMarkdownCandidates(candidateDiscovery, {
     ids: existingIds,
     workspaceRoot,
   });
-  const manifestCandidates = buildSymbolManifestCandidates(discovery, {
+  const manifestCandidates = buildSymbolManifestCandidates(candidateDiscovery, {
     ids: existingIds,
     workspaceRoot,
   });
-  // Lazy import to avoid circulars if any
-  // buildGenericMarkdownCandidates is added in autopilot-candidates
   let genericCandidates: Candidate[] = [];
   if (includeGenericMarkdown) {
-    try {
-      // Import from same module file
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const ac = await import("./autopilot-candidates.js");
-      if (typeof ac.buildGenericMarkdownCandidates === "function") {
-        genericCandidates = ac.buildGenericMarkdownCandidates(
-          discovery,
-          {
-            ids: existingIds,
-            workspaceRoot,
-          },
-          minConfidence,
-        ) as Candidate[];
-      }
-    } catch (err) {
-      // ignore import failures and proceed with typed candidates only
-      genericCandidates = [];
-    }
+    genericCandidates = buildGenericMarkdownCandidates(
+      candidateDiscovery,
+      {
+        ids: existingIds,
+        workspaceRoot,
+      },
+      minConfidence,
+    );
   }
+  const providerEvidenceCandidates = buildProviderEvidenceCandidates(
+    candidateDiscovery,
+    {
+      ids: existingIds,
+      workspaceRoot,
+    },
+    minConfidence,
+  );
 
   // Merge and filter candidates by requested entityTypes and minConfidence
-  let allCandidates = [...typedMarkdownCandidates, ...manifestCandidates, ...genericCandidates];
+  let allCandidates = [
+    ...typedMarkdownCandidates,
+    ...manifestCandidates,
+    ...genericCandidates,
+    ...providerEvidenceCandidates,
+  ];
   if (entityTypes && entityTypes.length > 0) {
     const allowed = new Set(entityTypes as string[]);
     allCandidates = allCandidates.filter((c) => allowed.has(c.entityType));
@@ -355,12 +368,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       ...(activation.handoffMessage
         ? { handoffMessage: activation.handoffMessage }
         : {}),
-      discoverySummary: {
-        markdownFiles: discovery.markdownFiles.length,
-        manifestFiles: discovery.manifestFiles.length,
-        vendored: activationDiscovery.summary.vendored ?? [],
-        activationMode: activationDiscovery.summary.activationMode,
-      },
+      discoverySummary: activationDiscovery.summary,
       candidates: candidateRecords,
       suppressedCandidates: suppressed,
       payoffSummary: (() => {

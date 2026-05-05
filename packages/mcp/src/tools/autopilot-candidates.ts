@@ -5,6 +5,7 @@ import { extractFromMarkdown } from "kibi-cli/extractors/markdown";
 
 import type { ExtractionResult as ManifestExtractionResult } from "kibi-cli/extractors/manifest";
 import type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
+import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
 import path from "node:path";
 import fs from "node:fs";
@@ -26,6 +27,75 @@ export interface Candidate {
 interface ExistingEntitiesContext {
   ids: Set<string>;
   workspaceRoot?: string;
+}
+
+interface DiscoveryInput {
+  markdownFiles?: string[];
+  manifestFiles?: string[];
+  evidence?: AutopilotEvidence[];
+}
+
+function slugify(value: string, maxLength = 80): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, maxLength);
+}
+
+function sortUniquePaths(paths: string[]): string[] {
+  return Array.from(new Set(paths)).sort();
+}
+
+function getEvidenceFilePaths(
+  discoveryResult: DiscoveryInput,
+  kind: AutopilotEvidence["kind"],
+): string[] {
+  return sortUniquePaths(
+    (discoveryResult.evidence ?? [])
+      .filter((item) => item.kind === kind)
+      .map((item) => item.absolutePath ?? "")
+      .filter((item): item is string => Boolean(item)),
+  );
+}
+
+function getTypedMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "typed_markdown");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.markdownFiles ?? [];
+}
+
+function getManifestFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "symbol_manifest");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.manifestFiles ?? [];
+}
+
+function getGenericMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "generic_markdown");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.markdownFiles ?? [];
+}
+
+function hasGenericMarkdownEvidence(discoveryResult: DiscoveryInput): boolean {
+  return (discoveryResult.evidence ?? []).some(
+    (item) => item.kind === "generic_markdown",
+  );
+}
+
+function getFactEvidence(discoveryResult: DiscoveryInput): AutopilotEvidence[] {
+  return (discoveryResult.evidence ?? []).filter(
+    (item) =>
+      item.kind === "repo_metadata" ||
+      item.kind === "repo_layout" ||
+      item.kind === "test_topology",
+  );
+}
+
+function toConfidenceBand(confidence: number): string {
+  if (confidence >= 0.9) return "high";
+  if (confidence >= 0.8) return "medium";
+  return "low";
 }
 
 function resolveCandidatePaths(
@@ -77,13 +147,13 @@ function buildUpsertFromExtraction(
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildTypedMarkdownCandidates(
-  discoveryResult: { markdownFiles: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
 
-  for (const filePath of discoveryResult.markdownFiles || []) {
+  for (const filePath of getTypedMarkdownFiles(discoveryResult)) {
     try {
       const extraction = extractFromMarkdown(filePath) as MarkdownExtractionResult;
       const { entity, relationships } = extraction;
@@ -122,13 +192,13 @@ export function buildTypedMarkdownCandidates(
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildSymbolManifestCandidates(
-  discoveryResult: { manifestFiles: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
 
-  for (const filePath of discoveryResult.manifestFiles || []) {
+  for (const filePath of getManifestFiles(discoveryResult)) {
     try {
       const results = extractFromManifest(filePath) as ManifestExtractionResult[];
       for (const res of results) {
@@ -180,14 +250,15 @@ export function buildSymbolManifestCandidates(
  */
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildGenericMarkdownCandidates(
-  discoveryResult: { markdownFiles?: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
   minConfidence = 0.8,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
-  const files = discoveryResult.markdownFiles ?? [];
+  const files = getGenericMarkdownFiles(discoveryResult);
   for (const rawPath of files) {
     try {
       const filePath = String(rawPath);
@@ -201,8 +272,9 @@ export function buildGenericMarkdownCandidates(
       const base = path.basename(relativePath).toLowerCase();
       const inDocsDir = /(^|\/)docs\//.test(relativePath);
 
-      // Only scan README.md, ARCHITECTURE.md or files under docs/**
-      if (!(base === "readme.md" || base === "architecture.md" || inDocsDir)) {
+      // Legacy path-only discovery was conservative. Provider-scoped discovery
+      // already filters eligible generic docs, so allow broader repo markdown there.
+      if (!providerScopedMarkdown && !(base === "readme.md" || base === "architecture.md" || inDocsDir)) {
         continue;
       }
 
@@ -305,7 +377,77 @@ export function buildGenericMarkdownCandidates(
   return candidates;
 }
 
+// implements REQ-mcp-init-kibi-autopilot-v1
+export function buildProviderEvidenceCandidates(
+  discoveryResult: DiscoveryInput,
+  existingEntities: ExistingEntitiesContext,
+  minConfidence = 0.8,
+): Candidate[] {
+  const candidates: Candidate[] = [];
+  const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+
+  for (const item of getFactEvidence(discoveryResult)) {
+    const relativePath = item.relativePath ?? item.label;
+    const absolutePath = item.absolutePath ?? path.resolve(workspaceRoot, relativePath);
+    const confidence = typeof item.data.confidence === "number" ? item.data.confidence : 0.8;
+    if (confidence < minConfidence) continue;
+
+    const factKind =
+      typeof item.data.factKind === "string" && item.data.factKind.length > 0
+        ? item.data.factKind
+        : item.kind === "repo_metadata"
+          ? "meta"
+          : "observation";
+    const title =
+      typeof item.data.title === "string" && item.data.title.length > 0
+        ? item.data.title
+        : `Autopilot evidence from ${relativePath}`;
+    const slugSource = `${item.kind}-${relativePath}`;
+    const generatedId = `FACT-GEN-${slugify(slugSource, 64) || "evidence"}`.toUpperCase();
+    if (existingEntities.ids.has(generatedId)) continue;
+
+    const textRef = relativePath.includes("#") ? relativePath : `${relativePath}`;
+    const evidence = Array.isArray(item.data.evidence)
+      ? item.data.evidence.filter((value): value is string => typeof value === "string")
+      : [];
+
+    candidates.push({
+      candidateId: `prov:${item.kind}:${slugify(relativePath, 96) || "evidence"}`,
+      entityType: "fact",
+      title,
+      sourceKind: item.kind,
+      sourcePath: absolutePath,
+      confidence,
+      confidenceBand: toConfidenceBand(confidence),
+      evidence:
+        evidence.length > 0
+          ? evidence
+          : [`provider:${item.provider}`, `${item.kind}:${relativePath}`],
+      relationships: [],
+      applyPlan: [
+        {
+          type: "fact",
+          id: generatedId,
+          properties: {
+            id: generatedId,
+            title,
+            status: "active",
+            fact_kind: factKind,
+            source: `autopilot:${item.provider}:${relativePath}`,
+            text_ref: textRef,
+          },
+          relationships: [],
+        },
+      ],
+    });
+  }
+
+  return candidates;
+}
+
 export default {
   buildTypedMarkdownCandidates,
   buildSymbolManifestCandidates,
+  buildGenericMarkdownCandidates,
+  buildProviderEvidenceCandidates,
 };
