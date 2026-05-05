@@ -1,10 +1,50 @@
+import fs from "node:fs";
+import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
-import { setupWorkspace, writeRootConfig, createVendoredTree, ensureDocs } from "./autopilot-workspace-fixture";
-import { classifyActivationState, discoverSources } from "../../src/tools/autopilot-discovery";
+import {
+  createColdStartRepo,
+  createMultiRootRepo,
+  createNoisyRepo,
+  createPartialRepo,
+  createSeededRepo,
+  createThinRepo,
+  createVendoredTree,
+  setupWorkspace,
+} from "./autopilot-workspace-fixture";
+import {
+  classifyActivationState,
+  discoverSources,
+  resolveActivationPolicy,
+} from "../../src/tools/autopilot-discovery";
 import type { PrologProcess } from "kibi-cli/prolog";
 
 describe("autopilot discovery", () => {
   let fixture: ReturnType<typeof setupWorkspace> | null = null;
+
+  function summaryExtras(summary: unknown): {
+    activationMode?: string;
+    handoffMessage?: string;
+    reason?: string;
+  } {
+    return summary as {
+      activationMode?: string;
+      handoffMessage?: string;
+      reason?: string;
+    };
+  }
+
+  function createPrologStub(json: string): PrologProcess {
+    return {
+      query: async () => ({
+        success: true,
+        bindings: { JsonString: json },
+      }),
+    } as unknown as PrologProcess;
+  }
+
+  function createEmptyPrologStub(): PrologProcess {
+    return createPrologStub(JSON.stringify({ rows: [] }));
+  }
 
   beforeEach(() => {
     fixture = setupWorkspace();
@@ -21,67 +61,123 @@ describe("autopilot discovery", () => {
     if (!fixture) throw new Error("missing fixture");
     createVendoredTree(fixture.root);
 
-    const fakeProlog = { query: async () => ({ success: true, bindings: { JsonString: '{}' } }) } as unknown as PrologProcess;
+    const fakeProlog = createEmptyPrologStub();
     const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
     expect(state).toBe("vendored_only");
+    expect(activation.activationMode).toBe("vendored_blocked");
+    expect(activation.applyBlocked).toBe(true);
 
-    const discovered = discoverSources(fixture.root, state);
+    const discovered = discoverSources(fixture.root, activation);
+    const summary = summaryExtras(discovered.summary);
     expect(discovered.candidates.length).toBe(0);
+    expect(summary.reason?.toLowerCase()).toContain("vendored");
   });
 
-  it("classifies root_uninitialized when no root config and no vendored tree", async () => {
+  it("maps root_uninitialized to cold_start_bootstrap and scans full evidence without noisy dirs", async () => {
     if (!fixture) throw new Error("missing fixture");
-    const fakeProlog = { query: async () => ({ success: true, bindings: { JsonString: '{}' } }) } as unknown as PrologProcess;
+    createColdStartRepo(fixture.root);
+    createNoisyRepo(fixture.root);
+    fs.mkdirSync(path.join(fixture.root, "packages", "app", "docs"), {
+      recursive: true,
+    });
+    fs.writeFileSync(path.join(fixture.root, "README.md"), "# ADR: Bootstrap\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "packages", "app", "docs", "overview.md"),
+      "# Requirements\n",
+    );
+
+    const fakeProlog = createEmptyPrologStub();
     const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
     expect(state).toBe("root_uninitialized");
+    expect(activation.activationMode).toBe("cold_start_bootstrap");
+    expect(activation.applyBlocked).toBe(false);
+
+    const discovered = discoverSources(fixture.root, activation);
+    const summary = summaryExtras(discovered.summary);
+    expect(summary.activationMode).toBe("cold_start_bootstrap");
+    expect(discovered.candidates).toContain("README.md");
+    expect(discovered.candidates).toContain("packages/app/docs/overview.md");
+    expect(discovered.candidates).not.toContain("vendor/README.md");
   });
 
-  it("classifies root_partial when config exists but targets missing", async () => {
+  it("maps root_partial to repair_bootstrap and keeps discovery review-only", async () => {
     if (!fixture) throw new Error("missing fixture");
-    writeRootConfig(fixture.root, { paths: { requirements: "documentation/requirements/**/*.md" } });
+    createPartialRepo(fixture.root);
 
-    const fakeProlog = { query: async () => ({ success: true, bindings: { JsonString: '{}' } }) } as unknown as PrologProcess;
+    const fakeProlog = createEmptyPrologStub();
     const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
     expect(state).toBe("root_partial");
+    expect(activation.activationMode).toBe("repair_bootstrap");
+    expect(activation.applyBlocked).toBe(true);
+
+    const discovered = discoverSources(fixture.root, activation);
+    const summary = summaryExtras(discovered.summary);
+    expect(summary.activationMode).toBe("repair_bootstrap");
+    expect(discovered.candidates).toContain(
+      "documentation/requirements/REQ-PARTIAL-001.md",
+    );
+    expect(discovered.candidates).toContain("docs/bootstrap.md");
   });
 
-  it("classifies root_active_seeded when KB reports seeded counts", async () => {
+  it("maps root_active_thin to explicit thin handoff for noisy multi-root repos", async () => {
     if (!fixture) throw new Error("missing fixture");
-    // create full documentation tree
-    ensureDocs(fixture.root);
-    writeRootConfig(fixture.root, {});
+    createThinRepo(fixture.root, { multiRoot: true, noisy: true });
 
-    // Fake Prolog returns counts meeting thresholds
-    const fakeJson = JSON.stringify({ rows: [
-      { id: "req", type: "req", count: 2 },
-      { id: "scenario", type: "scenario", count: 1 },
-      { id: "test", type: "test", count: 1 },
-      { id: "adr", type: "adr", count: 1 },
-      { id: "fact", type: "fact", count: 1 },
-    ]});
-    const fakeProlog = { query: async () => ({ success: true, bindings: { JsonString: fakeJson } }) } as unknown as PrologProcess;
+    const fakeProlog = createPrologStub(
+      JSON.stringify({
+        rows: [
+          { id: "req", type: "req", count: 1 },
+          { id: "scenario", type: "scenario", count: 0 },
+          { id: "test", type: "test", count: 0 },
+        ],
+      }),
+    );
 
     const state = await classifyActivationState(fixture.root, fakeProlog);
-    expect(state).toBe("root_active_seeded");
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
 
-    const discovered = discoverSources(fixture.root, state);
-    // should include some documentation files
-    expect(discovered.candidates.some((p) => p.includes("requirements/REQ-001.md"))).toBeTruthy();
-  });
-
-  it("classifies root_active_thin when KB reports low counts", async () => {
-    if (!fixture) throw new Error("missing fixture");
-    ensureDocs(fixture.root);
-    writeRootConfig(fixture.root, {});
-
-    const fakeJson = JSON.stringify({ rows: [
-      { id: "req", type: "req", count: 0 },
-      { id: "scenario", type: "scenario", count: 0 },
-      { id: "test", type: "test", count: 0 },
-    ]});
-    const fakeProlog = { query: async () => ({ success: true, bindings: { JsonString: fakeJson } }) } as unknown as PrologProcess;
-
-    const state = await classifyActivationState(fixture.root, fakeProlog);
     expect(state).toBe("root_active_thin");
+    expect(activation.activationMode).toBe("attached_thin_handoff");
+    expect(activation.applyBlocked).toBe(true);
+
+    const discovered = discoverSources(fixture.root, activation);
+    const summary = summaryExtras(discovered.summary);
+    expect(discovered.candidates).toEqual([]);
+    expect(summary.handoffMessage?.toLowerCase()).toContain("thin");
+  });
+
+  it("maps root_active_seeded to explicit seeded handoff", async () => {
+    if (!fixture) throw new Error("missing fixture");
+    createSeededRepo(fixture.root);
+
+    const fakeProlog = createPrologStub(
+      JSON.stringify({
+        rows: [
+          { id: "req", type: "req", count: 2 },
+          { id: "scenario", type: "scenario", count: 1 },
+          { id: "test", type: "test", count: 1 },
+          { id: "adr", type: "adr", count: 1 },
+          { id: "fact", type: "fact", count: 1 },
+        ],
+      }),
+    );
+
+    const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
+    expect(state).toBe("root_active_seeded");
+    expect(activation.activationMode).toBe("attached_seeded_handoff");
+    expect(activation.applyBlocked).toBe(true);
+
+    const discovered = discoverSources(fixture.root, activation);
+    const summary = summaryExtras(discovered.summary);
+    expect(discovered.candidates).toEqual([]);
+    expect(summary.reason?.toLowerCase()).toContain("seeded");
   });
 });
