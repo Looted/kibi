@@ -19,6 +19,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
+  createTsMorphSourceAnalysisProvider,
   type ManifestSymbolEntry,
   enrichSymbolCoordinatesWithTsMorph,
 } from "./symbols-ts.js";
@@ -36,8 +37,124 @@ const TS_JS_EXTENSIONS = new Set([
 
 export type { ManifestSymbolEntry };
 
+export type SourceAnalysisMode = "parser" | "fallback";
+
+export type SourceSymbolKind =
+  | "function"
+  | "class"
+  | "interface"
+  | "type"
+  | "enum"
+  | "variable"
+  | "unknown";
+
+export interface SourceSymbolAnalysis {
+  name: string;
+  kind: SourceSymbolKind;
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
+  directiveText?: string;
+}
+
+export interface SourceModuleAnalysis {
+  title: string;
+  language: string;
+  analysisMode: SourceAnalysisMode;
+  fallbackReason?: string;
+}
+
+export interface SourceAnalysisResult {
+  sourceFile: string;
+  language: string;
+  providerId: string | null;
+  module: SourceModuleAnalysis;
+  symbols: SourceSymbolAnalysis[];
+}
+
+export interface SourceAnalysisProvider {
+  id: string;
+  supportsFile(filePath: string): boolean;
+  analyzeText(filePath: string, content: string): SourceAnalysisResult;
+}
+
+export interface AnalyzeSourceTextOptions {
+  providers?: SourceAnalysisProvider[];
+}
+
 interface EnrichSymbolCoordinatesDeps {
   enrichTsCoordinates: typeof enrichSymbolCoordinatesWithTsMorph;
+}
+
+const SOURCE_LANGUAGE_EXTENSIONS: Record<string, string> = {
+  ".c": "c",
+  ".cc": "cpp",
+  ".cjs": "javascript",
+  ".cpp": "cpp",
+  ".cs": "csharp",
+  ".cts": "typescript",
+  ".go": "go",
+  ".h": "c",
+  ".hpp": "cpp",
+  ".java": "java",
+  ".js": "javascript",
+  ".jsx": "javascript",
+  ".kt": "kotlin",
+  ".mjs": "javascript",
+  ".mts": "typescript",
+  ".php": "php",
+  ".py": "python",
+  ".rb": "ruby",
+  ".rs": "rust",
+  ".swift": "swift",
+  ".ts": "typescript",
+  ".tsx": "typescript",
+};
+
+const DEFAULT_SOURCE_ANALYSIS_PROVIDERS: SourceAnalysisProvider[] = [
+  createTsMorphSourceAnalysisProvider(),
+];
+
+export function analyzeSourceText(
+  entries: ManifestSymbolEntry[],
+  workspaceRoot: string,
+  deps?: Partial<EnrichSymbolCoordinatesDeps>,
+): Promise<ManifestSymbolEntry[]>;
+export function analyzeSourceText(
+  filePath: string,
+  content: string,
+  options?: AnalyzeSourceTextOptions,
+): SourceAnalysisResult;
+// implements REQ-001
+export function analyzeSourceText(
+  filePathOrEntries: string | ManifestSymbolEntry[],
+  contentOrWorkspaceRoot: string,
+  optionsOrDeps?: AnalyzeSourceTextOptions | Partial<EnrichSymbolCoordinatesDeps>,
+): SourceAnalysisResult | Promise<ManifestSymbolEntry[]> {
+  if (Array.isArray(filePathOrEntries)) {
+    return enrichSymbolCoordinates(
+      filePathOrEntries,
+      contentOrWorkspaceRoot,
+      optionsOrDeps as Partial<EnrichSymbolCoordinatesDeps> | undefined,
+    );
+  }
+
+  const providers =
+    (optionsOrDeps as AnalyzeSourceTextOptions | undefined)?.providers ??
+    DEFAULT_SOURCE_ANALYSIS_PROVIDERS;
+
+  for (const provider of providers) {
+    if (!provider.supportsFile(filePathOrEntries)) continue;
+
+    try {
+      return provider.analyzeText(filePathOrEntries, contentOrWorkspaceRoot);
+    } catch {
+      return createFallbackAnalysis(filePathOrEntries, "provider_error");
+    }
+  }
+
+  return createFallbackAnalysis(filePathOrEntries, "unsupported_language");
 }
 
 export async function enrichSymbolCoordinates(
@@ -137,4 +254,34 @@ function resolveSourcePath(
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function createFallbackAnalysis(
+  filePath: string,
+  fallbackReason: string,
+): SourceAnalysisResult {
+  const language = detectSourceLanguage(filePath);
+
+  return {
+    sourceFile: filePath,
+    language,
+    providerId: null,
+    module: {
+      title: inferModuleTitle(filePath),
+      language,
+      analysisMode: "fallback",
+      fallbackReason,
+    },
+    symbols: [],
+  };
+}
+
+function detectSourceLanguage(filePath: string): string {
+  return SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()] ?? "unknown";
+}
+
+function inferModuleTitle(filePath: string): string {
+  const extension = path.extname(filePath);
+  const basename = path.basename(filePath, extension);
+  return basename.length > 0 ? basename : path.basename(filePath);
 }

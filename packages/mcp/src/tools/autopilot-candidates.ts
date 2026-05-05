@@ -88,7 +88,8 @@ function getFactEvidence(discoveryResult: DiscoveryInput): AutopilotEvidence[] {
     (item) =>
       item.kind === "repo_metadata" ||
       item.kind === "repo_layout" ||
-      item.kind === "test_topology",
+      item.kind === "test_topology" ||
+      item.kind === "source_symbols",
   );
 }
 

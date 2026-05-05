@@ -8,6 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import fg from "fast-glob";
 import type { PrologProcess } from "kibi-cli/prolog";
+import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
 import { runJsonModuleQuery } from "./core-module.js";
 
 export type ActivationState =
@@ -31,6 +32,7 @@ export const AUTOPILOT_PROVIDER_ORDER = [ // implements REQ-001
   "repo_metadata",
   "repo_layout",
   "test_topology",
+  "source_symbols",
 ] as const;
 
 export type EvidenceProviderName = (typeof AUTOPILOT_PROVIDER_ORDER)[number];
@@ -41,7 +43,8 @@ export type AutopilotEvidenceKind =
   | "generic_markdown"
   | "repo_metadata"
   | "repo_layout"
-  | "test_topology";
+  | "test_topology"
+  | "source_symbols";
 
 export interface AutopilotEvidence {
   provider: EvidenceProviderName;
@@ -728,6 +731,136 @@ function runTestTopologyProvider(
   };
 }
 
+function runSourceSymbolsProvider(
+  workspaceRoot: string,
+  vendoredRoots: string[],
+): EvidenceProviderResult {
+  const analyzeSourceText = (
+    cliSymbolCoordinator as {
+      analyzeSourceText?: (filePath: string, content: string) => {
+        sourceFile: string;
+        language: string;
+        providerId: string | null;
+        module: {
+          title: string;
+          analysisMode: string;
+          fallbackReason?: string;
+        };
+        symbols: Array<{ name: string; kind: string }>;
+      };
+    }
+  ).analyzeSourceText;
+
+  const sourceFiles = fg.sync(
+    [
+      "src/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp}",
+      "app/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp}",
+      "apps/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp}",
+      "packages/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,py,rb,go,rs,java,kt,swift,php,c,cc,cpp,h,hpp}",
+    ],
+    {
+      cwd: workspaceRoot,
+      absolute: true,
+      onlyFiles: true,
+      unique: true,
+      suppressErrors: true,
+      ignore: buildIgnoredGlobs(vendoredRoots),
+    },
+  );
+
+  const evidence: AutopilotEvidence[] = [];
+  const detectedLanguages = new Set<string>();
+  const scanWarnings: string[] = [];
+
+  for (const absolutePath of sortUnique(sourceFiles)) {
+    const relativePath = toRelativePosixPath(workspaceRoot, absolutePath);
+    const language =
+      SOURCE_LANGUAGE_EXTENSIONS[path.extname(absolutePath).toLowerCase()] ?? "unknown";
+    detectedLanguages.add(language);
+
+    try {
+      const content = fs.readFileSync(absolutePath, "utf8");
+      const analysis = analyzeSourceText
+        ? analyzeSourceText(relativePath, content)
+        : {
+            sourceFile: relativePath,
+            language,
+            providerId: null,
+            module: {
+              title: path.basename(relativePath, path.extname(relativePath)) || relativePath,
+              analysisMode: "fallback",
+              fallbackReason: "provider_unavailable",
+            },
+            symbols: [],
+          };
+
+      if (analysis.symbols.length > 0) {
+        evidence.push({
+          provider: "source_symbols",
+          kind: "source_symbols",
+          label: relativePath,
+          relativePath,
+          absolutePath,
+          data: {
+            title: `Source symbols: ${analysis.module.title}`,
+            factKind: "observation",
+            confidence: 0.9,
+            evidence: [
+              `source_symbols:${relativePath}`,
+              `language:${analysis.language}`,
+              `provider:${analysis.providerId ?? "fallback"}`,
+              ...analysis.symbols
+                .slice(0, 5)
+                .map(
+                  (symbol: { name: string; kind: string }) =>
+                    `symbol:${symbol.kind}:${symbol.name}`,
+                ),
+            ],
+            analysisMode: analysis.module.analysisMode,
+            providerId: analysis.providerId,
+            symbolCount: analysis.symbols.length,
+          },
+        });
+        continue;
+      }
+
+      evidence.push({
+        provider: "source_symbols",
+        kind: "source_symbols",
+        label: relativePath,
+        relativePath,
+        absolutePath,
+        data: {
+          title: `Source module: ${analysis.module.title}`,
+          factKind: "observation",
+          confidence: 0.82,
+          evidence: [
+            `source_symbols:${relativePath}`,
+            `language:${analysis.language}`,
+            `analysis_mode:${analysis.module.analysisMode}`,
+            ...(analysis.module.fallbackReason
+              ? [`fallback:${analysis.module.fallbackReason}`]
+              : []),
+          ],
+          analysisMode: analysis.module.analysisMode,
+          fallbackReason: analysis.module.fallbackReason,
+          providerId: analysis.providerId,
+          symbolCount: 0,
+        },
+      });
+    } catch {
+      scanWarnings.push(`source_symbols:failed_to_analyze:${relativePath}`);
+    }
+  }
+
+  return {
+    provider: "source_symbols",
+    evidence,
+    detectedLanguages: Array.from(detectedLanguages),
+    scanWarnings,
+  };
+}
+
 function buildDiscoverySummary(
   activation: ActivationPolicy,
   vendored: string[],
@@ -799,6 +932,7 @@ export function discoverProviderEvidence(
     runRepoMetadataProvider(workspaceRoot),
     runRepoLayoutProvider(workspaceRoot, vendored),
     runTestTopologyProvider(workspaceRoot, vendored),
+    runSourceSymbolsProvider(workspaceRoot, vendored),
   ];
   const evidence = providerResults.flatMap((result) => result.evidence);
 
@@ -1032,7 +1166,8 @@ export function discoverSources(
     if (
       item.kind === "typed_markdown" ||
       item.kind === "symbol_manifest" ||
-      item.kind === "generic_markdown"
+      item.kind === "generic_markdown" ||
+      item.kind === "source_symbols"
     ) {
       const relativePath = item.relativePath;
       if (relativePath) {

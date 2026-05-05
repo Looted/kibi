@@ -17,6 +17,13 @@
  */
 
 export {
+  analyzeSourceText,
   enrichSymbolCoordinates,
   type ManifestSymbolEntry,
+  type AnalyzeSourceTextOptions,
+  type SourceAnalysisProvider,
+  type SourceAnalysisResult,
+  type SourceModuleAnalysis,
+  type SourceSymbolAnalysis,
+  type SourceSymbolKind,
 } from "../../extractors/symbols-coordinator.js";
