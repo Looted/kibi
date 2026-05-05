@@ -16,15 +16,50 @@ export type ActivationState =
   | "root_active_thin"
   | "root_active_seeded";
 
+export type ActivationMode =
+  | "cold_start_bootstrap"
+  | "repair_bootstrap"
+  | "attached_thin_handoff"
+  | "attached_seeded_handoff"
+  | "vendored_blocked";
+
+export interface ActivationPolicy {
+  activationState: ActivationState;
+  activationMode: ActivationMode;
+  applyBlocked: boolean;
+  allowCandidateGeneration: boolean;
+  reason: string;
+  handoffMessage?: string;
+}
+
 export interface SourceDiscoveryResult {
   // relative posix-style paths from workspace root
   candidates: string[];
   summary: {
     activationState: ActivationState;
-    reason?: string;
+    activationMode: ActivationMode;
+    applyBlocked: boolean;
+    reason: string;
+    handoffMessage?: string;
     vendored?: string[];
   };
 }
+
+const IGNORED_DIRECTORY_NAMES = new Set([
+  ".git",
+  ".kb",
+  ".venv",
+  "build",
+  "coverage",
+  "dist",
+  "node_modules",
+  "target",
+  "third-party",
+  "third_party",
+  "vendor",
+  "vendors",
+  "venv",
+]);
 
 // Minimal copy of the opencode defaults used by other packages. Keep in sync
 // with packages/opencode/src/file-filter.ts DEFAULT_SYNC_PATHS.
@@ -40,7 +75,7 @@ const DEFAULT_SYNC_PATHS: Record<string, string> = {
 };
 
 function findVendoredTrees(cwd: string): string[] {
-  const results: string[] = [];
+  const results = new Set<string>();
   const vendoredMarkers = [
     ["kibi", "opencode.json"],
     ["kibi", "package.json"],
@@ -51,7 +86,7 @@ function findVendoredTrees(cwd: string): string[] {
   for (const marker of vendoredMarkers) {
     const markerPath = path.join(cwd, ...marker);
     if (fs.existsSync(markerPath)) {
-      results.push(marker.join("/"));
+      results.add(marker[0] ?? "kibi");
     }
   }
 
@@ -60,7 +95,7 @@ function findVendoredTrees(cwd: string): string[] {
     try {
       for (const entry of fs.readdirSync(nodeModules)) {
         if (entry === "kibi" || entry.startsWith("kibi-")) {
-          results.push(`node_modules/${entry}`);
+          results.add(`node_modules/${entry}`);
         }
       }
     } catch {
@@ -68,7 +103,7 @@ function findVendoredTrees(cwd: string): string[] {
     }
   }
 
-  return Array.from(new Set(results));
+  return Array.from(results).sort();
 }
 
 function rootKbConfigExists(cwd: string): boolean {
@@ -100,6 +135,86 @@ function normalizePattern(p: string | undefined): string | null {
   if (p.includes("*")) return p;
   if (p.endsWith(".yaml") || p.endsWith(".yml") || path.extname(p)) return p;
   return `${p.replace(/\/+$/, "")}/**/*.md`;
+}
+
+function buildSourceSummary(
+  activation: ActivationPolicy,
+  vendored: string[],
+): SourceDiscoveryResult["summary"] {
+  return {
+    activationState: activation.activationState,
+    activationMode: activation.activationMode,
+    applyBlocked: activation.applyBlocked,
+    reason: activation.reason,
+    ...(activation.handoffMessage
+      ? { handoffMessage: activation.handoffMessage }
+      : {}),
+    ...(vendored.length > 0 ? { vendored } : {}),
+  };
+}
+
+function toActivationPolicy(activationState: ActivationState): ActivationPolicy {
+  switch (activationState) {
+    case "root_partial":
+      return {
+        activationState,
+        activationMode: "repair_bootstrap",
+        applyBlocked: true,
+        allowCandidateGeneration: true,
+        reason:
+          "Workspace root is only partially configured; run a repair bootstrap scan and keep apply blocked until the root is repaired.",
+      };
+    case "root_active_thin":
+      return {
+        activationState,
+        activationMode: "attached_thin_handoff",
+        applyBlocked: true,
+        allowCandidateGeneration: false,
+        reason:
+          "Workspace already has an attached but thin KB; bootstrap synthesis is replaced by an explicit thin handoff.",
+        handoffMessage:
+          "Attached thin KB detected. Review the sparse KB coverage and continue with a handoff instead of a bootstrap apply plan.",
+      };
+    case "root_active_seeded":
+      return {
+        activationState,
+        activationMode: "attached_seeded_handoff",
+        applyBlocked: true,
+        allowCandidateGeneration: false,
+        reason:
+          "Workspace already has an attached seeded KB; bootstrap synthesis is replaced by an explicit seeded handoff.",
+        handoffMessage:
+          "Attached seeded KB detected. Use the existing KB context instead of generating bootstrap candidates.",
+      };
+    case "vendored_only":
+      return {
+        activationState,
+        activationMode: "vendored_blocked",
+        applyBlocked: true,
+        allowCandidateGeneration: false,
+        reason:
+          "Workspace appears to contain vendored Kibi sources only; bootstrap generation is blocked in this posture.",
+        handoffMessage:
+          "Vendored Kibi posture detected. Move to the real project root before attempting bootstrap.",
+      };
+    case "root_uninitialized":
+      return {
+        activationState,
+        activationMode: "cold_start_bootstrap",
+        applyBlocked: false,
+        allowCandidateGeneration: true,
+        reason:
+          "Workspace has no attached root KB yet; run a cold-start bootstrap scan across repository evidence.",
+      };
+  }
+}
+
+// implements REQ-mcp-init-kibi-autopilot-v1
+export async function resolveActivationPolicy(
+  workspaceRoot: string,
+  prolog: PrologProcess,
+): Promise<ActivationPolicy> {
+  return toActivationPolicy(await classifyActivationState(workspaceRoot, prolog));
 }
 
 function rootTargetsAllResolve(cwd: string): boolean {
@@ -210,12 +325,12 @@ function collectMarkdownFiles(
   const stat = fs.statSync(dir);
   if (!stat.isDirectory()) return results;
 
-  const entries = fs.readdirSync(dir);
+  const entries = fs.readdirSync(dir).sort();
   for (const entry of entries) {
     const full = path.join(dir, entry);
 
     // Skip ignores
-    if (entry === ".git" || entry === "node_modules" || entry === ".kb") continue;
+    if (IGNORED_DIRECTORY_NAMES.has(entry.toLowerCase())) continue;
 
     // Skip vendored roots
     const rel = path.relative(workspaceRoot, full).split(path.sep).join("/");
@@ -238,11 +353,14 @@ function collectMarkdownFiles(
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function discoverSources(
   workspaceRoot: string,
-  activationState: ActivationState,
+  activation: ActivationPolicy,
 ): SourceDiscoveryResult {
   const vendored = findVendoredTrees(workspaceRoot);
-  if (activationState === "vendored_only") {
-    return { candidates: [], summary: { activationState, vendored } };
+  if (!activation.allowCandidateGeneration) {
+    return {
+      candidates: [],
+      summary: buildSourceSummary(activation, vendored),
+    };
   }
 
   const config = readRootConfig(workspaceRoot) || {};
@@ -274,25 +392,12 @@ export function discoverSources(
     }
   }
 
-  // Generic markdown candidates (top-level), but exclude documentation/** which
-  // is treated above via configured paths.
-  for (const file of ["README.md", "ARCHITECTURE.md"]) {
-    const abs = path.resolve(workspaceRoot, file);
-    if (fs.existsSync(abs) && fs.statSync(abs).isFile()) {
-      const rel = path.relative(workspaceRoot, abs).split(path.sep).join("/");
-      if (!rel.startsWith("documentation/")) candidates.add(rel);
-    }
-  }
-
-  const docsRoot = path.resolve(workspaceRoot, "docs");
-  if (fs.existsSync(docsRoot) && fs.statSync(docsRoot).isDirectory()) {
-    for (const f of collectMarkdownFiles(docsRoot, workspaceRoot, vendored)) {
-      candidates.add(f);
-    }
+  for (const f of collectMarkdownFiles(workspaceRoot, workspaceRoot, vendored)) {
+    candidates.add(f);
   }
 
   return {
     candidates: Array.from(candidates).sort(),
-    summary: { activationState, reason: "discovered sources", vendored },
+    summary: buildSourceSummary(activation, vendored),
   };
 }

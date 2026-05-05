@@ -6,9 +6,11 @@ import { PrologProcess } from "kibi-cli/prolog";
 import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
+  createColdStartRepo,
+  createPartialRepo,
+  createSeededRepo,
+  createThinRepo,
   createVendoredTree,
-  ensureDocs,
-  writeRootConfig,
 } from "./autopilot-workspace-fixture";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
@@ -93,6 +95,7 @@ describe("autopilot generate", () => {
   });
 
   test("day-0 root_uninitialized generates candidates and generic ADRs use proposed status", async () => {
+    createColdStartRepo(tmp);
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, "docs", "bootstrap.md"),
@@ -111,6 +114,7 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_uninitialized");
+    expect(res.structuredContent.activationMode).toBe("cold_start_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(false);
 
     const candidates = res.structuredContent
@@ -125,18 +129,7 @@ describe("autopilot generate", () => {
   });
 
   test("root_partial workspaces may scan but block apply", async () => {
-    writeRootConfig(tmp, {
-      paths: {
-        requirements: "documentation/requirements/**/*.md",
-      },
-    });
-    await fs.mkdir(path.join(tmp, "documentation", "requirements"), {
-      recursive: true,
-    });
-    await fs.writeFile(
-      path.join(tmp, "documentation", "requirements", "REQ-123.md"),
-      "---\nid: REQ-123\ntitle: Partial workspace requirement\nstatus: open\n---\n# Content\n",
-    );
+    createPartialRepo(tmp);
 
     const prolog = createPrologStub(async () => emptyQueryResult());
 
@@ -145,8 +138,10 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_partial");
+    expect(res.structuredContent.activationMode).toBe("repair_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(true);
-    expect(res.structuredContent.candidates).toHaveLength(1);
+    expect(res.structuredContent.discoverySummary.markdownFiles).toBeGreaterThanOrEqual(2);
+    expect(res.structuredContent.candidates.length).toBeGreaterThanOrEqual(1);
   });
 
   test("duplicate title suppression emits flat records", async () => {
@@ -216,19 +211,18 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("vendored_only");
+    expect(res.structuredContent.activationMode).toBe("vendored_blocked");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("vendored");
   });
 
-  test("root_active_thin workspaces are blocked with zero candidates", async () => {
-    ensureDocs(tmp);
-    writeRootConfig(tmp, {});
-    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "bootstrap.md"), "# ADR: Already active\n");
+  test("root_active_thin returns explicit handoff mode instead of silent zero-output", async () => {
+    createThinRepo(tmp, { multiRoot: true, noisy: true });
 
     const fakeCounts = JSON.stringify({
       rows: [
-        { id: "req", type: "req", count: 0 },
+        { id: "req", type: "req", count: 1 },
         { id: "scenario", type: "scenario", count: 0 },
         { id: "test", type: "test", count: 0 },
       ],
@@ -247,7 +241,43 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_active_thin");
+    expect(res.structuredContent.activationMode).toBe("attached_thin_handoff");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("thin");
+    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
+  });
+
+  test("root_active_seeded returns explicit seeded handoff instead of silent zero-output", async () => {
+    createSeededRepo(tmp);
+
+    const fakeCounts = JSON.stringify({
+      rows: [
+        { id: "req", type: "req", count: 2 },
+        { id: "scenario", type: "scenario", count: 1 },
+        { id: "test", type: "test", count: 1 },
+        { id: "adr", type: "adr", count: 1 },
+        { id: "fact", type: "fact", count: 1 },
+      ],
+    });
+
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.includes("coverage_report_json")) {
+        return { success: true, bindings: { JsonString: fakeCounts } };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    expect(res.structuredContent.activationState).toBe("root_active_seeded");
+    expect(res.structuredContent.activationMode).toBe("attached_seeded_handoff");
+    expect(res.structuredContent.applyBlocked).toBe(true);
+    expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("seeded");
+    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
   });
 });

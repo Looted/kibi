@@ -122,6 +122,16 @@ If you change any publishable npm package (`kibi-core`, `kibi-cli`, `kibi-mcp`, 
 
 ---
 
+### 1. Interactive Bootstrap Onboarding (Day-0)
+Always use the `/init-kibi` workflow for initial repository activation. This is an interactive process:
+- **Gather Context**: Ask the user at most 4 bounded questions (summary, source of truth, priority root, config anchors).
+- **Synthesize**: Use `kb_autopilot_generate` for read-only candidate synthesis grounded in declared context and codebase evidence.
+- **Preview and Approve**: Present a preview of the proposed plan and candidates. Do NOT proceed to writes without explicit user approval.
+- **Apply and Validate**: Apply approved candidates sequentially via `kb_upsert` and run `kb_check` to verify integrity.
+
+### 2. Start-task Briefing
+Use `kb_briefing_generate` or `/brief-kibi` when you need a citation-backed briefing before risky work.
+
 ## Kibi MCP Best Practices
 
 ### Query First

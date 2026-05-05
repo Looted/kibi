@@ -216,8 +216,8 @@ export function postureGuidance(posture: RepoPosture): string | null {
       return `🔧 **Bootstrap required**
 
 This repository does not appear to have Kibi initialized. Agents should:
-- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
-- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
+- Use \`/init-kibi\` for an interactive onboarding workflow to gather context and bootstrap the KB
+- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes
 - Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
 
 Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
@@ -275,8 +275,8 @@ function buildContextualGuidance(context: PromptContext): string {
     selectedBlock = `🔧 **Bootstrap required**
 
 This repository does not appear to have Kibi initialized. Agents should:
-- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
-- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
+- Use \`/init-kibi\` for an interactive onboarding workflow to gather context and bootstrap the KB
+- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes
 - Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
 
 Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;

@@ -23,8 +23,9 @@ import {
   buildSymbolManifestCandidates,
 } from "./autopilot-candidates.js";
 import {
-  classifyActivationState,
   discoverSources as discoverActivationSources,
+  resolveActivationPolicy,
+  type ActivationMode,
   type ActivationState,
 } from "./autopilot-discovery.js";
 import { loadEntities } from "./entity-query.js";
@@ -43,8 +44,10 @@ export interface AutopilotGenerateResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {
     activationState: string;
+    activationMode: string;
     activationReason: string;
     applyBlocked: boolean;
+    handoffMessage?: string;
     discoverySummary: Record<string, unknown>;
     candidates: Array<Record<string, unknown>>;
     suppressedCandidates: Array<Record<string, unknown>>;
@@ -92,18 +95,21 @@ function toSuppressedCandidate(
   };
 }
 
-function activationReasonFor(state: ActivationState): string {
-  switch (state) {
-    case "vendored_only":
-      return "Workspace appears to contain vendored Kibi sources only; no local candidates generated.";
-    case "root_partial":
-      return "Workspace root is partially configured; discovery completed using available sources.";
-    case "root_active_seeded":
-      return "KB attached and discovery completed for a seeded workspace.";
-    case "root_active_thin":
-      return "KB attached and discovery completed for a thin workspace.";
+function blockedActivationMessage(
+  activationMode: ActivationMode,
+  activationReason: string,
+  handoffMessage?: string,
+): string {
+  switch (activationMode) {
+    case "vendored_blocked":
+      return `Autopilot bootstrap blocked: ${activationReason}`;
+    case "attached_thin_handoff":
+    case "attached_seeded_handoff":
+      return handoffMessage
+        ? `Autopilot handoff: ${handoffMessage}`
+        : `Autopilot handoff: ${activationReason}`;
     default:
-      return "Workspace root is not fully initialized; discovery completed using the resolved workspace root.";
+      return `Autopilot bootstrap blocked: ${activationReason}`;
   }
 }
 
@@ -152,32 +158,42 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   }
 
   const workspaceRoot = resolveWorkspaceRoot();
-  const activationState = await classifyActivationState(workspaceRoot, prolog);
-  const activationDiscovery = discoverActivationSources(workspaceRoot, activationState);
+  const activation = await resolveActivationPolicy(workspaceRoot, prolog);
+  const activationState = activation.activationState;
+  const activationDiscovery = discoverActivationSources(workspaceRoot, activation);
   const discovery = splitDiscoveredSources(
     workspaceRoot,
     activationDiscovery.candidates,
   );
 
-  const allowGeneration =
-    activationState === "root_uninitialized" || activationState === "root_partial";
-
-  if (!allowGeneration) {
+  if (!activation.allowCandidateGeneration) {
     return {
       content: [
         {
           type: "text",
-          text: "Autopilot generated 0 candidate(s).",
+          text: blockedActivationMessage(
+            activation.activationMode,
+            activation.reason,
+            activation.handoffMessage,
+          ),
         },
       ],
       structuredContent: {
         activationState,
-        activationReason: activationReasonFor(activationState),
-        applyBlocked: true,
+        activationMode: activation.activationMode,
+        activationReason: activation.reason,
+        applyBlocked: activation.applyBlocked,
+        ...(activation.handoffMessage
+          ? { handoffMessage: activation.handoffMessage }
+          : {}),
         discoverySummary: {
           markdownFiles: discovery.markdownFiles.length,
           manifestFiles: discovery.manifestFiles.length,
           vendored: activationDiscovery.summary.vendored ?? [],
+          activationMode: activationDiscovery.summary.activationMode,
+          ...(activationDiscovery.summary.handoffMessage
+            ? { handoffMessage: activationDiscovery.summary.handoffMessage }
+            : {}),
         },
         candidates: [],
         suppressedCandidates: [],
@@ -333,12 +349,17 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     ],
     structuredContent: {
       activationState,
-      activationReason: activationReasonFor(activationState),
-      applyBlocked: activationState === "root_partial",
+      activationMode: activation.activationMode,
+      activationReason: activation.reason,
+      applyBlocked: activation.applyBlocked,
+      ...(activation.handoffMessage
+        ? { handoffMessage: activation.handoffMessage }
+        : {}),
       discoverySummary: {
         markdownFiles: discovery.markdownFiles.length,
         manifestFiles: discovery.manifestFiles.length,
         vendored: activationDiscovery.summary.vendored ?? [],
+        activationMode: activationDiscovery.summary.activationMode,
       },
       candidates: candidateRecords,
       suppressedCandidates: suppressed,
