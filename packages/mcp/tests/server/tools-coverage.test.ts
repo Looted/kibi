@@ -622,6 +622,8 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
 
     expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
+    expect(registered.some((tool) => tool.name === "kb_autopilot_generate")).toBe(true);
+    expect(registered.some((tool) => tool.name === "kb_briefing_generate")).toBe(true);
 
     const argsByTool = new Map<string, Record<string, unknown>>(
       TOOL_NAMES.map((name) => [name, { marker: name }]),
