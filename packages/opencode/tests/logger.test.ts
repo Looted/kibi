@@ -192,9 +192,7 @@ describe("failure-routing contract", () => {
     it("without client and no console.error: does not throw", () => {
       const spy = vi.spyOn(console, "error").mockImplementation(() => {});
       logger.resetClient();
-      expect(() =>
-        logger.errorStructuredOnly("silent-advisory"),
-      ).not.toThrow();
+      expect(() => logger.errorStructuredOnly("silent-advisory")).not.toThrow();
     });
 
     it("handles client.app.log rejection gracefully", async () => {
@@ -218,7 +216,9 @@ describe("failure-routing contract", () => {
         logger.errorStructuredOnly("sync-safe-no-client"),
       ).not.toThrow();
 
-      const mockLog = vi.fn().mockImplementation(() => Promise.reject(new Error("x")));
+      const mockLog = vi
+        .fn()
+        .mockImplementation(() => Promise.reject(new Error("x")));
       logger.setClient({ app: { log: mockLog } } as any);
       expect(() =>
         logger.errorStructuredOnly("sync-safe-with-client"),
@@ -238,10 +238,7 @@ describe("failure-routing contract", () => {
       await Promise.resolve();
 
       // Operational: MUST be visible in terminal
-      expect(spy).toHaveBeenCalledWith(
-        "[kibi-opencode]",
-        "bootstrap-needed",
-      );
+      expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "bootstrap-needed");
       // AND in structured logs
       expect(mockLog).toHaveBeenCalledTimes(1);
       const arg = mockLog.mock.calls[0][0] as any;
@@ -255,10 +252,7 @@ describe("failure-routing contract", () => {
 
       logger.error("init-failed");
 
-      expect(spy).toHaveBeenCalledWith(
-        "[kibi-opencode]",
-        "init-failed",
-      );
+      expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "init-failed");
     });
   });
 
@@ -280,10 +274,7 @@ describe("failure-routing contract", () => {
       // error: client.app.log + console.error
       expect(mockLog).toHaveBeenCalledTimes(2);
       expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith(
-        "[kibi-opencode]",
-        "operational-event",
-      );
+      expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "operational-event");
     });
   });
 });
@@ -307,7 +298,10 @@ describe("advisory check failure noise regression", () => {
     logger.setClient(mockClient as any);
 
     // Advisory background check failures use errorStructuredOnly
-    const payload = JSON.stringify({ rules: ["symbol-traceability"], exitCode: 1 });
+    const payload = JSON.stringify({
+      rules: ["symbol-traceability"],
+      exitCode: 1,
+    });
     logger.errorStructuredOnly(`check.failed ${payload}`);
 
     await Promise.resolve();

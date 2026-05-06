@@ -52,18 +52,18 @@ describe("knowledge-classifier classifyKnowledge", () => {
     });
   });
 
-    it("reasoning text references strict domain fact lane", () => {
-      const text =
-        "User IDs must be unique. Email addresses must be unique. Each user can have at most 5 active sessions. The default timeout is 30 minutes.";
-      const result = classifyKnowledge(text);
-      assert.ok(result);
-      assert.equal(result?.type, "fact");
-      assert.ok(
-        result?.reasoning.includes("strict domain fact") ||
-          result?.reasoning.includes("strict fact lane"),
-        `Reasoning should mention strict domain fact or strict fact lane, got: ${result?.reasoning}`,
-      );
-    });
+  it("reasoning text references strict domain fact lane", () => {
+    const text =
+      "User IDs must be unique. Email addresses must be unique. Each user can have at most 5 active sessions. The default timeout is 30 minutes.";
+    const result = classifyKnowledge(text);
+    assert.ok(result);
+    assert.equal(result?.type, "fact");
+    assert.ok(
+      result?.reasoning.includes("strict domain fact") ||
+        result?.reasoning.includes("strict fact lane"),
+      `Reasoning should mention strict domain fact or strict fact lane, got: ${result?.reasoning}`,
+    );
+  });
 
   describe("REQ classification", () => {
     it("detects system behavior requirements", () => {

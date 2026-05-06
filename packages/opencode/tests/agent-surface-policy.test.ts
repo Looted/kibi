@@ -135,7 +135,9 @@ describe("agent surface policy", () => {
 
       // Verify /init-kibi is present if the file discusses bootstrap
       if (content.includes("bootstrap") || content.includes("init")) {
-        const hasAllowedCmd = allowedCommands.some((cmd) => content.includes(cmd));
+        const hasAllowedCmd = allowedCommands.some((cmd) =>
+          content.includes(cmd),
+        );
         const hasNoKibiRefs =
           !content.includes("kibi") && !content.includes("KB");
         const msg = `${relativePath} discusses bootstrap but does not mention a sanctioned slash command. Agent-facing files should guide users to sanctioned slash commands such as /init-kibi.`;

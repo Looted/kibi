@@ -4,6 +4,10 @@ import type { BriefingRuntimeResult } from "./briefing-runtime.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
+import {
+  getInitKibiCommandCapability,
+  type InitKibiCommandCapability,
+} from "./init-kibi-capability.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
@@ -128,6 +132,26 @@ function getFocusEdit(
   return context.focusEdit ?? context.recentEdits[context.recentEdits.length - 1];
 }
 
+function buildInitKibiBootstrapReference(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  if (capability.supported) {
+    return "Bootstrap existing repos: when the Kibi OpenCode plugin is active and native injection is supported, `/init-kibi` is the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+  }
+
+  return "Bootstrap existing repos: this host does not support native `/init-kibi` injection, so Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+}
+
+function buildBootstrapRequiredBody(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  const commandBullet = capability.supported
+    ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
+    : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
+
+  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`.`;
+}
+
 // ── PromptContext ──────────────────────────────────────────────────────
 
 export interface PromptContext {
@@ -206,7 +230,10 @@ The Kibi knowledge base is managed through public MCP tools. Direct manual edits
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
-export function postureGuidance(posture: RepoPosture): string | null {
+export function postureGuidance(
+  posture: RepoPosture,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string | null {
   // implements REQ-opencode-prompt-injection
   switch (posture) {
     case "vendored_only":
@@ -215,12 +242,7 @@ export function postureGuidance(posture: RepoPosture): string | null {
     case "root_uninitialized":
       return `🔧 **Bootstrap required**
 
-This repository does not appear to have Kibi initialized. Agents should:
-- Use \`/init-kibi\` for an interactive onboarding workflow to gather context and bootstrap the KB
-- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes
-- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
-
-Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
+${buildBootstrapRequiredBody(capability)}`;
     case "root_partial":
       return `⚠️  **Partial KB setup detected**
 
@@ -235,7 +257,10 @@ Root .kb/config.json exists but some configured KB targets are missing. Guidance
 /**
  * Build prompt guidance block based on posture, risk class, and cache state.
  */
-function buildContextualGuidance(context: PromptContext): string {
+function buildContextualGuidance(
+  context: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
   const readyAutoBriefingAvailable =
@@ -268,18 +293,13 @@ function buildContextualGuidance(context: PromptContext): string {
   }
   // Priority 3: Posture warnings for non-active states — not cache-suppressed
   else if (posture === "root_uninitialized" || posture === "root_partial") {
-    const postureBlock = postureGuidance(posture);
+    const postureBlock = postureGuidance(posture, capability);
     if (postureBlock) selectedBlock = postureBlock;
   }
   else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
-This repository does not appear to have Kibi initialized. Agents should:
-- Use \`/init-kibi\` for an interactive onboarding workflow to gather context and bootstrap the KB
-- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes
-- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
-
-Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
+${buildBootstrapRequiredBody(capability)}`;
   // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
   }
   else {
@@ -449,12 +469,16 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     if (fileOpReminder.lifecycleReminder) {
       // Skip lifecycleReminder if source-linked brief already shows the same IDs
       const hasSourceLinked =
-        selectedBlock !== null &&
-        selectedBlock.includes("- Existing Kibi links:");
+        selectedBlock?.includes("- Existing Kibi links:") === true;
       const lifecycleHasEntities =
         fileOpReminder.lifecycleReminder.includes("Kibi entities:");
+      const overlapsSourceLinked =
+        hasSourceLinked &&
+        lifecycleHasEntities &&
+        selectedBlock !== null &&
+        hasOverlappingEntityIds(selectedBlock, fileOpReminder.lifecycleReminder);
       if (
-        !(hasSourceLinked && lifecycleHasEntities && hasOverlappingEntityIds(selectedBlock!, fileOpReminder.lifecycleReminder))
+        !overlapsSourceLinked
       ) {
         foBullets.push(fileOpReminder.lifecycleReminder);
       }
@@ -607,7 +631,10 @@ Before implementing or explaining code:
 /**
  * Build the static guidance block (original behavior).
  */
-const BASE_GUIDANCE = `${SENTINEL}
+function buildBaseGuidance(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  return `${SENTINEL}
 This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
@@ -626,25 +653,31 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\nBootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization (\`kb_autopilot_generate\`) workflow.`;
+**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\n${buildInitKibiBootstrapReference(capability)}`;
+}
 
 /**
  * Build prompt with contextual guidance based on posture, risk class, and cache state.
  */
-export function buildPrompt(context?: PromptContext): string {
+export function buildPrompt(
+  context?: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
   if (!context) {
-    return BASE_GUIDANCE.trim();
+    return buildBaseGuidance(capability).trim();
   }
-  return buildContextualGuidance(context).trim();
+  return buildContextualGuidance(context, capability).trim();
 }
 
 /**
  * Inject prompt guidance if not already present.
  */
+// implements REQ-opencode-kibi-briefing-v2
 export function injectPrompt(
   current: string,
   config: KibiConfig,
   context?: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
 ): string {
   if (!config.prompt.enabled || !isPluginEnabled(config)) {
     return current;
@@ -652,7 +685,7 @@ export function injectPrompt(
   if (current.includes(SENTINEL)) {
     return current;
   }
-  return `${current}\n\n${buildPrompt(context)}`;
+  return `${current}\n\n${buildPrompt(context, capability)}`;
 }
 
 export { SENTINEL };

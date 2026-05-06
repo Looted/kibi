@@ -1,10 +1,10 @@
 /// <reference types="bun-types" />
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import { getE2eCoverageSignal } from "../src/e2e-coverage-signals";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { getE2eCoverageSignal } from "../src/e2e-coverage-signals";
 
 describe("getE2eCoverageSignal", () => {
   let tmpDir: string;
@@ -63,7 +63,9 @@ describe("getE2eCoverageSignal", () => {
     const fullPath = path.join(docDir, filename);
     fs.mkdirSync(path.dirname(fullPath), { recursive: true });
 
-    const tagsYaml = opts.tags ? `\ntags:\n${opts.tags.map((t) => `  - ${t}`).join("\n")}` : "";
+    const tagsYaml = opts.tags
+      ? `\ntags:\n${opts.tags.map((t) => `  - ${t}`).join("\n")}`
+      : "";
     const sourceYaml = opts.source ? `\nsource: ${opts.source}` : "";
 
     const content = `---
@@ -95,9 +97,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-toast-e2e" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-toast-e2e" }],
       },
     ]);
     writeTestDoc("TEST-toast-e2e.md", {
@@ -126,9 +126,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/logger.ts",
-        relationships: [
-          { type: "executable_for", target: "TEST-logger-e2e" },
-        ],
+        relationships: [{ type: "executable_for", target: "TEST-logger-e2e" }],
       },
     ]);
     writeTestDoc("TEST-logger-e2e.md", {
@@ -295,9 +293,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-toast-unit" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-toast-unit" }],
       },
     ]);
     writeTestDoc("TEST-toast-unit.md", {
@@ -373,9 +369,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-nonexistent" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-nonexistent" }],
       },
     ]);
 
@@ -393,9 +387,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-toast-unit" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-toast-unit" }],
       },
     ]);
     writeTestDoc("TEST-toast-unit.md", {
@@ -451,9 +443,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-toast-e2e" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-toast-e2e" }],
       },
     ]);
     writeTestDoc("TEST-toast-e2e.md", {
@@ -525,9 +515,7 @@ ${opts.body ?? "Test verification content."}
       {
         id: "SYM-myFunc",
         sourceFile: "packages/opencode/src/toast.ts",
-        relationships: [
-          { type: "covered_by", target: "TEST-hybrid" },
-        ],
+        relationships: [{ type: "covered_by", target: "TEST-hybrid" }],
       },
     ]);
     // Has e2e tag (exact signal) even though source points to unit test

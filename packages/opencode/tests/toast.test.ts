@@ -1,7 +1,7 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 
-import { sendToast, type ToastPayload } from "../src/toast";
+import { type ToastPayload, sendToast } from "../src/toast";
 
 describe("sendToast", () => {
   test("prefers legacy tui.toast transport", async () => {
@@ -50,7 +50,10 @@ describe("sendToast", () => {
 
     const result = await sendToast({}, payload);
 
-    assert.deepEqual(result, { status: "unavailable", reason: "missing-capability" });
+    assert.deepEqual(result, {
+      status: "unavailable",
+      reason: "missing-capability",
+    });
   });
 
   test("returns failed result when showToast rejects", async () => {
@@ -96,16 +99,19 @@ describe("sendToast", () => {
     const originalConsoleError = console.error;
 
     try {
-      globalThis.fetch = ((() => {
+      globalThis.fetch = (() => {
         throw new Error("fetch should not be called");
-      }) as unknown) as typeof fetch;
+      }) as unknown as typeof fetch;
       console.error = (() => {
         throw new Error("console.error should not be called");
       }) as typeof console.error;
 
       const result = await sendToast({}, { message: "hello" });
 
-      assert.deepEqual(result, { status: "unavailable", reason: "missing-capability" });
+      assert.deepEqual(result, {
+        status: "unavailable",
+        reason: "missing-capability",
+      });
     } finally {
       globalThis.fetch = originalFetch;
       console.error = originalConsoleError;

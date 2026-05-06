@@ -1,18 +1,20 @@
-import * as path from "node:path";
-import * as fs from "node:fs";
 import assert from "node:assert";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { after, before, describe, it } from "node:test";
 import {
-  createFileOperationState,
   type FileLifecycle,
   type ReminderKind,
+  createFileOperationState,
 } from "../src/file-operation-state";
 
 describe("file-operation-state", () => {
   let tmpDir: string;
 
   before(() => {
-    tmpDir = fs.mkdtempSync(path.join(process.cwd(), "test-file-operation-state-"));
+    tmpDir = fs.mkdtempSync(
+      path.join(process.cwd(), "test-file-operation-state-"),
+    );
   });
 
   after(() => {

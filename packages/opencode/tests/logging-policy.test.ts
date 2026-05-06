@@ -1022,7 +1022,11 @@ describe("logging policy", () => {
       logger.errorStructuredOnly("advisory-no-client");
 
       // Advisory: MUST NOT call console.error even without client
-      assert.equal(errorCalls.length, 0, "errorStructuredOnly must not call console.error without client");
+      assert.equal(
+        errorCalls.length,
+        0,
+        "errorStructuredOnly must not call console.error without client",
+      );
     });
 
     test("error (operational) with client: calls both console.error and client.app.log", async () => {
@@ -1041,7 +1045,11 @@ describe("logging policy", () => {
       await new Promise((r) => setTimeout(r, 10));
 
       // Operational: MUST call console.error
-      assert.equal(errorCalls.length, 1, "operational error must call console.error");
+      assert.equal(
+        errorCalls.length,
+        1,
+        "operational error must call console.error",
+      );
       assert.ok(errorCalls[0].includes("bootstrap-needed"));
 
       // AND structured log
@@ -1101,11 +1109,9 @@ describe("logging policy", () => {
         runCheck: async () => ({ exitCode: 1 }),
       });
 
-      sched.scheduleSync(
-        "smart-enforcement.traceability",
-        "src/feature.ts",
-        ["symbol-traceability"],
-      );
+      sched.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+        "symbol-traceability",
+      ]);
       advance(100);
       await Promise.resolve();
       await Promise.resolve();
@@ -1235,7 +1241,6 @@ describe("logging policy", () => {
         "operational sync.failed must still produce console.error",
       );
     });
-
   });
   // implements REQ-opencode-file-context-guidance-v1
   describe("file-operation reminder logging policy", () => {
@@ -1365,10 +1370,7 @@ describe("logging policy", () => {
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(srcDir, "existing.ts"),
-        "export const z = 3;",
-      );
+      fs.writeFileSync(path.join(srcDir, "existing.ts"), "export const z = 3;");
 
       logger.setClient({
         app: {
@@ -1453,10 +1455,7 @@ describe("logging policy", () => {
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(srcDir, "repeat.ts"),
-        "export const w = 4;",
-      );
+      fs.writeFileSync(path.join(srcDir, "repeat.ts"), "export const w = 4;");
 
       // Create .kb/config.json so posture detects root_active
       const kbDir2 = path.join(tmpDir, ".kb");
@@ -1467,7 +1466,6 @@ describe("logging policy", () => {
       );
 
       logger.setClient({
-
         app: {
           log: async (payload: Record<string, unknown>) => {
             appLogCalls.push(payload);
@@ -1536,6 +1534,5 @@ describe("logging policy", () => {
       } catch {}
       resetSessionTracker();
     });
-});
-
+  });
 });

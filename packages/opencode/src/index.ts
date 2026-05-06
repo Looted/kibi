@@ -18,6 +18,11 @@ import {
   type FileLifecycle,
   createFileOperationState,
 } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
+import {
+  getInitKibiCommandCapability,
+  registerInitKibiCommand,
+  type OpenCodeConfigHookInput,
+} from "./init-kibi-capability.js";
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
@@ -130,6 +135,7 @@ interface SystemTransformInput {
 
 export interface Hooks {
   event?: (input: EventHookInput) => void | Promise<void>;
+  config?: (input: OpenCodeConfigHookInput) => void | Promise<void>;
   "experimental.chat.system.transform"?: (
     input: unknown,
     output: SystemTransformOutput,
@@ -245,6 +251,13 @@ const kibiOpencodePlugin: Plugin = async (
   } = startup;
 
   const hooks: Hooks = {};
+  const initKibiCommandCapability = getInitKibiCommandCapability();
+
+  if (initKibiCommandCapability.supported) {
+    hooks.config = async (configInput) => {
+      registerInitKibiCommand(configInput, initKibiCommandCapability);
+    };
+  }
 
   // Plugin instance state (not module globals)
   const MAX_RECENT_EDITS = 5;

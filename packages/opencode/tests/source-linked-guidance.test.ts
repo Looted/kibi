@@ -1,10 +1,10 @@
 /// <reference types="bun-types" />
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import { getSourceLinkedRequirementIds } from "../src/source-linked-guidance";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { getSourceLinkedRequirementIds } from "../src/source-linked-guidance";
 
 describe("getSourceLinkedRequirementIds", () => {
   let tmpDir: string;
@@ -124,9 +124,7 @@ describe("getSourceLinkedRequirementIds", () => {
         {
           id: "SYM-bare",
           sourceFile: "src/bare.ts",
-          relationships: [
-            { type: "implements", target: "REQ-bare-1" },
-          ],
+          relationships: [{ type: "implements", target: "REQ-bare-1" }],
         },
       ],
       false, // bare array, no `symbols:` wrapper
@@ -145,9 +143,7 @@ describe("getSourceLinkedRequirementIds", () => {
         {
           id: "SYM-wrapped",
           sourceFile: "src/wrapped.ts",
-          relationships: [
-            { type: "implements", target: "REQ-wrapped-1" },
-          ],
+          relationships: [{ type: "implements", target: "REQ-wrapped-1" }],
         },
       ],
       true, // wrapped in `symbols:` key
