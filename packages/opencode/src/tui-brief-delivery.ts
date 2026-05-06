@@ -77,15 +77,43 @@ export async function deliverBriefTui(
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
     try {
-      const summaryLine = envelope.summary || envelope.briefing.tldr || "Brief available";
+      const summaryLine =
+        envelope.summary || envelope.briefing.tldr || "Brief available";
       const toastLines = [summaryLine];
+
+      if (envelope.schemaVersion === "2.0") {
+        const narrativeLines = envelope.briefing.changeNarrative
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .slice(0, 2);
+
+        if (narrativeLines.length > 0) {
+          toastLines.push(...narrativeLines);
+        } else {
+          const fallbackEntity =
+            envelope.changes.entities.modified[0] ??
+            envelope.changes.entities.added[0];
+          if (fallbackEntity) {
+            const action = envelope.changes.entities.modified[0]
+              ? "Modified"
+              : "Added";
+            toastLines.push(
+              `${action} ${fallbackEntity.id}: ${fallbackEntity.title ?? "Untitled"}`,
+            );
+          }
+        }
+      }
+
       if (envelope.validation.count > 0) {
         toastLines.push(`⚠️ Validation: ${envelope.validation.count} issue(s)`);
       }
       if (envelope.briefing.citations.length > 0) {
         toastLines.push(`📎 ${envelope.briefing.citations.length} citation(s)`);
       }
-      if ((envelope.briefing.missingEvidence?.length ?? 0) > 0) {
+      if (
+        envelope.schemaVersion === "1.0" &&
+        (envelope.briefing.missingEvidence?.length ?? 0) > 0
+      ) {
         toastLines.push(
           `❓ Missing evidence: ${envelope.briefing.missingEvidence?.length} item(s)`,
         );
@@ -108,9 +136,7 @@ export async function deliverBriefTui(
       return { delivered: false };
     }
   } else {
-    logger.info(
-      "TUI showToast API unavailable, brief not delivered",
-    );
+    logger.info("TUI showToast API unavailable, brief not delivered");
     return { delivered: false };
   }
 }

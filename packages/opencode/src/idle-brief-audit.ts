@@ -1,6 +1,11 @@
 import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import {
+  parsePrologValue,
+  parsePropertyList,
+  splitTopLevelGeneral,
+} from "kibi-cli/prolog/codec";
 import { resolveAuditLogPath } from "./idle-brief-paths.js";
 import type { IdleBriefEnvelope } from "./idle-brief-store.js";
 
@@ -22,25 +27,56 @@ export interface AuditEntry {
   timestamp: string;
   operation: string;
   entityId: string;
-  payload?: {
-    kind: "entity";
-    entityType: string;
-    changeKind?: "created" | "updated";
-    title?: string;
-    source?: string;
-    textRef?: string;
-    properties: Record<string, unknown>;
-  } | null;
+  payload?: AuditEntityPayload | AuditRelationshipPayload | null;
+}
+
+export interface AuditEntityPayload {
+  kind: "entity";
+  entityType: string;
+  changeKind?: "created" | "updated";
+  title?: string;
+  source?: string;
+  textRef?: string;
+  properties: Record<string, unknown>;
+}
+
+export interface AuditRelationshipPayload {
+  kind: "relationship";
+  relationshipType: string;
+  properties: Record<string, unknown>;
+}
+
+function asOptionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 // Parse a single changeset line from the audit log
 function parseChangesetLine(line: string): AuditEntry | null {
-  // Format: changeset('TIMESTAMP',OPERATION,'ENTITY_ID',PAYLOAD).
-  const match = line.match(
-    /^changeset\('([^']+)',([a-z_]+),'([^']+)',(.+)\)\.\s*$/,
+  const trimmedLine = line.trim();
+  if (!trimmedLine.startsWith("changeset(") || !trimmedLine.endsWith(").")) {
+    return null;
+  }
+
+  const argsLiteral = trimmedLine.slice("changeset(".length, -2);
+  const parts = splitTopLevelGeneral(argsLiteral, ",").map((part) =>
+    part.trim(),
   );
-  if (!match) return null;
-  const [, timestamp = "", operation = "", entityId = "", rawPayload = ""] = match;
+  if (parts.length < 4) {
+    return null;
+  }
+
+  const timestamp = parsePrologValue(parts[0] ?? "");
+  const operation = parsePrologValue(parts[1] ?? "");
+  const entityId = parsePrologValue(parts[2] ?? "");
+  if (
+    typeof timestamp !== "string" ||
+    typeof operation !== "string" ||
+    typeof entityId !== "string"
+  ) {
+    return null;
+  }
+
+  const rawPayload = parts.slice(3).join(",");
 
   const payload = parsePayload(rawPayload.trim());
   return {
@@ -51,19 +87,26 @@ function parseChangesetLine(line: string): AuditEntry | null {
   };
 }
 
-function parsePayload(
-  rawPayload: string,
-): AuditEntry["payload"] | undefined {
+function parsePayload(rawPayload: string): AuditEntry["payload"] | undefined {
   if (rawPayload === "null") return null;
 
-  const match = rawPayload.match(/^([A-Za-z0-9_]+)-\[(.*)\]$/);
+  const match = rawPayload.match(/^([A-Za-z0-9_]+)-(.+)$/s);
   if (!match) return null;
 
-  const [, entityType = "unknown", rawProps = ""] = match;
+  const [, payloadType = "unknown", rawProps = ""] = match;
   const properties = parsePropertyList(rawProps);
-  const title = typeof properties.title === "string" ? properties.title : undefined;
-  const source = typeof properties.source === "string" ? properties.source : undefined;
-  const textRef = typeof properties.text_ref === "string" ? properties.text_ref : undefined;
+
+  if (payloadType === "rel") {
+    return {
+      kind: "relationship",
+      relationshipType: payloadType,
+      properties,
+    };
+  }
+
+  const title = asOptionalString(properties.title);
+  const source = asOptionalString(properties.source);
+  const textRef = asOptionalString(properties.text_ref);
   const changeKindRaw = properties.change_kind;
   const changeKind =
     changeKindRaw === "created" || changeKindRaw === "updated"
@@ -72,39 +115,13 @@ function parsePayload(
 
   return {
     kind: "entity",
-    entityType,
+    entityType: payloadType,
     ...(changeKind ? { changeKind } : {}),
     ...(title ? { title } : {}),
     ...(source ? { source } : {}),
     ...(textRef ? { textRef } : {}),
     properties,
   };
-}
-
-function parsePropertyList(rawProps: string): Record<string, unknown> {
-  const properties: Record<string, unknown> = {};
-  if (!rawProps.trim()) return properties;
-
-  for (const part of rawProps.split(",")) {
-    const trimmed = part.trim();
-    if (!trimmed) continue;
-    const eqIndex = trimmed.indexOf("=");
-    if (eqIndex < 0) continue;
-    const key = trimmed.slice(0, eqIndex).trim();
-    const value = trimmed.slice(eqIndex + 1).trim();
-    properties[key] = parsePropertyValue(value);
-  }
-
-  return properties;
-}
-
-function parsePropertyValue(value: string): unknown {
-  if (value === "null") return null;
-  if (value === "true") return true;
-  if (value === "false") return false;
-  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
-  const quoted = value.match(/^'(.*)'$/s);
-  return quoted ? quoted[1] : value;
 }
 
 // implements REQ-opencode-kibi-briefing-v4
@@ -233,7 +250,8 @@ export function getLatestAuditCursor(
   return null;
 }
 
-export function getAuditTailCursor( // implements REQ-opencode-kibi-briefing-v6
+export function getAuditTailCursor(
+  // implements REQ-opencode-kibi-briefing-v6
   workspaceRoot: string,
   branch: string,
 ): AuditCursor | null {

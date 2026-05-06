@@ -50,7 +50,10 @@ function sortAndDedup(files: string[]): string[] {
 
 function deriveSeedIds(params: BriefIntentParams): string[] {
   if (params.seedIds !== undefined && params.seedIds.length > 0) {
-    return params.seedIds.slice(0, 3);
+    return buildBriefingContext({
+      sourceFiles: params.sourceFiles,
+      seedIds: params.seedIds,
+    }).seedIds.slice(0, 3);
   }
 
   const focusFile = params.focusFilePath ?? params.sourceFiles[0];
@@ -58,10 +61,10 @@ function deriveSeedIds(params: BriefIntentParams): string[] {
     return [];
   }
 
-  return getSourceLinkedRequirementIds(
-    params.workspaceRoot,
-    focusFile,
-  ).slice(0, 3);
+  return buildBriefingContext({
+    sourceFiles: params.sourceFiles,
+    seedIds: getSourceLinkedRequirementIds(params.workspaceRoot, focusFile),
+  }).seedIds.slice(0, 3);
 }
 
 // implements REQ-opencode-kibi-briefing-v2, REQ-opencode-smart-enforcement-v1
@@ -121,7 +124,8 @@ export function deriveBriefIntent(
   };
 }
 
-export function computeBriefIntent( // implements REQ-opencode-kibi-briefing-v2
+export function computeBriefIntent(
+  // implements REQ-opencode-kibi-briefing-v2
   inputs: BriefIntentInputs,
 ): BriefIntentResult {
   return deriveBriefIntent({
@@ -131,7 +135,59 @@ export function computeBriefIntent( // implements REQ-opencode-kibi-briefing-v2
     workspaceRoot: inputs.worktreeRoot,
     branch: inputs.branch,
     sourceFiles: inputs.sourceFiles,
-    ...(inputs.focusFilePath !== undefined ? { focusFilePath: inputs.focusFilePath } : {}),
+    ...(inputs.focusFilePath !== undefined
+      ? { focusFilePath: inputs.focusFilePath }
+      : {}),
     ...(inputs.seedIds !== undefined ? { seedIds: inputs.seedIds } : {}),
   });
+}
+
+export interface BriefingContextParams {
+  sourceFiles: string[];
+  seedIds?: string[];
+  changedEntityIds?: string[];
+}
+
+export interface BriefingContextResult {
+  sourceFiles: string[];
+  seedIds: string[];
+}
+
+export function buildBriefingContext(
+  // implements REQ-opencode-kibi-briefing-v6
+  params: BriefingContextParams,
+): BriefingContextResult {
+  const sourceFiles = [...new Set(params.sourceFiles)].sort();
+
+  const seen = new Set<string>();
+  const seeds: string[] = [];
+
+  // Take first 3 changed entity IDs in original order, dedupe, sort
+  if (params.changedEntityIds) {
+    for (const id of params.changedEntityIds.slice(0, 3)) {
+      if (!seen.has(id)) {
+        seeds.push(id);
+        seen.add(id);
+      }
+    }
+  }
+
+  // Fill remaining slots from seedIds in original order
+  if (params.seedIds) {
+    for (const id of params.seedIds) {
+      if (seeds.length >= 5) break;
+      if (!seen.has(id)) {
+        seeds.push(id);
+        seen.add(id);
+      }
+    }
+  }
+
+  // Sort final seedIds alphabetically
+  seeds.sort((a, b) => a.localeCompare(b));
+
+  return {
+    sourceFiles,
+    seedIds: seeds,
+  };
 }

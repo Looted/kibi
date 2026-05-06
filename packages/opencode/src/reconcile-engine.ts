@@ -1,3 +1,5 @@
+import type { AuditEntityPayload, AuditEntry } from "./idle-brief-audit.js";
+
 export interface EntityChangeItem {
   id: string;
   type: string;
@@ -13,94 +15,163 @@ export interface ReconcileResult {
   relationshipsChanged: number;
 }
 
-export interface AuditEntry {
-  timestamp: string;
-  operation: string;
-  entityId: string;
-  payload?: {
-    kind: "entity";
-    entityType: string;
-    changeKind?: "created" | "updated";
-    title?: string;
-    source?: string;
-    textRef?: string;
-    properties: Record<string, unknown>;
-  } | null;
+interface EntityState {
+  sawCreate: boolean;
+  sawLegacyUpsert: boolean;
+  deleted: boolean;
+  lastFingerprint?: string;
+  lastKnown?: EntityChangeItem;
 }
 
-export function reconcileAuditEntries( // implements REQ-opencode-kibi-briefing-v6
-  const added = new Map<string, EntityChangeItem>();
-  const modified = new Map<string, EntityChangeItem>();
-  const removed = new Map<string, EntityChangeItem>();
-  let relationshipsChanged = 0;
+function normalizeWhitespace(value: string): string {
+  return value.trim().replace(/\s+/g, " ");
+}
 
-  for (const entry of entries) {
-    if (entry.operation === "upsert_rel") {
-      relationshipsChanged++;
-      continue;
-    }
-
-    if (entry.operation === "delete") {
-      if (added.has(entry.entityId)) {
-        added.delete(entry.entityId);
-        continue;
-      }
-      const prior = modified.get(entry.entityId) ?? added.get(entry.entityId);
-      const item: EntityChangeItem = prior
-        ? prior
-        : entry.payload?.kind === "entity"
-        ? {
-            id: entry.entityId,
-            type: entry.payload.entityType,
-            ...(entry.payload.title ? { title: entry.payload.title } : {}),
-            ...(entry.payload.source ? { source: entry.payload.source } : {}),
-            ...(entry.payload.textRef ? { textRef: entry.payload.textRef } : {}),
-          }
-        : { id: entry.entityId, type: "unknown" };
-      removed.set(entry.entityId, item);
-      modified.delete(entry.entityId);
-      continue;
-    }
-
-    const payload = entry.payload;
-    if (!payload || payload.kind !== "entity") continue;
-
-    const changeKind = payload.changeKind;
-    const item: EntityChangeItem = {
-      id: entry.entityId,
-      type: payload.entityType,
-      ...(payload.title ? { title: payload.title } : {}),
-      ...(payload.source ? { source: payload.source } : {}),
-      ...(payload.textRef ? { textRef: payload.textRef } : {}),
-    };
-
-    if (changeKind === "created" || changeKind === undefined) {
-      if (removed.has(entry.entityId)) {
-        removed.delete(entry.entityId);
-        modified.set(entry.entityId, item);
-      } else {
-        added.set(entry.entityId, item);
-      }
-    } else if (changeKind === "updated") {
-      if (added.has(entry.entityId)) {
-        added.set(entry.entityId, item);
-      } else {
-        modified.set(entry.entityId, item);
-      }
-    }
+function normalizeValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    return normalizeWhitespace(value);
   }
 
-  const sortItems = (items: EntityChangeItem[]) =>
-    items.sort((a, b) => {
-      const typeCmp = a.type.localeCompare(b.type);
-      if (typeCmp !== 0) return typeCmp;
-      return a.id.localeCompare(b.id);
-    });
+  if (Array.isArray(value)) {
+    return value.map((entry) => normalizeValue(entry));
+  }
+
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>)
+        .filter(([key]) => key !== "created_at" && key !== "updated_at")
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, entry]) => [key, normalizeValue(entry)]),
+    );
+  }
+
+  return value;
+}
+
+function fingerprintPayload(payload: AuditEntityPayload): string {
+  return JSON.stringify(normalizeValue(payload.properties));
+}
+
+function isEntityPayload(
+  payload: AuditEntry["payload"],
+): payload is AuditEntityPayload {
+  return payload?.kind === "entity";
+}
+
+function toChangeItem(
+  payload: AuditEntityPayload,
+  entityId: string,
+): EntityChangeItem {
+  const title =
+    payload.title ??
+    (typeof payload.properties.title === "string"
+      ? (payload.properties.title as string)
+      : undefined);
+  const source =
+    payload.source ??
+    (typeof payload.properties.source === "string"
+      ? (payload.properties.source as string)
+      : undefined);
+  const textRef =
+    payload.textRef ??
+    (typeof payload.properties.text_ref === "string"
+      ? (payload.properties.text_ref as string)
+      : undefined);
 
   return {
-    added: sortItems(Array.from(added.values())),
-    modified: sortItems(Array.from(modified.values())),
-    removed: sortItems(Array.from(removed.values())),
+    id: entityId,
+    type: payload.entityType,
+    ...(title ? { title } : {}),
+    ...(source ? { source } : {}),
+    ...(textRef ? { textRef } : {}),
+  };
+}
+
+function compareChangeItems(
+  left: EntityChangeItem,
+  right: EntityChangeItem,
+): number {
+  return left.type.localeCompare(right.type) || left.id.localeCompare(right.id);
+}
+
+export function reconcileAuditEntries(
+  // implements REQ-opencode-kibi-briefing-v6
+  entries: AuditEntry[],
+): ReconcileResult {
+  const states = new Map<string, EntityState>();
+  let relationshipsChanged = 0;
+
+  for (const entry of [...entries].sort((left, right) =>
+    left.timestamp.localeCompare(right.timestamp),
+  )) {
+    if (entry.operation === "upsert_rel") {
+      relationshipsChanged += 1;
+      continue;
+    }
+
+    const state = states.get(entry.entityId) ?? {
+      sawCreate: false,
+      sawLegacyUpsert: false,
+      deleted: false,
+    };
+
+    if (entry.operation === "delete") {
+      state.deleted = true;
+      states.set(entry.entityId, state);
+      continue;
+    }
+
+    if (!isEntityPayload(entry.payload)) {
+      continue;
+    }
+
+    if (entry.payload.changeKind === "created") {
+      state.sawCreate = true;
+    }
+
+    if (!entry.payload.changeKind) {
+      state.sawLegacyUpsert = true;
+    }
+
+    state.lastKnown = toChangeItem(entry.payload, entry.entityId);
+    state.lastFingerprint = fingerprintPayload(entry.payload);
+    state.deleted = false;
+    states.set(entry.entityId, state);
+  }
+
+  const added: EntityChangeItem[] = [];
+  const modified: EntityChangeItem[] = [];
+  const removed: EntityChangeItem[] = [];
+
+  for (const state of states.values()) {
+    if (!state.lastKnown) {
+      continue;
+    }
+
+    if (state.deleted) {
+      if (state.sawCreate) {
+        continue;
+      }
+      removed.push(state.lastKnown);
+      continue;
+    }
+
+    if (state.sawCreate || state.sawLegacyUpsert) {
+      added.push(state.lastKnown);
+      continue;
+    }
+
+    modified.push(state.lastKnown);
+  }
+
+  added.sort(compareChangeItems);
+  modified.sort(compareChangeItems);
+  removed.sort(compareChangeItems);
+
+  return {
+    added,
+    modified,
+    removed,
     relationshipsChanged,
   };
 }

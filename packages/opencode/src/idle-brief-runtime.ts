@@ -1,13 +1,16 @@
 // implements REQ-opencode-kibi-briefing-v4
 
+import { buildBriefingContext } from "./brief-intent.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
+import { atomicWriteBrief, resolveBriefFilePath } from "./idle-brief-paths.js";
 import {
   type IdleBriefEnvelope,
-  createBriefId,
+  type IdleBriefEnvelopeV2,
   computeContentHash,
+  createBriefId,
 } from "./idle-brief-store.js";
-import { atomicWriteBrief, resolveBriefFilePath } from "./idle-brief-paths.js";
+import { reconcileAuditEntries } from "./reconcile-engine.js";
 
 export interface IdleBriefResult {
   success: boolean;
@@ -69,7 +72,10 @@ function asNumber(value: unknown): number {
 }
 
 type SessionApi = {
-  create: (parameters: { directory: string; title: string }) => Promise<unknown>;
+  create: (parameters: {
+    directory: string;
+    title: string;
+  }) => Promise<unknown>;
   prompt: (parameters: {
     sessionID: string;
     parts: Array<{ type: "text"; text: string }>;
@@ -112,11 +118,17 @@ function extractSessionId(response: unknown): string | null {
   return asString(data?.id).trim() || null;
 }
 
-function extractPromptResponseJson(response: unknown): Record<string, unknown> | null {
+function extractPromptResponseJson(
+  response: unknown,
+): Record<string, unknown> | null {
   const root = asRecord(response);
   if (!root) return null;
   const data = asRecord(root.data);
-  const parts = Array.isArray(data?.parts) ? data.parts : Array.isArray(root.parts) ? root.parts : null;
+  const parts = Array.isArray(data?.parts)
+    ? data.parts
+    : Array.isArray(root.parts)
+      ? root.parts
+      : null;
   if (!parts) return null;
   for (const part of parts) {
     const partRecord = asRecord(part);
@@ -136,12 +148,32 @@ function extractPromptResponseJson(response: unknown): Record<string, unknown> |
 }
 const CHECK_PROMPT_FORMAT = {
   type: "json_schema" as const,
-  schema: { type: "object", properties: { violations: { type: "array" }, count: { type: "number" }, diagnostics: { type: "array" } }, required: ["violations", "count", "diagnostics"] },
+  schema: {
+    type: "object",
+    properties: {
+      violations: { type: "array" },
+      count: { type: "number" },
+      diagnostics: { type: "array" },
+    },
+    required: ["violations", "count", "diagnostics"],
+  },
 };
 
 const BRIEFING_PROMPT_FORMAT = {
   type: "json_schema" as const,
-  schema: { type: "object", properties: { briefingState: { type: "string" }, tldr: { type: "string" }, promptBlock: { type: "string" }, citations: { type: "array" }, constraints: { type: "array" }, regressionRisks: { type: "array" }, missingEvidence: { type: "array" } }, required: ["briefingState"] },
+  schema: {
+    type: "object",
+    properties: {
+      briefingState: { type: "string" },
+      tldr: { type: "string" },
+      promptBlock: { type: "string" },
+      citations: { type: "array" },
+      constraints: { type: "array" },
+      regressionRisks: { type: "array" },
+      missingEvidence: { type: "array" },
+    },
+    required: ["briefingState"],
+  },
 };
 
 function parseCheckResult(response: unknown): CheckResult {
@@ -184,12 +216,17 @@ async function loadCheckResult(
   if (!sessionApi) return { violations: [], count: 0, diagnostics: [] };
 
   try {
-    const worker = await sessionApi.create({ directory: workspaceCtx.workspaceRoot, title: "Kibi Idle Brief Worker" });
+    const worker = await sessionApi.create({
+      directory: workspaceCtx.workspaceRoot,
+      title: "Kibi Idle Brief Worker",
+    });
     const sessionID = extractSessionId(worker);
     if (!sessionID) throw new Error("Failed to resolve worker session ID");
     const result = await sessionApi.prompt({
       sessionID,
-      parts: [{ type: "text", text: JSON.stringify({ tool: "kb_check", args: {}}) }],
+      parts: [
+        { type: "text", text: JSON.stringify({ tool: "kb_check", args: {} }) },
+      ],
       tools: { kb_check: true },
       format: CHECK_PROMPT_FORMAT,
     });
@@ -218,6 +255,8 @@ function parseBriefStatements(value: unknown): IdleBriefStatement[] {
 async function loadBriefingResultForIdle(
   client: unknown,
   workspaceCtx: BriefingWorkspaceCtx,
+  sourceFiles: string[],
+  seedIds: string[],
 ): Promise<IdleBriefingResult> {
   const sessionApi = getSessionApi(client);
   if (!sessionApi) {
@@ -228,14 +267,33 @@ async function loadBriefingResultForIdle(
       citations: [],
     };
   }
+  if (sourceFiles.length === 0) {
+    return {
+      briefingState: "no_briefing",
+      tldr: "",
+      promptBlock: "",
+      citations: [],
+    };
+  }
 
   try {
-    const worker = await sessionApi.create({ directory: workspaceCtx.workspaceRoot, title: "Kibi Idle Brief Worker" });
+    const worker = await sessionApi.create({
+      directory: workspaceCtx.workspaceRoot,
+      title: "Kibi Idle Brief Worker",
+    });
     const sessionID = extractSessionId(worker);
     if (!sessionID) throw new Error("Failed to resolve worker session ID");
     const result = await sessionApi.prompt({
       sessionID,
-      parts: [{ type: "text", text: JSON.stringify({ tool: "kb_briefing_generate", args: {}}) }],
+      parts: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            tool: "kb_briefing_generate",
+            args: { sourceFiles, seedIds },
+          }),
+        },
+      ],
       tools: { kb_briefing_generate: true },
       format: BRIEFING_PROMPT_FORMAT,
     });
@@ -273,52 +331,97 @@ async function loadBriefingResultForIdle(
   };
 }
 
-function computeCounts(auditDelta: AuditDelta): {
-  requirementsAdded: number;
-  relationshipsAdded: number;
-  entitiesDeleted: number;
-} {
-  let requirementsAdded = 0;
-  let relationshipsAdded = 0;
-  let entitiesDeleted = 0;
+function computeCounts(auditDelta: AuditDelta): IdleBriefEnvelopeV2["counts"] {
+  const reconciled = reconcileAuditEntries(auditDelta.entries);
 
-  for (const entry of auditDelta.entries) {
-    if (entry.operation === "upsert") {
-      requirementsAdded++;
-    } else if (entry.operation === "upsert_rel") {
-      relationshipsAdded++;
-    } else if (entry.operation === "delete") {
-      entitiesDeleted++;
-    }
-  }
-
-  return { requirementsAdded, relationshipsAdded, entitiesDeleted };
+  return {
+    entitiesAdded: reconciled.added.length,
+    entitiesModified: reconciled.modified.length,
+    entitiesRemoved: reconciled.removed.length,
+    relationshipsChanged: reconciled.relationshipsChanged,
+  };
 }
 
 function computeSummary(
-  counts: { requirementsAdded: number; relationshipsAdded: number; entitiesDeleted: number },
+  counts: IdleBriefEnvelopeV2["counts"],
   violationsCount: number,
 ): string {
   const parts: string[] = [];
+  const entitiesChanged = counts.entitiesAdded + counts.entitiesModified;
 
-  // Display accurate semantics: upsert → "entities changed", not "requirements added"
-  if (counts.requirementsAdded > 0) {
-    parts.push(`${counts.requirementsAdded} entit${counts.requirementsAdded > 1 ? "ies" : "y"} changed`);
+  if (entitiesChanged > 0) {
+    parts.push(
+      `${entitiesChanged} entit${entitiesChanged > 1 ? "ies" : "y"} changed`,
+    );
   }
-  if (counts.relationshipsAdded > 0) {
-    parts.push(`${counts.relationshipsAdded} relationship${counts.relationshipsAdded > 1 ? "s" : ""} changed`);
+  if (counts.relationshipsChanged > 0) {
+    parts.push(
+      `${counts.relationshipsChanged} relationship${counts.relationshipsChanged > 1 ? "s" : ""} changed`,
+    );
   }
-  if (counts.entitiesDeleted > 0) {
-    parts.push(`${counts.entitiesDeleted} entit${counts.entitiesDeleted > 1 ? "ies" : "y"} deleted`);
+  if (counts.entitiesRemoved > 0) {
+    parts.push(
+      `${counts.entitiesRemoved} entit${counts.entitiesRemoved > 1 ? "ies" : "y"} deleted`,
+    );
   }
 
-  const validationText = violationsCount === 0
-    ? "clean"
-    : `${violationsCount} issue${violationsCount > 1 ? "s" : ""}`;
+  const validationText =
+    violationsCount === 0
+      ? "clean"
+      : `${violationsCount} issue${violationsCount > 1 ? "s" : ""}`;
 
   const changeText = parts.length > 0 ? parts.join(", ") : "no changes";
 
   return `${changeText} | ${validationText}`;
+}
+
+function humanizeEntityType(type: string): string {
+  switch (type) {
+    case "req":
+      return "requirement";
+    case "scenario":
+      return "scenario";
+    case "test":
+      return "test";
+    case "fact":
+      return "fact";
+    case "adr":
+      return "ADR";
+    case "flag":
+      return "flag";
+    case "event":
+      return "event";
+    case "symbol":
+      return "symbol";
+    default:
+      return type;
+  }
+}
+
+function buildChangeNarrative(auditDelta: AuditDelta): string[] {
+  const reconciled = reconcileAuditEntries(auditDelta.entries);
+  const lines = [
+    ...reconciled.added.map(
+      (item) =>
+        `Added ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
+    ),
+    ...reconciled.modified.map(
+      (item) =>
+        `Modified ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
+    ),
+    ...reconciled.removed.map(
+      (item) =>
+        `Removed ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
+    ),
+  ];
+
+  if (reconciled.relationshipsChanged > 0) {
+    lines.push(
+      `Changed ${reconciled.relationshipsChanged} relationship${reconciled.relationshipsChanged > 1 ? "s" : ""}`,
+    );
+  }
+
+  return lines;
 }
 
 function buildEnvelopeParts(
@@ -329,12 +432,14 @@ function buildEnvelopeParts(
   createdAt: string,
   auditDelta: AuditDelta,
   summary: string,
-  counts: { requirementsAdded: number; relationshipsAdded: number; entitiesDeleted: number },
+  counts: IdleBriefEnvelopeV2["counts"],
   checkResult: CheckResult,
   briefingResult: IdleBriefingResult,
-): Omit<IdleBriefEnvelope, "contentHash"> {
+): Omit<IdleBriefEnvelopeV2, "contentHash"> {
+  const reconciled = reconcileAuditEntries(auditDelta.entries);
+
   return {
-    schemaVersion: "1.0",
+    schemaVersion: "2.0",
     briefId,
     type,
     sessionId,
@@ -344,6 +449,16 @@ function buildEnvelopeParts(
     auditCursor: auditDelta.newCursor,
     summary,
     counts,
+    changes: {
+      entities: {
+        added: reconciled.added,
+        modified: reconciled.modified,
+        removed: reconciled.removed,
+      },
+      relationships: {
+        changed: reconciled.relationshipsChanged,
+      },
+    },
     validation: {
       violations: checkResult.violations,
       count: checkResult.count,
@@ -353,9 +468,18 @@ function buildEnvelopeParts(
       tldr: briefingResult.tldr || summary,
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
-      ...(briefingResult.constraints && briefingResult.constraints.length > 0 ? { constraints: briefingResult.constraints } : {}),
-      ...(briefingResult.regressionRisks && briefingResult.regressionRisks.length > 0 ? { regressionRisks: briefingResult.regressionRisks } : {}),
-      ...(briefingResult.missingEvidence && briefingResult.missingEvidence.length > 0 ? { missingEvidence: briefingResult.missingEvidence } : {}),
+      changeNarrative: buildChangeNarrative(auditDelta),
+      ...(briefingResult.constraints && briefingResult.constraints.length > 0
+        ? { constraints: briefingResult.constraints }
+        : {}),
+      ...(briefingResult.regressionRisks &&
+      briefingResult.regressionRisks.length > 0
+        ? { regressionRisks: briefingResult.regressionRisks }
+        : {}),
+      ...(briefingResult.missingEvidence &&
+      briefingResult.missingEvidence.length > 0
+        ? { missingEvidence: briefingResult.missingEvidence }
+        : {}),
     },
   };
 }
@@ -366,6 +490,7 @@ export async function generateIdleBrief(
   workspaceCtx: BriefingWorkspaceCtx,
   auditDelta: AuditDelta,
   sessionId: string,
+  options?: { sourceFiles?: string[]; changedEntityIds?: string[] },
 ): Promise<IdleBriefResult> {
   if (!client) {
     return { success: true, briefPath: null, envelope: null };
@@ -377,6 +502,31 @@ export async function generateIdleBrief(
       envelope: null,
     };
   }
+  const reconciled = reconcileAuditEntries(auditDelta.entries);
+  const derivedSourceFiles = [
+    ...reconciled.added
+      .map((item) => item.source)
+      .filter((source): source is string => !!source),
+    ...reconciled.modified
+      .map((item) => item.source)
+      .filter((source): source is string => !!source),
+    ...reconciled.removed
+      .map((item) => item.source)
+      .filter((source): source is string => !!source),
+  ];
+  const sourceFiles =
+    options?.sourceFiles !== undefined
+      ? options.sourceFiles
+      : derivedSourceFiles.length > 0
+        ? derivedSourceFiles
+        : [auditDelta.entries[0]?.entityId ?? "unknown"];
+  const briefingContext = buildBriefingContext({
+    sourceFiles,
+    ...(options?.changedEntityIds
+      ? { changedEntityIds: options.changedEntityIds }
+      : {}),
+  });
+  const { seedIds } = briefingContext;
   let checkResult: CheckResult;
   let briefingResult: IdleBriefingResult;
 
@@ -387,7 +537,12 @@ export async function generateIdleBrief(
   }
 
   try {
-    briefingResult = await loadBriefingResultForIdle(client, workspaceCtx);
+    briefingResult = await loadBriefingResultForIdle(
+      client,
+      workspaceCtx,
+      sourceFiles,
+      seedIds,
+    );
   } catch {
     briefingResult = {
       briefingState: "no_briefing",

@@ -10,11 +10,15 @@ import {
   type CommentAnalysisResult,
   analyzeCodeFile,
 } from "./comment-analysis.js";
-import { createFileOperationState, type FileLifecycle } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
-import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
 import { getE2eCoverageSignal } from "./e2e-coverage-signals.js"; // implements REQ-opencode-file-context-guidance-v1
 import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements REQ-opencode-file-context-guidance-v1
 import * as fileFilter from "./file-filter.js";
+import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
+import {
+  type FileLifecycle,
+  createFileOperationState,
+} from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
+import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
   type AuditCursor,
@@ -29,16 +33,17 @@ import { type PathKind, analyzePath } from "./path-kind.js";
 import { runPluginStartup } from "./plugin-startup.js";
 import { resolveCurrentBranch } from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
+import { reconcileAuditEntries } from "./reconcile-engine.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
-import {
-  syncSessionBaselineState,
-  type SessionBaselineState,
-} from "./session-fingerprint.js";
 import {
   type SessionEditEntry,
   createSessionEditState,
 } from "./session-edit-state.js";
+import {
+  type SessionBaselineState,
+  syncSessionBaselineState,
+} from "./session-fingerprint.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import {
   type StartupNotifierClient,
@@ -255,7 +260,9 @@ const kibiOpencodePlugin: Plugin = async (
   let lastRiskClass: RiskClass | null = null;
   let lastRiskFilePath: string | null = null;
   const sessionEditState = createSessionEditState({ worktree: input.worktree });
-  const fileOperationState = createFileOperationState({ worktree: input.worktree }); // implements REQ-opencode-file-context-guidance-v1
+  const fileOperationState = createFileOperationState({
+    worktree: input.worktree,
+  }); // implements REQ-opencode-file-context-guidance-v1
   let degradedWarnedOnce = false;
   const pathKindCache = new Map<string, PathKind>();
 
@@ -395,7 +402,9 @@ const kibiOpencodePlugin: Plugin = async (
     };
   }
 
-  function buildWorkspaceContextForBranch(branch: string): BriefingWorkspaceCtx {
+  function buildWorkspaceContextForBranch(
+    branch: string,
+  ): BriefingWorkspaceCtx {
     return {
       ...buildBriefingWorkspaceContext(),
       branch,
@@ -488,11 +497,18 @@ const kibiOpencodePlugin: Plugin = async (
           const workspaceCtx = buildWorkspaceContextForBranch(idleBranch);
           const client = input.client;
           if (!client) return;
+          const reconciled = reconcileAuditEntries(auditDelta.entries);
+          const changedEntityIds = [
+            ...reconciled.added.map((e) => e.id),
+            ...reconciled.modified.map((e) => e.id),
+            ...reconciled.removed.map((e) => e.id),
+          ];
           const result = await generateIdleBrief(
             input.client,
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
+            { sourceFiles, changedEntityIds },
           );
 
           if (result.success && result.envelope) {
@@ -554,7 +570,8 @@ const kibiOpencodePlugin: Plugin = async (
     // Accept file.created, file.edited, and file.deleted lifecycle events
     const isFileLifecycle =
       event.type === "file.created" ||
-      event.type === "file.edited" || event.type === "file.deleted";
+      event.type === "file.edited" ||
+      event.type === "file.deleted";
     if (!isFileLifecycle) return;
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
@@ -592,13 +609,16 @@ const kibiOpencodePlugin: Plugin = async (
         timestamp: e.lastReconciledAt,
       }));
       // Schedule background sync for deleted files that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
-      if (cfg.sync.enabled && scheduler && fileFilter.shouldHandleFile(filePath, input.worktree)) {
+      if (
+        cfg.sync.enabled &&
+        scheduler &&
+        fileFilter.shouldHandleFile(filePath, input.worktree)
+      ) {
         scheduler.scheduleSync("file.deleted", filePath);
       }
 
       return;
     }
-
 
     sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
     sessionEditState.reconcilePath(filePath);
@@ -607,8 +627,15 @@ const kibiOpencodePlugin: Plugin = async (
     const focusEdit = sessionEditState.getFocusEdit();
 
     // Schedule background sync for file.created/file.edited that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
-    if (cfg.sync.enabled && scheduler && fileFilter.shouldHandleFile(filePath, input.worktree)) {
-      scheduler.scheduleSync(lifecycle === "created" ? "file.created" : "file.edited", filePath);
+    if (
+      cfg.sync.enabled &&
+      scheduler &&
+      fileFilter.shouldHandleFile(filePath, input.worktree)
+    ) {
+      scheduler.scheduleSync(
+        lifecycle === "created" ? "file.created" : "file.edited",
+        filePath,
+      );
     }
 
     let fileContent = "";
@@ -1078,7 +1105,9 @@ const kibiOpencodePlugin: Plugin = async (
               );
               if (deliveryResult.delivered) {
                 markBriefRead(input.worktree, unreadBrief.filePath);
-                replayedBriefContentHashes.add(unreadBrief.envelope.contentHash);
+                replayedBriefContentHashes.add(
+                  unreadBrief.envelope.contentHash,
+                );
               }
             } catch (err) {
               logger.error("idle-brief.replay-failed", {
@@ -1090,14 +1119,23 @@ const kibiOpencodePlugin: Plugin = async (
         }
 
         // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
-        let fileOperationReminder: { path: string; lifecycleReminder: string | null; e2eReminder: string | null } | undefined;
-        const focusPathForReminder = transformFocusFilePath ?? promptFocusFilePath;
+        let fileOperationReminder:
+          | {
+              path: string;
+              lifecycleReminder: string | null;
+              e2eReminder: string | null;
+            }
+          | undefined;
+        const focusPathForReminder =
+          transformFocusFilePath ?? promptFocusFilePath;
         if (focusPathForReminder) {
-          const normalizedFocusPath = fileOperationState.normalizePath(focusPathForReminder);
-          const pendingLifecycle = fileOperationState.peekPending(normalizedFocusPath);
+          const normalizedFocusPath =
+            fileOperationState.normalizePath(focusPathForReminder);
+          const pendingLifecycle =
+            fileOperationState.peekPending(normalizedFocusPath);
           if (pendingLifecycle) {
             // Check if any reminder kind for this lifecycle has not yet been shown
-            const reminderKindsForLifecycle: import("./file-operation-state.js").ReminderKind[] =
+            const reminderKindsForLifecycle: ReminderKind[] =
               pendingLifecycle.lifecycle === "deleted"
                 ? ["kibi_delete", "e2e_delete"]
                 : pendingLifecycle.lifecycle === "created"
@@ -1108,9 +1146,16 @@ const kibiOpencodePlugin: Plugin = async (
             );
             if (hasUnshownReminder) {
               // Resolve linked entities and e2e signal
-              const linkedEntityResult = getFileLinkedEntityIds(input.worktree, focusPathForReminder);
-              const e2eSignal = getE2eCoverageSignal(input.worktree, focusPathForReminder);
-              const focusPathKind = pathKindCache.get(normalizedFocusPath) ?? "unknown";
+              const linkedEntityResult = getFileLinkedEntityIds(
+                input.worktree,
+                focusPathForReminder,
+              );
+              const e2eSignal = getE2eCoverageSignal(
+                input.worktree,
+                focusPathForReminder,
+              );
+              const focusPathKind =
+                pathKindCache.get(normalizedFocusPath) ?? "unknown";
               const reminderResult = deriveFileOperationReminder({
                 normalizedPath: normalizedFocusPath,
                 lifecycle: pendingLifecycle.lifecycle,
@@ -1147,7 +1192,9 @@ const kibiOpencodePlugin: Plugin = async (
           ...(effectiveRiskClass != null
             ? { riskClass: effectiveRiskClass }
             : {}),
-          ...(fileOperationReminder !== undefined ? { fileOperationReminder } : {}),
+          ...(fileOperationReminder !== undefined
+            ? { fileOperationReminder }
+            : {}),
         });
 
         logger.info("smart-enforcement.guidance", {
@@ -1195,20 +1242,26 @@ const kibiOpencodePlugin: Plugin = async (
           const focusPathForConsume = fileOperationReminder.path;
 
           // Determine which reminders were actually emitted in guidance
-          const lifecycleEmitted = lifecycleReminderText !== null && guidance.includes(lifecycleReminderText);
-          const e2eEmitted = e2eReminderText !== null && guidance.includes(e2eReminderText);
+          const lifecycleEmitted =
+            lifecycleReminderText !== null &&
+            guidance.includes(lifecycleReminderText);
+          const e2eEmitted =
+            e2eReminderText !== null && guidance.includes(e2eReminderText);
 
           // Mark shown and log only for reminders that were actually emitted
           if (lifecycleEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
-              fileOperationState.peekPending(focusPathForConsume)?.lifecycle === "deleted"
+              fileOperationState.peekPending(focusPathForConsume)?.lifecycle ===
+              "deleted"
                 ? "kibi_delete"
                 : "kibi_write";
             fileOperationState.markShown(focusPathForConsume, kind);
             logger.info("smart-enforcement.file-operation-reminder", {
               event: "smart_enforcement_file_operation_reminder",
               file: focusPathForConsume,
-              lifecycle: fileOperationState.peekPending(focusPathForConsume)?.lifecycle ?? null,
+              lifecycle:
+                fileOperationState.peekPending(focusPathForConsume)
+                  ?.lifecycle ?? null,
               posture_state: posture.state,
               risk_class: effectiveRiskClass,
             });
@@ -1216,15 +1269,21 @@ const kibiOpencodePlugin: Plugin = async (
 
           if (e2eEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
-              fileOperationState.peekPending(focusPathForConsume)?.lifecycle === "deleted"
+              fileOperationState.peekPending(focusPathForConsume)?.lifecycle ===
+              "deleted"
                 ? "e2e_delete"
                 : "e2e_write";
             fileOperationState.markShown(focusPathForConsume, kind);
-            const e2eSignalForLog = getE2eCoverageSignal(input.worktree, focusPathForConsume);
+            const e2eSignalForLog = getE2eCoverageSignal(
+              input.worktree,
+              focusPathForConsume,
+            );
             logger.info("smart-enforcement.e2e-reminder", {
               event: "smart_enforcement_e2e_reminder",
               file: focusPathForConsume,
-              lifecycle: fileOperationState.peekPending(focusPathForConsume)?.lifecycle ?? null,
+              lifecycle:
+                fileOperationState.peekPending(focusPathForConsume)
+                  ?.lifecycle ?? null,
               signal_level: e2eSignalForLog.level,
               posture_state: posture.state,
               risk_class: effectiveRiskClass,
