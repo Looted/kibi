@@ -1,7 +1,7 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import type { RepoPosture } from "../src/repo-posture";
 import { SENTINEL, buildPrompt, postureGuidance } from "../src/prompt";
+import type { RepoPosture } from "../src/repo-posture";
 
 describe("prompt coverage", () => {
   test("emits partial-setup posture guidance", () => {

@@ -104,7 +104,6 @@ describe("non-blocking UX", () => {
         }
       };
 
-
       const scheduler = createSyncScheduler({
         worktree: process.cwd(),
         config: {
@@ -171,7 +170,6 @@ describe("non-blocking UX", () => {
           }
         }
       };
-
 
       const scheduler = createSyncScheduler({
         worktree: process.cwd(),

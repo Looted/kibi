@@ -5,15 +5,15 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { Hooks, Plugin, PluginInput } from "../src/index";
 import { getGuidanceCache, resetGuidanceCache } from "../src/guidance-cache";
+import type { Hooks, Plugin, PluginInput } from "../src/index";
 import * as logger from "../src/logger";
-import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import type {
   SchedulerOptions,
   SyncRunMetadata,
   SyncScheduler,
 } from "../src/scheduler";
+import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 declare global {
   var __kibi_test_scheduler_factory:

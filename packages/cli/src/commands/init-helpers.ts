@@ -120,17 +120,26 @@ export function createConfigFile(kbDir: string): void {
 }
 
 export function updateGitIgnore(cwd: string): void {
+  // implements REQ-001
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
 
-  if (!gitignoreContent.includes(".kb/")) {
-    const newContent = gitignoreContent
-      ? `${gitignoreContent.trimEnd()}\n.kb/\n`
-      : ".kb/\n";
-    writeFileSync(gitignorePath, newContent);
-    console.log("✓ Added .kb/ to .gitignore");
+  const ensureEntry = (current: string, entry: string): string => {
+    if (current.includes(entry)) {
+      return current;
+    }
+
+    return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
+  };
+
+  const updatedWithKb = ensureEntry(gitignoreContent, ".kb/");
+  const updatedContent = ensureEntry(updatedWithKb, ".kb/briefs/");
+
+  if (updatedContent !== gitignoreContent) {
+    writeFileSync(gitignorePath, updatedContent);
+    console.log("✓ Added .kb/ and .kb/briefs/ to .gitignore");
   }
 }
 

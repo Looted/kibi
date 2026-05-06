@@ -11,13 +11,13 @@ import {
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as logger from "../src/logger.js";
 import {
   DEFAULTS,
   isPluginEnabled,
   loadConfig,
   validateAndMerge,
 } from "../src/config";
+import * as logger from "../src/logger.js";
 
 describe("config loader", () => {
   let tmpBase: string;
@@ -265,7 +265,7 @@ describe("config loader", () => {
 
     expect(c.ux.briefs).toEqual({
       autoSubmit: false,
-});
+    });
     expect(c.ux.toastStartup).toBe(DEFAULTS.ux.toastStartup);
     expect(c.ux.toastFailures).toBe(DEFAULTS.ux.toastFailures);
     expect(c.ux.toastSuccesses).toBe(DEFAULTS.ux.toastSuccesses);

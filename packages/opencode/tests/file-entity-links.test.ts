@@ -1,13 +1,13 @@
 /// <reference types="bun-types" />
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   getFileLinkedEntityIds,
   getFileLinkedTargetsByType,
 } from "../src/file-entity-links";
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
 
 describe("getFileLinkedEntityIds", () => {
   let tmpDir: string;

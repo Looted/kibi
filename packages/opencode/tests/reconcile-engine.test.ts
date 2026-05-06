@@ -28,7 +28,9 @@ function createEntityEntry(
         ? {
             kind: "entity",
             entityType,
-            ...(overrides.changeKind ? { changeKind: overrides.changeKind } : {}),
+            ...(overrides.changeKind
+              ? { changeKind: overrides.changeKind }
+              : {}),
             ...(title ? { title } : {}),
             ...(source ? { source } : {}),
             ...(textRef ? { textRef } : {}),
@@ -37,7 +39,9 @@ function createEntityEntry(
               ...(title ? { title } : {}),
               ...(source ? { source } : {}),
               ...(textRef ? { text_ref: textRef } : {}),
-              ...(overrides.changeKind ? { change_kind: overrides.changeKind } : {}),
+              ...(overrides.changeKind
+                ? { change_kind: overrides.changeKind }
+                : {}),
               ...(overrides.properties ?? {}),
             },
           }

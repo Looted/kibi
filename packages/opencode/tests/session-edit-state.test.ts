@@ -1,12 +1,12 @@
-import { describe, test, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import * as fs from "node:fs";
-import * as path from "node:path";
-import * as os from "node:os";
 import * as crypto from "node:crypto";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 import {
-  createSessionEditState,
   type SessionEditEntry,
+  createSessionEditState,
 } from "../src/session-edit-state";
 
 // ---------------------------------------------------------------------------
@@ -191,7 +191,10 @@ describe("createSessionEditState", () => {
     assert.equal(state.getSessionEdits().length, 1);
     assert.equal(state.getSessionEdits()[0]!.filePath, "src/brand-new.ts");
     assert.equal(state.getSessionEdits()[0]!.baselineHash, "<deleted>");
-    assert.equal(state.getSessionEdits()[0]!.currentHash, hash("fresh content"));
+    assert.equal(
+      state.getSessionEdits()[0]!.currentHash,
+      hash("fresh content"),
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -262,7 +265,10 @@ describe("createSessionEditState", () => {
   // -------------------------------------------------------------------------
   test("getFocusEdit returns the last reconciled surviving edit", () => {
     let clock = 0;
-    const state = createSessionEditState({ worktree: tmpDir, now: () => clock });
+    const state = createSessionEditState({
+      worktree: tmpDir,
+      now: () => clock,
+    });
 
     writeFile("src/a.ts", "a-content");
     writeFile("src/b.ts", "b-content");
@@ -312,7 +318,10 @@ describe("createSessionEditState", () => {
   // -------------------------------------------------------------------------
   test("getSessionEdits returns entries sorted by lastReconciledAt ascending", () => {
     let clock = 0;
-    const state = createSessionEditState({ worktree: tmpDir, now: () => clock });
+    const state = createSessionEditState({
+      worktree: tmpDir,
+      now: () => clock,
+    });
 
     writeFile("src/z.ts", "z");
     writeFile("src/a.ts", "a");

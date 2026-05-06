@@ -156,65 +156,71 @@ describe("sync scheduler", () => {
     await flushAsync();
     assert.equal(runs, 1);
   });
+});
+
+test("file.created reason treated same as file.edited for sync scheduling", async () => {
+  const clock = createFakeClock();
+  let runs = 0;
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    runSync: async () => {
+      runs += 1;
+      return { exitCode: 0 };
+    },
   });
 
-  test("file.created reason treated same as file.edited for sync scheduling", async () => {
-    const clock = createFakeClock();
-    let runs = 0;
+  scheduler.scheduleSync(
+    "file.created",
+    "documentation/requirements/REQ-001.md",
+  );
 
-    const scheduler = createSyncScheduler({
-      worktree: process.cwd(),
-      config: {
-        ...DEFAULTS,
-        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
-      },
-      now: clock.now,
-      setTimeoutFn: clock.setTimeoutFn,
-      clearTimeoutFn: clock.clearTimeoutFn,
-      runSync: async () => {
-        runs += 1;
-        return { exitCode: 0 };
-      },
-    });
+  clock.advance(99);
+  assert.equal(runs, 0);
 
-    scheduler.scheduleSync("file.created", "documentation/requirements/REQ-001.md");
+  clock.advance(1);
+  await flushAsync();
+  assert.equal(runs, 1);
+});
 
-    clock.advance(99);
-    assert.equal(runs, 0);
+test("file.deleted reason treated same as file.edited for sync scheduling", async () => {
+  const clock = createFakeClock();
+  let runs = 0;
 
-    clock.advance(1);
-    await flushAsync();
-    assert.equal(runs, 1);
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    runSync: async () => {
+      runs += 1;
+      return { exitCode: 0 };
+    },
   });
 
-  test("file.deleted reason treated same as file.edited for sync scheduling", async () => {
-    const clock = createFakeClock();
-    let runs = 0;
+  scheduler.scheduleSync(
+    "file.deleted",
+    "documentation/requirements/REQ-001.md",
+  );
 
-    const scheduler = createSyncScheduler({
-      worktree: process.cwd(),
-      config: {
-        ...DEFAULTS,
-        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
-      },
-      now: clock.now,
-      setTimeoutFn: clock.setTimeoutFn,
-      clearTimeoutFn: clock.clearTimeoutFn,
-      runSync: async () => {
-        runs += 1;
-        return { exitCode: 0 };
-      },
-    });
+  clock.advance(99);
+  assert.equal(runs, 0);
 
-    scheduler.scheduleSync("file.deleted", "documentation/requirements/REQ-001.md");
-
-    clock.advance(99);
-    assert.equal(runs, 0);
-
-    clock.advance(1);
-    await flushAsync();
-    assert.equal(runs, 1);
-  });
+  clock.advance(1);
+  await flushAsync();
+  assert.equal(runs, 1);
+});
 test("onRunComplete exposes sync failure via exitCode", async () => {
   const clock = createFakeClock();
   const completions: SyncRunMetadata[] = [];
@@ -300,11 +306,9 @@ test("check.failed for symbol-traceability produces zero raw console.error", asy
       runCheck: async () => ({ exitCode: 1 }),
     });
 
-    scheduler.scheduleSync(
-      "smart-enforcement.traceability",
-      "src/feature.ts",
-      ["symbol-traceability"],
-    );
+    scheduler.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+      "symbol-traceability",
+    ]);
     clock.advance(100);
     await flushAsync();
 
@@ -435,11 +439,17 @@ test("smart-enforcement trailing sync.failed produces zero raw console.error", a
       },
     });
 
-    scheduler.scheduleSync("smart-enforcement.kb-doc", "documentation/facts/FACT-001.md");
+    scheduler.scheduleSync(
+      "smart-enforcement.kb-doc",
+      "documentation/facts/FACT-001.md",
+    );
     clock.advance(100);
     await flushAsync();
 
-    scheduler.scheduleSync("smart-enforcement.kb-doc", "documentation/facts/FACT-002.md");
+    scheduler.scheduleSync(
+      "smart-enforcement.kb-doc",
+      "documentation/facts/FACT-002.md",
+    );
     clock.advance(100);
     await flushAsync();
 

@@ -85,6 +85,24 @@ describe("kibi init", () => {
     expect(config.paths.symbols).toBe("documentation/symbols.yaml");
   });
 
+  test("adds .kb and brief artifacts to .gitignore", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    const content = readFileSync(gitignorePath, "utf-8");
+
+    expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
+  }, 30000);
+
   test("creates config.json with all check rules explicitly set to true", () => {
     execSync("git init", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {

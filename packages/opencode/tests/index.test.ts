@@ -13,17 +13,17 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
 import * as briefingRuntimeModule from "../src/briefing-runtime";
-import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
-import * as logger from "../src/logger";
-import * as promptModule from "../src/prompt";
-import * as toastModule from "../src/toast";
-import type { PluginInput } from "../src/index";
-import { resolveAuditLogPath } from "../src/idle-brief-paths";
-import { runPluginStartup } from "../src/plugin-startup";
-import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import type { BriefingRuntimeResult } from "../src/briefing-runtime";
+import { resolveAuditLogPath } from "../src/idle-brief-paths";
+import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
+import kibiOpencodePlugin from "../src/index";
+import type { PluginInput } from "../src/index";
+import * as logger from "../src/logger";
+import { runPluginStartup } from "../src/plugin-startup";
+import * as promptModule from "../src/prompt";
+import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
+import * as toastModule from "../src/toast";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -40,7 +40,10 @@ describe.serial("index kibiOpencodePlugin", () => {
   });
 
   const startupNotifyGlobals = globalThis as typeof globalThis & {
-    __kibi_test_schedule_startup_notify?: (callback: () => void, delayMs: number) => void;
+    __kibi_test_schedule_startup_notify?: (
+      callback: () => void,
+      delayMs: number,
+    ) => void;
   };
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
@@ -252,12 +255,12 @@ describe.serial("index kibiOpencodePlugin", () => {
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
         body: {
-variant: "success",
-title: "Kibi OpenCode",
-message: "kibi-opencode started",
-        duration: 4000,
+          variant: "success",
+          title: "Kibi OpenCode",
+          message: "kibi-opencode started",
+          duration: 4000,
         },
-});
+      });
       assert.equal(startupConfirmations.length, 1);
 
       assert.equal(
@@ -347,7 +350,6 @@ message: "kibi-opencode started",
       delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
         .__kibi_test_scheduler_factory;
     });
-
 
     it("does not emit startup confirmation when disabled", async () => {
       const logCalls: Array<Record<string, unknown>> = [];
@@ -3343,19 +3345,31 @@ import datetime
       for (const dir of docDirs) {
         fs.mkdirSync(path.join(workspaceDir, dir), { recursive: true });
       }
-      fs.writeFileSync(path.join(workspaceDir, "documentation", "symbols.yaml"), "[]");
+      fs.writeFileSync(
+        path.join(workspaceDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
     }
 
-    function writePluginConfig(workspaceDir: string, config: Record<string, unknown>): void {
+    function writePluginConfig(
+      workspaceDir: string,
+      config: Record<string, unknown>,
+    ): void {
       const opencodeDir = path.join(workspaceDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
-      fs.writeFileSync(path.join(opencodeDir, "kibi.json"), JSON.stringify(config, null, 2));
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(config, null, 2),
+      );
     }
 
     function installNoopScheduler(workspaceDir: string): void {
       const schedulerFactoryGlobals = globalThis as typeof globalThis & {
         __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
-        __kibi_test_scheduler_factory_by_worktree?: Map<string, (...args: unknown[]) => unknown>;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
       };
       const schedulerFactory = () => ({
         scheduleSync: () => {},
@@ -3364,7 +3378,8 @@ import datetime
         flush: async () => {},
         dispose: () => {},
       });
-      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??= new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
       schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
         workspaceDir,
         schedulerFactory,
@@ -3408,7 +3423,9 @@ import datetime
       };
     }
 
-    function createAutoBriefClient(options: { promptResults?: unknown[] } = {}) {
+    function createAutoBriefClient(
+      options: { promptResults?: unknown[] } = {},
+    ) {
       const createCalls: AutoBriefSessionCreateParams[] = [];
       const promptCalls: AutoBriefSessionPromptParams[] = [];
       const toastCalls: unknown[] = [];
@@ -3480,7 +3497,9 @@ import datetime
 
     async function loadFreshPlugin() {
       freshPluginCounter += 1;
-      const mod = await import(`../src/index.ts?auto-brief=${freshPluginCounter}`);
+      const mod = await import(
+        `../src/index.ts?auto-brief=${freshPluginCounter}`
+      );
       return mod.default;
     }
 
@@ -3557,7 +3576,11 @@ import datetime
               entryCount: 1,
               fileSize: 100,
             },
-            summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+            summary: {
+              requirementsAdded: 1,
+              relationshipsAdded: 0,
+              entitiesDeleted: 0,
+            },
             validation: { violations: [], count: 0, diagnostics: [] },
             briefing: { tldr: "prior", promptBlock: "", citations: [] },
             contentHash: "prior-hash",
@@ -3767,7 +3790,8 @@ import datetime
       assert.equal(fetchSpy.mock.calls.length, 1);
       assert.equal(fetchSpy.mock.calls[0]?.[0], client);
       assert.equal(
-        (fetchSpy.mock.calls[0]?.[1] as { workspaceRoot: string }).workspaceRoot,
+        (fetchSpy.mock.calls[0]?.[1] as { workspaceRoot: string })
+          .workspaceRoot,
         tmpDir,
       );
       assert.equal(
@@ -3787,16 +3811,16 @@ import datetime
         ["src/feature.ts"],
       );
       assert.equal(
-        (fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }).fingerprint.endsWith(
-          "\0src/feature.ts",
-        ),
+        (
+          fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }
+        ).fingerprint.endsWith("\0src/feature.ts"),
         true,
       );
       assert.deepEqual(toastCalls[0], {
         body: {
-        message: READY_TOAST,
+          message: READY_TOAST,
         },
-});
+      });
     });
 
     it("sends exactly one toast for repeated same-fingerprint edit events", async () => {
@@ -3831,13 +3855,16 @@ import datetime
         toastMessage: READY_TOAST,
       };
       const { client, toastCalls } = createAutoBriefClient();
-      let resolveBriefing: ((result: BriefingRuntimeResult) => void) | undefined;
+      let resolveBriefing:
+        | ((result: BriefingRuntimeResult) => void)
+        | undefined;
       const briefingGate = new Promise<BriefingRuntimeResult>((resolve) => {
         resolveBriefing = resolve;
       });
-      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult").mockImplementation(
-        () => briefingGate,
-      );
+      const fetchSpy = spyOn(
+        briefingRuntimeModule,
+        "fetchBriefingResult",
+      ).mockImplementation(() => briefingGate);
       const plugin = await loadFreshPlugin();
       const hooks = await plugin(makeInput({ client }));
 
@@ -3881,9 +3908,9 @@ import datetime
       assert.equal(toastCalls.length, 1);
       assert.deepEqual(toastCalls[0], {
         body: {
-        message: READY_TOAST,
+          message: READY_TOAST,
         },
-});
+      });
     });
 
     it("renders ready auto-brief guidance without the inline /brief-kibi cue", async () => {
@@ -3913,7 +3940,8 @@ import datetime
         promptResults: [
           makeReadyPromptResponse({
             tldr: "Requirement context is ready.",
-            promptBlock: "- REQ-001: Honor the linked invariant.\n- SCEN-001: Preserve the canonical flow.",
+            promptBlock:
+              "- REQ-001: Honor the linked invariant.\n- SCEN-001: Preserve the canonical flow.",
             citations: [
               {
                 id: "REQ-001",
@@ -4018,7 +4046,9 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const output = { system: ["prompt"] };
       await transformHook({}, output);
@@ -4026,7 +4056,11 @@ import datetime
       const rendered = output.system.at(-1) ?? "";
       assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(rendered.includes("- REQ-001: Honor the linked invariant."));
-      assert.ok(!rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(
+        !rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
     });
 
     it("renders tldr fallback guidance with the manual /brief-kibi path preserved", async () => {
@@ -4099,7 +4133,9 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
@@ -4107,7 +4143,11 @@ import datetime
       const rendered = renderedOutput.system.at(-1) ?? "";
       assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(rendered.includes("Some summary here"));
-      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(
+        rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
       assert.ok(rendered.includes("Full details: run /brief-kibi."));
     });
 
@@ -4189,14 +4229,20 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && toastCalls.length === 1);
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
 
       const rendered = renderedOutput.system.at(-1) ?? "";
       assert.ok(rendered.includes("📝 **Code changes detected**"));
-      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(
+        rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
       assert.ok(!rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(!rendered.includes("This text must not be surfaced."));
       assert.ok(!rendered.includes("- fabricated"));
@@ -4260,7 +4306,9 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => createCalls.length === 1 && promptCalls.length === 1);
+      await waitForCondition(
+        () => createCalls.length === 1 && promptCalls.length === 1,
+      );
 
       assert.equal(createCalls.length, 1);
       assert.equal(promptCalls.length, 1);
@@ -4323,7 +4371,9 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => fetchSpy.mock.calls.length === 1 && promptCalls.length === 1);
+      await waitForCondition(
+        () => fetchSpy.mock.calls.length === 1 && promptCalls.length === 1,
+      );
 
       await transformHook({}, { system: ["prompt"] });
 
@@ -4360,7 +4410,9 @@ import datetime
       const { client: safeDocsClient } = createAutoBriefClient();
       installNoopScheduler(tmpDir);
       const safeDocsPlugin = await loadFreshPlugin();
-      const safeDocsHooks = await safeDocsPlugin(makeInput({ client: safeDocsClient }));
+      const safeDocsHooks = await safeDocsPlugin(
+        makeInput({ client: safeDocsClient }),
+      );
       assert.ok(safeDocsHooks.event);
       fs.writeFileSync(path.join(tmpDir, "README.md"), "# Safe docs\n");
 
@@ -4384,7 +4436,9 @@ import datetime
       );
       const { client: safeTestClient } = createAutoBriefClient();
       const safeTestPlugin = await loadFreshPlugin();
-      const safeTestHooks = await safeTestPlugin(makeInput({ client: safeTestClient }));
+      const safeTestHooks = await safeTestPlugin(
+        makeInput({ client: safeTestClient }),
+      );
       assert.ok(safeTestHooks.event);
 
       const safeTestEventHook = safeTestHooks.event as (input: {
@@ -4404,7 +4458,9 @@ import datetime
       fs.writeFileSync(path.join(kbDir, "manual-edit.json"), "{}\n");
       const { client: manualKbClient } = createAutoBriefClient();
       const manualKbPlugin = await loadFreshPlugin();
-      const manualKbHooks = await manualKbPlugin(makeInput({ client: manualKbClient }));
+      const manualKbHooks = await manualKbPlugin(
+        makeInput({ client: manualKbClient }),
+      );
       assert.ok(manualKbHooks.event);
 
       const manualKbEventHook = manualKbHooks.event as (input: {
@@ -4440,7 +4496,9 @@ import datetime
       );
       const { client: degradedClient } = createAutoBriefClient();
       const degradedPlugin = await loadFreshPlugin();
-      const degradedHooks = await degradedPlugin(makeInput({ client: degradedClient }));
+      const degradedHooks = await degradedPlugin(
+        makeInput({ client: degradedClient }),
+      );
       assert.ok(degradedHooks.event);
 
       const degradedEventHook = degradedHooks.event as (input: {
@@ -4497,7 +4555,9 @@ import datetime
 
       const firstRendered = firstOutput.system.at(-1) ?? "";
       assert.ok(
-        firstRendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."),
+        firstRendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
       );
       assert.ok(!firstRendered.includes("🧠 **Kibi briefing available**"));
 
@@ -4511,7 +4571,9 @@ import datetime
       const secondRendered = secondOutput.system.at(-1) ?? "";
       assert.equal(fetchSpy.mock.calls.length, 1);
       assert.ok(secondRendered.includes("🧠 **Kibi briefing available**"));
-      assert.ok(secondRendered.includes("- REQ-001: Honor the linked invariant."));
+      assert.ok(
+        secondRendered.includes("- REQ-001: Honor the linked invariant."),
+      );
     });
 
     it("no session delta means no fallback fetch", async () => {
@@ -4638,7 +4700,10 @@ import datetime
       const buildPromptContext = buildPromptSpy.mock.calls.at(-1)?.[0] as {
         autoBriefResult?: BriefingRuntimeResult;
       };
-      assert.deepEqual(buildPromptContext.autoBriefResult, expectedAutoBriefResult);
+      assert.deepEqual(
+        buildPromptContext.autoBriefResult,
+        expectedAutoBriefResult,
+      );
     });
   });
 
@@ -4871,7 +4936,10 @@ import datetime
 
       assert.ok(startup, "runPluginStartup should return startup context");
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_unavailable");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_unavailable",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -4948,11 +5016,17 @@ import datetime
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
 
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_sync_failed");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_sync_failed",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -4997,7 +5071,10 @@ import datetime
       ].forEach((dir) =>
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
       );
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -5026,7 +5103,10 @@ import datetime
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({
         reason: "smart-enforcement.traceability",
         exitCode: 1,
@@ -5079,7 +5159,10 @@ import datetime
       ].forEach((dir) =>
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
       );
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -5108,7 +5191,10 @@ import datetime
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({
         reason: "smart-enforcement.kb-doc.trailing",
         exitCode: 1,
@@ -5193,11 +5279,17 @@ import datetime
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({ exitCode: 0, checkExitCode: 1 });
 
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_check_failed");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_check_failed",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -5488,7 +5580,9 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
 
       await eventHook({
         event: {
@@ -5676,7 +5770,9 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
 
       await eventHook({
         event: {
@@ -5995,7 +6091,11 @@ import datetime
         capturedOnRunComplete?.({
           exitCode: 0,
           checkExitCode: 1,
-          checkRules: ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+          checkRules: [
+            "required-fields",
+            "no-dangling-refs",
+            "strict-fact-shape",
+          ],
         });
 
         await new Promise((r) => setTimeout(r, 20));
@@ -6028,26 +6128,28 @@ import datetime
 
         // Operational bootstrap-needed SHOULD still emit console.error
         assert.ok(
-          errorSpy.some((msg) => msg.includes("workspace needs Kibi bootstrap")),
+          errorSpy.some((msg) =>
+            msg.includes("workspace needs Kibi bootstrap"),
+          ),
           `Operational startup error should produce console.error, got: ${JSON.stringify(errorSpy)}`,
         );
       } finally {
         console.error = origError;
       }
     });
-});
+  });
 
   describe("idle brief replay in transform hook", () => {
     it("replays an unread brief and marks it read", async () => {
       // Set KIBI_BRANCH to match brief's branch
       process.env.KIBI_BRANCH = "test-branch";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       // Setup KB structure with briefs directory
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       // Write unread brief
       const briefFilePath = path.join(kbDir, "briefs", "9999999999_brief.json");
       const briefEnvelope = {
@@ -6065,13 +6167,21 @@ import datetime
           fileSize: 100,
         },
         summary: "Test brief summary",
-        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "Test TLDR", promptBlock: "", citations: [] },
         contentHash: "abc123",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
       // Setup .kb/config.json to enable TUI delivery
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
@@ -6079,13 +6189,17 @@ import datetime
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       // Setup opencode config
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
@@ -6100,7 +6214,7 @@ import datetime
           2,
         ),
       );
-      
+
       // Mock TUI client with showToast
       let shownToast: any = null;
       const mockClient = {
@@ -6115,38 +6229,47 @@ import datetime
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       assert.ok(hooks["experimental.chat.system.transform"]);
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = {
         worktree: tmpDir,
       };
       const mockOutput = { system: ["original system prompt"] };
-      
+
       // Verify brief is unread before replay
       const briefBefore = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
-      assert.ok(briefBefore.unread === true, "Brief should be unread before replay");
-      
+      assert.ok(
+        briefBefore.unread === true,
+        "Brief should be unread before replay",
+      );
+
       await transformHook(mockInput, mockOutput);
-      
+
       // Verify brief was shown as a toast
       assert.ok(shownToast, "Brief should have been shown as a toast");
-      assert.ok(JSON.stringify(shownToast).includes("Test brief summary"), "Toast payload should contain brief content");
-      
+      assert.ok(
+        JSON.stringify(shownToast).includes("Test brief summary"),
+        "Toast payload should contain brief content",
+      );
+
       // Verify brief was marked as read
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
-      assert.ok(briefAfter.unread === false, "Brief should be marked as read after successful append");
+      assert.ok(
+        briefAfter.unread === false,
+        "Brief should be marked as read after successful append",
+      );
     });
-    
+
     it("does not replay the same contentHash twice", async () => {
       process.env.KIBI_BRANCH = "main";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       const briefFilePath = path.join(kbDir, "briefs", "9999999998_brief.json");
       const briefEnvelope = {
         schemaVersion: "1.0" as const,
@@ -6156,64 +6279,96 @@ import datetime
         branch: "main",
         createdAt: "2026-04-30T10:00:00Z",
         unread: true,
-        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
         summary: "Dedupe test brief",
-        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "Dedupe TLDR", promptBlock: "", citations: [] },
         contentHash: "def456",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
         JSON.stringify(
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       let showToastCount = 0;
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
       );
-      
+
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async () => { showToastCount++; },
+          showToast: async () => {
+            showToastCount++;
+          },
         },
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
-      
+
       await transformHook(mockInput, mockOutput);
       assert.equal(showToastCount, 1, "First call should show brief once");
-      
+
       await transformHook(mockInput, mockOutput);
-      assert.equal(showToastCount, 1, "Second call should not show same brief again");
+      assert.equal(
+        showToastCount,
+        1,
+        "Second call should not show same brief again",
+      );
     });
 
     it("leaves brief unread if showToast fails", async () => {
       process.env.KIBI_BRANCH = "main";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       const briefFilePath = path.join(kbDir, "briefs", "9999999997_brief.json");
       const briefEnvelope = {
         schemaVersion: "1.0" as const,
@@ -6223,63 +6378,94 @@ import datetime
         branch: "main",
         createdAt: "2026-04-30T10:00:00Z",
         unread: true,
-        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
         summary: "Fail test brief",
-        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "Fail TLDR", promptBlock: "", citations: [] },
         contentHash: "ghi789",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
         JSON.stringify(
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
       );
-      
+
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async () => { throw new Error("Toast failed"); },
+          showToast: async () => {
+            throw new Error("Toast failed");
+          },
         },
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
-      
+
       await transformHook(mockInput, mockOutput);
-      
+
       // Verify brief is still unread after failed append
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
-      assert.ok(briefAfter.unread === true, "Brief should remain unread after append failure");
+      assert.ok(
+        briefAfter.unread === true,
+        "Brief should remain unread after append failure",
+      );
     });
-    
+
     it("replays even when maintenanceDegraded is true", async () => {
       process.env.KIBI_BRANCH = "main";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       const briefFilePath = path.join(kbDir, "briefs", "9999999996_brief.json");
       const briefEnvelope = {
         schemaVersion: "1.0" as const,
@@ -6289,38 +6475,66 @@ import datetime
         branch: "main",
         createdAt: "2026-04-30T10:00:00Z",
         unread: true,
-        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
         summary: "Degraded test brief",
-        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "Degraded TLDR", promptBlock: "", citations: [] },
         contentHash: "jkl012",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
         JSON.stringify(
           {
             version: 1,
             maintenance: { enabled: true }, // maintenance degraded
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
       );
-      
+
       let showToastCount = 0;
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async () => { showToastCount++; },
+          showToast: async () => {
+            showToastCount++;
+          },
         },
       };
 
@@ -6328,29 +6542,40 @@ import datetime
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
-      
+
       await transformHook(mockInput, mockOutput);
-      
-      assert.equal(showToastCount, 1, "Brief should be shown even when maintenance is degraded");
-      
+
+      assert.equal(
+        showToastCount,
+        1,
+        "Brief should be shown even when maintenance is degraded",
+      );
+
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
-      assert.ok(briefAfter.unread === false, "Brief should be marked read after successful append");
+      assert.ok(
+        briefAfter.unread === false,
+        "Brief should be marked read after successful append",
+      );
     });
 
     it("semantic dedupe: different briefIds with same visible content only delivered once", async () => {
       process.env.KIBI_BRANCH = "main";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       // First brief with briefId-A
-      const briefFilePath1 = path.join(kbDir, "briefs", "9999999995_brief.json");
+      const briefFilePath1 = path.join(
+        kbDir,
+        "briefs",
+        "9999999995_brief.json",
+      );
       const briefEnvelope1 = {
         schemaVersion: "1.0" as const,
         briefId: "brief-alpha",
@@ -6359,53 +6584,86 @@ import datetime
         branch: "main",
         createdAt: "2026-04-30T10:00:00Z",
         unread: true,
-        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
         summary: "Semantic dedupe test",
-        counts: { requirementsAdded: 2, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 2,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
-        briefing: { tldr: "Same TLDR", promptBlock: "Same prompt", citations: [] },
+        briefing: {
+          tldr: "Same TLDR",
+          promptBlock: "Same prompt",
+          citations: [],
+        },
         contentHash: "semantic-hash-aaa",
       };
-      fs.writeFileSync(briefFilePath1, JSON.stringify(briefEnvelope1, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath1,
+        JSON.stringify(briefEnvelope1, null, 2),
+        "utf-8",
+      );
+
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
         JSON.stringify(
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       let showToastCount = 0;
       const shownToastPayloads: any[] = [];
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
       );
-      
+
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async (payload: any) => { showToastCount++; shownToastPayloads.push(payload); },
+          showToast: async (payload: any) => {
+            showToastCount++;
+            shownToastPayloads.push(payload);
+          },
         },
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = { worktree: tmpDir };
-      
+
       // First call: deliver brief-alpha
       await transformHook(mockInput, { system: ["original"] });
       assert.equal(showToastCount, 1, "First call should show brief-alpha");
-      
+
       // Now replace the file with a brief that has different briefId but same visible content
       // (simulating a regenerated brief with same semantic content)
       const briefEnvelope2 = {
@@ -6415,21 +6673,29 @@ import datetime
         sessionId: "session-2",
         contentHash: "semantic-hash-aaa",
       };
-      fs.writeFileSync(briefFilePath1, JSON.stringify({...briefEnvelope2, unread: true}, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath1,
+        JSON.stringify({ ...briefEnvelope2, unread: true }, null, 2),
+        "utf-8",
+      );
+
       // Second call: same contentHash should NOT re-deliver
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(showToastCount, 1, "Second call should not re-deliver same semantic content");
+      assert.equal(
+        showToastCount,
+        1,
+        "Second call should not re-deliver same semantic content",
+      );
     });
-    
+
     it("semantic dedupe: changed content in same session re-triggers once", async () => {
       process.env.KIBI_BRANCH = "main";
-      
+
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       const kbDir = path.join(tmpDir, ".kb");
       fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
-      
+
       const briefFilePath = path.join(kbDir, "briefs", "9999999994_brief.json");
       const briefEnvelope1 = {
         schemaVersion: "1.0" as const,
@@ -6439,52 +6705,80 @@ import datetime
         branch: "main",
         createdAt: "2026-04-30T10:00:00Z",
         unread: true,
-        auditCursor: { lastTimestamp: "2026-04-30T10:00:00Z", lastOperation: "upsert", entryCount: 1, fileSize: 100 },
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
         summary: "Original content",
-        counts: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "Original TLDR", promptBlock: "", citations: [] },
         contentHash: "content-hash-v1",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify(briefEnvelope1, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope1, null, 2),
+        "utf-8",
+      );
+
       fs.writeFileSync(
         path.join(kbDir, "config.json"),
         JSON.stringify(
           {
             version: 1,
             maintenance: { enabled: false },
-            briefs: { enabled: true, channels: { tui: true, vscode: false }, tui: { toast: true } },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
           },
           null,
           2,
         ),
       );
-      
+
       let showToastCount = 0;
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, prompt: { enabled: true, hookMode: "auto" }, ux: { briefs: { autoSubmit: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
       );
-      
+
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async () => { showToastCount++; },
+          showToast: async () => {
+            showToastCount++;
+          },
         },
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
         client: mockClient as any,
       });
-      
+
       const transformHook = hooks["experimental.chat.system.transform"] as any;
       const mockInput = { worktree: tmpDir };
-      
+
       // First delivery
       await transformHook(mockInput, { system: ["original"] });
       assert.equal(showToastCount, 1, "First call should show toast");
-      
+
       // Update brief with NEW visible content (different contentHash)
       const briefEnvelope2 = {
         ...briefEnvelope1,
@@ -6493,18 +6787,25 @@ import datetime
         briefing: { tldr: "Updated TLDR", promptBlock: "", citations: [] },
         contentHash: "content-hash-v2",
       };
-      fs.writeFileSync(briefFilePath, JSON.stringify({...briefEnvelope2, unread: true}, null, 2), "utf-8");
-      
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify({ ...briefEnvelope2, unread: true }, null, 2),
+        "utf-8",
+      );
+
       // Second call with new content should re-trigger
       await transformHook(mockInput, { system: ["original"] });
-      assert.equal(showToastCount, 2, "Changed content should re-trigger delivery once");
-      
+      assert.equal(
+        showToastCount,
+        2,
+        "Changed content should re-trigger delivery once",
+      );
+
       // Third call with same content should NOT trigger again
       await transformHook(mockInput, { system: ["original"] });
       assert.equal(showToastCount, 2, "Same content should not trigger again");
     });
   });
-
 
   // implements REQ-opencode-file-context-guidance-v1
   describe("file-operation reminder transform integration", () => {
@@ -6513,7 +6814,15 @@ import datetime
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
       );
 
       // Create .kb/config.json so posture detects root_active
@@ -6549,10 +6858,7 @@ import datetime
 
       // Now fire transform hook with focus on the created file
       const output = { system: ["original prompt"] };
-      await transformHook(
-        { focusFilePath: "src/new-module.ts" },
-        output,
-      );
+      await transformHook({ focusFilePath: "src/new-module.ts" }, output);
 
       // Guidance should contain new file reminder
       const combinedGuidance = output.system.join("\n");
@@ -6567,7 +6873,15 @@ import datetime
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
       );
 
       // Create .kb/config.json so posture detects root_active
@@ -6599,21 +6913,21 @@ import datetime
 
       // First transform: should emit reminder
       const output1 = { system: ["original prompt"] };
-      await transformHook(
-        { focusFilePath: "src/another-module.ts" },
-        output1,
-      );
+      await transformHook({ focusFilePath: "src/another-module.ts" }, output1);
       const guidance1 = output1.system.join("\n");
-      assert.ok(guidance1.includes("New file detected"), "First transform should emit reminder");
+      assert.ok(
+        guidance1.includes("New file detected"),
+        "First transform should emit reminder",
+      );
 
       // Second transform for same file: should NOT emit reminder again
       const output2 = { system: ["original prompt"] };
-      await transformHook(
-        { focusFilePath: "src/another-module.ts" },
-        output2,
-      );
+      await transformHook({ focusFilePath: "src/another-module.ts" }, output2);
       const guidance2 = output2.system.join("\n");
-      assert.ok(!guidance2.includes("New file detected"), "Second transform should suppress reminder");
+      assert.ok(
+        !guidance2.includes("New file detected"),
+        "Second transform should suppress reminder",
+      );
     });
 
     it("emits deleted-file reminder when file content is unavailable", async () => {
@@ -6621,7 +6935,15 @@ import datetime
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
       );
 
       // Create .kb/config.json so posture detects root_active
@@ -6648,15 +6970,13 @@ import datetime
 
       // Transform with focus on the deleted file
       const output = { system: ["original prompt"] };
-      await transformHook(
-        { focusFilePath: "src/deleted-module.ts" },
-        output,
-      );
+      await transformHook({ focusFilePath: "src/deleted-module.ts" }, output);
 
       // Guidance should contain deleted file reminder (no linked entities case)
       const guidance = output.system.join("\n");
       assert.ok(
-        guidance.includes("Deleted file had no linked Kibi entities") || guidance.includes("Deleted file had linked Kibi entities"),
+        guidance.includes("Deleted file had no linked Kibi entities") ||
+          guidance.includes("Deleted file had linked Kibi entities"),
         `Guidance should contain deleted file reminder, got: ${guidance}`,
       );
     });
@@ -6666,7 +6986,15 @@ import datetime
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
-        JSON.stringify({ enabled: true, sync: { enabled: false }, guidance: { smartEnforcement: { enabled: true } } }, null, 2),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
       );
 
       // Create .kb/config.json so posture detects root_active
@@ -6697,18 +7025,15 @@ import datetime
       });
 
       const output = { system: ["original prompt"] };
-      await transformHook(
-        { focusFilePath: "src/existing-file.ts" },
-        output,
-      );
+      await transformHook({ focusFilePath: "src/existing-file.ts" }, output);
 
       // For edited files, there's no generic lifecycle reminder text
       const guidance = output.system.join("\n");
       assert.ok(
-        !guidance.includes("New file detected") && !guidance.includes("Deleted file"),
+        !guidance.includes("New file detected") &&
+          !guidance.includes("Deleted file"),
         `Guidance should NOT contain lifecycle reminder for edited file, got: ${guidance}`,
       );
     });
   });
-
 });

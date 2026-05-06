@@ -112,12 +112,14 @@ describe("init-helpers", () => {
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 
-  test("updateGitIgnore adds .kb/", () => {
+  test("updateGitIgnore adds .kb/ and .kb/briefs/", () => {
     updateGitIgnore(tmpDir);
 
     const gitignorePath = path.join(tmpDir, ".gitignore");
     expect(existsSync(gitignorePath)).toBe(true);
-    expect(readFileSync(gitignorePath, "utf8")).toContain(".kb/");
+    const content = readFileSync(gitignorePath, "utf8");
+    expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
   });
 
   test("updateGitIgnore appends to existing .gitignore", () => {
@@ -129,6 +131,21 @@ describe("init-helpers", () => {
     const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain("node_modules/");
     expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
+  });
+
+  test("updateGitIgnore does not duplicate existing .kb entries", () => {
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    writeFileSync(gitignorePath, ".kb/\n.kb/briefs/\n");
+
+    updateGitIgnore(tmpDir);
+
+    const content = readFileSync(gitignorePath, "utf8");
+    const kbMatches = content.match(/^\.kb\/$/gm);
+    const briefsMatches = content.match(/^\.kb\/briefs\/$/gm);
+
+    expect(kbMatches?.length ?? 0).toBe(1);
+    expect(briefsMatches?.length ?? 0).toBe(1);
   });
   test("copySchemaFiles includes sourceFile in copied schema", async () => {
     const sourceDir = path.join(tmpDir, "source");
