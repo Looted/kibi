@@ -10,9 +10,12 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
-import type { IdleBriefEnvelope } from "../src/idle-brief-store.js";
-import { deliverBriefTui } from "../src/tui-brief-delivery.js";
+import type {
+  IdleBriefEnvelope,
+  IdleBriefEnvelopeV2,
+} from "../src/idle-brief-store.js";
 import * as logger from "../src/logger.js";
+import { deliverBriefTui } from "../src/tui-brief-delivery.js";
 
 describe("tui-brief-delivery", () => {
   let mockClient: {
@@ -96,7 +99,9 @@ describe("tui-brief-delivery", () => {
       briefing: {
         tldr: "Test summary",
         promptBlock: "Test prompt block",
-        citations: [{ id: "REQ-001", type: "req", title: "Linked requirement" }],
+        citations: [
+          { id: "REQ-001", type: "req", title: "Linked requirement" },
+        ],
       },
       contentHash: "test-hash",
     };
@@ -218,6 +223,68 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toBe("TLDR fallback");
   });
 
+  test("shows schema-2.0 change narrative in toast message", async () => {
+    const v2Envelope = envelope as IdleBriefEnvelopeV2;
+    v2Envelope.schemaVersion = "2.0";
+    v2Envelope.briefing.changeNarrative = [
+      "Modified REQ-001: Tightened summary language",
+      "Added TEST-002: Covers new toast fallback",
+      "Removed obsolete note",
+    ];
+    v2Envelope.changes = {
+      entities: {
+        added: [],
+        modified: [
+          { id: "REQ-001", type: "req", title: "Tightened summary language" },
+        ],
+        removed: [],
+      },
+      relationships: { changed: 0 },
+    };
+    v2Envelope.briefing.citations = [];
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain(
+      "Modified REQ-001: Tightened summary language",
+    );
+    expect(calledWith.body?.message).toContain(
+      "Added TEST-002: Covers new toast fallback",
+    );
+    expect(calledWith.body?.message).not.toContain("Removed obsolete note");
+  });
+
+  test("falls back to schema-2.0 entity headline when narrative is empty", async () => {
+    const v2Envelope = envelope as IdleBriefEnvelopeV2;
+    v2Envelope.schemaVersion = "2.0";
+    v2Envelope.summary = "";
+    v2Envelope.briefing.tldr = "";
+    v2Envelope.briefing.changeNarrative = [];
+    v2Envelope.changes = {
+      entities: {
+        added: [
+          { id: "TEST-002", type: "test", title: "Covers new toast fallback" },
+        ],
+        modified: [],
+        removed: [],
+      },
+      relationships: { changed: 0 },
+    };
+    v2Envelope.briefing.citations = [];
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain(
+      "Added TEST-002: Covers new toast fallback",
+    );
+  });
+
   // --- Optional toast (not a success-path requirement) ---
 
   test("shows optional toast when toast is enabled and capability exists", async () => {
@@ -313,7 +380,12 @@ describe("tui-brief-delivery", () => {
   // --- Delivery result contract ---
 
   test("returns delivered result when showToast succeeds", async () => {
-    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+    const result = await deliverBriefTui(
+      mockClient,
+      envelope,
+      sharedPolicy,
+      localConfig,
+    );
 
     expect(result).toEqual({ delivered: true });
   });
@@ -321,7 +393,12 @@ describe("tui-brief-delivery", () => {
   test("returns not-delivered result when showToast is missing", async () => {
     mockClient.tui = {};
 
-    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+    const result = await deliverBriefTui(
+      mockClient,
+      envelope,
+      sharedPolicy,
+      localConfig,
+    );
 
     expect(result).toEqual({ delivered: false });
   });
@@ -329,11 +406,16 @@ describe("tui-brief-delivery", () => {
   test("returns not-delivered result when showToast throws", async () => {
     mockClient.tui = {
       showToast: mock(() => {
-      throw new Error("showToast failed");
+        throw new Error("showToast failed");
       }),
     };
 
-    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+    const result = await deliverBriefTui(
+      mockClient,
+      envelope,
+      sharedPolicy,
+      localConfig,
+    );
 
     expect(result).toEqual({ delivered: false });
     expect(mockLog).toHaveBeenCalledWith(
@@ -348,7 +430,12 @@ describe("tui-brief-delivery", () => {
   test("returns not-delivered when TUI channel disabled", async () => {
     sharedPolicy.briefs.channels.tui = false;
 
-    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+    const result = await deliverBriefTui(
+      mockClient,
+      envelope,
+      sharedPolicy,
+      localConfig,
+    );
 
     expect(result).toEqual({ delivered: false });
   });

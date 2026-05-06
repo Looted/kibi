@@ -1,7 +1,10 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { resolveBriefsDir } from "./idle-brief-paths.js";
-import type { IdleBriefEnvelope } from "./idle-brief-store.js";
+import {
+  type IdleBriefEnvelope,
+  isIdleBriefEnvelope,
+} from "./idle-brief-store.js";
 
 const BRIEF_FILENAME_RE = /^(\d+)_brief\.json$/;
 
@@ -19,7 +22,7 @@ function extractTimestamp(filename: string): number | null {
  * Select the latest unread brief for the given branch.
  *
  * Scans `.kb/briefs/` for `{timestamp}_brief.json` files, ignoring `.tmp` files
- * and invalid JSON. Filters by `branch`, `schemaVersion === "1.0"`, and
+ * and invalid JSON. Filters by `branch`, supported schema version, and
  * `unread === true`. Returns the brief with the highest filename timestamp,
  * or null if no unread briefs exist.
  */
@@ -54,7 +57,11 @@ export function selectLatestUnreadBrief(
     let envelope: IdleBriefEnvelope;
     try {
       const raw = fs.readFileSync(filePath, "utf-8");
-      envelope = JSON.parse(raw) as IdleBriefEnvelope;
+      const parsed = JSON.parse(raw);
+      if (!isIdleBriefEnvelope(parsed)) {
+        continue;
+      }
+      envelope = parsed;
     } catch {
       // Skip invalid JSON
       continue;
@@ -63,7 +70,7 @@ export function selectLatestUnreadBrief(
     // Filter by branch, schemaVersion, and unread status
     if (
       envelope.branch === branch &&
-      envelope.schemaVersion === "1.0" &&
+      (envelope.schemaVersion === "1.0" || envelope.schemaVersion === "2.0") &&
       envelope.unread === true
     ) {
       candidates.push({ timestamp, envelope, filePath });
@@ -109,7 +116,7 @@ export function markBriefRead(
   // Security: ensure the brief path is within the expected briefs directory
   if (!resolvedBriefPath.startsWith(resolvedBriefsDir + path.sep)) {
     throw new Error(
-      `Invalid brief path: ${briefPath} is not inside ${briefsDir}`
+      `Invalid brief path: ${briefPath} is not inside ${briefsDir}`,
     );
   }
 

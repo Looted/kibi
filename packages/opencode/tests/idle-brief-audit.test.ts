@@ -1,12 +1,12 @@
-import { describe, expect, it, beforeEach, afterEach } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
-import * as path from "node:path";
 import * as os from "node:os";
+import * as path from "node:path";
 import {
+  type AuditCursor,
   computeAuditDelta,
   getLatestAuditCursor,
   guardBranchChanged,
-  type AuditCursor,
 } from "../src/idle-brief-audit";
 import { resolveAuditLogPath } from "../src/idle-brief-paths";
 import { atomicWriteBrief } from "../src/idle-brief-paths";
@@ -40,10 +40,15 @@ describe("idle-brief-audit", () => {
       // Create audit log with entries
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath, `
+      fs.writeFileSync(
+        auditPath,
+        `${`
 changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001',title='Test']).
 changeset('2026-04-25T10:01:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='REQ-001',to='SCEN-001']).
-      `.trim() + "\n", "utf-8");
+      `.trim()}
+`,
+        "utf-8",
+      );
 
       const result = computeAuditDelta(tmpDir, "main", null);
       expect(result.hasChanges).toBe(true);
@@ -57,11 +62,12 @@ changeset('2026-04-25T10:01:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
       fs.writeFileSync(
         auditPath,
-        `
+        `${`
 changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001',title='  Test Requirement  ',source='documentation/requirements/REQ-001.md',text_ref='documentation/requirements/REQ-001.md#L1',change_kind=created,created_at='2026-04-25T10:00:00Z',updated_at='2026-04-25T10:00:00Z']).
 changeset('2026-04-25T10:00:01+00:00',delete,'REQ-002',req-[id='REQ-002',title='Legacy Requirement',source='documentation/requirements/REQ-002.md',text_ref='documentation/requirements/REQ-002.md#L2']).
 changeset('2026-04-25T10:00:02+00:00',upsert,'REQ-003',req-[id='REQ-003',title='Legacy Shape']).
-        `.trim() + "\n",
+        `.trim()}
+`,
         "utf-8",
       );
 
@@ -120,9 +126,10 @@ changeset('2026-04-25T10:00:02+00:00',upsert,'REQ-003',req-[id='REQ-003',title='
       // Create initial audit log
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath, 
+      fs.writeFileSync(
+        auditPath,
         `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).`,
-        "utf-8"
+        "utf-8",
       );
 
       // First read to get cursor
@@ -130,9 +137,10 @@ changeset('2026-04-25T10:00:02+00:00',upsert,'REQ-003',req-[id='REQ-003',title='
       const oldCursor = firstResult.newCursor;
 
       // Append new entry
-      fs.appendFileSync(auditPath, 
+      fs.appendFileSync(
+        auditPath,
         `\nchangeset('2026-04-25T10:01:00+00:00',upsert,'REQ-002',req-[id='REQ-002']).`,
-        "utf-8"
+        "utf-8",
       );
 
       // Second read should return only the new entry
@@ -145,17 +153,26 @@ changeset('2026-04-25T10:00:02+00:00',upsert,'REQ-003',req-[id='REQ-003',title='
     it("filters out non-meaningful operations (only returns upsert/upsert_rel/delete)", () => {
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath, `
+      fs.writeFileSync(
+        auditPath,
+        `${`
 changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).
 changeset('2026-04-25T10:00:01+00:00',query,'REQ-001',req-[id='REQ-001']).
 changeset('2026-04-25T10:00:02+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='REQ-001']).
 changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
-      `.trim() + "\n", "utf-8");
+      `.trim()}
+`,
+        "utf-8",
+      );
 
       const result = computeAuditDelta(tmpDir, "main", null);
       // query operations should be filtered out
       expect(result.entries.length).toBe(3);
-      expect(result.entries.map(e => e.operation)).toEqual(["upsert", "upsert_rel", "delete"]);
+      expect(result.entries.map((e) => e.operation)).toEqual([
+        "upsert",
+        "upsert_rel",
+        "delete",
+      ]);
     });
   });
 
@@ -169,8 +186,14 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       // Create briefs directory but no briefs for this branch
       const briefsDir = path.join(tmpDir, ".kb", "briefs");
       fs.mkdirSync(briefsDir, { recursive: true });
-      fs.writeFileSync(path.join(briefsDir, "1234567890_brief.json"),
-        JSON.stringify({ branch: "other-branch", auditCursor: { lastTimestamp: "test" } }), "utf-8");
+      fs.writeFileSync(
+        path.join(briefsDir, "1234567890_brief.json"),
+        JSON.stringify({
+          branch: "other-branch",
+          auditCursor: { lastTimestamp: "test" },
+        }),
+        "utf-8",
+      );
 
       const cursor = getLatestAuditCursor(tmpDir, "main");
       expect(cursor).toBe(null);
@@ -195,13 +218,20 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
           entryCount: 5,
           fileSize: 1024,
         },
-        summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        summary: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "test", promptBlock: "", citations: [] },
         contentHash: "abc123",
       };
-      fs.writeFileSync(path.join(briefsDir, "1234567890_brief.json"),
-        JSON.stringify(brief), "utf-8");
+      fs.writeFileSync(
+        path.join(briefsDir, "1234567890_brief.json"),
+        JSON.stringify(brief),
+        "utf-8",
+      );
 
       const cursor = getLatestAuditCursor(tmpDir, "main");
       expect(cursor).not.toBe(null);
@@ -230,7 +260,11 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
           entryCount: 3,
           fileSize: 512,
         },
-        summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        summary: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "older", promptBlock: "", citations: [] },
         contentHash: "older-hash",
@@ -250,7 +284,11 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
           entryCount: 7,
           fileSize: 2048,
         },
-        summary: { requirementsAdded: 2, relationshipsAdded: 1, entitiesDeleted: 0 },
+        summary: {
+          requirementsAdded: 2,
+          relationshipsAdded: 1,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "newer", promptBlock: "", citations: [] },
         contentHash: "newer-hash",
@@ -260,12 +298,12 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       fs.writeFileSync(
         path.join(briefsDir, `${olderTimestamp}_brief.json`),
         JSON.stringify(olderBrief),
-        "utf-8"
+        "utf-8",
       );
       fs.writeFileSync(
         path.join(briefsDir, `${newerTimestamp}_brief.json`),
         JSON.stringify(newerBrief),
-        "utf-8"
+        "utf-8",
       );
 
       // First call: should return newer brief's cursor
@@ -279,7 +317,7 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       fs.writeFileSync(
         path.join(briefsDir, `${olderTimestamp}_brief.json`),
         JSON.stringify(rewrittenOlder),
-        "utf-8"
+        "utf-8",
       );
 
       // Second call: should STILL return newer brief's cursor (not the older one whose mtime changed)
@@ -305,11 +343,12 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       // Simulate pre-existing audit history (before session started)
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath,
+      fs.writeFileSync(
+        auditPath,
         `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).\n` +
-        `changeset('2026-04-25T10:01:00+00:00',upsert,'REQ-002',req-[id='REQ-002']).\n` +
-        `changeset('2026-04-25T10:02:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='REQ-001']).`,
-        "utf-8"
+          `changeset('2026-04-25T10:01:00+00:00',upsert,'REQ-002',req-[id='REQ-002']).\n` +
+          `changeset('2026-04-25T10:02:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='REQ-001']).`,
+        "utf-8",
       );
 
       // First read captures baseline cursor (simulating session start)
@@ -318,9 +357,10 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       expect(baselineResult.entries.length).toBe(3);
 
       // Simulate new activity after session started
-      fs.appendFileSync(auditPath,
+      fs.appendFileSync(
+        auditPath,
         `\nchangeset('2026-04-25T10:03:00+00:00',upsert,'REQ-003',req-[id='REQ-003']).`,
-        "utf-8"
+        "utf-8",
       );
 
       // Second read with session baseline should only return post-baseline entry
@@ -333,9 +373,10 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
     it("fresh session with no prior briefs uses null baseline (entire audit tail)", () => {
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath,
+      fs.writeFileSync(
+        auditPath,
         `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001']).`,
-        "utf-8"
+        "utf-8",
       );
 
       // getLatestAuditCursor returns null when no briefs exist
@@ -366,7 +407,11 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
           entryCount: 1,
           fileSize: 100,
         },
-        summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+        summary: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
         validation: { violations: [], count: 0, diagnostics: [] },
         briefing: { tldr: "old", promptBlock: "", citations: [] },
         contentHash: "old-hash",
@@ -374,16 +419,17 @@ changeset('2026-04-25T10:00:03+00:00',delete,'REQ-002',null).
       fs.writeFileSync(
         path.join(briefsDir, "1000000000_brief.json"),
         JSON.stringify(priorBrief),
-        "utf-8"
+        "utf-8",
       );
 
       // Write audit log with entries AFTER the prior brief cursor
       const auditPath = resolveAuditLogPath(tmpDir, "main");
       fs.mkdirSync(path.dirname(auditPath), { recursive: true });
-      fs.writeFileSync(auditPath,
+      fs.writeFileSync(
+        auditPath,
         `changeset('2026-04-25T09:00:00+00:00',upsert,'REQ-OLD',req-[id='REQ-OLD']).\n` +
-        `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-NEW',req-[id='REQ-NEW']).`,
-        "utf-8"
+          `changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-NEW',req-[id='REQ-NEW']).`,
+        "utf-8",
       );
 
       // getLatestAuditCursor returns prior brief cursor

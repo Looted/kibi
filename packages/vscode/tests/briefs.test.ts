@@ -49,6 +49,58 @@ function createBrief(
     schemaVersion: string;
   }> = {},
 ): object {
+  const schemaVersion = overrides.schemaVersion ?? "1.0";
+
+  if (schemaVersion === "2.0") {
+    return {
+      schemaVersion: "2.0",
+      briefId: overrides.briefId ?? "brief-123",
+      type: "success",
+      sessionId: overrides.sessionId ?? "session-abc",
+      branch: overrides.branch ?? "develop",
+      createdAt: "2026-01-15T10:00:00Z",
+      unread: overrides.unread ?? true,
+      auditCursor: {
+        lastTimestamp: "2026-01-15T09:55:00Z",
+        lastOperation: "sync",
+        entryCount: 5,
+        fileSize: 1024,
+      },
+      summary: "Test brief summary",
+      counts: {
+        entitiesAdded: 2,
+        entitiesModified: 1,
+        entitiesRemoved: 0,
+        relationshipsChanged: 3,
+      },
+      changes: {
+        entities: {
+          added: [{ id: "REQ-001", type: "req", title: "Requirement one" }],
+          modified: [{ id: "FACT-001", type: "fact", title: "Existing fact" }],
+          removed: [],
+        },
+        relationships: {
+          changed: 3,
+        },
+      },
+      validation: {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      },
+      briefing: {
+        tldr: "TL;DR test",
+        promptBlock: "prompt block content",
+        citations: [],
+        changeNarrative: [
+          "Added requirement REQ-001: Requirement one",
+          "Modified fact FACT-001: Existing fact",
+        ],
+      },
+      contentHash: "abc123",
+    };
+  }
+
   return {
     schemaVersion: "1.0",
     briefId: "brief-123",
@@ -128,11 +180,11 @@ describe("parseLatestBrief", () => {
 
     // Create both a normal brief and a .tmp file
     fs.writeFileSync(
-      path.join(briefsDir, "brief-1_brief.json"),
+      path.join(briefsDir, "1000_brief.json"),
       JSON.stringify(createBrief({ branch: "develop" })),
     );
     fs.writeFileSync(
-      path.join(briefsDir, "brief-2_brief.json.tmp"),
+      path.join(briefsDir, "2000_brief.json.tmp"),
       JSON.stringify(createBrief({ branch: "develop" })),
     );
 
@@ -147,11 +199,11 @@ describe("parseLatestBrief", () => {
 
     // Create a valid brief and an invalid one
     fs.writeFileSync(
-      path.join(briefsDir, "brief-1_brief.json"),
+      path.join(briefsDir, "1000_brief.json"),
       JSON.stringify(createBrief({ branch: "develop" })),
     );
     fs.writeFileSync(
-      path.join(briefsDir, "brief-2_brief.json"),
+      path.join(briefsDir, "2000_brief.json"),
       "not valid json{",
     );
 
@@ -166,11 +218,11 @@ describe("parseLatestBrief", () => {
 
     // Create a valid brief and one with wrong schema version
     fs.writeFileSync(
-      path.join(briefsDir, "brief-1_brief.json"),
+      path.join(briefsDir, "1000_brief.json"),
       JSON.stringify(createBrief({ branch: "develop", schemaVersion: "1.0" })),
     );
     fs.writeFileSync(
-      path.join(briefsDir, "brief-2_brief.json"),
+      path.join(briefsDir, "2000_brief.json"),
       JSON.stringify(createBrief({ branch: "develop", schemaVersion: "0.9" })),
     );
 
@@ -179,28 +231,77 @@ describe("parseLatestBrief", () => {
     expect(result?.briefId).toBe("brief-123");
   });
 
-  test("selects latest brief by mtime when multiple valid briefs exist", () => {
+  test("accepts schema 2.0 briefs during migration", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
-    // Brief 1 is older
     fs.writeFileSync(
-      path.join(briefsDir, "brief-old_brief.json"),
-      JSON.stringify(createBrief({ briefId: "brief-old", branch: "develop" })),
+      path.join(briefsDir, "1000_brief.json"),
+      JSON.stringify(
+        createBrief({
+          briefId: "brief-v1",
+          branch: "develop",
+          schemaVersion: "1.0",
+        }),
+      ),
     );
-    const oldPath = path.join(briefsDir, "brief-old_brief.json");
-    fs.utimesSync(oldPath, 0, 0); // Set to epoch
-
-    // Brief 2 is newer
     fs.writeFileSync(
-      path.join(briefsDir, "brief-new_brief.json"),
-      JSON.stringify(createBrief({ briefId: "brief-new", branch: "develop" })),
+      path.join(briefsDir, "2000_brief.json"),
+      JSON.stringify(
+        createBrief({
+          briefId: "brief-v2",
+          branch: "develop",
+          schemaVersion: "2.0",
+        }),
+      ),
     );
-    // New file gets current mtime by default
 
     const result = parseLatestBrief(tmpDir, "develop");
     expect(result).not.toBeNull();
-    expect(result?.briefId).toBe("brief-new");
+    expect(result?.briefId).toBe("brief-v2");
+    expect((result as { schemaVersion?: string } | null)?.schemaVersion).toBe(
+      "2.0",
+    );
+  });
+
+  test("selects latest brief by filename timestamp, not mtime", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const newerTimestampPath = path.join(briefsDir, "2000_brief.json");
+    const olderTimestampPath = path.join(briefsDir, "1000_brief.json");
+
+    fs.writeFileSync(
+      newerTimestampPath,
+      JSON.stringify(
+        createBrief({
+          briefId: "brief-newer-name",
+          branch: "develop",
+          schemaVersion: "2.0",
+        }),
+      ),
+    );
+    fs.writeFileSync(
+      olderTimestampPath,
+      JSON.stringify(
+        createBrief({
+          briefId: "brief-older-name",
+          branch: "develop",
+          schemaVersion: "2.0",
+        }),
+      ),
+    );
+
+    fs.utimesSync(newerTimestampPath, 0, 0);
+    fs.utimesSync(
+      olderTimestampPath,
+      new Date("2030-01-01T00:00:00Z"),
+      new Date("2030-01-01T00:00:00Z"),
+    );
+
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.briefId).toBe("brief-newer-name");
   });
 });
 

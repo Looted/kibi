@@ -28,11 +28,23 @@ type BriefIntentResult = {
   seedIds: string[];
 };
 
-type BriefIntentModule = {
-  deriveBriefIntent?: (params: BriefIntentParams) => BriefIntentResult;
+type BriefingContextResult = {
+  sourceFiles: string[];
+  seedIds: string[];
 };
 
-function makeParams(overrides: Partial<BriefIntentParams> = {}): BriefIntentParams {
+type BriefIntentModule = {
+  deriveBriefIntent?: (params: BriefIntentParams) => BriefIntentResult;
+  buildBriefingContext?: (params: {
+    sourceFiles: string[];
+    seedIds?: string[];
+    changedEntityIds?: string[];
+  }) => BriefingContextResult;
+};
+
+function makeParams(
+  overrides: Partial<BriefIntentParams> = {},
+): BriefIntentParams {
   return {
     riskClass: "behavior_candidate",
     posture: "root_active",
@@ -46,7 +58,9 @@ function makeParams(overrides: Partial<BriefIntentParams> = {}): BriefIntentPara
 
 async function loadModule(): Promise<BriefIntentModule> {
   try {
-    return (await import("../src/brief-intent.js")) as unknown as BriefIntentModule;
+    return (await import(
+      "../src/brief-intent.js"
+    )) as unknown as BriefIntentModule;
   } catch {
     return {};
   }
@@ -66,6 +80,24 @@ async function derive(
     throw new Error("deriveBriefIntent export missing");
   }
   return deriveBriefIntent(makeParams(overrides));
+}
+
+async function buildContext(params: {
+  sourceFiles: string[];
+  seedIds?: string[];
+  changedEntityIds?: string[];
+}): Promise<BriefingContextResult> {
+  const mod = await loadModule();
+  const buildBriefingContext = mod.buildBriefingContext;
+  assert.equal(
+    typeof buildBriefingContext,
+    "function",
+    "Expected brief-intent.ts to export buildBriefingContext(params)",
+  );
+  if (typeof buildBriefingContext !== "function") {
+    throw new Error("buildBriefingContext export missing");
+  }
+  return buildBriefingContext(params);
 }
 
 describe("deriveBriefIntent", () => {
@@ -117,9 +149,36 @@ describe("deriveBriefIntent", () => {
 
     assert.equal(result.eligible, true);
     assert.equal(result.reason, "Eligible for auto-briefing");
-    assert.equal(Object.prototype.hasOwnProperty.call(result, "keepManualCue"), false);
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(result, "keepManualCue"),
+      false,
+    );
     assert.deepEqual(result.sourceFiles, ["/workspace/src/foo.ts"]);
     assert.deepEqual(result.seedIds, []);
+  });
+
+  test("buildBriefingContext sorts source files and combines changed entity IDs before source-linked seed IDs", async () => {
+    const result = await buildContext({
+      sourceFiles: [
+        "/workspace/src/z.ts",
+        "/workspace/src/a.ts",
+        "/workspace/src/a.ts",
+      ],
+      seedIds: ["REQ-SRC-3", "REQ-SRC-1", "REQ-SRC-2", "REQ-SRC-4"],
+      changedEntityIds: ["TEST-002", "REQ-001", "REQ-002", "REQ-003"],
+    });
+
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/src/a.ts",
+      "/workspace/src/z.ts",
+    ]);
+    assert.deepEqual(result.seedIds, [
+      "REQ-001",
+      "REQ-002",
+      "REQ-SRC-1",
+      "REQ-SRC-3",
+      "TEST-002",
+    ]);
   });
 
   test("returns eligible for traceability_candidate in hybrid_root_plus_vendored posture", async () => {
@@ -253,30 +312,56 @@ describe("deriveBriefIntent", () => {
 
     assert.equal(first.fingerprint, second.fingerprint);
     // Both should produce sorted order
-    assert.deepEqual(first.sourceFiles, ["/repo/src/a.ts", "/repo/src/b.ts", "/repo/src/c.ts"]);
-    assert.deepEqual(second.sourceFiles, ["/repo/src/a.ts", "/repo/src/b.ts", "/repo/src/c.ts"]);
+    assert.deepEqual(first.sourceFiles, [
+      "/repo/src/a.ts",
+      "/repo/src/b.ts",
+      "/repo/src/c.ts",
+    ]);
+    assert.deepEqual(second.sourceFiles, [
+      "/repo/src/a.ts",
+      "/repo/src/b.ts",
+      "/repo/src/c.ts",
+    ]);
   });
 
   test("sourceFiles are deduped", async () => {
     const result = await derive({
-      sourceFiles: ["/workspace/src/foo.ts", "/workspace/src/bar.ts", "/workspace/src/foo.ts"],
+      sourceFiles: [
+        "/workspace/src/foo.ts",
+        "/workspace/src/bar.ts",
+        "/workspace/src/foo.ts",
+      ],
     });
 
-    assert.deepEqual(result.sourceFiles, ["/workspace/src/bar.ts", "/workspace/src/foo.ts"]);
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/src/bar.ts",
+      "/workspace/src/foo.ts",
+    ]);
   });
 
   test("sourceFiles are sorted", async () => {
     const result = await derive({
-      sourceFiles: ["/workspace/src/z.ts", "/workspace/src/a.ts", "/workspace/src/m.ts"],
+      sourceFiles: [
+        "/workspace/src/z.ts",
+        "/workspace/src/a.ts",
+        "/workspace/src/m.ts",
+      ],
     });
 
-    assert.deepEqual(result.sourceFiles, ["/workspace/src/a.ts", "/workspace/src/m.ts", "/workspace/src/z.ts"]);
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/src/a.ts",
+      "/workspace/src/m.ts",
+      "/workspace/src/z.ts",
+    ]);
   });
 
   test("does not expose keepManualCue even when result is ineligible", async () => {
     const result = await derive({ posture: "vendored_only" });
 
-    assert.equal(Object.prototype.hasOwnProperty.call(result, "keepManualCue"), false);
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(result, "keepManualCue"),
+      false,
+    );
   });
 
   test("uses pre-fetched seedIds directly and truncates to three", async () => {
@@ -342,9 +427,7 @@ describe("deriveBriefIntent", () => {
       {
         id: "SYM-first",
         sourceFile: "src/first.ts",
-        relationships: [
-          { type: "implements", target: "REQ-FIRST-1" },
-        ],
+        relationships: [{ type: "implements", target: "REQ-FIRST-1" }],
       },
     ]);
 
@@ -421,7 +504,10 @@ describe("deriveBriefIntent", () => {
       riskClass: "behavior_candidate",
     });
 
-    assert.equal(result.fingerprint, "brief:/repo\0main\0behavior_candidate\0/repo/src/main.ts");
+    assert.equal(
+      result.fingerprint,
+      "brief:/repo\0main\0behavior_candidate\0/repo/src/main.ts",
+    );
     assert.deepEqual(result.sourceFiles, ["/repo/src/main.ts"]);
   });
 });

@@ -9,15 +9,19 @@ export interface SessionBaselineState<Cursor> {
   cursor: Cursor | null;
 }
 
-export function buildSessionFingerprint( // implements REQ-opencode-kibi-briefing-v6
+export function buildSessionFingerprint(
+  // implements REQ-opencode-kibi-briefing-v6
   input: SessionFingerprintInput,
 ): string {
-  return [input.sessionId?.trim() || "unknown", input.branch, input.worktree].join(
-    "\0",
-  );
+  return [
+    input.sessionId?.trim() || "unknown",
+    input.branch,
+    input.worktree,
+  ].join("\0");
 }
 
-export function syncSessionBaselineState( // implements REQ-opencode-kibi-briefing-v6
+export function syncSessionBaselineState<Cursor>(
+  // implements REQ-opencode-kibi-briefing-v6
   state: SessionBaselineState<Cursor>,
   input: SessionFingerprintInput,
   captureBaseline: () => Cursor | null,

@@ -3,6 +3,41 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import type { BriefModel } from "./briefs";
 
+function getCountLines(brief: BriefModel): string[] {
+  if (brief.schemaVersion === "2.0") {
+    return [
+      `- ${brief.counts.entitiesAdded + brief.counts.entitiesModified} entit${brief.counts.entitiesAdded + brief.counts.entitiesModified === 1 ? "y" : "ies"} changed`,
+      `- ${brief.counts.relationshipsChanged} relationship${brief.counts.relationshipsChanged === 1 ? "" : "s"} changed`,
+      `- ${brief.counts.entitiesRemoved} entit${brief.counts.entitiesRemoved === 1 ? "y" : "ies"} deleted`,
+    ];
+  }
+
+  return [
+    `- ${brief.counts.requirementsAdded} entit${brief.counts.requirementsAdded === 1 ? "y" : "ies"} changed`,
+    `- ${brief.counts.relationshipsAdded} relationship${brief.counts.relationshipsAdded === 1 ? "" : "s"} changed`,
+    `- ${brief.counts.entitiesDeleted} entit${brief.counts.entitiesDeleted === 1 ? "y" : "ies"} deleted`,
+  ];
+}
+
+function getOverviewLines(brief: BriefModel): string[] {
+  if (
+    brief.schemaVersion === "2.0" &&
+    brief.briefing.changeNarrative.length > 0
+  ) {
+    return brief.briefing.changeNarrative;
+  }
+
+  if (brief.briefing.tldr) {
+    return [brief.briefing.tldr];
+  }
+
+  if (brief.briefing.promptBlock) {
+    return [brief.briefing.promptBlock];
+  }
+
+  return ["*No overview available.*"];
+}
+
 export class BriefDocumentProvider
   implements vscode.TextDocumentContentProvider
 {
@@ -65,13 +100,7 @@ export class BriefDocumentProvider
 
     // 1. Overview
     lines.push("## Overview");
-    if (brief.briefing.tldr) {
-      lines.push(brief.briefing.tldr);
-    } else if (brief.briefing.promptBlock) {
-      lines.push(brief.briefing.promptBlock);
-    } else {
-      lines.push("*No overview available.*");
-    }
+    lines.push(...getOverviewLines(brief));
     lines.push("");
 
     // 2. Session Summary
@@ -81,15 +110,7 @@ export class BriefDocumentProvider
 
     // 3. What Changed
     lines.push("## What Changed");
-    lines.push(
-      `- ${brief.counts.requirementsAdded} entit${brief.counts.requirementsAdded === 1 ? "y" : "ies"} changed`,
-    );
-    lines.push(
-      `- ${brief.counts.relationshipsAdded} relationship${brief.counts.relationshipsAdded === 1 ? "" : "s"} changed`,
-    );
-    lines.push(
-      `- ${brief.counts.entitiesDeleted} entit${brief.counts.entitiesDeleted === 1 ? "y" : "ies"} deleted`,
-    );
+    lines.push(...getCountLines(brief));
     lines.push("");
 
     // 4. Relevant KB Context
