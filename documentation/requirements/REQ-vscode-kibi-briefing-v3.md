@@ -1,16 +1,16 @@
 ---
 id: REQ-vscode-kibi-briefing-v3
-title: "VS Code Kibi Briefing v3: Popup-First & Manual-Only Contract"
+title: "VS Code Kibi Briefing v3: Schema-2.0 Alignment & Deterministic Ordering"
 status: open
-created_at: 2026-04-30T12:00:00Z
-updated_at: 2026-04-30T12:00:00Z
+created_at: 2026-05-06T04:40:00Z
+updated_at: 2026-05-06T04:40:00Z
 source: documentation/requirements/REQ-vscode-kibi-briefing-v3.md
 priority: must
 tags:
   - vscode
   - briefing
-  - popup-notification
-  - manual-open
+  - schema-2.0
+  - deterministic-ordering
 links:
   - type: supersedes
     target: REQ-vscode-kibi-briefing-v2
@@ -20,23 +20,18 @@ links:
     target: TEST-vscode-kibi-briefing-v3
 ---
 
-The VS Code Kibi extension must transition from auto-opening briefing documents to a popup-notification and manual-open model. This ensures that briefings are visible but non-intrusive, allowing users to choose when to engage with new contextual guidance.
+The VS Code Kibi extension must align with the Schema-2.0 briefing envelope and implement deterministic filename-timestamp ordering for latest-brief selection.
 
-1.  **Popup Notifications**: When a new unread idle brief is detected and `briefs.channels.vscode` is enabled, the VS Code extension must display a non-modal popup notification (toast) instead of automatically opening the document.
-    - The notification must include an actionable "View Brief" button.
-    - Clicking "View Brief" must open the briefing document in a new editor tab.
+1. **Schema-2.0 Alignment**: The extension must support rendering briefings that follow the Schema-2.0 structure.
+    - It must correctly interpret `counts` and `changes` fields for display in the brief editor tab.
+    - It must handle the `changeNarrative` string array for the primary narrative block.
 
-2.  **No Auto-Open**: The extension must NOT automatically open the brief document without a manual user action (either clicking the notification button or executing a command).
+2. **Deterministic Latest-Brief Selection**: Selection of the "latest" brief must use filename-timestamp ordering rather than filesystem modification time (`mtime`).
+    - Brief files are named using a sortable timestamp pattern (e.g., `brief-20260506-043000.json`).
+    - The extension must sort available brief files lexicographically by filename to determine the most recent one.
+    - This ensures consistent behavior across different environments and filesystems where `mtime` may be unreliable.
 
-3.  **Manual Retrieval**: Users must be able to retrieve and view briefings manually via:
-    - The `kibi.showLatestBrief` command from the VS Code Command Palette.
-    - The "View Brief" action in the popup notification.
-    - The `/brief-kibi` command in OpenCode (if applicable in shared contexts).
+3. **Auto-Open Preservation**: The render-first auto-open behavior established in v2 must be preserved and correctly triggered by the new deterministic selection logic.
 
-4.  **Channel Gating**: Notification behavior must respect the shared configuration in `.kb/config.json`:
-    - `briefs.enabled`: Global switch for all brief functionality.
-    - `briefs.channels.vscode`: VS Code channel toggle. If false, all briefing notifications and auto-actions are suppressed.
+4. **Graceful Schema Fallback**: During the migration window, the extension should tolerate Schema-1.0 envelopes but apply Schema-2.0 display logic where possible.
 
-5.  **Unread Filtering**: Notifications are only triggered for briefs marked as unread.
-
-6.  **Graceful Degradation**: If the notification cannot be displayed or the manual open action fails, the extension must fail silently without impacting the VS Code host stability.

@@ -17,8 +17,9 @@ import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements R
 import * as fileFilter from "./file-filter.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
+  type AuditCursor,
   computeAuditDelta,
-  getLatestAuditCursor,
+  getAuditTailCursor,
   guardBranchChanged,
 } from "./idle-brief-audit.js";
 import { markBriefRead, selectLatestUnreadBrief } from "./idle-brief-reader.js";
@@ -30,6 +31,10 @@ import { resolveCurrentBranch } from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
+import {
+  syncSessionBaselineState,
+  type SessionBaselineState,
+} from "./session-fingerprint.js";
 import {
   type SessionEditEntry,
   createSessionEditState,
@@ -261,7 +266,28 @@ const kibiOpencodePlugin: Plugin = async (
   const replayedBriefContentHashes = new Set<string>();
   // Session-local baseline cursor: captured once per session/worktree/branch from the audit-log tail,
   // so the first idle brief in a fresh session only reports post-baseline changes.
-  let sessionBaselineCursor: ReturnType<typeof getLatestAuditCursor> | undefined = undefined;
+  let sessionBaselineCursor: AuditCursor | null = null;
+  let sessionBaselineFingerprint: string | null = null;
+
+  function syncSessionBaseline(branch: string): void {
+    const nextState = syncSessionBaselineState<AuditCursor>(
+      {
+        fingerprint: sessionBaselineFingerprint,
+        cursor: sessionBaselineCursor,
+      } satisfies SessionBaselineState<AuditCursor>,
+      {
+        sessionId: input.sessionId,
+        branch,
+        worktree: input.worktree,
+      },
+      () => getAuditTailCursor(input.worktree, branch),
+    );
+
+    sessionBaselineFingerprint = nextState.fingerprint;
+    sessionBaselineCursor = nextState.cursor;
+  }
+
+  syncSessionBaseline(currentBranch);
 
   function normalizeSessionPath(filePath: string): string {
     if (path.isAbsolute(filePath)) {
@@ -369,6 +395,13 @@ const kibiOpencodePlugin: Plugin = async (
     };
   }
 
+  function buildWorkspaceContextForBranch(branch: string): BriefingWorkspaceCtx {
+    return {
+      ...buildBriefingWorkspaceContext(),
+      branch,
+    };
+  }
+
   function queueBriefingFetch(
     intentResult: ReturnType<typeof computeBriefIntent>,
     options: { skipIfCachedResultExists?: boolean } = {},
@@ -405,11 +438,14 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   hooks.event = async ({ event }) => {
+    const activeBranch = resolveCurrentBranch(input.worktree);
+    syncSessionBaseline(activeBranch);
+
     // Handle session.idle for idle-brief generation
     if (event.type === "session.idle") {
       if (!input.client || getMaintenanceDegraded()) return;
 
-      const idleBranch = currentBranch;
+      const idleBranch = activeBranch;
       const idleWorkspaceRoot = input.worktree;
 
       // Single-flight guard
@@ -429,15 +465,6 @@ const kibiOpencodePlugin: Plugin = async (
 
           if (sourceFiles.length === 0) return;
 
-          // Capture session-local baseline once per session/worktree/branch
-          // This ensures a fresh session only reports changes after session start,
-          // not the entire branch audit history.
-          if (sessionBaselineCursor === undefined) {
-            sessionBaselineCursor = getLatestAuditCursor(
-              idleWorkspaceRoot,
-              idleBranch,
-            );
-          }
           const auditDelta = computeAuditDelta(
             idleWorkspaceRoot,
             idleBranch,
@@ -458,7 +485,7 @@ const kibiOpencodePlugin: Plugin = async (
           }
 
           // Generate brief
-          const workspaceCtx = buildBriefingWorkspaceContext();
+          const workspaceCtx = buildWorkspaceContextForBranch(idleBranch);
           const client = input.client;
           if (!client) return;
           const result = await generateIdleBrief(

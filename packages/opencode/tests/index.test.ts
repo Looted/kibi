@@ -15,10 +15,12 @@ import os from "node:os";
 import path from "node:path";
 import kibiOpencodePlugin from "../src/index";
 import * as briefingRuntimeModule from "../src/briefing-runtime";
+import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
 import * as logger from "../src/logger";
 import * as promptModule from "../src/prompt";
 import * as toastModule from "../src/toast";
 import type { PluginInput } from "../src/index";
+import { resolveAuditLogPath } from "../src/idle-brief-paths";
 import { runPluginStartup } from "../src/plugin-startup";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import type { BriefingRuntimeResult } from "../src/briefing-runtime";
@@ -3481,6 +3483,227 @@ import datetime
       const mod = await import(`../src/index.ts?auto-brief=${freshPluginCounter}`);
       return mod.default;
     }
+
+    function writeAuditEntries(
+      workspaceDir: string,
+      branch: string,
+      entries: Array<{ timestamp: string; entityId: string }>,
+    ): void {
+      const auditPath = resolveAuditLogPath(workspaceDir, branch);
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(
+        auditPath,
+        `${entries
+          .map(
+            ({ timestamp, entityId }) =>
+              `changeset('${timestamp}',upsert,'${entityId}',req-[id='${entityId}']).`,
+          )
+          .join("\n")}\n`,
+        "utf-8",
+      );
+    }
+
+    function appendAuditEntry(
+      workspaceDir: string,
+      branch: string,
+      entry: { timestamp: string; entityId: string },
+    ): void {
+      const auditPath = resolveAuditLogPath(workspaceDir, branch);
+      fs.appendFileSync(
+        auditPath,
+        `changeset('${entry.timestamp}',upsert,'${entry.entityId}',req-[id='${entry.entityId}']).\n`,
+        "utf-8",
+      );
+    }
+
+    it("captures the idle-brief baseline at startup so prior brief backlog is ignored", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      const briefsDir = path.join(tmpDir, ".kb", "briefs");
+      fs.mkdirSync(briefsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(briefsDir, "1000000000_brief.json"),
+        JSON.stringify(
+          {
+            schemaVersion: "1.0",
+            briefId: "prior-brief",
+            type: "success",
+            sessionId: "older-session",
+            branch: "main",
+            createdAt: "2026-04-25T09:00:00Z",
+            unread: false,
+            auditCursor: {
+              lastTimestamp: "2026-04-25T09:00:00+00:00",
+              lastOperation: "upsert",
+              entryCount: 1,
+              fileSize: 100,
+            },
+            summary: { requirementsAdded: 1, relationshipsAdded: 0, entitiesDeleted: 0 },
+            validation: { violations: [], count: 0, diagnostics: [] },
+            briefing: { tldr: "prior", promptBlock: "", citations: [] },
+            contentHash: "prior-hash",
+          },
+          null,
+          2,
+        ),
+        "utf-8",
+      );
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      const { client } = createAutoBriefClient();
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client,
+          sessionId: "session-start",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 42; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-NEW",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const auditDelta = generateSpy.mock.calls[0]?.[2] as {
+        entries: Array<{ entityId: string }>;
+      };
+      assert.deepEqual(
+        auditDelta.entries.map((entry) => entry.entityId),
+        ["REQ-NEW"],
+      );
+    });
+
+    it("resets the idle-brief baseline when the branch changes", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+      writeAuditEntries(tmpDir, "feature", [
+        {
+          timestamp: "2026-04-25T11:00:00+00:00",
+          entityId: "REQ-FEATURE-OLD",
+        },
+      ]);
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      const { client } = createAutoBriefClient();
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client,
+          sessionId: "session-branch-reset",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      process.env.KIBI_BRANCH = "feature";
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 99; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "feature", {
+        timestamp: "2026-04-25T11:30:00+00:00",
+        entityId: "REQ-FEATURE-NEW",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const workspaceCtx = generateSpy.mock.calls[0]?.[1] as { branch: string };
+      const auditDelta = generateSpy.mock.calls[0]?.[2] as {
+        entries: Array<{ entityId: string }>;
+      };
+      assert.equal(workspaceCtx.branch, "feature");
+      assert.deepEqual(
+        auditDelta.entries.map((entry) => entry.entityId),
+        ["REQ-FEATURE-NEW"],
+      );
+    });
 
     it("triggers fetchBriefingResult for authoritative risky edits and sends a toast", async () => {
       setupAuthoritativeWorkspace(tmpDir);

@@ -8,6 +8,14 @@ type QueryResult = {
   error?: string;
 };
 
+function entityResultsBinding(id: string, type: string, props: string): string {
+  return `[['${id.replace(/'/g, "''")}',${type},[${props}]]]`;
+}
+
+function deleteGoal(id: string, type: string, props: string): string {
+  return `kb_retract_entity('${id.replace(/'/g, "''")}', ${type}, [${props}])`;
+}
+
 function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
 ) {
@@ -43,11 +51,34 @@ describe("handleKbDelete", () => {
           return { success: true };
         }
 
+        if (
+          goal ===
+          "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+        ) {
+          return {
+            success: true,
+            bindings: {
+              Results: entityResultsBinding(
+                "REQ-001",
+                "req",
+                `id='REQ-001', title=\"Delete me\", source=\"test://delete\", text_ref=\"docs/REQ-001.md#L1\"`,
+              ),
+            },
+          };
+        }
+
         if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
           return { success: true, bindings: { Dependents: "[]" } };
         }
 
-        if (goal === "kb_retract_entity('REQ-001')") {
+        if (
+          goal ===
+          deleteGoal(
+            "REQ-001",
+            "req",
+            `id='REQ-001', title=\"Delete me\", source=\"test://delete\", text_ref=\"docs/REQ-001.md#L1\"`,
+          )
+        ) {
           return { success: true };
         }
 
@@ -61,7 +92,7 @@ describe("handleKbDelete", () => {
 
     const result = await handleKbDelete(prolog, { ids: ["REQ-001"] });
 
-    expect(query).toHaveBeenCalledTimes(4);
+    expect(query).toHaveBeenCalledTimes(5);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toEqual({
       deleted: 1,
@@ -81,6 +112,37 @@ describe("handleKbDelete", () => {
         return { success: true };
       }
 
+      if (
+        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "REQ-001",
+              "req",
+              `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`,
+            ),
+          },
+        };
+      }
+
+      if (
+        goal ===
+        "findall(['o''brien',Type,Props], kb_entity('o''brien', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "o'brien",
+              "req",
+              `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+            ),
+          },
+        };
+      }
+
       if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
         return { success: true, bindings: {} };
       }
@@ -90,8 +152,19 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal === "kb_retract_entity('REQ-001')" ||
-        goal === "kb_retract_entity('o''brien')"
+        goal ===
+        deleteGoal("REQ-001", "req", `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`)
+      ) {
+        return { success: true };
+      }
+
+      if (
+        goal ===
+        deleteGoal(
+          "o'brien",
+          "req",
+          `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+        )
       ) {
         return { success: true };
       }
@@ -108,12 +181,65 @@ describe("handleKbDelete", () => {
     });
 
     expect(query).toHaveBeenCalledWith("once(kb_entity('o''brien', _, _))");
-    expect(query).toHaveBeenCalledWith("kb_retract_entity('o''brien')");
+    expect(query).toHaveBeenCalledWith(
+      deleteGoal(
+        "o'brien",
+        "req",
+        `id='o''brien', title=\"Delete quoted\", source=\"test://delete\"`,
+      ),
+    );
     expect(result.structuredContent).toEqual({
       deleted: 2,
       skipped: 0,
       errors: [],
     });
+  });
+
+  test("preserves delete metadata even when optional fields are absent", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-MINIMAL', _, _))") {
+        return { success: true };
+      }
+
+      if (
+        goal ===
+        "findall(['REQ-MINIMAL',Type,Props], kb_entity('REQ-MINIMAL', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "REQ-MINIMAL",
+              "req",
+              `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+            ),
+          },
+        };
+      }
+
+      if (goal.includes("kb_relationship") && goal.includes("'REQ-MINIMAL'")) {
+        return { success: true, bindings: { Dependents: "[]" } };
+      }
+
+      if (
+        goal ===
+        deleteGoal("REQ-MINIMAL", "req", `id='REQ-MINIMAL', title=\"Minimal delete\"`)
+      ) {
+        return { success: true };
+      }
+
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await handleKbDelete(prolog, { ids: ["REQ-MINIMAL"] });
+
+    expect(query).toHaveBeenCalledWith(
+      deleteGoal("REQ-MINIMAL", "req", `id='REQ-MINIMAL', title=\"Minimal delete\"`),
+    );
   });
 
   test("skips entities that do not exist", async () => {
@@ -183,6 +309,22 @@ describe("handleKbDelete", () => {
         return { success: false };
       }
 
+      if (
+        goal ===
+        "findall(['REQ-DELETED',Type,Props], kb_entity('REQ-DELETED', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "REQ-DELETED",
+              "req",
+              `id='REQ-DELETED', title=\"Delete success\", source=\"test://delete\"`,
+            ),
+          },
+        };
+      }
+
       if (goal.includes("kb_relationship") && goal.includes("'REQ-DELETED'")) {
         return { success: true, bindings: { Dependents: "[]" } };
       }
@@ -194,7 +336,14 @@ describe("handleKbDelete", () => {
         };
       }
 
-      if (goal === "kb_retract_entity('REQ-DELETED')") {
+      if (
+        goal ===
+        deleteGoal(
+          "REQ-DELETED",
+          "req",
+          `id='REQ-DELETED', title=\"Delete success\", source=\"test://delete\"`,
+        )
+      ) {
         return { success: true };
       }
 
@@ -255,11 +404,33 @@ describe("handleKbDelete", () => {
         return { success: true };
       }
 
+      if (
+        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "REQ-001",
+              "req",
+              `id='REQ-001', title=\"Delete failure\", source=\"test://delete\"`,
+            ),
+          },
+        };
+      }
+
       if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
         return { success: true, bindings: { Dependents: "[]" } };
       }
 
-      if (goal === "kb_retract_entity('REQ-001')") {
+      if (
+        goal ===
+        deleteGoal(
+          "REQ-001",
+          "req",
+          `id='REQ-001', title=\"Delete failure\", source=\"test://delete\"`,
+        )
+      ) {
         return { success: false, error: "permission denied" };
       }
 
@@ -285,11 +456,33 @@ describe("handleKbDelete", () => {
         return { success: true };
       }
 
+      if (
+        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+      ) {
+        return {
+          success: true,
+          bindings: {
+            Results: entityResultsBinding(
+              "REQ-001",
+              "req",
+              `id='REQ-001', title=\"Delete save fail\", source=\"test://delete\"`,
+            ),
+          },
+        };
+      }
+
       if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
         return { success: true, bindings: { Dependents: "[]" } };
       }
 
-      if (goal === "kb_retract_entity('REQ-001')") {
+      if (
+        goal ===
+        deleteGoal(
+          "REQ-001",
+          "req",
+          `id='REQ-001', title=\"Delete save fail\", source=\"test://delete\"`,
+        )
+      ) {
         return { success: true };
       }
 
