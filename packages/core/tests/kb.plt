@@ -166,7 +166,7 @@ test(prefers_source_file_over_legacy_source, [setup(setup_kb), cleanup(cleanup_k
 
 :- begin_tests(kb_audit).
 
-test(audit_log_created, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(audit_log_created_includes_change_kind, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='audit-test',
         title="Audit Test",
@@ -175,8 +175,52 @@ test(audit_log_created, [setup(setup_kb), cleanup(cleanup_kb)]) :-
         updated_at="2026-02-17T00:00:00Z",
         source="test://kb.plt"
     ]),
-    % Verify audit log entry exists (check database, not just file)
-    changeset(_, upsert, 'audit-test', _).
+    changeset(_, upsert, 'audit-test', req-Props),
+    memberchk(change_kind=created, Props),
+    memberchk(title="Audit Test", Props).
+
+test(audit_log_update_includes_change_kind, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='audit-update-test',
+        title="Audit Test v1",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='audit-update-test',
+        title="Audit Test v2",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-18T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    findall(Props, changeset(_, upsert, 'audit-update-test', req-Props), PropsList),
+    length(PropsList, 2),
+    once((
+        select(CreatedProps, PropsList, [UpdatedProps]),
+        memberchk(change_kind=created, CreatedProps),
+        memberchk(change_kind=updated, UpdatedProps)
+    )),
+    memberchk(title="Audit Test v2", UpdatedProps).
+
+test(delete_audit_preserves_typed_metadata, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='audit-delete-test',
+        title="Audit Delete Test",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        text_ref="documentation/requirements/REQ-AUDIT.md#L10"
+    ]),
+    kb_retract_entity('audit-delete-test'),
+    changeset(_, delete, 'audit-delete-test', req-Props),
+    memberchk(id='audit-delete-test', Props),
+    memberchk(title="Audit Delete Test", Props),
+    memberchk(source="test://kb.plt", Props),
+    memberchk(text_ref="documentation/requirements/REQ-AUDIT.md#L10", Props).
 
 :- end_tests(kb_audit).
 

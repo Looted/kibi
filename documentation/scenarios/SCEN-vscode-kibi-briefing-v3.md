@@ -1,48 +1,41 @@
 ---
 id: SCEN-vscode-kibi-briefing-v3
-title: "VS Code Kibi Briefing v3: Popup & Manual-Open Scenarios"
+title: "VS Code Kibi Briefing v3: Deterministic Ordering & Schema-2.0 Scenarios"
 status: active
-created_at: 2026-04-30T12:00:00Z
-updated_at: 2026-04-30T12:00:00Z
+created_at: 2026-05-06T04:45:00Z
+updated_at: 2026-05-06T04:45:00Z
 source: documentation/scenarios/SCEN-vscode-kibi-briefing-v3.md
 tags:
   - scenario
   - vscode
   - briefing
-  - manual-open
+  - deterministic-ordering
 links:
   - type: relates_to
     target: REQ-vscode-kibi-briefing-v3
 ---
 
-**Scenario: New brief triggers notification — user clicks "View Brief"**
+**Scenario: Deterministic Latest Selection — Filename priority**
 
-**GIVEN** a workspace with `.kb/config.json` containing `briefs.enabled: true`
-**AND** `briefs.channels.vscode: true`
-**WHEN** the VS Code extension detects a new unread brief
-**THEN** it must display a popup notification with the text "New Kibi briefing available"
-**AND** the notification must contain a "View Brief" action
-**WHEN** the user clicks "View Brief"
-**THEN** the briefing document must open in a new VS Code editor tab
+**GIVEN** three brief files in the `.kb/briefs/` directory:
+  - `brief-20260506-040000.json` (mtime: newer)
+  - `brief-20260506-041500.json` (mtime: older)
+  - `brief-20260506-043000.json` (mtime: middle)
+**WHEN** the extension selects the latest brief
+**THEN** it must choose `brief-20260506-043000.json` based on lexicographical filename sorting
+**AND** ignore the filesystem `mtime`
 
-**Scenario: New brief triggers notification — user ignores it**
+**Scenario: Schema-2.0 Rendering — Narrative and counts display**
 
-**GIVEN** a new unread brief is detected
-**WHEN** the notification appears
-**AND** the user does NOT click "View Brief"
-**THEN** NO editor tab should be automatically opened
-**AND** the brief remains unread and available for manual retrieval
+**GIVEN** a brief following Schema-2.0 with a multi-line `changeNarrative`
+**WHEN** the brief is opened in VS Code
+**THEN** the narrative block must render the ordered array as a cohesive text block
+**AND** the `counts` object (entitiesAdded, etc.) must be accurately reflected in the UI summary
 
-**Scenario: VS Code Channel Disabled — No notification**
+**Scenario: Auto-Open Preservation — Session-local trigger**
 
-**GIVEN** a workspace where `briefs.channels.vscode: false`
-**WHEN** a new unread brief is detected
-**THEN** NO notification must be displayed
-**AND** NO document must be automatically opened
+**GIVEN** a new Schema-2.0 brief is generated in the current session
+**WHEN** the VS Code extension detects the unread file
+**THEN** it must automatically open the document tab (if channel enabled)
+**AND** the selection of this unread file must be deterministic
 
-**Scenario: Manual Retrieval via Command Palette**
-
-**GIVEN** an available brief
-**WHEN** the user executes the `kibi.showLatestBrief` command
-**THEN** the latest brief must open in a VS Code editor tab
-**AND** this must work regardless of whether a notification was previously shown or dismissed

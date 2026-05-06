@@ -52,6 +52,53 @@ changeset('2026-04-25T10:01:00+00:00',upsert_rel,'REQ-001->SCEN-001',rel-[from='
       expect(result.entries[1].entityId).toBe("REQ-001->SCEN-001");
     });
 
+    it("retains parsed payload metadata for enriched and legacy entity audit entries", () => {
+      const auditPath = resolveAuditLogPath(tmpDir, "main");
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(
+        auditPath,
+        `
+changeset('2026-04-25T10:00:00+00:00',upsert,'REQ-001',req-[id='REQ-001',title='  Test Requirement  ',source='documentation/requirements/REQ-001.md',text_ref='documentation/requirements/REQ-001.md#L1',change_kind=created,created_at='2026-04-25T10:00:00Z',updated_at='2026-04-25T10:00:00Z']).
+changeset('2026-04-25T10:00:01+00:00',delete,'REQ-002',req-[id='REQ-002',title='Legacy Requirement',source='documentation/requirements/REQ-002.md',text_ref='documentation/requirements/REQ-002.md#L2']).
+changeset('2026-04-25T10:00:02+00:00',upsert,'REQ-003',req-[id='REQ-003',title='Legacy Shape']).
+        `.trim() + "\n",
+        "utf-8",
+      );
+
+      const result = computeAuditDelta(tmpDir, "main", null);
+
+      expect(result.entries).toHaveLength(3);
+      expect(result.entries[0]?.payload).toEqual({
+        kind: "entity",
+        entityType: "req",
+        changeKind: "created",
+        title: "  Test Requirement  ",
+        source: "documentation/requirements/REQ-001.md",
+        textRef: "documentation/requirements/REQ-001.md#L1",
+        properties: {
+          id: "REQ-001",
+          title: "  Test Requirement  ",
+          source: "documentation/requirements/REQ-001.md",
+          text_ref: "documentation/requirements/REQ-001.md#L1",
+          change_kind: "created",
+          created_at: "2026-04-25T10:00:00Z",
+          updated_at: "2026-04-25T10:00:00Z",
+        },
+      });
+      expect(result.entries[1]?.payload).toMatchObject({
+        kind: "entity",
+        entityType: "req",
+        title: "Legacy Requirement",
+        source: "documentation/requirements/REQ-002.md",
+        textRef: "documentation/requirements/REQ-002.md#L2",
+      });
+      expect(result.entries[2]?.payload).toMatchObject({
+        kind: "entity",
+        entityType: "req",
+        title: "Legacy Shape",
+      });
+    });
+
     it("returns hasChanges=false when cursor unchanged", () => {
       // Create audit log
       const auditPath = resolveAuditLogPath(tmpDir, "main");

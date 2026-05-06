@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-import { escapeAtom } from "kibi-cli/prolog/codec";
+import { escapeAtom, parseEntityFromList, parseListOfLists } from "kibi-cli/prolog/codec";
 
 export interface DeleteArgs {
   ids: string[];
@@ -35,7 +35,7 @@ export interface DeleteResult {
  * Handle kb.delete tool calls
  * Prevents deletion of entities with dependents (referential integrity)
  */
-export async function handleKbDelete(
+export async function handleKbDelete( // implements REQ-002, REQ-011
   prolog: PrologProcess,
   args: DeleteArgs,
 ): Promise<DeleteResult> {
@@ -89,7 +89,8 @@ export async function handleKbDelete(
       }
 
       // No dependents, safe to delete
-      const deleteGoal = `kb_retract_entity('${safeId}')`;
+      const entityMetadata = await loadEntityMetadataForDelete(prolog, id, safeId);
+      const deleteGoal = buildDeleteGoal(safeId, entityMetadata);
       const deleteResult = await prolog.query(deleteGoal);
 
       if (!deleteResult.success) {
@@ -128,4 +129,53 @@ export async function handleKbDelete(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Delete execution failed: ${message}`);
   }
+}
+
+type DeleteEntityMetadata = {
+  type: string;
+  props: Record<string, unknown>;
+};
+
+async function loadEntityMetadataForDelete(
+  prolog: PrologProcess,
+  id: string,
+  safeId: string,
+): Promise<DeleteEntityMetadata> {
+  const result = await prolog.query(
+    `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`,
+  );
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to load metadata for entity ${id}: ${result.error || "Unknown error"}`,
+    );
+  }
+
+  const rows = result.bindings.Results ? parseListOfLists(result.bindings.Results) : [];
+  if (rows.length === 0) {
+    throw new Error(`Failed to load metadata for entity ${id}: Entity not found`);
+  }
+
+  const entity = parseEntityFromList(rows[0] ?? []);
+  const type = String(entity.type ?? "unknown");
+  const { id: _entityId, type: _entityType, ...props } = entity;
+
+  return { type, props };
+}
+
+function buildDeleteGoal(safeId: string, metadata: DeleteEntityMetadata): string {
+  const auditProps = [`id='${safeId}'`, ...serializeDeleteProps(metadata.props)];
+  return `kb_retract_entity('${safeId}', ${metadata.type}, [${auditProps.join(", ")}])`;
+}
+
+function serializeDeleteProps(props: Record<string, unknown>): string[] {
+  const orderedKeys = ["title", "source", "text_ref"];
+  return orderedKeys.flatMap((key) => {
+    const value = props[key];
+    if (typeof value !== "string") {
+      return [];
+    }
+
+    return `${key}=${JSON.stringify(value)}`;
+  });
 }

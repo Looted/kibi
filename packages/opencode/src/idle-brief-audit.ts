@@ -13,23 +13,98 @@ export interface AuditCursor {
 
 export interface AuditDelta {
   hasChanges: boolean;
-  entries: Array<{
-    timestamp: string;
-    operation: string;
-    entityId: string;
-  }>;
+  entries: AuditEntry[];
   newCursor: AuditCursor;
   contentHash: string;
 }
 
+export interface AuditEntry {
+  timestamp: string;
+  operation: string;
+  entityId: string;
+  payload?: {
+    kind: "entity";
+    entityType: string;
+    changeKind?: "created" | "updated";
+    title?: string;
+    source?: string;
+    textRef?: string;
+    properties: Record<string, unknown>;
+  } | null;
+}
+
 // Parse a single changeset line from the audit log
-function parseChangesetLine(
-  line: string,
-): { timestamp: string; operation: string; entityId: string } | null {
-  // Format: changeset('TIMESTAMP',OPERATION,'ENTITY_ID',...).
-  const match = line.match(/changeset\('([^']+)',([a-z_]+),'([^']+)',/);
+function parseChangesetLine(line: string): AuditEntry | null {
+  // Format: changeset('TIMESTAMP',OPERATION,'ENTITY_ID',PAYLOAD).
+  const match = line.match(
+    /^changeset\('([^']+)',([a-z_]+),'([^']+)',(.+)\)\.\s*$/,
+  );
   if (!match) return null;
-  return { timestamp: match[1]!, operation: match[2]!, entityId: match[3]! };
+  const [, timestamp = "", operation = "", entityId = "", rawPayload = ""] = match;
+
+  const payload = parsePayload(rawPayload.trim());
+  return {
+    timestamp,
+    operation,
+    entityId,
+    ...(payload === undefined ? {} : { payload }),
+  };
+}
+
+function parsePayload(
+  rawPayload: string,
+): AuditEntry["payload"] | undefined {
+  if (rawPayload === "null") return null;
+
+  const match = rawPayload.match(/^([A-Za-z0-9_]+)-\[(.*)\]$/);
+  if (!match) return null;
+
+  const [, entityType = "unknown", rawProps = ""] = match;
+  const properties = parsePropertyList(rawProps);
+  const title = typeof properties.title === "string" ? properties.title : undefined;
+  const source = typeof properties.source === "string" ? properties.source : undefined;
+  const textRef = typeof properties.text_ref === "string" ? properties.text_ref : undefined;
+  const changeKindRaw = properties.change_kind;
+  const changeKind =
+    changeKindRaw === "created" || changeKindRaw === "updated"
+      ? changeKindRaw
+      : undefined;
+
+  return {
+    kind: "entity",
+    entityType,
+    ...(changeKind ? { changeKind } : {}),
+    ...(title ? { title } : {}),
+    ...(source ? { source } : {}),
+    ...(textRef ? { textRef } : {}),
+    properties,
+  };
+}
+
+function parsePropertyList(rawProps: string): Record<string, unknown> {
+  const properties: Record<string, unknown> = {};
+  if (!rawProps.trim()) return properties;
+
+  for (const part of rawProps.split(",")) {
+    const trimmed = part.trim();
+    if (!trimmed) continue;
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex < 0) continue;
+    const key = trimmed.slice(0, eqIndex).trim();
+    const value = trimmed.slice(eqIndex + 1).trim();
+    properties[key] = parsePropertyValue(value);
+  }
+
+  return properties;
+}
+
+function parsePropertyValue(value: string): unknown {
+  if (value === "null") return null;
+  if (value === "true") return true;
+  if (value === "false") return false;
+  if (/^-?\d+(?:\.\d+)?$/.test(value)) return Number(value);
+  const quoted = value.match(/^'(.*)'$/s);
+  return quoted ? quoted[1] : value;
 }
 
 // implements REQ-opencode-kibi-briefing-v4
@@ -83,7 +158,7 @@ export function computeAuditDelta(
 
   // If we have a previous cursor, filter to only new entries
   let newEntries = entries;
-  if (previousCursor && previousCursor.lastTimestamp) {
+  if (previousCursor?.lastTimestamp) {
     const lastIdx = entries.findIndex(
       (e) =>
         e.timestamp === previousCursor.lastTimestamp &&
@@ -133,8 +208,12 @@ export function getLatestAuditCursor(
     .filter((f) => f.endsWith("_brief.json") && !f.endsWith(".tmp"))
     .map((f) => {
       const fullPath = path.join(briefsDir, f);
-      const timestamp = Number.parseInt(f.split("_")[0]!, 10);
-      return { path: fullPath, timestamp: isNaN(timestamp) ? 0 : timestamp };
+      const [rawTimestamp = "0"] = f.split("_");
+      const timestamp = Number.parseInt(rawTimestamp, 10);
+      return {
+        path: fullPath,
+        timestamp: Number.isNaN(timestamp) ? 0 : timestamp,
+      };
     })
     .sort((a, b) => b.timestamp - a.timestamp);
 
@@ -152,6 +231,21 @@ export function getLatestAuditCursor(
   }
 
   return null;
+}
+
+export function getAuditTailCursor( // implements REQ-opencode-kibi-briefing-v6
+  workspaceRoot: string,
+  branch: string,
+): AuditCursor | null {
+  const auditPath = resolveAuditLogPath(workspaceRoot, branch);
+  if (!fs.existsSync(auditPath)) {
+    return null;
+  }
+
+  const delta = computeAuditDelta(workspaceRoot, branch, null);
+  return delta.newCursor.entryCount > 0 || delta.newCursor.fileSize > 0
+    ? delta.newCursor
+    : null;
 }
 
 // implements REQ-opencode-kibi-briefing-v4
