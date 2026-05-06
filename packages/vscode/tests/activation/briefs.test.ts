@@ -106,6 +106,7 @@ test("registerBriefWatcher creates a FileSystemWatcher", async () => {
         return undefined;
       },
     ),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(
       (
         _ws: MockWorkspaceState,
@@ -143,6 +144,7 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
       throw new Error("Should not be called for temp files");
     }),
     readBriefId: mock(() => undefined),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -183,6 +185,7 @@ test("registerBriefWatcher ignores briefs marked as read (unread: false)", async
     readBriefId: mock(
       () => "brief-test-123", // Already seen
     ),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -221,6 +224,7 @@ test("registerBriefWatcher deduplicates in-memory notifications", async () => {
       return { ...briefTemplate, unread: true };
     }),
     readBriefId: mock(() => undefined),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -264,6 +268,7 @@ test("showLatestBriefCommand opens a document when briefs are available", async 
       return briefTemplate;
     }),
     readBriefId: mock(() => undefined),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -290,6 +295,7 @@ test("showLatestBriefCommand shows message when no briefs available", async () =
       return null;
     }),
     readBriefId: mock(() => undefined),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -333,6 +339,7 @@ test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", a
       return callIdx === 1 ? briefA : briefB;
     }),
     readBriefId: mock(() => undefined),
+    markBriefSeen: mock(() => {}),
     markBriefRead: mock(() => {}),
   }));
 
@@ -375,4 +382,81 @@ test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", a
 
   // Both events should result in only 1 notification total (contentHash dedupe)
   expect(notifyCount2).toBeLessThanOrEqual(notifyCount1 + 1);
+});
+
+test("registerBriefWatcher persists seen content hash even when toast is closed", async () => {
+  resetVscodeMock({
+    window: {
+      showInformationMessage: mock(async (_message: string) => undefined),
+    },
+  });
+
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const dedupeKey = `kibi.briefs.seen::${workspaceRoot}::${branch}`;
+
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      briefId: "brief-persisted-hash",
+      contentHash: "semantic-hash-persist-me",
+      unread: true,
+    }),
+  );
+
+  const vscode = getVscodeMockModule();
+  const showInformationMessage = vscode.window
+    .showInformationMessage as ReturnType<typeof mock>;
+
+  const contextWithState = {
+    subscriptions: [],
+    workspaceState: wsState,
+  };
+
+  const firstModule = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const firstWatcherResult = firstModule.registerBriefWatcher(
+    contextWithState as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const uri = {
+    fsPath: path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json"),
+  };
+
+  (firstWatcherResult.watcher as DefaultFileSystemWatcher).emitCreate(uri);
+  await new Promise((r) => setTimeout(r, 50));
+
+  expect(wsState.get(dedupeKey)).toBe("semantic-hash-persist-me");
+
+  const firstBriefContent = JSON.parse(fs.readFileSync(briefPath, "utf-8")) as {
+    unread: boolean;
+  };
+  expect(firstBriefContent.unread).toBe(true);
+
+  const firstNotificationCount = showInformationMessage.mock.calls.length;
+
+  const secondModule = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const secondWatcherResult = secondModule.registerBriefWatcher(
+    contextWithState as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  (secondWatcherResult.watcher as DefaultFileSystemWatcher).emitCreate(uri);
+  await new Promise((r) => setTimeout(r, 50));
+
+  expect(showInformationMessage.mock.calls.length).toBe(firstNotificationCount);
 });

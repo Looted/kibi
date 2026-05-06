@@ -11,6 +11,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import type { Memento } from "vscode";
 import {
+  markBriefSeen,
   markBriefRead,
   parseLatestBrief,
   readBriefId,
@@ -351,6 +352,17 @@ describe("readBriefId", () => {
 
     expect(developResult).toBeUndefined();
     expect(mainResult).toBe("brief-main");
+  });
+});
+
+describe("markBriefSeen", () => {
+  test("records semantic content hash without mutating files", () => {
+    const memento = new FakeMemento();
+
+    markBriefSeen(memento, tmpDir, "develop", "hash-xyz");
+
+    const recorded = memento.get<string>(`kibi.briefs.seen::${tmpDir}::develop`);
+    expect(recorded).toBe("hash-xyz");
   });
 });
 

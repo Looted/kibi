@@ -377,6 +377,21 @@ export function readBriefId(
 }
 
 /**
+ * Records semantic brief content as seen for a workspace/branch without
+ * mutating the brief file's unread flag.
+ */
+// implements REQ-vscode-kibi-briefing-v1
+export function markBriefSeen(
+  workspaceState: Memento,
+  workspaceRoot: string,
+  branch: string,
+  contentHash: string,
+): void {
+  const key = getSeenKey(workspaceRoot, branch);
+  workspaceState.update(key, contentHash);
+}
+
+/**
  * implements REQ-vscode-kibi-briefing-v1
  * Marks a brief as read by updating workspace state AND atomically updating
  * the JSON file's unread field to false.
