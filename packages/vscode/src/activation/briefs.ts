@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { BriefDocumentProvider } from "../briefDocumentProvider";
 import {
   type BriefModel,
+  markBriefSeen,
   markBriefRead,
   parseLatestBrief,
   readBriefId,
@@ -128,6 +129,10 @@ export function registerBriefWatcher(
       "View Brief",
       "Dismiss",
     );
+
+    // Persist semantic dedupe even when the user closes the toast without action.
+    // This prevents the same contentHash from reappearing on each new session.
+    markBriefSeen(context.workspaceState, workspaceRoot, branch, brief.contentHash);
 
     if (selection === "View Brief") {
       // Open the brief document
