@@ -1,7 +1,6 @@
 import {
-  hasLegacyToast,
-  hasShowToast,
   sendToast,
+  type SendToastResult,
   type ToastCapableClient,
   type ToastPayload,
 } from "./toast.js";
@@ -34,48 +33,49 @@ export function notifyStartup(
   };
 
   if (!cfg.suppressToast) {
-    if (hasShowToast(client)) {
-      void Promise.resolve(sendToast(client, toastPayload))
-        .then(
-          (result) =>
-            void Promise.resolve(
-              client.app.log({
-                body: {
-                  service: "kibi-opencode",
-                  level: "info",
-                  message: "startup toast result",
-                  result: String(result),
-                  ...(cfg.directory ? { directory: cfg.directory } : {}),
-                },
-              }),
-            ).catch((logErr) => {
-              console.error(
-                "[kibi-opencode] startup toast result log failed:",
-                logErr,
-              );
-            }),
-        )
-        .catch((err) => {
-          console.error("[kibi-opencode] startup toast failed:", err);
-          void Promise.resolve(
-            client.app.log({
-              body: {
-                service: "kibi-opencode",
-                level: "warn",
-                message: "startup toast failed",
-                error: String(err),
-                ...(cfg.directory ? { directory: cfg.directory } : {}),
-              },
-            }),
-          ).catch((logErr) => {
-            console.error("[kibi-opencode] startup toast log failed:", logErr);
-          });
+    void sendToast(client, toastPayload).then((result: SendToastResult) => {
+      const base = {
+        service: "kibi-opencode",
+        ...(cfg.directory ? { directory: cfg.directory } : {}),
+      };
+
+      if (result.status === "delivered") {
+        void client.app.log({
+          body: {
+            ...base,
+            level: "info",
+            message: "startup toast delivered",
+            transport: result.transport,
+          },
+        }).catch(() => {
+          // Advisory log failure stays silent
         });
-    } else if (hasLegacyToast(client)) {
-      void Promise.resolve(sendToast(client, toastPayload)).catch((err) => {
-        console.error("[kibi-opencode] startup toast failed:", err);
-      });
-    }
+      } else if (result.status === "unavailable") {
+        void client.app.log({
+          body: {
+            ...base,
+            level: "info",
+            message: "startup toast unavailable",
+            reason: result.reason,
+          },
+        }).catch(() => {
+          // Advisory log failure stays silent
+        });
+      } else if (result.status === "failed") {
+        void client.app.log({
+          body: {
+            ...base,
+            level: "warn",
+            message: "startup toast delivery failed",
+            transport: result.transport,
+            reason: result.reason,
+            ...(result.error ? { error: result.error } : {}),
+          },
+        }).catch(() => {
+          // Advisory log failure stays silent
+        });
+      }
+    });
   }
 
   void Promise.resolve(
@@ -89,6 +89,6 @@ export function notifyStartup(
       },
     }),
   ).catch((err) => {
-    console.error("[kibi-opencode] startup log failed:", err);
+    // Advisory log failure stays silent
   });
 }

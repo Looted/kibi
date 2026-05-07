@@ -85,6 +85,38 @@ describe("kibi init", () => {
     expect(config.paths.symbols).toBe("documentation/symbols.yaml");
   });
 
+  test("creates documentation/symbols.yaml when it is missing", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    expect(existsSync(symbolsPath)).toBe(true);
+    const content = readFileSync(symbolsPath, "utf-8");
+    expect(content).toContain("# symbols.yaml");
+    expect(content).toContain("symbols: []");
+  });
+
+  test("adds .kb and brief artifacts to .gitignore", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    const content = readFileSync(gitignorePath, "utf-8");
+
+    expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
+  }, 30000);
+
   test("creates config.json with all check rules explicitly set to true", () => {
     execSync("git init", { cwd: tmpDir });
     execSync(`bun ${kibiBin} init`, {
@@ -189,6 +221,8 @@ describe("kibi init", () => {
 
     const content = readFileSync(preCommit, "utf8");
     expect(content).toContain("kibi check");
+    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain("git diff --quiet --");
   });
 
   test("exits with code 0 on success", () => {

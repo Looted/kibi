@@ -20,6 +20,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
+import * as symbolsTsExports from "../../src/extractors/symbols-ts.js";
 import {
   enrichSymbolCoordinatesWithTsMorph,
   type ManifestSymbolEntry,
@@ -308,5 +309,63 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
     );
 
     expectUnchanged(requireEntry(result), entry);
+  });
+
+  test("analyzes JS/TS source text into reusable parser-backed symbol metadata", () => {
+    const createTsMorphSourceAnalysisProvider = (
+      symbolsTsExports as {
+        createTsMorphSourceAnalysisProvider?: () => {
+          analyzeText: (
+            filePath: string,
+            content: string,
+          ) => {
+            providerId: string;
+            module: {
+              title: string;
+              language: string;
+              analysisMode: string;
+            };
+            symbols: Array<{ name: string; kind: string }>;
+          };
+        };
+      }
+    ).createTsMorphSourceAnalysisProvider;
+
+    expect(typeof createTsMorphSourceAnalysisProvider).toBe("function");
+    const provider = createTsMorphSourceAnalysisProvider?.();
+    if (!provider) {
+      throw new Error("Expected ts-morph source analysis provider");
+    }
+    const analysis = provider.analyzeText(
+      "fixtures/analyze.ts",
+      [
+        "export function parsedFunction() { return 1; }",
+        "export class ParsedClass {}",
+        "export interface ParsedShape { ok: boolean }",
+        "export type ParsedAlias = string;",
+        "export enum ParsedMode { On }",
+        "export const parsedValue = 42;",
+      ].join("\n"),
+    );
+
+    expect(analysis.providerId).toBe("ts-morph");
+    expect(analysis.module).toMatchObject({
+      title: "analyze",
+      language: "typescript",
+      analysisMode: "parser",
+    });
+    expect(
+      analysis.symbols.map((symbol: { name: string; kind: string }) => [
+        symbol.name,
+        symbol.kind,
+      ]),
+    ).toEqual([
+      ["parsedFunction", "function"],
+      ["ParsedClass", "class"],
+      ["ParsedShape", "interface"],
+      ["ParsedAlias", "type"],
+      ["ParsedMode", "enum"],
+      ["parsedValue", "variable"],
+    ]);
   });
 });

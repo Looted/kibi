@@ -28,7 +28,7 @@ links:
 
 ### Policy Tests
 
-- `packages/opencode/tests/agent-surface-policy.test.ts`: scans agent-facing prompt and instruction files for forbidden `kibi <verb>` command patterns while allowing sanctioned `/brief-kibi` guidance and requiring `kb_briefing_generate` mentions in policy docs.
+- `packages/opencode/tests/agent-surface-policy.test.ts`: scans agent-facing prompt and instruction files for forbidden `kibi <verb>` command patterns while allowing sanctioned `/brief-kibi` guidance, requiring `kb_briefing_generate` mentions in policy docs, and including new file-context guidance policy files (REQ/SCEN/TEST-opencode-file-context-guidance-v1) in the policy-test inventory.
 
 ### Integration and Regression
 

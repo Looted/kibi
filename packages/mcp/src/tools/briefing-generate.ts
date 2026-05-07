@@ -460,15 +460,42 @@ function bulletForEntity(entity: BriefingEntity): string | null {
 }
 
 function buildPromptBlock(entities: BriefingEntity[]): string {
-  const bullets = entities
-    .map((entity) => bulletForEntity(entity))
-    .filter((bullet): bullet is string => bullet !== null)
-    .slice(0, 5);
-  const promptBlock = bullets.join("\n");
-  const words = promptBlock.split(/\s+/).filter(Boolean);
-  if (bullets.length > 5 || words.length > 120) {
+  if (entities.length === 0) {
     return "";
   }
+
+  const allBullets = entities
+    .map((entity) => bulletForEntity(entity))
+    .filter((bullet): bullet is string => bullet !== null);
+
+  if (allBullets.length === 0) {
+    return "";
+  }
+
+  const bullets = allBullets.slice(0, 5);
+  let promptBlock = bullets.join("\n");
+  let words = promptBlock.split(/\s+/).filter(Boolean);
+
+  if (words.length > 120) {
+    // Hard-truncate to 120 words, preserving whole bullets where possible
+    const truncated: string[] = [];
+    let wordCount = 0;
+    for (const bullet of bullets) {
+      const bulletWords = bullet.split(/\s+/).filter(Boolean);
+      if (wordCount + bulletWords.length > 120) {
+        // Take a partial bullet that fits within budget
+        const remaining = 120 - wordCount;
+        if (remaining > 3) {
+          truncated.push(bulletWords.slice(0, remaining).join(" ") + "\u2026");
+        }
+        break;
+      }
+      truncated.push(bullet);
+      wordCount += bulletWords.length;
+    }
+    promptBlock = truncated.join("\n");
+  }
+
   return promptBlock;
 }
 

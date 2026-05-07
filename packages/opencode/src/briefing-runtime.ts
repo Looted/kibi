@@ -68,6 +68,8 @@ const TLDR_FALLBACK_TOAST =
   "Kibi brief summary added — use /brief-kibi for full details.";
 const UNAVAILABLE_TOAST =
   "Kibi brief unavailable — keeping /brief-kibi manual path.";
+const DEFAULT_WHY_IT_MATTERS =
+  "This update changes how current project knowledge should be interpreted.";
 const PROMPT_INSTRUCTION =
   "Call only kb_briefing_generate once with the provided sourceFiles and seedIds. If briefingState is ready, copy only cited fields. If briefingState is no_briefing, return empty promptBlock/citations and keep manual cue availability. Never invent claims.";
 const PROMPT_FORMAT: SessionPromptParams["format"] = {
@@ -236,7 +238,7 @@ function normalizeResult(payload: PromptPayload | null): BriefingRuntimeResult {
   if (briefingState === "ready" && tldr) {
     return {
       state: "tldr_fallback",
-      promptBlock: `- ${tldr}\n- Full details: run /brief-kibi.`,
+      promptBlock: `- What changed: ${tldr}\n- Why it matters: ${DEFAULT_WHY_IT_MATTERS}`,
       tldr,
       citations: [],
       showManualCue: true,

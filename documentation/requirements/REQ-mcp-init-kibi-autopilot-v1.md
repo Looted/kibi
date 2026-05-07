@@ -3,7 +3,7 @@ id: REQ-mcp-init-kibi-autopilot-v1
 title: "MCP-Owned /init-kibi Autopilot: Read-Only Candidate Generation for Day-0 Activation"
 status: open
 created_at: 2026-04-19T00:00:00Z
-updated_at: 2026-04-19T00:00:00Z
+updated_at: 2026-05-05T00:00:00Z
 source: documentation/requirements/REQ-mcp-init-kibi-autopilot-v1.md
 priority: must
 owner: opencode-team
@@ -23,15 +23,12 @@ links:
     target: REQ-opencode-agent-mcp-only
 ---
 
-The Kibi MCP server must provide an Autopilot workflow for the `/init-kibi` slash command to automate initial repository bootstrapping while preserving agent safety policies.
+The Kibi MCP server must provide an interactive bootstrap workflow for the `/init-kibi` slash command to onboard new repositories through bounded discovery and read-only candidate synthesis.
 
-1. **Read-Only Candidate Generation**: The MCP server must expose a read-only tool `kb_autopilot_generate` that analyzes the workspace and generates candidate Kibi entities (requirements, scenarios, tests, facts) and relationships.
-2. **Day-0 Activation Focus**: Autopilot v1 must focus exclusively on "Day-0" activation—initializing a repository that has existing documentation but no Kibi knowledge base. It must not perform git-history mining or background application of changes.
-3. **Candidate Schema**: The `kb_autopilot_generate` tool must return a structured payload containing:
-   - `entities`: A list of candidate entities with proposed IDs, types, and properties.
-   - `relationships`: A list of proposed relationships between candidates or existing entities.
-   - `plan`: A human-readable summary of the proposed changes.
-4. **Agent-Managed Application**: The agent must review the generated candidates and apply them using standard public MCP tools (`kb_upsert`). The MCP server must not apply changes directly.
-5. **Activation States**: The tool must classify the workspace state and only generate candidates when in a `root_uninitialized` or `root_partial` posture as defined in REQ-opencode-smart-enforcement-v1.
-6. **Payoff Reporting**: The tool should include a "payoff" estimate in the plan, describing the value of the proposed initialization (e.g., number of requirements linked, coverage improvements).
-7. **Read-Only Guarantee**: `kb_autopilot_generate` must be strictly read-only and must not modify the `.kb` directory or any documentation files.
+1. **Interactive Bootstrap Onboarding**: The `/init-kibi` workflow is defined as an interactive onboarding process. The agent must ask at most 4 bounded questions to gather declared context: project summary, primary source of truth, priority root (for monorepos), and verification/config anchors.
+2. **Read-Only Candidate Synthesis**: The `kb_autopilot_generate` tool must be strictly read-only. It may auto-create only safe deterministic entities and metadata (for example `symbol`, explicit `fact`, `adr`, and discovery metadata). `REQ`/`SCEN`/`TEST` authoring must be routed to the agent through `recommendedActions`, not auto-created from source-only evidence.
+3. **Declared Context vs. Verified Evidence**: The contract must distinguish between "declared context" (provided by the user via interactive questions) and "verified evidence" (discovered in the codebase). Synthesis should prioritize evidence but ground it in declared intent.
+4. **Agent-Managed Preview and Approval**: Agent-managed writes to the KB may only occur after the user has previewed and approved the proposed candidates. The MCP server must not apply changes autonomously.
+5. **Sequential Application**: Approved candidates must be applied using standard public MCP tools (`kb_upsert`) sequentially. After application, the agent must run `kb_check` to verify KB integrity.
+6. **No Pre-requisite Structure**: Bootstrap must not require existing `.kb/config.json`, `documentation/**`, or `symbols.yaml` to be present or structured to provide a useful onboarding experience.
+7. **MCP-Only Guidance**: All agent-facing bootstrap instructions must use MCP tools and sanctioned slash commands. Guidance must never suggest direct `kibi` CLI commands for maintenance.

@@ -61,6 +61,74 @@
       "description": "[DEPRECATED] No longer used. Branch lifecycle now follows git naturally without requiring a configured default. This field is ignored but kept for backward compatibility.",
       "deprecated": true
     },
+    "briefs": {
+      "type": "object",
+      "description": "Configuration for shared brief delivery defaults",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "retention": {
+          "type": "object",
+          "properties": {
+            "maxPerBranch": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 200
+            },
+            "maxAgeDays": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "default": 14
+            },
+            "keepUnread": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "channels": {
+          "type": "object",
+          "properties": {
+            "vscode": {
+              "type": "boolean",
+              "default": true
+            },
+            "tui": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "tui": {
+          "type": "object",
+          "properties": {
+            "toast": {
+              "type": "boolean",
+              "default": true
+            },
+            "appendPrompt": {
+              "type": "boolean",
+              "default": true
+            },
+            "idleDelayMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 60000,
+              "default": 1500,
+              "description": "Delay in milliseconds after session.idle before idle-brief generation is attempted"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "checks": {
       "type": "object",
       "description": "Configuration for KB validation rules",

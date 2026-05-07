@@ -427,7 +427,7 @@ const BASE_TOOLS = [
   {
     name: "kb_autopilot_generate",
     description:
-      "Generate autopilot candidate batches for KB population. Read-only analysis that returns activation state, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
+      "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
     inputSchema: {
       type: "object",
       properties: {
@@ -461,6 +461,42 @@ const BASE_TOOLS = [
           },
           description:
             "Optional filter to limit candidate generation to specific entity types.",
+        },
+        bootstrapContext: {
+          type: "object",
+          description:
+            "Optional declared bootstrap context supplied by the agent to ground the read-only synthesis output.",
+          properties: {
+            projectSummary: {
+              type: "string",
+              description:
+                "Optional short summary of the project or bootstrap goal.",
+            },
+            sourceOfTruthPaths: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional repo-relative paths that should be treated as declared sources of truth.",
+            },
+            sourceOfTruthNotes: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional notes about how to interpret the declared sources of truth.",
+            },
+            priorityRoots: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional repo roots the bootstrap flow should prioritize when authoring entities.",
+            },
+            verificationAnchors: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional verification commands, documents, or checkpoints to reference in the output.",
+            },
+          },
         },
       },
     },

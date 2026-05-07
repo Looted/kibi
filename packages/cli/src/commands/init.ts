@@ -24,6 +24,7 @@ import {
   copySchemaFiles,
   createConfigFile,
   createKbDirectoryStructure,
+  ensureSymbolsManifestFile,
   installGitHooks,
   updateGitIgnore,
 } from "./init-helpers.js";
@@ -79,6 +80,8 @@ export async function initCommand(
     } else {
       console.log("✓ .kb/ directory already exists, skipping creation");
     }
+
+    ensureSymbolsManifestFile(process.cwd());
 
     if (options.hooks) {
       const gitDir = path.join(process.cwd(), ".git");

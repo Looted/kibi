@@ -8,14 +8,14 @@ The public MCP surface is intentionally curated. Agents can call exact lookup, d
 
 ### `kb_autopilot_generate`
 
-Discover existing repository entities and bootstrap the KB via read-only candidate generation. Prefer this for day-0 activation.
+Discover existing repository entities and bootstrap the KB via read-only candidate synthesis. Use this as the backend for the interactive `/init-kibi` onboarding workflow.
 
 **Parameters:**
 - `limit` (optional): Max results per entity type
 - `include` (optional): Filter by file pattern
 
 **Returns:**
-Grouped candidate entities ready for review. Candidates must be explicitly applied via `kb_upsert` after validation.
+Grouped candidate entities synthesized from declared context and codebase evidence. Candidates must be explicitly applied via `kb_upsert` after user preview and approval.
 
 ### `kb_briefing_generate`
 
@@ -210,7 +210,7 @@ Validation report with any violations found and suggested fixes.
 
 ### `/init-kibi`
 
-Use this prompt for day-0 KB activation. It guides agents through `kb_autopilot_generate`, review, sequential `kb_upsert`, and validation.
+Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most 4 bounded questions to gather declared context, call `kb_autopilot_generate` for read-only synthesis, present a preview for user approval, and perform sequential `kb_upsert` followed by `kb_check`.
 
 ### `/brief-kibi`
 
@@ -226,7 +226,7 @@ Use this prompt at task start when you need a briefing grounded in current KB ev
 
 ## Recommended Agent Workflow
 
-1. **Day-0 Activation**: Use `kb_autopilot_generate` to discover entities and bootstrap the KB. Review candidates before applying.
+1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
 2. **Start-task Briefing**: Use `kb_briefing_generate` or `/brief-kibi` when you need a citation-backed briefing before risky work.
 3. **Gather Context**: Use `kb_search` for discovery and `kb_query` for exact follow-up.
 4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.

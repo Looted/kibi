@@ -8,11 +8,13 @@ import type { BriefingRuntimeResult } from "../src/briefing-runtime";
 import type { KibiConfig } from "../src/config";
 import { GuidanceCache } from "../src/guidance-cache";
 import type { CacheKey } from "../src/guidance-cache";
+import type { InitKibiCommandCapability } from "../src/init-kibi-capability";
 import {
+  type PromptContext,
   SENTINEL,
+  buildAutoBriefingGuidance,
   buildPrompt,
   injectPrompt,
-  type PromptContext,
 } from "../src/prompt";
 
 const baseConfig: KibiConfig = {
@@ -45,6 +47,32 @@ const baseConfig: KibiConfig = {
   logLevel: "info",
 };
 
+const supportedInitKibiCapability: InitKibiCommandCapability = {
+  supported: true,
+  pluginVersion: "test-supported",
+};
+
+const unsupportedInitKibiCapability: InitKibiCommandCapability = {
+  supported: false,
+  reason: "native command injection unsupported in this host",
+};
+
+function buildPromptWithCapability(
+  capability: InitKibiCommandCapability,
+  context?: PromptContext,
+): string {
+  return buildPrompt(context, capability);
+}
+
+function injectPromptWithCapability(
+  current: string,
+  config: KibiConfig,
+  context: PromptContext | undefined,
+  capability: InitKibiCommandCapability,
+): string {
+  return injectPrompt(current, config, context, capability);
+}
+
 function makeAutoBriefResult(
   overrides: Partial<BriefingRuntimeResult> = {},
 ): BriefingRuntimeResult {
@@ -57,7 +85,8 @@ function makeAutoBriefResult(
     tldr: overrides.tldr ?? "Auto summary",
     citations: overrides.citations ?? [],
     showManualCue:
-      overrides.showManualCue ?? !(state === "ready" && promptBlock.trim() !== ""),
+      overrides.showManualCue ??
+      !(state === "ready" && promptBlock.trim() !== ""),
     toastMessage: "Kibi brief ready — summary added to guidance.",
     ...overrides,
   };
@@ -98,7 +127,10 @@ describe("prompt", () => {
     assert.ok(result.includes("kb_upsert"), "Should mention kb_upsert");
     assert.ok(result.includes("kb_delete"), "Should mention kb_delete");
     assert.ok(result.includes("kb_check"), "Should mention kb_check");
-    assert.ok(result.includes("kb_autopilot_generate"), "Should mention kb_autopilot_generate");
+    assert.ok(
+      result.includes("kb_autopilot_generate"),
+      "Should mention kb_autopilot_generate",
+    );
 
     // Should NOT mention non-public tools
     assert.ok(
@@ -138,20 +170,62 @@ describe("prompt", () => {
     );
   });
 
-  test("guidance mentions /init-kibi bootstrap command", () => {
-    const result = injectPrompt("", baseConfig);
+  test("guidance canonicalizes /init-kibi when native injection is supported", () => {
+    const result = buildPromptWithCapability(supportedInitKibiCapability);
 
     assert.ok(
       result.includes("/init-kibi"),
       "Should mention /init-kibi command",
     );
     assert.ok(
+      result.includes("canonical short alias"),
+      "Should describe /init-kibi as the canonical short alias",
+    );
+    assert.ok(
+      result.includes("/kibi:init-kibi:mcp"),
+      "Should retain the namespaced MCP fallback reference",
+    );
+    assert.ok(
+      result.indexOf("/init-kibi") < result.indexOf("/kibi:init-kibi:mcp"),
+      "Should prefer /init-kibi ahead of the namespaced fallback",
+    );
+    assert.ok(
       result.includes("kb_autopilot_generate"),
       "Should mention kb_autopilot_generate for bootstrap",
     );
+  });
+
+  test("guidance does not claim /init-kibi exists unconditionally", () => {
+    const result = buildPromptWithCapability(supportedInitKibiCapability);
+
     assert.ok(
-      result.includes("bootstrap") || result.includes("retroactive"),
-      "Should mention bootstrap or retroactive",
+      result.includes("Kibi OpenCode plugin is active"),
+      "Should condition /init-kibi on plugin activation",
+    );
+    assert.ok(
+      !result.includes("Bootstrap existing repos: use `/init-kibi`"),
+      "Should not use unconditional /init-kibi wording",
+    );
+  });
+
+  test("guidance mentions /kibi:init-kibi:mcp as fallback when native injection is unsupported", () => {
+    const result = buildPromptWithCapability(unsupportedInitKibiCapability);
+
+    assert.ok(
+      result.includes("/kibi:init-kibi:mcp"),
+      "Should mention the namespaced MCP fallback",
+    );
+    assert.ok(
+      result.includes("fail closed"),
+      "Should explain the unsupported-host fail-closed behavior",
+    );
+    assert.ok(
+      result.includes("does not support native `/init-kibi` injection"),
+      "Should explain why /init-kibi is unavailable",
+    );
+    assert.ok(
+      !result.includes("`/init-kibi` is the canonical short alias"),
+      "Should not claim the native alias is canonical when unsupported",
     );
   });
 
@@ -179,7 +253,7 @@ describe("prompt", () => {
   });
 
   test("bootstrap guidance must NOT contain kibi init or kibi doctor", () => {
-    const result = injectPrompt("hello", baseConfig, {
+    const result = injectPromptWithCapability("hello", baseConfig, {
       recentEdits: [],
       workspaceHealth: {
         needsBootstrap: true,
@@ -187,7 +261,7 @@ describe("prompt", () => {
         missingDocDirs: [],
         hasKbEvidence: false,
       },
-    });
+    }, supportedInitKibiCapability);
 
     assert.ok(
       result.includes("Bootstrap required"),
@@ -303,7 +377,7 @@ describe("prompt", () => {
   });
 
   test("contextual guidance for bootstrap required includes sentinel", () => {
-    const result = injectPrompt("hello", baseConfig, {
+    const result = injectPromptWithCapability("hello", baseConfig, {
       recentEdits: [],
       workspaceHealth: {
         needsBootstrap: true,
@@ -311,7 +385,7 @@ describe("prompt", () => {
         missingDocDirs: [],
         hasKbEvidence: false,
       },
-    });
+    }, supportedInitKibiCapability);
     assert.ok(
       result.includes(SENTINEL),
       "Contextual guidance must include sentinel",
@@ -575,10 +649,7 @@ describe("prompt", () => {
       result.includes("Durable knowledge detected: FACT"),
       "Should include FACT-specific guidance",
     );
-    assert.ok(
-      result.includes("domain fact"),
-      "Should mention domain fact",
-    );
+    assert.ok(result.includes("domain fact"), "Should mention domain fact");
     assert.ok(
       result.includes("documentation/facts/FACT-xxx.md"),
       "Should suggest creating FACT entity",
@@ -598,7 +669,8 @@ describe("prompt", () => {
       },
     });
     assert.ok(
-      result.includes("strict fact lane") || result.includes("strict domain fact"),
+      result.includes("strict fact lane") ||
+        result.includes("strict domain fact"),
       "FACT guidance should mention strict fact lane or strict domain fact",
     );
   });
@@ -727,7 +799,7 @@ describe("prompt", () => {
   test("includes bootstrap guidance when relocated config points at a missing target", () => {
     // When relocated-path config exists but target is missing, needsBootstrap
     // is true and the prompt should nudge toward /init-kibi (MCP only).
-    const result = injectPrompt("hello", baseConfig, {
+    const result = injectPromptWithCapability("hello", baseConfig, {
       recentEdits: [],
       workspaceHealth: {
         needsBootstrap: true,
@@ -735,7 +807,7 @@ describe("prompt", () => {
         missingDocDirs: [],
         hasKbEvidence: false,
       },
-    });
+    }, supportedInitKibiCapability);
 
     assert.ok(result.includes(SENTINEL), "Must include sentinel");
     assert.ok(
@@ -760,7 +832,8 @@ describe("prompt", () => {
 // implements REQ-opencode-smart-enforcement-v1
 describe("completion reminder policy", () => {
   const REMINDER_TEXT = "Run `kb_check` before completing this task.";
-  const BRIEF_KIBI_CUE = "Authoritative risky edit: run `/brief-kibi` before acting.";
+  const BRIEF_KIBI_CUE =
+    "Authoritative risky edit: run `/brief-kibi` before acting.";
 
   test("reminder appears for behavior_candidate when completionReminder=true", () => {
     const p = buildPrompt({
@@ -1093,9 +1166,7 @@ describe("auto-brief prompt rendering", () => {
     );
   }
 
-  function buildRiskyPrompt(
-    overrides: Partial<PromptContext> = {},
-  ): string {
+  function buildRiskyPrompt(overrides: Partial<PromptContext> = {}): string {
     const context: PromptContext = {
       recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
       posture: "root_active",
@@ -1109,7 +1180,8 @@ describe("auto-brief prompt rendering", () => {
     const p = buildRiskyPrompt({
       autoBriefResult: makeAutoBriefResult({
         state: "ready",
-        promptBlock: "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
+        promptBlock:
+          "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
       }),
     });
 
@@ -1161,6 +1233,7 @@ describe("auto-brief prompt rendering", () => {
 
     const p = buildRiskyPrompt({
       workspaceRoot: tmpDir,
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
       autoBriefResult: makeAutoBriefResult({
         state: "ready",
         promptBlock: "- REQ-001: Session timeout",
@@ -1180,7 +1253,8 @@ describe("auto-brief prompt rendering", () => {
       workspaceRoot: tmpDir,
       autoBriefResult: makeAutoBriefResult({
         state: "tldr_fallback",
-        promptBlock: "- Session rules summary\n- Full details: run /brief-kibi.",
+        promptBlock:
+          "- What changed: Session rules summary\n- Why it matters: This update changes how current project knowledge should be interpreted.",
         toastMessage:
           "Kibi brief summary added — use /brief-kibi for full details.",
       }),
@@ -1191,7 +1265,7 @@ describe("auto-brief prompt rendering", () => {
       "Should render the fallback auto-brief header",
     );
     assert.ok(
-      p.includes("- Session rules summary"),
+      p.includes("- What changed: Session rules summary"),
       "Should render the TLDR fallback content",
     );
     assert.ok(
@@ -1211,7 +1285,8 @@ describe("auto-brief prompt rendering", () => {
         state: "no_briefing",
         promptBlock: "",
         tldr: "",
-        toastMessage: "Kibi brief unavailable — keeping /brief-kibi manual path.",
+        toastMessage:
+          "Kibi brief unavailable — keeping /brief-kibi manual path.",
       }),
     });
 
@@ -1220,6 +1295,20 @@ describe("auto-brief prompt rendering", () => {
       baseline,
       "no_briefing should behave identically to the pre-existing risky guidance path",
     );
+  });
+
+  test("auto-brief guidance does not surface idle-brief markers", () => {
+    const result = buildAutoBriefingGuidance(
+      {
+        schemaVersion: "1.0",
+        briefId: "brief-123",
+        type: "success",
+        promptBlock: "- generated while idle",
+      } as unknown as Parameters<typeof buildAutoBriefingGuidance>[0],
+      false,
+    );
+
+    assert.equal(result, null);
   });
 
   test("ready-state auto-brief still respects the 5-bullet prompt budget without a reminder", () => {
@@ -1286,7 +1375,10 @@ describe("auto-brief prompt rendering", () => {
       5,
       "Imported bullets plus reminder should stay within the 5-bullet cap",
     );
-    assert.ok(!p.includes("- REQ-005: Five"), "Fifth imported bullet should be trimmed");
+    assert.ok(
+      !p.includes("- REQ-005: Five"),
+      "Fifth imported bullet should be trimmed",
+    );
   });
 
   test("ready-state auto-brief stays inside a single contextual block", () => {
@@ -1294,12 +1386,19 @@ describe("auto-brief prompt rendering", () => {
       completionReminder: true,
       autoBriefResult: makeAutoBriefResult({
         state: "ready",
-        promptBlock: "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
+        promptBlock:
+          "- REQ-001: Session timeout\n- REQ-002: Session invalidation",
       }),
     });
 
-    const blocks = p.split(SENTINEL).filter((segment) => segment.trim().length > 0);
-    assert.equal(blocks.length, 1, "Auto-brief rendering must stay within one contextual block");
+    const blocks = p
+      .split(SENTINEL)
+      .filter((segment) => segment.trim().length > 0);
+    assert.equal(
+      blocks.length,
+      1,
+      "Auto-brief rendering must stay within one contextual block",
+    );
   });
 });
 
@@ -1538,12 +1637,99 @@ describe("source-linked micro-brief contract", () => {
     );
   });
 
+  test("source-linked brief prefers explicit focusEdit over the most recent edit", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: [
+          "REQ-opencode-smart-enforcement-v1",
+          "REQ-opencode-kibi-plugin-v1",
+        ],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+          { type: "implements", target: "REQ-opencode-kibi-plugin-v1" },
+        ],
+      },
+      {
+        id: "SYM-classifyRisk",
+        sourceFile: "packages/opencode/src/risk-classifier.ts",
+        links: ["REQ-first", "REQ-second"],
+        relationships: [
+          { type: "implements", target: "REQ-first" },
+          { type: "implements", target: "REQ-second" },
+        ],
+      },
+    ]);
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "packages/opencode/src/risk-classifier.ts", kind: "code" },
+        { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      ],
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      workspaceRoot: tmpDir,
+    });
+
+    assert.ok(
+      p.includes("REQ-opencode-smart-enforcement-v1"),
+      "Should use the explicit focusEdit for source-linked hints",
+    );
+    assert.ok(
+      !p.includes("REQ-first") && !p.includes("REQ-second"),
+      "Should ignore non-focused/reverted file links",
+    );
+  });
+
+  test("cache key derivation prefers focusEdit kind when present", () => {
+    writeSymbolsYaml([
+      {
+        id: "SYM-buildPrompt",
+        sourceFile: "packages/opencode/src/prompt.ts",
+        links: ["REQ-opencode-smart-enforcement-v1"],
+      },
+    ]);
+
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: tmpDir,
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [
+        { path: "documentation/requirements/REQ-001.md", kind: "requirement" },
+      ],
+      focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: tmpDir,
+      branch: "main",
+    });
+
+    assert.ok(
+      !p.includes("- Existing Kibi links:"),
+      "Cache hit should use focusEdit-derived key and suppress guidance",
+    );
+    assert.equal(p.trim(), SENTINEL, "Cache hit should return sentinel only");
+  });
+
   test("completion reminder still works alongside source-linked brief", () => {
     writeSymbolsYaml([
       {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -1572,6 +1758,9 @@ describe("source-linked micro-brief contract", () => {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -1591,10 +1780,7 @@ describe("source-linked micro-brief contract", () => {
       p.includes("- Existing Kibi links:"),
       "Should include source-linked brief",
     );
-    assert.ok(
-      p.includes(REMINDER_TEXT),
-      "Should include completion reminder",
-    );
+    assert.ok(p.includes(REMINDER_TEXT), "Should include completion reminder");
 
     const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
     assert.equal(blocks.length, 1, "Should keep a single contextual block");
@@ -1617,6 +1803,9 @@ describe("source-linked micro-brief contract", () => {
         id: "SYM-buildPrompt",
         sourceFile: "packages/opencode/src/prompt.ts",
         links: ["REQ-opencode-smart-enforcement-v1"],
+        relationships: [
+          { type: "implements", target: "REQ-opencode-smart-enforcement-v1" },
+        ],
       },
     ]);
 
@@ -1632,7 +1821,10 @@ describe("source-linked micro-brief contract", () => {
       .split("\n")
       .filter((line) => line.trimStart().startsWith("-"));
 
-    assert.ok(p.includes("- Existing Kibi links:"), "Should include source-linked brief");
+    assert.ok(
+      p.includes("- Existing Kibi links:"),
+      "Should include source-linked brief",
+    );
     assert.ok(p.includes(briefKibiCue), "Should include /brief-kibi cue");
     assert.ok(p.includes(reminderText), "Should include completion reminder");
     assert.equal(
@@ -1676,5 +1868,384 @@ describe("source-linked micro-brief contract", () => {
       "Cache hit should suppress source-linked brief",
     );
     assert.equal(p.trim(), SENTINEL, "Cache hit should return sentinel only");
+  });
+});
+
+// implements REQ-opencode-file-context-guidance-v1
+describe("file-operation reminder integration", () => {
+  const LIFECYCLE_NEW_FILE =
+    "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.";
+  const LIFECYCLE_DELETED_NO_IDS =
+    "- Deleted file had no linked Kibi entities. Update Kibi if this removal changes documented behavior or traceability.";
+  const E2E_REMINDER =
+    "- E2e coverage signal detected for this file. Verify related e2e tests remain accurate.";
+
+  test("lifecycle reminder folds into existing semantic block", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(p.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      p.includes("Code changes detected"),
+      "Should include semantic block header",
+    );
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+
+    // Single-block policy
+    const blocks = p.split(SENTINEL).filter((s) => s.trim().length > 0);
+    assert.equal(blocks.length, 1, "Should stay within one contextual block");
+  });
+
+  test("lifecycle and e2e reminders fold into existing semantic block", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(p.includes("E2e coverage signal"), "Should include e2e reminder");
+  });
+
+  test("file-operation-only block when no semantic block exists", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/deleted.ts",
+        lifecycleReminder: LIFECYCLE_DELETED_NO_IDS,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(p.includes(SENTINEL), "Must include sentinel");
+    assert.ok(
+      p.includes("File operation detected"),
+      "Should include file-operation header",
+    );
+    assert.ok(
+      p.includes("Deleted file had no linked Kibi entities"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(
+      !p.includes("Code changes detected"),
+      "Should NOT include code guidance",
+    );
+  });
+
+  test("file-operation-only block with both reminders", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    assert.ok(
+      p.includes("File operation detected"),
+      "Should include file-operation header",
+    );
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+    assert.ok(p.includes("E2e coverage signal"), "Should include e2e reminder");
+  });
+
+  test("completion reminder preserved alongside file-operation reminders", () => {
+    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(p.includes(REMINDER_TEXT), "Should include completion reminder");
+    assert.ok(
+      p.includes("New file detected"),
+      "Should include lifecycle reminder",
+    );
+  });
+
+  test("file-operation reminders bypass cache suppression", () => {
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: "/ws",
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    cache.recordSatisfied(key, "guidance");
+
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+
+    assert.ok(
+      p.includes("New file detected"),
+      "File-operation reminder should bypass cache suppression",
+    );
+    assert.ok(
+      !p.includes("Code changes detected"),
+      "Cache should still suppress semantic guidance",
+    );
+  });
+
+  test("file-operation-only block bypasses cache suppression with no risk class", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(
+      p.includes("File operation detected"),
+      "File-operation-only block should appear without risk class",
+    );
+  });
+
+  test("null lifecycleReminder and e2eReminder produces no file-operation block", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: null,
+        e2eReminder: null,
+      },
+    });
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "Should produce sentinel only when both reminders are null",
+    );
+  });
+
+  test("file-operation-only block stays within budget", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("semantic block with file-operation reminders stays within budget", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      completionReminder: true,
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: E2E_REMINDER,
+      },
+    });
+    const words = p.split(/\s+/).filter(Boolean).length;
+    const bullets = p
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    assert.ok(words <= 120, `Expected <= 120 words, got ${words}`);
+    assert.ok(
+      bullets.length <= 5,
+      `Expected <= 5 bullets, got ${bullets.length}`,
+    );
+  });
+
+  test("file-operation reminders do NOT appear for vendored_only posture", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "vendored_only",
+      fileOperationReminder: {
+        path: "src/foo.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.equal(
+      p.trim(),
+      SENTINEL,
+      "vendored_only should suppress all guidance including file-operation reminders",
+    );
+  });
+
+  test("lifecycle reminder deduplicates when source-linked brief shows same IDs", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-fo-dedup-"));
+    try {
+      const docDir = path.join(tmpDir, "documentation");
+      fs.mkdirSync(docDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        [
+          "symbols:",
+          "  - id: SYM-buildPrompt",
+          "    sourceFile: packages/opencode/src/prompt.ts",
+          "    links:",
+          "      - REQ-opencode-smart-enforcement-v1",
+          "    relationships:",
+          "      - type: implements",
+          "        target: REQ-opencode-smart-enforcement-v1",
+        ].join("\n"),
+      );
+
+      const deletedWithIds =
+        "- Deleted file had linked Kibi entities: REQ-opencode-smart-enforcement-v1. Update Kibi to keep traceability accurate.";
+
+      const p = buildPrompt({
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        workspaceRoot: tmpDir,
+        fileOperationReminder: {
+          path: "packages/opencode/src/prompt.ts",
+          lifecycleReminder: deletedWithIds,
+          e2eReminder: null,
+        },
+      });
+
+      // Source-linked brief should be present
+      assert.ok(
+        p.includes("- Existing Kibi links:"),
+        "Should include source-linked brief",
+      );
+      assert.ok(
+        p.includes("REQ-opencode-smart-enforcement-v1"),
+        "Should reference the requirement ID",
+      );
+      // Lifecycle reminder should be deduplicated (NOT appear since IDs overlap)
+      assert.ok(
+        !p.includes("Deleted file had linked Kibi entities"),
+        "Should NOT duplicate lifecycle reminder when IDs overlap with source-linked brief",
+      );
+    } finally {
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+    }
+  });
+
+  test("lifecycle reminder without overlapping IDs is NOT deduplicated", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-fo-nodedup-"));
+    try {
+      const docDir = path.join(tmpDir, "documentation");
+      fs.mkdirSync(docDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        [
+          "symbols:",
+          "  - id: SYM-buildPrompt",
+          "    sourceFile: packages/opencode/src/prompt.ts",
+          "    links:",
+          "      - REQ-opencode-smart-enforcement-v1",
+          "    relationships:",
+          "      - type: implements",
+          "        target: REQ-opencode-smart-enforcement-v1",
+        ].join("\n"),
+      );
+
+      // Lifecycle reminder references a different ID than the source-linked brief
+      const deletedWithDifferentIds =
+        "- Deleted file had linked Kibi entities: REQ-other-requirement. Update Kibi to keep traceability accurate.";
+
+      const p = buildPrompt({
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        workspaceRoot: tmpDir,
+        fileOperationReminder: {
+          path: "packages/opencode/src/prompt.ts",
+          lifecycleReminder: deletedWithDifferentIds,
+          e2eReminder: null,
+        },
+      });
+
+      // Both should appear since IDs don't overlap
+      assert.ok(
+        p.includes("- Existing Kibi links:"),
+        "Should include source-linked brief",
+      );
+      assert.ok(
+        p.includes(
+          "Deleted file had linked Kibi entities: REQ-other-requirement",
+        ),
+        "Should include lifecycle reminder with non-overlapping IDs",
+      );
+    } finally {
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+    }
+  });
+
+  test("file-operation reminders do not trigger /brief-kibi cue without semantic risk", () => {
+    const BRIEF_KIBI_CUE =
+      "Authoritative risky edit: run `/brief-kibi` before acting.";
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      fileOperationReminder: {
+        path: "src/new.ts",
+        lifecycleReminder: LIFECYCLE_NEW_FILE,
+        e2eReminder: null,
+      },
+    });
+    assert.ok(
+      !p.includes(BRIEF_KIBI_CUE),
+      "File-operation reminders should NOT trigger /brief-kibi cue without semantic risk",
+    );
   });
 });

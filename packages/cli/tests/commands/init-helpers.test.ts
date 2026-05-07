@@ -34,6 +34,7 @@ import {
   copySchemaFiles,
   createConfigFile,
   createKbDirectoryStructure,
+  ensureSymbolsManifestFile,
   getCurrentBranch,
   installGitHooks,
   installHook,
@@ -112,12 +113,14 @@ describe("init-helpers", () => {
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 
-  test("updateGitIgnore adds .kb/", () => {
+  test("updateGitIgnore adds .kb/ and .kb/briefs/", () => {
     updateGitIgnore(tmpDir);
 
     const gitignorePath = path.join(tmpDir, ".gitignore");
     expect(existsSync(gitignorePath)).toBe(true);
-    expect(readFileSync(gitignorePath, "utf8")).toContain(".kb/");
+    const content = readFileSync(gitignorePath, "utf8");
+    expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
   });
 
   test("updateGitIgnore appends to existing .gitignore", () => {
@@ -129,6 +132,117 @@ describe("init-helpers", () => {
     const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain("node_modules/");
     expect(content).toContain(".kb/");
+    expect(content).toContain(".kb/briefs/");
+  });
+
+  test("updateGitIgnore does not duplicate existing .kb entries", () => {
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    writeFileSync(gitignorePath, ".kb/\n.kb/briefs/\n");
+
+    updateGitIgnore(tmpDir);
+
+    const content = readFileSync(gitignorePath, "utf8");
+    const kbMatches = content.match(/^\.kb\/$/gm);
+    const briefsMatches = content.match(/^\.kb\/briefs\/$/gm);
+
+    expect(kbMatches?.length ?? 0).toBe(1);
+    expect(briefsMatches?.length ?? 0).toBe(1);
+  });
+
+  test("ensureSymbolsManifestFile creates the default symbols manifest", () => {
+    ensureSymbolsManifestFile(tmpDir);
+
+    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    expect(existsSync(manifestPath)).toBe(true);
+    const content = readFileSync(manifestPath, "utf8");
+    expect(content).toContain("# symbols.yaml");
+    expect(content).toContain("symbols: []");
+  });
+
+  test("ensureSymbolsManifestFile preserves an existing manifest", () => {
+    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
+    writeFileSync(manifestPath, "symbols:\n  - id: SYM-existing\n");
+
+    ensureSymbolsManifestFile(tmpDir);
+
+    expect(readFileSync(manifestPath, "utf8")).toBe(
+      "symbols:\n  - id: SYM-existing\n",
+    );
+  });
+
+  test("copySchemaFiles includes sourceFile in copied schema", async () => {
+    const sourceDir = path.join(tmpDir, "source");
+    mkdirSync(sourceDir);
+    // Create a minimal entities.pl with sourceFile
+    writeFileSync(
+      path.join(sourceDir, "entities.pl"),
+      "entity_property(_, sourceFile, uri).\n",
+    );
+
+    const kbDir = path.join(tmpDir, ".kb");
+    mkdirSync(kbDir);
+    mkdirSync(path.join(kbDir, "schema"));
+
+    await copySchemaFiles(kbDir, sourceDir);
+
+    const copied = readFileSync(path.join(kbDir, "schema/entities.pl"), "utf8");
+    expect(copied).toContain("sourceFile");
+  });
+
+  test("copySchemaFiles includes executable_for in copied schema", async () => {
+    const sourceDir = path.join(tmpDir, "source");
+    mkdirSync(sourceDir);
+    // Create a minimal relationships.pl with executable_for
+    writeFileSync(
+      path.join(sourceDir, "relationships.pl"),
+      "relationship_type(executable_for).\nvalid_relationship(executable_for, symbol, test).\n",
+    );
+
+    const kbDir = path.join(tmpDir, ".kb");
+    mkdirSync(kbDir);
+    mkdirSync(path.join(kbDir, "schema"));
+
+    await copySchemaFiles(kbDir, sourceDir);
+
+    const copied = readFileSync(
+      path.join(kbDir, "schema/relationships.pl"),
+      "utf8",
+    );
+    expect(copied).toContain("executable_for");
+  });
+
+  test("CLI schema files contain required entries (sourceFile, executable_for)", () => {
+    // These files are copied during kibi init and kibi sync
+    const cliEntitiesPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "schema",
+      "entities.pl",
+    );
+    const cliRelationshipsPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "schema",
+      "relationships.pl",
+    );
+
+    const entitiesContent = readFileSync(cliEntitiesPath, "utf8");
+    const relationshipsContent = readFileSync(cliRelationshipsPath, "utf8");
+
+    // entities.pl must contain sourceFile property
+    expect(entitiesContent).toContain("sourceFile");
+
+    // relationships.pl must contain executable_for relationship type
+    expect(relationshipsContent).toContain("executable_for");
+
+    // relationships.pl must have verified_by from scenario to test
+    expect(relationshipsContent).toContain("verified_by, scenario, test");
+
+    // relationships.pl must have validates from test to scenario
+    expect(relationshipsContent).toContain("validates, test, scenario");
   });
 
   test("copySchemaFiles copies .pl files", async () => {
@@ -228,5 +342,12 @@ describe("init-helpers", () => {
       "utf8",
     );
     expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
+
+    const preCommitContent = readFileSync(
+      path.join(hooksDir, "pre-commit"),
+      "utf8",
+    );
+    expect(preCommitContent).toContain("documentation/symbols.yaml");
+    expect(preCommitContent).toContain("git diff --quiet --");
   });
 });

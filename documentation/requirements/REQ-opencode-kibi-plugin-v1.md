@@ -26,6 +26,8 @@ links:
     target: ADR-018
   - type: relates_to
     target: REQ-opencode-smart-enforcement-v1
+#BT|  - type: relates_to
+#BT|    target: REQ-opencode-file-context-guidance-v1
 ---
 
 The OpenCode Kibi Plugin v1 must:
@@ -35,8 +37,9 @@ The OpenCode Kibi Plugin v1 must:
 3. Surface structured logs and toasts for sync status and errors, but never block the main OpenCode workflow on sync failures.
 4. Be configurable via OpenCode or plugin settings for debounce interval and sync behavior.
 5. Provide dynamic, contextual prompt guidance based on recent edits and workspace state, including targeted nudges for:
-   - Code traceability (`implements REQ-xxx`)
-   - Requirement completeness (separate SCEN/TEST)
+   #KW|   - Code traceability (`implements REQ-xxx`)
+#KW|   - File lifecycle context (create, edit, delete guidance)
+#MJ|   - Requirement completeness (separate SCEN/TEST)
    - FACT-first domain knowledge routing
    - ADR chain awareness
 6. Emit loud warnings when agents attempt manual edits under `.kb/**`, directing them toward public MCP tools (`kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`, `kb_upsert`, `kb_delete`, `kb_check`).

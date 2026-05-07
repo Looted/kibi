@@ -416,7 +416,8 @@ property_value_shape_error(Props, "Property value fact has multiple value fields
     length(Fields, Count),
     Count > 1.
 property_value_shape_error(Props, "Property value fact value_type does not match value field") :-
-    memberchk(value_type=VT, Props),
+    memberchk(value_type=RawVT, Props),
+    normalize_term_atom(RawVT, VT),
     \+ value_type_matches_field(VT, Props).
 
 % is_value_field(+Field)

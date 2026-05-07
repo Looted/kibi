@@ -13,15 +13,17 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import kibiOpencodePlugin from "../src/index";
 import * as briefingRuntimeModule from "../src/briefing-runtime";
-import * as logger from "../src/logger";
-import * as promptModule from "../src/prompt";
-import * as toastModule from "../src/toast";
-import type { PluginInput } from "../src/index";
-import { runPluginStartup } from "../src/plugin-startup";
-import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import type { BriefingRuntimeResult } from "../src/briefing-runtime";
+import { resolveAuditLogPath } from "../src/idle-brief-paths";
+import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
+import kibiOpencodePlugin from "../src/index";
+import type { PluginInput } from "../src/index";
+import * as logger from "../src/logger";
+import { runPluginStartup } from "../src/plugin-startup";
+import * as promptModule from "../src/prompt";
+import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
+import * as toastModule from "../src/toast";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -32,16 +34,19 @@ describe.serial("index kibiOpencodePlugin", () => {
     directory: tmpDir,
     worktree,
     project: undefined,
-    serverUrl: undefined,
     $: undefined,
     client: undefined,
     ...overrides,
   });
 
   const startupNotifyGlobals = globalThis as typeof globalThis & {
-    __kibi_test_schedule_startup_notify?: (callback: () => void, delayMs: number) => void;
+    __kibi_test_schedule_startup_notify?: (
+      callback: () => void,
+      delayMs: number,
+    ) => void;
   };
   beforeEach(() => {
+    process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS = "0";
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-index-test-"));
     worktree = tmpDir;
     resetSessionTracker();
@@ -52,6 +57,11 @@ describe.serial("index kibiOpencodePlugin", () => {
   });
 
   afterEach(() => {
+    delete process.env.KIBI_BRANCH;
+    delete process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS;
+    try {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
@@ -179,7 +189,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -229,7 +246,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: client as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -261,6 +277,82 @@ describe.serial("index kibiOpencodePlugin", () => {
         .__kibi_test_scheduler_factory;
     });
 
+    it("bound showToast capability", async () => {
+      const toastCalls: Array<Record<string, unknown>> = [];
+      const client = {
+        tui: {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
+            toastCalls.push(payload);
+          },
+        },
+        app: {
+          log: async () => {},
+        },
+      };
+
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({}, null, 2),
+      );
+
+      const docDirs = [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ];
+      for (const dir of docDirs) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
+
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = () => ({
+        scheduleSync: () => {},
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {},
+        dispose: () => {},
+      });
+
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: client as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
+        body: {
+          variant: "success",
+          title: "Kibi OpenCode",
+          message: "kibi-opencode started",
+          duration: 4000,
+        },
+      });
+
+      delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
+        .__kibi_test_scheduler_factory;
+    });
+
     it("does not emit startup confirmation when disabled", async () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
@@ -283,7 +375,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: client as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -302,7 +393,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -360,7 +458,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -440,7 +537,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -462,7 +558,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const logCalls: Array<Record<string, unknown>> = [];
       const client = {
         tui: {
-          showToast: async (payload: Record<string, unknown>) => {
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
             toastCalls.push(payload);
           },
         },
@@ -492,7 +595,6 @@ describe.serial("index kibiOpencodePlugin", () => {
           worktree: worktree,
           client: client as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
       } finally {
@@ -555,7 +657,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -620,7 +721,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -667,7 +767,6 @@ describe.serial("index kibiOpencodePlugin", () => {
       worktree: worktree,
       client: null as any,
       project: null as any,
-      serverUrl: null as any,
       $: {} as any,
     });
 
@@ -709,7 +808,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -749,7 +847,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -780,7 +877,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -811,7 +907,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -841,7 +936,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -880,7 +974,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -924,7 +1017,6 @@ describe.serial("index kibiOpencodePlugin", () => {
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -986,7 +1078,6 @@ Then action occurs
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1045,7 +1136,6 @@ Then the response is returned
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1103,7 +1193,6 @@ We assert that this works correctly.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1161,7 +1250,6 @@ title: Test
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1219,7 +1307,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1262,7 +1349,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1310,7 +1396,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1344,7 +1429,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1386,7 +1470,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1420,7 +1503,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1451,7 +1533,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1489,7 +1570,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1520,7 +1600,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1557,7 +1636,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1615,7 +1693,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1682,7 +1759,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1749,7 +1825,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1816,7 +1891,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1883,7 +1957,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -1950,7 +2023,6 @@ with normal content.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2029,7 +2101,6 @@ This is a must-priority requirement.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2106,7 +2177,6 @@ This is a should-priority requirement.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2182,7 +2252,6 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2203,7 +2272,7 @@ This requirement has no priority field.
   });
 
   describe("event hook edge cases", () => {
-    it("ignores non-file.edited events", async () => {
+    it("handles file.created events", async () => {
       const opencodeDir = path.join(tmpDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
       fs.writeFileSync(
@@ -2211,9 +2280,7 @@ This requirement has no priority field.
         JSON.stringify(
           {
             enabled: true,
-            sync: {
-              enabled: true,
-            },
+            sync: { enabled: true },
           },
           null,
           2,
@@ -2225,22 +2292,88 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(hooks.event);
-
       const eventHook = hooks.event as any;
-      const eventTypes = ["file.created", "file.deleted", "other.event"];
-      for (const eventType of eventTypes) {
-        const mockEvent = {
-          event: {
-            type: eventType,
+      // file.created should be accepted (not thrown)
+      const mockEvent = {
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-file.ts" },
+        },
+      };
+      await eventHook(mockEvent);
+    });
+
+    it("handles file.deleted events", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
           },
-        };
-        await eventHook(mockEvent);
-      }
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as any;
+      // file.deleted should be accepted (not thrown)
+      const mockEvent = {
+        event: {
+          type: "file.deleted",
+          properties: { file: "src/old-file.ts" },
+        },
+      };
+      await eventHook(mockEvent);
+    });
+
+    it("ignores other.event events", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: true },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: worktree,
+        client: null as any,
+        project: null as any,
+        $: {} as any,
+      });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as any;
+      // other.event should be silently ignored
+      const mockEvent = {
+        event: {
+          type: "other.event",
+        },
+      };
+      await eventHook(mockEvent);
     });
 
     it("handles events without file property", async () => {
@@ -2265,7 +2398,6 @@ This requirement has no priority field.
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2330,7 +2462,6 @@ class User:
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2407,7 +2538,6 @@ import psycopg2
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2483,7 +2613,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2545,7 +2674,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2608,7 +2736,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2696,7 +2823,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2770,7 +2896,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2828,7 +2953,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2861,7 +2985,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2894,7 +3017,6 @@ import datetime
         worktree: worktree,
         client: null as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -2949,7 +3071,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3036,7 +3157,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3123,7 +3243,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -3183,7 +3302,14 @@ import datetime
         prompt: (params: AutoBriefSessionPromptParams) => Promise<unknown>;
       };
       tui: {
-        showToast: (payload: unknown) => Promise<unknown>;
+        showToast: (payload: {
+          body: {
+            variant?: string;
+            title?: string;
+            message: string;
+            duration?: number;
+          };
+        }) => Promise<void>;
       };
     };
 
@@ -3221,19 +3347,31 @@ import datetime
       for (const dir of docDirs) {
         fs.mkdirSync(path.join(workspaceDir, dir), { recursive: true });
       }
-      fs.writeFileSync(path.join(workspaceDir, "documentation", "symbols.yaml"), "[]");
+      fs.writeFileSync(
+        path.join(workspaceDir, "documentation", "symbols.yaml"),
+        "[]",
+      );
     }
 
-    function writePluginConfig(workspaceDir: string, config: Record<string, unknown>): void {
+    function writePluginConfig(
+      workspaceDir: string,
+      config: Record<string, unknown>,
+    ): void {
       const opencodeDir = path.join(workspaceDir, ".opencode");
       fs.mkdirSync(opencodeDir, { recursive: true });
-      fs.writeFileSync(path.join(opencodeDir, "kibi.json"), JSON.stringify(config, null, 2));
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(config, null, 2),
+      );
     }
 
     function installNoopScheduler(workspaceDir: string): void {
       const schedulerFactoryGlobals = globalThis as typeof globalThis & {
         __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
-        __kibi_test_scheduler_factory_by_worktree?: Map<string, (...args: unknown[]) => unknown>;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
       };
       const schedulerFactory = () => ({
         scheduleSync: () => {},
@@ -3242,7 +3380,8 @@ import datetime
         flush: async () => {},
         dispose: () => {},
       });
-      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??= new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
       schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
         workspaceDir,
         schedulerFactory,
@@ -3286,10 +3425,12 @@ import datetime
       };
     }
 
-    function createAutoBriefClient(options: { promptResults?: unknown[] } = {}) {
+    function createAutoBriefClient(
+      options: { promptResults?: unknown[] } = {},
+    ) {
       const createCalls: AutoBriefSessionCreateParams[] = [];
       const promptCalls: AutoBriefSessionPromptParams[] = [];
-      const showToastCalls: unknown[] = [];
+      const toastCalls: unknown[] = [];
       const logCalls: Record<string, unknown>[] = [];
       let promptCallIndex = 0;
 
@@ -3319,9 +3460,15 @@ import datetime
           },
         },
         tui: {
-          showToast: async (payload: unknown) => {
-            showToastCalls.push(payload);
-            return true;
+          showToast: async (payload: {
+            body: {
+              variant?: string;
+              title?: string;
+              message: string;
+              duration?: number;
+            };
+          }) => {
+            toastCalls.push(payload);
           },
         },
       };
@@ -3330,7 +3477,7 @@ import datetime
         client,
         createCalls,
         promptCalls,
-        showToastCalls,
+        toastCalls,
         logCalls,
       };
     }
@@ -3352,9 +3499,505 @@ import datetime
 
     async function loadFreshPlugin() {
       freshPluginCounter += 1;
-      const mod = await import(`../src/index.ts?auto-brief=${freshPluginCounter}`);
+      const mod = await import(
+        `../src/index.ts?auto-brief=${freshPluginCounter}`
+      );
       return mod.default;
     }
+
+    function writeAuditEntries(
+      workspaceDir: string,
+      branch: string,
+      entries: Array<{ timestamp: string; entityId: string }>,
+    ): void {
+      const auditPath = resolveAuditLogPath(workspaceDir, branch);
+      fs.mkdirSync(path.dirname(auditPath), { recursive: true });
+      fs.writeFileSync(
+        auditPath,
+        `${entries
+          .map(
+            ({ timestamp, entityId }) =>
+              `changeset('${timestamp}',upsert,'${entityId}',req-[id='${entityId}']).`,
+          )
+          .join("\n")}\n`,
+        "utf-8",
+      );
+    }
+
+    function appendAuditEntry(
+      workspaceDir: string,
+      branch: string,
+      entry: { timestamp: string; entityId: string },
+    ): void {
+      const auditPath = resolveAuditLogPath(workspaceDir, branch);
+      fs.appendFileSync(
+        auditPath,
+        `changeset('${entry.timestamp}',upsert,'${entry.entityId}',req-[id='${entry.entityId}']).\n`,
+        "utf-8",
+      );
+    }
+
+    it("captures the idle-brief baseline at startup so prior brief backlog is ignored", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      const briefsDir = path.join(tmpDir, ".kb", "briefs");
+      fs.mkdirSync(briefsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(briefsDir, "1000000000_brief.json"),
+        JSON.stringify(
+          {
+            schemaVersion: "1.0",
+            briefId: "prior-brief",
+            type: "success",
+            sessionId: "older-session",
+            branch: "main",
+            createdAt: "2026-04-25T09:00:00Z",
+            unread: false,
+            auditCursor: {
+              lastTimestamp: "2026-04-25T09:00:00+00:00",
+              lastOperation: "upsert",
+              entryCount: 1,
+              fileSize: 100,
+            },
+            summary: {
+              requirementsAdded: 1,
+              relationshipsAdded: 0,
+              entitiesDeleted: 0,
+            },
+            validation: { violations: [], count: 0, diagnostics: [] },
+            briefing: { tldr: "prior", promptBlock: "", citations: [] },
+            contentHash: "prior-hash",
+          },
+          null,
+          2,
+        ),
+        "utf-8",
+      );
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      const { client } = createAutoBriefClient();
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client,
+          sessionId: "session-start",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 42; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-NEW",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const auditDelta = generateSpy.mock.calls[0]?.[2] as {
+        entries: Array<{ entityId: string }>;
+      };
+      assert.deepEqual(
+        auditDelta.entries.map((entry) => entry.entityId),
+        ["REQ-NEW"],
+      );
+    });
+
+    it("runs scheduler flush before idle brief generation", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const schedulerEvents: string[] = [];
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
+      };
+      const schedulerFactory = () => ({
+        scheduleSync: (reason: string) => {
+          schedulerEvents.push(`schedule:${reason}`);
+        },
+        onFileEdited: () => {},
+        onToolExecuteAfter: () => {},
+        flush: async () => {
+          schedulerEvents.push("flush:start");
+          await Promise.resolve();
+          schedulerEvents.push("flush:end");
+        },
+        dispose: () => {},
+      });
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        tmpDir,
+        schedulerFactory,
+      );
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => {
+        schedulerEvents.push("generate");
+        return { success: false, briefPath: null, envelope: null };
+      });
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async () => {},
+            },
+          },
+          sessionId: "session-idle-sync",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 42; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-NEW",
+      });
+
+      schedulerEvents.length = 0;
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      assert.deepEqual(schedulerEvents, [
+        "schedule:session.idle",
+        "flush:start",
+        "flush:end",
+        "generate",
+      ]);
+    });
+
+    it("still generates idle brief when audit delta has changes but session edit list is empty", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => ({
+        success: false,
+        briefPath: null,
+        envelope: null,
+      }));
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async () => {},
+            },
+          },
+          sessionId: "session-idle-audit-only",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-AUDIT-ONLY",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const options = generateSpy.mock.calls[0]?.[4] as
+        | { sourceFiles?: string[]; changedEntityIds?: string[] }
+        | undefined;
+      assert.ok(options);
+      assert.equal(options?.sourceFiles, undefined);
+      assert.deepEqual(options?.changedEntityIds, ["REQ-AUDIT-ONLY"]);
+    });
+
+    it("generates idle brief even when maintenance is degraded", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: false },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => ({
+        success: false,
+        briefPath: null,
+        envelope: null,
+      }));
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async () => {},
+            },
+          },
+          sessionId: "session-idle-degraded",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 42; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-DEGRADED-IDLE",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+    });
+
+    it("resets the idle-brief baseline when the branch changes", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+      writeAuditEntries(tmpDir, "feature", [
+        {
+          timestamp: "2026-04-25T11:00:00+00:00",
+          entityId: "REQ-FEATURE-OLD",
+        },
+      ]);
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      const { client } = createAutoBriefClient();
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client,
+          sessionId: "session-branch-reset",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      process.env.KIBI_BRANCH = "feature";
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 99; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "feature", {
+        timestamp: "2026-04-25T11:30:00+00:00",
+        entityId: "REQ-FEATURE-NEW",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const workspaceCtx = generateSpy.mock.calls[0]?.[1] as { branch: string };
+      const auditDelta = generateSpy.mock.calls[0]?.[2] as {
+        entries: Array<{ entityId: string }>;
+      };
+      assert.equal(workspaceCtx.branch, "feature");
+      assert.deepEqual(
+        auditDelta.entries.map((entry) => entry.entityId),
+        ["REQ-FEATURE-NEW"],
+      );
+    });
 
     it("triggers fetchBriefingResult for authoritative risky edits and sends a toast", async () => {
       setupAuthoritativeWorkspace(tmpDir);
@@ -3376,10 +4019,10 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
-      const { client, showToastCalls } = createAutoBriefClient();
+      const { client, toastCalls } = createAutoBriefClient();
       const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
       const plugin = await loadFreshPlugin();
       const hooks = await plugin({
@@ -3399,14 +4042,27 @@ import datetime
         },
       });
 
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
       await waitForCondition(
-        () => fetchSpy.mock.calls.length === 1 && showToastCalls.length === 1,
+        () => fetchSpy.mock.calls.length === 1 && toastCalls.length === 1,
       );
 
       assert.equal(fetchSpy.mock.calls.length, 1);
       assert.equal(fetchSpy.mock.calls[0]?.[0], client);
       assert.equal(
-        (fetchSpy.mock.calls[0]?.[1] as { workspaceRoot: string }).workspaceRoot,
+        (fetchSpy.mock.calls[0]?.[1] as { workspaceRoot: string })
+          .workspaceRoot,
         tmpDir,
       );
       assert.equal(
@@ -3426,83 +4082,16 @@ import datetime
         ["src/feature.ts"],
       );
       assert.equal(
-        (fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }).fingerprint.endsWith(
-          "\0behavior_candidate",
-        ),
+        (
+          fetchSpy.mock.calls[0]?.[2] as { fingerprint: string }
+        ).fingerprint.endsWith("\0src/feature.ts"),
         true,
       );
-      assert.deepEqual(showToastCalls[0], {
+      assert.deepEqual(toastCalls[0], {
         body: {
           message: READY_TOAST,
         },
       });
-    });
-
-    it("treats auto-brief toast delivery failure as non-fatal", async () => {
-      setupAuthoritativeWorkspace(tmpDir);
-      installNoopScheduler(tmpDir);
-      writePluginConfig(tmpDir, {
-        enabled: true,
-        prompt: { enabled: true, hookMode: "auto" },
-        sync: { enabled: true },
-        ux: { toastStartup: false },
-        guidance: {
-          commentDetection: { enabled: false },
-          smartEnforcement: {
-            completionReminder: false,
-          },
-        },
-      });
-
-      const srcDir = path.join(tmpDir, "src");
-      fs.mkdirSync(srcDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
-      );
-
-      const { client } = createAutoBriefClient();
-      const unhandledRejections: unknown[] = [];
-      const handleUnhandledRejection = (reason: unknown) => {
-        unhandledRejections.push(reason);
-      };
-      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
-      const sendToastSpy = spyOn(toastModule, "sendToast").mockImplementation(() =>
-        Promise.reject(new Error("toast failed")),
-      );
-      process.on("unhandledRejection", handleUnhandledRejection);
-
-      try {
-        const plugin = await loadFreshPlugin();
-        const hooks = await plugin(makeInput({ client }));
-
-        assert.ok(hooks.event);
-        const eventHook = hooks.event as (input: {
-          event: { type: string; properties: { file: string } };
-        }) => Promise<void>;
-
-        await eventHook({
-          event: {
-            type: "file.edited",
-            properties: { file: "src/feature.ts" },
-          },
-        });
-        await waitForCondition(
-          () => fetchSpy.mock.calls.length === 1 && sendToastSpy.mock.calls.length === 1,
-        );
-        await Promise.resolve();
-        await new Promise((resolve) => setTimeout(resolve, 0));
-
-        assert.equal(fetchSpy.mock.calls.length, 1);
-        assert.equal(sendToastSpy.mock.calls.length, 1);
-        assert.equal(
-          unhandledRejections.length,
-          0,
-          "Toast delivery failures should be caught and stay non-fatal",
-        );
-      } finally {
-        process.off("unhandledRejection", handleUnhandledRejection);
-      }
     });
 
     it("sends exactly one toast for repeated same-fingerprint edit events", async () => {
@@ -3525,7 +4114,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const expectedAutoBriefResult: BriefingRuntimeResult = {
@@ -3536,14 +4125,17 @@ import datetime
         showManualCue: false,
         toastMessage: READY_TOAST,
       };
-      const { client, showToastCalls } = createAutoBriefClient();
-      let resolveBriefing: ((result: BriefingRuntimeResult) => void) | undefined;
+      const { client, toastCalls } = createAutoBriefClient();
+      let resolveBriefing:
+        | ((result: BriefingRuntimeResult) => void)
+        | undefined;
       const briefingGate = new Promise<BriefingRuntimeResult>((resolve) => {
         resolveBriefing = resolve;
       });
-      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult").mockImplementation(
-        () => briefingGate,
-      );
+      const fetchSpy = spyOn(
+        briefingRuntimeModule,
+        "fetchBriefingResult",
+      ).mockImplementation(() => briefingGate);
       const plugin = await loadFreshPlugin();
       const hooks = await plugin(makeInput({ client }));
 
@@ -3551,6 +4143,18 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
 
       await eventHook({
         event: {
@@ -3567,13 +4171,13 @@ import datetime
       await waitForCondition(() => fetchSpy.mock.calls.length === 2);
 
       resolveBriefing?.(expectedAutoBriefResult);
-      await waitForCondition(() => showToastCalls.length > 0);
+      await waitForCondition(() => toastCalls.length > 0);
       await Promise.resolve();
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       assert.equal(fetchSpy.mock.calls.length, 2);
-      assert.equal(showToastCalls.length, 1);
-      assert.deepEqual(showToastCalls[0], {
+      assert.equal(toastCalls.length, 1);
+      assert.deepEqual(toastCalls[0], {
         body: {
           message: READY_TOAST,
         },
@@ -3600,14 +4204,15 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             tldr: "Requirement context is ready.",
-            promptBlock: "- REQ-001: Honor the linked invariant.\n- SCEN-001: Preserve the canonical flow.",
+            promptBlock:
+              "- REQ-001: Honor the linked invariant.\n- SCEN-001: Preserve the canonical flow.",
             citations: [
               {
                 id: "REQ-001",
@@ -3638,7 +4243,83 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const output = { system: ["prompt"] };
       await transformHook({}, output);
@@ -3646,7 +4327,11 @@ import datetime
       const rendered = output.system.at(-1) ?? "";
       assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(rendered.includes("- REQ-001: Honor the linked invariant."));
-      assert.ok(!rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(
+        !rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
     });
 
     it("renders tldr fallback guidance with the manual /brief-kibi path preserved", async () => {
@@ -3669,10 +4354,10 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             tldr: "Some summary here",
@@ -3707,7 +4392,21 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
@@ -3715,8 +4414,12 @@ import datetime
       const rendered = renderedOutput.system.at(-1) ?? "";
       assert.ok(rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(rendered.includes("Some summary here"));
-      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
-      assert.ok(rendered.includes("Full details: run /brief-kibi."));
+      assert.ok(
+        rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
+      assert.ok(rendered.includes("- What changed: Some summary here"));
     });
 
     it("does not surface fabricated auto-brief content when runtime reports no_briefing", async () => {
@@ -3739,10 +4442,10 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
-      const { client, promptCalls, showToastCalls } = createAutoBriefClient({
+      const { client, promptCalls, toastCalls } = createAutoBriefClient({
         promptResults: [
           makeReadyPromptResponse({
             briefingState: "no_briefing",
@@ -3778,14 +4481,39 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => promptCalls.length === 1 && showToastCalls.length === 1);
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(
+        () => promptCalls.length === 1 && toastCalls.length === 1,
+      );
 
       const renderedOutput = { system: ["prompt"] };
       await transformHook({}, renderedOutput);
 
       const rendered = renderedOutput.system.at(-1) ?? "";
       assert.ok(rendered.includes("📝 **Code changes detected**"));
-      assert.ok(rendered.includes("Authoritative risky edit: run `/brief-kibi` before acting."));
+      assert.ok(
+        rendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
       assert.ok(!rendered.includes("🧠 **Kibi briefing available**"));
       assert.ok(!rendered.includes("This text must not be surfaced."));
       assert.ok(!rendered.includes("- fabricated"));
@@ -3811,7 +4539,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, createCalls, promptCalls } = createAutoBriefClient();
@@ -3829,6 +4557,18 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
       await waitForCondition(() => promptCalls.length === 1);
 
       await eventHook({
@@ -3837,7 +4577,9 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => createCalls.length === 1 && promptCalls.length === 1);
+      await waitForCondition(
+        () => createCalls.length === 1 && promptCalls.length === 1,
+      );
 
       assert.equal(createCalls.length, 1);
       assert.equal(promptCalls.length, 1);
@@ -3863,7 +4605,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const { client, createCalls, promptCalls } = createAutoBriefClient();
@@ -3888,7 +4630,21 @@ import datetime
           properties: { file: "src/feature.ts" },
         },
       });
-      await waitForCondition(() => fetchSpy.mock.calls.length === 1 && promptCalls.length === 1);
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      await waitForCondition(
+        () => fetchSpy.mock.calls.length === 1 && promptCalls.length === 1,
+      );
 
       await transformHook({}, { system: ["prompt"] });
 
@@ -3925,7 +4681,9 @@ import datetime
       const { client: safeDocsClient } = createAutoBriefClient();
       installNoopScheduler(tmpDir);
       const safeDocsPlugin = await loadFreshPlugin();
-      const safeDocsHooks = await safeDocsPlugin(makeInput({ client: safeDocsClient }));
+      const safeDocsHooks = await safeDocsPlugin(
+        makeInput({ client: safeDocsClient }),
+      );
       assert.ok(safeDocsHooks.event);
       fs.writeFileSync(path.join(tmpDir, "README.md"), "# Safe docs\n");
 
@@ -3949,7 +4707,9 @@ import datetime
       );
       const { client: safeTestClient } = createAutoBriefClient();
       const safeTestPlugin = await loadFreshPlugin();
-      const safeTestHooks = await safeTestPlugin(makeInput({ client: safeTestClient }));
+      const safeTestHooks = await safeTestPlugin(
+        makeInput({ client: safeTestClient }),
+      );
       assert.ok(safeTestHooks.event);
 
       const safeTestEventHook = safeTestHooks.event as (input: {
@@ -3969,7 +4729,9 @@ import datetime
       fs.writeFileSync(path.join(kbDir, "manual-edit.json"), "{}\n");
       const { client: manualKbClient } = createAutoBriefClient();
       const manualKbPlugin = await loadFreshPlugin();
-      const manualKbHooks = await manualKbPlugin(makeInput({ client: manualKbClient }));
+      const manualKbHooks = await manualKbPlugin(
+        makeInput({ client: manualKbClient }),
+      );
       assert.ok(manualKbHooks.event);
 
       const manualKbEventHook = manualKbHooks.event as (input: {
@@ -4005,7 +4767,9 @@ import datetime
       );
       const { client: degradedClient } = createAutoBriefClient();
       const degradedPlugin = await loadFreshPlugin();
-      const degradedHooks = await degradedPlugin(makeInput({ client: degradedClient }));
+      const degradedHooks = await degradedPlugin(
+        makeInput({ client: degradedClient }),
+      );
       assert.ok(degradedHooks.event);
 
       const degradedEventHook = degradedHooks.event as (input: {
@@ -4017,6 +4781,100 @@ import datetime
           properties: { file: "src/degraded.ts" },
         },
       });
+      await Promise.resolve();
+
+      assert.equal(fetchSpy.mock.calls.length, 0);
+    });
+
+    it("eventless programmatic edit recovers via transform fallback", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+
+      const { client, toastCalls } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: { focusFilePath?: string },
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
+      const firstOutput = { system: ["prompt"] };
+      await transformHook({ focusFilePath: "src/feature.ts" }, firstOutput);
+
+      const firstRendered = firstOutput.system.at(-1) ?? "";
+      assert.ok(
+        firstRendered.includes(
+          "Authoritative risky edit: run `/brief-kibi` before acting.",
+        ),
+      );
+      assert.ok(!firstRendered.includes("🧠 **Kibi briefing available**"));
+
+      await waitForCondition(
+        () => fetchSpy.mock.calls.length === 1 && toastCalls.length === 1,
+      );
+
+      const secondOutput = { system: ["prompt"] };
+      await transformHook({ focusFilePath: "src/feature.ts" }, secondOutput);
+
+      const secondRendered = secondOutput.system.at(-1) ?? "";
+      assert.equal(fetchSpy.mock.calls.length, 1);
+      assert.ok(secondRendered.includes("🧠 **Kibi briefing available**"));
+      assert.ok(
+        secondRendered.includes("- REQ-001: Honor the linked invariant."),
+      );
+    });
+
+    it("no session delta means no fallback fetch", async () => {
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const { client } = createAutoBriefClient();
+      const fetchSpy = spyOn(briefingRuntimeModule, "fetchBriefingResult");
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(makeInput({ client }));
+
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const transformHook = hooks["experimental.chat.system.transform"] as (
+        input: Record<string, never>,
+        output: { system: string[] },
+      ) => Promise<void>;
+
+      await transformHook({}, { system: ["prompt"] });
       await Promise.resolve();
 
       assert.equal(fetchSpy.mock.calls.length, 0);
@@ -4042,7 +4900,7 @@ import datetime
       fs.mkdirSync(srcDir, { recursive: true });
       fs.writeFileSync(
         path.join(srcDir, "feature.ts"),
-        "export function feature() { return 42; } // implements REQ-001\n",
+        "export function feature() { return 0; }\n",
       );
 
       const expectedAutoBriefResult: BriefingRuntimeResult = {
@@ -4082,6 +4940,19 @@ import datetime
       const eventHook = hooks.event as (input: {
         event: { type: string; properties: { file: string } };
       }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+
+      fs.writeFileSync(
+        path.join(srcDir, "feature.ts"),
+        "export function feature() { return 42; } // implements REQ-001\n",
+      );
+
       await eventHook({
         event: {
           type: "file.edited",
@@ -4100,7 +4971,10 @@ import datetime
       const buildPromptContext = buildPromptSpy.mock.calls.at(-1)?.[0] as {
         autoBriefResult?: BriefingRuntimeResult;
       };
-      assert.deepEqual(buildPromptContext.autoBriefResult, expectedAutoBriefResult);
+      assert.deepEqual(
+        buildPromptContext.autoBriefResult,
+        expectedAutoBriefResult,
+      );
     });
   });
 
@@ -4149,7 +5023,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4226,7 +5099,6 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4330,13 +5202,15 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_unavailable");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_unavailable",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -4409,16 +5283,21 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
 
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_sync_failed");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_sync_failed",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -4463,7 +5342,10 @@ import datetime
       ].forEach((dir) =>
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
       );
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -4488,12 +5370,14 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({
         reason: "smart-enforcement.traceability",
         exitCode: 1,
@@ -4546,7 +5430,10 @@ import datetime
       ].forEach((dir) =>
         fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
       );
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const mockClient = {
         app: {
@@ -4571,12 +5458,14 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({
         reason: "smart-enforcement.kb-doc.trailing",
         exitCode: 1,
@@ -4657,16 +5546,21 @@ import datetime
         worktree: worktree,
         client: mockClient,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
-      assert.ok(capturedOnRunComplete, "scheduler onRunComplete should be captured");
+      assert.ok(
+        capturedOnRunComplete,
+        "scheduler onRunComplete should be captured",
+      );
       capturedOnRunComplete?.({ exitCode: 0, checkExitCode: 1 });
 
       assert.equal(startup?.runtimeOverlay.degraded, true);
-      assert.equal(startup?.runtimeOverlay.primaryCause, "scheduler_check_failed");
+      assert.equal(
+        startup?.runtimeOverlay.primaryCause,
+        "scheduler_check_failed",
+      );
       assert.equal(startup?.getMaintenanceDegraded(), true);
       assert.equal(startup?.getEffectiveMode(), "advisory");
     });
@@ -4725,7 +5619,6 @@ import datetime
           },
         } as any,
         project: null as any,
-        serverUrl: null as any,
         $: {} as any,
       });
 
@@ -4958,7 +5851,9 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
 
       await eventHook({
         event: {
@@ -5146,7 +6041,9 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as (input: { event: { type: string; properties: Record<string, unknown> } }) => Promise<void>;
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
 
       await eventHook({
         event: {
@@ -5329,7 +6226,6 @@ import datetime
           worktree: tmpDir,
           client: mockClient as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
 
@@ -5451,7 +6347,6 @@ import datetime
           worktree: tmpDir,
           client: mockClient as any,
           project: null as any,
-          serverUrl: null as any,
           $: {} as any,
         });
 
@@ -5467,7 +6362,11 @@ import datetime
         capturedOnRunComplete?.({
           exitCode: 0,
           checkExitCode: 1,
-          checkRules: ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+          checkRules: [
+            "required-fields",
+            "no-dangling-refs",
+            "strict-fact-shape",
+          ],
         });
 
         await new Promise((r) => setTimeout(r, 20));
@@ -5500,13 +6399,912 @@ import datetime
 
         // Operational bootstrap-needed SHOULD still emit console.error
         assert.ok(
-          errorSpy.some((msg) => msg.includes("workspace needs Kibi bootstrap")),
+          errorSpy.some((msg) =>
+            msg.includes("workspace needs Kibi bootstrap"),
+          ),
           `Operational startup error should produce console.error, got: ${JSON.stringify(errorSpy)}`,
         );
       } finally {
         console.error = origError;
       }
     });
-});
+  });
 
+  describe("idle brief replay in transform hook", () => {
+    it("replays an unread brief and marks it read", async () => {
+      // Set KIBI_BRANCH to match brief's branch
+      process.env.KIBI_BRANCH = "test-branch";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      // Setup KB structure with briefs directory
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      // Write unread brief
+      const briefFilePath = path.join(kbDir, "briefs", "9999999999_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-replay",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "test-branch",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Test brief summary",
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Test TLDR", promptBlock: "", citations: [] },
+        contentHash: "abc123",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
+      // Setup .kb/config.json to enable TUI delivery
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Setup opencode config
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Mock TUI client with showToast
+      let shownToast: any = null;
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async (payload: any) => {
+            shownToast = payload;
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      assert.ok(hooks["experimental.chat.system.transform"]);
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = {
+        worktree: tmpDir,
+      };
+      const mockOutput = { system: ["original system prompt"] };
+
+      // Verify brief is unread before replay
+      const briefBefore = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(
+        briefBefore.unread === true,
+        "Brief should be unread before replay",
+      );
+
+      await transformHook(mockInput, mockOutput);
+
+      // Verify brief was shown as a toast
+      assert.ok(shownToast, "Brief should have been shown as a toast");
+      assert.ok(
+        JSON.stringify(shownToast).includes("Test brief summary"),
+        "Toast payload should contain brief content",
+      );
+
+      // Verify brief was marked as read
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(
+        briefAfter.unread === false,
+        "Brief should be marked as read after successful append",
+      );
+    });
+
+    it("does not replay the same contentHash twice", async () => {
+      process.env.KIBI_BRANCH = "main";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      const briefFilePath = path.join(kbDir, "briefs", "9999999998_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-dedupe",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Dedupe test brief",
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Dedupe TLDR", promptBlock: "", citations: [] },
+        contentHash: "def456",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      let showToastCount = 0;
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async () => {
+            showToastCount++;
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+
+      await transformHook(mockInput, mockOutput);
+      assert.equal(showToastCount, 1, "First call should show brief once");
+
+      await transformHook(mockInput, mockOutput);
+      assert.equal(
+        showToastCount,
+        1,
+        "Second call should not show same brief again",
+      );
+    });
+
+    it("leaves brief unread if showToast fails", async () => {
+      process.env.KIBI_BRANCH = "main";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      const briefFilePath = path.join(kbDir, "briefs", "9999999997_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-fail",
+        type: "warning" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Fail test brief",
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Fail TLDR", promptBlock: "", citations: [] },
+        contentHash: "ghi789",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async () => {
+            throw new Error("Toast failed");
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+
+      await transformHook(mockInput, mockOutput);
+
+      // Verify brief is still unread after failed append
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(
+        briefAfter.unread === true,
+        "Brief should remain unread after append failure",
+      );
+    });
+
+    it("replays even when maintenanceDegraded is true", async () => {
+      process.env.KIBI_BRANCH = "main";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      const briefFilePath = path.join(kbDir, "briefs", "9999999996_brief.json");
+      const briefEnvelope = {
+        schemaVersion: "1.0" as const,
+        briefId: "test-brief-degraded",
+        type: "success" as const,
+        sessionId: "test-session",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Degraded test brief",
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Degraded TLDR", promptBlock: "", citations: [] },
+        contentHash: "jkl012",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope, null, 2),
+        "utf-8",
+      );
+
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: true }, // maintenance degraded
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      let showToastCount = 0;
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async () => {
+            showToastCount++;
+          },
+        },
+      };
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+      const mockOutput = { system: ["original"] };
+
+      await transformHook(mockInput, mockOutput);
+
+      assert.equal(
+        showToastCount,
+        1,
+        "Brief should be shown even when maintenance is degraded",
+      );
+
+      const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
+      assert.ok(
+        briefAfter.unread === false,
+        "Brief should be marked read after successful append",
+      );
+    });
+
+    it("semantic dedupe: different briefIds with same visible content only delivered once", async () => {
+      process.env.KIBI_BRANCH = "main";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      // First brief with briefId-A
+      const briefFilePath1 = path.join(
+        kbDir,
+        "briefs",
+        "9999999995_brief.json",
+      );
+      const briefEnvelope1 = {
+        schemaVersion: "1.0" as const,
+        briefId: "brief-alpha",
+        type: "success" as const,
+        sessionId: "session-1",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Semantic dedupe test",
+        counts: {
+          requirementsAdded: 2,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: {
+          tldr: "Same TLDR",
+          promptBlock: "Same prompt",
+          citations: [],
+        },
+        contentHash: "semantic-hash-aaa",
+      };
+      fs.writeFileSync(
+        briefFilePath1,
+        JSON.stringify(briefEnvelope1, null, 2),
+        "utf-8",
+      );
+
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      let showToastCount = 0;
+      const shownToastPayloads: any[] = [];
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async (payload: any) => {
+            showToastCount++;
+            shownToastPayloads.push(payload);
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+
+      // First call: deliver brief-alpha
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(showToastCount, 1, "First call should show brief-alpha");
+
+      // Now replace the file with a brief that has different briefId but same visible content
+      // (simulating a regenerated brief with same semantic content)
+      const briefEnvelope2 = {
+        ...briefEnvelope1,
+        briefId: "brief-beta",
+        createdAt: "2026-04-30T11:00:00Z",
+        sessionId: "session-2",
+        contentHash: "semantic-hash-aaa",
+      };
+      fs.writeFileSync(
+        briefFilePath1,
+        JSON.stringify({ ...briefEnvelope2, unread: true }, null, 2),
+        "utf-8",
+      );
+
+      // Second call: same contentHash should NOT re-deliver
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(
+        showToastCount,
+        1,
+        "Second call should not re-deliver same semantic content",
+      );
+    });
+
+    it("semantic dedupe: changed content in same session re-triggers once", async () => {
+      process.env.KIBI_BRANCH = "main";
+
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(path.join(kbDir, "briefs"), { recursive: true });
+
+      const briefFilePath = path.join(kbDir, "briefs", "9999999994_brief.json");
+      const briefEnvelope1 = {
+        schemaVersion: "1.0" as const,
+        briefId: "brief-first",
+        type: "success" as const,
+        sessionId: "session-1",
+        branch: "main",
+        createdAt: "2026-04-30T10:00:00Z",
+        unread: true,
+        auditCursor: {
+          lastTimestamp: "2026-04-30T10:00:00Z",
+          lastOperation: "upsert",
+          entryCount: 1,
+          fileSize: 100,
+        },
+        summary: "Original content",
+        counts: {
+          requirementsAdded: 1,
+          relationshipsAdded: 0,
+          entitiesDeleted: 0,
+        },
+        validation: { violations: [], count: 0, diagnostics: [] },
+        briefing: { tldr: "Original TLDR", promptBlock: "", citations: [] },
+        contentHash: "content-hash-v1",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify(briefEnvelope1, null, 2),
+        "utf-8",
+      );
+
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify(
+          {
+            version: 1,
+            maintenance: { enabled: false },
+            briefs: {
+              enabled: true,
+              channels: { tui: true, vscode: false },
+              tui: { toast: true },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      let showToastCount = 0;
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            prompt: { enabled: true, hookMode: "auto" },
+            ux: { briefs: { autoSubmit: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const mockClient = {
+        app: { log: async () => {} },
+        tui: {
+          showToast: async () => {
+            showToastCount++;
+          },
+        },
+      };
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+        client: mockClient as any,
+      });
+
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const mockInput = { worktree: tmpDir };
+
+      // First delivery
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(showToastCount, 1, "First call should show toast");
+
+      // Update brief with NEW visible content (different contentHash)
+      const briefEnvelope2 = {
+        ...briefEnvelope1,
+        briefId: "brief-second",
+        summary: "Updated content",
+        briefing: { tldr: "Updated TLDR", promptBlock: "", citations: [] },
+        contentHash: "content-hash-v2",
+      };
+      fs.writeFileSync(
+        briefFilePath,
+        JSON.stringify({ ...briefEnvelope2, unread: true }, null, 2),
+        "utf-8",
+      );
+
+      // Second call with new content should re-trigger
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(
+        showToastCount,
+        2,
+        "Changed content should re-trigger delivery once",
+      );
+
+      // Third call with same content should NOT trigger again
+      await transformHook(mockInput, { system: ["original"] });
+      assert.equal(showToastCount, 2, "Same content should not trigger again");
+    });
+  });
+
+  // implements REQ-opencode-file-context-guidance-v1
+  describe("file-operation reminder transform integration", () => {
+    it("emits lifecycle reminder for file.created event followed by transform", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      // Create the file that will be the focus
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const createdFile = path.join(srcDir, "new-module.ts");
+      fs.writeFileSync(createdFile, "export function hello() {}");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+
+      assert.ok(hooks.event);
+      assert.ok(hooks["experimental.chat.system.transform"]);
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.created event
+      await eventHook({
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-module.ts" },
+        },
+      });
+
+      // Now fire transform hook with focus on the created file
+      const output = { system: ["original prompt"] };
+      await transformHook({ focusFilePath: "src/new-module.ts" }, output);
+
+      // Guidance should contain new file reminder
+      const combinedGuidance = output.system.join("\n");
+      assert.ok(
+        combinedGuidance.includes("New file detected"),
+        `Guidance should contain new file reminder, got: ${combinedGuidance}`,
+      );
+    });
+
+    it("suppresses lifecycle reminder on repeat transform", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const createdFile = path.join(srcDir, "another-module.ts");
+      fs.writeFileSync(createdFile, "export function bye() {}");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.created event
+      await eventHook({
+        event: {
+          type: "file.created",
+          properties: { file: "src/another-module.ts" },
+        },
+      });
+
+      // First transform: should emit reminder
+      const output1 = { system: ["original prompt"] };
+      await transformHook({ focusFilePath: "src/another-module.ts" }, output1);
+      const guidance1 = output1.system.join("\n");
+      assert.ok(
+        guidance1.includes("New file detected"),
+        "First transform should emit reminder",
+      );
+
+      // Second transform for same file: should NOT emit reminder again
+      const output2 = { system: ["original prompt"] };
+      await transformHook({ focusFilePath: "src/another-module.ts" }, output2);
+      const guidance2 = output2.system.join("\n");
+      assert.ok(
+        !guidance2.includes("New file detected"),
+        "Second transform should suppress reminder",
+      );
+    });
+
+    it("emits deleted-file reminder when file content is unavailable", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.deleted event for a file that no longer exists
+      await eventHook({
+        event: {
+          type: "file.deleted",
+          properties: { file: "src/deleted-module.ts" },
+        },
+      });
+
+      // Transform with focus on the deleted file
+      const output = { system: ["original prompt"] };
+      await transformHook({ focusFilePath: "src/deleted-module.ts" }, output);
+
+      // Guidance should contain deleted file reminder (no linked entities case)
+      const guidance = output.system.join("\n");
+      assert.ok(
+        guidance.includes("Deleted file had no linked Kibi entities") ||
+          guidance.includes("Deleted file had linked Kibi entities"),
+        `Guidance should contain deleted file reminder, got: ${guidance}`,
+      );
+    });
+
+    it("does not emit file-operation reminder when no pending lifecycle", async () => {
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "existing-file.ts");
+      fs.writeFileSync(codeFile, "export const x = 1;");
+
+      const hooks = await kibiOpencodePlugin({
+        ...makeInput(),
+      });
+      const eventHook = hooks.event as any;
+      const transformHook = hooks["experimental.chat.system.transform"] as any;
+
+      // Fire file.edited event (edited lifecycle has no generic reminder)
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/existing-file.ts" },
+        },
+      });
+
+      const output = { system: ["original prompt"] };
+      await transformHook({ focusFilePath: "src/existing-file.ts" }, output);
+
+      // For edited files, there's no generic lifecycle reminder text
+      const guidance = output.system.join("\n");
+      assert.ok(
+        !guidance.includes("New file detected") &&
+          !guidance.includes("Deleted file"),
+        `Guidance should NOT contain lifecycle reminder for edited file, got: ${guidance}`,
+      );
+    });
+  });
 });

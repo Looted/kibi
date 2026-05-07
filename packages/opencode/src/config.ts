@@ -16,11 +16,14 @@ export interface KibiConfig {
     ignore: string[];
     relevant: string[];
   };
-  ux: {
-    toastStartup: boolean;
-    toastFailures: boolean;
-    toastSuccesses: boolean;
+ux: {
+toastStartup: boolean;
+toastFailures: boolean;
+toastSuccesses: boolean;
     toastCooldownMs: number;
+    briefs?: {
+      autoSubmit: boolean;
+  };
   };
   guidance: {
     dynamic: boolean;
@@ -54,11 +57,14 @@ const DEFAULTS: KibiConfig = {
   enabled: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-  ux: {
-    toastStartup: true,
-    toastFailures: true,
-    toastSuccesses: false,
+ux: {
+toastStartup: true,
+toastFailures: true,
+toastSuccesses: false,
     toastCooldownMs: 10000,
+    briefs: {
+      autoSubmit: true,
+  },
   },
   guidance: {
     dynamic: true,
@@ -152,8 +158,13 @@ export function validateAndMerge(obj: unknown): KibiConfig {
       out.ux.toastSuccesses = u.toastSuccesses;
     if (typeof u.toastCooldownMs === "number")
       out.ux.toastCooldownMs = u.toastCooldownMs;
+    if (u.briefs && typeof u.briefs === "object") {
+      const b = u.briefs as Record<string, unknown>;
+      out.ux.briefs = { autoSubmit: true };
+      if (typeof b.autoSubmit === "boolean")
+        out.ux.briefs.autoSubmit = b.autoSubmit;
+    }
   }
-
   if (typeof src.logLevel === "string") out.logLevel = src.logLevel;
 
   if (src.guidance && typeof src.guidance === "object") {
@@ -221,7 +232,7 @@ export function validateAndMerge(obj: unknown): KibiConfig {
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function loadConfig(projectDir = process.cwd()): KibiConfig {
+export function loadConfig(projectDir: string = process.cwd()): KibiConfig {
   const homeConfig = path.join(
     os.homedir(),
     ".config",

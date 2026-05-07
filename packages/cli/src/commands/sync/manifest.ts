@@ -45,7 +45,7 @@ function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
   };
 }
 
-const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
+export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
 # GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):

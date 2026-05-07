@@ -710,4 +710,41 @@ describe("briefing generate", () => {
     expectPromptBudget(first.structuredContent.promptBlock);
     expectPromptBudget(second.structuredContent.promptBlock);
   });
+
+  test("returns non-empty compact promptBlock when candidate set exceeds bullet budget", async () => {
+    const root = path.join(tmp, "over-budget-workspace");
+    await ensureBriefingWorkspace(root);
+    process.env.KIBI_WORKSPACE = root;
+
+    // Create 8 entities that all produce bullets, exceeding the 5-bullet limit
+    const overBudgetEntities: FixtureEntity[] = [];
+    for (let i = 1; i <= 8; i++) {
+      overBudgetEntities.push({
+        id: `REQ-OVER-${String(i).padStart(3, "0")}`,
+        type: "req",
+        title: `Generate deterministic citation-backed briefings batch ${i}`,
+        status: "open",
+        source: `documentation/requirements/REQ-OVER-${String(i).padStart(3, "0")}.md`,
+        textRef: `documentation/requirements/REQ-OVER-${String(i).padStart(3, "0")}.md#L1`,
+      });
+    }
+
+    const prolog = createBriefingPrologStub({ entities: overBudgetEntities });
+    const handleKbBriefingGenerate = await loadHandler();
+
+    const result = await handleKbBriefingGenerate(prolog, {
+      taskText: "deterministic citation-backed briefings",
+      seedIds: overBudgetEntities.map((e) => e.id),
+    });
+
+    // Must NOT return empty promptBlock even when over budget
+    expect(result.structuredContent.promptBlock.length).toBeGreaterThan(0);
+    const words = result.structuredContent.promptBlock.split(/\s+/).filter(Boolean);
+    expect(words.length).toBeLessThanOrEqual(120);
+    const bullets = result.structuredContent.promptBlock
+      .split("\n")
+      .filter((line) => line.trimStart().startsWith("-"));
+    expect(bullets.length).toBeLessThanOrEqual(5);
+    expect(bullets.length).toBeGreaterThan(0);
+  });
 });

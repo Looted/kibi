@@ -4,6 +4,10 @@ import type { BriefingRuntimeResult } from "./briefing-runtime.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
+import {
+  getInitKibiCommandCapability,
+  type InitKibiCommandCapability,
+} from "./init-kibi-capability.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
@@ -30,6 +34,15 @@ function countWords(text: string): number {
 
 function countBullets(lines: string[]): number {
   return lines.filter((l) => l.startsWith("-")).length;
+}
+
+const ENTITY_ID_RE = /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
+
+// implements REQ-opencode-file-context-guidance-v1
+function hasOverlappingEntityIds(textA: string, textB: string): boolean {
+  const idsA = new Set(textA.match(ENTITY_ID_RE) ?? []);
+  const idsB = textB.match(ENTITY_ID_RE) ?? [];
+  return idsB.length > 0 && idsB.some((id) => idsA.has(id));
 }
 
 function enforceBudget(block: string, maxBullets: number = MAX_BULLETS): string {
@@ -61,11 +74,21 @@ function insertBulletAfterHeader(block: string, bullet: string): string {
 }
 
 // implements REQ-opencode-kibi-briefing-v2
-function buildAutoBriefingGuidance(
+export function buildAutoBriefingGuidance(
   autoBriefResult: BriefingRuntimeResult | undefined,
   completionReminder: boolean,
 ): string | null {
   if (!autoBriefResult) return null;
+
+  // Defensive: idle-brief results are persisted to .kb/briefs/, never injected into prompts.
+  // This function only handles auto-briefs from the file.edited risk-classification flow.
+  if (
+    typeof autoBriefResult === "object" &&
+    autoBriefResult !== null &&
+    ("briefId" in autoBriefResult || "schemaVersion" in autoBriefResult)
+  ) {
+    return null;
+  }
 
   if (autoBriefResult.state === "ready") {
     const promptBlock = autoBriefResult.promptBlock.trim();
@@ -103,10 +126,37 @@ function deriveFileBucket(pathKind: PathKind): string {
   return pathKind;
 }
 
+function getFocusEdit(
+  context: PromptContext,
+): { path: string; kind: PathKind } | undefined {
+  return context.focusEdit ?? context.recentEdits[context.recentEdits.length - 1];
+}
+
+function buildInitKibiBootstrapReference(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  if (capability.supported) {
+    return "Bootstrap existing repos: when the Kibi OpenCode plugin is active and native injection is supported, `/init-kibi` is the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+  }
+
+  return "Bootstrap existing repos: this host does not support native `/init-kibi` injection, so Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` for the retroactive initialization (`kb_autopilot_generate`) workflow.";
+}
+
+function buildBootstrapRequiredBody(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  const commandBullet = capability.supported
+    ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
+    : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
+
+  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`.`;
+}
+
 // ── PromptContext ──────────────────────────────────────────────────────
 
 export interface PromptContext {
   recentEdits: Array<{ path: string; kind: PathKind }>;
+  focusEdit?: { path: string; kind: PathKind } | null;
   workspaceHealth?: WorkspaceHealth;
   hasRecentKbEdit?: boolean;
   recentCommentSuggestion?: CommentAnalysisResult | null;
@@ -130,6 +180,12 @@ export interface PromptContext {
   showDegradedAdvisory?: boolean;
   /** Stored auto-brief runtime result for the current fingerprint */
   autoBriefResult?: BriefingRuntimeResult;
+  /** File-operation reminder from lifecycle and e2e coverage signals */
+  fileOperationReminder?: {
+    path: string;
+    lifecycleReminder: string | null;
+    e2eReminder: string | null;
+  };
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -174,7 +230,10 @@ The Kibi knowledge base is managed through public MCP tools. Direct manual edits
 
 // ── Posture overrides ──────────────────────────────────────────────────
 
-export function postureGuidance(posture: RepoPosture): string | null {
+export function postureGuidance(
+  posture: RepoPosture,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string | null {
   // implements REQ-opencode-prompt-injection
   switch (posture) {
     case "vendored_only":
@@ -183,12 +242,7 @@ export function postureGuidance(posture: RepoPosture): string | null {
     case "root_uninitialized":
       return `🔧 **Bootstrap required**
 
-This repository does not appear to have Kibi initialized. Agents should:
-- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
-- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
-- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
-
-Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
+${buildBootstrapRequiredBody(capability)}`;
     case "root_partial":
       return `⚠️  **Partial KB setup detected**
 
@@ -203,7 +257,10 @@ Root .kb/config.json exists but some configured KB targets are missing. Guidance
 /**
  * Build prompt guidance block based on posture, risk class, and cache state.
  */
-function buildContextualGuidance(context: PromptContext): string {
+function buildContextualGuidance(
+  context: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
   const readyAutoBriefingAvailable =
@@ -215,6 +272,11 @@ function buildContextualGuidance(context: PromptContext): string {
     context.showDegradedAdvisory === true &&
     context.maintenanceDegraded === true &&
     context.degradedMode === "warn-once";
+  const fileOpReminder = context.fileOperationReminder;
+  const hasFileOpReminders =
+    fileOpReminder !== undefined &&
+    (fileOpReminder.lifecycleReminder !== null ||
+      fileOpReminder.e2eReminder !== null);
 
   // ── Single-block priority selection ──
   // Priority order (highest wins): manual_kb_edit > posture > risk_class > safe/none
@@ -231,23 +293,20 @@ function buildContextualGuidance(context: PromptContext): string {
   }
   // Priority 3: Posture warnings for non-active states — not cache-suppressed
   else if (posture === "root_uninitialized" || posture === "root_partial") {
-    const postureBlock = postureGuidance(posture);
+    const postureBlock = postureGuidance(posture, capability);
     if (postureBlock) selectedBlock = postureBlock;
   }
   else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
-This repository does not appear to have Kibi initialized. Agents should:
-- Start with \`kb_autopilot_generate\` to discover entities and bootstrap the KB (preferred workflow)
-- Use \`/init-kibi\` as the sanctioned slash command for initial repo setup
-- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient
-
-Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check).`;
+${buildBootstrapRequiredBody(capability)}`;
   // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
   }
   else {
     // Cache check: skip repeated advisory guidance — only after critical signals are handled above
     // Allow degraded advisory to bypass cache so it is always visible
+    // File-operation reminders also bypass cache (per-path suppression handled by caller)
+    let cacheSuppressedSemantic = false;
     if (
       !showDegraded &&
       context.cache &&
@@ -255,21 +314,26 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
       context.branch &&
       riskClass
     ) {
-      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+      const focusEdit = getFocusEdit(context);
       const key: CacheKey = {
         workspaceRoot: context.workspaceRoot,
         branch: context.branch,
         posture,
         riskClass,
-        fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
+        fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
       };
       if (context.cache.isSatisfied(key)) {
-        return SENTINEL; // skip guidance — recently satisfied
+        if (hasFileOpReminders) {
+          cacheSuppressedSemantic = true;
+        } else {
+          return SENTINEL; // skip guidance — recently satisfied
+        }
       }
     }
 
     // Priority 5: Risk-class-driven guidance (for non-safe classes)
     if (
+      !cacheSuppressedSemantic &&
       riskClass &&
       riskClass !== "safe_docs_only" &&
       riskClass !== "safe_test_only"
@@ -302,7 +366,7 @@ Do not run \`kibi\` CLI commands directly; use public MCP tools (kb_autopilot_ge
       }
     }
     // Priority 6: Legacy path-kind fallback (when no risk class)
-    else if (!riskClass) {
+    else if (!cacheSuppressedSemantic && !riskClass) {
       const codeEdits = context.recentEdits.filter((e) => e.kind === "code");
       const reqEdits = context.recentEdits.filter(
         (e) => e.kind === "requirement",
@@ -372,9 +436,9 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     !suppressSourceLinkedBrief
   ) {
     try {
-      const lastEdit = context.recentEdits[context.recentEdits.length - 1];
-      if (lastEdit?.path) {
-        const editedPath = lastEdit.path;
+      const focusEdit = getFocusEdit(context);
+      if (focusEdit?.path) {
+        const editedPath = focusEdit.path;
         const absEdited = path.isAbsolute(editedPath)
           ? editedPath
           : path.join(context.workspaceRoot, editedPath);
@@ -391,6 +455,49 @@ If you're adding long explanatory comments, consider routing that knowledge to:
       }
     } catch {
       // Non-fatal: source-linked brief is best-effort
+    }
+  }
+
+  // ── File-operation reminder folding ─────────────────────────────────
+  // File-operation reminders bypass generic GuidanceCache suppression but
+  // are subject to prompt budget trimming. Per-path suppression is handled
+  // by the caller via file-operation-state hasShown/markShown.
+  // implements REQ-opencode-file-context-guidance-v1
+  if (hasFileOpReminders && fileOpReminder) {
+    const foBullets: string[] = [];
+
+    if (fileOpReminder.lifecycleReminder) {
+      // Skip lifecycleReminder if source-linked brief already shows the same IDs
+      const hasSourceLinked =
+        selectedBlock?.includes("- Existing Kibi links:") === true;
+      const lifecycleHasEntities =
+        fileOpReminder.lifecycleReminder.includes("Kibi entities:");
+      const overlapsSourceLinked =
+        hasSourceLinked &&
+        lifecycleHasEntities &&
+        selectedBlock !== null &&
+        hasOverlappingEntityIds(selectedBlock, fileOpReminder.lifecycleReminder);
+      if (
+        !overlapsSourceLinked
+      ) {
+        foBullets.push(fileOpReminder.lifecycleReminder);
+      }
+    }
+
+    if (fileOpReminder.e2eReminder) {
+      foBullets.push(fileOpReminder.e2eReminder);
+    }
+
+    if (foBullets.length > 0) {
+      if (selectedBlock) {
+        // Fold into existing semantic block
+        for (const bullet of foBullets) {
+          selectedBlock = insertBulletAfterHeader(selectedBlock, bullet);
+        }
+      } else {
+        // Create file-operation-only compact block
+        selectedBlock = `🧠 **File operation detected**\n${foBullets.join("\n")}`;
+      }
     }
   }
 
@@ -415,13 +522,13 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     context.branch &&
     riskClass
   ) {
-    const lastEdit = context.recentEdits[context.recentEdits.length - 1];
+    const focusEdit = getFocusEdit(context);
     const key: CacheKey = {
       workspaceRoot: context.workspaceRoot,
       branch: context.branch,
       posture,
       riskClass,
-      fileBucket: deriveFileBucket(lastEdit?.kind ?? "unknown"),
+      fileBucket: deriveFileBucket(focusEdit?.kind ?? "unknown"),
     };
     context.cache.recordSatisfied(key, "guidance");
   }
@@ -524,7 +631,10 @@ Before implementing or explaining code:
 /**
  * Build the static guidance block (original behavior).
  */
-const BASE_GUIDANCE = `${SENTINEL}
+function buildBaseGuidance(
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
+  return `${SENTINEL}
 This project uses Kibi (via MCP). Prefer storing durable knowledge in Kibi over code comments.
 
 Before changing behavior: use kb_search for discovery, then kb_query by sourceFile, id, type, or tags for exact follow-up; do not rely on undocumented tools.
@@ -543,25 +653,31 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 
-**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\nBootstrap existing repos: use \`/init-kibi\` to run the retroactive initialization (\`kb_autopilot_generate\`) workflow.`;
+**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\n${buildInitKibiBootstrapReference(capability)}`;
+}
 
 /**
  * Build prompt with contextual guidance based on posture, risk class, and cache state.
  */
-export function buildPrompt(context?: PromptContext): string {
+export function buildPrompt(
+  context?: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
+): string {
   if (!context) {
-    return BASE_GUIDANCE.trim();
+    return buildBaseGuidance(capability).trim();
   }
-  return buildContextualGuidance(context).trim();
+  return buildContextualGuidance(context, capability).trim();
 }
 
 /**
  * Inject prompt guidance if not already present.
  */
+// implements REQ-opencode-kibi-briefing-v2
 export function injectPrompt(
   current: string,
   config: KibiConfig,
   context?: PromptContext,
+  capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
 ): string {
   if (!config.prompt.enabled || !isPluginEnabled(config)) {
     return current;
@@ -569,7 +685,7 @@ export function injectPrompt(
   if (current.includes(SENTINEL)) {
     return current;
   }
-  return `${current}\n\n${buildPrompt(context)}`;
+  return `${current}\n\n${buildPrompt(context, capability)}`;
 }
 
 export { SENTINEL };

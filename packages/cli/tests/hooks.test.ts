@@ -43,6 +43,8 @@ describe("Git hooks", () => {
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi check");
     expect(content).toContain("Hard enforcement boundary");
+    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain("git diff --quiet --");
   });
 
   it("should install post-merge hook that refreshes merge assumptions", () => {
