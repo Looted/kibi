@@ -6,7 +6,10 @@ import {
   markBriefRead,
   selectLatestUnreadBrief,
 } from "../src/idle-brief-reader";
-import type { IdleBriefEnvelope } from "../src/idle-brief-store";
+import type {
+  IdleBriefEnvelope,
+  IdleBriefEnvelopeV1,
+} from "../src/idle-brief-store";
 
 type FutureIdleBriefEnvelopeV2 = {
   schemaVersion: "2.0";
@@ -76,8 +79,8 @@ describe("idle-brief-reader", () => {
   let briefsDir: string;
 
   function makeBriefV1(
-    overrides: Partial<IdleBriefEnvelope> = {},
-  ): IdleBriefEnvelope {
+    overrides: Partial<IdleBriefEnvelopeV1> = {},
+  ): IdleBriefEnvelopeV1 {
     return {
       schemaVersion: "1.0",
       briefId: "test-brief",
