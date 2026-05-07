@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
 import { buildInitKibiAlias } from "./init-kibi-alias.js";
 
 export const INIT_KIBI_COMMAND_NAME = "init-kibi";
@@ -54,9 +55,17 @@ function* candidateHostRoots(startDir: string): Generator<string> {
 }
 
 function resolveDogfoodHostCapabilityInputs(
-  startDir: string,
+  startDirs: string[],
 ): InitKibiCapabilityDetectionInput | null {
-  for (const root of candidateHostRoots(startDir)) {
+  const seenRoots = new Set<string>();
+
+  for (const startDir of startDirs) {
+    for (const root of candidateHostRoots(startDir)) {
+      if (seenRoots.has(root)) {
+        continue;
+      }
+      seenRoots.add(root);
+
     const pluginPackageJsonPath = path.join(
       root,
       ".opencode",
@@ -74,25 +83,26 @@ function resolveDogfoodHostCapabilityInputs(
       "package.json",
     );
 
-    if (!fs.existsSync(pluginPackageJsonPath) || !fs.existsSync(sdkPackageJsonPath)) {
-      continue;
+      if (!fs.existsSync(pluginPackageJsonPath) || !fs.existsSync(sdkPackageJsonPath)) {
+        continue;
+      }
+
+      const pluginRoot = path.dirname(pluginPackageJsonPath);
+      const sdkRoot = path.dirname(sdkPackageJsonPath);
+      const pluginVersion = readPackageVersion(pluginPackageJsonPath);
+      const pluginHooksDts = readTextIfExists(
+        path.join(pluginRoot, "dist", "index.d.ts"),
+      );
+      const sdkTypesDts = readTextIfExists(
+        path.join(sdkRoot, "dist", "v2", "gen", "types.gen.d.ts"),
+      );
+
+      return {
+        ...(pluginVersion ? { pluginVersion } : {}),
+        ...(pluginHooksDts ? { pluginHooksDts } : {}),
+        ...(sdkTypesDts ? { sdkTypesDts } : {}),
+      };
     }
-
-    const pluginRoot = path.dirname(pluginPackageJsonPath);
-    const sdkRoot = path.dirname(sdkPackageJsonPath);
-    const pluginVersion = readPackageVersion(pluginPackageJsonPath);
-    const pluginHooksDts = readTextIfExists(
-      path.join(pluginRoot, "dist", "index.d.ts"),
-    );
-    const sdkTypesDts = readTextIfExists(
-      path.join(sdkRoot, "dist", "v2", "gen", "types.gen.d.ts"),
-    );
-
-    return {
-      ...(pluginVersion ? { pluginVersion } : {}),
-      ...(pluginHooksDts ? { pluginHooksDts } : {}),
-      ...(sdkTypesDts ? { sdkTypesDts } : {}),
-    };
   }
 
   return null;
@@ -148,7 +158,11 @@ function hasConfigCommandField(sdkTypesDts: string): boolean {
 }
 
 function resolveHostCapabilityInputs(): InitKibiCapabilityDetectionInput {
-  const dogfoodHost = resolveDogfoodHostCapabilityInputs(process.cwd());
+  const moduleDir = path.dirname(fileURLToPath(import.meta.url));
+  const dogfoodHost = resolveDogfoodHostCapabilityInputs([
+    process.cwd(),
+    moduleDir,
+  ]);
   if (dogfoodHost) {
     return dogfoodHost;
   }
