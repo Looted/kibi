@@ -34,6 +34,7 @@ import {
   copySchemaFiles,
   createConfigFile,
   createKbDirectoryStructure,
+  ensureSymbolsManifestFile,
   getCurrentBranch,
   installGitHooks,
   installHook,
@@ -147,6 +148,29 @@ describe("init-helpers", () => {
     expect(kbMatches?.length ?? 0).toBe(1);
     expect(briefsMatches?.length ?? 0).toBe(1);
   });
+
+  test("ensureSymbolsManifestFile creates the default symbols manifest", () => {
+    ensureSymbolsManifestFile(tmpDir);
+
+    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    expect(existsSync(manifestPath)).toBe(true);
+    const content = readFileSync(manifestPath, "utf8");
+    expect(content).toContain("# symbols.yaml");
+    expect(content).toContain("symbols: []");
+  });
+
+  test("ensureSymbolsManifestFile preserves an existing manifest", () => {
+    const manifestPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    mkdirSync(path.dirname(manifestPath), { recursive: true });
+    writeFileSync(manifestPath, "symbols:\n  - id: SYM-existing\n");
+
+    ensureSymbolsManifestFile(tmpDir);
+
+    expect(readFileSync(manifestPath, "utf8")).toBe(
+      "symbols:\n  - id: SYM-existing\n",
+    );
+  });
+
   test("copySchemaFiles includes sourceFile in copied schema", async () => {
     const sourceDir = path.join(tmpDir, "source");
     mkdirSync(sourceDir);
@@ -318,5 +342,12 @@ describe("init-helpers", () => {
       "utf8",
     );
     expect(postCheckoutContent).toContain("sed 's/\\^.*//'");
+
+    const preCommitContent = readFileSync(
+      path.join(hooksDir, "pre-commit"),
+      "utf8",
+    );
+    expect(preCommitContent).toContain("documentation/symbols.yaml");
+    expect(preCommitContent).toContain("git diff --quiet --");
   });
 });
