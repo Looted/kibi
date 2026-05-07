@@ -163,6 +163,11 @@ describe("config", () => {
 
       expect(config.briefs).toEqual({
         enabled: false,
+        retention: {
+          maxPerBranch: 200,
+          maxAgeDays: 14,
+          keepUnread: true,
+        },
         channels: {
           vscode: true,
           tui: false,
@@ -170,6 +175,7 @@ describe("config", () => {
         tui: {
           toast: false,
           appendPrompt: true,
+          idleDelayMs: 1500,
         },
       });
     });
@@ -505,6 +511,11 @@ describe("config", () => {
 
       expect(config.briefs).toEqual({
         enabled: false,
+        retention: {
+          maxPerBranch: 200,
+          maxAgeDays: 14,
+          keepUnread: true,
+        },
         channels: {
           vscode: false,
           tui: true,
@@ -512,6 +523,7 @@ describe("config", () => {
         tui: {
           toast: true,
           appendPrompt: false,
+          idleDelayMs: 1500,
         },
       });
     });
@@ -749,6 +761,11 @@ describe("config", () => {
     test("DEFAULT_CONFIG has briefs config", () => {
       expect(DEFAULT_CONFIG.briefs).toEqual({
         enabled: true,
+        retention: {
+          maxPerBranch: 200,
+          maxAgeDays: 14,
+          keepUnread: true,
+        },
         channels: {
           vscode: true,
           tui: true,
@@ -756,6 +773,7 @@ describe("config", () => {
         tui: {
           toast: true,
           appendPrompt: true,
+          idleDelayMs: 1500,
         },
       });
     });

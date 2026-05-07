@@ -7,6 +7,11 @@ export function loadBriefConfig(cwd: string = process.cwd()): BriefsConfig { // 
 
   return {
     enabled: briefs?.enabled ?? true,
+    retention: {
+      maxPerBranch: briefs?.retention?.maxPerBranch ?? 200,
+      maxAgeDays: briefs?.retention?.maxAgeDays ?? 14,
+      keepUnread: briefs?.retention?.keepUnread ?? true,
+    },
     channels: {
       vscode: briefs?.channels?.vscode ?? true,
       tui: briefs?.channels?.tui ?? true,
@@ -14,6 +19,7 @@ export function loadBriefConfig(cwd: string = process.cwd()): BriefsConfig { // 
     tui: {
       toast: briefs?.tui?.toast ?? true,
       appendPrompt: briefs?.tui?.appendPrompt ?? true,
+      idleDelayMs: briefs?.tui?.idleDelayMs ?? 1500,
     },
   };
 }
