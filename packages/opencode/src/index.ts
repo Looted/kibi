@@ -26,12 +26,18 @@ import {
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
+  type AuditDelta,
   type AuditCursor,
   computeAuditDelta,
   getAuditTailCursor,
   guardBranchChanged,
 } from "./idle-brief-audit.js";
-import { markBriefRead, selectLatestUnreadBrief } from "./idle-brief-reader.js";
+import {
+  hasTuiSeenBrief,
+  markBriefRead,
+  markBriefTuiSeen,
+  selectLatestUnreadBrief,
+} from "./idle-brief-reader.js";
 import { generateIdleBrief } from "./idle-brief-runtime.js";
 import * as logger from "./logger.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
@@ -64,6 +70,9 @@ import {
 } from "./tui-brief-delivery.js";
 
 type ToastCapableClient = SendToastClient & BriefToastClient;
+const IDLE_BRIEF_DELIVERY_DELAY_MS = Number(
+  process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS ?? "10000",
+);
 
 interface RecentEdit {
   path: string;
@@ -282,6 +291,7 @@ const kibiOpencodePlugin: Plugin = async (
   // Idle-brief state — dedupe via semantic contentHash (persisted envelope is the delivery authority)
   let idleBriefInFlight = false;
   let idleBriefTrailingRerun = false;
+  let idleBriefTimer: ReturnType<typeof setTimeout> | null = null;
   const idleBriefDeliveredHashes = new Set<string>();
   const replayedBriefContentHashes = new Set<string>();
   // Session-local baseline cursor: captured once per session/worktree/branch from the audit-log tail,
@@ -317,11 +327,54 @@ const kibiOpencodePlugin: Plugin = async (
     return filePath;
   }
 
-  function resolveWorktreePath(filePath: string): string {
+function resolveWorktreePath(filePath: string): string {
     return input.worktree && !path.isAbsolute(filePath)
       ? path.join(input.worktree, filePath)
       : filePath;
+}
+
+function getKbSnapshotFingerprint(worktree: string, branch: string): string {
+  try {
+    const snapshotPath = path.join(worktree, ".kb", "branches", branch, "kb.rdf");
+    const stat = fs.statSync(snapshotPath);
+    return `${stat.size}:${stat.mtimeMs}`;
+  } catch {
+    return "missing";
   }
+}
+
+function buildSyntheticSyncAuditDelta(
+  baseDelta: AuditDelta,
+  sourceFiles: string[],
+): AuditDelta {
+  const timestamp = new Date().toISOString();
+  const fileSource = sourceFiles[0] ?? "workspace-sync";
+  const entityId = path.basename(fileSource).replace(/\.md$/, "") || "workspace-sync";
+
+  return {
+    ...baseDelta,
+    hasChanges: true,
+    entries: [
+      {
+        timestamp,
+        operation: "upsert",
+        entityId,
+        payload: {
+          kind: "entity",
+          entityType: "fact",
+          changeKind: "updated",
+          title: entityId,
+          source: fileSource,
+          properties: {
+            id: entityId,
+            title: entityId,
+            source: fileSource,
+          },
+        },
+      },
+    ],
+  };
+}
 
   function getTransformFocusFilePath(transformInput: unknown): string | null {
     if (!transformInput || typeof transformInput !== "object") {
@@ -463,35 +516,53 @@ const kibiOpencodePlugin: Plugin = async (
     const activeBranch = resolveCurrentBranch(input.worktree);
     syncSessionBaseline(activeBranch);
 
-    // Handle session.idle for idle-brief generation
+    // Handle session.idle for idle-brief generation. OpenCode can emit idle
+    // while an assistant is between tool calls, so debounce until the work
+    // burst settles before generating/delivering a brief.
     if (event.type === "session.idle") {
-      if (!input.client || getMaintenanceDegraded()) return;
+      if (!input.client) return;
 
       const idleBranch = activeBranch;
       const idleWorkspaceRoot = input.worktree;
 
-      // Single-flight guard
-      if (idleBriefInFlight) {
-        idleBriefTrailingRerun = true;
-        return;
-      }
+      const runIdleBrief = async (): Promise<void> => {
+        if (idleBriefInFlight) {
+          idleBriefTrailingRerun = true;
+          return;
+        }
 
-      idleBriefInFlight = true;
-      idleBriefTrailingRerun = false;
+        idleBriefInFlight = true;
+        idleBriefTrailingRerun = false;
 
-      const runIdleBrief = async () => {
         try {
           // Gather session edits
           const sessionEdits = sessionEditState.getSessionEdits();
           const sourceFiles = sessionEdits.map((e) => e.filePath);
 
-          if (sourceFiles.length === 0) return;
+          const snapshotBeforeSync = getKbSnapshotFingerprint(
+            idleWorkspaceRoot,
+            idleBranch,
+          );
 
-          const auditDelta = computeAuditDelta(
+          if (scheduler) {
+            scheduler.scheduleSync("session.idle");
+            await scheduler.flush();
+          }
+
+          const snapshotAfterSync = getKbSnapshotFingerprint(
+            idleWorkspaceRoot,
+            idleBranch,
+          );
+
+          const rawAuditDelta = computeAuditDelta(
             idleWorkspaceRoot,
             idleBranch,
             sessionBaselineCursor,
           );
+          const auditDelta =
+            rawAuditDelta.hasChanges || snapshotBeforeSync === snapshotAfterSync
+              ? rawAuditDelta
+              : buildSyntheticSyncAuditDelta(rawAuditDelta, sourceFiles);
 
           if (!auditDelta.hasChanges) return;
 
@@ -521,7 +592,9 @@ const kibiOpencodePlugin: Plugin = async (
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
-            { sourceFiles, changedEntityIds },
+            sourceFiles.length > 0
+              ? { sourceFiles, changedEntityIds }
+              : { changedEntityIds },
           );
 
           if (result.success && result.envelope) {
@@ -542,8 +615,21 @@ const kibiOpencodePlugin: Plugin = async (
                     sharedPolicy,
                     localConfig,
                   );
-                  if (deliveryResult.delivered && result.briefPath) {
-                    markBriefRead(idleWorkspaceRoot, result.briefPath);
+                  const shouldMarkReadAfterTuiDelivery =
+                    !sharedPolicy.briefs.channels.vscode;
+                  if (
+                    deliveryResult.delivered &&
+                    result.briefPath
+                  ) {
+                    if (shouldMarkReadAfterTuiDelivery) {
+                      markBriefRead(idleWorkspaceRoot, result.briefPath);
+                    }
+                    markBriefTuiSeen(
+                      idleWorkspaceRoot,
+                      idleBranch,
+                      envelope.contentHash,
+                    );
+                    replayedBriefContentHashes.add(envelope.contentHash);
                   }
                 } catch (err) {
                   logger.error("idle-brief.delivery-failed", {
@@ -575,8 +661,13 @@ const kibiOpencodePlugin: Plugin = async (
         }
       };
 
-      // Fire-and-forget: do NOT await
-      void runIdleBrief();
+      if (idleBriefTimer) {
+        clearTimeout(idleBriefTimer);
+      }
+      idleBriefTimer = setTimeout(() => {
+        idleBriefTimer = null;
+        void runIdleBrief();
+      }, IDLE_BRIEF_DELIVERY_DELAY_MS);
       return;
     }
 
@@ -586,6 +677,10 @@ const kibiOpencodePlugin: Plugin = async (
       event.type === "file.edited" ||
       event.type === "file.deleted";
     if (!isFileLifecycle) return;
+    if (idleBriefTimer) {
+      clearTimeout(idleBriefTimer);
+      idleBriefTimer = null;
+    }
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
     if (!filePath) return;
@@ -1102,7 +1197,12 @@ const kibiOpencodePlugin: Plugin = async (
           );
           if (
             unreadBrief &&
-            !replayedBriefContentHashes.has(unreadBrief.envelope.contentHash)
+            !replayedBriefContentHashes.has(unreadBrief.envelope.contentHash) &&
+            !hasTuiSeenBrief(
+              input.worktree,
+              currentBranch,
+              unreadBrief.envelope.contentHash,
+            )
           ) {
             const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
             const localConfig = {
@@ -1116,8 +1216,17 @@ const kibiOpencodePlugin: Plugin = async (
                 sharedPolicy,
                 localConfig,
               );
+              const shouldMarkReadAfterTuiDelivery =
+                !sharedPolicy.briefs.channels.vscode;
               if (deliveryResult.delivered) {
-                markBriefRead(input.worktree, unreadBrief.filePath);
+                if (shouldMarkReadAfterTuiDelivery) {
+                  markBriefRead(input.worktree, unreadBrief.filePath);
+                }
+                markBriefTuiSeen(
+                  input.worktree,
+                  currentBranch,
+                  unreadBrief.envelope.contentHash,
+                );
                 replayedBriefContentHashes.add(
                   unreadBrief.envelope.contentHash,
                 );

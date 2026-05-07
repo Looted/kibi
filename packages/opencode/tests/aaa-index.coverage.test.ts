@@ -362,7 +362,8 @@ We assert that the response should return success.
         scheduleSync: () => {},
         onFileEdited: () => {},
         onToolExecuteAfter: () => {},
-        dispose: () => {},
+      flush: async () => {},
+      dispose: () => {},
       };
     };
 
@@ -417,6 +418,7 @@ We assert that the response should return success.
       },
       onFileEdited: () => {},
       onToolExecuteAfter: () => {},
+      flush: async () => {},
       dispose: () => {},
     });
 
@@ -479,6 +481,7 @@ We assert that the response should return success.
       },
       onFileEdited: () => {},
       onToolExecuteAfter: () => {},
+      flush: async () => {},
       dispose: () => {},
     });
 
