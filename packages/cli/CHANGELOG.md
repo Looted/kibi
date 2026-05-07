@@ -1,5 +1,19 @@
 # kibi-cli
 
+## 0.7.0
+
+### Minor Changes
+
+- b9ef9a2: Add shared brief configuration defaults for automatic TUI delivery across Kibi clients. The CLI now reads and exposes brief config from `.kb/config.json` with sensible boolean defaults (all enabled), the OpenCode plugin delivers idle brief summaries via toast notification with automatic prompt append and auto-submit, and the VS Code extension gates notifications by the shared brief policy. This provides a unified, zero-config experience for teams using multiple Kibi clients.
+- 736f675: Add the interactive cold-start bootstrap flow and its regression coverage so the public MCP surface, OpenCode prompt wiring, and extractor exports stay in sync.
+
+### Patch Changes
+
+- 7ed9f0c: Ensure `kibi init` writes `.kb/briefs/` to `.gitignore` so generated brief artifacts are ignored by default.
+- a1a198b: Add configurable idle-brief delay and retention policies in shared `.kb/config.json` (`briefs.tui.idleDelayMs` and `briefs.retention.*`). OpenCode now applies retention garbage collection after brief writes and prunes stale `.tui-seen` hashes for briefs that were deleted by retention.
+- Updated dependencies [699a482]
+  - kibi-core@0.5.2
+
 ## 0.6.2
 
 ### Patch Changes

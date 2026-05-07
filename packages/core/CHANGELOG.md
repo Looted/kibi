@@ -1,5 +1,11 @@
 # kibi-core
 
+## 0.5.2
+
+### Patch Changes
+
+- 699a482: Create append-only contract documentation and release metadata for the Kibi briefing schema-2.0 session-delta migration. This update introduces high-fidelity change tracking anchored to the session start, prioritized change narratives for MCP-cited entities, and deterministic filename-based brief selection for VS Code.
+
 ## 0.5.1
 
 ### Patch Changes

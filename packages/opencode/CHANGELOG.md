@@ -1,5 +1,40 @@
 # kibi-opencode
 
+## 0.10.0
+
+### Minor Changes
+
+- b9ef9a2: Add shared brief configuration defaults for automatic TUI delivery across Kibi clients. The CLI now reads and exposes brief config from `.kb/config.json` with sensible boolean defaults (all enabled), the OpenCode plugin delivers idle brief summaries via toast notification with automatic prompt append and auto-submit, and the VS Code extension gates notifications by the shared brief policy. This provides a unified, zero-config experience for teams using multiple Kibi clients.
+- 736f675: Add the interactive cold-start bootstrap flow and its regression coverage so the public MCP surface, OpenCode prompt wiring, and extractor exports stay in sync.
+- 3dd2c56: Document the native `/init-kibi` alias as a thin OpenCode UX wrapper over the existing MCP bootstrap workflow. When the plugin supports native command injection, `/init-kibi` is the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced fallback, and unsupported hosts fail closed with explicit guidance instead of pretending the alias exists.
+
+### Patch Changes
+
+- a1a198b: Add configurable idle-brief delay and retention policies in shared `.kb/config.json` (`briefs.tui.idleDelayMs` and `briefs.retention.*`). OpenCode now applies retention garbage collection after brief writes and prunes stale `.tui-seen` hashes for briefs that were deleted by retention.
+- 699a482: Create append-only contract documentation and release metadata for the Kibi briefing schema-2.0 session-delta migration. This update introduces high-fidelity change tracking anchored to the session start, prioritized change narratives for MCP-cited entities, and deterministic filename-based brief selection for VS Code.
+- efdacbc: Session-local baseline counts, semantic content-hash dedupe, compact promptBlock fallback, richer envelope fields, and VS Code popup-first UX. The OpenCode plugin now scopes audit deltas to the current session instead of cumulative branch totals, deduplicates briefs by normalized visible-content hash rather than briefId, and surfaces constraints, regression risks, and missing evidence in the envelope. The MCP server gracefully degrades the prompt block with compact truncation instead of returning empty content when over budget.
+- 7bcd57e: Improve idle-brief delivery timing and deduplication across OpenCode TUI and VS Code channels. The OpenCode plugin now syncs before idle briefing, waits for the idle work burst to settle, handles sync-only KB changes, and persists TUI-seen brief hashes so delivered briefs do not replay after restart while VS Code can still receive unread brief files.
+- 3aad975: Document render-first idle briefing behavior and mark deprecated config keys. The OpenCode and VS Code READMEs now reflect the shift from notification-based delivery to render-first briefings. Several legacy configuration knobs (`briefs.tui.toast`, `briefs.tui.appendPrompt`, `ux.briefs.autoSubmit`) are now marked as deprecated/no-op for idle rendering while remaining parseable for compatibility. Shared channel gating in `.kb/config.json` remains the authoritative source of truth.
+- 4000488: Improve briefing reliability for programmatic file edits by adding session-delta reconciliation. The plugin now detects risky edits via both the `file.edited` event fast-path and a prompt-cycle fallback that reconciles the current session scope before building guidance. This ensures briefings are available even when programmatic Edit/Write tools bypass the host event bus.
+- 4fe5c7e: Fix OpenCode toast delivery and structured logging behavior:
+
+  - Remove raw HTTP `fetch()` fallback to `/tui/show-toast` and all associated `[KIBI-TRACE]` console.error noise from the toast transport path.
+  - Repair `sendToast()` to use the official OpenCode SDK contract: prefers legacy `client.tui.toast(payload)` when available, otherwise uses `client.tui.showToast({ body: payload })`.
+  - Add discriminated `SendToastResult` union (`delivered`, `unavailable`, `failed`) for explicit, testable toast outcomes.
+  - Fix `makeToastClient()` to preserve bound TUI methods (`toast` and `showToast`) so `this` context is not lost.
+  - Align logger contract: `info()` and `warn()` remain terminal-silent even when `client.app.log()` rejects; `error()` emits exactly one prefixed `console.error` without secondary spam from structured log rejection.
+  - Update startup notifier to log truthful structured outcomes (`startup toast delivered`, `startup toast unavailable`, `startup toast delivery failed`) instead of `result: String(undefined)`.
+  - Remove `serverUrl` parameter from toast call chains and `PluginInput` interface.
+  - Add regression coverage at unit level (`packages/opencode/tests/toast.test.ts`) and built-artifact level (`documentation/tests/e2e/opencode-plugin-local.test.ts`).
+  - Update README and DEV.md to document the repaired toast and logging contracts.
+
+- Improve user-facing briefing delivery to emphasize domain-impact prose over operator metadata. This removes low-value sections (session/unread/next-step style cues), introduces consistent narrative sections (what changed, why it matters, project knowledge impact), and updates TUI/VSCode rendering to keep interpretation notes descriptive rather than directive.
+- Updated dependencies [b9ef9a2]
+- Updated dependencies [7ed9f0c]
+- Updated dependencies [a1a198b]
+- Updated dependencies [736f675]
+  - kibi-cli@0.7.0
+
 ## 0.9.0
 
 ### Minor Changes
