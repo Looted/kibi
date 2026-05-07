@@ -48,9 +48,17 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Modeling Rules (Current Standard)
 
+- Canonical entity types (all eight): `req`, `scenario`, `test`, `adr`, `flag`, `event`, `symbol`, `fact`.
 - Canonical traceability chain: `REQ-* -> SCEN-* -> TEST-*`.
 - Prefer typed relationships (`specified_by`, `verified_by`, `validates`, `implements`, `covered_by`, `executable_for`, etc.).
 - Plain string `links` import as generic `relates_to` only.
+
+### Canonical entity-choice rule
+
+- `flag` = runtime/config gate.
+- `fact` = issue evidence lane (bug, workaround, incident notes), especially `fact_kind: observation` and `fact_kind: meta`.
+- Do not use `flag` for bug/workaround records without an actual gate.
+- When both a gate and issue note exist, use a paired model: `flag` for the gate + `fact` for the bug/workaround evidence.
 
 ### Strict fact lane (contradiction-safe requirements)
 
@@ -60,6 +68,7 @@ For normative requirements that should participate in contradiction checks:
 
 For bugs/workarounds/governance notes:
 - Use `fact` with `fact_kind: observation` or `meta` (non-blocking lane)
+- For each bug/workaround note, prefer `observation` or `meta` fact kinds
 - Do **not** model bug records as `flag` unless there is an actual runtime/config gate
 
 Requirement semantic evolution is append-only:
