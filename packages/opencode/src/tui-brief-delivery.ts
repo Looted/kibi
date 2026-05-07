@@ -45,6 +45,99 @@ export type DeliverResult = {
   delivered: boolean;
 };
 
+function firstNonEmpty(...values: Array<string | undefined>): string {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) {
+      return trimmed;
+    }
+  }
+  return "Knowledge updates were recorded in this brief.";
+}
+
+function defaultWhyItMatters(): string {
+  return "This update changes how the project knowledge should be interpreted and applied.";
+}
+
+function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
+  const lines: string[] = [];
+  const whatChanged =
+    envelope.schemaVersion === "2.0"
+      ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
+      : [];
+
+  lines.push("## What changed");
+  if (whatChanged.length > 0) {
+    lines.push(...whatChanged.slice(0, 2));
+  } else if (envelope.schemaVersion === "2.0") {
+    const fallbackEntity =
+      envelope.changes.entities.modified[0] ?? envelope.changes.entities.added[0];
+    if (fallbackEntity) {
+      const action = envelope.changes.entities.modified[0] ? "Modified" : "Added";
+      lines.push(`${action} ${fallbackEntity.id}: ${fallbackEntity.title ?? "Untitled"}`);
+    } else {
+      lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+    }
+  } else {
+    lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+  }
+  lines.push("");
+
+  lines.push("## Why it matters");
+  lines.push(firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()));
+  lines.push("");
+
+  const hasKnowledgeImpact =
+    envelope.briefing.citations.length > 0 ||
+    (envelope.briefing.constraints?.length ?? 0) > 0 ||
+    (envelope.briefing.regressionRisks?.length ?? 0) > 0;
+
+  if (hasKnowledgeImpact) {
+    lines.push("## Project knowledge impact");
+    if (envelope.briefing.citations.length > 0) {
+      for (const citation of envelope.briefing.citations) {
+        lines.push(
+          `- **${citation.id}**${citation.title ? `: ${citation.title}` : ""}${citation.source ? ` (${citation.source})` : ""}`,
+        );
+      }
+    }
+    if ((envelope.briefing.constraints?.length ?? 0) > 0) {
+      for (const constraint of envelope.briefing.constraints ?? []) {
+        lines.push(`- ${constraint.statement}`);
+      }
+    }
+    if ((envelope.briefing.regressionRisks?.length ?? 0) > 0) {
+      for (const risk of envelope.briefing.regressionRisks ?? []) {
+        lines.push(`- ${risk.statement}`);
+      }
+    }
+    lines.push("");
+  }
+
+  const hasMissingEvidence = (envelope.briefing.missingEvidence?.length ?? 0) > 0;
+  if (envelope.validation.count > 0 || hasMissingEvidence) {
+    lines.push("## Interpretation note");
+    if (envelope.validation.count > 0) {
+      lines.push(
+        `Validation checks reported unresolved items: ${envelope.validation.count} issue(s).`,
+      );
+    }
+    if (hasMissingEvidence) {
+      lines.push("This brief includes unresolved evidence notes:");
+      for (const item of envelope.briefing.missingEvidence ?? []) {
+        lines.push(`- ${item.statement}`);
+      }
+    }
+    lines.push("");
+  }
+
+  while (lines.length > 0 && lines[lines.length - 1] === "") {
+    lines.pop();
+  }
+
+  return lines.join("\n");
+}
+
 /**
  * Delivers a Kibi briefing to the TUI via toast notification.
  *
@@ -77,53 +170,13 @@ export async function deliverBriefTui(
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
     try {
-      const summaryLine =
-        envelope.summary || envelope.briefing.tldr || "Brief available";
-      const toastLines = [summaryLine];
-
-      if (envelope.schemaVersion === "2.0") {
-        const narrativeLines = envelope.briefing.changeNarrative
-          .map((line) => line.trim())
-          .filter(Boolean)
-          .slice(0, 2);
-
-        if (narrativeLines.length > 0) {
-          toastLines.push(...narrativeLines);
-        } else {
-          const fallbackEntity =
-            envelope.changes.entities.modified[0] ??
-            envelope.changes.entities.added[0];
-          if (fallbackEntity) {
-            const action = envelope.changes.entities.modified[0]
-              ? "Modified"
-              : "Added";
-            toastLines.push(
-              `${action} ${fallbackEntity.id}: ${fallbackEntity.title ?? "Untitled"}`,
-            );
-          }
-        }
-      }
-
-      if (envelope.validation.count > 0) {
-        toastLines.push(`⚠️ Validation: ${envelope.validation.count} issue(s)`);
-      }
-      if (envelope.briefing.citations.length > 0) {
-        toastLines.push(`📎 ${envelope.briefing.citations.length} citation(s)`);
-      }
-      if (
-        envelope.schemaVersion === "1.0" &&
-        (envelope.briefing.missingEvidence?.length ?? 0) > 0
-      ) {
-        toastLines.push(
-          `❓ Missing evidence: ${envelope.briefing.missingEvidence?.length} item(s)`,
-        );
-      }
+      const message = buildTuiBriefMessage(envelope);
 
       await tui.showToast({
         body: {
           variant: envelope.type === "warning" ? "warning" : "info",
-          title: "Kibi Brief",
-          message: toastLines.join("\n"),
+          title: "Kibi Knowledge Update",
+          message,
           duration: 8000,
         },
       });

@@ -328,7 +328,7 @@ describe("fetchBriefingResult", () => {
     assert.deepEqual(result, {
       state: "tldr_fallback",
       promptBlock:
-        "- Linked requirements were found.\n- Full details: run /brief-kibi.",
+        "- What changed: Linked requirements were found.\n- Why it matters: This update changes how current project knowledge should be interpreted.",
       tldr: "Linked requirements were found.",
       citations: [],
       showManualCue: true,

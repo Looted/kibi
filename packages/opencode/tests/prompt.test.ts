@@ -1254,7 +1254,7 @@ describe("auto-brief prompt rendering", () => {
       autoBriefResult: makeAutoBriefResult({
         state: "tldr_fallback",
         promptBlock:
-          "- Session rules summary\n- Full details: run /brief-kibi.",
+          "- What changed: Session rules summary\n- Why it matters: This update changes how current project knowledge should be interpreted.",
         toastMessage:
           "Kibi brief summary added — use /brief-kibi for full details.",
       }),
@@ -1265,7 +1265,7 @@ describe("auto-brief prompt rendering", () => {
       "Should render the fallback auto-brief header",
     );
     assert.ok(
-      p.includes("- Session rules summary"),
+      p.includes("- What changed: Session rules summary"),
       "Should render the TLDR fallback content",
     );
     assert.ok(
