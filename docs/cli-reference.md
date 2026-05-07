@@ -11,12 +11,14 @@ Initializes a kibi project in the current directory.
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
 - Adds `.kb/` and `.kb/briefs/` to `.gitignore`
 - Creates default `config.json` with document path patterns
+- Creates `documentation/symbols.yaml` when it does not already exist
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
 
 **Notes:**
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
+- The pre-commit hook blocks commits when `documentation/symbols.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
 - Idempotent: safe to run multiple times
 - After running, see the quick start guide in README.md for next steps
 
