@@ -66,28 +66,43 @@ function resolveDogfoodHostCapabilityInputs(
       }
       seenRoots.add(root);
 
-    const pluginPackageJsonPath = path.join(
-      root,
-      ".opencode",
-      "node_modules",
-      "@opencode-ai",
-      "plugin",
-      "package.json",
-    );
-    const sdkPackageJsonPath = path.join(
-      root,
-      ".opencode",
-      "node_modules",
-      "@opencode-ai",
-      "sdk",
-      "package.json",
-    );
-
-      if (!fs.existsSync(pluginPackageJsonPath) || !fs.existsSync(sdkPackageJsonPath)) {
+      const pluginPackageJsonPath = path.join(
+        root,
+        ".opencode",
+        "node_modules",
+        "@opencode-ai",
+        "plugin",
+        "package.json",
+      );
+      if (!fs.existsSync(pluginPackageJsonPath)) {
         continue;
       }
 
       const pluginRoot = path.dirname(pluginPackageJsonPath);
+      const sdkPackageJsonCandidates = [
+        path.join(
+          root,
+          ".opencode",
+          "node_modules",
+          "@opencode-ai",
+          "sdk",
+          "package.json",
+        ),
+        path.join(
+          pluginRoot,
+          "node_modules",
+          "@opencode-ai",
+          "sdk",
+          "package.json",
+        ),
+      ];
+      const sdkPackageJsonPath = sdkPackageJsonCandidates.find((candidate) =>
+        fs.existsSync(candidate),
+      );
+      if (!sdkPackageJsonPath) {
+        continue;
+      }
+
       const sdkRoot = path.dirname(sdkPackageJsonPath);
       const pluginVersion = readPackageVersion(pluginPackageJsonPath);
       const pluginHooksDts = readTextIfExists(
