@@ -399,6 +399,157 @@ describe("idle-brief-runtime", () => {
       }
     });
 
+    it("prunes old brief files based on retention config", async () => {
+      const kbDir = path.join(tempDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          briefs: {
+            retention: {
+              maxPerBranch: 2,
+              maxAgeDays: 365,
+              keepUnread: true,
+            },
+          },
+        }),
+        "utf-8",
+      );
+
+      const briefsDir = resolveBriefsDir(tempDir);
+      fs.writeFileSync(
+        path.join(briefsDir, "1000_brief.json"),
+        JSON.stringify({ branch: "main", unread: false }),
+        "utf-8",
+      );
+      fs.writeFileSync(
+        path.join(briefsDir, "2000_brief.json"),
+        JSON.stringify({ branch: "main", unread: false }),
+        "utf-8",
+      );
+      fs.writeFileSync(
+        path.join(briefsDir, "3000_brief.json"),
+        JSON.stringify({ branch: "main", unread: false }),
+        "utf-8",
+      );
+
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("REQ-PRUNE", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+          title: "Prune trigger",
+        }),
+      ]);
+
+      const client = createMockClient(
+        { violations: [], count: 0, diagnostics: [] },
+        {
+          briefingState: "ready",
+          tldr: "prune test",
+          promptBlock: "",
+          citations: [],
+        },
+      );
+
+      const result = await generateIdleBrief(
+        client,
+        workspaceCtx,
+        auditDelta,
+        "session-prune",
+      );
+
+      expect(result.success).toBe(true);
+      const files = fs
+        .readdirSync(briefsDir)
+        .filter((file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"));
+      expect(files.length).toBeLessThanOrEqual(2);
+    });
+
+    it("prunes stale tui seen hashes for deleted briefs", async () => {
+      const kbDir = path.join(tempDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({
+          briefs: {
+            retention: {
+              maxPerBranch: 1,
+              maxAgeDays: 365,
+              keepUnread: true,
+            },
+          },
+        }),
+        "utf-8",
+      );
+
+      const briefsDir = resolveBriefsDir(tempDir);
+      fs.writeFileSync(
+        path.join(briefsDir, "1000_brief.json"),
+        JSON.stringify({ branch: "main", unread: false, contentHash: "old-hash" }),
+        "utf-8",
+      );
+      fs.writeFileSync(
+        path.join(briefsDir, "2000_brief.json"),
+        JSON.stringify({ branch: "main", unread: false, contentHash: "new-hash" }),
+        "utf-8",
+      );
+      fs.writeFileSync(
+        path.join(briefsDir, ".tui-seen.json"),
+        JSON.stringify({ main: ["old-hash", "new-hash"], develop: ["other"] }),
+        "utf-8",
+      );
+
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("REQ-PRUNE-SEEN", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+          title: "Prune seen trigger",
+        }),
+      ]);
+
+      const client = createMockClient(
+        { violations: [], count: 0, diagnostics: [] },
+        {
+          briefingState: "ready",
+          tldr: "prune seen test",
+          promptBlock: "",
+          citations: [],
+        },
+      );
+
+      const result = await generateIdleBrief(
+        client,
+        workspaceCtx,
+        auditDelta,
+        "session-prune-seen",
+      );
+
+      expect(result.success).toBe(true);
+      const seen = JSON.parse(
+        fs.readFileSync(path.join(briefsDir, ".tui-seen.json"), "utf-8"),
+      ) as { main?: string[]; develop?: string[] };
+      const remainingHashes = fs
+        .readdirSync(briefsDir)
+        .filter((file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"))
+        .map((file) => {
+          const parsed = JSON.parse(
+            fs.readFileSync(path.join(briefsDir, file), "utf-8"),
+          ) as { contentHash?: string };
+          return parsed.contentHash;
+        })
+        .filter((hash): hash is string => typeof hash === "string");
+      expect(seen.main).toBeDefined();
+      expect(seen.main?.includes("old-hash")).toBe(false);
+      for (const hash of seen.main ?? []) {
+        expect(remainingHashes.includes(hash)).toBe(true);
+      }
+      expect(seen.develop).toEqual(["other"]);
+    });
+
     it("computes content hash for deduplication", async () => {
       const workspaceCtx = createWorkspaceCtx(tempDir);
       const auditDelta = createAuditDelta([
