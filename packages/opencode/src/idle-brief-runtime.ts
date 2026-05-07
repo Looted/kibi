@@ -3,7 +3,11 @@
 import { buildBriefingContext } from "./brief-intent.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
-import { atomicWriteBrief, resolveBriefFilePath } from "./idle-brief-paths.js";
+import {
+  atomicWriteBrief,
+  pruneOldBriefs,
+  resolveBriefFilePath,
+} from "./idle-brief-paths.js";
 import {
   type IdleBriefEnvelope,
   type IdleBriefEnvelopeV2,
@@ -333,11 +337,14 @@ async function loadBriefingResultForIdle(
 
 function computeCounts(auditDelta: AuditDelta): IdleBriefEnvelopeV2["counts"] {
   const reconciled = reconcileAuditEntries(auditDelta.entries);
+  const added = reconciled.added.filter((item) => item.id !== "workspace-sync");
+  const modified = reconciled.modified.filter((item) => item.id !== "workspace-sync");
+  const removed = reconciled.removed.filter((item) => item.id !== "workspace-sync");
 
   return {
-    entitiesAdded: reconciled.added.length,
-    entitiesModified: reconciled.modified.length,
-    entitiesRemoved: reconciled.removed.length,
+    entitiesAdded: added.length,
+    entitiesModified: modified.length,
+    entitiesRemoved: removed.length,
     relationshipsChanged: reconciled.relationshipsChanged,
   };
 }
@@ -400,16 +407,19 @@ function humanizeEntityType(type: string): string {
 
 function buildChangeNarrative(auditDelta: AuditDelta): string[] {
   const reconciled = reconcileAuditEntries(auditDelta.entries);
+  const added = reconciled.added.filter((item) => item.id !== "workspace-sync");
+  const modified = reconciled.modified.filter((item) => item.id !== "workspace-sync");
+  const removed = reconciled.removed.filter((item) => item.id !== "workspace-sync");
   const lines = [
-    ...reconciled.added.map(
+    ...added.map(
       (item) =>
         `Added ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
     ),
-    ...reconciled.modified.map(
+    ...modified.map(
       (item) =>
         `Modified ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
     ),
-    ...reconciled.removed.map(
+    ...removed.map(
       (item) =>
         `Removed ${humanizeEntityType(item.type)} ${item.id}${item.title ? `: ${item.title}` : ""}`,
     ),
@@ -591,6 +601,7 @@ export async function generateIdleBrief(
       JSON.stringify(envelope, null, 2),
     );
     briefPath = resolveBriefFilePath(workspaceCtx.workspaceRoot, timestamp);
+    pruneOldBriefs(workspaceCtx.workspaceRoot, workspaceCtx.branch);
   } catch {
     // still return envelope
   }
