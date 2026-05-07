@@ -2,9 +2,8 @@
  * Tree view registration utilities for Kibi VS Code extension
  */
 import * as vscode from "vscode";
+import { KIBI_REFRESH_TREE_COMMAND, KIBI_VIEW_ID } from "../extensionIds";
 import { KibiTreeDataProvider } from "../treeProvider";
-
-const KIBI_VIEW_ID = "kibi-knowledge-base";
 
 export interface TreeViewRegistrationResult {
   treeDataProvider: KibiTreeDataProvider;
@@ -32,7 +31,7 @@ export function registerTreeView(
   output.appendLine(`Tree view registered: ${KIBI_VIEW_ID}`);
 
   const refreshCommand = vscode.commands.registerCommand(
-    "kibi.refreshTree",
+    KIBI_REFRESH_TREE_COMMAND,
     () => {
       treeDataProvider.refresh();
     },

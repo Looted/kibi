@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -74,6 +74,10 @@
     "./public/check-types": {
       "types": "./dist/public/check-types.d.ts",
       "default": "./dist/public/check-types.js"
+    },
+    "./brief-config": {
+      "types": "./dist/public/brief-config.d.ts",
+      "default": "./dist/public/brief-config.js"
     }
   },
   "types": "./dist/cli.d.ts",
@@ -84,7 +88,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.5.1",
+    "kibi-core": "^0.5.2",
     "ts-morph": "^23.0.0"
   },
   "devDependencies": {

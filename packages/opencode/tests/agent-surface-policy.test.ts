@@ -36,16 +36,23 @@ describe("agent surface policy", () => {
     "documentation/requirements/REQ-opencode-kibi-briefing-v2.md",
     "documentation/requirements/REQ-opencode-agent-mcp-only.md",
     "documentation/requirements/REQ-opencode-smart-enforcement-v1.md",
+    "documentation/requirements/REQ-opencode-file-context-guidance-v1.md",
+
     "documentation/scenarios/SCEN-010.md",
     "documentation/scenarios/SCEN-opencode-enforcement.md",
     "documentation/scenarios/SCEN-opencode-agent-mcp-only.md",
-    "documentation/scenarios/SCEN-opencode-smart-enforcement.md",
+    "documentation/scenarios/SCEN-opencode-file-context-guidance-v1.md",
     "documentation/scenarios/SCEN-opencode-kibi-briefing-v2.md",
     "documentation/tests/TEST-opencode-kibi-plugin-v1.md",
     "documentation/tests/TEST-opencode-kibi-briefing-v2.md",
-    "documentation/tests/TEST-opencode-agent-mcp-only.md",
+    "documentation/tests/TEST-opencode-smart-enforcement.md",
+    "documentation/tests/TEST-opencode-file-context-guidance-v1.md",
     "documentation/tests/TEST-opencode-smart-enforcement.md",
     "documentation/adr/ADR-019.md",
+    "documentation/requirements/REQ-opencode-kibi-briefing-v3.md",
+    "documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md",
+    "documentation/tests/TEST-opencode-kibi-briefing-v3.md",
+    "documentation/adr/ADR-020.md",
   ];
 
   // Forbidden CLI commands - these should never appear in agent-facing guidance
@@ -66,11 +73,17 @@ describe("agent surface policy", () => {
     "documentation/requirements/REQ-opencode-kibi-briefing-v2.md",
     "documentation/requirements/REQ-opencode-agent-mcp-only.md",
     "documentation/requirements/REQ-opencode-smart-enforcement-v1.md",
+    "documentation/requirements/REQ-opencode-file-context-guidance-v1.md",
     "documentation/scenarios/SCEN-opencode-kibi-plugin-v1.md",
     "documentation/scenarios/SCEN-opencode-kibi-briefing-v2.md",
     "documentation/scenarios/SCEN-opencode-agent-mcp-only.md",
+    "documentation/scenarios/SCEN-opencode-file-context-guidance-v1.md",
     "documentation/scenarios/SCEN-opencode-smart-enforcement.md",
     "documentation/adr/ADR-018.md",
+    "documentation/requirements/REQ-opencode-kibi-briefing-v3.md",
+    "documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md",
+    "documentation/tests/TEST-opencode-kibi-briefing-v3.md",
+    "documentation/adr/ADR-020.md",
   ];
 
   for (const relativePath of agentFacingFiles) {
@@ -122,7 +135,9 @@ describe("agent surface policy", () => {
 
       // Verify /init-kibi is present if the file discusses bootstrap
       if (content.includes("bootstrap") || content.includes("init")) {
-        const hasAllowedCmd = allowedCommands.some((cmd) => content.includes(cmd));
+        const hasAllowedCmd = allowedCommands.some((cmd) =>
+          content.includes(cmd),
+        );
         const hasNoKibiRefs =
           !content.includes("kibi") && !content.includes("KB");
         const msg = `${relativePath} discusses bootstrap but does not mention a sanctioned slash command. Agent-facing files should guide users to sanctioned slash commands such as /init-kibi.`;

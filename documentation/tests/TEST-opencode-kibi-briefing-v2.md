@@ -1,9 +1,9 @@
 ---
 id: TEST-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefings v2 Verification"
-status: pending
+status: passing
 created_at: 2026-04-23T00:00:00Z
-updated_at: 2026-04-23T14:52:50Z
+updated_at: 2026-04-24T09:15:00Z
 source: documentation/tests/TEST-opencode-kibi-briefing-v2.md
 priority: must
 tags:
@@ -28,3 +28,11 @@ Automated and manual verification for the OpenCode Kibi Briefings v2 contract:
 6. **Transform Text-Only Guarantee**: Verify that `experimental.chat.system.transform` remains a text-only hook and does not attempt live tool execution or rich object injection.
 7. **Manual Path Preservation**: Verify that `/brief-kibi` remains functional even after an auto-briefing has been displayed.
 8. **Surface Policy Compliance**: Verify that v2 documentation files are included in the `agent-surface-policy.test.ts` coverage if applicable, and that they do not contain forbidden CLI commands.
+### Verified By
+| Test File | Description |
+|-----------|-------------|
+| `packages/opencode/tests/brief-intent.test.ts` | Intent detection for briefing activation |
+| `packages/opencode/tests/briefing-auto-render.test.ts` | Auto-render and prompt injection logic |
+| `packages/opencode/tests/prompt.test.ts` | Prompt transformation and block rendering |
+| `packages/opencode/tests/index.test.ts` | General plugin integration tests |
+| `packages/opencode/tests/agent-surface-policy.test.ts` | Compliance with agent-facing surface policy |

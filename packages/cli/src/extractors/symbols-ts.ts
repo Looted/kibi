@@ -21,9 +21,16 @@ import {
   type ClassDeclaration,
   type Node,
   Project,
+  ScriptKind,
   type SourceFile,
   type VariableDeclaration,
 } from "ts-morph";
+import type {
+  SourceAnalysisProvider,
+  SourceAnalysisResult,
+  SourceSymbolAnalysis,
+  SourceSymbolKind,
+} from "./symbols-coordinator.js";
 
 export interface SymbolCoordinates {
   sourceLine: number;
@@ -56,6 +63,38 @@ const SUPPORTED_SOURCE_EXTENSIONS = new Set([
   ".mjs",
   ".cjs",
 ]);
+
+// implements REQ-001
+export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
+  const project = new Project({
+    skipAddingFilesFromTsConfig: true,
+  });
+
+  return {
+    id: "ts-morph",
+    supportsFile(filePath: string): boolean {
+      return SUPPORTED_SOURCE_EXTENSIONS.has(path.extname(filePath).toLowerCase());
+    },
+    analyzeText(filePath: string, content: string): SourceAnalysisResult {
+      const sourceFile = project.createSourceFile(filePath, content, {
+        overwrite: true,
+        scriptKind: chooseScriptKind(filePath),
+      });
+
+      return {
+        sourceFile: filePath,
+        language: inferSourceLanguage(filePath),
+        providerId: "ts-morph",
+        module: {
+          title: inferModuleTitle(filePath),
+          language: inferSourceLanguage(filePath),
+          analysisMode: "parser",
+        },
+        symbols: collectSourceSymbols(sourceFile),
+      };
+    },
+  };
+}
 
 export async function enrichSymbolCoordinatesWithTsMorph(
   entries: ManifestSymbolEntry[],
@@ -208,6 +247,151 @@ async function enrichWithTextFallbackInternal(
   } catch {
     return entry;
   }
+}
+
+function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
+  const symbols: SourceSymbolAnalysis[] = [];
+
+  for (const decl of sourceFile.getFunctions()) {
+    if (!decl.isExported()) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        decl.getName() ?? "<anonymous>",
+        "function",
+        decl.getNameNode() ?? decl,
+        decl,
+        `${decl.getFullText()}\n${decl
+          .getJsDocs()
+          .map((doc) => doc.getFullText())
+          .join("\n")}`,
+      ),
+    );
+  }
+
+  for (const decl of sourceFile.getClasses()) {
+    if (!decl.isExported()) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        decl.getName() ?? "<anonymous>",
+        "class",
+        decl.getNameNode() ?? decl,
+        decl,
+        `${decl.getText()}\n${decl
+          .getJsDocs()
+          .map((doc) => doc.getFullText())
+          .join("\n")}`,
+      ),
+    );
+  }
+
+  for (const decl of sourceFile.getInterfaces()) {
+    if (!decl.isExported()) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        decl.getName() ?? "<anonymous>",
+        "interface",
+        decl.getNameNode() ?? decl,
+        decl,
+        decl.getText(),
+      ),
+    );
+  }
+
+  for (const decl of sourceFile.getTypeAliases()) {
+    if (!decl.isExported()) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        decl.getName() ?? "<anonymous>",
+        "type",
+        decl.getNameNode() ?? decl,
+        decl,
+        decl.getText(),
+      ),
+    );
+  }
+
+  for (const decl of sourceFile.getEnums()) {
+    if (!decl.isExported()) continue;
+    symbols.push(
+      toSourceSymbolAnalysis(
+        sourceFile,
+        decl.getName() ?? "<anonymous>",
+        "enum",
+        decl.getNameNode() ?? decl,
+        decl,
+        decl.getText(),
+      ),
+    );
+  }
+
+  for (const statement of sourceFile.getVariableStatements()) {
+    if (!statement.isExported()) continue;
+
+    for (const declaration of statement.getDeclarations()) {
+      symbols.push(
+        toSourceSymbolAnalysis(
+          sourceFile,
+          declaration.getName(),
+          "variable",
+          declaration.getNameNode() ?? declaration,
+          declaration,
+          declaration.getText(),
+        ),
+      );
+    }
+  }
+
+  return symbols;
+}
+
+function toSourceSymbolAnalysis(
+  sourceFile: SourceFile,
+  name: string,
+  kind: SourceSymbolKind,
+  startNode: Node,
+  endNode: Node,
+  directiveText: string,
+): SourceSymbolAnalysis {
+  const start = sourceFile.getLineAndColumnAtPos(startNode.getStart());
+  const end = sourceFile.getLineAndColumnAtPos(endNode.getEnd());
+
+  return {
+    name,
+    kind,
+    startLine: start.line,
+    startColumn: Math.max(0, start.column - 1),
+    endLine: end.line,
+    endColumn: Math.max(0, end.column - 1),
+    directiveText,
+  };
+}
+
+function chooseScriptKind(filePath: string): ScriptKind {
+  const lower = filePath.toLowerCase();
+  if (lower.endsWith(".tsx")) return ScriptKind.TSX;
+  if (lower.endsWith(".ts") || lower.endsWith(".mts") || lower.endsWith(".cts")) {
+    return ScriptKind.TS;
+  }
+  if (lower.endsWith(".jsx")) return ScriptKind.JSX;
+  return ScriptKind.JS;
+}
+
+function inferSourceLanguage(filePath: string): string {
+  const extension = path.extname(filePath).toLowerCase();
+  if ([".ts", ".tsx", ".mts", ".cts"].includes(extension)) {
+    return "typescript";
+  }
+  return "javascript";
+}
+
+function inferModuleTitle(filePath: string): string {
+  const extension = path.extname(filePath);
+  const basename = path.basename(filePath, extension);
+  return basename.length > 0 ? basename : path.basename(filePath);
 }
 
 type NamedDeclarationCandidate = Node | ClassDeclaration | VariableDeclaration;

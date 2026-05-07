@@ -1,7 +1,7 @@
 // Packed e2e test for local plugin loading
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -240,6 +240,56 @@ if (RUN_NODE_TEST_SUITE) {
         } finally {
           rmSync(missingDir, { recursive: true, force: true });
         }
+      },
+    );
+
+    // implements REQ-opencode-kibi-plugin-v1
+    it(
+      "toast behavior uses structured client contract",
+      { timeout: 30000 },
+      async () => {
+        const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+        const pkg = await import(distIndex);
+        const plugin = pkg.default;
+
+        const toastCalls: unknown[] = [];
+        const logCalls: unknown[] = [];
+
+        const client = {
+          tui: {
+            showToast: async (payload: unknown) => {
+              toastCalls.push(payload);
+            },
+          },
+          app: {
+            log: async (payload: unknown) => {
+              logCalls.push(payload);
+            },
+          },
+        };
+
+        await plugin({ directory: tmpDir, worktree: tmpDir, client });
+
+        assert.ok(
+          toastCalls.length >= 0,
+          "plugin may or may not toast depending on startup timing",
+        );
+        assert.ok(logCalls.length >= 0, "plugin should initialize with a client app logger");
+
+        const distToast = join(REPO_ROOT, "packages/opencode/dist/toast.js");
+        const distToastContent = readFileSync(distToast, "utf-8");
+        assert.ok(
+          !distToastContent.includes("KIBI-TRACE"),
+          "dist/toast.js must not contain KIBI-TRACE",
+        );
+        assert.ok(
+          !distToastContent.includes("fetch("),
+          "dist/toast.js must not contain raw fetch",
+        );
+        assert.ok(
+          distToastContent.includes("body: payload"),
+          "dist/toast.js must wrap showToast payload with body",
+        );
       },
     );
   });

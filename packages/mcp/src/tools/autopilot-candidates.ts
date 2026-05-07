@@ -5,6 +5,7 @@ import { extractFromMarkdown } from "kibi-cli/extractors/markdown";
 
 import type { ExtractionResult as ManifestExtractionResult } from "kibi-cli/extractors/manifest";
 import type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
+import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
 import path from "node:path";
 import fs from "node:fs";
@@ -23,9 +24,87 @@ export interface Candidate {
   applyPlan: Array<Record<string, unknown>>;
 }
 
+export interface SourceOnlyAuthoringSignal {
+  kind: "req" | "scenario" | "test";
+  title: string;
+  sourcePath: string;
+  confidence: number;
+  evidence: string[];
+}
+
 interface ExistingEntitiesContext {
   ids: Set<string>;
   workspaceRoot?: string;
+}
+
+interface DiscoveryInput {
+  markdownFiles?: string[];
+  manifestFiles?: string[];
+  evidence?: AutopilotEvidence[];
+}
+
+function slugify(value: string, maxLength = 80): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "")
+    .slice(0, maxLength);
+}
+
+function sortUniquePaths(paths: string[]): string[] {
+  return Array.from(new Set(paths)).sort();
+}
+
+function getEvidenceFilePaths(
+  discoveryResult: DiscoveryInput,
+  kind: AutopilotEvidence["kind"],
+): string[] {
+  return sortUniquePaths(
+    (discoveryResult.evidence ?? [])
+      .filter((item) => item.kind === kind)
+      .map((item) => item.absolutePath ?? "")
+      .filter((item): item is string => Boolean(item)),
+  );
+}
+
+function getTypedMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "typed_markdown");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.markdownFiles ?? [];
+}
+
+function getManifestFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "symbol_manifest");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.manifestFiles ?? [];
+}
+
+function getGenericMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
+  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "generic_markdown");
+  if (evidenceFiles.length > 0) return evidenceFiles;
+  return discoveryResult.markdownFiles ?? [];
+}
+
+function hasGenericMarkdownEvidence(discoveryResult: DiscoveryInput): boolean {
+  return (discoveryResult.evidence ?? []).some(
+    (item) => item.kind === "generic_markdown",
+  );
+}
+
+function getFactEvidence(discoveryResult: DiscoveryInput): AutopilotEvidence[] {
+  return (discoveryResult.evidence ?? []).filter(
+    (item) =>
+      item.kind === "repo_metadata" ||
+      item.kind === "repo_layout" ||
+      item.kind === "test_topology" ||
+      item.kind === "source_symbols",
+  );
+}
+
+function toConfidenceBand(confidence: number): string {
+  if (confidence >= 0.9) return "high";
+  if (confidence >= 0.8) return "medium";
+  return "low";
 }
 
 function resolveCandidatePaths(
@@ -46,6 +125,28 @@ function isIgnoredGenericMarkdownPath(relativePath: string): boolean {
   return /(^|\/)(documentation|\.kb|\.git|node_modules|vendor|vendors|third_party|third-party|dist|coverage)(\/|$)/.test(
     normalized,
   );
+}
+
+function shouldIncludeGenericMarkdown(
+  relativePath: string,
+  providerScopedMarkdown: boolean,
+): boolean {
+  const base = path.basename(relativePath).toLowerCase();
+  const inDocsDir = /(^|\/)docs\//.test(relativePath);
+
+  if (providerScopedMarkdown) return true;
+  return base === "readme.md" || base === "architecture.md" || inDocsDir;
+}
+
+function pushSignal(
+  signals: SourceOnlyAuthoringSignal[],
+  signal: SourceOnlyAuthoringSignal,
+  seen: Set<string>,
+) {
+  const key = `${signal.kind}::${signal.sourcePath}::${signal.title}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  signals.push(signal);
 }
 
 function buildUpsertFromExtraction(
@@ -77,13 +178,13 @@ function buildUpsertFromExtraction(
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildTypedMarkdownCandidates(
-  discoveryResult: { markdownFiles: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
 
-  for (const filePath of discoveryResult.markdownFiles || []) {
+  for (const filePath of getTypedMarkdownFiles(discoveryResult)) {
     try {
       const extraction = extractFromMarkdown(filePath) as MarkdownExtractionResult;
       const { entity, relationships } = extraction;
@@ -122,13 +223,13 @@ export function buildTypedMarkdownCandidates(
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildSymbolManifestCandidates(
-  discoveryResult: { manifestFiles: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
 
-  for (const filePath of discoveryResult.manifestFiles || []) {
+  for (const filePath of getManifestFiles(discoveryResult)) {
     try {
       const results = extractFromManifest(filePath) as ManifestExtractionResult[];
       for (const res of results) {
@@ -171,7 +272,7 @@ export function buildSymbolManifestCandidates(
 /**
  * Conservative generic markdown candidate builder.
  * Scans a small, safe set of top-level markdown files and emits only
- * ADR/REQ/FACT candidates when clear heading heuristics match.
+ * ADR/FACT candidates when clear heading heuristics match.
  *
  * discoveryResult.markdownFiles is expected to be a list of file paths
  * (absolute or relative). Files under documentation/**, .kb/**, .git/**,
@@ -180,14 +281,15 @@ export function buildSymbolManifestCandidates(
  */
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function buildGenericMarkdownCandidates(
-  discoveryResult: { markdownFiles?: string[] },
+  discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
   minConfidence = 0.8,
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
-  const files = discoveryResult.markdownFiles ?? [];
+  const files = getGenericMarkdownFiles(discoveryResult);
   for (const rawPath of files) {
     try {
       const filePath = String(rawPath);
@@ -198,11 +300,9 @@ export function buildGenericMarkdownCandidates(
       );
       if (isIgnoredGenericMarkdownPath(relativePath)) continue;
 
-      const base = path.basename(relativePath).toLowerCase();
-      const inDocsDir = /(^|\/)docs\//.test(relativePath);
-
-      // Only scan README.md, ARCHITECTURE.md or files under docs/**
-      if (!(base === "readme.md" || base === "architecture.md" || inDocsDir)) {
+      // Legacy path-only discovery was conservative. Provider-scoped discovery
+      // already filters eligible generic docs, so allow broader repo markdown there.
+      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) {
         continue;
       }
 
@@ -220,19 +320,13 @@ export function buildGenericMarkdownCandidates(
         const heading = headingRaw.trim();
         const headingLower = heading.toLowerCase();
 
-        let type: "adr" | "req" | "fact" | null = null;
+        let type: "adr" | "fact" | null = null;
         let confidence = 0;
 
         // ADR heuristic: headings that mention ADR or Architectural Decision
         if (/\badr\b/i.test(heading) || /architectur.*decision/i.test(heading)) {
           type = "adr";
           confidence = 0.9;
-        }
-
-        // Requirements heuristic: explicit Requirements heading
-        if (!type && /\brequirements?\b/i.test(heading)) {
-          type = "req";
-          confidence = 0.85;
         }
 
         // Fact/Observation heuristic
@@ -253,7 +347,7 @@ export function buildGenericMarkdownCandidates(
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/(^-|-$)/g, "")
           .slice(0, 60);
-        const idPrefix = type === "adr" ? "ADR" : type === "req" ? "REQ" : "FACT";
+        const idPrefix = type === "adr" ? "ADR" : "FACT";
         const genId = `${idPrefix}-GEN-${slug || path.basename(relativePath).replace(/\.[^.]+$/, "")}`.toUpperCase();
 
         if (existingEntities.ids.has(genId)) continue;
@@ -305,7 +399,187 @@ export function buildGenericMarkdownCandidates(
   return candidates;
 }
 
+// implements REQ-mcp-init-kibi-autopilot-v1
+export function collectSourceOnlyAuthoringSignals(
+  discoveryResult: DiscoveryInput,
+  existingEntities: ExistingEntitiesContext,
+  minConfidence = 0.8,
+): SourceOnlyAuthoringSignal[] {
+  const signals: SourceOnlyAuthoringSignal[] = [];
+  const seen = new Set<string>();
+  const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
+
+  for (const rawPath of getGenericMarkdownFiles(discoveryResult)) {
+    try {
+      const filePath = String(rawPath);
+      const { absolutePath, relativePath } = resolveCandidatePaths(
+        filePath,
+        workspaceRoot,
+      );
+      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
+      if (!fs.existsSync(absolutePath)) continue;
+
+      const content = fs.readFileSync(absolutePath, "utf8");
+      const lines = content.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line === undefined) continue;
+        const headingMatch = line.match(/^\s*#+\s*(.+)$/);
+        if (!headingMatch) continue;
+        const headingRaw = headingMatch[1];
+        if (!headingRaw) continue;
+        const heading = headingRaw.trim();
+        const textRef = `${relativePath}#L${i + 1}`;
+
+        if (/\brequirements?\b/i.test(heading) && 0.84 >= minConfidence) {
+          pushSignal(
+            signals,
+            {
+              kind: "req",
+              title: `Author requirements from ${heading}`,
+              sourcePath: absolutePath,
+              confidence: 0.84,
+              evidence: [`generic_heading:${textRef}`],
+            },
+            seen,
+          );
+        }
+
+        if (/\bscenarios?\b/i.test(heading) && 0.83 >= minConfidence) {
+          pushSignal(
+            signals,
+            {
+              kind: "scenario",
+              title: `Author scenarios from ${heading}`,
+              sourcePath: absolutePath,
+              confidence: 0.83,
+              evidence: [`generic_heading:${textRef}`],
+            },
+            seen,
+          );
+        }
+
+        if (/\b(tests?|verification)\b/i.test(heading) && 0.82 >= minConfidence) {
+          pushSignal(
+            signals,
+            {
+              kind: "test",
+              title: `Author tests from ${heading}`,
+              sourcePath: absolutePath,
+              confidence: 0.82,
+              evidence: [`generic_heading:${textRef}`],
+            },
+            seen,
+          );
+        }
+      }
+    } catch {
+      // ignore unreadable files when deriving authoring signals
+    }
+  }
+
+  for (const item of discoveryResult.evidence ?? []) {
+    const confidence = typeof item.data.confidence === "number" ? item.data.confidence : 0;
+    if (item.kind === "test_topology" && confidence >= minConfidence) {
+      const sourcePath = item.absolutePath ?? path.resolve(workspaceRoot, item.relativePath ?? item.label);
+      const relativePath = item.relativePath ?? item.label;
+      pushSignal(
+        signals,
+        {
+          kind: "test",
+          title: `Author TEST coverage for ${relativePath}`,
+          sourcePath,
+          confidence,
+          evidence: Array.isArray(item.data.evidence)
+            ? item.data.evidence.filter((value): value is string => typeof value === "string")
+            : [`test_topology:${relativePath}`],
+        },
+        seen,
+      );
+    }
+  }
+
+  return signals.sort((left, right) => {
+    if (right.confidence !== left.confidence) return right.confidence - left.confidence;
+    if (left.kind !== right.kind) return left.kind.localeCompare(right.kind);
+    return left.sourcePath.localeCompare(right.sourcePath);
+  });
+}
+
+// implements REQ-mcp-init-kibi-autopilot-v1
+export function buildProviderEvidenceCandidates(
+  discoveryResult: DiscoveryInput,
+  existingEntities: ExistingEntitiesContext,
+  minConfidence = 0.8,
+): Candidate[] {
+  const candidates: Candidate[] = [];
+  const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+
+  for (const item of getFactEvidence(discoveryResult)) {
+    const relativePath = item.relativePath ?? item.label;
+    const absolutePath = item.absolutePath ?? path.resolve(workspaceRoot, relativePath);
+    const confidence = typeof item.data.confidence === "number" ? item.data.confidence : 0.8;
+    if (confidence < minConfidence) continue;
+
+    const factKind =
+      typeof item.data.factKind === "string" && item.data.factKind.length > 0
+        ? item.data.factKind
+        : item.kind === "repo_metadata"
+          ? "meta"
+          : "observation";
+    const title =
+      typeof item.data.title === "string" && item.data.title.length > 0
+        ? item.data.title
+        : `Autopilot evidence from ${relativePath}`;
+    const slugSource = `${item.kind}-${relativePath}`;
+    const generatedId = `FACT-GEN-${slugify(slugSource, 64) || "evidence"}`.toUpperCase();
+    if (existingEntities.ids.has(generatedId)) continue;
+
+    const textRef = relativePath.includes("#") ? relativePath : `${relativePath}`;
+    const evidence = Array.isArray(item.data.evidence)
+      ? item.data.evidence.filter((value): value is string => typeof value === "string")
+      : [];
+
+    candidates.push({
+      candidateId: `prov:${item.kind}:${slugify(relativePath, 96) || "evidence"}`,
+      entityType: "fact",
+      title,
+      sourceKind: item.kind,
+      sourcePath: absolutePath,
+      confidence,
+      confidenceBand: toConfidenceBand(confidence),
+      evidence:
+        evidence.length > 0
+          ? evidence
+          : [`provider:${item.provider}`, `${item.kind}:${relativePath}`],
+      relationships: [],
+      applyPlan: [
+        {
+          type: "fact",
+          id: generatedId,
+          properties: {
+            id: generatedId,
+            title,
+            status: "active",
+            fact_kind: factKind,
+            source: `autopilot:${item.provider}:${relativePath}`,
+            text_ref: textRef,
+          },
+          relationships: [],
+        },
+      ],
+    });
+  }
+
+  return candidates;
+}
+
 export default {
   buildTypedMarkdownCandidates,
   buildSymbolManifestCandidates,
+  buildGenericMarkdownCandidates,
+  collectSourceOnlyAuthoringSignals,
+  buildProviderEvidenceCandidates,
 };

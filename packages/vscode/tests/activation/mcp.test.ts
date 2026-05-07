@@ -1,6 +1,6 @@
 import { afterAll, beforeEach, expect, mock, test } from "bun:test";
-import { getVscodeMockModule, resetVscodeMock } from "../shared/vscode-mock";
 import type { McpDeps } from "../../src/activation/mcp";
+import { getVscodeMockModule, resetVscodeMock } from "../shared/vscode-mock";
 type DisposableLike = { dispose: () => void };
 
 let mockServerPath = "";
@@ -47,8 +47,8 @@ resetVscodeMock({
 mock.module("vscode", () => getVscodeMockModule());
 
 import {
-  validateMcpServerPath,
   findKibiMcpInPath,
+  validateMcpServerPath,
 } from "../../src/activation/mcp";
 
 let output: { appendLine: ReturnType<typeof mock<(value: string) => void>> };

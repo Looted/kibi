@@ -2,17 +2,26 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": ["Other"],
-  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "knowledge base",
+    "requirements",
+    "adr",
+    "scenarios",
+    "mcp"
+  ],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
-    "onCommand:kibi.focusKnowledgeBase"
+    "onCommand:kibi.focusKnowledgeBase",
+    "onCommand:kibi.showLatestBrief"
   ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
@@ -76,6 +85,11 @@
       {
         "command": "kibi.focusKnowledgeBase",
         "title": "Kibi: Focus Knowledge Base"
+      },
+      {
+        "command": "kibi.showLatestBrief",
+        "title": "Show Latest Kibi Brief",
+        "category": "Kibi"
       }
     ],
     "menus": {
@@ -106,7 +120,9 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": ["${config:kibi.mcp.serverPath}"],
+          "args": [
+            "${config:kibi.mcp.serverPath}"
+          ],
           "env": {}
         }
       }
@@ -116,7 +132,9 @@
     "build": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify",
     "watch": "../../node_modules/.bun/esbuild@*/node_modules/esbuild/bin/esbuild src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify --watch",
     "package": "./package-vsix.sh",
-    "test": "bun test tests/*.test.ts",
+    "test": "bun test tests/**/*.test.ts",
+    "package:clean": "./package-vsix.sh --clean",
+    "verify:vsix": "./verify-vsix.sh",
     "clean": "rm -rf dist"
   },
   "devDependencies": {

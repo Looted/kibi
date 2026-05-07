@@ -46,6 +46,7 @@ export interface SyncScheduler {
   scheduleSync(reason: string, filePath?: string, checkRules?: string[]): void;
   onFileEdited(filePath: string): void;
   onToolExecuteAfter(reason?: string): void;
+  flush(): Promise<void>;
   dispose(): void;
 }
 
@@ -66,6 +67,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
   private pending: PendingTrigger | null = null;
   private trailing: PendingTrigger | null = null;
   private lastFileEditedAt = 0;
+  private flushWaiters: Array<() => void> = [];
 
   constructor(opts: SchedulerOptions) {
     this.worktree = path.resolve(opts.worktree);
@@ -82,7 +84,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
   scheduleSync(reason: string, filePath?: string, checkRules?: string[]): void {
     if (!this.config.sync.enabled) return;
 
-    if (reason === "file.edited") {
+    // Treat file.created, file.edited, and file.deleted same relevance-wise
+    const isFileLifecycle = reason === "file.edited" || reason === "file.created" || reason === "file.deleted";
+    if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
       this.lastFileEditedAt = this.now();
@@ -124,10 +128,33 @@ class WorktreeSyncScheduler implements SyncScheduler {
     }
   }
 
+  async flush(): Promise<void> {
+    if (!this.config.sync.enabled) return;
+
+    if (this.timer) {
+      this.clearTimeoutFn(this.timer);
+      this.timer = null;
+    }
+
+    this.flushPending();
+
+    if (this.isIdle()) {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      this.flushWaiters.push(resolve);
+    });
+  }
+
   dispose(): void {
     if (this.timer) {
       this.clearTimeoutFn(this.timer);
       this.timer = null;
+    }
+    const waiters = this.flushWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter();
     }
   }
 
@@ -219,6 +246,21 @@ class WorktreeSyncScheduler implements SyncScheduler {
             : {}),
         });
       }
+
+      this.resolveFlushWaitersIfIdle();
+    }
+  }
+
+  private isIdle(): boolean {
+    return !this.inFlight && !this.timer && !this.pending && !this.dirty && !this.trailing;
+  }
+
+  private resolveFlushWaitersIfIdle(): void {
+    if (!this.isIdle()) return;
+    if (this.flushWaiters.length === 0) return;
+    const waiters = this.flushWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter();
     }
   }
 

@@ -190,7 +190,7 @@ export async function handleKbUpsert(
         throw new Error(formattedError);
       }
 
-      await recordEntityAudit(prolog, type, entity);
+      await recordEntityAudit(prolog, isUpdate ? "updated" : "created", type, entity);
       for (const rel of relationships) {
         await recordRelationshipAudit(prolog, rel);
       }
@@ -409,11 +409,14 @@ async function validateStrictLanePairing(
  */
 async function recordEntityAudit(
   prolog: PrologProcess,
+  changeKind: "created" | "updated",
   type: string,
   entity: Record<string, unknown>,
 ): Promise<void> {
   const props = buildPropertyList(entity);
-  const result = await prolog.query(`kb_log_entity_upsert(${type}, ${props})`);
+  const result = await prolog.query(
+    `kb_log_entity_upsert(${changeKind}, ${type}, ${props})`,
+  );
   if (!result.success) {
     throw new Error(
       `Failed to record audit entry for ${String(entity.id)}: ${result.error || "Unknown error"}`,

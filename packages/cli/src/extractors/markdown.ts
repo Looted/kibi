@@ -97,6 +97,8 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
+  /** The per-symbol source code file, distinct from the manifest file path. */
+  sourceFile?: string;
 }
 
 type FrontmatterData = Record<string, unknown> &

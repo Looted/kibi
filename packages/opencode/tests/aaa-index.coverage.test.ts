@@ -5,15 +5,15 @@ import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import type { Hooks, Plugin, PluginInput } from "../src/index";
 import { getGuidanceCache, resetGuidanceCache } from "../src/guidance-cache";
+import type { Hooks, Plugin, PluginInput } from "../src/index";
 import * as logger from "../src/logger";
-import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import type {
   SchedulerOptions,
   SyncRunMetadata,
   SyncScheduler,
 } from "../src/scheduler";
+import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 
 declare global {
   var __kibi_test_scheduler_factory:
@@ -362,7 +362,8 @@ We assert that the response should return success.
         scheduleSync: () => {},
         onFileEdited: () => {},
         onToolExecuteAfter: () => {},
-        dispose: () => {},
+      flush: async () => {},
+      dispose: () => {},
       };
     };
 
@@ -417,6 +418,7 @@ We assert that the response should return success.
       },
       onFileEdited: () => {},
       onToolExecuteAfter: () => {},
+      flush: async () => {},
       dispose: () => {},
     });
 
@@ -479,6 +481,7 @@ We assert that the response should return success.
       },
       onFileEdited: () => {},
       onToolExecuteAfter: () => {},
+      flush: async () => {},
       dispose: () => {},
     });
 
@@ -623,7 +626,7 @@ export function connectDatabase() { return true; }
     fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
     fs.writeFileSync(
       path.join(tmpDir, "src", "behavior.ts"),
-      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+      "// startup seed\nexport function behavior() { return 0; }\n",
     );
 
     const hooks = await createHooks(tmpDir, logs, {
@@ -636,6 +639,20 @@ export function connectDatabase() { return true; }
         smartEnforcement: { completionReminder: true },
       },
     });
+
+    await fireEdit(hooks, "src/behavior.ts");
+
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "behavior.ts"),
+      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+    );
+
+    await fireEdit(hooks, "src/behavior.ts");
+
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "behavior.ts"),
+      "// implements REQ-123\nexport function behavior() { return 1; }\n",
+    );
 
     await fireEdit(hooks, "src/behavior.ts");
 
@@ -750,6 +767,14 @@ export function connectDatabase() { return true; }
       await fireEdit(hooks, `README-${index}.md`);
     }
 
+    for (let index = 0; index < 6; index += 1) {
+      fs.writeFileSync(
+        path.join(tmpDir, `README-${index}.md`),
+        `Document ${index} updated\n`,
+      );
+      await fireEdit(hooks, `README-${index}.md`);
+    }
+
     const output = { system: [] as string[] };
     await runSystemTransform(hooks, output);
 
@@ -786,6 +811,11 @@ export function connectDatabase() { return true; }
       },
     });
 
+    await fireEdit(initialHooks, "src/cache.ts");
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "cache.ts"),
+      "// implements REQ-789\nexport function cacheable() { return 2; }\n",
+    );
     await fireEdit(initialHooks, "src/cache.ts");
     await runSystemTransform(initialHooks, { system: [] });
 

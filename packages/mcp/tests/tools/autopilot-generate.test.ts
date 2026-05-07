@@ -6,9 +6,12 @@ import { PrologProcess } from "kibi-cli/prolog";
 import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
+  createColdStartRepo,
+  createNoisyRepo,
+  createPartialRepo,
+  createSeededRepo,
+  createThinRepo,
   createVendoredTree,
-  ensureDocs,
-  writeRootConfig,
 } from "./autopilot-workspace-fixture";
 
 type PrologQueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
@@ -21,6 +24,38 @@ interface CandidateWithPlan {
       status?: string;
     };
   }>;
+}
+
+interface DiscoverySummaryRecord extends Record<string, unknown> {
+  providersRun?: string[];
+  providerCounts?: Record<string, number>;
+  detectedLanguages?: string[];
+  detectedTestFrameworks?: string[];
+  excludedRoots?: string[];
+  truncated?: boolean;
+  scanWarnings?: string[];
+}
+
+interface ConfidenceRecord extends Record<string, unknown> {
+  score?: number;
+  level?: string;
+  reasons?: string[];
+  policy?: string;
+}
+
+interface RecommendedActionRecord extends Record<string, unknown> {
+  order?: number;
+  kind?: string;
+  description?: string;
+  candidateIds?: string[];
+}
+
+interface DeclaredContextRecord extends Record<string, unknown> {
+  projectSummary?: string;
+  sourceOfTruthPaths?: string[];
+  sourceOfTruthNotes?: string[];
+  priorityRoots?: string[];
+  verificationAnchors?: string[];
 }
 
 function getCandidateStatus(candidate: CandidateWithPlan | undefined): string | undefined {
@@ -52,15 +87,10 @@ describe("autopilot generate", () => {
     return { success: true, bindings: {} };
   }
 
-  test("generic markdown heuristics produce only ADR/REQ/FACT candidates and suppress low confidence", async () => {
+  test("source-only repo docs avoid speculative req/scenario/test candidates and emit authoring guidance", async () => {
+    createColdStartRepo(tmp);
     const readme = "# ADR: Use service mesh\n\n# Requirements\n\n# Observations\n";
     await fs.writeFile(path.join(tmp, "README.md"), readme);
-
-    await fs.mkdir(path.join(tmp, "documentation"), { recursive: true });
-    await fs.writeFile(
-      path.join(tmp, "documentation", "REQ-001.md"),
-      "---\nid: REQ-001\ntitle: Documented req\nstatus: open\n---\n",
-    );
 
     const prolog = createPrologStub(async () => emptyQueryResult());
 
@@ -69,9 +99,22 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
     const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
-    expect(candidates.length).toBeGreaterThanOrEqual(1);
-    const types = candidates.map((candidate) => candidate.entityType);
-    expect(types.every((type) => ["adr", "req", "fact"].includes(String(type)))).toBe(true);
+    expect(candidates.some((candidate) => candidate.entityType === "adr")).toBe(true);
+    expect(candidates.some((candidate) => candidate.entityType === "fact")).toBe(true);
+    expect(
+      candidates.some((candidate) =>
+        ["req", "scenario", "test"].includes(String(candidate.entityType)),
+      ),
+    ).toBe(false);
+
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+    const authoringAction = actions.find((action) =>
+      /req|requirement|scenario|test/i.test(String(action.description ?? "")),
+    );
+
+    expect(authoringAction).toBeDefined();
+    expect(authoringAction?.candidateIds).toBeUndefined();
   });
 
   test("generic ADR markdown candidates use proposed status", async () => {
@@ -93,6 +136,7 @@ describe("autopilot generate", () => {
   });
 
   test("day-0 root_uninitialized generates candidates and generic ADRs use proposed status", async () => {
+    createColdStartRepo(tmp);
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, "docs", "bootstrap.md"),
@@ -111,6 +155,7 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_uninitialized");
+    expect(res.structuredContent.activationMode).toBe("cold_start_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(false);
 
     const candidates = res.structuredContent
@@ -124,19 +169,175 @@ describe("autopilot generate", () => {
     expect(getCandidateStatus(adrCandidate)).toBe("proposed");
   });
 
-  test("root_partial workspaces may scan but block apply", async () => {
-    writeRootConfig(tmp, {
-      paths: {
-        requirements: "documentation/requirements/**/*.md",
+  test("cold-start bootstrap returns agent-centric guidance with declared context and additive top-level keys", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => ({
+      success: false,
+      bindings: {},
+      error: "no entities",
+    }));
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+      bootstrapContext: {
+        projectSummary: "Bootstrap Kibi for a Bun TypeScript service.",
+        sourceOfTruthPaths: ["README.md", "docs/spec.md"],
+        sourceOfTruthNotes: ["README reflects current behavior."],
+        priorityRoots: ["src", "tests"],
+        verificationAnchors: ["bun test"],
       },
     });
-    await fs.mkdir(path.join(tmp, "documentation", "requirements"), {
-      recursive: true,
+
+    expect(res.structuredContent.activationState).toBe("root_uninitialized");
+    expect(res.structuredContent.bootstrapMode).toBe("cold_start_bootstrap");
+    expect(typeof res.structuredContent.tldr).toBe("string");
+    expect(res.structuredContent.tldr.length).toBeGreaterThan(0);
+
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+    expect(promptBlock.length).toBeGreaterThan(0);
+    expect(promptBlock.trim().split(/\s+/).length).toBeLessThanOrEqual(120);
+    expect(
+      promptBlock
+        .split("\n")
+        .filter((line) => line.trim().startsWith("- "))
+        .length,
+    ).toBeLessThanOrEqual(5);
+
+    const declaredContext = res.structuredContent
+      .declaredContext as DeclaredContextRecord;
+    expect(declaredContext).toEqual({
+      projectSummary: "Bootstrap Kibi for a Bun TypeScript service.",
+      sourceOfTruthPaths: ["README.md", "docs/spec.md"],
+      sourceOfTruthNotes: ["README reflects current behavior."],
+      priorityRoots: ["src", "tests"],
+      verificationAnchors: ["bun test"],
     });
-    await fs.writeFile(
-      path.join(tmp, "documentation", "requirements", "REQ-123.md"),
-      "---\nid: REQ-123\ntitle: Partial workspace requirement\nstatus: open\n---\n# Content\n",
+
+    const confidence = res.structuredContent.confidence as ConfidenceRecord;
+    expect(typeof confidence.score).toBe("number");
+    expect(["high", "medium", "low"]).toContain(confidence.level ?? "");
+    expect(Array.isArray(confidence.reasons)).toBe(true);
+    expect((confidence.reasons ?? []).length).toBeGreaterThan(0);
+
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+    expect(actions.length).toBeGreaterThan(0);
+    expect(actions.map((action) => action.order)).toEqual(
+      actions
+        .map((action) => action.order)
+        .sort((left, right) => Number(left ?? 0) - Number(right ?? 0)),
     );
+    expect(actions.some((action) => action.kind === "query")).toBe(true);
+    expect(actions.some((action) => action.kind === "upsert")).toBe(true);
+    expect(actions.some((action) => action.kind === "check")).toBe(true);
+
+    const topLevel = res as unknown as Record<string, unknown>;
+    expect(topLevel.candidates).toEqual(res.structuredContent.candidates);
+    expect(topLevel.suppressedCandidates).toEqual(
+      res.structuredContent.suppressedCandidates,
+    );
+    expect(topLevel.payoffSummary).toEqual(res.structuredContent.payoffSummary);
+  });
+
+  test("cold-start repos without Kibi docs still report provider evidence in discoverySummary", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => ({
+      success: false,
+      bindings: {},
+      error: "no entities",
+    }));
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providersRun).toEqual([
+      "typed_kibi_docs",
+      "generic_repo_docs",
+      "repo_metadata",
+      "repo_layout",
+      "test_topology",
+      "source_symbols",
+    ]);
+    expect(summary.providerCounts?.typed_kibi_docs).toBe(0);
+    expect(summary.providerCounts?.repo_metadata).toBeGreaterThan(0);
+    expect(summary.providerCounts?.repo_layout).toBeGreaterThan(0);
+    expect(summary.providerCounts?.test_topology).toBeGreaterThan(0);
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
+    expect(summary.detectedLanguages).toContain("typescript");
+    expect(summary.detectedTestFrameworks).toContain("bun:test");
+    expect(summary.excludedRoots).toEqual(
+      expect.arrayContaining([
+        ".git",
+        ".kb",
+        "node_modules",
+        "vendor",
+        "vendors",
+        "third_party",
+        "dist",
+        "coverage",
+        "build",
+        "target",
+        ".venv",
+        "venv",
+      ]),
+    );
+    expect(summary.truncated).toBe(false);
+    expect(summary.scanWarnings).toEqual([]);
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(
+      candidates.some((candidate) => candidate.entityType === "fact"),
+    ).toBe(true);
+  });
+
+  test("generic repo docs include non-doc markdown and ignore excluded trees", async () => {
+    createColdStartRepo(tmp);
+    createNoisyRepo(tmp);
+    await fs.mkdir(path.join(tmp, "notes"), { recursive: true });
+    await fs.mkdir(path.join(tmp, "vendor"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "notes", "decision.md"),
+      "# ADR: Project Runtime\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "vendor", "decision.md"),
+      "# ADR: Ignored Vendor Decision\n",
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+    expect(
+      candidates.some((candidate) => candidate.title === "ADR: Project Runtime"),
+    ).toBe(true);
+    expect(
+      candidates.some(
+        (candidate) => candidate.title === "ADR: Ignored Vendor Decision",
+      ),
+    ).toBe(false);
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
+  });
+
+  test("root_partial workspaces may scan but block apply", async () => {
+    createPartialRepo(tmp);
 
     const prolog = createPrologStub(async () => emptyQueryResult());
 
@@ -145,8 +346,88 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_partial");
+    expect(res.structuredContent.activationMode).toBe("repair_bootstrap");
     expect(res.structuredContent.applyBlocked).toBe(true);
-    expect(res.structuredContent.candidates).toHaveLength(1);
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    expect(summary.providersRun).toEqual([
+      "typed_kibi_docs",
+      "generic_repo_docs",
+      "repo_metadata",
+      "repo_layout",
+      "test_topology",
+      "source_symbols",
+    ]);
+    expect(summary.providerCounts?.typed_kibi_docs).toBeGreaterThanOrEqual(1);
+    expect(res.structuredContent.candidates.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test("cold-start repos add source symbol evidence from parser-backed JS/TS analysis", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
+    expect(
+      candidates.some(
+        (candidate) =>
+          candidate.entityType === "fact" &&
+          candidate.sourceKind === "source_symbols" &&
+          String(candidate.title).includes("Source symbols:"),
+      ),
+    ).toBe(true);
+  });
+
+  test("unsupported-language repos keep source symbol provider graceful with fallback module evidence", async () => {
+    await fs.mkdir(path.join(tmp, "src"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nBootstrap the Python project.\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "src", "main.py"),
+      ["def bootstrap_main():", "    return True", ""].join("\n"),
+    );
+    await fs.writeFile(
+      path.join(tmp, "pyproject.toml"),
+      ["[project]", 'name = "python-bootstrap"', 'version = "0.1.0"', ""].join(
+        "\n",
+      ),
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+
+    expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
+    expect(summary.detectedLanguages).toContain("python");
+    expect(
+      candidates.some(
+        (candidate) =>
+          candidate.entityType === "fact" &&
+          candidate.sourceKind === "source_symbols" &&
+          String(candidate.title).includes("Source module:") &&
+          String(candidate.sourcePath).endsWith("src/main.py"),
+      ),
+    ).toBe(true);
   });
 
   test("duplicate title suppression emits flat records", async () => {
@@ -216,19 +497,18 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("vendored_only");
+    expect(res.structuredContent.activationMode).toBe("vendored_blocked");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("vendored");
   });
 
-  test("root_active_thin workspaces are blocked with zero candidates", async () => {
-    ensureDocs(tmp);
-    writeRootConfig(tmp, {});
-    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "bootstrap.md"), "# ADR: Already active\n");
+  test("root_active_thin returns explicit handoff mode instead of silent zero-output", async () => {
+    createThinRepo(tmp, { multiRoot: true, noisy: true });
 
     const fakeCounts = JSON.stringify({
       rows: [
-        { id: "req", type: "req", count: 0 },
+        { id: "req", type: "req", count: 1 },
         { id: "scenario", type: "scenario", count: 0 },
         { id: "test", type: "test", count: 0 },
       ],
@@ -247,7 +527,214 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_active_thin");
+    expect(res.structuredContent.activationMode).toBe("attached_thin_handoff");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("thin");
+    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
+  });
+
+  test("root_active_seeded returns explicit seeded handoff instead of silent zero-output", async () => {
+    createSeededRepo(tmp);
+
+    const fakeCounts = JSON.stringify({
+      rows: [
+        { id: "req", type: "req", count: 2 },
+        { id: "scenario", type: "scenario", count: 1 },
+        { id: "test", type: "test", count: 1 },
+        { id: "adr", type: "adr", count: 1 },
+        { id: "fact", type: "fact", count: 1 },
+      ],
+    });
+
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.includes("coverage_report_json")) {
+        return { success: true, bindings: { JsonString: fakeCounts } };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    expect(res.structuredContent.activationState).toBe("root_active_seeded");
+    expect(res.structuredContent.activationMode).toBe("attached_seeded_handoff");
+    expect(res.structuredContent.applyBlocked).toBe(true);
+    expect(res.structuredContent.candidates).toEqual([]);
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain("seeded");
+    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
+  });
+
+  test("root_active_thin handoff includes explicit KB tool recommended actions", async () => {
+    createThinRepo(tmp, { multiRoot: true, noisy: true });
+
+    const fakeCounts = JSON.stringify({
+      rows: [
+        { id: "req", type: "req", count: 1 },
+        { id: "scenario", type: "scenario", count: 0 },
+        { id: "test", type: "test", count: 0 },
+      ],
+    });
+
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.includes("coverage_report_json")) {
+        return { success: true, bindings: { JsonString: fakeCounts } };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+    const descriptions = actions.map((a) => String(a.description ?? ""));
+
+    // Explicit handoff actions referencing KB tools
+    expect(descriptions.some((d) => d.includes("kb_search"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_find_gaps"))).toBe(true);
+
+    // Confidence is low for thin attached KB
+    const confidence = res.structuredContent.confidence as ConfidenceRecord;
+    expect(confidence.level).toBe("low");
+    expect(confidence.policy).toBe("handoff_only");
+    expect(confidence.score).toBeLessThan(0.4);
+
+    // PromptBlock includes handoff guidance
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+    expect(promptBlock.length).toBeGreaterThan(0);
+    expect(promptBlock.toLowerCase()).toContain("handoff");
+  });
+
+  test("root_active_seeded handoff includes explicit KB tool recommended actions", async () => {
+    createSeededRepo(tmp);
+
+    const fakeCounts = JSON.stringify({
+      rows: [
+        { id: "req", type: "req", count: 2 },
+        { id: "scenario", type: "scenario", count: 1 },
+        { id: "test", type: "test", count: 1 },
+        { id: "adr", type: "adr", count: 1 },
+        { id: "fact", type: "fact", count: 1 },
+      ],
+    });
+
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.includes("coverage_report_json")) {
+        return { success: true, bindings: { JsonString: fakeCounts } };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+    const descriptions = actions.map((a) => String(a.description ?? ""));
+
+    // Explicit handoff actions referencing KB tools
+    expect(descriptions.some((d) => d.includes("kb_search"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_coverage"))).toBe(true);
+
+    // Confidence is low for seeded attached KB
+    const confidence = res.structuredContent.confidence as ConfidenceRecord;
+    expect(confidence.level).toBe("low");
+    expect(confidence.policy).toBe("handoff_only");
+
+    // PromptBlock includes handoff guidance
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+    expect(promptBlock.length).toBeGreaterThan(0);
+    expect(promptBlock.toLowerCase()).toContain("handoff");
+  });
+
+  test("noisy cold-start repo surfaces scan warnings and diagnostic guidance", async () => {
+    createColdStartRepo(tmp);
+    createNoisyRepo(tmp);
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    // Candidates should still be generated from real evidence
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    expect(candidates.length).toBeGreaterThan(0);
+
+    // Discovery summary should have provider results
+    const summary = res.structuredContent.discoverySummary as unknown as DiscoverySummaryRecord;
+    expect((summary.providersRun ?? []).length).toBeGreaterThan(0);
+
+    // PromptBlock should be non-empty with guidance
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+    expect(promptBlock.length).toBeGreaterThan(0);
+
+    // Confidence should be present and valid
+    const confidence = res.structuredContent.confidence as ConfidenceRecord;
+    expect(["high", "medium", "low"]).toContain(confidence.level ?? "");
+    expect(["full_actions", "review_required", "handoff_only"]).toContain(confidence.policy ?? "");
+  });
+
+  test("confidence level transitions at correct thresholds", async () => {
+    createColdStartRepo(tmp);
+
+    const prolog = createPrologStub(async () => ({
+      success: false,
+      bindings: {},
+      error: "no entities",
+    }));
+
+    // Cold start with full context → high confidence
+    const highRes = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+      bootstrapContext: {
+        projectSummary: "Full context cold start.",
+        sourceOfTruthPaths: ["README.md"],
+        sourceOfTruthNotes: ["Test note."],
+        priorityRoots: ["src"],
+        verificationAnchors: ["bun test"],
+      },
+    });
+    const highConf = highRes.structuredContent.confidence as ConfidenceRecord;
+    expect(highConf.level).toBe("high");
+    expect(highConf.policy).toBe("full_actions");
+    expect(highConf.score).toBeGreaterThan(0.7);
+    expect(highRes.structuredContent.applyBlocked).toBe(false);
+
+    // Cold start without context but with candidates → medium or high confidence
+    const medRes = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+    const medConf = medRes.structuredContent.confidence as ConfidenceRecord;
+    // With candidates but no context, should be medium or high
+    expect(["high", "medium"]).toContain(medConf.level ?? "");
+    expect(["full_actions", "review_required"]).toContain(medConf.policy ?? "");
+
+    // Vendored repo → low confidence
+    const vendoredRoot = path.join(tmp, "vendored-check");
+    await fs.mkdir(vendoredRoot, { recursive: true });
+    createVendoredTree(vendoredRoot);
+    process.env.KIBI_WORKSPACE = vendoredRoot;
+
+    const lowRes = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+    });
+    const lowConf = lowRes.structuredContent.confidence as ConfidenceRecord;
+    expect(lowConf.level).toBe("low");
+    expect(lowConf.policy).toBe("handoff_only");
+    expect(lowConf.score).toBeLessThan(0.4);
+    expect(lowRes.structuredContent.applyBlocked).toBe(true);
   });
 });

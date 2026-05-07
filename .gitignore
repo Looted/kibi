@@ -51,4 +51,5 @@ documentation/tests/e2e/packed/.compiled/
 .kb/branches/*/sync-cache.json
 #! bun.lock
 .sisyphus
+.kb/briefs/
 .env

@@ -9,12 +9,7 @@ tags:
   - testing
   - flakiness
   - test-pollution
-fact_kind: property_value
-subject_key: kibi.kb.scope
-property_key: scope_model
-operator: eq
-value_type: string
-value_string: per_branch
+fact_kind: observation
 ---
 
 The kibi test suite has flaky integration tests that fail when run together but pass when run in isolation:

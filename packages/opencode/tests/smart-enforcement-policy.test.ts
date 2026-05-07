@@ -294,7 +294,7 @@ describe("effective mode preserves non-blocking behavior", () => {
   });
 });
 
-import { buildPrompt, SENTINEL } from "../src/prompt";
+import { SENTINEL, buildPrompt } from "../src/prompt";
 
 describe("smart enforcement contract matrix", () => {
   describe("single-block prompt policy", () => {

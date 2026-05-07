@@ -48,7 +48,7 @@ const STRING_FIELDS = new Set([
 const NUMBER_FIELDS = new Set(["value_int", "value_number"]);
 const BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
-  function getEntityField(entity: ExtractedEntity, field: string): unknown {
+function getEntityField(entity: ExtractedEntity, field: string): unknown {
   // ExtractedEntity declares all fact fields as optional properties, so indexing
   // via keyof is safe. The cast is confined to this single helper.
   return (entity as unknown as Record<string, unknown>)[field];
@@ -125,11 +125,11 @@ export async function persistEntities(
       }
     }
   }
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     entityIds.add(entity.id);
   }
 
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     try {
       const props = [
         `id=${toPrologAtom(entity.id)}`,
@@ -151,6 +151,7 @@ export async function persistEntities(
         props.push(`severity=${toPrologAtom(entity.severity)}`);
       if (entity.text_ref)
         props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+      if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       // Add typed fact fields for fact entities
       if (entity.type === "fact") {

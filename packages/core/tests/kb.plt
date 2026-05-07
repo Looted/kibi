@@ -120,9 +120,53 @@ test(journal_persistence, [setup(cleanup_test_kb), cleanup(cleanup_test_kb)]) :-
 
 :- end_tests(kb_persistence).
 
+:- begin_tests(kb_source_queries).
+
+test(matches_source_file_field, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-source-file',
+        title="Source file symbol",
+        status=active,
+        created_at="2026-04-24T00:00:00Z",
+        updated_at="2026-04-24T00:00:00Z",
+        source="documentation/symbols.yaml#sym-source-file",
+        sourceFile="packages/opencode/src/brief-intent.ts"
+    ]),
+    kb_entities_by_source('packages/opencode/src/brief-intent.ts', Ids),
+    memberchk('sym-source-file', Ids).
+
+test(falls_back_to_legacy_source_field, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-legacy-source',
+        title="Legacy source symbol",
+        status=active,
+        created_at="2026-04-24T00:00:00Z",
+        updated_at="2026-04-24T00:00:00Z",
+        source="brief.md#4.3"
+    ]),
+    kb_entities_by_source('brief.md', Ids),
+    memberchk('sym-legacy-source', Ids).
+
+test(prefers_source_file_over_legacy_source, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-both-source-fields',
+        title="Dual source symbol",
+        status=active,
+        created_at="2026-04-24T00:00:00Z",
+        updated_at="2026-04-24T00:00:00Z",
+        sourceFile="packages/opencode/src/brief-intent.ts",
+        source="documentation/brief.md#4.3"
+    ]),
+    kb_entities_by_source('packages/opencode/src/brief-intent.ts', Ids),
+    memberchk('sym-both-source-fields', Ids),
+    kb_entities_by_source('documentation/brief.md', LegacyIds),
+    \+ memberchk('sym-both-source-fields', LegacyIds).
+
+:- end_tests(kb_source_queries).
+
 :- begin_tests(kb_audit).
 
-test(audit_log_created, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+test(audit_log_created_includes_change_kind, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='audit-test',
         title="Audit Test",
@@ -131,10 +175,76 @@ test(audit_log_created, [setup(setup_kb), cleanup(cleanup_kb)]) :-
         updated_at="2026-02-17T00:00:00Z",
         source="test://kb.plt"
     ]),
-    % Verify audit log entry exists (check database, not just file)
-    changeset(_, upsert, 'audit-test', _).
+    changeset(_, upsert, 'audit-test', req-Props),
+    memberchk(change_kind=created, Props),
+    memberchk(title="Audit Test", Props).
+
+test(audit_log_update_includes_change_kind, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='audit-update-test',
+        title="Audit Test v1",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(req, [
+        id='audit-update-test',
+        title="Audit Test v2",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-18T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    findall(Props, changeset(_, upsert, 'audit-update-test', req-Props), PropsList),
+    length(PropsList, 2),
+    once((
+        select(CreatedProps, PropsList, [UpdatedProps]),
+        memberchk(change_kind=created, CreatedProps),
+        memberchk(change_kind=updated, UpdatedProps)
+    )),
+    memberchk(title="Audit Test v2", UpdatedProps).
+
+test(delete_audit_preserves_typed_metadata, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(req, [
+        id='audit-delete-test',
+        title="Audit Delete Test",
+        status=draft,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        text_ref="documentation/requirements/REQ-AUDIT.md#L10"
+    ]),
+    kb_retract_entity('audit-delete-test'),
+    changeset(_, delete, 'audit-delete-test', req-Props),
+    memberchk(id='audit-delete-test', Props),
+    memberchk(title="Audit Delete Test", Props),
+    memberchk(source="test://kb.plt", Props),
+    memberchk(text_ref="documentation/requirements/REQ-AUDIT.md#L10", Props).
 
 :- end_tests(kb_audit).
+
+:- begin_tests(kb_strict_facts).
+
+test(typed_literal_value_type_no_false_positive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(fact, [
+        id='fact-typed-vt-test',
+        title="Typed VT regression",
+        status=active,
+        created_at="2026-04-24T00:00:00Z",
+        updated_at="2026-04-24T00:00:00Z",
+        source="test",
+        fact_kind=property_value,
+        subject_key="session",
+        property_key="max_age",
+        operator=eq,
+        value_type='int',
+        value_int=30
+    ]),
+    check_strict_fact_shape(Violations),
+    \+ member(violation('strict-fact-shape', 'fact-typed-vt-test', _, _, _), Violations).
+
+:- end_tests(kb_strict_facts).
 
 :- begin_tests(kb_mutex).
 

@@ -7,8 +7,9 @@
     with_kb_mutex/1,
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
-    kb_log_entity_upsert/2,
+    kb_log_entity_upsert/3,
     kb_retract_entity/1,
+    kb_retract_entity/3,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
@@ -254,8 +255,13 @@ load_kb_pl_files(Directory) :-
 % Assert an entity into the KB with audit logging.
 % Properties is a list of Key=Value pairs.
 kb_assert_entity(Type, Props) :-
+    memberchk(id=Id, Props),
+    (   once(kb_entity(Id, _, _))
+    ->  ChangeKind = updated
+    ;   ChangeKind = created
+    ),
     kb_assert_entity_no_audit(Type, Props),
-    kb_log_entity_upsert(Type, Props).
+    kb_log_entity_upsert(ChangeKind, Type, Props).
 
 %% kb_assert_entity_no_audit(+Type, +Properties)
 % Assert an entity RDF payload without recording audit side effects.
@@ -284,19 +290,30 @@ kb_assert_entity_no_audit(Type, Props) :-
         )
     )).
 
-%% kb_log_entity_upsert(+Type, +Properties)
+%% kb_log_entity_upsert(+ChangeKind, +Type, +Properties)
 % Append the audit entry for a successfully committed entity upsert.
-kb_log_entity_upsert(Type, Props) :-
+kb_log_entity_upsert(ChangeKind, Type, Props) :-
     memberchk(id=Id, Props),
+    memberchk(ChangeKind, [created, updated]),
     with_kb_mutex((
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, upsert, Id, Type-Props)
+        assert_changeset(TS, upsert, Id, Type-[change_kind=ChangeKind|Props])
     )).
 
 %% kb_retract_entity(+Id)
 % Remove an entity from the KB with audit logging.
 kb_retract_entity(Id) :-
+    (   once(kb_entity(Id, Type, Props))
+    ->  entity_delete_audit_props(Id, Props, AuditProps)
+    ;   Type = unknown,
+        AuditProps = [id=Id]
+    ),
+    kb_retract_entity(Id, Type, AuditProps).
+
+%% kb_retract_entity(+Id, +Type, +AuditProps)
+% Remove an entity from the KB and log the provided delete payload.
+kb_retract_entity(Id, Type, AuditProps) :-
     kb_graph(Graph),
     with_kb_mutex((
         % Create entity URI
@@ -306,8 +323,29 @@ kb_retract_entity(Id) :-
         % Log to audit
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, delete, Id, null)
+        assert_changeset(TS, delete, Id, Type-AuditProps)
     )).
+
+entity_delete_audit_props(Id, Props, AuditProps) :-
+    findall(Key=Value,
+        (   member(Key, [title, source, text_ref]),
+            memberchk(Key=RawValue, Props),
+            audit_property_value(RawValue, Value)
+        ),
+        OptionalProps),
+    AuditProps = [id=Id|OptionalProps].
+
+audit_property_value(RawValue, Value) :-
+    (   RawValue = ^^(Inner, _)
+    ->  Value = Inner
+    ;   RawValue = literal(type(_, Inner))
+    ->  Value = Inner
+    ;   RawValue = literal(lang(_, Inner))
+    ->  Value = Inner
+    ;   RawValue = literal(Inner)
+    ->  Value = Inner
+    ;   Value = RawValue
+    ).
 
 %% kb_entity(?Id, ?Type, ?Properties)
 % Query entities from the KB.
@@ -356,11 +394,17 @@ convert_legacy_prop(Prop, Prop, true).
 kb_entities_by_source(SourcePath, Ids) :-
     findall(Id,
         (kb_entity(Id, _Type, Props),
-         memberchk(source=RawSource, Props),
-         source_value_atom(RawSource, SourceAtom),
+         entity_source_atom(Props, SourceAtom),
          sub_atom(SourceAtom, _, _, _, SourcePath)),
         RawIds),
     sort(RawIds, Ids).
+
+entity_source_atom(Props, SourceAtom) :-
+    (   memberchk(sourceFile=RawSourceFile, Props)
+    ->  source_value_atom(RawSourceFile, SourceAtom)
+    ;   memberchk(source=RawSource, Props),
+        source_value_atom(RawSource, SourceAtom)
+    ).
 
 source_value_atom(Value, Atom) :-
     (   atom(Value)

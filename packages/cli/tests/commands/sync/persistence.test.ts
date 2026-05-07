@@ -9,15 +9,15 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  persistEntities,
+  persistRelationships,
+} from "../../../src/commands/sync/persistence.js";
 import type {
   ExtractedEntity,
   ExtractedRelationship,
   ExtractionResult,
 } from "../../../src/extractors/markdown.js";
-import {
-  persistEntities,
-  persistRelationships,
-} from "../../../src/commands/sync/persistence.js";
 import type { PrologProcess, QueryResult } from "../../../src/prolog.js";
 
 // --- Mocks ---
@@ -383,6 +383,29 @@ describe("persistEntities", () => {
       g.includes("kb_assert_entity"),
     );
     expect(assertCall).toContain("text_ref=");
+  });
+
+  test("handles entity with sourceFile", async () => {
+    const entity = makeEntity();
+    const sourceFile = "packages/opencode/src/brief-intent.ts";
+    const prolog = makeProlog({
+      "findall(Id, kb_entity(Id, _, _), ExistingIds)": {
+        success: true,
+        bindings: { ExistingIds: "[]" },
+      },
+    });
+
+    await persistEntities(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [], sourceFile }],
+      new Set(),
+    );
+
+    const assertCall = prolog.callLog.find((g) =>
+      g.includes("kb_assert_entity"),
+    );
+    expect(assertCall).toContain("sourceFile=");
+    expect(assertCall).toContain("packages/opencode/src/brief-intent.ts");
   });
 
   test("serializes fact entity typed fields correctly", async () => {

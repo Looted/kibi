@@ -204,7 +204,7 @@ describe("handleKbUpsert", () => {
         ) {
           return { success: true };
         }
-        if (goal.startsWith("kb_log_entity_upsert(req,")) {
+        if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
           return { success: true };
         }
         if (goal.startsWith("kb_log_relationship_upsert(constrains,")) {
@@ -263,7 +263,7 @@ describe("handleKbUpsert", () => {
         ) {
           return { success: true };
         }
-        if (goal.startsWith("kb_log_entity_upsert(req,")) {
+        if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
           return { success: true };
         }
         if (goal === "kb_save") {
@@ -307,7 +307,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(fact,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(fact,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, fact,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -364,7 +364,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_relationship_upsert(")) {
@@ -426,14 +426,14 @@ describe("handleKbUpsert", () => {
   });
 
   test("reports updates when the entity already exists", async () => {
-    const { prolog } = createMockProlog(async (goal) => {
+    const { prolog, query } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-UPDATED-001', _, _))") {
         return { success: true };
       }
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -459,6 +459,44 @@ describe("handleKbUpsert", () => {
       updated: 1,
       relationships_created: 0,
     });
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("kb_log_entity_upsert(updated, req,")
+    );
+  });
+
+  test("records created entity audit entries with explicit change_kind", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-CREATED-AUDIT-001', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-CREATED-AUDIT-001",
+      properties: {
+        title: "Created audit req",
+        status: "open",
+        source: "test://upsert",
+      },
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "kb_log_entity_upsert(created, req, [id='REQ-CREATED-AUDIT-001'",
+      ),
+    );
   });
 
   test("deduplicates contradiction details in formatted transaction errors", async () => {
@@ -630,7 +668,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: false, error: "entity audit broke" };
       }
 
@@ -662,7 +700,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_relationship_upsert(specified_by,")) {
@@ -705,7 +743,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -752,7 +790,7 @@ describe("handleKbUpsert", () => {
       ) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(symbol,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -798,7 +836,7 @@ describe("handleKbUpsert", () => {
       ) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(symbol,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
         return { success: true };
       }
       if (goal === "kb_save") {

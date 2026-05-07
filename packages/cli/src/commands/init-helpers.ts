@@ -31,6 +31,7 @@ import {
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
 import { DEFAULT_CONFIG } from "../utils/config.js";
+import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
 # post-checkout hook for kibi
@@ -82,6 +83,21 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # The OpenCode plugin remains advisory and must not replace this gate.
 
 set -e
+
+symbols_manifest="documentation/symbols.yaml"
+
+if [ ! -f "$symbols_manifest" ]; then
+  echo "Kibi symbols manifest is missing: $symbols_manifest" >&2
+  echo "Run 'kibi init' to create it, then stage and commit it." >&2
+  exit 1
+fi
+
+if ! git diff --quiet -- "$symbols_manifest"; then
+  echo "Kibi symbols manifest has unstaged changes: $symbols_manifest" >&2
+  echo "Stage and commit documentation/symbols.yaml with the code changes that refreshed it." >&2
+  exit 1
+fi
+
 kibi check --staged
 `;
 
@@ -120,18 +136,40 @@ export function createConfigFile(kbDir: string): void {
 }
 
 export function updateGitIgnore(cwd: string): void {
+  // implements REQ-001
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
 
-  if (!gitignoreContent.includes(".kb/")) {
-    const newContent = gitignoreContent
-      ? `${gitignoreContent.trimEnd()}\n.kb/\n`
-      : ".kb/\n";
-    writeFileSync(gitignorePath, newContent);
-    console.log("✓ Added .kb/ to .gitignore");
+  const ensureEntry = (current: string, entry: string): string => {
+    if (current.includes(entry)) {
+      return current;
+    }
+
+    return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
+  };
+
+  const updatedWithKb = ensureEntry(gitignoreContent, ".kb/");
+  const updatedContent = ensureEntry(updatedWithKb, ".kb/briefs/");
+
+  if (updatedContent !== gitignoreContent) {
+    writeFileSync(gitignorePath, updatedContent);
+    console.log("✓ Added .kb/ and .kb/briefs/ to .gitignore");
   }
+}
+
+// implements REQ-003
+export function ensureSymbolsManifestFile(cwd: string): void {
+  const symbolsRelPath = DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
+  const symbolsPath = path.join(cwd, symbolsRelPath);
+  if (existsSync(symbolsPath)) {
+    return;
+  }
+
+  mkdirSync(path.dirname(symbolsPath), { recursive: true });
+  writeFileSync(symbolsPath, `${SYMBOLS_MANIFEST_COMMENT_BLOCK}symbols: []\n`);
+  console.log(`✓ Created ${symbolsRelPath}`);
 }
 
 export async function copySchemaFiles(

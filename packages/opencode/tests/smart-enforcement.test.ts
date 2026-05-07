@@ -1,5 +1,5 @@
 // implements REQ-opencode-smart-enforcement-v1
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { RepoPosture } from "../src/repo-posture";
 import {
   type EffectiveMode,

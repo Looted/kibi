@@ -23,17 +23,17 @@ import {
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import {
-  getVscodeMockModule,
-  resetVscodeMock,
-  type DefaultCodeLens as MockCodeLens,
-  type DefaultRange as MockRange,
-} from "./shared/vscode-mock";
 // Import the real buildIndex before registering mocks — symbolIndex has no vscode
 // dependency so this is safe. Captured here so the synchronous mock factory below
 // can include the real implementation without using an async factory (which races
 // with Bun's synchronous named-export resolution and drops the export).
 import { buildIndex } from "../src/symbolIndex";
+import {
+  type DefaultCodeLens as MockCodeLens,
+  type DefaultRange as MockRange,
+  getVscodeMockModule,
+  resetVscodeMock,
+} from "./shared/vscode-mock";
 
 mock.module("vscode", () => getVscodeMockModule());
 

@@ -127,6 +127,8 @@ This applies to TypeScript (`.ts`, `.tsx`) and JavaScript (`.js`, `.jsx`) files 
 
 If you ran `kibi init`, a pre-commit hook will automatically check your staged changes for missing requirement links. If any new or modified symbols are not linked to a requirement, your commit will be blocked with an error message. To proceed, add the appropriate `implements REQ-xxx` directive to your code.
 
+The hook also blocks commits when `documentation/symbols.yaml` has unstaged changes. Stage and commit the refreshed manifest with the code or documentation change that caused it.
+
 You can test your staged changes manually with:
 
 ```bash

@@ -4,6 +4,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { KibiConfig } from "../src/config";
+import { getInitKibiCommandCapability } from "../src/init-kibi-capability";
 import kibiOpencodePlugin from "../src/index";
 import { SENTINEL, injectPrompt } from "../src/prompt";
 
@@ -93,10 +94,20 @@ describe("hook contract", () => {
   test("plugin remains advisory and only exposes advisory hook surfaces", async () => {
     const dir = makeProjectDir("auto");
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const expectedHookKeys = [
+      "chat.params",
+      "event",
+      "experimental.chat.system.transform",
+    ];
+
+    if (getInitKibiCommandCapability().supported) {
+      expectedHookKeys.push("config");
+    }
+
     assert.deepEqual(
       Object.keys(hooks).sort(),
-      ["chat.params", "event", "experimental.chat.system.transform"].sort(),
-      "plugin should expose only advisory/event hook surfaces and no hard gate",
+      expectedHookKeys.sort(),
+      "plugin should expose only advisory/event hook surfaces and the gated config hook when supported",
     );
   });
 
@@ -250,7 +261,8 @@ describe("hook contract", () => {
       "Hook output should not expose hook internals",
     );
     assert.ok(
-      !injected.includes("kb_briefing_generate") && !injected.includes("briefingState"),
+      !injected.includes("kb_briefing_generate") &&
+        !injected.includes("briefingState"),
       "Hook output should not embed live briefing execution or structured briefing payloads",
     );
   });
@@ -269,5 +281,77 @@ describe("hook contract", () => {
       !("system" in output),
       "chat.params must not create a system property",
     );
+  });
+
+  describe("session.idle hook", () => {
+    test("session.idle triggers async brief generation", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "session.idle" },
+      } as never);
+    });
+
+    test("second idle event while in-flight sets trailing rerun flag", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "session.idle" },
+      } as never);
+
+      await eventHook({
+        event: { type: "session.idle" },
+      } as never);
+    });
+
+    test("idle event with no client returns early", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "session.idle" },
+      } as never);
+    });
+
+    test("file.edited still works alongside session.idle", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "file.edited", properties: { file: "test.ts" } },
+      } as never);
+    });
+
+    test("file.created event is handled alongside file.edited", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "file.created", properties: { file: "new-file.ts" } },
+      } as never);
+    });
+
+    test("file.deleted event is handled alongside file.edited", async () => {
+      const dir = makeProjectDir("auto");
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      await eventHook({
+        event: { type: "file.deleted", properties: { file: "old-file.ts" } },
+      } as never);
+    });
   });
 });

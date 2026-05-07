@@ -4,6 +4,7 @@
 import { afterEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import type { BriefIntentResult } from "../src/brief-intent";
+import { buildAutoBriefingGuidance } from "../src/prompt";
 
 const READY_TOAST = "Kibi brief ready — summary added to guidance.";
 const TLDR_FALLBACK_TOAST =
@@ -94,10 +95,7 @@ async function fetchRuntimeResult(
   return mod.fetchBriefingResult(client, workspaceCtx, intentResult);
 }
 
-async function waitFor(
-  predicate: () => boolean,
-  attempts = 10,
-): Promise<void> {
+async function waitFor(predicate: () => boolean, attempts = 10): Promise<void> {
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (predicate()) {
       return;
@@ -173,13 +171,15 @@ function promptResponseFromText(text: string): unknown {
   };
 }
 
-function createClientStub(options: {
-  createResult?: unknown;
-  createError?: Error;
-  promptResults?: unknown[];
-  promptError?: Error;
-  promptImpl?: (parameters: PromptParameters) => Promise<unknown>;
-} = {}) {
+function createClientStub(
+  options: {
+    createResult?: unknown;
+    createError?: Error;
+    promptResults?: unknown[];
+    promptError?: Error;
+    promptImpl?: (parameters: PromptParameters) => Promise<unknown>;
+  } = {},
+) {
   const createCalls: CreateParameters[] = [];
   const promptCalls: PromptParameters[] = [];
   const showToastCalls: unknown[] = [];
@@ -192,12 +192,14 @@ function createClientStub(options: {
         if (options.createError) {
           throw options.createError;
         }
-        return options.createResult ?? {
-          data: {
-            id: "session-1",
-            title: parameters?.title ?? "Kibi Auto Brief Worker",
-          },
-        };
+        return (
+          options.createResult ?? {
+            data: {
+              id: "session-1",
+              title: parameters?.title ?? "Kibi Auto Brief Worker",
+            },
+          }
+        );
       },
       prompt: async (parameters: PromptParameters) => {
         promptCalls.push(parameters);
@@ -248,16 +250,18 @@ describe("fetchBriefingResult", () => {
         textRef: "REQ-001#L1",
       },
     ];
-    const { client, createCalls, promptCalls, showToastCalls } = createClientStub({
-      promptResults: [
-        promptResponseFromJson({
-          briefingState: "ready",
-          tldr: "Requirement and scenario context are available.",
-          promptBlock: "\n- REQ-001: Respect the documented invariant.\n- SCEN-001: Preserve the canonical flow.\n",
-          citations,
-        }),
-      ],
-    });
+    const { client, createCalls, promptCalls, showToastCalls } =
+      createClientStub({
+        promptResults: [
+          promptResponseFromJson({
+            briefingState: "ready",
+            tldr: "Requirement and scenario context are available.",
+            promptBlock:
+              "\n- REQ-001: Respect the documented invariant.\n- SCEN-001: Preserve the canonical flow.\n",
+            citations,
+          }),
+        ],
+      });
 
     const result = await fetchRuntimeResult(client, workspaceCtx, intentResult);
 
@@ -270,7 +274,11 @@ describe("fetchBriefingResult", () => {
       showManualCue: false,
       toastMessage: READY_TOAST,
     });
-    assert.equal(showToastCalls.length, 0, "runtime helper must not send toasts");
+    assert.equal(
+      showToastCalls.length,
+      0,
+      "runtime helper must not send toasts",
+    );
     assert.equal(createCalls.length, 1);
     assert.deepEqual(createCalls[0], {
       directory: workspaceCtx.workspaceRoot,
@@ -320,7 +328,7 @@ describe("fetchBriefingResult", () => {
     assert.deepEqual(result, {
       state: "tldr_fallback",
       promptBlock:
-        "- Linked requirements were found.\n- Full details: run /brief-kibi.",
+        "- What changed: Linked requirements were found.\n- Why it matters: This update changes how current project knowledge should be interpreted.",
       tldr: "Linked requirements were found.",
       citations: [],
       showManualCue: true,
@@ -358,7 +366,9 @@ describe("fetchBriefingResult", () => {
     const workspaceCtx = makeWorkspaceCtx();
     const intentResult = makeIntent(workspaceCtx);
     const { client } = createClientStub({
-      promptResults: [promptResponseFromText('{"tldr":"Partial content only"}')],
+      promptResults: [
+        promptResponseFromText('{"tldr":"Partial content only"}'),
+      ],
     });
 
     const result = await fetchRuntimeResult(client, workspaceCtx, intentResult);
@@ -449,7 +459,11 @@ describe("fetchBriefingResult", () => {
     });
 
     const firstPromise = fetchRuntimeResult(client, workspaceCtx, intentResult);
-    const secondPromise = fetchRuntimeResult(client, workspaceCtx, intentResult);
+    const secondPromise = fetchRuntimeResult(
+      client,
+      workspaceCtx,
+      intentResult,
+    );
     await waitFor(() => createCalls.length === 1 && promptCalls.length === 1);
 
     assert.equal(createCalls.length, 1);
@@ -538,5 +552,19 @@ describe("fetchBriefingResult", () => {
     assert.equal(first.promptBlock, "- First fingerprint bullet");
     assert.equal(second.promptBlock, "- Second fingerprint bullet");
     assert.notEqual(firstIntent.fingerprint, secondIntent.fingerprint);
+  });
+
+  test("does not render idle-brief envelope in auto-brief guidance", () => {
+    const idleBriefEnvelope = {
+      schemaVersion: "1.0",
+      briefId: "brief-123",
+      type: "success",
+      promptBlock: "- generated while idle",
+      state: "ready",
+    } as unknown as Parameters<typeof buildAutoBriefingGuidance>[0];
+
+    const result = buildAutoBriefingGuidance(idleBriefEnvelope, false);
+
+    assert.equal(result, null);
   });
 });
