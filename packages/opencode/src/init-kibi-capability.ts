@@ -174,6 +174,19 @@ function readPackageVersion(filePath: string): string | undefined {
   }
 }
 
+// implements REQ-opencode-kibi-briefing-v2
+export function findSdkPackageJsonForPluginRoot(
+  pluginRoot: string,
+): string | undefined {
+  const scopeRoot = path.dirname(pluginRoot);
+  const candidates = [
+    path.join(pluginRoot, "node_modules", "@opencode-ai", "sdk", "package.json"),
+    path.join(scopeRoot, "sdk", "package.json"),
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
+
 function hasConfigHook(pluginHooksDts: string): boolean {
   return /\bconfig\??:\s*\(input:\s*Config\)\s*=>\s*Promise<void>\s*;/.test(
     pluginHooksDts,
@@ -209,8 +222,10 @@ function resolveHostCapabilityInputs(): InitKibiCapabilityDetectionInput {
     const pluginPackageJsonPath = require.resolve(
       "@opencode-ai/plugin/package.json",
     );
-    const sdkPackageJsonPath = require.resolve("@opencode-ai/sdk/package.json");
     const pluginRoot = path.dirname(pluginPackageJsonPath);
+    const sdkPackageJsonPath =
+      findSdkPackageJsonForPluginRoot(pluginRoot) ??
+      require.resolve("@opencode-ai/sdk/package.json");
     const sdkRoot = path.dirname(sdkPackageJsonPath);
 
     const pluginVersion = readPackageVersion(pluginPackageJsonPath);
