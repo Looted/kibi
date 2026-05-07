@@ -1,5 +1,23 @@
 # kibi-mcp
 
+## 0.11.0
+
+### Minor Changes
+
+- 736f675: Add the interactive cold-start bootstrap flow and its regression coverage so the public MCP surface, OpenCode prompt wiring, and extractor exports stay in sync.
+
+### Patch Changes
+
+- 699a482: Create append-only contract documentation and release metadata for the Kibi briefing schema-2.0 session-delta migration. This update introduces high-fidelity change tracking anchored to the session start, prioritized change narratives for MCP-cited entities, and deterministic filename-based brief selection for VS Code.
+- efdacbc: Session-local baseline counts, semantic content-hash dedupe, compact promptBlock fallback, richer envelope fields, and VS Code popup-first UX. The OpenCode plugin now scopes audit deltas to the current session instead of cumulative branch totals, deduplicates briefs by normalized visible-content hash rather than briefId, and surfaces constraints, regression risks, and missing evidence in the envelope. The MCP server gracefully degrades the prompt block with compact truncation instead of returning empty content when over budget.
+- Updated dependencies [b9ef9a2]
+- Updated dependencies [7ed9f0c]
+- Updated dependencies [a1a198b]
+- Updated dependencies [699a482]
+- Updated dependencies [736f675]
+  - kibi-cli@0.7.0
+  - kibi-core@0.5.2
+
 ## 0.10.0
 
 ### Minor Changes
