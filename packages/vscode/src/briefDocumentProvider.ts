@@ -3,23 +3,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import type { BriefModel } from "./briefs";
 
-function getCountLines(brief: BriefModel): string[] {
-  if (brief.schemaVersion === "2.0") {
-    return [
-      `- ${brief.counts.entitiesAdded + brief.counts.entitiesModified} entit${brief.counts.entitiesAdded + brief.counts.entitiesModified === 1 ? "y" : "ies"} changed`,
-      `- ${brief.counts.relationshipsChanged} relationship${brief.counts.relationshipsChanged === 1 ? "" : "s"} changed`,
-      `- ${brief.counts.entitiesRemoved} entit${brief.counts.entitiesRemoved === 1 ? "y" : "ies"} deleted`,
-    ];
-  }
-
-  return [
-    `- ${brief.counts.requirementsAdded} entit${brief.counts.requirementsAdded === 1 ? "y" : "ies"} changed`,
-    `- ${brief.counts.relationshipsAdded} relationship${brief.counts.relationshipsAdded === 1 ? "" : "s"} changed`,
-    `- ${brief.counts.entitiesDeleted} entit${brief.counts.entitiesDeleted === 1 ? "y" : "ies"} deleted`,
-  ];
-}
-
-function getOverviewLines(brief: BriefModel): string[] {
+function getWhatChangedLines(brief: BriefModel): string[] {
   if (
     brief.schemaVersion === "2.0" &&
     brief.briefing.changeNarrative.length > 0
@@ -31,11 +15,39 @@ function getOverviewLines(brief: BriefModel): string[] {
     return [brief.briefing.tldr];
   }
 
+  if (brief.summary) {
+    return [brief.summary];
+  }
+
   if (brief.briefing.promptBlock) {
     return [brief.briefing.promptBlock];
   }
 
-  return ["*No overview available.*"];
+  return ["Knowledge updates were recorded in this brief."];
+}
+
+function getWhyItMattersLines(brief: BriefModel): string[] {
+  if (brief.briefing.promptBlock) {
+    return [brief.briefing.promptBlock];
+  }
+
+  if (brief.briefing.tldr) {
+    return [
+      "This update refines how the project knowledge should be interpreted and reused.",
+    ];
+  }
+
+  return [
+    "This brief captures the latest project knowledge state for consistent interpretation over time.",
+  ];
+}
+
+function hasKnowledgeImpactContext(brief: BriefModel): boolean {
+  return (
+    brief.briefing.citations.length > 0 ||
+    (brief.briefing.constraints?.length ?? 0) > 0 ||
+    (brief.briefing.regressionRisks?.length ?? 0) > 0
+  );
 }
 
 export class BriefDocumentProvider
@@ -87,6 +99,10 @@ export class BriefDocumentProvider
 
   private renderBriefAsMarkdown(brief: BriefModel): string {
     const lines: string[] = [];
+    const hasContext = hasKnowledgeImpactContext(brief);
+    const hasMissingEvidence =
+      brief.briefing.missingEvidence && brief.briefing.missingEvidence.length > 0;
+    const hasViolations = brief.validation.violations.length > 0;
 
     lines.push(
       `# Kibi Brief: ${brief.type === "warning" ? "⚠️ Warning" : "✅ Success"}`,
@@ -94,38 +110,20 @@ export class BriefDocumentProvider
     lines.push("");
     lines.push(`**Branch:** ${brief.branch}`);
     lines.push(`**Created:** ${brief.createdAt}`);
-    lines.push(`**Session:** ${brief.sessionId}`);
-    lines.push(`**Unread:** ${brief.unread ? "Yes" : "No"}`);
     lines.push("");
 
-    // 1. Overview
-    lines.push("## Overview");
-    lines.push(...getOverviewLines(brief));
+    lines.push("## What changed");
+    lines.push(...getWhatChangedLines(brief));
     lines.push("");
 
-    // 2. Session Summary
-    lines.push("## Session Summary");
-    lines.push(brief.summary);
+    lines.push("## Why it matters");
+    lines.push(...getWhyItMattersLines(brief));
     lines.push("");
 
-    // 3. What Changed
-    lines.push("## What Changed");
-    lines.push(...getCountLines(brief));
-    lines.push("");
-
-    // 4. Relevant KB Context
-    lines.push("## Relevant KB Context");
-    const hasContext =
-      brief.briefing.citations.length > 0 ||
-      (brief.briefing.constraints && brief.briefing.constraints.length > 0) ||
-      (brief.briefing.regressionRisks &&
-        brief.briefing.regressionRisks.length > 0);
-    if (!hasContext) {
-      lines.push("*No relevant context available.*");
-      lines.push("");
-    } else {
+    if (hasContext) {
+      lines.push("## Project knowledge impact");
+      lines.push("### Evidence and authority updates");
       if (brief.briefing.citations.length > 0) {
-        lines.push("### Citations");
         for (const c of brief.briefing.citations) {
           lines.push(
             `- **${c.id}**${c.title ? `: ${c.title}` : ""}${c.source ? ` (${c.source})` : ""}`,
@@ -134,7 +132,7 @@ export class BriefDocumentProvider
         lines.push("");
       }
       if (brief.briefing.constraints && brief.briefing.constraints.length > 0) {
-        lines.push("### Constraints");
+        lines.push("### Constraints now reflected");
         for (const c of brief.briefing.constraints) {
           lines.push(`- ${c.statement} (${c.citationIds.join(", ")})`);
         }
@@ -144,7 +142,7 @@ export class BriefDocumentProvider
         brief.briefing.regressionRisks &&
         brief.briefing.regressionRisks.length > 0
       ) {
-        lines.push("### Regression Risks");
+        lines.push("### Regression considerations");
         for (const r of brief.briefing.regressionRisks) {
           lines.push(`- ${r.statement} (${r.citationIds.join(", ")})`);
         }
@@ -152,54 +150,26 @@ export class BriefDocumentProvider
       }
     }
 
-    // 5. Validation Status
-    lines.push("## Validation Status");
-    const hasViolations = brief.validation.violations.length > 0;
-    const hasMissingEvidence =
-      brief.briefing.missingEvidence &&
-      brief.briefing.missingEvidence.length > 0;
-
-    if (hasViolations) {
-      lines.push(
-        `**Validation issues:** ${brief.validation.count} violation(s) found.`,
-      );
-      lines.push("");
-      for (const v of brief.validation.violations) {
+    if (hasViolations || hasMissingEvidence) {
+      lines.push("## Interpretation note");
+      if (hasViolations) {
         lines.push(
-          `- **${v.rule}** on ${v.entityId}: ${v.description}${v.suggestion ? ` (${v.suggestion})` : ""}`,
+          "Validation checks reported unresolved items that may affect interpretation of this update:",
         );
+        for (const v of brief.validation.violations) {
+          lines.push(
+            `- ${v.rule} on ${v.entityId}: ${v.description}${v.suggestion ? ` (${v.suggestion})` : ""}`,
+          );
+        }
+      }
+      if (hasMissingEvidence) {
+        lines.push("This brief includes unresolved evidence notes:");
+        for (const m of brief.briefing.missingEvidence ?? []) {
+          lines.push(`- ${m.statement}`);
+        }
       }
       lines.push("");
-    } else {
-      lines.push("✅ No validation issues found.");
-      lines.push("");
     }
-
-    if (hasMissingEvidence) {
-      lines.push("### Missing Evidence");
-      for (const m of brief.briefing.missingEvidence ?? []) {
-        lines.push(`- ${m.statement} (${m.citationIds.join(", ")})`);
-      }
-      lines.push("");
-    }
-
-    // 6. Next Step
-    lines.push("## Next Step");
-    if (hasViolations) {
-      lines.push("Address validation issues first");
-    } else if (hasMissingEvidence) {
-      lines.push("Review missing evidence");
-    } else if (brief.briefing.citations.length > 0) {
-      lines.push("Open cited entities for details");
-    } else {
-      lines.push("Use `/brief-kibi` for a fresh briefing");
-    }
-    lines.push("");
-
-    lines.push("---");
-    lines.push(
-      `*Brief ID: ${brief.briefId} | Content Hash: ${brief.contentHash}*`,
-    );
 
     return lines.join("\n");
   }

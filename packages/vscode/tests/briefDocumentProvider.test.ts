@@ -21,7 +21,6 @@ const { BriefDocumentProvider } = await import("../src/briefDocumentProvider");
  * Creates a minimal valid brief JSON object.
  */
 function createBrief(
-  // Deep partial for test overrides — individual callers only set the fields they need
   overrides: {
     briefId?: string;
     branch?: string;
@@ -29,34 +28,6 @@ function createBrief(
     type?: "success" | "warning";
     sessionId?: string;
     summary?: string;
-    auditCursor?: Partial<{
-      lastTimestamp: string;
-      lastOperation: string;
-      entryCount: number;
-      fileSize: number;
-    }>;
-    counts?: Partial<{
-      requirementsAdded: number;
-      relationshipsAdded: number;
-      entitiesDeleted: number;
-    }>;
-    validation?: Partial<{
-      violations: Array<{
-        rule: string;
-        entityId: string;
-        description: string;
-        suggestion?: string;
-        source?: string;
-      }>;
-      count: number;
-      diagnostics: Array<{
-        category: string;
-        severity: string;
-        message: string;
-        file?: string;
-        suggestion?: string;
-      }>;
-    }>;
     briefing?: Partial<{
       tldr: string;
       promptBlock: string;
@@ -80,7 +51,6 @@ function createBrief(
         citationIds: string[];
       }>;
     }>;
-    contentHash?: string;
   } = {},
 ): BriefModel {
   return {
@@ -158,7 +128,7 @@ describe("provideTextDocumentContent", () => {
     expect(result).toContain("nonexistent-brief");
   });
 
-  test("returns Markdown for valid brief", () => {
+  test("renders user-facing informative brief format", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
@@ -181,14 +151,22 @@ describe("provideTextDocumentContent", () => {
 
     const result = provider.provideTextDocumentContent(uri);
 
-    // Should contain Markdown sections
     expect(result).toContain("# Kibi Brief:");
-    expect(result).toContain("## Session Summary");
-    expect(result).toContain("This is a test brief");
-    expect(result).toContain("## What Changed");
-    expect(result).toContain("## Validation Status");
-    expect(result).toContain("Brief ID: test-brief-456");
-    expect(result).toContain("Content Hash: abc123");
+    expect(result).toContain("## What changed");
+    expect(result).toContain("TL;DR test");
+    expect(result).toContain("## Why it matters");
+    expect(result).toContain("prompt block content");
+
+    expect(result).not.toContain("**Session:**");
+    expect(result).not.toContain("**Unread:**");
+    expect(result).not.toContain("## Overview");
+    expect(result).not.toContain("## Session Summary");
+    expect(result).not.toContain("## What Changed");
+    expect(result).not.toContain("## Relevant KB Context");
+    expect(result).not.toContain("## Validation Status");
+    expect(result).not.toContain("## Next Step");
+    expect(result).not.toContain("Brief ID:");
+    expect(result).not.toContain("Content Hash:");
   });
 
   test("shows warning emoji for warning type brief", () => {
@@ -239,41 +217,36 @@ describe("provideTextDocumentContent", () => {
     expect(result).not.toContain("⚠️ Warning");
   });
 
-  test("Markdown contains expected sections (Summary, Changes, Validation)", () => {
+  test("includes branch and created metadata only", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
     const brief = createBrief({
-      briefId: "section-test-brief",
-      counts: {
-        requirementsAdded: 5,
-        relationshipsAdded: 10,
-        entitiesDeleted: 2,
-      },
+      briefId: "metadata-brief",
+      branch: "feature/auth",
+      sessionId: "session-xyz-789",
+      unread: true,
     });
 
     fs.writeFileSync(
-      path.join(briefsDir, "section-test-brief_brief.json"),
+      path.join(briefsDir, "metadata-brief_brief.json"),
       JSON.stringify(brief),
     );
 
     const uri = {
       authority: encodeURIComponent(tmpDir),
-      path: "/develop/section-test-brief.md",
+      path: "/develop/metadata-brief.md",
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
 
-    expect(result).toContain("## Session Summary");
-    expect(result).toContain("## What Changed");
-    expect(result).toContain("5 entities changed");
-    expect(result).toContain("10 relationships changed");
-    expect(result).toContain("2 entities deleted");
-    expect(result).toContain("## Validation Status");
-    expect(result).toContain("✅ No validation issues found.");
+    expect(result).toContain("**Branch:** feature/auth");
+    expect(result).toContain("**Created:** 2026-01-15T10:00:00Z");
+    expect(result).not.toContain("**Session:**");
+    expect(result).not.toContain("**Unread:**");
   });
 
-  test("Markdown includes Citations section when citations exist", () => {
+  test("renders Project knowledge impact when context exists", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
@@ -303,32 +276,19 @@ describe("provideTextDocumentContent", () => {
 
     const result = provider.provideTextDocumentContent(uri);
 
-    expect(result).toContain("### Citations");
+    expect(result).toContain("## Project knowledge impact");
+    expect(result).toContain("### Evidence and authority updates");
     expect(result).toContain(
-      "**REQ-001**: Authentication requirement (docs/reqs.md)",
+      "- **REQ-001**: Authentication requirement (docs/reqs.md)",
     );
-    expect(result).toContain("**ADR-005** (docs/adr.md)");
+    expect(result).toContain("- **ADR-005** (docs/adr.md)");
   });
 
-  test("Markdown includes Validation Issues section when violations exist", () => {
+  test("omits Project knowledge impact when there is no context", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
-    const brief = createBrief({
-      briefId: "violations-brief",
-      validation: {
-        violations: [
-          {
-            rule: "no-dangling-refs",
-            entityId: "REQ-999",
-            description: "Missing reference target",
-            suggestion: "Add the missing target entity",
-          },
-        ],
-        count: 1,
-        diagnostics: [],
-      },
-    });
+    const brief = createBrief({ briefId: "no-context-brief" });
 
     fs.writeFileSync(
       path.join(briefsDir, "violations-brief_brief.json"),
@@ -337,27 +297,24 @@ describe("provideTextDocumentContent", () => {
 
     const uri = {
       authority: encodeURIComponent(tmpDir),
-      path: "/develop/violations-brief.md",
+      path: "/develop/no-context-brief.md",
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
 
-    expect(result).toContain("## Validation Status");
-    expect(result).toContain("**Validation issues:** 1 violation(s) found.");
-    expect(result).toContain(
-      "- **no-dangling-refs** on REQ-999: Missing reference target (Add the missing target entity)",
-    );
+    expect(result).not.toContain("## Project knowledge impact");
   });
 
-  test("includes metadata (Branch, Created, Session, Unread)", () => {
+  test("renders Interpretation note as descriptive, not imperative", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
     const brief = createBrief({
-      briefId: "metadata-brief",
-      branch: "feature/auth",
-      sessionId: "session-xyz-789",
-      unread: true,
+      briefId: "interpretation-note-brief",
+      briefing: {
+        citations: [],
+        missingEvidence: [{ statement: "Evidence for TEST-123 is pending", citationIds: [] }],
+      },
     });
 
     fs.writeFileSync(
@@ -367,14 +324,15 @@ describe("provideTextDocumentContent", () => {
 
     const uri = {
       authority: encodeURIComponent(tmpDir),
-      path: "/feature/auth/metadata-brief.md",
+      path: "/develop/interpretation-note-brief.md",
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
 
-    expect(result).toContain("**Branch:** feature/auth");
-    expect(result).toContain("**Session:** session-xyz-789");
-    expect(result).toContain("**Unread:** Yes");
+    expect(result).toContain("## Interpretation note");
+    expect(result).toContain("This brief includes unresolved evidence notes:");
+    expect(result).toContain("- Evidence for TEST-123 is pending");
+    expect(result).not.toContain("Review missing evidence");
   });
 
   test("ignores files that are not _brief.json", () => {
@@ -397,21 +355,53 @@ describe("provideTextDocumentContent", () => {
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("## Session Summary");
+    expect(result).toContain("## What changed");
   });
 
-  test("renders ## Briefing section with tldr in Overview when present", () => {
+  test("uses v2 change narrative for What changed when present", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
 
-    const brief = createBrief({
-      briefId: "promptblock-brief",
-      briefing: {
-        tldr: "Short summary",
-        promptBlock: "This is the full briefing body.\nIt has multiple lines.",
-        citations: [],
+    const brief: BriefModel = {
+      schemaVersion: "2.0",
+      briefId: "narrative-brief",
+      type: "success",
+      sessionId: "session-abc",
+      branch: "develop",
+      createdAt: "2026-01-15T10:00:00Z",
+      unread: true,
+      auditCursor: {
+        lastTimestamp: "2026-01-15T09:55:00Z",
+        lastOperation: "sync",
+        entryCount: 5,
+        fileSize: 1024,
       },
-    });
+      summary: "Test brief summary",
+      counts: {
+        entitiesAdded: 1,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      },
+      briefing: {
+        tldr: "Fallback tldr",
+        promptBlock: "",
+        citations: [],
+        changeNarrative: [
+          "ADR-021 superseded ADR-009 for append-only requirement evolution.",
+        ],
+      },
+      contentHash: "abc123",
+    };
 
     fs.writeFileSync(
       path.join(briefsDir, "promptblock-brief_brief.json"),
@@ -420,230 +410,15 @@ describe("provideTextDocumentContent", () => {
 
     const uri = {
       authority: encodeURIComponent(tmpDir),
-      path: "/develop/promptblock-brief.md",
+      path: "/develop/narrative-brief.md",
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
 
-    expect(result).toContain("## Overview");
-    expect(result).toContain("Short summary");
-    expect(result).not.toContain("This is the full briefing body.");
-    // Existing sections should still be present
-    expect(result).toContain("## Session Summary");
-    expect(result).toContain("## What Changed");
-    expect(result).toContain("## Validation Status");
-  });
-
-  test("renders ## Briefing fallback when promptBlock is empty", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-
-    const brief = createBrief({
-      briefId: "fallback-brief",
-      briefing: {
-        tldr: "Fallback TL;DR text",
-        promptBlock: "",
-        citations: [{ id: "REQ-100", title: "Test req" }],
-      },
-      validation: {
-        violations: [
-          {
-            rule: "no-dangling-refs",
-            entityId: "REQ-100",
-            description: "Missing ref",
-          },
-        ],
-        count: 1,
-        diagnostics: [],
-      },
-    });
-
-    fs.writeFileSync(
-      path.join(briefsDir, "fallback-brief_brief.json"),
-      JSON.stringify(brief),
+    expect(result).toContain("## What changed");
+    expect(result).toContain(
+      "ADR-021 superseded ADR-009 for append-only requirement evolution.",
     );
-
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/fallback-brief.md",
-    } as unknown as import("vscode").Uri;
-
-    const result = provider.provideTextDocumentContent(uri);
-
-    expect(result).toContain("## Overview");
-    expect(result).toContain("Fallback TL;DR text");
-    // Existing sections should still be present
-    expect(result).toContain("## Session Summary");
-    expect(result).toContain("## What Changed");
-    expect(result).toContain("## Validation Status");
-    expect(result).toContain("### Citations");
-  });
-
-  test("renders fallback with only tldr when no citations or violations", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-
-    const brief = createBrief({
-      briefId: "tldr-only-brief",
-      briefing: {
-        tldr: "Just the TL;DR",
-        promptBlock: "",
-        citations: [],
-      },
-    });
-
-    fs.writeFileSync(
-      path.join(briefsDir, "tldr-only-brief_brief.json"),
-      JSON.stringify(brief),
-    );
-
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/tldr-only-brief.md",
-    } as unknown as import("vscode").Uri;
-
-    const result = provider.provideTextDocumentContent(uri);
-
-    expect(result).toContain("## Overview");
-    expect(result).toContain("Just the TL;DR");
-  });
-
-  test("preserves all existing sections when promptBlock is present", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-
-    const brief = createBrief({
-      briefId: "full-sections-brief",
-      summary: "Full sections test",
-      counts: {
-        requirementsAdded: 3,
-        relationshipsAdded: 7,
-        entitiesDeleted: 1,
-      },
-      briefing: {
-        tldr: "Short",
-        promptBlock: "Full briefing body content.",
-        citations: [
-          { id: "REQ-200", title: "Some requirement", source: "docs/req.md" },
-        ],
-      },
-    });
-
-    fs.writeFileSync(
-      path.join(briefsDir, "full-sections-brief_brief.json"),
-      JSON.stringify(brief),
-    );
-
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/full-sections-brief.md",
-    } as unknown as import("vscode").Uri;
-
-    const result = provider.provideTextDocumentContent(uri);
-
-    // All sections present in order
-    expect(result).toContain("## Overview");
-    expect(result).toContain("Short");
-    expect(result).toContain("## Session Summary");
-    expect(result).toContain("Full sections test");
-    expect(result).toContain("## What Changed");
-    expect(result).toContain("3 entities changed");
-    expect(result).toContain("7 relationships changed");
-    expect(result).toContain("1 entity deleted");
-    expect(result).toContain("## Validation Status");
-    expect(result).toContain("### Citations");
-    expect(result).toContain("**REQ-200**: Some requirement (docs/req.md)");
-    expect(result).toContain("Brief ID: full-sections-brief");
-  });
-
-  test("renders Next Step correctly (violations exist)", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-    const brief = createBrief({
-      briefId: "next-step-1",
-      validation: {
-        violations: [{ rule: "test", entityId: "REQ-1", description: "test" }],
-        count: 1,
-      },
-    });
-    fs.writeFileSync(
-      path.join(briefsDir, "next-step-1_brief.json"),
-      JSON.stringify(brief),
-    );
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/next-step-1.md",
-    } as unknown as import("vscode").Uri;
-    const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("## Next Step");
-    expect(result).toContain("Address validation issues first");
-  });
-
-  test("renders Next Step correctly (missing evidence exists)", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-    const brief = createBrief({
-      briefId: "next-step-2",
-      briefing: {
-        citations: [],
-        missingEvidence: [{ statement: "need info", citationIds: [] }],
-      },
-    });
-    fs.writeFileSync(
-      path.join(briefsDir, "next-step-2_brief.json"),
-      JSON.stringify(brief),
-    );
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/next-step-2.md",
-    } as unknown as import("vscode").Uri;
-    const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("## Next Step");
-    expect(result).toContain("Review missing evidence");
-  });
-
-  test("renders Next Step correctly (citations exist)", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-    const brief = createBrief({
-      briefId: "next-step-3",
-      briefing: {
-        citations: [{ id: "REQ-1", title: "Test req" }],
-      },
-    });
-    fs.writeFileSync(
-      path.join(briefsDir, "next-step-3_brief.json"),
-      JSON.stringify(brief),
-    );
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/next-step-3.md",
-    } as unknown as import("vscode").Uri;
-    const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("## Next Step");
-    expect(result).toContain("Open cited entities for details");
-  });
-
-  test("renders Next Step correctly (fallback)", () => {
-    const briefsDir = path.join(tmpDir, ".kb", "briefs");
-    fs.mkdirSync(briefsDir, { recursive: true });
-    const brief = createBrief({
-      briefId: "next-step-4",
-      briefing: {
-        citations: [],
-      },
-    });
-    fs.writeFileSync(
-      path.join(briefsDir, "next-step-4_brief.json"),
-      JSON.stringify(brief),
-    );
-    const uri = {
-      authority: encodeURIComponent(tmpDir),
-      path: "/develop/next-step-4.md",
-    } as unknown as import("vscode").Uri;
-    const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("## Next Step");
-    expect(result).toContain("Use `/brief-kibi` for a fresh briefing");
   });
 });
 
