@@ -18,8 +18,8 @@ links:
 ---
 
 
-20#YT|> **Note**: This scenario is DEPRECATED and superseded by SCEN-opencode-kibi-briefing-v2. 
-21#YT|> It documents the historical v1 cue-driven behavior.
+> **Note**: This scenario is DEPRECATED and superseded by SCEN-opencode-kibi-briefing-v2. 
+> It documents the historical v1 cue-driven behavior.
 **Scenario: Authoritative risky edit gets a start-task cue**
 
 **GIVEN** an OpenCode session is in an authoritative, non-degraded posture
