@@ -40,6 +40,9 @@ interface InitKibiCapabilityDetectionInput {
 
 const require = createRequire(import.meta.url);
 let cachedCapability: InitKibiCommandCapability | null = null;
+const initialProcessCwd = process.cwd();
+const initialEnvPwd = process.env.PWD;
+const initialGithubWorkspace = process.env.GITHUB_WORKSPACE;
 
 function* candidateHostRoots(startDir: string): Generator<string> {
   let current = path.resolve(startDir);
@@ -112,10 +115,21 @@ function resolveDogfoodHostCapabilityInputs(
         path.join(sdkRoot, "dist", "v2", "gen", "types.gen.d.ts"),
       );
 
+      // Dogfood host artifacts can be partially installed (package.json present, dist d.ts absent).
+      // In that case we should keep probing/fallback instead of hard-failing capability detection.
+      if (
+        typeof pluginHooksDts !== "string" ||
+        pluginHooksDts.length === 0 ||
+        typeof sdkTypesDts !== "string" ||
+        sdkTypesDts.length === 0
+      ) {
+        continue;
+      }
+
       return {
         ...(pluginVersion ? { pluginVersion } : {}),
-        ...(pluginHooksDts ? { pluginHooksDts } : {}),
-        ...(sdkTypesDts ? { sdkTypesDts } : {}),
+        pluginHooksDts,
+        sdkTypesDts,
       };
     }
   }
@@ -179,6 +193,9 @@ function resolveHostCapabilityInputs(): InitKibiCapabilityDetectionInput {
       process.cwd(),
       process.env.PWD,
       process.env.GITHUB_WORKSPACE,
+      initialProcessCwd,
+      initialEnvPwd,
+      initialGithubWorkspace,
       moduleDir,
     ].filter((value): value is string =>
       typeof value === "string" && value.length > 0,
