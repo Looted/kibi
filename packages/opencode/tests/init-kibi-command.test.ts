@@ -6,6 +6,7 @@ import path from "node:path";
 import { buildInitKibiAlias } from "../src/init-kibi-alias";
 import {
   detectInitKibiCommandCapability,
+  findSdkPackageJsonForPluginRoot,
   getInitKibiCommandCapability,
   INIT_KIBI_COMMAND_DESCRIPTION,
   INIT_KIBI_COMMAND_NAME,
@@ -139,6 +140,18 @@ describe("init-kibi native command support", () => {
         },
       },
     });
+  });
+
+  test("resolves SDK package from Bun transitive plugin sibling layout", () => {
+    const scopeRoot = fs.mkdtempSync(path.join(tmpBase, "opencode-scope-"));
+    const pluginRoot = path.join(scopeRoot, "plugin");
+    const sdkRoot = path.join(scopeRoot, "sdk");
+    fs.mkdirSync(pluginRoot, { recursive: true });
+    fs.mkdirSync(sdkRoot, { recursive: true });
+    const sdkPackageJsonPath = path.join(sdkRoot, "package.json");
+    fs.writeFileSync(sdkPackageJsonPath, JSON.stringify({ name: "@opencode-ai/sdk" }));
+
+    expect(findSdkPackageJsonForPluginRoot(pluginRoot)).toBe(sdkPackageJsonPath);
   });
 
   test("registers native init-kibi alias without repo-local command files", async () => {
