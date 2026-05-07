@@ -4419,7 +4419,7 @@ import datetime
           "Authoritative risky edit: run `/brief-kibi` before acting.",
         ),
       );
-      assert.ok(rendered.includes("Full details: run /brief-kibi."));
+      assert.ok(rendered.includes("- What changed: Some summary here"));
     });
 
     it("does not surface fabricated auto-brief content when runtime reports no_briefing", async () => {

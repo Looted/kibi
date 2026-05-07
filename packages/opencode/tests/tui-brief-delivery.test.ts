@@ -130,7 +130,8 @@ describe("tui-brief-delivery", () => {
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          message: "Test summary",
+          message:
+            "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
         }),
       }),
     );
@@ -180,8 +181,9 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toContain("Test summary");
-    expect(calledWith.body?.message).toContain("2 citation(s)");
+    expect(calledWith.body?.message).toContain("## Project knowledge impact");
+    expect(calledWith.body?.message).toContain("- **REQ-001**: Linked requirement");
+    expect(calledWith.body?.message).toContain("- **REQ-002**: Another requirement");
   });
 
   test("includes validation signal in toast when violations exist", async () => {
@@ -193,7 +195,10 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toContain("Validation: 3 issue(s)");
+    expect(calledWith.body?.message).toContain("## Interpretation note");
+    expect(calledWith.body?.message).toContain(
+      "Validation checks reported unresolved items: 3 issue(s).",
+    );
   });
 
   test("produces non-empty toast even with minimal envelope", async () => {
@@ -207,7 +212,10 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toBe("Brief available");
+    expect(calledWith.body?.message).toContain("## What changed");
+    expect(calledWith.body?.message).toContain(
+      "Knowledge updates were recorded in this brief.",
+    );
   });
 
   test("uses tldr as fallback when summary is empty", async () => {
@@ -220,7 +228,7 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toBe("TLDR fallback");
+    expect(calledWith.body?.message).toContain("## What changed\nTLDR fallback");
   });
 
   test("shows schema-2.0 change narrative in toast message", async () => {
@@ -248,12 +256,9 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toContain(
-      "Modified REQ-001: Tightened summary language",
-    );
-    expect(calledWith.body?.message).toContain(
-      "Added TEST-002: Covers new toast fallback",
-    );
+    expect(calledWith.body?.message).toContain("## What changed");
+    expect(calledWith.body?.message).toContain("Modified REQ-001: Tightened summary language");
+    expect(calledWith.body?.message).toContain("Added TEST-002: Covers new toast fallback");
     expect(calledWith.body?.message).not.toContain("Removed obsolete note");
   });
 
@@ -280,9 +285,8 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-    expect(calledWith.body?.message).toContain(
-      "Added TEST-002: Covers new toast fallback",
-    );
+    expect(calledWith.body?.message).toContain("## What changed");
+    expect(calledWith.body?.message).toContain("Added TEST-002: Covers new toast fallback");
   });
 
   // --- Optional toast (not a success-path requirement) ---
@@ -296,8 +300,9 @@ describe("tui-brief-delivery", () => {
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith({
       body: {
         variant: "info",
-        title: "Kibi Brief",
-        message: "Test summary",
+        title: "Kibi Knowledge Update",
+        message:
+          "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
         duration: 8000,
       },
     });
