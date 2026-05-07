@@ -159,10 +159,16 @@ function hasConfigCommandField(sdkTypesDts: string): boolean {
 
 function resolveHostCapabilityInputs(): InitKibiCapabilityDetectionInput {
   const moduleDir = path.dirname(fileURLToPath(import.meta.url));
-  const dogfoodHost = resolveDogfoodHostCapabilityInputs([
-    process.cwd(),
-    moduleDir,
-  ]);
+  const dogfoodHost = resolveDogfoodHostCapabilityInputs(
+    [
+      process.cwd(),
+      process.env.PWD,
+      process.env.GITHUB_WORKSPACE,
+      moduleDir,
+    ].filter((value): value is string =>
+      typeof value === "string" && value.length > 0,
+    ),
+  );
   if (dogfoodHost) {
     return dogfoodHost;
   }
@@ -245,7 +251,7 @@ export function detectInitKibiCommandCapability(
 
 // implements REQ-opencode-kibi-briefing-v2
 export function getInitKibiCommandCapability(): InitKibiCommandCapability {
-  if (cachedCapability) {
+  if (cachedCapability?.supported) {
     return cachedCapability;
   }
 
