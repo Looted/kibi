@@ -69,6 +69,28 @@
           "type": "boolean",
           "default": true
         },
+        "retention": {
+          "type": "object",
+          "properties": {
+            "maxPerBranch": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 200
+            },
+            "maxAgeDays": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3650,
+              "default": 14
+            },
+            "keepUnread": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
         "channels": {
           "type": "object",
           "properties": {
@@ -93,6 +115,13 @@
             "appendPrompt": {
               "type": "boolean",
               "default": true
+            },
+            "idleDelayMs": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 60000,
+              "default": 1500,
+              "description": "Delay in milliseconds after session.idle before idle-brief generation is attempted"
             }
           },
           "additionalProperties": false

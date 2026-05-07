@@ -36,6 +36,11 @@ describe("brief-config", () => {
 
     expect(loadBriefConfig(tmpDir)).toEqual({
       enabled: true,
+      retention: {
+        maxPerBranch: 200,
+        maxAgeDays: 14,
+        keepUnread: true,
+      },
       channels: {
         vscode: true,
         tui: true,
@@ -43,6 +48,7 @@ describe("brief-config", () => {
       tui: {
         toast: true,
         appendPrompt: true,
+        idleDelayMs: 1500,
       },
     });
   });
@@ -68,6 +74,11 @@ describe("brief-config", () => {
 
     expect(loadBriefConfig(tmpDir)).toEqual({
       enabled: false,
+      retention: {
+        maxPerBranch: 200,
+        maxAgeDays: 14,
+        keepUnread: true,
+      },
       channels: {
         vscode: true,
         tui: false,
@@ -75,6 +86,7 @@ describe("brief-config", () => {
       tui: {
         toast: false,
         appendPrompt: true,
+        idleDelayMs: 1500,
       },
     });
   });
@@ -102,6 +114,11 @@ describe("brief-config", () => {
 
     expect(loadBriefConfig(tmpDir)).toEqual({
       enabled: false,
+      retention: {
+        maxPerBranch: 200,
+        maxAgeDays: 14,
+        keepUnread: true,
+      },
       channels: {
         vscode: false,
         tui: false,
@@ -109,6 +126,7 @@ describe("brief-config", () => {
       tui: {
         toast: false,
         appendPrompt: false,
+        idleDelayMs: 1500,
       },
     });
   });

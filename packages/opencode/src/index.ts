@@ -70,9 +70,6 @@ import {
 } from "./tui-brief-delivery.js";
 
 type ToastCapableClient = SendToastClient & BriefToastClient;
-const IDLE_BRIEF_DELIVERY_DELAY_MS = Number(
-  process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS ?? "10000",
-);
 
 interface RecentEdit {
   path: string;
@@ -84,6 +81,21 @@ import * as fs from "node:fs";
 
 function deriveFileBucket(kind: PathKind): string {
   return kind;
+}
+
+function resolveIdleBriefDeliveryDelayMs(worktree: string): number {
+  const envValue = Number(process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS);
+  if (Number.isFinite(envValue) && envValue >= 0) {
+    return Math.min(60_000, Math.trunc(envValue));
+  }
+
+  const sharedPolicy = loadBriefConfig(worktree) as {
+    tui?: { idleDelayMs?: number };
+  };
+  const configValue = Number(sharedPolicy.tui?.idleDelayMs ?? 1500);
+  if (!Number.isFinite(configValue)) return 1500;
+  if (configValue < 0) return 0;
+  return Math.min(60_000, Math.trunc(configValue));
 }
 
 export interface PluginInput {
@@ -667,7 +679,7 @@ function buildSyntheticSyncAuditDelta(
       idleBriefTimer = setTimeout(() => {
         idleBriefTimer = null;
         void runIdleBrief();
-      }, IDLE_BRIEF_DELIVERY_DELAY_MS);
+      }, resolveIdleBriefDeliveryDelayMs(idleWorkspaceRoot));
       return;
     }
 

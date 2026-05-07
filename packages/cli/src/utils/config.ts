@@ -40,6 +40,11 @@ export interface KbConfigPaths {
 
 export interface BriefsConfig {
   enabled: boolean;
+  retention?: {
+    maxPerBranch?: number;
+    maxAgeDays?: number;
+    keepUnread?: boolean;
+  };
   channels: {
     vscode: boolean;
     tui: boolean;
@@ -47,6 +52,7 @@ export interface BriefsConfig {
   tui: {
     toast: boolean;
     appendPrompt: boolean;
+    idleDelayMs?: number;
   };
 }
 
@@ -72,6 +78,11 @@ export type { ChecksConfig, SymbolTraceabilityOptions };
  */
 const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
   enabled: true,
+  retention: {
+    maxPerBranch: 200,
+    maxAgeDays: 14,
+    keepUnread: true,
+  },
   channels: {
     vscode: true,
     tui: true,
@@ -79,6 +90,7 @@ const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
   tui: {
     toast: true,
     appendPrompt: true,
+    idleDelayMs: 1500,
   },
 };
 
@@ -125,6 +137,10 @@ function mergeBriefsConfig(userBriefs?: Partial<BriefsConfig>): BriefsConfig {
     tui: {
       ...DEFAULT_BRIEFS_CONFIG.tui,
       ...userBriefs?.tui,
+    },
+    retention: {
+      ...DEFAULT_BRIEFS_CONFIG.retention,
+      ...userBriefs?.retention,
     },
   };
 }

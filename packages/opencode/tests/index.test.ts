@@ -3544,6 +3544,7 @@ import datetime
       writePluginConfig(tmpDir, {
         enabled: true,
         prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
         sync: { enabled: true },
         ux: { toastStartup: false },
         guidance: {
@@ -3655,6 +3656,7 @@ import datetime
       writePluginConfig(tmpDir, {
         enabled: true,
         prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
         sync: { enabled: true },
         ux: { toastStartup: false },
         guidance: {
@@ -3841,6 +3843,7 @@ import datetime
       writePluginConfig(tmpDir, {
         enabled: true,
         prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
         sync: { enabled: false },
         ux: { toastStartup: false },
         guidance: {
