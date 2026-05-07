@@ -175,6 +175,16 @@ export function registerBriefWatcher(
   watcher.onDidCreate(handleBriefFile);
   watcher.onDidChange(handleBriefFile);
 
+  // FileSystemWatcher only sees create/change events that happen after
+  // registration. Replay the latest unread brief once on activation so a brief
+  // generated while VS Code was reloading or before watcher startup still
+  // surfaces without requiring another filesystem write.
+  setTimeout(() => {
+    void handleBriefFile(
+      vscode.Uri.file(path.join(workspaceRoot, ".kb", "briefs", "startup.scan")),
+    );
+  }, 0);
+
   // Register watcher so it gets disposed with the extension
   context.subscriptions.push(watcher);
 
