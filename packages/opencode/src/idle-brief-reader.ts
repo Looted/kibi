@@ -7,6 +7,57 @@ import {
 } from "./idle-brief-store.js";
 
 const BRIEF_FILENAME_RE = /^(\d+)_brief\.json$/;
+const TUI_SEEN_FILE = ".tui-seen.json";
+
+function resolveTuiSeenPath(workspaceRoot: string): string {
+  return path.join(resolveBriefsDir(workspaceRoot), TUI_SEEN_FILE);
+}
+
+function readTuiSeenHashes(workspaceRoot: string, branch: string): Set<string> {
+  const seenPath = resolveTuiSeenPath(workspaceRoot);
+  try {
+    const parsed = JSON.parse(fs.readFileSync(seenPath, "utf-8")) as unknown;
+    if (!parsed || typeof parsed !== "object") return new Set();
+    const byBranch = parsed as Record<string, unknown>;
+    const values = byBranch[branch];
+    if (!Array.isArray(values)) return new Set();
+    return new Set(values.filter((entry): entry is string => typeof entry === "string"));
+  } catch {
+    return new Set();
+  }
+}
+
+export function hasTuiSeenBrief(
+  workspaceRoot: string,
+  branch: string,
+  contentHash: string,
+): boolean { // implements REQ-opencode-kibi-briefing-v4
+  return readTuiSeenHashes(workspaceRoot, branch).has(contentHash);
+}
+
+export function markBriefTuiSeen(
+  workspaceRoot: string,
+  branch: string,
+  contentHash: string,
+): void { // implements REQ-opencode-kibi-briefing-v4
+  const briefsDir = resolveBriefsDir(workspaceRoot);
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const seenPath = resolveTuiSeenPath(workspaceRoot);
+  let parsed: Record<string, string[]> = {};
+  try {
+    const raw = JSON.parse(fs.readFileSync(seenPath, "utf-8")) as unknown;
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+      parsed = raw as Record<string, string[]>;
+    }
+  } catch {}
+
+  const existing = Array.isArray(parsed[branch]) ? parsed[branch] : [];
+  const next = [contentHash, ...existing.filter((entry) => entry !== contentHash)].slice(0, 100);
+  parsed[branch] = next;
+  const tempPath = `${seenPath}.tmp`;
+  fs.writeFileSync(tempPath, JSON.stringify(parsed, null, 2), "utf-8");
+  fs.renameSync(tempPath, seenPath);
+}
 
 /**
  * Extract the numeric timestamp prefix from a brief filename.
