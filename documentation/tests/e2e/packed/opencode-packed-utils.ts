@@ -48,7 +48,9 @@ function findTarballFromEnv(
       return statB.mtimeMs - statA.mtimeMs;
     });
 
-    return join(dir, files[0]!);
+    const latest = files[0];
+    if (!latest) continue;
+    return join(dir, latest);
   }
 
   return null;
