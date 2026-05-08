@@ -1,11 +1,14 @@
 // E2E test for kibi-opencode plugin loader safety (issue #82)
 // This test ensures the plugin package exports only loader-safe functions from root
 import assert from "node:assert";
-import { execFileSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
+import {
+  createIsolatedInstall,
+  installOpencodeTarball,
+  resolveOpencodeTarball,
+} from "./opencode-packed-utils.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -22,35 +25,11 @@ if (RUN_NODE_TEST_SUITE) {
 
       before(
         async () => {
-          tmpDir = mkdtempSync(join(tmpdir(), "kibi-opencode-e2e-"));
-          installDir = join(tmpDir, "install");
-          mkdirSync(installDir, { recursive: true });
-
-          // Pack: opencode package (triggers prepack → build)
-          const opencodeDir = join(REPO_ROOT, "packages/opencode");
-          const packOutput = execFileSync("npm", ["pack", "--json"], {
-            cwd: opencodeDir,
-            encoding: "utf8",
-            stdio: ["pipe", "pipe", "pipe"],
-          });
-
-          interface PackResult {
-            filename: string;
-          }
-          const packResults = JSON.parse(packOutput) as PackResult[];
-          if (
-            !packResults ||
-            packResults.length === 0 ||
-            !packResults[0]?.filename
-          ) {
-            throw new Error("npm pack did not return filename");
-          }
-          const tarball = join(opencodeDir, packResults[0].filename);
-
-          // Install tarball into isolated prefix
-          execFileSync("npm", ["install", "--prefix", installDir, tarball], {
-            stdio: ["pipe", "pipe", "pipe"],
-          });
+          const { tarballPath } = resolveOpencodeTarball(REPO_ROOT);
+          const isolated = createIsolatedInstall();
+          tmpDir = isolated.tmpDir;
+          installDir = isolated.installDir;
+          installOpencodeTarball(installDir, tarballPath);
         },
         { timeout: 120000 },
       );

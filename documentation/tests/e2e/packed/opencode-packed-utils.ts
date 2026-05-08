@@ -29,6 +29,31 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
+function findTarballFromEnv(
+  tarballEnv: string,
+  pkg: "core" | "cli" | "mcp",
+): string | null {
+  const candidateDirs = [join(tarballEnv, pkg), tarballEnv];
+
+  for (const dir of candidateDirs) {
+    if (!existsSync(dir)) continue;
+    const files = readdirSync(dir).filter((f: string) =>
+      f.match(new RegExp(`^kibi-${pkg}-.*\\.tgz$`)),
+    );
+    if (files.length === 0) continue;
+
+    files.sort((a: string, b: string) => {
+      const statA = statSync(join(dir, a));
+      const statB = statSync(join(dir, b));
+      return statB.mtimeMs - statA.mtimeMs;
+    });
+
+    return join(dir, files[0]!);
+  }
+
+  return null;
+}
+
 /**
  * Log a message only when KIBI_E2E_VERBOSE is set.
  * This prevents noisy console output in CI while allowing debugging when needed.
@@ -156,15 +181,25 @@ export function installOpencodeTarball(
 ): void {
   // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
+  const installArgs = ["install", "--legacy-peer-deps", "--no-audit"];
+  const tarballEnv = process.env.KIBI_TEST_TARBALLS;
+
+  if (tarballEnv) {
+    for (const dep of ["core", "cli", "mcp"] as const) {
+      const depTarball = findTarballFromEnv(tarballEnv, dep);
+      if (depTarball) {
+        installArgs.push(depTarball);
+      }
+    }
+  }
+
+  installArgs.push(tarballPath);
+
   try {
-    execFileSync(
-      "npm",
-      ["install", "--legacy-peer-deps", "--no-audit", tarballPath],
-      {
-        cwd: installDir,
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    );
+    execFileSync("npm", installArgs, {
+      cwd: installDir,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(
