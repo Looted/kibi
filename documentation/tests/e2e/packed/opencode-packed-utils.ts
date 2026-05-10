@@ -29,9 +29,13 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
+type KibiPackage = "core" | "cli" | "mcp" | "opencode";
+
+const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = ["core", "cli"];
+
 function findTarballFromEnv(
   tarballEnv: string,
-  pkg: "core" | "cli" | "mcp",
+  pkg: KibiPackage,
 ): string | null {
   const candidateDirs = [join(tarballEnv, pkg), tarballEnv];
 
@@ -79,27 +83,13 @@ export function resolveOpencodeTarball(
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
   if (tarballEnv) {
-    const searchDir = join(tarballEnv, "opencode");
-    if (existsSync(searchDir)) {
-      // Search for existing tarballs
-      const files = readdirSync(searchDir).filter((f: string) =>
-        f.match(/^kibi-opencode-.*\.tgz$/),
-      );
-      if (files.length > 0) {
-        // Sort by modified time, newest first
-        files.sort((a: string, b: string) => {
-          const statA = statSync(join(searchDir, a));
-          const statB = statSync(join(searchDir, b));
-          return statB.mtimeMs - statA.mtimeMs;
-        });
-        const firstFile = files[0]!;
-        const tarballPath = join(searchDir, firstFile);
-        // Extract version from filename
-        const match = firstFile.match(/kibi-opencode-(.+)\.tgz/);
-        const version = match?.[1] ?? "unknown";
-        log(`  📦 Using existing tarball: ${files[0]}`);
-        return { tarballPath, version };
-      }
+    const found = findTarballFromEnv(tarballEnv, "opencode");
+    if (found) {
+      const filename = found.split("/").pop() ?? "";
+      const match = filename.match(/kibi-opencode-(.+)\.tgz/);
+      const version = match?.[1] ?? "unknown";
+      log(`  📦 Using existing tarball: ${filename}`);
+      return { tarballPath: found, version };
     }
     // Fall through to pack if no tarballs found
   }
@@ -191,6 +181,11 @@ export function installOpencodeTarball(
       const depTarball = findTarballFromEnv(tarballEnv, dep);
       if (depTarball) {
         installArgs.push(depTarball);
+      } else if (REQUIRED_DEP_PACKAGES.includes(dep)) {
+        throw new Error(
+          `Required dependency tarball for kibi-${dep} not found in KIBI_TEST_TARBALLS=${tarballEnv}. ` +
+            `Ensure the tarball is present in ${tarballEnv}/${dep}/ or ${tarballEnv}/ before running packed tests.`,
+        );
       }
     }
   }
