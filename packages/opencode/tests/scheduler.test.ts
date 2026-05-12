@@ -534,3 +534,129 @@ test("operational sync.failed still produces console.error (control)", async () 
     console.error = origError;
   }
 });
+
+test("runKibiSync captures stdout/stderr on non-zero exit", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({
+      exitCode: 1,
+      syncStdout: "error: sync failed",
+      syncStderr: "fatal: missing config",
+    }),
+  });
+
+  scheduler.onFileEdited("documentation/requirements/REQ-006.md");
+  clock.advance(100);
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 1);
+  assert.equal(completions[0]?.syncStdout, "error: sync failed");
+  assert.equal(completions[0]?.syncStderr, "fatal: missing config");
+});
+
+test("runKibiSync throw-path captures error message in syncErrorMessage", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => {
+      throw new Error("kibi binary not found");
+    },
+  });
+
+  scheduler.onFileEdited("documentation/requirements/REQ-007.md");
+  clock.advance(100);
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 1);
+  assert.equal(completions[0]?.syncErrorMessage, "kibi binary not found");
+  assert.equal(completions[0]?.syncStdout, undefined);
+  assert.equal(completions[0]?.syncStderr, undefined);
+});
+
+test("runKibiSync truncates stdout/stderr exceeding 4000 chars", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+  const longOutput = "x".repeat(5000);
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({
+      exitCode: 1,
+      syncStdout: longOutput,
+      syncStderr: longOutput,
+    }),
+  });
+
+  scheduler.onFileEdited("documentation/requirements/REQ-008.md");
+  clock.advance(100);
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.syncStdout?.length, 4000 + "\n...[truncated]".length);
+  assert.ok(completions[0]?.syncStdout?.endsWith("\n...[truncated]"));
+  assert.equal(completions[0]?.syncStderr?.length, 4000 + "\n...[truncated]".length);
+  assert.ok(completions[0]?.syncStderr?.endsWith("\n...[truncated]"));
+});
+
+test("runKibiSync normalizes empty stdout/stderr to undefined", async () => {
+  const clock = createFakeClock();
+  const completions: SyncRunMetadata[] = [];
+
+  const scheduler = createSyncScheduler({
+    worktree: process.cwd(),
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+    },
+    now: clock.now,
+    setTimeoutFn: clock.setTimeoutFn,
+    clearTimeoutFn: clock.clearTimeoutFn,
+    onRunComplete: (meta) => completions.push(meta),
+    runSync: async () => ({
+      exitCode: 0,
+      syncStdout: undefined,
+      syncStderr: undefined,
+    }),
+  });
+
+  scheduler.onFileEdited("documentation/requirements/REQ-009.md");
+  clock.advance(100);
+  await flushAsync();
+
+  assert.equal(completions.length, 1);
+  assert.equal(completions[0]?.exitCode, 0);
+  assert.equal(completions[0]?.syncStdout, undefined);
+  assert.equal(completions[0]?.syncStderr, undefined);
+  assert.equal(completions[0]?.syncErrorMessage, undefined);
+});

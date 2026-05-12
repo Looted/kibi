@@ -22,7 +22,7 @@ export interface SyncRunMetadata {
   syncErrorMessage?: string;
 }
 
-export type SyncRunner = (worktree: string) => Promise<{ exitCode: number }>;
+export type SyncRunner = (worktree: string) => Promise<{ exitCode: number; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }>;
 
 export type CheckRunner = (
   worktree: string,
@@ -198,10 +198,16 @@ class WorktreeSyncScheduler implements SyncScheduler {
     let syncExitCode = 0;
     let checkExitCode: number | undefined;
     let checkRules: string[] | undefined;
+    let syncStdout: string | undefined;
+    let syncStderr: string | undefined;
+    let syncErrorMessage: string | undefined;
 
     try {
       const syncResult = await this.runSync(this.worktree);
       syncExitCode = syncResult.exitCode;
+      syncStdout = syncResult.syncStdout;
+      syncStderr = syncResult.syncStderr;
+      syncErrorMessage = syncResult.syncErrorMessage;
 
       // Run targeted checks if sync succeeded and rules specified
       if (
@@ -227,6 +233,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
       const message = err instanceof Error ? err.message : String(err);
       logger.error(`sync.failed ${message}`);
       syncExitCode = 1;
+      syncErrorMessage = message;
     } finally {
       this.emitCompletion(
         trigger,
@@ -234,6 +241,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
         syncExitCode,
         checkExitCode,
         checkRules,
+        truncateSyncOutput(syncStdout),
+        truncateSyncOutput(syncStderr),
+        syncErrorMessage,
       );
       this.inFlight = false;
 
@@ -275,6 +285,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
     exitCode: number,
     checkExitCode?: number,
     checkRules?: string[],
+    syncStdout?: string,
+    syncStderr?: string,
+    syncErrorMessage?: string,
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
     const normalizedReason = trigger.reason.endsWith(".trailing")
@@ -290,6 +303,9 @@ class WorktreeSyncScheduler implements SyncScheduler {
       ...(trigger.filePath !== undefined ? { filePath: trigger.filePath } : {}),
       ...(checkExitCode !== undefined ? { checkExitCode } : {}),
       ...(checkRules !== undefined ? { checkRules } : {}),
+      ...(syncStdout !== undefined ? { syncStdout } : {}),
+      ...(syncStderr !== undefined ? { syncStderr } : {}),
+      ...(syncErrorMessage !== undefined ? { syncErrorMessage } : {}),
     };
 
     if (exitCode === 0) {
@@ -304,11 +320,38 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 }
 
-async function runKibiSync(worktree: string): Promise<{ exitCode: number }> {
+const TRUNCATE_LIMIT = 4000;
+const TRUNCATE_SUFFIX = "\n...[truncated]";
+
+function truncateSyncOutput(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.length > TRUNCATE_LIMIT) {
+    return value.slice(0, TRUNCATE_LIMIT) + TRUNCATE_SUFFIX;
+  }
+  return value;
+}
+
+async function runKibiSync(worktree: string): Promise<{ exitCode: number; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }> {
   return new Promise((resolve) => {
-    exec("kibi sync", { cwd: worktree }, (error) => {
-      resolve({ exitCode: error ? (error.code ?? 1) : 0 });
-    });
+    try {
+      exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
+        if (error) {
+          const truncatedOut = truncateSyncOutput(stdout || undefined);
+          const truncatedErr = truncateSyncOutput(stderr || undefined);
+          resolve({
+            exitCode: error.code ?? 1,
+            ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
+            ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
+            ...(error.message ? { syncErrorMessage: error.message } : {}),
+          });
+        } else {
+          resolve({ exitCode: 0 });
+        }
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      resolve({ exitCode: 1, syncErrorMessage: message });
+    }
   });
 }
 
