@@ -3918,6 +3918,7 @@ import datetime
       await waitForCondition(() => generateSpy.mock.calls.length === 1);
     });
 
+
     it("skips idle sync/flush when scheduler_sync_failed is latched, but still generates brief", async () => {
       process.env.KIBI_BRANCH = "main";
       setupAuthoritativeWorkspace(tmpDir);

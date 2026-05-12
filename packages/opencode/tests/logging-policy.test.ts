@@ -1058,6 +1058,33 @@ describe("logging policy", () => {
       assert.equal(body.level, "error");
       assert.equal(body.event, "workspace_bootstrap_needed");
     });
+
+    test("sync.failed routes as canonical operational error with structured metadata", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.error("sync.failed {\"exitCode\":1}", {
+        event: "sync.failed",
+        exitCode: 1,
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      assert.equal(errorCalls.length, 1);
+      assert.ok(errorCalls[0].includes("sync.failed"));
+      assert.equal(appLogCalls.length, 1);
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.level, "error");
+      assert.equal(body.event, "sync.failed");
+      assert.equal(body.exitCode, 1);
+    });
   });
 
   // Task 1 TDD: Advisory check failure console.error noise regression
