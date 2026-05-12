@@ -1,5 +1,6 @@
 import type { TuiPlugin } from "@opencode-ai/plugin/tui";
-import { selectLatestPersistedBrief, markBriefTuiSeen } from "./idle-brief-reader.js";
+import { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } from "./idle-brief-reader.js";
+import { loadBriefConfig } from "kibi-cli/brief-config";
 import { buildTuiBriefViewModel } from "./tui-brief-view-model.js";
 
 const tui: TuiPlugin = async (api, _options, _meta) => {
@@ -31,6 +32,17 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
         // Mark as TUI-seen when this is a new (previously unseen) brief and it's unread
         if (isNewContent && envelope.unread) {
           markBriefTuiSeen(workspace, branch, envelope.contentHash);
+
+          // When VSCode channel is disabled, TUI is the sole delivery channel —
+          // viewing the brief here should also mark it as fully read
+          try {
+            const config = loadBriefConfig(workspace);
+            if (!config.channels.vscode) {
+              markBriefRead(workspace, brief.filePath);
+            }
+          } catch {
+            // Gracefully handle config load or markBriefRead failures
+          }
         }
 
         const viewModel = buildTuiBriefViewModel(envelope);

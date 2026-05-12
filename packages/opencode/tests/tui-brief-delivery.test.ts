@@ -483,4 +483,52 @@ describe("tui-brief-delivery", () => {
     );
     expect(result).toEqual({ toastDelivered: false, commandPublished: true });
   });
+
+  // --- Missing executeCommand fallback ---
+
+  test("delivers toast but does not publish command when executeCommand is missing", async () => {
+    envelope.briefing.citations = [];
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      // executeCommand is missing
+    };
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(result).toEqual({ toastDelivered: true, commandPublished: false });
+  });
+
+  test("delivers toast and does not throw when executeCommand is undefined", async () => {
+    envelope.briefing.citations = [];
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      executeCommand: undefined,
+    };
+
+    await expect(
+      announceBriefTui(mockClient, envelope, sharedPolicy),
+    ).resolves.toEqual({ toastDelivered: true, commandPublished: false });
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+  });
+
+  test("does not log error when executeCommand is gracefully unavailable", async () => {
+    envelope.briefing.citations = [];
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      // executeCommand missing - should not trigger error log
+    };
+
+    await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    // Should not log any error for missing executeCommand (graceful fallback)
+    expect(mockLog).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: expect.stringContaining("Failed to publish open_latest_brief command"),
+        }),
+      }),
+    );
+  });
 });
