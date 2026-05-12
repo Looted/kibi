@@ -70,17 +70,16 @@ function extractTimestamp(filename: string): number | null {
 }
 
 /**
- * Select the latest unread brief for the given branch.
+ * Internal shared scanner for brief files.
  *
- * Scans `.kb/briefs/` for `{timestamp}_brief.json` files, ignoring `.tmp` files
- * and invalid JSON. Filters by `branch`, supported schema version, and
- * `unread === true`. Returns the brief with the highest filename timestamp,
- * or null if no unread briefs exist.
+ * @param workspaceRoot - The root of the workspace
+ * @param branch - Branch name to filter by
+ * @param filterUnread - If true, only return briefs with unread === true
  */
-export function selectLatestUnreadBrief(
-  // implements REQ-opencode-kibi-briefing-v4
+function scanBriefs(
   workspaceRoot: string,
   branch: string,
+  filterUnread: boolean,
 ): { envelope: IdleBriefEnvelope; filePath: string } | null {
   const briefsDir = resolveBriefsDir(workspaceRoot);
 
@@ -118,11 +117,11 @@ export function selectLatestUnreadBrief(
       continue;
     }
 
-    // Filter by branch, schemaVersion, and unread status
+    // Filter by branch, schemaVersion, and optionally unread status
     if (
       envelope.branch === branch &&
       (envelope.schemaVersion === "1.0" || envelope.schemaVersion === "2.0") &&
-      envelope.unread === true
+      (!filterUnread || envelope.unread === true)
     ) {
       candidates.push({ timestamp, envelope, filePath });
     }
@@ -144,6 +143,36 @@ export function selectLatestUnreadBrief(
     envelope: latest.envelope,
     filePath: latest.filePath,
   };
+}
+
+/**
+ * Select the latest unread brief for the given branch.
+ *
+ * Scans `.kb/briefs/` for `{timestamp}_brief.json` files, ignoring `.tmp` files
+ * and invalid JSON. Filters by `branch`, supported schema version, and
+ * `unread === true`. Returns the brief with the highest filename timestamp,
+ * or null if no unread briefs exist.
+ */
+export function selectLatestUnreadBrief(
+  // implements REQ-opencode-kibi-briefing-v4
+  workspaceRoot: string,
+  branch: string,
+): { envelope: IdleBriefEnvelope; filePath: string } | null {
+  return scanBriefs(workspaceRoot, branch, true);
+}
+
+/**
+ * Select the latest persisted brief for the given branch, regardless of read status.
+ *
+ * Same scanning logic as `selectLatestUnreadBrief` but returns the latest brief
+ * even if all briefs have been read. Useful for route rendering where the user
+ * wants to review the most recent brief.
+ */
+export function selectLatestPersistedBrief( // implements REQ-opencode-kibi-briefing-v6
+  workspaceRoot: string,
+  branch: string,
+): { envelope: IdleBriefEnvelope; filePath: string } | null {
+  return scanBriefs(workspaceRoot, branch, false);
 }
 
 /**
