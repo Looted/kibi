@@ -42,3 +42,8 @@ The OpenCode Kibi Briefing system must migrate to Schema-2.0 to support session-
     - An audit fallback must catch any un-cited side effects detected in the KB delta.
 
 5. **Write Path Enforcement**: The system must write Schema-2.0 envelopes exclusively. Readers must tolerate Schema-1.0 envelopes during the migration window but prioritize 2.0 semantics.
+6. **Route-Based TUI Delivery**: The system must provide an interactive TUI for briefing consumption.
+    - **Auto-Open**: The TUI must automatically open the `kibi.brief` route when a new, unread briefing is generated.
+    - **Manual Open**: Users must be able to open the latest briefing manually via the `kibi.open_latest_brief` command.
+    - **In-Place Refresh**: The TUI must support an in-place refresh mechanism to update the displayed briefing without navigation flicker.
+    - **Deferred Read-State Mutation**: Mark-as-read state must only be committed when the user has actively viewed the briefing route.
