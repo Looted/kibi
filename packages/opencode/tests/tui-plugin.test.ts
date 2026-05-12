@@ -7,13 +7,14 @@ import * as path from "node:path";
 mock.module("../src/idle-brief-reader.js", () => ({
   selectLatestPersistedBrief: mock(),
   markBriefTuiSeen: mock(),
+  markBriefRead: mock(),
 }));
 
 mock.module("../src/tui-brief-view-model.js", () => ({
   buildTuiBriefViewModel: mock(),
 }));
 
-const { selectLatestPersistedBrief, markBriefTuiSeen } = await import("../src/idle-brief-reader.js");
+const { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } = await import("../src/idle-brief-reader.js");
 const { buildTuiBriefViewModel } = await import("../src/tui-brief-view-model.js");
 const { default: plugin } = await import("../dist/tui.js");
 
@@ -252,5 +253,131 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
     const seen = readTuiSeen();
     const count = seen.main.filter((h) => h === "hash-stable").length;
     expect(count).toBe(1);
+  });
+});
+
+describe("TUI Plugin - channel-aware markBriefRead", () => {
+  const workspaceRoot = path.join(os.tmpdir(), `kibi-tui-test-channel-${Date.now()}`);
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  const kbDir = path.join(workspaceRoot, ".kb");
+
+  function writeBriefFile(filename: string, overrides: { contentHash?: string; unread?: boolean } = {}) {
+    const envelope = {
+      briefId: "b1",
+      schemaVersion: "1.0",
+      type: "success",
+      sessionId: "s1",
+      branch: "main",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      unread: overrides.unread ?? true,
+      auditCursor: { lastTimestamp: "2026-01-01T00:00:00.000Z", lastOperation: "write", entryCount: 1, fileSize: 1 },
+      summary: "Summary",
+      validation: { violations: [] as unknown[], count: 0, diagnostics: [] as unknown[] },
+      contentHash: overrides.contentHash ?? "hash-chan",
+      counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
+      briefing: { tldr: "TLDR", promptBlock: "Prompt", citations: [] as unknown[], constraints: [] as unknown[], regressionRisks: [] as unknown[], missingEvidence: [] as unknown[] },
+    };
+    fs.writeFileSync(path.join(briefsDir, filename), JSON.stringify(envelope));
+  }
+
+  // loadBriefConfig reads from .kb/config.json
+  function writeConfig(channelsVscode: boolean) {
+    fs.writeFileSync(
+      path.join(kbDir, "config.json"),
+      JSON.stringify({ briefs: { channels: { vscode: channelsVscode, tui: true } } }),
+    );
+  }
+
+  function readBriefField(filename: string, field: string): unknown {
+    try {
+      const raw = fs.readFileSync(path.join(briefsDir, filename), "utf-8");
+      return (JSON.parse(raw) as Record<string, unknown>)[field];
+    } catch {
+      return undefined;
+    }
+  }
+
+  let mockApi: {
+    route: { register: ReturnType<typeof mock>; navigate: ReturnType<typeof mock> };
+    command: { register: ReturnType<typeof mock> };
+    state: { path: { worktree: string }; vcs: { branch: string } };
+    theme: { current: { error: string; accent: string; warning: string } };
+  };
+
+  beforeEach(() => {
+    fs.mkdirSync(briefsDir, { recursive: true });
+    mockApi = {
+      route: { register: mock().mockReturnValue(() => {}), navigate: mock() },
+      command: { register: mock().mockReturnValue(() => {}) },
+      state: { path: { worktree: workspaceRoot }, vcs: { branch: "main" } },
+      theme: { current: { error: "red", accent: "blue", warning: "yellow" } },
+    };
+  });
+
+  afterEach(() => {
+    mock.restore();
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+  });
+
+  test("when vscode channel disabled, marks brief as read after TUI-seen", async () => {
+    writeConfig(false);
+    writeBriefFile("100_brief.json", { unread: true, contentHash: "hash-vscode-off" });
+
+    await plugin.tui(mockApi as never, undefined, {} as never);
+    const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
+    const briefRoute = routes.find((r) => r.name === "kibi.brief");
+    briefRoute!.render();
+
+    // Brief should now be marked as read (unread = false) because vscode is disabled
+    expect(readBriefField("100_brief.json", "unread")).toBe(false);
+  });
+
+  test("when vscode channel enabled, only marks TUI-seen (not read)", async () => {
+    writeConfig(true);
+    writeBriefFile("100_brief.json", { unread: true, contentHash: "hash-vscode-on" });
+
+    await plugin.tui(mockApi as never, undefined, {} as never);
+    const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
+    const briefRoute = routes.find((r) => r.name === "kibi.brief");
+    briefRoute!.render();
+
+    // Brief should remain unread because vscode is enabled and will handle markBriefRead
+    expect(readBriefField("100_brief.json", "unread")).toBe(true);
+  });
+
+  test("no brief exists: no errors thrown", async () => {
+    writeConfig(false);
+    await plugin.tui(mockApi as never, undefined, {} as never);
+    const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
+    const briefRoute = routes.find((r) => r.name === "kibi.brief");
+    // Should not throw when no brief file exists
+    expect(() => briefRoute!.render()).not.toThrow();
+  });
+
+  test("already read brief: only TUI-seen marked, not markBriefRead", async () => {
+    writeConfig(false);
+    writeBriefFile("100_brief.json", { unread: false, contentHash: "hash-already-read" });
+
+    await plugin.tui(mockApi as never, undefined, {} as never);
+    const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
+    const briefRoute = routes.find((r) => r.name === "kibi.brief");
+    briefRoute!.render();
+
+    // Already-read brief should stay unread=false (no double-mark)
+    expect(readBriefField("100_brief.json", "unread")).toBe(false);
+  });
+
+  test("missing brief file: handled gracefully", async () => {
+    writeConfig(false);
+    writeBriefFile("100_brief.json", { unread: true, contentHash: "hash-missing" });
+    await plugin.tui(mockApi as never, undefined, {} as never);
+    const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
+    const briefRoute = routes.find((r) => r.name === "kibi.brief");
+
+    // Delete the brief file before render to simulate race condition
+    fs.rmSync(path.join(briefsDir, "100_brief.json"));
+
+    // Should not throw
+    expect(() => briefRoute!.render()).not.toThrow();
   });
 });
