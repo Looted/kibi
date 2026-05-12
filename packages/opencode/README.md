@@ -136,6 +136,7 @@ Internal maintenance automatically syncs the knowledge base after relevant file 
 - Single-flight scheduler (no overlapping syncs)
 - Debounce window (default: 2000ms)
 - Dirty flag triggers one trailing rerun after active sync completes
+- **Idle suppression**: Background sync attempts triggered by session idle are suppressed after an operational sync failure is latched (`scheduler_sync_failed`). Manual edits and tool executions continue to schedule syncs to allow for recovery.
 
 ### Non-Blocking UX
 
@@ -203,8 +204,10 @@ The plugin follows a **silent-except-operational-errors** policy for terminal ou
 
 The logger exposes two error-level surfaces with distinct routing semantics:
 
-- **`error(msg, metadata?)`** — Operational plugin failures. Emits exactly one prefixed `console.error` (`[kibi-opencode]`) for terminal visibility, plus `client.app.log()` when a client is bound. Structured log rejection does not emit secondary console noise. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
+- **`error(msg, metadata?)`** — Operational plugin failures. Emits exactly one prefixed `console.error` (`[kibi-opencode]`) for terminal visibility, plus `client.app.log()` when a client is bound. Structured log rejection does not emit secondary console noise. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention. Operational sync failure payloads include diagnostic metadata: `syncCommand`, `syncStdout`, `syncStderr`, and `syncErrorMessage`.
 - **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound and remains terminal-silent even when the structured transport rejects. Use for scheduler check failures and degraded-mode latches.
+
+
 
 **Contract rule:** Once `client` is bound (after `setClient()`), advisory paths (`info()`, `warn()`, `errorStructuredOnly()`) MUST stay on `client.app.log()` and remain terminal-silent. Operational failures use `error()` for a single prefixed terminal emission without duplicating console output when structured logging rejects.
 
