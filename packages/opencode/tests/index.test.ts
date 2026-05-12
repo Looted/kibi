@@ -3994,9 +3994,9 @@ import datetime
       const hooks = await plugin(
         makeInput({
           client: {
-            app: {
-              log: async (msg: string, metadata?: any) => {
-                logCalls.push({ message: msg, metadata });
+          app: {
+              log: async (payload: Record<string, unknown>) => {
+                logCalls.push({ message: String(payload.message), metadata: payload });
               },
             },
           },
@@ -4006,7 +4006,7 @@ import datetime
 
       // Latch scheduler_sync_failed via the captured onRunComplete callback
       assert.ok(capturedOnRunComplete, "onRunComplete should be captured");
-      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0 });
+      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0, syncCommand: "kibi sync" });
 
       assert.ok(hooks.event);
       const eventHook = hooks.event as (input: {

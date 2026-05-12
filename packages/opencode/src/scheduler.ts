@@ -22,7 +22,7 @@ export interface SyncRunMetadata {
   syncErrorMessage?: string;
 }
 
-export type SyncRunner = (worktree: string) => Promise<{ exitCode: number; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }>;
+export type SyncRunner = (worktree: string) => Promise<{ exitCode: number; syncCommand?: string; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }>;
 
 export type CheckRunner = (
   worktree: string,
@@ -198,6 +198,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
     let syncExitCode = 0;
     let checkExitCode: number | undefined;
     let checkRules: string[] | undefined;
+    let syncCommand: string | undefined;
     let syncStdout: string | undefined;
     let syncStderr: string | undefined;
     let syncErrorMessage: string | undefined;
@@ -205,6 +206,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
     try {
       const syncResult = await this.runSync(this.worktree);
       syncExitCode = syncResult.exitCode;
+      syncCommand = syncResult.syncCommand;
       syncStdout = syncResult.syncStdout;
       syncStderr = syncResult.syncStderr;
       syncErrorMessage = syncResult.syncErrorMessage;
@@ -243,6 +245,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
         truncateSyncOutput(syncStdout),
         truncateSyncOutput(syncStderr),
         syncErrorMessage,
+        syncCommand,
       );
       this.inFlight = false;
 
@@ -287,6 +290,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
     syncStdout?: string,
     syncStderr?: string,
     syncErrorMessage?: string,
+    syncCommand?: string,
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
     const normalizedReason = trigger.reason.endsWith(".trailing")
@@ -305,6 +309,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
       ...(syncStdout !== undefined ? { syncStdout } : {}),
       ...(syncStderr !== undefined ? { syncStderr } : {}),
       ...(syncErrorMessage !== undefined ? { syncErrorMessage } : {}),
+      ...(syncCommand !== undefined ? { syncCommand } : {}),
     };
 
     if (exitCode === 0) {
@@ -330,7 +335,7 @@ function truncateSyncOutput(value: string | undefined): string | undefined {
   return value;
 }
 
-async function runKibiSync(worktree: string): Promise<{ exitCode: number; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }> {
+async function runKibiSync(worktree: string): Promise<{ exitCode: number; syncCommand?: string; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }> {
   return new Promise((resolve) => {
     try {
       exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
@@ -339,17 +344,18 @@ async function runKibiSync(worktree: string): Promise<{ exitCode: number; syncSt
           const truncatedErr = truncateSyncOutput(stderr || undefined);
           resolve({
             exitCode: error.code ?? 1,
+            syncCommand: "kibi sync",
             ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
             ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
             ...(error.message ? { syncErrorMessage: error.message } : {}),
           });
         } else {
-          resolve({ exitCode: 0 });
+          resolve({ exitCode: 0, syncCommand: "kibi sync" });
         }
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      resolve({ exitCode: 1, syncErrorMessage: message });
+      resolve({ exitCode: 1, syncCommand: "kibi sync", syncErrorMessage: message });
     }
   });
 }
