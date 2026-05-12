@@ -305,6 +305,8 @@ const kibiOpencodePlugin: Plugin = async (
   let idleBriefTrailingRerun = false;
   let idleBriefTimer: ReturnType<typeof setTimeout> | null = null;
   const idleBriefDeliveredHashes = new Set<string>();
+  // Session-scoped flag: at most one idle-brief.sync-suppressed breadcrumb per session
+  let idleSyncSuppressedOnce = false;
   const replayedBriefContentHashes = new Set<string>();
   // Session-local baseline cursor: captured once per session/worktree/branch from the audit-log tail,
   // so the first idle brief in a fresh session only reports post-baseline changes.
@@ -557,8 +559,18 @@ function buildSyntheticSyncAuditDelta(
           );
 
           if (scheduler) {
-            scheduler.scheduleSync("session.idle");
-            await scheduler.flush();
+            const idleSyncBlocked =
+              runtimeOverlay.primaryCause === "scheduler_sync_failed";
+            if (!idleSyncBlocked) {
+              scheduler.scheduleSync("session.idle");
+              await scheduler.flush();
+            } else if (!idleSyncSuppressedOnce) {
+              idleSyncSuppressedOnce = true;
+              logger.info("idle-brief.sync-suppressed", {
+                event: "idle_brief_sync_suppressed",
+                primaryCause: runtimeOverlay.primaryCause,
+              });
+            }
           }
 
           const snapshotAfterSync = getKbSnapshotFingerprint(
