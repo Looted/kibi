@@ -3918,6 +3918,283 @@ import datetime
       await waitForCondition(() => generateSpy.mock.calls.length === 1);
     });
 
+    it("skips idle sync/flush when scheduler_sync_failed is latched, but still generates brief", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const schedulerEvents: string[] = [];
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      const schedulerFactory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          scheduleSync: (reason: string) => {
+            schedulerEvents.push(`schedule:${reason}`);
+          },
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          flush: async () => {
+            schedulerEvents.push("flush:start");
+            await Promise.resolve();
+            schedulerEvents.push("flush:end");
+          },
+          dispose: () => {},
+        };
+      };
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        tmpDir,
+        schedulerFactory,
+      );
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
+
+      const logCalls: Array<{ message: string; metadata?: any }> = [];
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => {
+        schedulerEvents.push("generate");
+        return { success: false, briefPath: null, envelope: null };
+      });
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async (msg: string, metadata?: any) => {
+                logCalls.push({ message: msg, metadata });
+              },
+            },
+          },
+          sessionId: "session-idle-sync-suppressed",
+        }),
+      );
+
+      // Latch scheduler_sync_failed via the captured onRunComplete callback
+      assert.ok(capturedOnRunComplete, "onRunComplete should be captured");
+      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0 });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 42; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-SYNC-SUPPRESSED",
+      });
+
+      schedulerEvents.length = 0;
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      // Sync and flush should be suppressed — only generate runs
+      assert.deepEqual(schedulerEvents, ["generate"]);
+    });
+
+    it("emits at most one idle-brief.sync-suppressed info event per session", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      const codeFile = path.join(srcDir, "feature.ts");
+      fs.writeFileSync(codeFile, "export function feature() { return 0; }\n");
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const schedulerEvents: string[] = [];
+      const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+        __kibi_test_scheduler_factory_by_worktree?: Map<
+          string,
+          (...args: unknown[]) => unknown
+        >;
+      };
+
+      let capturedOnRunComplete: ((meta: any) => void) | undefined;
+      const schedulerFactory = (opts: any) => {
+        capturedOnRunComplete = opts.onRunComplete;
+        return {
+          scheduleSync: (reason: string) => {
+            schedulerEvents.push(`schedule:${reason}`);
+          },
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          flush: async () => {
+            schedulerEvents.push("flush:start");
+            await Promise.resolve();
+            schedulerEvents.push("flush:end");
+          },
+          dispose: () => {},
+        };
+      };
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree ??=
+        new Map();
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree.set(
+        tmpDir,
+        schedulerFactory,
+      );
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
+
+      const logCalls: Array<{ message: string; metadata?: any }> = [];
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => ({
+        success: false,
+        briefPath: null,
+        envelope: null,
+      }));
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async (payload: any) => {
+                logCalls.push(payload);
+              },
+            },
+          },
+          sessionId: "session-sync-suppressed-once",
+        }),
+      );
+
+      // Latch scheduler_sync_failed
+      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0 });
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      // Edit file before first idle to create audit delta
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      fs.writeFileSync(codeFile, "export function feature() { return 1; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-FIRST-IDLE",
+      });
+
+      // First idle event — should emit the suppression breadcrumb
+      await eventHook({
+        event: { type: "session.idle", properties: {} },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length >= 1);
+
+      const firstSuppressionCount = logCalls.filter(
+        (l: any) => l?.body?.message === "idle-brief.sync-suppressed",
+      ).length;
+
+      // Edit file before second idle to create new audit delta
+      fs.writeFileSync(codeFile, "export function feature() { return 2; }\n");
+      await eventHook({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/feature.ts" },
+        },
+      });
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T11:00:00+00:00",
+        entityId: "REQ-SECOND-IDLE",
+      });
+
+      // Second idle event — should NOT emit another suppression breadcrumb
+      await eventHook({
+        event: { type: "session.idle", properties: {} },
+      });
+      await waitForCondition(() => generateSpy.mock.calls.length >= 2);
+
+      const secondSuppressionCount = logCalls.filter(
+        (l: any) => l?.body?.message === "idle-brief.sync-suppressed",
+      ).length;
+
+      // Only one suppression breadcrumb should have been emitted across both idle events
+      assert.equal(firstSuppressionCount, 1, "first idle should emit one suppression breadcrumb");
+      assert.equal(secondSuppressionCount, 1, "second idle should not emit another suppression breadcrumb");
+    });
+
     it("resets the idle-brief baseline when the branch changes", async () => {
       process.env.KIBI_BRANCH = "main";
       setupAuthoritativeWorkspace(tmpDir);
