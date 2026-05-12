@@ -1,8 +1,11 @@
 import type { TuiPlugin } from "@opencode-ai/plugin/tui";
-import { selectLatestPersistedBrief } from "./idle-brief-reader.js";
+import { selectLatestPersistedBrief, markBriefTuiSeen } from "./idle-brief-reader.js";
 import { buildTuiBriefViewModel } from "./tui-brief-view-model.js";
 
 const tui: TuiPlugin = async (api, _options, _meta) => {
+  // State: track the currently displayed contentHash for in-place refresh detection
+  let currentContentHash: string | null = null;
+
   api.route.register([
     {
       name: "kibi.brief",
@@ -12,6 +15,7 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
         const brief = selectLatestPersistedBrief(workspace, branch);
         
         if (!brief) {
+          currentContentHash = null;
           return (
             <box flexDirection="column" gap={1} padding={1}>
               <text fg={api.theme.current.error}>No Brief Available</text>
@@ -20,7 +24,16 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
           );
         }
 
-        const viewModel = buildTuiBriefViewModel(brief.envelope);
+        const { envelope } = brief;
+        const isNewContent = envelope.contentHash !== currentContentHash;
+        currentContentHash = envelope.contentHash;
+
+        // Mark as TUI-seen when this is a new (previously unseen) brief and it's unread
+        if (isNewContent && envelope.unread) {
+          markBriefTuiSeen(workspace, branch, envelope.contentHash);
+        }
+
+        const viewModel = buildTuiBriefViewModel(envelope);
 
         return (
           <scrollbox flexDirection="column" gap={1} padding={1}>
@@ -93,6 +106,14 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
         value: "kibi.open_latest_brief",
         description: "Opens the latest persisted brief for the current workspace and branch",
         // implements REQ-opencode-kibi-briefing-v6
+        onSelect: () => {
+          api.route.navigate("kibi.brief");
+        },
+      },
+      {
+        title: "Kibi: Refresh Brief",
+        value: "kibi.refresh_brief",
+        description: "Re-reads the latest persisted brief and refreshes the view",
         onSelect: () => {
           api.route.navigate("kibi.brief");
         },

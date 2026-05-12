@@ -43,3 +43,21 @@ links:
 **WHEN** a new briefing is persisted
 **THEN** it must follow the Schema-2.0 structure
 **AND** legacy fields like `requirementsAdded` must NOT be present
+**Scenario: Route-Based Auto-Open — Proactive TUI delivery**
+
+**GIVEN** the plugin is active in an OpenCode session
+**AND** a new briefing is generated for a risky edit
+**WHEN** the briefing is marked as unread
+**THEN** the plugin must trigger the `kibi.brief` route in the TUI automatically
+
+**Scenario: Manual Briefing Open — User-initiated retrieval**
+
+**GIVEN** a briefing was previously generated
+**WHEN** the user executes the `kibi.open_latest_brief` command
+**THEN** the TUI must navigate to the `kibi.brief` route and display the content
+
+**Scenario: In-Place Refresh — Updating content without flicker**
+
+**GIVEN** the user is currently viewing the `kibi.brief` route
+**WHEN** a newer briefing becomes available during the session
+**THEN** the TUI must refresh the content in-place without re-navigating the route
