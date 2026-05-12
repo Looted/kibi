@@ -503,6 +503,7 @@ test("smart-enforcement trailing sync.failed produces zero raw console.error", a
 test("operational sync.failed still produces console.error (control)", async () => {
   const clock = createFakeClock();
   const errorSpy: string[] = [];
+  const completions: SyncRunMetadata[] = [];
   const origError = console.error;
   console.error = (...args: unknown[]) => {
     errorSpy.push(args.map(String).join(" "));
@@ -518,6 +519,7 @@ test("operational sync.failed still produces console.error (control)", async () 
       now: clock.now,
       setTimeoutFn: clock.setTimeoutFn,
       clearTimeoutFn: clock.clearTimeoutFn,
+      onRunComplete: (meta) => completions.push(meta),
       runSync: async () => ({ exitCode: 1 }),
     });
 
@@ -530,6 +532,9 @@ test("operational sync.failed still produces console.error (control)", async () 
       errorSpy.length >= 1,
       `Operational sync.failed must still call console.error, got: ${JSON.stringify(errorSpy)}`,
     );
+    assert.equal(errorSpy.filter((entry) => entry.includes("sync.failed")).length, 1);
+    assert.equal(completions.length, 1);
+    assert.equal(completions[0]?.exitCode, 1);
   } finally {
     console.error = origError;
   }
