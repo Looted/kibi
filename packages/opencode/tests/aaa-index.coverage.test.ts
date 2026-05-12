@@ -384,6 +384,10 @@ We assert that the response should return success.
       exitCode: 1,
       checkExitCode: 1,
       checkRules: ["required-fields"],
+      syncCommand: "bun run kibi sync",
+      syncStdout: "",
+      syncStderr: "",
+      syncErrorMessage: "sync failed",
     });
 
     const degraded = getEventLogs(logs, "smart_enforcement_degraded");

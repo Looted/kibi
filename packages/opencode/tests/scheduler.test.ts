@@ -246,6 +246,39 @@ test("onRunComplete exposes sync failure via exitCode", async () => {
 
   assert.equal(completions.length, 1);
   assert.equal(completions[0]?.exitCode, 1);
+  assert.equal(completions[0]?.syncCommand, undefined);
+  assert.equal(completions[0]?.syncStdout, undefined);
+  assert.equal(completions[0]?.syncStderr, undefined);
+  assert.equal(completions[0]?.syncErrorMessage, undefined);
+});
+
+test("SyncRunMetadata exposes sync failure diagnostics keys", () => {
+  const meta: SyncRunMetadata = {
+    reason: "manual",
+    worktree: "/tmp/worktree",
+    debounceWindowMs: 100,
+    durationMs: 0,
+    exitCode: 0,
+    syncCommand: undefined,
+    syncStdout: undefined,
+    syncStderr: undefined,
+    syncErrorMessage: undefined,
+  };
+
+  assert.deepEqual(
+    Object.keys(meta).sort(),
+    [
+      "debounceWindowMs",
+      "durationMs",
+      "exitCode",
+      "reason",
+      "syncCommand",
+      "syncErrorMessage",
+      "syncStderr",
+      "syncStdout",
+      "worktree",
+    ].sort(),
+  );
 });
 
 test("onRunComplete exposes check failure via checkExitCode", async () => {
