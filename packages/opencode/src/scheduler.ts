@@ -231,7 +231,6 @@ class WorktreeSyncScheduler implements SyncScheduler {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error(`sync.failed ${message}`);
       syncExitCode = 1;
       syncErrorMessage = message;
     } finally {

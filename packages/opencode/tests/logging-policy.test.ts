@@ -1240,6 +1240,7 @@ describe("logging policy", () => {
         errorCalls.length >= 1,
         "operational sync.failed must still produce console.error",
       );
+      assert.equal(errorCalls.filter((entry) => entry.includes("sync.failed")).length, 1);
     });
   });
   // implements REQ-opencode-file-context-guidance-v1
