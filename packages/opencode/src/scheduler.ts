@@ -15,6 +15,11 @@ export interface SyncRunMetadata {
   exitCode: number;
   checkExitCode?: number;
   checkRules?: string[];
+  /** Operational sync.failed observability only. */
+  syncCommand?: string;
+  syncStdout?: string;
+  syncStderr?: string;
+  syncErrorMessage?: string;
 }
 
 export type SyncRunner = (worktree: string) => Promise<{ exitCode: number }>;
