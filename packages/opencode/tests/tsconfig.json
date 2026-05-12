@@ -4,7 +4,10 @@
     "exactOptionalPropertyTypes": false,
     "noUncheckedIndexedAccess": false,
     "rootDir": "..",
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
   },
-  "include": ["**/*.test.ts", "../src/**/*.d.ts"]
+  "include": ["**/*.test.ts", "**/*.test.tsx", "../src/**/*.d.ts"]
 }

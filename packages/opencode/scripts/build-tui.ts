@@ -13,8 +13,9 @@ const result = await build({
   target: "bun",
   format: "esm",
   jsx: {
-    runtime: "automatic",
-    importSource: "@opentui/solid",
+    runtime: "classic",
+    factory: "h",
+    fragment: "Fragment",
   },
   minify: false,
   sourcemap: "none",

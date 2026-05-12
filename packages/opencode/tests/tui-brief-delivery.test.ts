@@ -15,12 +15,13 @@ import type {
   IdleBriefEnvelopeV2,
 } from "../src/idle-brief-store.js";
 import * as logger from "../src/logger.js";
-import { deliverBriefTui } from "../src/tui-brief-delivery.js";
+import { announceBriefTui, deliverBriefTui } from "../src/tui-brief-delivery.js";
 
 describe("tui-brief-delivery", () => {
   let mockClient: {
     tui?: {
       showToast?: ReturnType<typeof mock>;
+      executeCommand?: ReturnType<typeof mock>;
     };
   };
 
@@ -51,6 +52,7 @@ describe("tui-brief-delivery", () => {
     mockClient = {
       tui: {
         showToast: mock(() => {}),
+        executeCommand: mock(() => {}),
       },
     };
 
@@ -443,5 +445,42 @@ describe("tui-brief-delivery", () => {
     );
 
     expect(result).toEqual({ delivered: false });
+  });
+
+  test("announces by toast and publishes the TUI command", async () => {
+    envelope.briefing.citations = [];
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).toHaveBeenCalledWith(
+      "kibi.open_latest_brief",
+      {},
+    );
+    expect(result).toEqual({ toastDelivered: true, commandPublished: true });
+  });
+
+  test("toast success only reports announcement state and does not imply viewed state", async () => {
+    envelope.briefing.citations = [];
+    mockClient.tui = {
+      showToast: mock(() => {}),
+    };
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(result).toEqual({ toastDelivered: true, commandPublished: false });
+  });
+
+  test("still publishes open_latest_brief when toast is disabled", async () => {
+    sharedPolicy.briefs.tui.toast = false;
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).toHaveBeenCalledWith(
+      "kibi.open_latest_brief",
+      {},
+    );
+    expect(result).toEqual({ toastDelivered: false, commandPublished: true });
   });
 });

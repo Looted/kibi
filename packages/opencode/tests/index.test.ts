@@ -6803,11 +6803,11 @@ import datetime
         "Toast payload should contain brief content",
       );
 
-      // Verify brief was marked as read
+      // Read-state mutation is now deferred until the TUI route render succeeds.
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
       assert.ok(
-        briefAfter.unread === false,
-        "Brief should be marked as read after successful append",
+        briefAfter.unread === true,
+        "Brief should remain unread until TUI render success",
       );
     });
 
@@ -7104,10 +7104,11 @@ import datetime
         "Brief should be shown even when maintenance is degraded",
       );
 
+      // Read-state mutation is now deferred until the TUI route render succeeds.
       const briefAfter = JSON.parse(fs.readFileSync(briefFilePath, "utf-8"));
       assert.ok(
-        briefAfter.unread === false,
-        "Brief should be marked read after successful append",
+        briefAfter.unread === true,
+        "Brief should remain unread until TUI render success",
       );
     });
 

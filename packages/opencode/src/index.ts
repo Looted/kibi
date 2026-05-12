@@ -34,8 +34,6 @@ import {
 } from "./idle-brief-audit.js";
 import {
   hasTuiSeenBrief,
-  markBriefRead,
-  markBriefTuiSeen,
   selectLatestUnreadBrief,
 } from "./idle-brief-reader.js";
 import { generateIdleBrief } from "./idle-brief-runtime.js";
@@ -65,11 +63,10 @@ import {
   sendToast,
 } from "./toast.js";
 import {
-  type ToastCapableClient as BriefToastClient,
-  deliverBriefTui,
+  announceBriefTui,
 } from "./tui-brief-delivery.js";
 
-type ToastCapableClient = SendToastClient & BriefToastClient;
+type ToastCapableClient = SendToastClient;
 
 interface RecentEdit {
   path: string;
@@ -227,7 +224,7 @@ const kibiOpencodePlugin: Plugin = async (
   const makeToastClient = (
     client: NonNullable<typeof input.client>,
   ): ToastCapableClient => {
-    const tui = client.tui;
+    const tui = client.tui as ToastCapableClient["tui"] | undefined;
     if (!tui) return {};
     const mappedTui: NonNullable<ToastCapableClient["tui"]> = {};
     if (typeof tui.toast === "function") {
@@ -235,6 +232,9 @@ const kibiOpencodePlugin: Plugin = async (
     }
     if (typeof tui.showToast === "function") {
       mappedTui.showToast = tui.showToast.bind(tui);
+    }
+    if (typeof tui.executeCommand === "function") {
+      mappedTui.executeCommand = tui.executeCommand.bind(tui);
     }
     if (typeof tui.clearPrompt === "function") {
       mappedTui.clearPrompt = tui.clearPrompt.bind(tui);
@@ -628,31 +628,17 @@ function buildSyntheticSyncAuditDelta(
             if (!idleBriefDeliveredHashes.has(dedupeKey)) {
               idleBriefDeliveredHashes.add(dedupeKey);
               const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-              const localConfig = {
-                autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true,
-              };
               if (client) {
                 try {
-                  const deliveryResult = await deliverBriefTui(
+                  const announcementResult = await announceBriefTui(
                     makeToastClient(client),
                     envelope,
                     sharedPolicy,
-                    localConfig,
                   );
-                  const shouldMarkReadAfterTuiDelivery =
-                    !sharedPolicy.briefs.channels.vscode;
                   if (
-                    deliveryResult.delivered &&
-                    result.briefPath
+                    announcementResult.toastDelivered ||
+                    announcementResult.commandPublished
                   ) {
-                    if (shouldMarkReadAfterTuiDelivery) {
-                      markBriefRead(idleWorkspaceRoot, result.briefPath);
-                    }
-                    markBriefTuiSeen(
-                      idleWorkspaceRoot,
-                      idleBranch,
-                      envelope.contentHash,
-                    );
                     replayedBriefContentHashes.add(envelope.contentHash);
                   }
                 } catch (err) {
@@ -1229,28 +1215,17 @@ function buildSyntheticSyncAuditDelta(
             )
           ) {
             const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-            const localConfig = {
-              autoSubmit: cfg.ux?.briefs?.autoSubmit ?? true,
-            };
             const client = input.client;
             try {
-              const deliveryResult = await deliverBriefTui(
+              const announcementResult = await announceBriefTui(
                 makeToastClient(client),
                 unreadBrief.envelope,
                 sharedPolicy,
-                localConfig,
               );
-              const shouldMarkReadAfterTuiDelivery =
-                !sharedPolicy.briefs.channels.vscode;
-              if (deliveryResult.delivered) {
-                if (shouldMarkReadAfterTuiDelivery) {
-                  markBriefRead(input.worktree, unreadBrief.filePath);
-                }
-                markBriefTuiSeen(
-                  input.worktree,
-                  currentBranch,
-                  unreadBrief.envelope.contentHash,
-                );
+              if (
+                announcementResult.toastDelivered ||
+                announcementResult.commandPublished
+              ) {
                 replayedBriefContentHashes.add(
                   unreadBrief.envelope.contentHash,
                 );
