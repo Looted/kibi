@@ -36,4 +36,24 @@ describe("sendToast timeout handling", () => {
     expect(calls).toEqual([{ message: "legacy" }]);
     expect(result).toEqual({ status: "delivered", transport: "legacy" });
   });
+
+  test("returns legacy rejection details when toast throws", async () => {
+    const result = await sendToast(
+      {
+        tui: {
+          toast: async () => {
+            throw new Error("legacy boom");
+          },
+        },
+      },
+      { message: "legacy-error" },
+    );
+
+    expect(result).toEqual({
+      status: "failed",
+      transport: "legacy",
+      reason: "rejected",
+      error: "legacy boom",
+    });
+  });
 });

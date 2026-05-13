@@ -2031,6 +2031,32 @@ test(with_output_to_string_and_file_base_name_helpers_normalize_output) :-
     assertion(BaseWithPath == 'REQ-1.md'),
     assertion(BaseWithoutPath == 'REQ-2.md').
 
+test(check_all_json_and_run_checks_json_serializes_entrypoints, [setup(setup_kb), cleanup((retractall(checks:halt(_)), cleanup_kb))]) :-
+    checks:check_all_json(Json),
+    atom_json_dict(Json, Dict, []),
+    assertion(Dict.get(no_dangling_refs) == []),
+    checks:redefine_system_predicate(halt(_)),
+    assertz((checks:halt(_):-true)),
+    with_output_to(string(RunJson), checks:run_checks_json),
+    atom_json_dict(RunJson, RunDict, []),
+    assertion(RunDict.get(no_cycles) == []).
+
+test(value_field_helpers_cover_all_value_kinds) :-
+    checks:is_value_field(value_string),
+    checks:is_value_field(value_int),
+    checks:is_value_field(value_number),
+    checks:is_value_field(value_bool),
+    checks:value_type_matches_field(string, [value_string="x"]),
+    checks:value_type_matches_field(int, [value_int=1]),
+    checks:value_type_matches_field(number, [value_number=1.5]),
+    checks:value_type_matches_field(bool, [value_bool=true]).
+
+test(violation_text_and_id_fallback_convert_compounds_to_strings) :-
+    checks:violation_text(foo(bar), Text),
+    checks:violation_id_text(foo(bar), IdText),
+    assertion(Text == "foo(bar)"),
+    assertion(IdText == "foo(bar)").
+
 :- end_tests(checks_coverage_gaps).
 
 :- begin_tests(kb_wrapper_coverage_gaps).
@@ -2088,6 +2114,86 @@ test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), clean
     check_req_contradiction('REQ-SUPERSEDES-A').
 
 :- end_tests(kb_wrapper_coverage_gaps).
+
+:- begin_tests(kb_internal_coverage_gaps).
+
+test(kb_internal_helpers_cover_remaining_predicates, [setup(setup_kb), cleanup((retractall(kb:changed_symbol(_)), retractall(kb:changed_symbol_req(_, _)), retractall(kb:changed_symbol_loc(_, _, _, _, _)), cleanup_kb))]) :-
+    kb:'rdf meta specification'(kb_entity(_, _, _), kb_entity(?, ?, ?)),
+    kb:'rdf meta specification'(kb_relationship(_, _, _), kb_relationship(?, ?, ?)),
+    assert_fixture_entity(req, 'REQ-CONNECT-A', "Connect A", active, []),
+    assert_fixture_entity(req, 'REQ-CONNECT-B', "Connect B", active, []),
+    assert_fixture_entity(req, 'REQ-CONNECT-C', "Connect C", active, []),
+    kb_assert_relationship(depends_on, 'REQ-CONNECT-A', 'REQ-CONNECT-B', []),
+    kb_assert_relationship(depends_on, 'REQ-CONNECT-B', 'REQ-CONNECT-C', []),
+    kb:connected_entity('REQ-CONNECT-A', 'REQ-CONNECT-C', ['REQ-CONNECT-A']),
+    impacted_by_change('REQ-CONNECT-A', 'REQ-CONNECT-A'),
+    assert_fixture_entity(adr, 'ADR-NOT-DEPRECATED', "Current ADR", accepted, []),
+    deprecated_still_used('ADR-NOT-DEPRECATED', []),
+    assert_fixture_entity(test, 'TEST-REQ-BY', "Req verified_by test", active, []),
+    assert_fixture_entity(req, 'REQ-REQ-BY', "Req verified_by", active, []),
+    kb_assert_relationship(verified_by, 'REQ-REQ-BY', 'TEST-REQ-BY', []),
+    kb:requirement_verified_by_test('REQ-REQ-BY', 'TEST-REQ-BY'),
+    kb:compatible_types(number, int),
+    kb:unit_compatible(ms, ''),
+    kb:unit_compatible(ms, ms),
+    kb:scope_intersects(global, ''),
+    kb:is_numeric_type(number),
+    kb:unwrap_rdf_value(raw_value, raw_value),
+    kb:value_from_props([], unknown, ''),
+    kb:normalize_term_atom(literal(type('http://www.w3.org/2001/XMLSchema#string', 'typed-value')), TypedAtom),
+    assertion(TypedAtom == 'typed-value'),
+    kb:normalize_term_atom(foo(bar), CompoundAtom),
+    assertion(CompoundAtom == 'foo(bar)'),
+    kb:coerce_timestamp_atom(literal(type('http://www.w3.org/2001/XMLSchema#string', '2026-05-01T00:00:00Z')), TypedTs),
+    assertion(TypedTs == '2026-05-01T00:00:00Z'),
+    kb:coerce_timestamp_atom(foo(bar), CompoundTs),
+    assertion(CompoundTs == 'foo(bar)'),
+    assert_fixture_entity(symbol, 'SYM-UNCOVERED', "Uncovered symbol", active, []),
+    kb:symbol_uncovered('SYM-UNCOVERED'),
+    assert_fixture_entity(symbol, 'SYM-MIXED', "Mixed role symbol", active, []),
+    assert_fixture_entity(test, 'TEST-MIXED-EXEC', "Mixed exec test", active, []),
+    assert_fixture_entity(test, 'TEST-MIXED-COVER', "Mixed cover test", active, []),
+    kb_assert_relationship(executable_for, 'SYM-MIXED', 'TEST-MIXED-EXEC', []),
+    assert_raw_relationship(covered_by, 'SYM-MIXED', 'TEST-MIXED-COVER'),
+    mixed_role_symbol('SYM-MIXED'),
+    assert_fixture_entity(symbol, 'SYM-CHANGED', "Changed symbol", active, []),
+    assert_fixture_entity(fact, 'FACT-STRICT-SUBJECT', "Strict subject", active, [fact_kind=subject, subject_key="strict.internal"]),
+    assert_fixture_entity(fact, 'FACT-STRICT-PROP', "Strict property", active, [fact_kind=property_value, subject_key="strict.internal", property_key="mode", operator=eq, value_type=string, value_string="on"]),
+    kb:validate_strict_lane_pairing(constrains, 'REQ-CONNECT-A', 'FACT-STRICT-SUBJECT'),
+    kb:validate_strict_lane_pairing(requires_property, 'REQ-CONNECT-A', 'FACT-STRICT-PROP'),
+    kb:validate_strict_lane_pairing(relates_to, 'REQ-CONNECT-A', 'FACT-STRICT-PROP'),
+    kb:polarity_conflict(subject_key, property_key, eq, bool, true, '', '', require, eq, bool, true, '', '', forbid, Reason),
+    assertion(sub_string(Reason, _, _, _, "Polarity conflict")),
+    kb:test_matches_required_semantic([verification_scope="global"], verification_scope, global),
+    assertz(kb:changed_symbol('SYM-CHANGED')),
+    assertz(kb:changed_symbol_req('SYM-CHANGED', 'REQ-CONNECT-A')),
+    assertz(kb:changed_symbol_loc('SYM-CHANGED', 'src/file.ts', 10, 2, 'changedSymbol')),
+    kb:changed_symbol_missing_req('SYM-CHANGED', 2, 1),
+    kb:changed_symbol_violation('SYM-CHANGED', 2, 1, 'src/file.ts', 10, 2, 'changedSymbol').
+
+test(legacy_conversion_and_persistent_helpers_are_exercised, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:convert_legacy_props([title("Legacy"), status-active, source="test://legacy", flagged], Props),
+    memberchk(title="Legacy", Props),
+    memberchk(status=active, Props),
+    memberchk(source="test://legacy", Props),
+    memberchk(flagged=true, Props),
+    kb:asserta_changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    kb:retract_changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    \+ changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    kb:asserta_changeset('2026-05-01T00:00:01Z', upsert, 'ENTITY-2', req-[id='ENTITY-2']),
+    kb:retractall_changeset(_AnyTs, upsert, 'ENTITY-2', req-[id='ENTITY-2']),
+    \+ changeset(_, upsert, 'ENTITY-2', req-[id='ENTITY-2']).
+
+test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    TempFile = '/tmp/kibi-test-kb/temp-artifact.tmp',
+    open(TempFile, write, Stream),
+    close(Stream),
+    exists_file(TempFile),
+    kb:cleanup_temp_file(TempFile),
+    \+ exists_file(TempFile).
+
+:- end_tests(kb_internal_coverage_gaps).
 
 % Test setup/cleanup helpers
 assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
