@@ -11,8 +11,6 @@ tags:
   - kibi
   - cache
 links:
-  - type: implements
-    target: SYM-GuidanceCache
   - type: specified_by
     target: SCEN-opencode-guidance-caching
   - type: verified_by

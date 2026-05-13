@@ -11,12 +11,10 @@ tags:
   - kibi
   - query
 links:
-  - type: implements
-    target: SYM-handleKbQuery
   - type: specified_by
     target: SCEN-mcp-tool-query
   - type: verified_by
-    target: TEST-mcp-tool-query
+    target: TEST-012
 ---
 
 The `kb_query` MCP tool must:

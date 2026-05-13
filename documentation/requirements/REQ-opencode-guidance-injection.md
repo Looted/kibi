@@ -11,8 +11,6 @@ tags:
   - kibi
   - guidance
 links:
-  - type: implements
-    target: SYM-buildPrompt
   - type: specified_by
     target: SCEN-opencode-guidance-injection
   - type: verified_by

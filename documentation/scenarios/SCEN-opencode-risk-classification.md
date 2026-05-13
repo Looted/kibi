@@ -11,8 +11,6 @@ tags:
   - opencode
   - risk
 links:
-  - type: specifies
-    target: REQ-opencode-risk-classification
   - type: verified_by
     target: TEST-opencode-smart-enforcement
 ---

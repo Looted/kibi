@@ -11,8 +11,6 @@ tags:
   - kibi
   - discovery
 links:
-  - type: implements
-    target: SYM-KibiCodeActionProvider
   - type: specified_by
     target: SCEN-vscode-source-to-kb
   - type: verified_by

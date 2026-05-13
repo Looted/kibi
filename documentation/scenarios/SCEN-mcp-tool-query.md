@@ -10,8 +10,8 @@ tags:
   - mcp
   - query
 links:
-  - type: specifies
-    target: REQ-mcp-tool-query
+  - type: verified_by
+    target: TEST-012
 ---
 
 ## Scenario: Structured Entity Query

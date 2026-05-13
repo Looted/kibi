@@ -12,18 +12,11 @@ tags:
   - kibi
   - plugin
 links:
-  - type: supersedes
-    target: REQ-opencode-kibi-plugin-v1-old
-  - type: specifies
-    target: REQ-opencode-guidance-injection
-  - type: specifies
-    target: REQ-opencode-background-sync
-  - type: specifies
-    target: REQ-opencode-sync-feedback
-  - type: specifies
-    target: REQ-opencode-bootstrap-nudge
-  - type: specifies
-    target: REQ-opencode-briefing-command
+  - REQ-opencode-guidance-injection
+  - REQ-opencode-background-sync
+  - REQ-opencode-sync-feedback
+  - REQ-opencode-bootstrap-nudge
+  - REQ-opencode-briefing-command
 ---
 
 The OpenCode Kibi Plugin v1 provides Kibi context and synchronization within the OpenCode environment.
