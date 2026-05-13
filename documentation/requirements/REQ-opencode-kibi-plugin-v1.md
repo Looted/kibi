@@ -28,6 +28,10 @@ links:
 
 The OpenCode Kibi Plugin v1 provides Kibi context and synchronization within the OpenCode environment.
 
+For repo bootstrap, agent-facing guidance must prefer the sanctioned `/init-kibi` slash command before asking an operator to perform setup outside OpenCode.
+
+When risky work needs start-task context, the plugin may guide agents toward `/brief-kibi` and the public MCP briefing surface via `kb_briefing_generate`.
+
 This requirement is an umbrella doc for the following granular behaviors:
 1. Prompt Guidance Injection (REQ-opencode-guidance-injection)
 2. Debounced Background Sync (REQ-opencode-background-sync)

@@ -98,6 +98,7 @@ async function importExtensionModule() {
   const module = await import(
     `../../src/extension?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
+  module._resetWorkspaceFeaturesForTests();
   return module;
 }
 

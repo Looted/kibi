@@ -34,3 +34,8 @@ This scenario doc describes the high-level policy and combined behaviors for sma
 **Given** the posture is `root_active` and targeted checks are enabled
 **When** an agent edits a code file classified as `traceability_candidate`
 **Then** the plugin must schedule a sync with reason `smart-enforcement.traceability` and rule `symbol-traceability`.
+
+### Briefing Guidance Routing
+**Given** smart enforcement classifies an edit as risky and briefing guidance is allowed
+**When** the plugin emits a start-task cue
+**Then** it may mention `/brief-kibi` and the public MCP briefing workflow `kb_briefing_generate`.

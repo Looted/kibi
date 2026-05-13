@@ -24,6 +24,8 @@ links:
 
 The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.
 
+When briefing guidance is sanctioned for risky edits, smart enforcement should point agents to `/brief-kibi` and the public MCP briefing workflow through `kb_briefing_generate`.
+
 This requirement is an umbrella doc for the following granular behaviors:
 1. Posture-Aware Enforcement (REQ-opencode-posture-detection)
 2. Risk Classification (REQ-opencode-risk-classification)

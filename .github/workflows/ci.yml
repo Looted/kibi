@@ -136,7 +136,7 @@ jobs:
 
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Install SWI-Prolog
@@ -188,7 +188,7 @@ jobs:
 
   packed-e2e-mcp-regression:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Install SWI-Prolog
@@ -239,7 +239,7 @@ jobs:
 
   packed-e2e-tarball-verify:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Setup Bun
@@ -269,7 +269,7 @@ jobs:
 
   packed-e2e-branch-workflow:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Install SWI-Prolog
@@ -320,7 +320,7 @@ jobs:
 
   publish-dry-run:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
