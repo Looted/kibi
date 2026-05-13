@@ -13,6 +13,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-007
+  - type: specified_by
+    target: SCEN-001
 ---
 
 Kibi extracts entities and relationships from source files using specialized extractors:

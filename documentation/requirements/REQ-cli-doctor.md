@@ -12,6 +12,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-003
+  - type: specified_by
+    target: SCEN-001
 ---
 
 The `kibi doctor` command runs a series of diagnostic checks to verify that the local environment (SWI-Prolog version, git)

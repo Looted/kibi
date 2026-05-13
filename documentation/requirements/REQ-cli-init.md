@@ -12,6 +12,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-003
+  - type: specified_by
+    target: SCEN-001
 ---
 
 The `kibi init` command scaffolds the `.kb/` directory structure, creates a default `config.json`,
