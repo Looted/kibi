@@ -1,12 +1,14 @@
 /// <reference path="../../../types/bun-test.d.ts" />
-import { afterEach, beforeEach, describe, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
 import { getGuidanceCache, resetGuidanceCache } from "../src/guidance-cache";
-import type { Hooks, Plugin, PluginInput } from "../src/index";
+import kibiOpencodePlugin from "../src/index";
+import type { Hooks, PluginInput } from "../src/index";
 import * as logger from "../src/logger";
 import type {
   SchedulerOptions,
@@ -23,11 +25,6 @@ declare global {
     | ((callback: () => void, delayMs: number) => void)
     | undefined;
 }
-
-const coveragePluginModulePath = "../src/index.ts?coverage-index";
-const { default: kibiOpencodePlugin } = (await import(
-  coveragePluginModulePath
-)) as { default: Plugin };
 
 const DEFAULT_PATHS = {
   requirements: "documentation/requirements/**/*.md",
@@ -75,8 +72,10 @@ function setupRootActiveWorkspace(root: string): void {
 
 function createMockClient(
   logs: Array<Record<string, unknown>>,
+  tui?: NonNullable<NonNullable<PluginInput["client"]>["tui"]>,
 ): NonNullable<PluginInput["client"]> {
   return {
+    ...(tui ? { tui } : {}),
     app: {
       log: async (payload: Record<string, unknown>) => {
         logs.push(payload);
@@ -85,18 +84,81 @@ function createMockClient(
   };
 }
 
+
 async function createHooks(
   root: string,
   logs: Array<Record<string, unknown>>,
   projectConfig: Record<string, unknown>,
+  options: {
+    tui?: NonNullable<PluginInput["client"]>["tui"] & {
+      executeCommand?: (command: string, args?: object) => void | Promise<void>;
+    };
+    sessionId?: string;
+  } = {},
 ): Promise<Hooks> {
   writeJson(path.join(root, ".opencode", "kibi.json"), projectConfig);
 
   return kibiOpencodePlugin({
     directory: root,
     worktree: root,
-    client: createMockClient(logs),
+    ...(options.sessionId ? { sessionId: options.sessionId } : {}),
+    client: createMockClient(logs, options.tui),
   });
+}
+
+function writeIdleBrief(
+  root: string,
+  branch: string,
+  contentHash: string,
+  overrides: Partial<Record<string, unknown>> = {},
+): void {
+  const briefsDir = path.join(root, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  writeJson(path.join(briefsDir, "100_brief.json"), {
+    schemaVersion: "1.0",
+    briefId: "brief-1",
+    type: "success",
+    sessionId: "session-1",
+    branch,
+    createdAt: "2026-05-13T00:00:00.000Z",
+    unread: true,
+    auditCursor: {
+      lastTimestamp: "2026-05-13T00:00:00.000Z",
+      lastOperation: "upsert",
+      entryCount: 1,
+      fileSize: 1,
+    },
+    summary: "Unread brief summary",
+    counts: {
+      requirementsAdded: 0,
+      relationshipsAdded: 0,
+      entitiesDeleted: 0,
+    },
+    validation: {
+      violations: [],
+      count: 0,
+      diagnostics: [],
+    },
+    briefing: {
+      tldr: "Unread brief summary",
+      promptBlock: "Unread brief matters",
+      citations: [],
+    },
+    contentHash,
+    ...overrides,
+  });
+}
+
+async function waitForCondition(
+  predicate: () => boolean,
+  timeoutMs = 1000,
+): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (predicate()) return;
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  throw new Error("Timed out waiting for condition");
 }
 
 async function fireEdit(hooks: Hooks, file: string): Promise<void> {
@@ -161,6 +223,7 @@ describe("index coverage", () => {
   });
 
   afterEach(() => {
+    process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS = undefined;
     globalThis.__kibi_test_scheduler_factory = undefined;
     globalThis.__kibi_test_schedule_startup_notify = undefined;
     logger.resetClient();
@@ -865,4 +928,185 @@ export function connectDatabase() { return true; }
 
     assert.equal(cache.isSatisfied(mainKey), false);
   });
+
+  test("emits file-operation reminders and consumes pending lifecycle state", async () => {
+    setupRootActiveWorkspace(tmpDir);
+    fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, "src", "new-file.ts"), "export const x = 1;\n");
+    fs.writeFileSync(
+      path.join(tmpDir, "documentation", "symbols.yaml"),
+      "symbols:\n  - id: SYM-E2E\n    title: helper\n    sourceFile: src/new-file.ts\n    relationships:\n      - type: covered_by\n        target: TEST-E2E-001\n    status: active\n",
+    );
+    fs.writeFileSync(
+      path.join(tmpDir, "documentation", "tests", "TEST-E2E-001.md"),
+      "---\nid: TEST-E2E-001\ntitle: E2E Test\nsource: documentation/tests/e2e/TEST-E2E-001.md\n---\n",
+    );
+
+    const hooks = await createHooks(tmpDir, [], {
+      enabled: true,
+      sync: { enabled: false },
+      prompt: { enabled: true, hookMode: "auto" },
+      guidance: {
+        sessionSummary: { enabled: false },
+        smartEnforcement: { completionReminder: false },
+      },
+    });
+
+    await hooks.event?.({
+      event: { type: "file.created", properties: { file: "src/new-file.ts" } },
+    });
+
+    const output = { system: [] as string[] };
+    await hooks["experimental.chat.system.transform"]?.(
+      { focusFilePath: "src/new-file.ts" },
+      output,
+    );
+    const guidance = output.system[0] ?? "";
+    expect(guidance).toContain("New file detected");
+    expect(guidance).toContain("existing e2e coverage");
+
+    const secondOutput = { system: [] as string[] };
+    await hooks["experimental.chat.system.transform"]?.(
+      { focusFilePath: "src/new-file.ts" },
+      secondOutput,
+    );
+    expect(secondOutput.system[0] ?? "").not.toContain("New file detected");
+    expect(secondOutput.system[0] ?? "").not.toContain("existing e2e coverage");
+  });
+
+  test("replays unread brief during transform and resolves absolute focus paths", async () => {
+    setupRootActiveWorkspace(tmpDir);
+    initGitRepo(tmpDir);
+    writeIdleBrief(tmpDir, "main", "hash-unread");
+    fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    const absoluteFilePath = path.join(tmpDir, "src", "decision.ts");
+    fs.writeFileSync(
+      absoluteFilePath,
+      `/*
+Important invariant: records stay append-only.
+We keep this decision because audit reconstruction must stay deterministic.
+The tradeoff is higher storage churn.
+*/
+export function decide() { return true; }
+`,
+    );
+
+    const showToastCalls: Array<{ body: { message: string; title?: string } }> = [];
+    const executeCommandCalls: string[] = [];
+    const hooks = await createHooks(
+      tmpDir,
+      [],
+      {
+        enabled: true,
+        sync: { enabled: false },
+        prompt: { enabled: true, hookMode: "auto" },
+        guidance: {
+          commentDetection: { enabled: true, minLines: 3 },
+          sessionSummary: { enabled: false },
+          smartEnforcement: { completionReminder: false },
+        },
+      },
+      {
+        tui: {
+          showToast: async (payload) => {
+            showToastCalls.push(payload);
+          },
+          executeCommand: async (command: string) => {
+            executeCommandCalls.push(command);
+          },
+          clearPrompt: async () => {},
+          submitPrompt: async () => {},
+        },
+      },
+    );
+
+    const output = { system: [] as string[] };
+    await hooks["experimental.chat.system.transform"]?.(
+      { focusFilePath: absoluteFilePath },
+      output,
+    );
+
+    assert.equal(showToastCalls.length, 1);
+    assert.equal(showToastCalls[0]?.body.title, "Kibi Knowledge Update");
+    assert.ok(showToastCalls[0]?.body.message.includes("## What changed"));
+    assert.deepEqual(executeCommandCalls, ["kibi.open_latest_brief"]);
+    assert.ok(output.system[0]?.includes("Durable knowledge detected: ADR"));
+  });
+
+  test("builds a synthetic idle brief delta when the snapshot changes without audit entries", async () => {
+    process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS = "0";
+    setupRootActiveWorkspace(tmpDir);
+    initGitRepo(tmpDir);
+    fs.mkdirSync(path.join(tmpDir, ".kb", "branches", "main"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(tmpDir, ".kb", "branches", "main", "kb.rdf"),
+      "before",
+    );
+    fs.mkdirSync(path.join(tmpDir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, "src", "feature.ts"),
+      "export function feature() { return 1; }\n",
+    );
+
+    const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief").mockImplementation(
+      async () => ({ success: false, briefPath: null, envelope: null }),
+    );
+    globalThis.__kibi_test_scheduler_factory = () => ({
+      scheduleSync: () => {},
+      onFileEdited: () => {},
+      onToolExecuteAfter: () => {},
+      flush: async () => {
+        fs.writeFileSync(
+          path.join(tmpDir, ".kb", "branches", "main", "kb.rdf"),
+          "after-snapshot-change",
+        );
+      },
+      dispose: () => {},
+    });
+
+    const hooks = await createHooks(
+      tmpDir,
+      [],
+      {
+        enabled: true,
+        sync: { enabled: true, debounceMs: 1 },
+        prompt: { enabled: true, hookMode: "auto" },
+        guidance: {
+          commentDetection: { enabled: false },
+          sessionSummary: { enabled: false },
+          smartEnforcement: { completionReminder: false },
+        },
+        briefs: { tui: { idleDelayMs: 0 } },
+      },
+      { sessionId: "session-synthetic" },
+    );
+
+    await fireEdit(hooks, "src/feature.ts");
+    await hooks.event?.({ event: { type: "session.idle", properties: {} } });
+    await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+    const workspaceCtx = generateSpy.mock.calls[0]?.[1] as {
+      branch: string;
+      workspaceRoot: string;
+    };
+    const auditDelta = generateSpy.mock.calls[0]?.[2] as unknown as {
+      hasChanges: boolean;
+      entries: Array<{
+        entityId: string;
+        payload: { properties?: { source?: string } };
+      }>;
+    };
+
+    assert.equal(workspaceCtx.workspaceRoot, tmpDir);
+    assert.equal(workspaceCtx.branch, "main");
+    assert.equal(auditDelta.hasChanges, true);
+    assert.equal(auditDelta.entries[0]?.entityId, "workspace-sync");
+    assert.equal(
+      auditDelta.entries[0]?.payload.properties?.source,
+      "workspace-sync",
+    );
+  });
+
 });

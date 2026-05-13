@@ -23,3 +23,4 @@ This doc covers the core non-blocking behaviors of the OpenCode Kibi plugin.
 **Given** an OpenCode session is starting or an authoritative risky edit is detected
 **When** the plugin decides a briefing cue fits within the smart-enforcement prompt budget
 **Then** the guidance may mention `/brief-kibi` as a sanctioned slash command.
+**And** the guidance may reference `kb_briefing_generate` as the public MCP briefing path behind that workflow.
