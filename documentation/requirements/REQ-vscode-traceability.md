@@ -1,32 +1,30 @@
 ---
 id: REQ-vscode-traceability
-title: Bidirectional traceability in VS Code extension
+title: "VS Code Extension Traceability: Umbrella"
 status: open
 created_at: 2026-02-18T00:00:00Z
-updated_at: 2026-03-19T00:00:00Z
-source: packages/vscode/src/extension.ts
+updated_at: 2026-05-13T00:00:00Z
+source: packages/vscode/
 priority: must
-owner: dev
+owner: vscode-team
 tags:
   - vscode
+  - kibi
   - traceability
-  - ux
 links:
-  - type: specified_by
-    target: SCEN-vscode-open-entity
-  - type: specified_by
-    target: SCEN-vscode-code-action
-  - type: verified_by
-    target: TEST-vscode-traceability
+  - type: supersedes
+    target: REQ-vscode-traceability-old
+  - type: specifies
+    target: REQ-vscode-kb-to-source
+  - type: specifies
+    target: REQ-vscode-source-to-kb
+  - type: specifies
+    target: REQ-vscode-sidebar-kb-tree
 ---
 
-Two directions of traceability from the VS Code extension:
+The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.
 
-1. **KB → source**: clicking an entity in the tree opens its source file in the
-   editor. For symbol entities, the sidebar MUST navigate to the symbol's real
-   code file and line from `symbols.yaml`, not to the manifest file itself, while
-   still allowing the node to expand and show linked KB entities.
-
-2. **Source → KB**: any TypeScript or JavaScript symbol registered in `symbols.yaml`
-   shows a `Kibi: Browse linked entities` code action. Selecting it opens a Quick
-   Pick of all related KB entities (requirements, tests, ADRs, etc.).
+This requirement is an umbrella doc for the following granular behaviors:
+1. Navigation from KB Tree to Source (REQ-vscode-kb-to-source)
+2. Discovering KB Context from Editor (REQ-vscode-source-to-kb)
+3. Structural TreeView Sidebar (REQ-vscode-sidebar-kb-tree)
