@@ -13,6 +13,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-009
+  - type: specified_by
+    target: SCEN-001
 ---
 
 All entity and relationship mutations in the KB are recorded in a persistent audit log (`audit.log`) in the branch directory.

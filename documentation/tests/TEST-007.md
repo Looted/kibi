@@ -11,6 +11,8 @@ tags:
   - unit
 links:
   - type: validates
+    target: REQ-core-persistence
+  - type: specifies
     target: SCEN-001
 ---
 

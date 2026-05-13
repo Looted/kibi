@@ -11,6 +11,8 @@ tags:
   - unit
 links:
   - type: validates
+    target: REQ-cli-check
+  - type: specifies
     target: SCEN-005
 ---
 

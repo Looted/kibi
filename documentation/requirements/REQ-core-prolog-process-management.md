@@ -13,6 +13,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-001
+  - type: specified_by
+    target: SCEN-001
 ---
 
 The CLI manages the lifecycle of the SWI-Prolog child process, handling startup, shutdown, and error recovery.

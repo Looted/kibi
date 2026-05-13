@@ -12,6 +12,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-006
+  - type: specified_by
+    target: SCEN-001
 ---
 
 The Prolog KB core implements foundational validation rules to ensure data consistency:
