@@ -1,5 +1,5 @@
 /// <reference path="../../../types/bun-test.d.ts" />
-import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import { strict as assert } from "node:assert";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -227,6 +227,8 @@ describe("index coverage", () => {
     process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS = undefined;
     globalThis.__kibi_test_scheduler_factory = undefined;
     globalThis.__kibi_test_schedule_startup_notify = undefined;
+    mock.restore();
+    mock.clearAllMocks();
     logger.resetClient();
     resetSessionTracker();
     resetGuidanceCache();

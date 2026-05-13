@@ -73,9 +73,28 @@ export interface SyncResult extends SyncSummary {
   exitCode?: number;
 }
 
+interface SyncCommandRuntimeContext {
+  currentBranch: string;
+  livePath: string;
+  rebuild: boolean;
+  stagingPath: string;
+  validateOnly: boolean;
+}
+
+interface SyncCommandRuntime {
+  afterAttach?: (
+    context: SyncCommandRuntimeContext,
+  ) => Promise<void> | void;
+  beforeSave?: (
+    context: SyncCommandRuntimeContext & { kbModified: boolean },
+  ) => Promise<void> | void;
+  createProlog?: (options: { timeout: number }) => PrologProcess;
+}
+
 // implements REQ-003, REQ-007
 export async function syncCommand(
   options: { validateOnly?: boolean; rebuild?: boolean } = {},
+  runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
@@ -302,11 +321,20 @@ export async function syncCommand(
       process.cwd(),
       `.kb/branches/${currentBranch}.staging`,
     );
+    const runtimeContext: SyncCommandRuntimeContext = {
+      currentBranch,
+      livePath,
+      rebuild,
+      stagingPath,
+      validateOnly,
+    };
 
     await prepareStagingEnvironment(stagingPath, livePath, rebuild);
 
     try {
-      const prolog = new PrologProcess({ timeout: 120000 });
+      const prolog =
+        runtime.createProlog?.({ timeout: 120000 }) ??
+        new PrologProcess({ timeout: 120000 });
       await prolog.start();
 
       const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
@@ -317,6 +345,7 @@ export async function syncCommand(
           `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
         );
       }
+      await runtime.afterAttach?.(runtimeContext);
 
       const entityIds = new Set<string>();
 
@@ -402,6 +431,8 @@ export async function syncCommand(
       if (kbModified) {
         prolog.invalidateCache();
       }
+
+      await runtime.beforeSave?.({ ...runtimeContext, kbModified });
 
       const saveResult = await prolog.query("kb_save");
       if (!saveResult.success) {
