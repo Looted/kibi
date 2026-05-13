@@ -15,8 +15,7 @@ tags:
 links:
   - type: validates
     target: REQ-cli-sync
-  - type: specifies
-    target: SCEN-012
+  - SCEN-012
 ---
 
 ## Test Cases
