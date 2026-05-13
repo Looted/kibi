@@ -11,8 +11,6 @@ tags:
   - kibi
   - posture
 links:
-  - type: implements
-    target: SYM-detectPosture
   - type: specified_by
     target: SCEN-opencode-posture-detection
   - type: verified_by

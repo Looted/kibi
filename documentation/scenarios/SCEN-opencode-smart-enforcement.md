@@ -12,8 +12,8 @@ tags:
   - opencode
   - policy
 links:
-  - type: specifies
-    target: REQ-opencode-smart-enforcement-v1
+  - type: verified_by
+    target: TEST-opencode-smart-enforcement
   - type: relates_to
     target: SCEN-opencode-posture-detection
   - type: relates_to

@@ -7,8 +7,8 @@ created_at: 2026-04-13T10:00:00Z
 updated_at: 2026-05-13T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-plugin-v1.md
 links:
-  - type: specifies
-    target: REQ-opencode-kibi-plugin-v1
+  - type: verified_by
+    target: TEST-opencode-kibi-plugin-v1
   - type: relates_to
     target: SCEN-opencode-guidance-injection
   - type: relates_to

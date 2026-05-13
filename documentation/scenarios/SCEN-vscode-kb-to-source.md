@@ -10,8 +10,8 @@ tags:
   - vscode
   - navigation
 links:
-  - type: specifies
-    target: REQ-vscode-kb-to-source
+  - type: verified_by
+    target: TEST-vscode-traceability
 ---
 
 ## Scenario: Navigation from Sidebar to Code

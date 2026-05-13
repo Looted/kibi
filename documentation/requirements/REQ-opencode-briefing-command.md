@@ -11,8 +11,6 @@ tags:
   - kibi
   - briefing
 links:
-  - type: implements
-    target: SYM-deriveBriefIntent
   - type: specified_by
     target: SCEN-opencode-briefing-command
   - type: verified_by

@@ -11,8 +11,6 @@ tags:
   - kibi
   - navigation
 links:
-  - type: implements
-    target: SYM-KibiTreeDataProvider
   - type: specified_by
     target: SCEN-vscode-kb-to-source
   - type: verified_by

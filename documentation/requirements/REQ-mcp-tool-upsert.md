@@ -11,12 +11,10 @@ tags:
   - kibi
   - mutation
 links:
-  - type: implements
-    target: SYM-handleKbUpsert
   - type: specified_by
     target: SCEN-mcp-tool-upsert
   - type: verified_by
-    target: TEST-mcp-tool-upsert
+    target: TEST-mcp-upsert-coverage
 ---
 
 The `kb_upsert` MCP tool must:

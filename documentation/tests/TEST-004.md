@@ -12,7 +12,7 @@ tags:
 links:
   - type: validates
     target: REQ-cli-check
-  - type: specifies
+  - type: validates
     target: SCEN-005
 ---
 

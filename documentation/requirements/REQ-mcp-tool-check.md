@@ -11,12 +11,8 @@ tags:
   - kibi
   - validation
 links:
-  - type: implements
-    target: SYM-handleKbCheck
-  - type: specified_by
-    target: SCEN-mcp-tool-check
   - type: verified_by
-    target: TEST-mcp-tool-check
+    target: TEST-004
 ---
 
 The `kb_check` MCP tool must:

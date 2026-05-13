@@ -10,8 +10,8 @@ tags:
   - vscode
   - discovery
 links:
-  - type: specifies
-    target: REQ-vscode-source-to-kb
+  - type: verified_by
+    target: TEST-vscode-traceability
 ---
 
 ## Scenario: Quick Pick Discovery from Editor

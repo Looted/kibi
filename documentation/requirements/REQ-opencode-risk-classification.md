@@ -11,8 +11,6 @@ tags:
   - kibi
   - risk
 links:
-  - type: implements
-    target: SYM-classifyRisk
   - type: specified_by
     target: SCEN-opencode-risk-classification
   - type: verified_by

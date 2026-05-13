@@ -13,6 +13,8 @@ tags:
 links:
   - type: supersedes
     target: REQ-009
+  - type: specified_by
+    target: SCEN-001
   - type: verified_by
     target: TEST-007
 ---

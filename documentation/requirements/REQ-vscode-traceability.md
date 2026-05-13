@@ -12,14 +12,9 @@ tags:
   - kibi
   - traceability
 links:
-  - type: supersedes
-    target: REQ-vscode-traceability-old
-  - type: specifies
-    target: REQ-vscode-kb-to-source
-  - type: specifies
-    target: REQ-vscode-source-to-kb
-  - type: specifies
-    target: REQ-vscode-sidebar-kb-tree
+  - REQ-vscode-kb-to-source
+  - REQ-vscode-source-to-kb
+  - REQ-vscode-sidebar-kb-tree
 ---
 
 The Kibi VS Code extension provides bidirectional traceability between the knowledge base and source code.

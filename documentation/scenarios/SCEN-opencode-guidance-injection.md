@@ -11,8 +11,6 @@ tags:
   - opencode
   - guidance
 links:
-  - type: specifies
-    target: REQ-opencode-guidance-injection
   - type: verified_by
     target: TEST-opencode-kibi-plugin-v1
 ---

@@ -12,7 +12,7 @@ tags:
 links:
   - type: validates
     target: REQ-core-persistence
-  - type: specifies
+  - type: validates
     target: SCEN-001
 ---
 

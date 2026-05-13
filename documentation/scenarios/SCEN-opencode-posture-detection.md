@@ -11,8 +11,6 @@ tags:
   - opencode
   - posture
 links:
-  - type: specifies
-    target: REQ-opencode-posture-detection
   - type: verified_by
     target: TEST-opencode-smart-enforcement
 ---

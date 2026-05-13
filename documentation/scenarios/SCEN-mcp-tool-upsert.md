@@ -10,8 +10,8 @@ tags:
   - mcp
   - mutation
 links:
-  - type: specifies
-    target: REQ-mcp-tool-upsert
+  - type: verified_by
+    target: TEST-mcp-upsert-coverage
 ---
 
 ## Scenario: Entity and Relationship Mutation

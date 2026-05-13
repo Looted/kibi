@@ -24,6 +24,7 @@ import { runPluginStartup } from "../src/plugin-startup";
 import * as promptModule from "../src/prompt";
 import { getSessionTracker, resetSessionTracker } from "../src/session-tracker";
 import * as toastModule from "../src/toast";
+import { registerIndexCoverageTests } from "./index.coverage.shared";
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -7587,3 +7588,5 @@ import datetime
     });
   });
 });
+
+registerIndexCoverageTests(kibiOpencodePlugin);

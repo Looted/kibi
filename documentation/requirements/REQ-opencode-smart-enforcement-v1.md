@@ -12,14 +12,9 @@ tags:
   - kibi
   - enforcement
 links:
-  - type: supersedes
-    target: REQ-opencode-smart-enforcement-v1-old
-  - type: specifies
-    target: REQ-opencode-posture-detection
-  - type: specifies
-    target: REQ-opencode-risk-classification
-  - type: specifies
-    target: REQ-opencode-guidance-caching
+  - REQ-opencode-posture-detection
+  - REQ-opencode-risk-classification
+  - REQ-opencode-guidance-caching
 ---
 
 The OpenCode Kibi Plugin implements smart, posture-aware enforcement to provide high-signal guidance while minimizing noise and token usage.
