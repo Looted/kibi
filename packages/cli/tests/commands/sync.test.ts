@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   statSync,
@@ -97,6 +98,17 @@ async function withWorkingDirectory<T>(
   } finally {
     process.chdir(previous);
   }
+}
+
+function listBranchStagingDirs(root: string, branch: string): string[] {
+  const branchesDir = path.join(root, ".kb/branches");
+  if (!existsSync(branchesDir)) {
+    return [];
+  }
+
+  return readdirSync(branchesDir).filter((entry) =>
+    entry.startsWith(`${branch}.staging.`),
+  );
 }
 
 describe("kibi sync", () => {
@@ -341,6 +353,75 @@ User logs in with OAuth2 provider.
           if (!result.ok) {
             expect(getErrorMessage(result.error)).toContain("stale_snapshot");
           }
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans up stale_snapshot unique staging directories after successful sync",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const result = await runHarnessedSync();
+
+          expect(result.success).toBe(true);
+          expect(listBranchStagingDirs(tmpDir, "main")).toEqual([]);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans up stale_snapshot unique staging directories on validate-only exit",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const result = await runHarnessedSync({ validateOnly: true });
+
+          expect(result.success).toBe(true);
+          expect(result.published).toBe(false);
+          expect(listBranchStagingDirs(tmpDir, "main")).toEqual([]);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans only its own stale_snapshot staging directory on sync failure",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const preservedSibling = path.join(
+            tmpDir,
+            ".kb/branches",
+            `main.staging.${process.pid}.${Date.now() - 1}`,
+          );
+          mkdirSync(preservedSibling, { recursive: true });
+
+          let failedStagingPath: string | null = null;
+          const result = await runHarnessedSync(
+            {},
+            {
+              afterAttach: ({ stagingPath }) => {
+                failedStagingPath = stagingPath;
+              },
+              beforeSave: () => {
+                throw new Error("boom");
+              },
+            },
+          ).then(
+            () => ({ ok: true as const }),
+            (error) => ({ ok: false as const, error }),
+          );
+
+          expect(result.ok).toBe(false);
+          if (!result.ok) {
+            expect(getErrorMessage(result.error)).toContain("boom");
+          }
+          expect(failedStagingPath).not.toBeNull();
+          if (failedStagingPath === null) {
+            throw new Error("Expected failed staging path to be captured");
+          }
+          expect(existsSync(failedStagingPath)).toBe(false);
+          expect(existsSync(preservedSibling)).toBe(true);
         });
       },
       TEST_TIMEOUT_MS,

@@ -58,6 +58,7 @@ import { persistEntities, persistRelationships } from "./sync/persistence.js";
 import {
   atomicPublish,
   cleanupStaging,
+  createUniqueStagingPath,
   prepareStagingEnvironment,
 } from "./sync/staging.js";
 
@@ -103,6 +104,7 @@ export async function syncCommand(
   const entityCounts: Record<string, number> = {};
   let published = false;
   let currentBranch: string | undefined;
+  let stagingPath: string | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
@@ -317,10 +319,7 @@ export async function syncCommand(
       diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
     }
 
-    const stagingPath = path.join(
-      process.cwd(),
-      `.kb/branches/${currentBranch}.staging`,
-    );
+    stagingPath = createUniqueStagingPath(currentBranch, process.cwd());
     const runtimeContext: SyncCommandRuntimeContext = {
       currentBranch,
       livePath,
@@ -444,6 +443,7 @@ export async function syncCommand(
       await prolog.terminate();
 
       atomicPublish(stagingPath, livePath);
+      cleanupStaging(stagingPath);
 
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -501,6 +501,9 @@ export async function syncCommand(
       throw error;
     }
   } catch (error) {
+    if (stagingPath) {
+      cleanupStaging(stagingPath);
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${errorMessage}`);
 
