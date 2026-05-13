@@ -79,12 +79,8 @@ jobs:
         run: bun run build:mcp
 
       - name: Run unit tests with coverage
-        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ !inputs.skip_tests }}
         run: bun run test:coverage:unit
-
-      - name: Run unit tests
-        if: ${{ !inputs.skip_tests && !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-        run: bun run test:unit
 
       - name: Upload unit coverage artifact
         if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
@@ -359,3 +355,50 @@ jobs:
 
       - name: Verify tarballs exist and are non-empty
         run: ls -lh packages/*/*.tgz
+
+  prolog-unit-coverage:
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install SWI-Prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.10'
+
+      - name: Run Prolog unit coverage
+        run: bun run test:coverage:prolog
+
+      - name: Upload Prolog coverage artifact
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: prolog-coverage
+          path: coverage/prolog
+          if-no-files-found: error
+          retention-days: 7
