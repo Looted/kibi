@@ -9,7 +9,7 @@ tags:
   - check
   - validation
 links:
-  - REQ-006
+  - REQ-core-validation-rules
   - type: verified_by
     target: TEST-004
 ---
