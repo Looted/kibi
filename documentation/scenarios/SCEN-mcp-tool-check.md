@@ -1,6 +1,6 @@
 ---
 id: SCEN-mcp-tool-check
-title: MCP Tool: kb_check
+title: "MCP Tool: kb_check"
 type: scenario
 status: active
 created_at: 2026-05-13T00:00:00Z
