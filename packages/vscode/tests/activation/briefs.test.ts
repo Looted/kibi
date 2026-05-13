@@ -75,6 +75,11 @@ beforeEach(() => {
   branch = "test-branch";
   context = { subscriptions: [] };
   wsState = createMockWorkspaceState();
+  mock.module("kibi-cli/brief-config", () => ({
+    loadBriefConfig: (_workspaceRoot: string) => ({
+      briefs: { enabled: true, channels: { vscode: true } },
+    }),
+  }));
 });
 
 afterEach(() => {
