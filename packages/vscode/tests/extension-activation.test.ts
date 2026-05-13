@@ -69,14 +69,17 @@ mock.module("../src/activation", () => ({
 }));
 
 const vscode = getVscodeMockModule();
-const extensionModule = await import("../src/extension");
+
+async function importExtensionModule() {
+  const caseKey = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  return import(`../src/extension?case=${caseKey}`);
+}
 
 function makeContext() {
   return { subscriptions: [] as unknown[] };
 }
 
 beforeEach(() => {
-  resetVscodeMock();
   Object.assign(vscode.window as Record<string, unknown>, {
     createOutputChannel: mock((_name: string) => ({
       appendLine: mock((_message: string) => {}),
@@ -107,8 +110,9 @@ afterEach(() => {
 });
 
 describe("extension activation", () => {
-  test("activate initializes workspace features immediately", () => {
+  test("activate initializes workspace features immediately", async () => {
     const context = makeContext();
+    const extensionModule = await importExtensionModule();
 
     extensionModule.activate(context as never);
 
@@ -129,11 +133,13 @@ describe("extension activation", () => {
     expect(context.subscriptions.length).toBeGreaterThan(1);
   });
 
-  test("activate defers initialization until workspace becomes available", () => {
+  test("activate defers initialization until workspace becomes available", async () => {
     resolveWorkspaceRootMock
       .mockImplementationOnce((_output: unknown) => undefined)
       .mockImplementationOnce((_output: unknown) => "/repo-late");
     const context = makeContext();
+    const extensionModule = await importExtensionModule();
+    const beforeCalls = registerTreeViewMock.mock.calls.length;
 
     extensionModule.activate(context as never);
 
@@ -147,7 +153,7 @@ describe("extension activation", () => {
     expect(output.appendLine).toHaveBeenCalledWith(
       "Workspace folder not available. Deferring activation until workspace opens...",
     );
-    expect(registerTreeViewMock).not.toHaveBeenCalled();
+    expect(registerTreeViewMock.mock.calls.length).toBe(beforeCalls);
 
     workspaceChange.listener();
 
@@ -155,11 +161,13 @@ describe("extension activation", () => {
     expect(getWorkspaceFolderUriMock).toHaveBeenCalledWith("/repo-late");
   });
 
-  test("initializeWorkspaceFeatures remains idempotent across repeated workspace events", () => {
+  test("initializeWorkspaceFeatures remains idempotent across repeated workspace events", async () => {
     resolveWorkspaceRootMock
       .mockImplementationOnce((_output: unknown) => undefined)
       .mockImplementation((_output: unknown) => "/repo-idempotent");
     const context = makeContext();
+    const extensionModule = await importExtensionModule();
+    const beforeCalls = registerTreeViewMock.mock.calls.length;
 
     extensionModule.activate(context as never);
 
@@ -173,13 +181,14 @@ describe("extension activation", () => {
     workspaceChange.listener();
     workspaceChange.listener();
 
-    expect(registerTreeViewMock).toHaveBeenCalledTimes(1);
+    expect(registerTreeViewMock.mock.calls.length).toBe(beforeCalls + 1);
     expect(output.appendLine).toHaveBeenCalledWith(
       "Workspace features already initialized. Skipping duplicate initialization.",
     );
   });
 
-  test("deactivate is a no-op", () => {
+  test("deactivate is a no-op", async () => {
+    const extensionModule = await importExtensionModule();
     expect(extensionModule.deactivate()).toBeUndefined();
   });
 });

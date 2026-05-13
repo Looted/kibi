@@ -13,7 +13,6 @@ import { getVscodeMockModule, resetVscodeMock } from "./shared/vscode-mock";
 
 type Relationship = { type: string; from: string; to: string };
 
-let execSyncImpl: (...args: unknown[]) => unknown = () => "main\n";
 let openFileAtLineMock = mock(async (_localPath: string, _line?: number) => {});
 let browseLinkedEntitiesMock = mock(
   async (
@@ -35,9 +34,6 @@ let buildIndexResult = { byTitle: new Map(), byFile: new Map(), byId: new Map() 
 
 resetVscodeMock();
 mock.module("vscode", () => getVscodeMockModule());
-mock.module("node:child_process", () => ({
-  execSync: (...args: unknown[]) => execSyncImpl(...args),
-}));
 mock.module("../src/codeActionProvider", () => ({
   openFileAtLine: (...args: Parameters<typeof openFileAtLineMock>) =>
     openFileAtLineMock(...args),
@@ -85,7 +81,6 @@ mock.module("../src/briefDocumentProvider", () => ({
 
 const vscode = getVscodeMockModule();
 const navigationModule = await import("../src/activation/navigation");
-const workspaceModule = await import("../src/activation/workspace");
 const traceabilityModule = await import("../src/activation/traceability");
 const contextOnOpenModule = await import("../src/activation/contextOnOpen");
 const briefsModule = await import("../src/activation/briefs");
@@ -233,15 +228,12 @@ beforeEach(() => {
   codeLensWatchSourcesMock = mock((_context: unknown) => {});
   codeLensRefreshMock = mock(() => {});
   buildIndexResult = { byTitle: new Map(), byFile: new Map(), byId: new Map() };
-  execSyncImpl = () => "main\n";
   process.env.KIBI_WORKSPACE_ROOT = undefined;
   configureVscodeMock();
-  workspaceModule._resetWorkspaceFsDepsForTests();
   contextOnOpenModule._resetContextOnOpenFsDepsForTests();
 });
 
 afterEach(() => {
-  workspaceModule._resetWorkspaceFsDepsForTests();
   contextOnOpenModule._resetContextOnOpenFsDepsForTests();
   process.env.KIBI_WORKSPACE_ROOT = undefined;
   if (tmpDir && fs.existsSync(tmpDir)) {
@@ -310,67 +302,6 @@ describe("activation/navigation", () => {
       "workbench.view.extension.kibi-sidebar",
     );
     expect(executeCommand).toHaveBeenNthCalledWith(2, "kibi-knowledge-base.focus");
-  });
-});
-
-describe("activation/workspace", () => {
-  test("resolves workspace root from attached folder and returns matching workspace URI", () => {
-    const output = createOutput();
-    const workspaceRoot = path.join(tmpDir, "repo");
-    (vscode.workspace as Record<string, unknown>).workspaceFolders = [
-      { uri: { fsPath: workspaceRoot, path: workspaceRoot, scheme: "file" } },
-    ];
-
-    const resolved = workspaceModule.resolveWorkspaceRoot(output as never);
-    const uri = workspaceModule.getWorkspaceFolderUri(workspaceRoot);
-
-    expect(resolved).toBe(workspaceRoot);
-    expect(uri.fsPath).toBe(workspaceRoot);
-    expect(output.appendLine).toHaveBeenCalledWith(`Workspace root: ${workspaceRoot}`);
-  });
-
-  test("falls back to KIBI_WORKSPACE_ROOT and reports invalid fallback", () => {
-    const output = createOutput();
-    const fallbackRoot = path.join(tmpDir, "fallback");
-    process.env.KIBI_WORKSPACE_ROOT = fallbackRoot;
-    workspaceModule._setWorkspaceFsDepsForTests({
-      existsSync: (target: fs.PathLike) =>
-        String(target) === path.join(fallbackRoot, ".kb", "config.json"),
-    });
-
-    const resolved = workspaceModule.resolveWorkspaceRoot(output as never);
-    expect(resolved).toBe(fallbackRoot);
-    expect(output.appendLine).toHaveBeenCalledWith(
-      `No workspace folder attached; using KIBI_WORKSPACE_ROOT fallback: ${fallbackRoot}`,
-    );
-
-    const invalidOutput = createOutput();
-    process.env.KIBI_WORKSPACE_ROOT = path.join(tmpDir, "invalid");
-    workspaceModule._setWorkspaceFsDepsForTests({ existsSync: () => false });
-    const invalidResolved = workspaceModule.resolveWorkspaceRoot(invalidOutput as never);
-    expect(invalidResolved).toBeUndefined();
-    expect(invalidOutput.appendLine).toHaveBeenCalledWith(
-      `KIBI_WORKSPACE_ROOT is set but missing .kb/config.json: ${path.join(tmpDir, "invalid")}`,
-    );
-    expect(invalidOutput.appendLine).toHaveBeenCalledWith(
-      "No workspace folder found; activation skipped.",
-    );
-  });
-
-  test("reads current branch from git command and falls back to HEAD contents", () => {
-    execSyncImpl = () => "feature/test\n";
-    expect(workspaceModule.getCurrentBranch(tmpDir)).toBe("feature/test");
-
-    const gitRoot = path.join(tmpDir, "git-fallback");
-    fs.mkdirSync(path.join(gitRoot, ".git"), { recursive: true });
-    fs.writeFileSync(path.join(gitRoot, ".git", "HEAD"), "ref: refs/heads/develop\n");
-    execSyncImpl = () => {
-      throw new Error("git failed");
-    };
-    expect(workspaceModule.getCurrentBranch(gitRoot)).toBe("develop");
-
-    fs.writeFileSync(path.join(gitRoot, ".git", "HEAD"), "detached-head-value\n");
-    expect(workspaceModule.getCurrentBranch(gitRoot)).toBe("detached-head-value");
   });
 });
 

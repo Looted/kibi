@@ -61,6 +61,86 @@ function writeManifest(symbols: string) {
 }
 
 describe("KibiCodeActionProvider — provideCodeActions", () => {
+  test("watchManifest rebuilds index on create/change and clears it on delete", () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// code\n");
+
+    writeManifest(`symbols:
+  - id: SYM-001
+    title: myFunc
+    sourceFile: src/main.ts
+    sourceLine: 1
+    links:
+      - REQ-001
+`);
+
+    const watcher = {
+      onDidChange: mock((listener: () => void) => {
+        (watcher as { changeListener?: () => void }).changeListener = listener;
+        return { dispose() {} };
+      }),
+      onDidCreate: mock((listener: () => void) => {
+        (watcher as { createListener?: () => void }).createListener = listener;
+        return { dispose() {} };
+      }),
+      onDidDelete: mock((listener: () => void) => {
+        (watcher as { deleteListener?: () => void }).deleteListener = listener;
+        return { dispose() {} };
+      }),
+      dispose() {},
+    };
+    configureVscodeMock({
+      workspace: { createFileSystemWatcher: mock((_pattern: unknown) => watcher) },
+    });
+
+    const provider = new KibiCodeActionProvider(tmpDir);
+    const context = { subscriptions: [] as unknown[] };
+    provider.watchManifest(context as never);
+
+    const document = {
+      uri: { fsPath: testFile },
+      getWordRangeAtPosition: () => ({
+        start: { line: 0, character: 0 },
+        end: { line: 0, character: 6 },
+      }),
+      getText: () => "myFunc",
+    };
+    const range = { start: { line: 0, character: 0 } };
+    expect(provider.provideCodeActions(document as never, range as never)).toHaveLength(1);
+
+    writeManifest(`symbols:
+  - id: SYM-002
+    title: otherFunc
+    sourceFile: src/main.ts
+    sourceLine: 2
+    links:
+      - REQ-002
+`);
+    (watcher as { changeListener?: () => void }).changeListener?.();
+    const changedActions = provider.provideCodeActions(document as never, range as never);
+    expect(changedActions).toHaveLength(1);
+    expect(changedActions[0]?.title).toContain("otherFunc");
+
+    (watcher as { createListener?: () => void }).createListener?.();
+    const createdActions = provider.provideCodeActions(
+      {
+        ...document,
+        getText: () => "otherFunc",
+        getWordRangeAtPosition: () => ({
+          start: { line: 0, character: 0 },
+          end: { line: 0, character: 9 },
+        }),
+      } as never,
+      range as never,
+    );
+    expect(createdActions).toHaveLength(1);
+
+    (watcher as { deleteListener?: () => void }).deleteListener?.();
+    expect(provider.provideCodeActions(document as never, range as never)).toEqual([]);
+    expect(context.subscriptions).toEqual([watcher]);
+  });
+
   test("returns empty array when index is null (no manifest)", () => {
     const provider = new KibiCodeActionProvider(tmpDir);
     const document = {
