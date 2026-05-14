@@ -10,6 +10,15 @@ export type LogMetadata = Record<string, unknown>;
 
 let client: PluginClient | null = null;
 
+// Test-only injection point to avoid global console.error spy pollution
+// in parallel test runs. Defaults to null (uses real console.error in production).
+let _consoleError: typeof console.error | null = null;
+
+// implements REQ-opencode-kibi-plugin-v1
+export function _setConsoleError(fn: typeof console.error | null): void {
+  _consoleError = fn;
+}
+
 // implements REQ-opencode-kibi-plugin-v1
 export function setClient(c: PluginClient): void {
   client = c;
@@ -120,7 +129,7 @@ export function errorStructuredOnly(
 // implements REQ-opencode-kibi-plugin-v1
 export function error(msg: string, metadata?: LogMetadata): void {
   // Always emit to console for user visibility (operational failures)
-  console.error("[kibi-opencode]", msg);
+  (_consoleError ?? console.error)("[kibi-opencode]", msg);
   // Also emit to structured logs if client is available
   if (client) {
     void client.app
