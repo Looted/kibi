@@ -292,6 +292,7 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
     deliveryReasons?: DeliveryReasons;
   };
   if (
+    !envelope.unread &&
     isNoOpBriefEnvelope(envelope) &&
     !(briefing.deliveryReasons?.items.length ?? 0)
   ) {
@@ -301,6 +302,7 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
 
   if (
+    !envelope.unread &&
     totalChanges === 0 &&
     envelope.validation.count === 0 &&
     !hasDeliveryReasons &&

@@ -4,14 +4,42 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 // Mock dependencies
+// Bun uses the package tsconfig (jsx:preserve → automatic mode) when importing
+// tui.tsx from tests; the automatic mode injects a `react/jsx-dev-runtime` import.
+// Provide a minimal shim so the module resolves without needing the real React.
+mock.module("react/jsx-dev-runtime", () => ({
+  // biome-ignore format: keep mock stub on one line
+  jsxDEV: (type: unknown, props: unknown) => ({ type, props }),
+  Fragment: "Fragment",
+}));
+mock.module("react/jsx-runtime", () => ({
+  // biome-ignore format: keep mock stub on one line
+  jsx: (type: unknown, props: unknown) => ({ type, props }),
+  jsxs: (type: unknown, props: unknown) => ({ type, props }),
+  Fragment: "Fragment",
+}));
+
+// Capture real implementations before mocking so spy-wrappers call through to real
+// filesystem logic. This lets the second/third describe blocks exercise real I/O
+// (markBriefTuiSeen writes .tui-seen.json, markBriefRead mutates the file) while
+// still being trackable mocks.
+const _realIdleBriefReader = await import("../src/idle-brief-reader.js");
+
 mock.module("../src/idle-brief-reader.js", () => ({
-  selectLatestPersistedBrief: mock(),
-  markBriefTuiSeen: mock(),
-  markBriefRead: mock(),
+  selectLatestPersistedBrief: mock(_realIdleBriefReader.selectLatestPersistedBrief),
+  markBriefTuiSeen: mock(_realIdleBriefReader.markBriefTuiSeen),
+  markBriefRead: mock(_realIdleBriefReader.markBriefRead),
 }));
 
 mock.module("../src/tui-brief-view-model.js", () => ({
-  buildTuiBriefViewModel: mock(),
+  // biome-ignore format: keep mock stub readable
+  buildTuiBriefViewModel: mock(() => ({
+    title: "Test Brief",
+    whatChanged: ["Change 1"],
+    whyItMatters: "Matters",
+    knowledgeImpact: { citations: [], constraints: [], regressionRisks: [] },
+    interpretationNote: { validationCount: 0, missingEvidence: [] },
+  })),
 }));
 
 const { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } = await import("../src/idle-brief-reader.js");

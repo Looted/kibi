@@ -6,8 +6,9 @@
     "rootDir": "..",
     "types": ["bun-types"],
     "jsx": "react",
+    "jsxImportSource": "",
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
   },
-  "include": ["**/*.test.ts", "**/*.test.tsx", "../src/**/*.d.ts"]
+  "include": ["**/*.test.ts", "**/*.test.tsx", "globals.d.ts", "../src/**/*.d.ts"]
 }
