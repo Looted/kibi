@@ -123,6 +123,15 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
         },
       },
       {
+        title: "Kibi: Open Latest Brief",
+        value: "kibi-brief",
+        description: "Opens the latest persisted brief for the current workspace and branch",
+        // implements REQ-opencode-kibi-briefing-v6
+        onSelect: () => {
+          api.route.navigate("kibi.brief");
+        },
+      },
+      {
         title: "Kibi: Refresh Brief",
         value: "kibi.refresh_brief",
         description: "Re-reads the latest persisted brief and refreshes the view",
