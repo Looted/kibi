@@ -232,7 +232,7 @@ export async function deliverBriefTui(
 
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
-    if (isNoOpBriefEnvelope(envelope)) {
+    if (!envelope.unread && isNoOpBriefEnvelope(envelope)) {
       return { delivered: false };
     }
     try {
@@ -292,13 +292,23 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   const briefing = envelope.briefing as typeof envelope.briefing & {
     deliveryReasons?: DeliveryReasons;
   };
-  if (isNoOpBriefEnvelope(envelope) && !(briefing.deliveryReasons?.items.length ?? 0)) {
+  if (
+    !envelope.unread &&
+    isNoOpBriefEnvelope(envelope) &&
+    !(briefing.deliveryReasons?.items.length ?? 0)
+  ) {
     return { toastDelivered: false, commandPublished: false };
   }
   const totalChanges = getEnvelopeChangeTotal(envelope);
   const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
 
-  if (totalChanges === 0 && envelope.validation.count === 0 && !hasDeliveryReasons && isNoOpBriefEnvelope(envelope)) {
+  if (
+    !envelope.unread &&
+    totalChanges === 0 &&
+    envelope.validation.count === 0 &&
+    !hasDeliveryReasons &&
+    isNoOpBriefEnvelope(envelope)
+  ) {
     return { toastDelivered: false, commandPublished: false };
   }
 

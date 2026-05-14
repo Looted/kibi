@@ -342,6 +342,49 @@ describe("idle-brief-store", () => {
 
       expect(computeContentHash(env1)).toBe(computeContentHash(env2));
     });
+
+    it("same deliveryReasons across envelopes with different volatile fields produces same contentHash", () => {
+      const reasons = {
+        version: 1 as const,
+        toast: {
+          title: "Kibi Knowledge Update",
+          summary: "Added requirement REQ-099",
+          whyItMatters: "Entities were updated.",
+        },
+        items: [
+          {
+            kind: "entity_added" as const,
+            text: "Added requirement REQ-099",
+            entityIds: ["REQ-099"],
+          },
+        ],
+      };
+
+      const env1 = {
+        ...baseEnvelopeV2,
+        briefId: "brief-volatile-1",
+        createdAt: "2026-01-01T00:00:00Z",
+        sessionId: "sess-volatile-1",
+        unread: true,
+        briefing: {
+          ...baseEnvelopeV2.briefing,
+          deliveryReasons: reasons,
+        },
+      };
+      const env2 = {
+        ...baseEnvelopeV2,
+        briefId: "brief-volatile-2",
+        createdAt: "2026-12-31T23:59:59Z",
+        sessionId: "sess-volatile-2",
+        unread: false,
+        briefing: {
+          ...baseEnvelopeV2.briefing,
+          deliveryReasons: reasons,
+        },
+      };
+
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
   });
 });
 
