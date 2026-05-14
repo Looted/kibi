@@ -329,6 +329,8 @@ describe("buildTuiBriefViewModel", () => {
     expect(vm.whyItMatters).toBe("Entities were updated.");
     expect(vm.title).toBe("Added requirement REQ-050");
     expect(vm.whatChanged).toEqual(["Added requirement REQ-050"]);
+  });
+
 });
 
 describe("buildTuiBriefSummary", () => {
