@@ -18,6 +18,13 @@ const { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } = await im
 const { buildTuiBriefViewModel } = await import("../src/tui-brief-view-model.js");
 const { default: plugin } = await import("../dist/tui.js");
 
+function getCommands(registerMock: ReturnType<typeof mock>) {
+  const calls = registerMock.mock.calls;
+  const commandCall = calls[calls.length - 1]?.[0] as (() => Array<{ value: string; onSelect: () => void }>) | undefined;
+  expect(commandCall).toBeDefined();
+  return commandCall as () => Array<{ value: string; onSelect: () => void }>;
+}
+
 // Mock JSX factory
 type JsxChild = string | number | boolean | null | undefined | Record<string, unknown>;
 (globalThis as unknown as { h: (tag: unknown, props: unknown, ...children: JsxChild[]) => unknown }).h = (
@@ -98,19 +105,23 @@ describe("TUI Plugin", () => {
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
-  test("registers kibi.brief route and command", async () => {
+  test("registers kibi.brief route and command aliases", async () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
 
     expect(mockApi.route.register).toHaveBeenCalled();
     expect(mockApi.command.register).toHaveBeenCalled();
 
-    const commandCall = mockApi.command.register.mock.calls[0][0];
-    const commands = commandCall();
-    expect(commands[0].value).toBe("kibi.open_latest_brief");
-    
-    // Trigger command should navigate
-    commands[0].onSelect();
+    const commands = getCommands(mockApi.command.register)();
+    const latestBriefCmd = commands.find((c: { value: string }) => c.value === "kibi.open_latest_brief");
+    const aliasCmd = commands.find((c: { value: string }) => c.value === "kibi-brief");
+
+    expect(latestBriefCmd).toBeDefined();
+    expect(aliasCmd).toBeDefined();
+
+    latestBriefCmd?.onSelect();
+    aliasCmd?.onSelect();
     expect(mockApi.route.navigate).toHaveBeenCalledWith("kibi.brief");
+    expect(commands.some((c: { value: string }) => c.value === "/brief-kibi")).toBe(false);
   });
   
   test("route render works when brief exists", async () => {
@@ -183,7 +194,8 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
 
     const seen = readTuiSeen();
     expect(seen.main).toContain("hash-unread");
@@ -195,7 +207,8 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
 
     const seen = readTuiSeen();
     expect(seen.main).toBeUndefined();
@@ -209,19 +222,20 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
 
     // First render: marks hash-aaa as seen
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
     let seen = readTuiSeen();
     expect(seen.main).toContain("hash-aaa");
 
     // Second render with same hash: should not add duplicate
-    briefRoute!.render();
+    briefRoute?.render();
     seen = readTuiSeen();
     const countAfterSecond = seen.main.filter((h) => h === "hash-aaa").length;
     expect(countAfterSecond).toBe(1);
 
     // Replace brief with newer one (higher timestamp)
     writeBriefFile("200_brief.json", { unread: true, contentHash: "hash-bbb" });
-    briefRoute!.render();
+    briefRoute?.render();
     seen = readTuiSeen();
     expect(seen.main).toContain("hash-bbb");
     expect(seen.main).toContain("hash-aaa");
@@ -230,13 +244,22 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
   test("refresh command navigates to kibi.brief route", async () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
 
-    const commandCall = mockApi.command.register.mock.calls[0][0];
-    const commands = commandCall();
+    const commands = getCommands(mockApi.command.register)();
     const refreshCmd = commands.find((c: { value: string }) => c.value === "kibi.refresh_brief");
     expect(refreshCmd).toBeDefined();
 
-    refreshCmd.onSelect();
+    refreshCmd?.onSelect();
     expect(mockApi.route.navigate).toHaveBeenCalledWith("kibi.brief");
+  });
+
+  test("does not register /brief-kibi as a TUI alias", async () => {
+    await plugin.tui(mockApi as never, undefined, {} as never);
+
+    const commands = getCommands(mockApi.command.register)();
+
+    expect(commands.some((c: { value: string }) => c.value === "/brief-kibi")).toBe(false);
+    expect(commands.filter((c: { value: string }) => c.value === "kibi-brief")).toHaveLength(1);
+    expect(commands.filter((c: { value: string }) => c.value === "kibi.open_latest_brief")).toHaveLength(1);
   });
 
   test("marks seen once per unique contentHash even with multiple renders", async () => {
@@ -247,7 +270,8 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
 
     for (let i = 0; i < 5; i++) {
-      briefRoute!.render();
+      expect(briefRoute).toBeDefined();
+      briefRoute?.render();
     }
 
     const seen = readTuiSeen();
@@ -326,7 +350,8 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
 
     // Brief should now be marked as read (unread = false) because vscode is disabled
     expect(readBriefField("100_brief.json", "unread")).toBe(false);
@@ -339,7 +364,8 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
 
     // Brief should remain unread because vscode is enabled and will handle markBriefRead
     expect(readBriefField("100_brief.json", "unread")).toBe(true);
@@ -351,7 +377,8 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
     // Should not throw when no brief file exists
-    expect(() => briefRoute!.render()).not.toThrow();
+    expect(briefRoute).toBeDefined();
+    expect(() => briefRoute?.render()).not.toThrow();
   });
 
   test("already read brief: only TUI-seen marked, not markBriefRead", async () => {
@@ -361,7 +388,8 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-    briefRoute!.render();
+    expect(briefRoute).toBeDefined();
+    briefRoute?.render();
 
     // Already-read brief should stay unread=false (no double-mark)
     expect(readBriefField("100_brief.json", "unread")).toBe(false);
@@ -373,11 +401,12 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     await plugin.tui(mockApi as never, undefined, {} as never);
     const routes = mockApi.route.register.mock.calls[0][0] as Array<{ name: string; render: () => unknown }>;
     const briefRoute = routes.find((r) => r.name === "kibi.brief");
-
+    
     // Delete the brief file before render to simulate race condition
     fs.rmSync(path.join(briefsDir, "100_brief.json"));
 
     // Should not throw
-    expect(() => briefRoute!.render()).not.toThrow();
+    expect(briefRoute).toBeDefined();
+    expect(() => briefRoute?.render()).not.toThrow();
   });
 });
