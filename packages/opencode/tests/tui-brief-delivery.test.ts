@@ -689,3 +689,57 @@ describe("tui-brief-delivery", () => {
     );
   });
 });
+
+  // --- Unified reason flow integration ---
+
+  test("announceBriefTui with deliveryReasons produces non-generic toast", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_added",
+          text: "Added requirement REQ-042",
+          entityIds: ["REQ-042"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Added requirement REQ-042",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.briefing.citations = [];
+    envelope.briefing.promptBlock = "";
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await announceBriefTui(mockClient, envelope, sharedPolicy);
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).not.toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+    expect(calledWith.body?.message).toContain("Added requirement REQ-042");
+    expect(calledWith.body?.message).toContain("Entities were updated.");
+  });
+
+  test("legacy v1 envelope without deliveryReasons renders through announceBriefTui", async () => {
+    // Default v1 envelope has no deliveryReasons
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await expect(
+      announceBriefTui(mockClient, envelope, sharedPolicy),
+    ).resolves.toBeDefined();
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain("## What changed");
+    // Legacy fallback uses promptBlock for why-it-matters
+    expect(calledWith.body?.message).toContain("Test prompt block");
+  });

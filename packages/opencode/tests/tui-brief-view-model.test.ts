@@ -343,3 +343,65 @@ describe("buildTuiBriefSummary", () => {
     );
   });
 });
+
+  it("cross-surface parity: toast whyItMatters matches view model whyItMatters", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Updated requirement REQ-100",
+          entityIds: ["REQ-100"],
+        },
+        {
+          kind: "relationship_changed",
+          text: "Updated 3 relationships",
+          entityIds: [],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Updated requirement REQ-100, Updated 3 relationships",
+        whyItMatters: "Requirements and facts were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "prompt",
+      citations: [],
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+    const envelope = makeV1({ briefing });
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    // Toast whyItMatters matches view model whyItMatters (same primary text)
+    expect(vm.whyItMatters).toBe(deliveryReasons.toast.whyItMatters);
+    expect(vm.whyItMatters).toBe("Requirements and facts were updated.");
+
+    // What changed items match deliveryReasons item text
+    expect(vm.whatChanged).toEqual([
+      "Updated requirement REQ-100",
+      "Updated 3 relationships",
+    ]);
+
+    // Title uses toast summary when deliveryReasons present
+    expect(vm.title).toBe(deliveryReasons.toast.summary);
+  });
+
+  it("builds view model from legacy v1 envelope without deliveryReasons", () => {
+    const envelope = makeV1({
+      briefing: {
+        tldr: "Legacy tldr",
+        promptBlock: "Legacy prompt",
+        citations: [],
+      },
+    });
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    expect(vm.title).toBe("test summary v1");
+    expect(vm.whyItMatters).toBe("Legacy prompt");
+    expect(vm.whatChanged).toEqual(["test summary v1"]);
