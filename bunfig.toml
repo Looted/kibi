@@ -29,3 +29,8 @@ coveragePathIgnorePatterns = [
 # Lines/functions/statements are Bun-native; branches is intentionally omitted
 # because Bun does not reliably support branch-level thresholds.
 coverageThreshold = { lines = 1.0, functions = 1.0, statements = 1.0 }
+
+[jsx]
+runtime = "classic"
+factory = "h"
+fragment = "Fragment"
