@@ -740,8 +740,10 @@ describe("tui-brief-delivery", () => {
       body?: { message?: string };
     };
     expect(calledWith.body?.message).toContain("## What changed");
-    // Legacy fallback uses promptBlock for why-it-matters
-    expect(calledWith.body?.message).toContain("Test prompt block");
+    // Legacy fallback uses the default Why it matters copy, not promptBlock
+    expect(calledWith.body?.message).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
   });
 
   test("announceBriefTui: deliveryReasons with items bypasses zero-count no-op guard", async () => {

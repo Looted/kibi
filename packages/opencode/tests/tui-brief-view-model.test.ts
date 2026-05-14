@@ -126,8 +126,10 @@ describe("buildTuiBriefViewModel", () => {
     // What changed — falls back to summary
     expect(vm.whatChanged).toEqual(["test summary v1"]);
 
-    // Why it matters — from promptBlock
-    expect(vm.whyItMatters).toBe("v1 prompt");
+    // Why it matters — defaults when promptBlock is not allowed as UI copy
+    expect(vm.whyItMatters).toBe(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
 
     // Counts
     expect(vm.counts).toEqual({
@@ -290,7 +292,9 @@ describe("buildTuiBriefViewModel", () => {
     const vm = buildTuiBriefViewModel(envelope);
 
     expect(vm.title).toBe("test summary v1");
-    expect(vm.whyItMatters).toBe("Legacy prompt");
+    expect(vm.whyItMatters).toBe(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
     expect(vm.whatChanged).toEqual(["test summary v1"]);
   });
 
@@ -340,7 +344,9 @@ describe("buildTuiBriefSummary", () => {
 
     expect(summary).toContain("## What changed");
     expect(summary).toContain("## Why it matters");
-    expect(summary).toContain("v1 prompt");
+    expect(summary).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
     expect(summary).toContain("## Project knowledge impact");
     expect(summary).toContain("**CIT-001**");
     expect(summary).toContain("Must do X");
@@ -357,7 +363,9 @@ describe("buildTuiBriefSummary", () => {
     expect(summary).toContain("Added REQ-001: Test requirement");
     expect(summary).toContain("Modified REQ-002");
     expect(summary).toContain("## Why it matters");
-    expect(summary).toContain("v2 prompt");
+    expect(summary).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
     expect(summary).toContain("## Interpretation note");
     expect(summary).toContain("1 issue(s)");
   });

@@ -40,11 +40,26 @@ function mk(kind: ReasonItem["kind"], text: string, entityIds: string[]): Reason
 
 function entityItems(kind: "entity_added" | "entity_modified" | "entity_removed", ids: string[]): ReasonItem[] {
   if (!ids.length) return [];
-  const sorted = [...ids].sort();
-  const noun = prefixName(sorted[0] ?? "");
   const verb = kind === "entity_added" ? "Added" : kind === "entity_modified" ? "Updated" : "Removed";
-  const text = sorted.length === 1 ? `${verb} ${noun} ${sorted[0]}` : `${verb} ${sorted.length} ${noun}s (${sorted.join(", ")})`;
-  return [mk(kind, text, sorted)];
+  const grouped = new Map<string, string[]>();
+  for (const id of [...ids].sort()) {
+    const prefix = id.split("-")[0]?.toUpperCase() ?? id;
+    const group = grouped.get(prefix);
+    if (group) {
+      group.push(id);
+    } else {
+      grouped.set(prefix, [id]);
+    }
+  }
+
+  return [...grouped.entries()].map(([, groupedIds]) => {
+    const noun = prefixName(groupedIds[0] ?? "");
+    const text =
+      groupedIds.length === 1
+        ? `${verb} ${noun} ${groupedIds[0]}`
+        : `${verb} ${groupedIds.length} ${noun}s (${groupedIds.join(", ")})`;
+    return mk(kind, text, groupedIds);
+  });
 }
 
 function toastSummary(items: ReasonItem[]): string {

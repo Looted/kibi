@@ -148,7 +148,7 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
     whatChanged: deriveWhatChanged(envelope),
     whyItMatters: deliveryReasons?.items?.length
       ? deliveryReasons.toast.whyItMatters
-      : firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()),
+      : defaultWhyItMatters(),
     knowledgeImpact: {
       citations: envelope.briefing.citations,
       constraints: envelope.briefing.constraints ?? [],
@@ -211,9 +211,7 @@ export function buildTuiBriefSummary(envelope: IdleBriefEnvelope): string { // i
 
   // Why it matters
   lines.push("## Why it matters");
-  lines.push(
-    firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()),
-  );
+  lines.push(defaultWhyItMatters());
   lines.push("");
 
   // Project knowledge impact
