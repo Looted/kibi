@@ -73,11 +73,6 @@ mock.module("../src/hoverProvider", () => ({
     }
   },
 }));
-mock.module("../src/briefDocumentProvider", () => ({
-  BriefDocumentProvider: Object.assign(function MockBriefDocumentProvider() {}, {
-    scheme: "kibi-brief",
-  }),
-}));
 
 const vscode = getVscodeMockModule();
 const navigationModule = await import("../src/activation/navigation");
