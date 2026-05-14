@@ -4,6 +4,7 @@ import {
   buildTuiBriefViewModel,
 } from "../src/tui-brief-view-model";
 import type {
+  DeliveryReasons,
   IdleBriefEnvelope,
   IdleBriefEnvelopeV1,
   IdleBriefEnvelopeV2,
@@ -302,6 +303,42 @@ describe("buildTuiBriefSummary", () => {
     const summary = buildTuiBriefSummary(envelope);
 
     expect(summary).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
+  it("prefers deliveryReasons for full brief sections", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_added",
+          text: "Added requirement REQ-009",
+          entityIds: ["REQ-009"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Added requirement REQ-009",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "prompt",
+      citations: [],
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+    const envelope = makeV1({ briefing });
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    const summary = buildTuiBriefSummary(envelope);
+
+    expect(summary).toContain("## What changed");
+    expect(summary).toContain("- Added requirement REQ-009");
+    expect(summary).toContain("## Why it matters");
+    expect(summary).toContain("Entities were updated.");
+    expect(summary).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });
