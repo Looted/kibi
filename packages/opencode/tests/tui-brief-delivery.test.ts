@@ -143,6 +143,25 @@ describe("tui-brief-delivery", () => {
     expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
+  test("announceBriefTui skips toast for zero-count no-impact envelopes", async () => {
+    envelope.counts = {
+      entitiesAdded: 0,
+      entitiesModified: 0,
+      entitiesRemoved: 0,
+      relationshipsChanged: 0,
+    };
+    envelope.validation.count = 0;
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(result).toEqual({ toastDelivered: false, commandPublished: false });
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
   // --- Toast rendering (primary path) ---
 
   test("shows toast with summary by default", async () => {

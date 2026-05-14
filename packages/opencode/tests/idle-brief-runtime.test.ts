@@ -257,6 +257,41 @@ describe("idle-brief-runtime", () => {
       expect(result.envelope?.type).toBe("warning");
     });
 
+    it("does not suppress validation-only briefs with zero change counts", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([]);
+
+      const checkResult: CheckResult = {
+        violations: [
+          {
+            rule: "demo-rule",
+            entityId: "REQ-001",
+            description: "Validation issue",
+          },
+        ],
+        count: 1,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result.briefPath).not.toBeNull();
+      expect(result.envelope?.validation.count).toBe(1);
+      expect((result.envelope?.counts as { entitiesAdded: number }).entitiesAdded).toBe(0);
+    });
+
     it("returns success brief with zero violations", async () => {
       const workspaceCtx = createWorkspaceCtx(tempDir);
       const auditDelta = createAuditDelta([

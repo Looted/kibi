@@ -292,6 +292,9 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   const briefing = envelope.briefing as typeof envelope.briefing & {
     deliveryReasons?: DeliveryReasons;
   };
+  if (isNoOpBriefEnvelope(envelope) && !(briefing.deliveryReasons?.items.length ?? 0)) {
+    return { toastDelivered: false, commandPublished: false };
+  }
   const totalChanges = getEnvelopeChangeTotal(envelope);
   const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
 
