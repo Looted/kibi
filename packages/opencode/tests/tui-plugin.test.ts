@@ -31,23 +31,7 @@ mock.module("../src/idle-brief-reader.js", () => ({
   markBriefRead: mock(_realIdleBriefReader.markBriefRead),
 }));
 
-mock.module("../src/tui-brief-view-model.js", () => ({
-  // biome-ignore format: keep mock stub readable
-  buildTuiBriefViewModel: mock(() => ({
-    title: "Test Brief",
-    whatChanged: ["Change 1"],
-    whyItMatters: "Matters",
-    knowledgeImpact: { citations: [], constraints: [], regressionRisks: [] },
-    interpretationNote: { validationCount: 0, missingEvidence: [] },
-  })),
-  // Stub for buildTuiBriefSummary — included so the cached mock module
-  // satisfies tui-brief-view-model.test.ts's static named import on Bun
-  // 1.3.10 where module mocks can bleed across test files.
-  buildTuiBriefSummary: mock(() => ""),
-}));
-
 const { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } = await import("../src/idle-brief-reader.js");
-const { buildTuiBriefViewModel } = await import("../src/tui-brief-view-model.js");
 const { default: plugin } = await import("../src/tui.js");
 
 function getCommands(registerMock: ReturnType<typeof mock>) {
