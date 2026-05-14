@@ -1,6 +1,7 @@
 // implements REQ-opencode-kibi-briefing-v4
 
 import { buildBriefingContext } from "./brief-intent.js";
+import { buildDeliveryReasons } from "./brief-delivery-reasons.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
 import {
@@ -11,6 +12,7 @@ import {
 import {
   type IdleBriefEnvelope,
   type IdleBriefEnvelopeV2,
+  type DeliveryReasons,
   computeContentHash,
   createBriefId,
 } from "./idle-brief-store.js";
@@ -445,6 +447,7 @@ function buildEnvelopeParts(
   counts: IdleBriefEnvelopeV2["counts"],
   checkResult: CheckResult,
   briefingResult: IdleBriefingResult,
+  deliveryReasons?: DeliveryReasons,
 ): Omit<IdleBriefEnvelopeV2, "contentHash"> {
   const reconciled = reconcileAuditEntries(auditDelta.entries);
 
@@ -479,6 +482,7 @@ function buildEnvelopeParts(
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
       changeNarrative: buildChangeNarrative(auditDelta),
+      ...(deliveryReasons ? { deliveryReasons } : {}),
       ...(briefingResult.constraints && briefingResult.constraints.length > 0
         ? { constraints: briefingResult.constraints }
         : {}),
@@ -567,6 +571,20 @@ export async function generateIdleBrief(
   const isSuccess = violationsCount === 0;
   const type: "success" | "warning" = isSuccess ? "success" : "warning";
   const summary = computeSummary(counts, violationsCount);
+  const deliveryReasons = buildDeliveryReasons({
+    entitiesAdded: reconciled.added
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    entitiesModified: reconciled.modified
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    entitiesRemoved: reconciled.removed
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    relationshipsChanged: counts.relationshipsChanged,
+    validationCount: checkResult.count,
+    conflictReasons: checkResult.violations.map((violation) => violation.description).filter((reason) => !!reason),
+  });
 
   const briefId = createBriefId();
   const timestamp = Date.now();
@@ -583,6 +601,7 @@ export async function generateIdleBrief(
     counts,
     checkResult,
     briefingResult,
+    deliveryReasons,
   );
 
   const contentHash = computeContentHash(envelopeWithoutHash);
