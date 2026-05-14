@@ -90,7 +90,7 @@ describe("tui-brief-delivery", () => {
       },
       summary: "Test summary",
       counts: {
-        requirementsAdded: 0,
+        requirementsAdded: 1,
         relationshipsAdded: 0,
         entitiesDeleted: 0,
       },
@@ -124,17 +124,34 @@ describe("tui-brief-delivery", () => {
     expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
+  test("skips automatic toast for zero-count no-impact envelopes", async () => {
+    envelope.counts = {
+      entitiesAdded: 0,
+      entitiesModified: 0,
+      entitiesRemoved: 0,
+      relationshipsChanged: 0,
+    };
+    envelope.validation.count = 0;
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result.delivered).toBe(false);
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
   // --- Toast rendering (primary path) ---
 
   test("shows toast with summary by default", async () => {
-    envelope.briefing.citations = [];
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          message:
-            "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
+          message: expect.stringContaining("## What changed\nTest summary"),
         }),
       }),
     );
@@ -176,7 +193,7 @@ describe("tui-brief-delivery", () => {
 
   test("never calls submitPrompt regardless of autoSubmit config", async () => {
     localConfig.autoSubmit = true;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -185,7 +202,7 @@ describe("tui-brief-delivery", () => {
 
   test("shows toast even when autoSubmit is false", async () => {
     localConfig.autoSubmit = false;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -198,6 +215,7 @@ describe("tui-brief-delivery", () => {
     envelope.summary = "";
     envelope.briefing.tldr = "Test summary";
     envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -243,6 +261,7 @@ describe("tui-brief-delivery", () => {
     envelope.briefing.tldr = "";
     envelope.briefing.citations = [];
     envelope.validation.count = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -261,6 +280,7 @@ describe("tui-brief-delivery", () => {
     envelope.briefing.promptBlock = "";
     envelope.briefing.citations = [];
     envelope.validation.count = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -277,6 +297,7 @@ describe("tui-brief-delivery", () => {
     envelope.summary = "";
     envelope.briefing.tldr = "TLDR fallback";
     envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -304,7 +325,7 @@ describe("tui-brief-delivery", () => {
       },
       relationships: { changed: 0 },
     };
-    v2Envelope.briefing.citations = [];
+    v2Envelope.counts.relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -333,7 +354,7 @@ describe("tui-brief-delivery", () => {
       },
       relationships: { changed: 0 },
     };
-    v2Envelope.briefing.citations = [];
+    v2Envelope.counts.relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -348,7 +369,7 @@ describe("tui-brief-delivery", () => {
 
   test("shows optional toast when toast is enabled and capability exists", async () => {
     sharedPolicy.briefs.tui.toast = true;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -356,8 +377,7 @@ describe("tui-brief-delivery", () => {
       body: {
         variant: "info",
         title: "Kibi Knowledge Update",
-        message:
-          "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
+        message: expect.stringContaining("## What changed\nTest summary"),
         duration: 8000,
       },
     });
@@ -501,7 +521,7 @@ describe("tui-brief-delivery", () => {
   });
 
   test("announces by toast and publishes the TUI command", async () => {
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
 
@@ -513,8 +533,72 @@ describe("tui-brief-delivery", () => {
     expect(result).toEqual({ toastDelivered: true, commandPublished: true });
   });
 
+  test("skips toast and command for zero-change no-impact envelopes", async () => {
+    const noOpEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 0,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+      },
+    };
+
+    const result = await announceBriefTui(mockClient, noOpEnvelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).not.toHaveBeenCalled();
+    expect(result).toEqual({ toastDelivered: false, commandPublished: false });
+  });
+
+  test("still announces validation-only warning envelopes", async () => {
+    const warningEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      type: "warning" as const,
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 1,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+      },
+    };
+
+    const result = await announceBriefTui(mockClient, warningEnvelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(result.toastDelivered).toBe(true);
+  });
+
   test("toast success only reports announcement state and does not imply viewed state", async () => {
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
     mockClient.tui = {
       showToast: mock(() => {}),
     };
@@ -526,6 +610,7 @@ describe("tui-brief-delivery", () => {
 
   test("still publishes open_latest_brief when toast is disabled", async () => {
     sharedPolicy.briefs.tui.toast = false;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
 
@@ -540,7 +625,7 @@ describe("tui-brief-delivery", () => {
   // --- Missing executeCommand fallback ---
 
   test("delivers toast but does not publish command when executeCommand is missing", async () => {
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
     mockClient.tui = {
       showToast: mock(() => {}),
       // executeCommand is missing
@@ -553,7 +638,7 @@ describe("tui-brief-delivery", () => {
   });
 
   test("delivers toast and does not throw when executeCommand is undefined", async () => {
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
     mockClient.tui = {
       showToast: mock(() => {}),
       executeCommand: undefined,
