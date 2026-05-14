@@ -600,7 +600,6 @@ export async function generateIdleBrief(
       .map((item) => item.id),
     relationshipsChanged: counts.relationshipsChanged,
     validationCount: checkResult.count,
-    conflictReasons: checkResult.violations.map((violation) => violation.description).filter((reason) => !!reason),
   });
 
   if (

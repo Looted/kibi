@@ -96,7 +96,6 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   lines.push(
     firstNonEmpty(
       deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons).whyItMatters : undefined,
-      envelope.briefing.promptBlock,
       defaultWhyItMatters(),
     ),
   );
@@ -232,7 +231,7 @@ export async function deliverBriefTui(
 
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
-    if (!envelope.unread && isNoOpBriefEnvelope(envelope)) {
+    if (isNoOpBriefEnvelope(envelope)) {
       return { delivered: false };
     }
     try {
@@ -293,7 +292,6 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
     deliveryReasons?: DeliveryReasons;
   };
   if (
-    !envelope.unread &&
     isNoOpBriefEnvelope(envelope) &&
     !(briefing.deliveryReasons?.items.length ?? 0)
   ) {
@@ -303,7 +301,6 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
 
   if (
-    !envelope.unread &&
     totalChanges === 0 &&
     envelope.validation.count === 0 &&
     !hasDeliveryReasons &&

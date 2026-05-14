@@ -19,7 +19,7 @@ const tui: TuiPlugin = async (api, _options, _meta) => {
           currentContentHash = null;
           return (
             <box flexDirection="column" gap={1} padding={1}>
-              <text fg={api.theme.current.error}>No Brief Available</text>
+              <text fg={api.theme.current.error}>No meaningful KB update</text>
               <text>There is no latest persisted brief for this branch.</text>
             </box>
           );

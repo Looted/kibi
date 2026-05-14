@@ -425,7 +425,6 @@ describe("idle-brief-runtime", () => {
       const envelope = result.envelope as FutureIdleBriefEnvelopeV2 | null;
 
       expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
-        "conflict_detected",
         "validation_issue",
         "relationship_changed",
       ]);
