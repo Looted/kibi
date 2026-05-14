@@ -16,7 +16,7 @@ mock.module("../src/tui-brief-view-model.js", () => ({
 
 const { selectLatestPersistedBrief, markBriefTuiSeen, markBriefRead } = await import("../src/idle-brief-reader.js");
 const { buildTuiBriefViewModel } = await import("../src/tui-brief-view-model.js");
-const { default: plugin } = await import("../dist/tui.js");
+const { default: plugin } = await import("../src/tui.js");
 
 // Mock JSX factory
 type JsxChild = string | number | boolean | null | undefined | Record<string, unknown>;
