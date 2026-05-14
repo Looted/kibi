@@ -22,7 +22,15 @@ export interface SyncRunMetadata {
   syncErrorMessage?: string;
 }
 
-export type SyncRunner = (worktree: string) => Promise<{ exitCode: number; syncCommand?: string; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }>;
+export type SyncRunnerResult = {
+  exitCode: number;
+  syncCommand?: string;
+  syncStdout?: string;
+  syncStderr?: string;
+  syncErrorMessage?: string;
+};
+
+export type SyncRunner = (worktree: string) => Promise<SyncRunnerResult>;
 
 export type CheckRunner = (
   worktree: string,
@@ -335,19 +343,21 @@ function truncateSyncOutput(value: string | undefined): string | undefined {
   return value;
 }
 
-async function runKibiSync(worktree: string): Promise<{ exitCode: number; syncCommand?: string; syncStdout?: string; syncStderr?: string; syncErrorMessage?: string }> {
+async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
   return new Promise((resolve) => {
     try {
       exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
         if (error) {
           const truncatedOut = truncateSyncOutput(stdout || undefined);
           const truncatedErr = truncateSyncOutput(stderr || undefined);
+          const signal = error.signal ? ` (signal: ${error.signal})` : "";
+          const errorMessage = error.message ? `${error.message}${signal}` : signal || undefined;
           resolve({
             exitCode: error.code ?? 1,
             syncCommand: "kibi sync",
             ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
             ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
-            ...(error.message ? { syncErrorMessage: error.message } : {}),
+            ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
           });
         } else {
           resolve({ exitCode: 0, syncCommand: "kibi sync" });

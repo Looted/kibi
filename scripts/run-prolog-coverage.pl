@@ -149,54 +149,6 @@ run_tests_result(TestsPassed) :-
     ;   TestsPassed = false
     ).
 
-parse_clause_percent(CoverageReport, ClausePercent) :-
-    (   re_matchsub("(?im)([0-9]+(?:\\.[0-9]+)?)%", CoverageReport, Match, [])
-    ->  number_string(ClausePercent, Match.1)
-    ;   ClausePercent = 0
-    ).
-
-parse_uncovered_predicates(CoverageReport, Predicates) :-
-    split_string(CoverageReport, "\n", "\r", Lines),
-    findall(Predicate,
-        (
-            member(Line, Lines),
-            sub_string(Line, _, _, _, "/"),
-            re_matchsub("([A-Za-z0-9_]+:[A-Za-z0-9_]+/[0-9]+)", Line, Match, []),
-            Predicate = Match.1
-        ),
-        Predicates0),
-    sort(Predicates0, Predicates).
-
-collect_uncovered_clauses(Config, Predicates, Clauses) :-
-    option(source_root(SourceRoot), Config),
-    normalize_path(SourceRoot, NormalizedRoot),
-    findall(_{predicate: Predicate, line: Line},
-        (
-            member(Predicate, Predicates),
-            predicate_source_line(Predicate, NormalizedRoot, Line)
-        ),
-        Clauses0),
-    sort(Clauses0, Clauses).
-
-predicate_source_line(PredicateAtom, SourceRoot, Line) :-
-    parse_predicate_indicator(PredicateAtom, Module, Name, Arity),
-    functor(Head, Name, Arity),
-    current_predicate(Module:Name/Arity),
-    clause(Module:Head, _, ClauseRef),
-    clause_property(ClauseRef, file(File)),
-    normalize_path(File, NormalizedFile),
-    sub_string(NormalizedFile, 0, _, _, SourceRoot),
-    clause_property(ClauseRef, line_count(Line)),
-    !.
-
-parse_predicate_indicator(PredicateAtom, Module, Name, Arity) :-
-    atom_string(Predicate, PredicateAtom),
-    atomic_list_concat([ModuleAtom, NameAndArity], :, Predicate),
-    atomic_list_concat([NameAtom, ArityAtom], /, NameAndArity),
-    atom_string(ModuleAtom, Module),
-    atom_string(NameAtom, Name),
-    atom_number(ArityAtom, Arity).
-
 compute_clause_coverage(Config, ClausePercent, UncoveredClauses) :-
     option(source_root(SourceRoot), Config),
     normalize_path(SourceRoot, NormalizedRoot),
@@ -210,7 +162,7 @@ compute_clause_coverage(Config, ClausePercent, UncoveredClauses) :-
     include(clause_entered, ClauseRows, CoveredClauses),
     length(CoveredClauses, CoveredCount),
     (   TotalClauses =:= 0
-    ->  ClausePercent = 0
+    ->  ClausePercent = 0.0
     ;   ClausePercent is CoveredCount * 100 / TotalClauses
     ),
     findall(
