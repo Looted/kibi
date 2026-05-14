@@ -11,6 +11,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import type {
+  DeliveryReasons,
   IdleBriefEnvelope,
   IdleBriefEnvelopeV2,
 } from "../src/idle-brief-store.js";
@@ -139,6 +140,40 @@ describe("tui-brief-delivery", () => {
     );
   });
 
+  test("prefers deliveryReasons for toast summary and why-it-matters", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Updated requirement REQ-001",
+          entityIds: ["REQ-001"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Updated requirement REQ-001",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.briefing.promptBlock = "Should not win";
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).toContain("## What changed\nUpdated requirement REQ-001");
+    expect(calledWith.body?.message).toContain("## Why it matters\nEntities were updated.");
+    expect(calledWith.body?.message).not.toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
   test("never calls submitPrompt regardless of autoSubmit config", async () => {
     localConfig.autoSubmit = true;
     envelope.briefing.citations = [];
@@ -217,6 +252,24 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toContain("## What changed");
     expect(calledWith.body?.message).toContain(
       "Knowledge updates were recorded in this brief.",
+    );
+  });
+
+  test("uses generic fallback when no structured data exists", async () => {
+    envelope.summary = "";
+    envelope.briefing.tldr = "";
+    envelope.briefing.promptBlock = "";
+    envelope.briefing.citations = [];
+    envelope.validation.count = 0;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
     );
   });
 

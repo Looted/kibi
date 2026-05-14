@@ -9,10 +9,12 @@
  */
 
 import type {
+  DeliveryReasons,
   IdleBriefCitation,
   IdleBriefEnvelope,
   IdleBriefStatement,
 } from "./idle-brief-store.js";
+import { renderFullBriefReasons } from "./brief-delivery-reasons.js";
 
 // ─── View Model Types ──────────────────────────────────────────────────────
 
@@ -81,6 +83,13 @@ function defaultWhyItMatters(): string {
 }
 
 function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const deliveryReasons = briefing.deliveryReasons;
+  if (deliveryReasons?.items?.length) {
+    return deliveryReasons.items.map((item) => item.text);
+  }
   if (envelope.schemaVersion === "2.0") {
     const narrative = envelope.briefing.changeNarrative
       .map((line) => line.trim())
@@ -116,11 +125,16 @@ function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
 export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing-v6
   envelope: IdleBriefEnvelope,
 ): TuiBriefViewModel {
-  const title =
-    envelope.schemaVersion === "2.0" &&
-    envelope.briefing.changeNarrative.length > 0
-      ? envelope.briefing.changeNarrative[0]!.trim()
-      : firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const deliveryReasons = briefing.deliveryReasons;
+  let title = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+  if (deliveryReasons?.items?.length) {
+    title = deliveryReasons.toast.summary;
+  } else if (envelope.schemaVersion === "2.0" && envelope.briefing.changeNarrative.length > 0) {
+    title = envelope.briefing.changeNarrative[0]?.trim() ?? title;
+  }
 
   const base = {
     briefId: envelope.briefId,
@@ -132,10 +146,9 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
     contentHash: envelope.contentHash,
     title,
     whatChanged: deriveWhatChanged(envelope),
-    whyItMatters: firstNonEmpty(
-      envelope.briefing.promptBlock,
-      defaultWhyItMatters(),
-    ),
+    whyItMatters: deliveryReasons?.items?.length
+      ? deliveryReasons.toast.whyItMatters
+      : firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()),
     knowledgeImpact: {
       citations: envelope.briefing.citations,
       constraints: envelope.briefing.constraints ?? [],
@@ -182,6 +195,13 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
  * @returns A multi-line summary string
  */
 export function buildTuiBriefSummary(envelope: IdleBriefEnvelope): string { // implements REQ-opencode-kibi-briefing-v6
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const deliveryReasons = briefing.deliveryReasons;
+  if (deliveryReasons?.items?.length) {
+    return renderFullBriefReasons(deliveryReasons);
+  }
   const lines: string[] = [];
 
   // What changed

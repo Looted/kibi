@@ -10,7 +10,8 @@
 
 import type { ToastPayload as SendToastPayload, ToastCapableClient as SendToastCapableClient } from "./toast.js";
 import { sendToast } from "./toast.js";
-import type { IdleBriefEnvelope } from "./idle-brief-store.js";
+import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
+import { renderToastSummary } from "./brief-delivery-reasons.js";
 import * as logger from "./logger.js";
 
 export type ToastPayload = {
@@ -63,8 +64,14 @@ function defaultWhyItMatters(): string {
 
 function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   const lines: string[] = [];
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const deliveryReasons = briefing.deliveryReasons;
   const whatChanged =
-    envelope.schemaVersion === "2.0"
+    deliveryReasons?.items?.length
+      ? [renderToastSummary(deliveryReasons).summary]
+      : envelope.schemaVersion === "2.0"
       ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
       : [];
 
@@ -86,7 +93,13 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   lines.push("");
 
   lines.push("## Why it matters");
-  lines.push(firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()));
+  lines.push(
+    firstNonEmpty(
+      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons).whyItMatters : undefined,
+      envelope.briefing.promptBlock,
+      defaultWhyItMatters(),
+    ),
+  );
   lines.push("");
 
   const hasKnowledgeImpact =
