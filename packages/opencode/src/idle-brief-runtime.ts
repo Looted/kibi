@@ -519,13 +519,6 @@ export async function generateIdleBrief(
   if (!client) {
     return { success: true, briefPath: null, envelope: null };
   }
-  if (!auditDelta.hasChanges) {
-    return {
-      success: true,
-      briefPath: null,
-      envelope: null,
-    };
-  }
   const reconciled = reconcileAuditEntries(auditDelta.entries);
   const derivedSourceFiles = [
     ...reconciled.added
@@ -578,6 +571,20 @@ export async function generateIdleBrief(
 
   const counts = computeCounts(auditDelta);
   const violationsCount = checkResult.violations.length;
+  if (
+    counts.entitiesAdded === 0 &&
+    counts.entitiesModified === 0 &&
+    counts.entitiesRemoved === 0 &&
+    counts.relationshipsChanged === 0 &&
+    checkResult.count === 0 &&
+    briefingResult.briefingState === "no_briefing" &&
+    briefingResult.citations.length === 0 &&
+    !briefingResult.constraints?.length &&
+    !briefingResult.regressionRisks?.length &&
+    !briefingResult.missingEvidence?.length
+  ) {
+    return { success: true, briefPath: null, envelope: null };
+  }
   const isSuccess = violationsCount === 0;
   const type: "success" | "warning" = isSuccess ? "success" : "warning";
   const summary = computeSummary(counts, violationsCount);
