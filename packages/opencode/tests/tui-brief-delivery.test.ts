@@ -688,7 +688,7 @@ describe("tui-brief-delivery", () => {
       }),
     );
   });
-});
+
 
   // --- Unified reason flow integration ---
 
@@ -743,3 +743,53 @@ describe("tui-brief-delivery", () => {
     // Legacy fallback uses promptBlock for why-it-matters
     expect(calledWith.body?.message).toContain("Test prompt block");
   });
+
+  test("announceBriefTui: deliveryReasons with items bypasses zero-count no-op guard", async () => {
+    const zeroCountEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      unread: false,
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 0,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+        deliveryReasons: {
+          version: 1,
+          items: [
+            {
+              kind: "validation_issue",
+              text: "1 validation issue detected",
+              entityIds: [],
+            },
+          ],
+          toast: {
+            title: "Kibi Knowledge Update",
+            summary: "1 validation issue detected",
+            whyItMatters:
+              "Validation issues need attention before the update is treated as settled.",
+          },
+        },
+      } as IdleBriefEnvelopeV2["briefing"],
+    };
+
+    const result = await announceBriefTui(mockClient, zeroCountEnvelope, sharedPolicy);
+
+    expect(result.toastDelivered).toBe(true);
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+  });
+
+});
