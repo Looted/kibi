@@ -230,6 +230,105 @@ describe("buildTuiBriefViewModel", () => {
 
     expect(vm1).toEqual(vm2);
   });
+
+  it("cross-surface parity: toast whyItMatters matches view model whyItMatters", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Updated requirement REQ-100",
+          entityIds: ["REQ-100"],
+        },
+        {
+          kind: "relationship_changed",
+          text: "Updated 3 relationships",
+          entityIds: [],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Updated requirement REQ-100, Updated 3 relationships",
+        whyItMatters: "Requirements and facts were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "prompt",
+      citations: [],
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+    const envelope = makeV1({ briefing });
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    // Toast whyItMatters matches view model whyItMatters (same primary text)
+    expect(vm.whyItMatters).toBe(deliveryReasons.toast.whyItMatters);
+    expect(vm.whyItMatters).toBe("Requirements and facts were updated.");
+
+    // What changed items match deliveryReasons item text
+    expect(vm.whatChanged).toEqual([
+      "Updated requirement REQ-100",
+      "Updated 3 relationships",
+    ]);
+
+    // Title uses toast summary when deliveryReasons present
+    expect(vm.title).toBe(deliveryReasons.toast.summary);
+  });
+
+  it("builds view model from legacy v1 envelope without deliveryReasons", () => {
+    const envelope = makeV1({
+      briefing: {
+        tldr: "Legacy tldr",
+        promptBlock: "Legacy prompt",
+        citations: [],
+      },
+    });
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    expect(vm.title).toBe("test summary v1");
+    expect(vm.whyItMatters).toBe("Legacy prompt");
+    expect(vm.whatChanged).toEqual(["test summary v1"]);
+  });
+
+  it("regression: exact generic Why it matters string absent from view model when deliveryReasons exists", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_added",
+          text: "Added requirement REQ-050",
+          entityIds: ["REQ-050"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Added requirement REQ-050",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "should not appear",
+      citations: [],
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+
+    const envelope = makeV1({ briefing });
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    expect(vm.whyItMatters).not.toBe(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+    expect(vm.whyItMatters).toBe("Entities were updated.");
+    expect(vm.title).toBe("Added requirement REQ-050");
+    expect(vm.whatChanged).toEqual(["Added requirement REQ-050"]);
 });
 
 describe("buildTuiBriefSummary", () => {
@@ -343,65 +442,3 @@ describe("buildTuiBriefSummary", () => {
     );
   });
 });
-
-  it("cross-surface parity: toast whyItMatters matches view model whyItMatters", () => {
-    const deliveryReasons: DeliveryReasons = {
-      version: 1,
-      items: [
-        {
-          kind: "entity_modified",
-          text: "Updated requirement REQ-100",
-          entityIds: ["REQ-100"],
-        },
-        {
-          kind: "relationship_changed",
-          text: "Updated 3 relationships",
-          entityIds: [],
-        },
-      ],
-      toast: {
-        title: "Kibi Knowledge Update",
-        summary: "Updated requirement REQ-100, Updated 3 relationships",
-        whyItMatters: "Requirements and facts were updated.",
-      },
-    };
-
-    const briefing = {
-      tldr: "tldr",
-      promptBlock: "prompt",
-      citations: [],
-    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
-    const envelope = makeV1({ briefing });
-    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
-      deliveryReasons;
-
-    const vm = buildTuiBriefViewModel(envelope);
-
-    // Toast whyItMatters matches view model whyItMatters (same primary text)
-    expect(vm.whyItMatters).toBe(deliveryReasons.toast.whyItMatters);
-    expect(vm.whyItMatters).toBe("Requirements and facts were updated.");
-
-    // What changed items match deliveryReasons item text
-    expect(vm.whatChanged).toEqual([
-      "Updated requirement REQ-100",
-      "Updated 3 relationships",
-    ]);
-
-    // Title uses toast summary when deliveryReasons present
-    expect(vm.title).toBe(deliveryReasons.toast.summary);
-  });
-
-  it("builds view model from legacy v1 envelope without deliveryReasons", () => {
-    const envelope = makeV1({
-      briefing: {
-        tldr: "Legacy tldr",
-        promptBlock: "Legacy prompt",
-        citations: [],
-      },
-    });
-
-    const vm = buildTuiBriefViewModel(envelope);
-
-    expect(vm.title).toBe("test summary v1");
-    expect(vm.whyItMatters).toBe("Legacy prompt");
-    expect(vm.whatChanged).toEqual(["test summary v1"]);
