@@ -186,6 +186,77 @@ describe("idle-brief-runtime", () => {
   });
 
   describe("generateIdleBrief", () => {
+    it("suppresses no-op briefs when counts and briefing impact are zero", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("workspace-sync", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+        }),
+      ]);
+
+      const checkResult: CheckResult = {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result).toEqual({ success: true, briefPath: null, envelope: null });
+      expect(fs.readdirSync(path.join(tempDir, ".kb", "briefs"))).toEqual([]);
+    });
+
+    it("still creates a brief when validation finds issues", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createRelationshipEntry("2024-01-01T00:00:00Z", "workspace-sync"),
+      ]);
+
+      const checkResult: CheckResult = {
+        violations: [
+          {
+            rule: "demo-rule",
+            entityId: "REQ-001",
+            description: "Validation issue",
+          },
+        ],
+        count: 1,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result.briefPath).not.toBeNull();
+      expect(result.envelope?.validation.count).toBe(1);
+      expect(result.envelope?.type).toBe("warning");
+    });
+
     it("returns success brief with zero violations", async () => {
       const workspaceCtx = createWorkspaceCtx(tempDir);
       const auditDelta = createAuditDelta([
@@ -436,8 +507,7 @@ describe("idle-brief-runtime", () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.envelope).not.toBeNull();
-      expect(result.envelope?.validation.count).toBe(0);
+      expect(result.envelope).toBeNull();
     });
 
     it("creates brief file on disk", async () => {

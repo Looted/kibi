@@ -384,6 +384,16 @@ function computeSummary(
   return `${changeText} | ${validationText}`;
 }
 
+function hasSignificantBriefingImpact(briefingResult: IdleBriefingResult): boolean {
+  return !(
+    briefingResult.briefingState === "no_briefing" &&
+    briefingResult.citations.length === 0 &&
+    (!briefingResult.constraints || briefingResult.constraints.length === 0) &&
+    (!briefingResult.regressionRisks || briefingResult.regressionRisks.length === 0) &&
+    (!briefingResult.missingEvidence || briefingResult.missingEvidence.length === 0)
+  );
+}
+
 function humanizeEntityType(type: string): string {
   switch (type) {
     case "req":
@@ -585,6 +595,17 @@ export async function generateIdleBrief(
     validationCount: checkResult.count,
     conflictReasons: checkResult.violations.map((violation) => violation.description).filter((reason) => !!reason),
   });
+
+  if (
+    counts.entitiesAdded === 0 &&
+    counts.entitiesModified === 0 &&
+    counts.entitiesRemoved === 0 &&
+    counts.relationshipsChanged === 0 &&
+    violationsCount === 0 &&
+    !hasSignificantBriefingImpact(briefingResult)
+  ) {
+    return { success: true, briefPath: null, envelope: null };
+  }
 
   const briefId = createBriefId();
   const timestamp = Date.now();

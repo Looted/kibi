@@ -162,6 +162,45 @@ function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayloa
   };
 }
 
+function hasSignificantBriefingImpact(envelope: IdleBriefEnvelope): boolean {
+  const briefing = envelope.briefing;
+  return !(
+    briefing.citations.length === 0 &&
+    (!briefing.constraints || briefing.constraints.length === 0) &&
+    (!briefing.regressionRisks || briefing.regressionRisks.length === 0) &&
+    (!briefing.missingEvidence || briefing.missingEvidence.length === 0)
+  );
+}
+
+function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
+  const counts = envelope.counts;
+  const zeroCounts =
+    "relationshipsChanged" in counts
+      ? counts.entitiesAdded === 0 &&
+        counts.entitiesModified === 0 &&
+        counts.entitiesRemoved === 0 &&
+        counts.relationshipsChanged === 0
+      : counts.requirementsAdded === 0 &&
+        counts.relationshipsAdded === 0 &&
+        counts.entitiesDeleted === 0;
+
+  return (
+    zeroCounts &&
+    envelope.validation.count === 0 &&
+    !hasSignificantBriefingImpact(envelope)
+  );
+}
+
+function getEnvelopeChangeTotal(envelope: IdleBriefEnvelope): number {
+  const counts = envelope.counts;
+  return "relationshipsChanged" in counts
+    ? counts.entitiesAdded +
+        counts.entitiesModified +
+        counts.entitiesRemoved +
+        counts.relationshipsChanged
+    : counts.requirementsAdded + counts.relationshipsAdded + counts.entitiesDeleted;
+}
+
 /**
  * Delivers a Kibi briefing to the TUI via toast notification.
  *
@@ -193,6 +232,9 @@ export async function deliverBriefTui(
 
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
+    if (isNoOpBriefEnvelope(envelope)) {
+      return { delivered: false };
+    }
     try {
       const message = buildTuiBriefMessage(envelope);
 
@@ -244,6 +286,16 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
 ): Promise<AnnouncementResult> {
   if (!sharedPolicy.briefs.channels.tui) {
     logger.info("TUI brief delivery disabled by shared policy");
+    return { toastDelivered: false, commandPublished: false };
+  }
+
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const totalChanges = getEnvelopeChangeTotal(envelope);
+  const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
+
+  if (totalChanges === 0 && envelope.validation.count === 0 && !hasDeliveryReasons && isNoOpBriefEnvelope(envelope)) {
     return { toastDelivered: false, commandPublished: false };
   }
 
