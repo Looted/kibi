@@ -278,6 +278,25 @@ describe("deriveBriefIntent", () => {
     ]);
   });
 
+  test("returns eligible with sourceFiles stripped of operational paths for mixed sessions", async () => {
+    const result = await derive({
+      sourceFiles: [
+        "/workspace/.sisyphus/boulder.json",
+        "/workspace/src/foo.ts",
+        "/workspace/.sisyphus/notes/state.json",
+        "/workspace/src/bar.ts",
+      ],
+      seedIds: ["REQ-001"],
+    });
+
+    assert.equal(result.eligible, true);
+    assert.equal(result.reason, "Eligible for auto-briefing");
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/src/bar.ts",
+      "/workspace/src/foo.ts",
+    ]);
+  });
+
   test("produces identical fingerprint for the same params twice", async () => {
     const files = ["/repo/packages/opencode/src/prompt.ts"];
     const first = await derive({

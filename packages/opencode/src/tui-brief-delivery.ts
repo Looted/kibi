@@ -59,7 +59,7 @@ function firstNonEmpty(...values: Array<string | undefined>): string | undefined
 }
 
 
-function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
+function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string | undefined {
   const lines: string[] = [];
   const briefing = envelope.briefing as typeof envelope.briefing & {
     deliveryReasons?: DeliveryReasons;
@@ -150,14 +150,22 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
     lines.pop();
   }
 
-  return lines.join("\n");
+  const result = lines.join("\n");
+  if (result === "## What changed") {
+    return undefined;
+  }
+  return result;
 }
 
-function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayload {
+function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayload | undefined {
+  const message = buildTuiBriefMessage(envelope);
+  if (message === undefined) {
+    return undefined;
+  }
   return {
     variant: envelope.type === "warning" ? "warning" : "info",
     title: "Kibi Knowledge Update",
-    message: buildTuiBriefMessage(envelope),
+    message,
     duration: 8000,
   };
 }
@@ -256,6 +264,9 @@ export async function deliverBriefTui(
     }
     try {
       const message = buildTuiBriefMessage(envelope);
+      if (message === undefined) {
+        return { delivered: false };
+      }
 
       await tui.showToast({
         body: {
@@ -335,16 +346,19 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   let commandPublished = false;
 
   if (sharedPolicy.briefs.tui.toast) {
-    const toastResult = await sendToast(client, buildTuiBriefToastPayload(envelope));
-    if (toastResult.status === "delivered") {
-      toastDelivered = true;
-    } else if (toastResult.status === "failed") {
-      logger.error("Failed to deliver brief toast", {
-        event: "idle_brief_toast_failed",
-        error: toastResult.error ?? toastResult.reason,
-      });
-    } else {
-      logger.info("TUI showToast API unavailable, brief not delivered");
+    const payload = buildTuiBriefToastPayload(envelope);
+    if (payload !== undefined) {
+      const toastResult = await sendToast(client, payload);
+      if (toastResult.status === "delivered") {
+        toastDelivered = true;
+      } else if (toastResult.status === "failed") {
+        logger.error("Failed to deliver brief toast", {
+          event: "idle_brief_toast_failed",
+          error: toastResult.error ?? toastResult.reason,
+        });
+      } else {
+        logger.info("TUI showToast API unavailable, brief not delivered");
+      }
     }
   }
 
