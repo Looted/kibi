@@ -123,5 +123,11 @@ export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["t
 }
 
 export function renderFullBriefReasons(reasons: DeliveryReasons): string { // implements REQ-opencode-kibi-briefing-v6
-  return ["## What changed", ...reasons.items.map((r) => `- ${r.text}`), "", "## Why it matters", reasons.toast.whyItMatters].join("\n");
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i));
+  const lines = ["## What changed", ...domainItems.map((r) => `- ${r.text}`)];
+  const whyItMatters = toastWhy(domainItems);
+  if (whyItMatters) {
+    lines.push("", "## Why it matters", whyItMatters);
+  }
+  return lines.join("\n");
 }

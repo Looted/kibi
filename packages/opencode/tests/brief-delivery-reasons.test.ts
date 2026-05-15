@@ -108,6 +108,59 @@ describe("brief-delivery-reasons", () => {
     expect(renderFullBriefReasons(reasons)).toContain("## Why it matters");
   });
 
+  it("filters operational items out of full brief rendering", () => {
+    const reasons: Parameters<typeof renderFullBriefReasons>[0] = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Modified fact boulder.json: boulder.json",
+          entityIds: ["FACT-boulder.json"],
+        },
+        {
+          kind: "entity_added",
+          text: "Added requirement REQ-001",
+          entityIds: ["REQ-001"],
+        },
+        {
+          kind: "relationship_changed",
+          text: "Updated 1 relationships",
+          entityIds: [],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Added requirement REQ-001, Updated 1 relationships",
+        whyItMatters: "Requirements and facts were updated.",
+      },
+    };
+
+    const rendered = renderFullBriefReasons(reasons);
+    expect(rendered).toContain("Added requirement REQ-001");
+    expect(rendered).toContain("Updated 1 relationships");
+    expect(rendered).not.toContain("boulder.json");
+  });
+
+  it("renders an empty what changed section for operational-only full briefs", () => {
+    const reasons: Parameters<typeof renderFullBriefReasons>[0] = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Modified fact boulder.json: boulder.json",
+          entityIds: ["FACT-boulder.json"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Modified fact boulder.json: boulder.json",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    expect(renderFullBriefReasons(reasons)).toBe("## What changed");
+  });
+
   it("never uses the generic fallback whyItMatters string", () => {
     const reasons = buildDeliveryReasons({
       entitiesAdded: ["REQ-001"],
@@ -119,7 +172,10 @@ describe("brief-delivery-reasons", () => {
 
     expect(reasons).toBeDefined();
     if (!reasons) return;
-    expect(renderToastSummary(reasons).whyItMatters).not.toBe(
+    const toast = renderToastSummary(reasons);
+    expect(toast).toBeDefined();
+    if (!toast) return;
+    expect(toast.whyItMatters).not.toBe(
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });
@@ -155,11 +211,13 @@ describe("brief-delivery-reasons", () => {
 
     // REQ-001 is domain; FACT-boulder.json and SYM-plan.yaml are operational
     expect(reasons).toBeDefined();
-    const toast = renderToastSummary(reasons!);
+    if (!reasons) return;
+    const toast = renderToastSummary(reasons);
     expect(toast).toBeDefined();
-    expect(toast!.summary).toContain("REQ-001");
-    expect(toast!.summary).not.toContain("boulder.json");
-    expect(toast!.summary).not.toContain("plan.yaml");
-    expect(toast!.summary).toContain("Updated 1 relationships");
+    if (!toast) return;
+    expect(toast.summary).toContain("REQ-001");
+    expect(toast.summary).not.toContain("boulder.json");
+    expect(toast.summary).not.toContain("plan.yaml");
+    expect(toast.summary).toContain("Updated 1 relationships");
   });
 });

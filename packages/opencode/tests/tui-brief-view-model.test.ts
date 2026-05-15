@@ -331,6 +331,36 @@ describe("buildTuiBriefViewModel", () => {
     expect(vm.whatChanged).toEqual(["Added requirement REQ-050"]);
   });
 
+  it("falls back to envelope summary when delivery reasons are operational-only", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Modified fact boulder.json: boulder.json",
+          entityIds: ["FACT-boulder.json"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Modified fact boulder.json: boulder.json",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "prompt",
+      citations: [],
+      deliveryReasons,
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+
+    const envelope = makeV1({ summary: "summary fallback", briefing });
+    const vm = buildTuiBriefViewModel(envelope);
+
+    expect(vm.title).toBe("summary fallback");
+  });
+
 });
 
 describe("buildTuiBriefSummary", () => {
