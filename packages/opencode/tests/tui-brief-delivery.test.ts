@@ -176,6 +176,20 @@ describe("tui-brief-delivery", () => {
     );
   });
 
+  test("does not toast generic operational-only envelopes", async () => {
+    envelope.summary = "Operational task tracking was updated";
+    envelope.briefing.tldr = "Operational task tracking was updated";
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
   test("prefers deliveryReasons for toast summary and why-it-matters", async () => {
     const deliveryReasons: DeliveryReasons = {
       version: 1,
@@ -207,6 +221,46 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toContain("## Why it matters\nEntities were updated.");
     expect(calledWith.body?.message).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
+  test("toasts a specific domain change with its subject and rationale", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Authentication module updated",
+          entityIds: ["REQ-AUTH-001"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Authentication module updated",
+        whyItMatters: "Login behavior changed and needs review.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.summary = "";
+    envelope.briefing.tldr = "";
+    envelope.briefing.promptBlock = "";
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(1);
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: expect.stringContaining("Authentication module updated"),
+        }),
+      }),
     );
   });
 

@@ -123,4 +123,24 @@ describe("brief-delivery-reasons", () => {
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });
+
+  it("rejects generic operational-only toast summaries", () => {
+    const genericReasons = {
+      version: 1 as const,
+      items: [
+        {
+          kind: "entity_modified" as const,
+          text: "Modified fact boulder.json: boulder.json",
+          entityIds: ["FACT-boulder.json"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Modified fact boulder.json: boulder.json",
+        whyItMatters: "This update changes how the project knowledge should be interpreted and applied.",
+      },
+    };
+
+    expect(renderToastSummary(genericReasons).summary).not.toContain("boulder.json");
+  });
 });
