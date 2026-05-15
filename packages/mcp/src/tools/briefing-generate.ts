@@ -10,6 +10,7 @@ import { runJsonModuleQuery, toPrologList } from "./core-module.js";
 import { loadEntities } from "./entity-query.js";
 import { handleKbStatus, type StatusPayload } from "./status.js";
 import { resolveWorkspaceRoot } from "../workspace.js";
+import { isOperationalArtifactPath } from "kibi-cli/operational-artifacts";
 
 export interface BriefingGenerateArgs {
   taskText?: string;
@@ -213,7 +214,7 @@ function normalizeSourceFiles(
       .replace(/^\.\//, "")
       .replace(/^\//, "");
 
-    if (!normalizedPath || seen.has(normalizedPath)) continue;
+    if (!normalizedPath || seen.has(normalizedPath) || isOperationalArtifactPath(normalizedPath)) continue;
     seen.add(normalizedPath);
     normalized.push(normalizedPath);
   }
@@ -239,13 +240,16 @@ function normalizeEntity(entity: Record<string, unknown>): Record<string, unknow
   const type = stripOuterSingleQuotes(String(entity.type ?? "").trim());
   if (!isAllowedType(type)) return null;
 
+  const source = entity.source ? String(entity.source).trim().split(path.sep).join("/") : undefined;
+  if (source && isOperationalArtifactPath(source)) return null;
+
   return {
     ...entity,
     id: String(entity.id ?? "").trim(),
     type,
     title: String(entity.title ?? "").trim(),
     status: String(entity.status ?? "").trim(),
-    source: entity.source ? String(entity.source).trim().split(path.sep).join("/") : undefined,
+    source,
     textRef: entity.textRef
       ? String(entity.textRef).trim()
       : entity.text_ref
@@ -500,13 +504,19 @@ function buildPromptBlock(entities: BriefingEntity[]): string {
 }
 
 function buildCitations(entities: BriefingEntity[]): BriefingCitation[] {
-  return entities.map((entity) => ({
-    id: entity.id,
-    type: entity.type,
-    title: entity.title,
-    ...(entity.source ? { source: entity.source } : {}),
-    ...(entity.textRef ? { textRef: entity.textRef } : {}),
-  }));
+  return entities
+    .filter((entity) => {
+      if (entity.source && isOperationalArtifactPath(entity.source)) return false;
+      if (entity.textRef && isOperationalArtifactPath(entity.textRef)) return false;
+      return true;
+    })
+    .map((entity) => ({
+      id: entity.id,
+      type: entity.type,
+      title: entity.title,
+      ...(entity.source ? { source: entity.source } : {}),
+      ...(entity.textRef ? { textRef: entity.textRef } : {}),
+    }));
 }
 
 function roundScore(score: number): number {
