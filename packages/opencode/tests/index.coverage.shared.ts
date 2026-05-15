@@ -243,14 +243,16 @@ describe("index coverage", () => {
 
   test("logs and resets session summaries immediately when logIntervalMs is zero", async () => {
     const logs: Array<Record<string, unknown>> = [];
-
+  
     setupRootActiveWorkspace(tmpDir);
     getSessionTracker().recordWarning(
       "missing-traceability",
       "src/example.ts",
       "Traceability missing",
     );
-
+  
+    await waitForCondition(() => getSessionTracker().isSessionExpired(0));
+  
     await createHooks(plugin, tmpDir, logs, {
       enabled: true,
       guidance: {
@@ -260,7 +262,7 @@ describe("index coverage", () => {
         },
       },
     });
-
+  
     const summary = getSessionTracker().generateSummary();
     assert.equal(summary.totalWarnings, 0);
     assert.ok(
