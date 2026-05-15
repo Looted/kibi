@@ -97,7 +97,7 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   lines.push("## Why it matters");
   lines.push(
     firstNonEmpty(
-      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons)?.whyItMatters : undefined,
+      deliveryReasons?.items?.length ? renderedToast?.whyItMatters : undefined,
       defaultWhyItMatters(),
     ),
   );
