@@ -392,7 +392,7 @@ ${buildBootstrapRequiredBody(capability)}`;
           selectedBlock = `📝 **Code changes detected**
 
 Before implementing or explaining code:
-1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
+1. **Discover**: Run kb_search for REQ, ADR, TEST, FACT. Decompose broad queries (e.g., "Apple Sign-In").
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
 4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.
@@ -619,7 +619,7 @@ This ensures behavior is documented and traceable.`;
       return `📝 **Code changes detected**
 
 Before implementing or explaining code:
-1. **Discover first** - Run kb_search to find related requirements, ADRs, tests, facts, and symbols.
+1. **Discover**: Run kb_search for REQ, ADR, TEST, FACT. Decompose broad queries (e.g., "Apple Sign-In").
 2. **Follow up exactly** - Run kb_query by sourceFile, id, type, or tags once you know what you need.
 3. **Prefer Kibi over comments** - Store durable knowledge in KB entities instead of inline comments.
 4. **Add traceability** - Production code: \`implements\` (symbol→req) for ownership. Test code: \`executable_for\`. \`covered_by\` is coverage evidence only for production symbols.`;
@@ -646,7 +646,7 @@ Run kb_check after KB mutations.
 Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`kibi-opencode\` artifacts. If you change package versions or local package wiring, run \`bun run build\` before relying on OpenCode in this workspace.
 
 **Kibi-first workflow:**
-1. **Discover**: Run kb_search to find relevant requirements, ADRs, tests, facts, and symbols.
+1. **Discover**: Run kb_search for REQ, ADR, TEST, FACT. Decompose broad queries (e.g., "Apple Sign-In").
 2. **Confirm**: Run kb_query with sourceFile, id, type, or tags once you know the exact follow-up target.
 3. **Inspect freshness**: Run kb_status when branch or stale-state confidence matters.
 4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.

@@ -228,7 +228,7 @@ Use this prompt at task start when you need a briefing grounded in current KB ev
 
 1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
 2. **Start-task Briefing**: Use `kb_briefing_generate` or `/brief-kibi` when you need a citation-backed briefing before risky work.
-3. **Gather Context**: Use `kb_search` for discovery and `kb_query` for exact follow-up.
+3. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
 4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 5. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
 6. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
