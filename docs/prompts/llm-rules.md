@@ -105,6 +105,8 @@ When you need information about the project:
 1. Use `kb_query` with `type` when you know the entity kind.
 2. Use `kb_query` with `id` for exact lookups.
 3. Use `kb_search` for exploratory discovery across metadata and markdown body text.
+   - **Decompose broad tasks**: Split multi-intent queries into 1-3 focused probes (e.g., split "Apple Sign-In RevenueCat recovery" into "Apple Sign-In", "RevenueCat", and "recovery").
+   - **Inspect top hits**: Review search relevance before concluding KB lacks knowledge.
 4. Use `kb_query` with `tags` or `sourceFile` for precise follow-up once you know what to inspect.
 4. Paginate with `limit` and `offset` for large result sets.
 
@@ -159,7 +161,7 @@ Avoid these common mistakes:
 
 ## Before Starting Work
 
-1. Discover related requirements, ADRs, tests, and symbols with `kb_search`.
+1. Discover related requirements, ADRs, tests, and symbols with `kb_search`. Decompose broad tasks into focused probes (e.g., "Apple Sign-In", "RevenueCat").
 2. Confirm exact entities with `kb_query`.
 3. Identify which entities will need creation or updates.
 4. Confirm exact IDs and relationship endpoints before writing.
