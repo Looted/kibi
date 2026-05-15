@@ -1,3 +1,8 @@
+// Inlined from kibi-cli/operational-artifacts to avoid heavy module resolution
+function isOperationalArtifactPath(pathLike: string): boolean {
+  const normalized = pathLike.replaceAll("\\", "/");
+  return /(^|\/)\.sisyphus\//.test(normalized);
+}
 import type { DeliveryReasons, ReasonItem } from "./idle-brief-store.js";
 
 export type BuildInput = {
@@ -37,6 +42,7 @@ function prefixName(id: string): string {
 function mk(kind: ReasonItem["kind"], text: string, entityIds: string[]): ReasonItem {
   return { kind, text, entityIds };
 }
+
 
 function entityItems(kind: "entity_added" | "entity_modified" | "entity_removed", ids: string[]): ReasonItem[] {
   if (!ids.length) return [];
@@ -94,6 +100,27 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
 }
 
 export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] { // implements REQ-opencode-kibi-briefing-v6
+  const allItemsOperational =
+    reasons.items.length > 0 &&
+    reasons.items.every((item) => {
+      if (item.entityIds.length === 0) return false;
+      return item.entityIds.every((id) => {
+        const dashIdx = id.indexOf("-");
+        if (dashIdx < 0) return false;
+        const name = id.slice(dashIdx + 1);
+        // Entity names with file extensions are likely from operational artifact files
+        return /\.[a-zA-Z0-9]+$/.test(name);
+      });
+    });
+
+  if (allItemsOperational) {
+    return {
+      title: reasons.toast.title,
+      summary: "Knowledge updates were recorded in this brief.",
+      whyItMatters: reasons.toast.whyItMatters,
+    };
+  }
+
   return reasons.toast;
 }
 
