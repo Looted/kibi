@@ -241,7 +241,7 @@ describe("index coverage", () => {
     assert.deepEqual(hooks, {});
   });
 
-  test("logs and resets expired session summaries during setup", async () => {
+  test("logs and resets session summaries immediately when logIntervalMs is zero", async () => {
     const logs: Array<Record<string, unknown>> = [];
 
     setupRootActiveWorkspace(tmpDir);
@@ -250,8 +250,6 @@ describe("index coverage", () => {
       "src/example.ts",
       "Traceability missing",
     );
-
-    await new Promise((resolve) => setTimeout(resolve, 1));
 
     await createHooks(plugin, tmpDir, logs, {
       enabled: true,
