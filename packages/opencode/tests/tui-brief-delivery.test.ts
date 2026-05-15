@@ -342,12 +342,12 @@ describe("tui-brief-delivery", () => {
       body?: { message?: string };
     };
     expect(calledWith.body?.message).toContain("## What changed");
-    expect(calledWith.body?.message).toContain(
+    expect(calledWith.body?.message).not.toContain(
       "Knowledge updates were recorded in this brief.",
     );
   });
 
-  test("uses generic fallback when no structured data exists", async () => {
+  test("omits generic fallback when no structured data exists", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.promptBlock = "";
@@ -360,8 +360,9 @@ describe("tui-brief-delivery", () => {
     const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
       body?: { message?: string };
     };
-
-    expect(calledWith.body?.message).toContain(
+    expect(calledWith.body?.message).toContain("## What changed");
+    expect(calledWith.body?.message).not.toContain("## Why it matters");
+    expect(calledWith.body?.message).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });
@@ -781,7 +782,7 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toContain("Entities were updated.");
   });
 
-  test("legacy v1 envelope without deliveryReasons renders through announceBriefTui", async () => {
+  test("legacy v1 envelope without deliveryReasons renders without generic filler", async () => {
     // Default v1 envelope has no deliveryReasons
     (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
@@ -794,8 +795,9 @@ describe("tui-brief-delivery", () => {
       body?: { message?: string };
     };
     expect(calledWith.body?.message).toContain("## What changed");
-    // Legacy fallback uses the default Why it matters copy, not promptBlock
-    expect(calledWith.body?.message).toContain(
+    expect(calledWith.body?.message).toContain("Test summary");
+    // Legacy fallback no longer uses generic filler text
+    expect(calledWith.body?.message).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });

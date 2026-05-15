@@ -143,4 +143,23 @@ describe("brief-delivery-reasons", () => {
 
     expect(renderToastSummary(genericReasons)).toBeUndefined();
   });
+
+  it("filters operational items out of mixed-change toasts", () => {
+    const reasons = buildDeliveryReasons({
+      entitiesModified: ["FACT-boulder.json"],
+      entitiesAdded: ["REQ-001"],
+      entitiesRemoved: ["SYM-plan.yaml"],
+      relationshipsChanged: 1,
+      validationCount: 0,
+    });
+
+    // REQ-001 is domain; FACT-boulder.json and SYM-plan.yaml are operational
+    expect(reasons).toBeDefined();
+    const toast = renderToastSummary(reasons!);
+    expect(toast).toBeDefined();
+    expect(toast!.summary).toContain("REQ-001");
+    expect(toast!.summary).not.toContain("boulder.json");
+    expect(toast!.summary).not.toContain("plan.yaml");
+    expect(toast!.summary).toContain("Updated 1 relationships");
+  });
 });
