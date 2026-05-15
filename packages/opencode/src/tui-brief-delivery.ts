@@ -10,8 +10,8 @@
 
 import type { ToastPayload as SendToastPayload, ToastCapableClient as SendToastCapableClient } from "./toast.js";
 import { sendToast } from "./toast.js";
-import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
 import { renderToastSummary } from "./brief-delivery-reasons.js";
+import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
 import * as logger from "./logger.js";
 
 export type ToastPayload = {
@@ -183,10 +183,25 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
         counts.relationshipsAdded === 0 &&
         counts.entitiesDeleted === 0;
 
-  return (
-    zeroCounts &&
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
+
+  if (hasDeliveryReasons) return false;
+
+  // Generic operational envelope: same summary/tldr, no deliveryReasons, no impact
+  const isGenericOperational =
     envelope.validation.count === 0 &&
-    !hasSignificantBriefingImpact(envelope)
+    !hasSignificantBriefingImpact(envelope) &&
+    envelope.summary.trim() === envelope.briefing.tldr.trim() &&
+    envelope.summary.trim().length > 0;
+
+  return (
+    (zeroCounts &&
+      envelope.validation.count === 0 &&
+      !hasSignificantBriefingImpact(envelope)) ||
+    isGenericOperational
   );
 }
 

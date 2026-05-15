@@ -1,5 +1,10 @@
 // implements REQ-opencode-kibi-briefing-v2, REQ-opencode-smart-enforcement-v1
 
+// Inlined from kibi-cli/operational-artifacts to avoid heavy module resolution
+function isOperationalArtifactPath(pathLike: string): boolean {
+  const normalized = pathLike.replaceAll("\\", "/");
+  return /(^|\/)\.sisyphus\//.test(normalized);
+}
 import * as path from "node:path";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
@@ -74,12 +79,25 @@ export function deriveBriefIntent(
 ): BriefIntentResult {
   const sortedSourceFiles = sortAndDedup(params.sourceFiles);
   const fingerprint = `brief:${params.workspaceRoot}\0${params.branch}\0${params.riskClass}\0${sortedSourceFiles.join("\0")}`;
+  const nonOperationalSourceFiles = sortedSourceFiles.filter(
+    (f) => !isOperationalArtifactPath(f),
+  );
   const seedIds = deriveSeedIds(params);
 
   if (sortedSourceFiles.length === 0) {
     return {
       eligible: false,
       reason: "Ineligible: no source files in session",
+      fingerprint,
+      sourceFiles: sortedSourceFiles,
+      seedIds: [],
+    };
+  }
+
+  if (nonOperationalSourceFiles.length === 0) {
+    return {
+      eligible: false,
+      reason: "All source changes are operational task-tracking artifacts",
       fingerprint,
       sourceFiles: sortedSourceFiles,
       seedIds: [],
