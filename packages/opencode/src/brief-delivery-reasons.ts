@@ -99,7 +99,7 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
   return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items), whyItMatters: toastWhy(items) } };
 }
 
-export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] { // implements REQ-opencode-kibi-briefing-v6
+export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] | undefined { // implements REQ-opencode-kibi-briefing-v6
   const allItemsOperational =
     reasons.items.length > 0 &&
     reasons.items.every((item) => {
@@ -114,11 +114,7 @@ export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["t
     });
 
   if (allItemsOperational) {
-    return {
-      title: reasons.toast.title,
-      summary: "Knowledge updates were recorded in this brief.",
-      whyItMatters: reasons.toast.whyItMatters,
-    };
+    return undefined; // suppress: specific-or-silent policy
   }
 
   return reasons.toast;
