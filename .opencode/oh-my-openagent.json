@@ -1,0 +1,5 @@
+{
+  "background_task": {
+    "staleTimeoutMs": 600000
+  }
+}

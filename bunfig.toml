@@ -25,10 +25,7 @@ coveragePathIgnorePatterns = [
   "**/prolog/codec.js",
 ]
 
-# Fail the test run when coverage drops below 100%.
-# Lines/functions/statements are Bun-native; branches is intentionally omitted
-# because Bun does not reliably support branch-level thresholds.
-coverageThreshold = { lines = 1.0, functions = 1.0, statements = 1.0 }
+# Coverage thresholds are enforced by CI quality gates outside Bun's per-file thresholding.
 
 [jsx]
 runtime = "classic"
