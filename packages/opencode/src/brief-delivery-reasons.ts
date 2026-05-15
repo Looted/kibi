@@ -68,14 +68,14 @@ function entityItems(kind: "entity_added" | "entity_modified" | "entity_removed"
   });
 }
 
-function toastSummary(items: ReasonItem[]): string {
+function toastSummary(items: ReasonItem[]): string | undefined {
   const first = items[0]?.text?.trim() ?? "";
   const second = items[1]?.text?.trim() ?? "";
   if (first && second) return `${first}, ${second}`;
-  return first || second || "Knowledge updates were recorded in this brief.";
+  return first || second || undefined;
 }
 
-function toastWhy(items: ReasonItem[]): string {
+function toastWhy(items: ReasonItem[]): string | undefined {
   if (items.some((i) => i.kind === "conflict_detected")) return "There is a knowledge conflict to resolve before using the brief.";
   if (items.some((i) => i.kind === "validation_issue")) return "Validation issues need attention before the update is treated as settled.";
   const hasEntities = items.some((i) => i.kind === "entity_added" || i.kind === "entity_modified" || i.kind === "entity_removed");
@@ -83,7 +83,7 @@ function toastWhy(items: ReasonItem[]): string {
   if (hasEntities && hasRelationships) return "Requirements and facts were updated.";
   if (hasEntities) return "Entities were updated.";
   if (hasRelationships) return "Relationships were updated.";
-  return "Knowledge updates were recorded in this brief.";
+  return undefined;
 }
 
 export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undefined { // implements REQ-opencode-kibi-briefing-v6
@@ -96,7 +96,7 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
   if (input.relationshipsChanged > 0) items.push(mk("relationship_changed", `Updated ${input.relationshipsChanged} relationships`, []));
   if (!items.length) return undefined;
   items.sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
-  return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items), whyItMatters: toastWhy(items) } };
+  return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items) ?? "", whyItMatters: toastWhy(items) ?? "" } };
 }
 
 function isOperationalItem(item: ReasonItem): boolean {
@@ -117,8 +117,8 @@ export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["t
   }
   return {
     title: "Kibi Knowledge Update",
-    summary: toastSummary(domainItems),
-    whyItMatters: toastWhy(domainItems),
+    summary: toastSummary(domainItems) ?? "",
+    whyItMatters: toastWhy(domainItems) ?? "",
   };
 }
 

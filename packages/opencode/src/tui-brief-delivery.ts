@@ -71,7 +71,7 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string | undefined {
   const whatChanged = renderedToast
     ? [renderedToast.summary]
     : envelope.schemaVersion === "2.0"
-    ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
+    ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean).filter((line) => !line.includes(".sisyphus/"))
     : [];
 
   lines.push("## What changed");
