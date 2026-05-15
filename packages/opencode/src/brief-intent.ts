@@ -138,7 +138,7 @@ export function deriveBriefIntent(
     eligible: true,
     reason: "Eligible for auto-briefing",
     fingerprint,
-    sourceFiles: sortedSourceFiles,
+    sourceFiles: nonOperationalSourceFiles,
     seedIds,
   };
 }

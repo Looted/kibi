@@ -329,7 +329,7 @@ describe("tui-brief-delivery", () => {
     );
   });
 
-  test("produces non-empty toast even with minimal envelope", async () => {
+  test("suppresses toast when no concrete content exists", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.citations = [];
@@ -338,16 +338,10 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
-      body?: { message?: string };
-    };
-    expect(calledWith.body?.message).toContain("## What changed");
-    expect(calledWith.body?.message).not.toContain(
-      "Knowledge updates were recorded in this brief.",
-    );
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(0);
   });
 
-  test("omits generic fallback when no structured data exists", async () => {
+  test("suppresses toast when all content fields are empty", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.promptBlock = "";
@@ -357,14 +351,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
-      body?: { message?: string };
-    };
-    expect(calledWith.body?.message).toContain("## What changed");
-    expect(calledWith.body?.message).not.toContain("## Why it matters");
-    expect(calledWith.body?.message).not.toContain(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(0);
   });
 
   test("uses tldr as fallback when summary is empty", async () => {
