@@ -14,7 +14,7 @@ import type {
   IdleBriefEnvelope,
   IdleBriefStatement,
 } from "./idle-brief-store.js";
-import { renderFullBriefReasons } from "./brief-delivery-reasons.js";
+import { renderFullBriefReasons, renderToastSummary } from "./brief-delivery-reasons.js";
 
 // ─── View Model Types ──────────────────────────────────────────────────────
 
@@ -78,13 +78,25 @@ function firstNonEmpty(...values: Array<string | undefined>): string | undefined
   return undefined;
 }
 
-function isOperationalDeliveryItem(item: { entityIds: string[] }): boolean {
+function isOperationalByEntityIds(item: { entityIds: string[] }): boolean {
   if (item.entityIds.length === 0) return false;
   return item.entityIds.every((id) => {
     const dashIdx = id.indexOf("-");
     if (dashIdx < 0) return false;
     return /\.[a-zA-Z0-9]+$/.test(id.slice(dashIdx + 1));
   });
+}
+
+function isOperationalDeliveryItem(item: { kind: string; entityIds: string[] }, allItems: { kind: string; entityIds: string[] }[]): boolean {
+  if (item.kind === "relationship_changed") {
+    // relationship_changed items have no entityIds; treat as operational when
+    // all entity-level items in the set are operational (they're relationship side-effects)
+    const entityItems = allItems.filter(
+      (i) => i.kind === "entity_added" || i.kind === "entity_modified" || i.kind === "entity_removed",
+    );
+    return entityItems.length > 0 && entityItems.every(isOperationalByEntityIds);
+  }
+  return isOperationalByEntityIds(item);
 }
 
 function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
@@ -94,7 +106,7 @@ function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
   const deliveryReasons = briefing.deliveryReasons;
   if (deliveryReasons?.items?.length) {
     const domainItems = deliveryReasons.items.filter(
-      (item) => !isOperationalDeliveryItem(item),
+      (item) => !isOperationalDeliveryItem(item, deliveryReasons.items),
     );
     if (domainItems.length > 0) {
       return domainItems.map((item) => item.text);
@@ -143,9 +155,9 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
   const deliveryReasons = briefing.deliveryReasons;
   let title: string | undefined = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
   if (deliveryReasons?.items?.length) {
-    const domainItems = deliveryReasons.items.filter((item) => !isOperationalDeliveryItem(item));
-    if (domainItems.length > 0) {
-      title = deliveryReasons.toast.summary;
+    const filteredToast = renderToastSummary(deliveryReasons);
+    if (filteredToast) {
+      title = filteredToast.summary;
     }
   } else if (envelope.schemaVersion === "2.0" && envelope.briefing.changeNarrative.length > 0) {
     title = envelope.briefing.changeNarrative[0]?.trim() ?? title;
@@ -162,7 +174,7 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
     title: title ?? "Kibi Brief",
     whatChanged: deriveWhatChanged(envelope),
     whyItMatters: deliveryReasons?.items?.length
-      ? deliveryReasons.toast.whyItMatters || undefined
+      ? renderToastSummary(deliveryReasons)?.whyItMatters || undefined
       : undefined,
     knowledgeImpact: {
       citations: envelope.briefing.citations,
