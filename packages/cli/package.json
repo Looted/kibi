@@ -78,6 +78,10 @@
     "./brief-config": {
       "types": "./dist/public/brief-config.d.ts",
       "default": "./dist/public/brief-config.js"
+    },
+    "./operational-artifacts": {
+      "types": "./dist/public/operational-artifacts.d.ts",
+      "default": "./dist/public/operational-artifacts.js"
     }
   },
   "types": "./dist/cli.d.ts",
