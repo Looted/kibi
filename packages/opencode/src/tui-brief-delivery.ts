@@ -203,6 +203,10 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
     return false;
   }
 
+  // Suppress legacy (no deliveryReasons) envelopes only when all three conditions hold:
+  // zero change counts, no validation issues, and no significant briefing impact.
+  // Matching summary/tldr alone is not sufficient — a domain-specific brief may legitimately
+  // have the same value in both fields.
   return (
     zeroCounts &&
     envelope.validation.count === 0 &&
