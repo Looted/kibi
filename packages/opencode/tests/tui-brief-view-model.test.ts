@@ -126,10 +126,8 @@ describe("buildTuiBriefViewModel", () => {
     // What changed — falls back to summary
     expect(vm.whatChanged).toEqual(["test summary v1"]);
 
-    // Why it matters — defaults when promptBlock is not allowed as UI copy
-    expect(vm.whyItMatters).toBe(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    // Why it matters — silent when no deliveryReasons exist
+    expect(vm.whyItMatters).toBeUndefined();
 
     // Counts
     expect(vm.counts).toEqual({
@@ -292,9 +290,7 @@ describe("buildTuiBriefViewModel", () => {
     const vm = buildTuiBriefViewModel(envelope);
 
     expect(vm.title).toBe("test summary v1");
-    expect(vm.whyItMatters).toBe(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(vm.whyItMatters).toBeUndefined();
     expect(vm.whatChanged).toEqual(["test summary v1"]);
   });
 
@@ -343,10 +339,7 @@ describe("buildTuiBriefSummary", () => {
     const summary = buildTuiBriefSummary(envelope);
 
     expect(summary).toContain("## What changed");
-    expect(summary).toContain("## Why it matters");
-    expect(summary).toContain(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(summary).not.toContain("## Why it matters");
     expect(summary).toContain("## Project knowledge impact");
     expect(summary).toContain("**CIT-001**");
     expect(summary).toContain("Must do X");
@@ -362,10 +355,7 @@ describe("buildTuiBriefSummary", () => {
     expect(summary).toContain("## What changed");
     expect(summary).toContain("Added REQ-001: Test requirement");
     expect(summary).toContain("Modified REQ-002");
-    expect(summary).toContain("## Why it matters");
-    expect(summary).toContain(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(summary).not.toContain("## Why it matters");
     expect(summary).toContain("## Interpretation note");
     expect(summary).toContain("1 issue(s)");
   });
@@ -401,7 +391,7 @@ describe("buildTuiBriefSummary", () => {
     expect(summary.endsWith("\n")).toBe(false);
   });
 
-  it("uses default why-it-matters when promptBlock is empty", () => {
+  it("omits why-it-matters when promptBlock is empty", () => {
     const envelope: IdleBriefEnvelope = makeV1({
       briefing: {
         tldr: "tldr",
@@ -411,9 +401,43 @@ describe("buildTuiBriefSummary", () => {
     });
     const summary = buildTuiBriefSummary(envelope);
 
-    expect(summary).toContain(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(summary).not.toContain("## Why it matters");
+  });
+
+  it("filters operational delivery items from what changed", () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Operational item",
+          entityIds: ["FACT-boulder.json"],
+        },
+        {
+          kind: "entity_modified",
+          text: "Updated requirement REQ-100",
+          entityIds: ["REQ-100"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Updated requirement REQ-100",
+        whyItMatters: "Requirements and facts were updated.",
+      },
+    };
+
+    const briefing = {
+      tldr: "tldr",
+      promptBlock: "prompt",
+      citations: [],
+    } as IdleBriefEnvelope["briefing"] & { deliveryReasons?: DeliveryReasons };
+    const envelope = makeV1({ briefing });
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+
+    const vm = buildTuiBriefViewModel(envelope);
+
+    expect(vm.whatChanged).toEqual(["Updated requirement REQ-100"]);
   });
 
   it("prefers deliveryReasons for full brief sections", () => {
