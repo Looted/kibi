@@ -13,6 +13,7 @@ import {
   type IdleBriefingResult,
   generateIdleBrief,
 } from "../src/idle-brief-runtime";
+import { buildDeliveryReasons } from "../src/brief-delivery-reasons";
 
 type FutureIdleBriefEnvelopeV2 = {
   schemaVersion: "2.0";
@@ -50,6 +51,10 @@ type FutureIdleBriefEnvelopeV2 = {
     promptBlock: string;
     citations: Array<{ id: string; title?: string }>;
     changeNarrative: string[];
+    deliveryReasons?: {
+      version: 1;
+      items: Array<{ kind: string; text: string; entityIds: string[] }>;
+    };
   };
 };
 
@@ -181,6 +186,112 @@ describe("idle-brief-runtime", () => {
   });
 
   describe("generateIdleBrief", () => {
+    it("suppresses no-op briefs when counts and briefing impact are zero", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("workspace-sync", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+        }),
+      ]);
+
+      const checkResult: CheckResult = {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result).toEqual({ success: true, briefPath: null, envelope: null });
+      expect(fs.readdirSync(path.join(tempDir, ".kb", "briefs"))).toEqual([]);
+    });
+
+    it("still creates a brief when validation finds issues", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createRelationshipEntry("2024-01-01T00:00:00Z", "workspace-sync"),
+      ]);
+
+      const checkResult: CheckResult = {
+        violations: [
+          {
+            rule: "demo-rule",
+            entityId: "REQ-001",
+            description: "Validation issue",
+          },
+        ],
+        count: 1,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result.briefPath).not.toBeNull();
+      expect(result.envelope?.validation.count).toBe(1);
+      expect(result.envelope?.type).toBe("warning");
+    });
+
+    it("does not suppress validation-only briefs with zero change counts", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([]);
+
+      const checkResult: CheckResult = {
+        violations: [
+          {
+            rule: "demo-rule",
+            entityId: "REQ-001",
+            description: "Validation issue",
+          },
+        ],
+        count: 1,
+        diagnostics: [],
+      };
+
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "no_briefing",
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      };
+
+      const result = await generateIdleBrief(
+        createMockClient(checkResult, briefingResult),
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
+
+      expect(result.briefPath).not.toBeNull();
+      expect(result.envelope?.validation.count).toBe(1);
+      expect((result.envelope?.counts as { entitiesAdded: number }).entitiesAdded).toBe(0);
+    });
+
     it("returns success brief with zero violations", async () => {
       const workspaceCtx = createWorkspaceCtx(tempDir);
       const auditDelta = createAuditDelta([
@@ -249,6 +360,87 @@ describe("idle-brief-runtime", () => {
         "Added requirement REQ-002: Second requirement",
         "Added requirement REQ-003: Third requirement",
       ]);
+      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
+        "entity_added",
+      ]);
+    });
+
+    it("includes delivery reasons for mixed entity changes", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("REQ-003", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "updated",
+        }),
+        createDeleteEntry("2024-01-01T00:00:01Z", "REQ-003"),
+        createEntityEntry("REQ-001", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+        }),
+        createEntityEntry("REQ-002", {
+          timestamp: "2024-01-01T00:00:01Z",
+          entityType: "req",
+          changeKind: "updated",
+        }),
+        createDeleteEntry("2024-01-01T00:00:02Z", "REQ-003"),
+      ]);
+
+      const client = createMockClient(
+        { violations: [], count: 0, diagnostics: [] },
+        { briefingState: "ready", tldr: "", promptBlock: "keep prompt guidance", citations: [] },
+      );
+
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+      const envelope = result.envelope as FutureIdleBriefEnvelopeV2 | null;
+
+      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
+        "entity_modified",
+        "entity_added",
+        "entity_removed",
+      ]);
+      expect(envelope?.briefing.promptBlock).toBe("keep prompt guidance");
+    });
+
+    it("includes relationship and validation reasons when present", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createRelationshipEntry("2024-01-01T00:00:00Z", "REQ-001"),
+      ]);
+
+      const client = createMockClient(
+        {
+          violations: [
+            { rule: "one", entityId: "REQ-001", description: "issue 1" },
+            { rule: "two", entityId: "REQ-002", description: "issue 2" },
+          ],
+          count: 2,
+          diagnostics: [],
+        },
+        { briefingState: "ready", tldr: "", promptBlock: "prompt guidance", citations: [] },
+      );
+
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+      const envelope = result.envelope as FutureIdleBriefEnvelopeV2 | null;
+
+      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
+        "validation_issue",
+        "relationship_changed",
+      ]);
+      expect(envelope?.briefing.deliveryReasons?.items.some((item) => item.text === "prompt guidance")).toBe(false);
+    });
+
+    it("omits delivery reasons when there are no changes", async () => {
+      expect(
+        buildDeliveryReasons({
+          entitiesAdded: [],
+          entitiesModified: [],
+          entitiesRemoved: [],
+          relationshipsChanged: 0,
+          validationCount: 0,
+        }),
+      ).toBeUndefined();
     });
 
     it("returns warning brief with violations", async () => {
@@ -349,8 +541,7 @@ describe("idle-brief-runtime", () => {
       );
 
       expect(result.success).toBe(true);
-      expect(result.envelope).not.toBeNull();
-      expect(result.envelope?.validation.count).toBe(0);
+      expect(result.envelope).toBeNull();
     });
 
     it("creates brief file on disk", async () => {

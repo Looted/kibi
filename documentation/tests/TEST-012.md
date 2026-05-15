@@ -10,7 +10,9 @@ tags:
   - context
 links:
   - type: validates
-    target: SCEN-001
+    target: REQ-mcp-tool-query
+  - type: validates
+    target: SCEN-mcp-tool-query
 ---
 
 Validation steps:

@@ -9,7 +9,7 @@ tags:
   - gc
   - branches
 links:
-  - REQ-003
+  - REQ-cli-gc
   - type: verified_by
     target: TEST-003
 ---

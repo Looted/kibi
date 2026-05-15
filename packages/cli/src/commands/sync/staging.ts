@@ -28,6 +28,7 @@ interface StagingDeps {
   cwd: () => string;
   existsSync: typeof existsSync;
   fg: typeof fg;
+  isProcessAlive: (pid: number) => boolean;
   mkdirSync: typeof mkdirSync;
   moduleDir: string;
   renameSync: typeof renameSync;
@@ -41,12 +42,95 @@ function resolveDeps(overrides?: Partial<StagingDeps>): StagingDeps {
     cwd: () => process.cwd(),
     existsSync,
     fg,
+    isProcessAlive: (pid: number) => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch (error) {
+        return !(
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ESRCH"
+        );
+      }
+    },
     mkdirSync,
     moduleDir: import.meta.dirname,
     renameSync,
     rmSync,
     ...overrides,
   };
+}
+
+// implements REQ-003
+export function createUniqueStagingPath(
+  currentBranch: string,
+  rootDir: string,
+  pid = process.pid,
+  now = Date.now(),
+): string {
+  return path.join(
+    rootDir,
+    ".kb",
+    "branches",
+    `${currentBranch}.staging.${pid}.${now}`,
+  );
+}
+
+// implements REQ-003
+export async function cleanupAbandonedStagingDirectories(
+  stagingPath: string,
+  deps?: Partial<StagingDeps>,
+): Promise<void> {
+  const resolved = resolveDeps(deps);
+  const stagingDir = path.dirname(stagingPath);
+  const stagingBase = path.basename(stagingPath);
+  const match = /^(?<branch>.+)\.staging\.(?<pid>\d+)\.(?<timestamp>\d+)$/.exec(
+    stagingBase,
+  );
+
+  if (!match?.groups) {
+    return;
+  }
+
+  const branch = match.groups.branch;
+  if (!branch) {
+    return;
+  }
+
+  const candidates = await resolved.fg(`${branch}.staging.*`, {
+    cwd: stagingDir,
+    absolute: true,
+    onlyDirectories: true,
+    suppressErrors: true,
+  });
+
+  for (const candidate of candidates) {
+    if (candidate === stagingPath) {
+      continue;
+    }
+
+    const candidateBase = path.basename(candidate);
+    const candidateMatch = new RegExp(
+      `^${escapeRegex(branch)}\\.staging\\.(\\d+)\\.(\\d+)$`,
+    ).exec(candidateBase);
+
+    if (!candidateMatch) {
+      continue;
+    }
+
+    const candidatePidText = candidateMatch[1];
+    if (!candidatePidText) {
+      continue;
+    }
+
+    const candidatePid = Number.parseInt(candidatePidText, 10);
+    if (!Number.isFinite(candidatePid) || resolved.isProcessAlive(candidatePid)) {
+      continue;
+    }
+
+    cleanupStaging(candidate, resolved);
+  }
 }
 
 export async function prepareStagingEnvironment(
@@ -57,7 +141,7 @@ export async function prepareStagingEnvironment(
   deps?: Partial<StagingDeps>,
 ): Promise<void> {
   const resolved = resolveDeps(deps);
-  // Cleanup any existing staging directory
+  await cleanupAbandonedStagingDirectories(stagingPath, resolved);
   cleanupStaging(stagingPath, resolved);
   resolved.mkdirSync(stagingPath, { recursive: true });
 
@@ -141,4 +225,8 @@ export function cleanupStaging(
   if (resolved.existsSync(stagingPath)) {
     resolved.rmSync(stagingPath, { recursive: true, force: true });
   }
+}
+
+function escapeRegex(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

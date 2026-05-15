@@ -157,6 +157,18 @@ describe("rankEntities", () => {
     expect(result).toEqual([]);
   });
 
+  test("returns empty array for empty query", async () => {
+    const entities = [makeEntity({ title: "Authentication flow" })];
+    const result = await rankEntities(entities, "", "/workspace");
+    expect(result).toEqual([]);
+  });
+
+  test("returns empty array for whitespace query", async () => {
+    const entities = [makeEntity({ title: "Authentication flow" })];
+    const result = await rankEntities(entities, "   ", "/workspace");
+    expect(result).toEqual([]);
+  });
+
   test("returns empty array when no entity matches the query", async () => {
     const entities = [makeEntity({ title: "Authentication flow" })];
     const result = await rankEntities(
@@ -655,22 +667,18 @@ describe("rankEntities — edge cases and normalization", () => {
     expect(result[0].reasons).toContain("ID match");
   });
 
-  test("empty query string matches everything (empty string is substring of all)", async () => {
-    const entity = makeEntity({ title: "Something" });
-    const result = await rankEntities([entity], "", "/workspace");
-
-    // Empty string is a substring of all normalized fields, so score > 0
-    expect(result).toHaveLength(1);
-    expect(result[0].score).toBeGreaterThan(0);
-  });
-  test("whitespace-only query matches everything (normalizes to empty)", async () => {
-    const entity = makeEntity({ title: "Something" });
-    const result = await rankEntities([entity], "   ", "/workspace");
-
-    // Whitespace normalizes to empty, which is a substring of everything
-    expect(result).toHaveLength(1);
-    expect(result[0].score).toBeGreaterThan(0);
-  });
+  test("empty query string returns empty result", async () => {
+      const entity = makeEntity({ title: "Something" });
+      const result = await rankEntities([entity], "", "/workspace");
+  
+      expect(result).toEqual([]);
+    });
+  test("whitespace-only query returns empty result", async () => {
+      const entity = makeEntity({ title: "Something" });
+      const result = await rankEntities([entity], "   ", "/workspace");
+  
+      expect(result).toEqual([]);
+    });
 
   test("entity with empty tags array does not crash", async () => {
     const entity = makeEntity({ title: "Auth", tags: [] });
@@ -725,5 +733,158 @@ describe("buildSnippet behavior via rankEntities", () => {
     expect(result[0].snippet).toBeDefined();
 
     readFileSpy.mockRestore();
+  });
+});
+
+describe("rankEntities — search quality corpus", () => {
+  const FACT_APPLE_SIGNIN_REVENUECAT_RECOVERY = makeEntity({
+    id: "FACT-search-apple-signin-revenuecat-recovery",
+    title: "Apple Sign-In RevenueCat Recovery",
+    type: "fact",
+    source: "",
+    body: [
+      "Apple Sign-In recovery restores RevenueCat entitlements for premium recovery.",
+      "The flow supports logged-out recovery when people cannot log in and need premium recovery.",
+    ].join("\n"),
+  });
+
+  const REQ_REVENUECAT_ENTITLEMENT = makeEntity({
+    id: "REQ-search-revenuecat-entitlement",
+    title: "RevenueCat Entitlement Requirement",
+    type: "req",
+    source: "",
+    body: [
+      "RevenueCat entitlement verification must restore premium access deterministically.",
+      "The requirement is specifically about RevenueCat entitlement handling.",
+    ].join("\n"),
+  });
+
+  const ADR_AUTH_PROVIDER = makeEntity({
+    id: "ADR-search-auth-provider",
+    title: "Auth Provider Decision",
+    type: "adr",
+    source: "",
+    body: [
+      "Apple Sign-In architecture is the chosen authentication provider strategy.",
+      "The decision records the Apple Sign-In provider boundary.",
+    ].join("\n"),
+  });
+
+  const SCEN_GENERIC_AUTH_FEEDBACK = makeEntity({
+    id: "SCEN-search-generic-auth-feedback",
+    title: "Generic Auth Feedback",
+    type: "scenario",
+    source: "",
+    body: [
+      "Authentication status feedback is shown to the user after auth attempts.",
+      "Generic status messages explain whether authentication is still pending.",
+    ].join("\n"),
+  });
+
+  const FACT_UNRELATED_SYNC_FEEDBACK = makeEntity({
+    id: "FACT-search-unrelated-sync-feedback",
+    title: "Sync Feedback Observation",
+    type: "fact",
+    source: "",
+    body: [
+      "Sync feedback notifications explain repository synchronization progress.",
+      "This observation is about background sync status and notification delivery only.",
+    ].join("\n"),
+  });
+
+  const SEARCH_QUALITY_CORPUS = [
+    FACT_APPLE_SIGNIN_REVENUECAT_RECOVERY,
+    REQ_REVENUECAT_ENTITLEMENT,
+    ADR_AUTH_PROVIDER,
+    SCEN_GENERIC_AUTH_FEEDBACK,
+    FACT_UNRELATED_SYNC_FEEDBACK,
+  ];
+
+  test("broad multi-intent query ranks targeted entity first", async () => {
+    const result = await rankEntities(
+      SEARCH_QUALITY_CORPUS,
+      "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in",
+      "/workspace",
+    );
+
+    expect(result[0]?.entity.id).toBe(
+      "FACT-search-apple-signin-revenuecat-recovery",
+    );
+    expect(
+      result
+        .slice(0, 10)
+        .map((match) => match.entity.id),
+    ).not.toContain("FACT-search-unrelated-sync-feedback");
+  });
+
+  test("focused RevenueCat entitlement query ranks focused requirement first", async () => {
+    const result = await rankEntities(
+      SEARCH_QUALITY_CORPUS,
+      "RevenueCat entitlement",
+      "/workspace",
+    );
+
+    expect(result[0]?.entity.id).toBe("REQ-search-revenuecat-entitlement");
+  });
+
+  test("short exact query remains exact-first", async () => {
+    const result = await rankEntities(
+      SEARCH_QUALITY_CORPUS,
+      "FACT-search-apple-signin-revenuecat-recovery",
+      "/workspace",
+    );
+
+    expect(result[0]?.entity.id).toBe(
+      "FACT-search-apple-signin-revenuecat-recovery",
+    );
+  });
+
+  test("no-signal query returns no results", async () => {
+    const result = await rankEntities(
+      SEARCH_QUALITY_CORPUS,
+      "to in out log logged unable",
+      "/workspace",
+    );
+
+    expect(result).toEqual([]);
+  });
+
+  test("normalizes hyphenated sign-in and plural entitlement tokens", async () => {
+    const result = await rankEntities(
+      SEARCH_QUALITY_CORPUS,
+      "sign-in entitlements",
+      "/workspace",
+    );
+    const ids = result.map((match) => match.entity.id);
+
+    const firstId = String(result[0]?.entity.id ?? "");
+
+    expect([
+      "FACT-search-apple-signin-revenuecat-recovery",
+      "ADR-search-auth-provider",
+    ]).toContain(firstId);
+
+    const unrelatedIndex = ids.indexOf("FACT-search-unrelated-sync-feedback");
+    if (unrelatedIndex !== -1) {
+      expect(unrelatedIndex).toBeGreaterThan(0);
+    }
+  });
+
+  test("preserves deterministic tie-break order", async () => {
+    const result = await rankEntities(
+      [
+        makeEntity({ id: "REQ-auth-b", title: "auth", type: "req" }),
+        makeEntity({ id: "ADR-auth-b", title: "auth", type: "adr" }),
+        makeEntity({ id: "ADR-auth-a", title: "auth", type: "adr" }),
+      ],
+      "auth",
+      "/workspace",
+    );
+
+    expect(result.map((match) => match.entity.id)).toEqual([
+      "ADR-auth-a",
+      "ADR-auth-b",
+      "REQ-auth-b",
+    ]);
   });
 });

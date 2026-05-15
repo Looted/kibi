@@ -5,11 +5,13 @@ describe("opencode/logger", () => {
   beforeEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   afterEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   it("setClient stores client correctly and resetClient clears it", () => {
@@ -67,7 +69,7 @@ describe("opencode/logger", () => {
   it("error() with client calls console.error and client.app.log", async () => {
     const mockLog = vi.fn().mockResolvedValue(undefined);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.setClient(mockClient as any);
 
     logger.error("fatal");
@@ -84,7 +86,7 @@ describe("opencode/logger", () => {
   });
 
   it("error() without client still calls console.error", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.resetClient();
     logger.error("only-console");
     expect(spy).toHaveBeenCalledWith("[kibi-opencode]", "only-console");
@@ -94,7 +96,7 @@ describe("opencode/logger", () => {
     const err = new Error("boom");
     const mockLog = vi.fn().mockRejectedValue(err);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
 
     logger.setClient(mockClient as any);
     logger.info("will-reject");
@@ -109,7 +111,7 @@ describe("opencode/logger", () => {
     const err = new Error("structured-boom");
     const mockLog = vi.fn().mockRejectedValue(err);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
 
     logger.setClient(mockClient as any);
     logger.error("operational-failure");
@@ -124,7 +126,7 @@ describe("opencode/logger", () => {
   it("multiple log calls in sequence work as expected", async () => {
     const mockLog = vi.fn().mockResolvedValue(undefined);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.setClient(mockClient as any);
 
     logger.info("i1");
@@ -142,18 +144,20 @@ describe("failure-routing contract", () => {
   beforeEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   afterEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   describe("errorStructuredOnly (advisory background failures)", () => {
     it("with client: routes to client.app.log only, never console.error", async () => {
       const mockLog = vi.fn().mockResolvedValue(undefined);
       const mockClient = { app: { log: mockLog } };
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.setClient(mockClient as any);
 
       logger.errorStructuredOnly("scheduler.sync.failed", {
@@ -180,7 +184,7 @@ describe("failure-routing contract", () => {
     });
 
     it("without client: is completely silent (no console.error)", () => {
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.resetClient();
 
       logger.errorStructuredOnly("advisory-no-client");
@@ -190,7 +194,7 @@ describe("failure-routing contract", () => {
     });
 
     it("without client and no console.error: does not throw", () => {
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.resetClient();
       expect(() => logger.errorStructuredOnly("silent-advisory")).not.toThrow();
     });
@@ -199,7 +203,7 @@ describe("failure-routing contract", () => {
       const err = new Error("structured-oom");
       const mockLog = vi.fn().mockRejectedValue(err);
       const mockClient = { app: { log: mockLog } };
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.setClient(mockClient as any);
 
       expect(() => logger.errorStructuredOnly("will-reject")).not.toThrow();
@@ -230,7 +234,7 @@ describe("failure-routing contract", () => {
     it("with client: routes to both console.error and client.app.log", async () => {
       const mockLog = vi.fn().mockResolvedValue(undefined);
       const mockClient = { app: { log: mockLog } };
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.setClient(mockClient as any);
 
       logger.error("bootstrap-needed", { event: "workspace_bootstrap_needed" });
@@ -247,7 +251,7 @@ describe("failure-routing contract", () => {
     });
 
     it("without client: still routes to console.error for visibility", () => {
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.resetClient();
 
       logger.error("init-failed");
@@ -260,7 +264,7 @@ describe("failure-routing contract", () => {
     it("errorStructuredOnly and error are distinct surfaces", async () => {
       const mockLog = vi.fn().mockResolvedValue(undefined);
       const mockClient = { app: { log: mockLog } };
-      const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const spy = vi.fn(); logger._setConsoleError(spy);
       logger.setClient(mockClient as any);
 
       // Advisory: no console.error
@@ -284,17 +288,19 @@ describe("advisory check failure noise regression", () => {
   beforeEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   afterEach(() => {
     logger.resetClient();
     vi.restoreAllMocks();
+    logger._setConsoleError(null);
   });
 
   it("check.failed with single rule (symbol-traceability) uses errorStructuredOnly", async () => {
     const mockLog = vi.fn().mockResolvedValue(undefined);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.setClient(mockClient as any);
 
     // Advisory background check failures use errorStructuredOnly
@@ -321,7 +327,7 @@ describe("advisory check failure noise regression", () => {
   it("check.failed with multi-rule payload uses errorStructuredOnly", async () => {
     const mockLog = vi.fn().mockResolvedValue(undefined);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.setClient(mockClient as any);
 
     // Advisory multi-rule check failure
@@ -344,7 +350,7 @@ describe("advisory check failure noise regression", () => {
   it("operational sync.failed still calls console.error via error() (control)", async () => {
     const mockLog = vi.fn().mockResolvedValue(undefined);
     const mockClient = { app: { log: mockLog } };
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.fn(); logger._setConsoleError(spy);
     logger.setClient(mockClient as any);
 
     // Operational/startup failures use error() and SHOULD hit console.error

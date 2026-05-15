@@ -296,3 +296,60 @@ test("listener handles non-Error thrown values in catch block", async () => {
     expect.stringContaining("string error"),
   );
 });
+
+test("early return: contextOnOpen config false skips onDidOpenTextDocument call (line 35)", async () => {
+  mockContextOnOpen = false;
+  await registerFresh();
+
+  expect(workspaceApi.getConfiguration).toHaveBeenCalledWith("kibi");
+  expect(workspaceApi.onDidOpenTextDocument).not.toHaveBeenCalled();
+  expect(commandsApi.executeCommand).not.toHaveBeenCalled();
+});
+
+test("early return: non-file URI scheme prevents KB query (line 41)", async () => {
+  await registerFresh();
+
+  await getDocOpenListener()({
+    uri: { scheme: "git", fsPath: "/git/file.ts" },
+  });
+
+  expect(mockExistsSync).not.toHaveBeenCalled();
+  expect(commandsApi.executeCommand).not.toHaveBeenCalled();
+});
+
+test("early return: missing .kb directory prevents KB query (line 48)", async () => {
+  mockExistsSync = mock(() => false);
+  await registerFresh();
+
+  await getDocOpenListener()({
+    uri: { scheme: "file", fsPath: path.join(tmpDir, "src", "file.ts") },
+  });
+
+  expect(commandsApi.executeCommand).not.toHaveBeenCalled();
+  expect(showInformationMessage).not.toHaveBeenCalled();
+});
+
+test("info message shown with single entity from MCP query (lines 68-72)", async () => {
+  const filePath = path.join(tmpDir, "src", "file.ts");
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, "");
+
+  mockExistsSync = mock(
+    (targetPath: string) => targetPath === path.join(tmpDir, ".kb"),
+  );
+  mockExecuteCommandResult = {
+    structuredContent: {
+      entities: [{ id: "SYM-001", title: "Test" }],
+    },
+  };
+
+  await registerFresh();
+
+  await getDocOpenListener()({
+    uri: { scheme: "file", fsPath: filePath },
+  });
+
+  expect(showInformationMessage).toHaveBeenCalledWith(
+    expect.stringContaining("1 KB entities"),
+  );
+});

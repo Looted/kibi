@@ -11,16 +11,18 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 import type {
+  DeliveryReasons,
   IdleBriefEnvelope,
   IdleBriefEnvelopeV2,
 } from "../src/idle-brief-store.js";
 import * as logger from "../src/logger.js";
-import { deliverBriefTui } from "../src/tui-brief-delivery.js";
+import { announceBriefTui, deliverBriefTui } from "../src/tui-brief-delivery.js";
 
 describe("tui-brief-delivery", () => {
   let mockClient: {
     tui?: {
       showToast?: ReturnType<typeof mock>;
+      executeCommand?: ReturnType<typeof mock>;
     };
   };
 
@@ -51,6 +53,7 @@ describe("tui-brief-delivery", () => {
     mockClient = {
       tui: {
         showToast: mock(() => {}),
+        executeCommand: mock(() => {}),
       },
     };
 
@@ -87,7 +90,7 @@ describe("tui-brief-delivery", () => {
       },
       summary: "Test summary",
       counts: {
-        requirementsAdded: 0,
+        requirementsAdded: 1,
         relationshipsAdded: 0,
         entitiesDeleted: 0,
       },
@@ -121,25 +124,95 @@ describe("tui-brief-delivery", () => {
     expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
   });
 
+  test("skips automatic toast for zero-count no-impact envelopes", async () => {
+    envelope.counts = {
+      entitiesAdded: 0,
+      entitiesModified: 0,
+      entitiesRemoved: 0,
+      relationshipsChanged: 0,
+    };
+    envelope.validation.count = 0;
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+
+    const result = await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(result.delivered).toBe(false);
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
+  test("announceBriefTui skips toast for zero-count no-impact envelopes", async () => {
+    envelope.counts = {
+      entitiesAdded: 0,
+      entitiesModified: 0,
+      entitiesRemoved: 0,
+      relationshipsChanged: 0,
+    };
+    envelope.validation.count = 0;
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(result).toEqual({ toastDelivered: false, commandPublished: false });
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
   // --- Toast rendering (primary path) ---
 
   test("shows toast with summary by default", async () => {
-    envelope.briefing.citations = [];
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
     expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          message:
-            "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
+          message: expect.stringContaining("## What changed\nTest summary"),
         }),
       }),
     );
   });
 
+  test("prefers deliveryReasons for toast summary and why-it-matters", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Updated requirement REQ-001",
+          entityIds: ["REQ-001"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Updated requirement REQ-001",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.briefing.promptBlock = "Should not win";
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).toContain("## What changed\nUpdated requirement REQ-001");
+    expect(calledWith.body?.message).toContain("## Why it matters\nEntities were updated.");
+    expect(calledWith.body?.message).not.toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
   test("never calls submitPrompt regardless of autoSubmit config", async () => {
     localConfig.autoSubmit = true;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -148,7 +221,7 @@ describe("tui-brief-delivery", () => {
 
   test("shows toast even when autoSubmit is false", async () => {
     localConfig.autoSubmit = false;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -161,6 +234,7 @@ describe("tui-brief-delivery", () => {
     envelope.summary = "";
     envelope.briefing.tldr = "Test summary";
     envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -206,6 +280,7 @@ describe("tui-brief-delivery", () => {
     envelope.briefing.tldr = "";
     envelope.briefing.citations = [];
     envelope.validation.count = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -218,10 +293,30 @@ describe("tui-brief-delivery", () => {
     );
   });
 
+  test("uses generic fallback when no structured data exists", async () => {
+    envelope.summary = "";
+    envelope.briefing.tldr = "";
+    envelope.briefing.promptBlock = "";
+    envelope.briefing.citations = [];
+    envelope.validation.count = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
   test("uses tldr as fallback when summary is empty", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "TLDR fallback";
     envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -249,7 +344,7 @@ describe("tui-brief-delivery", () => {
       },
       relationships: { changed: 0 },
     };
-    v2Envelope.briefing.citations = [];
+    v2Envelope.counts.relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -278,7 +373,7 @@ describe("tui-brief-delivery", () => {
       },
       relationships: { changed: 0 },
     };
-    v2Envelope.briefing.citations = [];
+    v2Envelope.counts.relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -293,7 +388,7 @@ describe("tui-brief-delivery", () => {
 
   test("shows optional toast when toast is enabled and capability exists", async () => {
     sharedPolicy.briefs.tui.toast = true;
-    envelope.briefing.citations = [];
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
@@ -301,8 +396,7 @@ describe("tui-brief-delivery", () => {
       body: {
         variant: "info",
         title: "Kibi Knowledge Update",
-        message:
-          "## What changed\nTest summary\n\n## Why it matters\nTest prompt block",
+        message: expect.stringContaining("## What changed\nTest summary"),
         duration: 8000,
       },
     });
@@ -444,4 +538,260 @@ describe("tui-brief-delivery", () => {
 
     expect(result).toEqual({ delivered: false });
   });
+
+  test("announces by toast and publishes the TUI command", async () => {
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).toHaveBeenCalledWith(
+      "kibi.open_latest_brief",
+      {},
+    );
+    expect(result).toEqual({ toastDelivered: true, commandPublished: true });
+  });
+
+  test("skips toast and command for zero-change no-impact envelopes", async () => {
+    const noOpEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 0,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+      },
+    };
+
+    const result = await announceBriefTui(mockClient, noOpEnvelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).not.toHaveBeenCalled();
+    expect(result).toEqual({ toastDelivered: false, commandPublished: false });
+  });
+
+  test("still announces validation-only warning envelopes", async () => {
+    const warningEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      type: "warning" as const,
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 1,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+      },
+    };
+
+    const result = await announceBriefTui(mockClient, warningEnvelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(result.toastDelivered).toBe(true);
+  });
+
+  test("toast success only reports announcement state and does not imply viewed state", async () => {
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+    mockClient.tui = {
+      showToast: mock(() => {}),
+    };
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(result).toEqual({ toastDelivered: true, commandPublished: false });
+  });
+
+  test("still publishes open_latest_brief when toast is disabled", async () => {
+    sharedPolicy.briefs.tui.toast = false;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+    expect(mockClient.tui?.executeCommand).toHaveBeenCalledWith(
+      "kibi.open_latest_brief",
+      {},
+    );
+    expect(result).toEqual({ toastDelivered: false, commandPublished: true });
+  });
+
+  // --- Missing executeCommand fallback ---
+
+  test("delivers toast but does not publish command when executeCommand is missing", async () => {
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      // executeCommand is missing
+    };
+
+    const result = await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    expect(result).toEqual({ toastDelivered: true, commandPublished: false });
+  });
+
+  test("delivers toast and does not throw when executeCommand is undefined", async () => {
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      executeCommand: undefined,
+    };
+
+    await expect(
+      announceBriefTui(mockClient, envelope, sharedPolicy),
+    ).resolves.toEqual({ toastDelivered: true, commandPublished: false });
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+  });
+
+  test("does not log error when executeCommand is gracefully unavailable", async () => {
+    envelope.briefing.citations = [];
+    mockClient.tui = {
+      showToast: mock(() => {}),
+      // executeCommand missing - should not trigger error log
+    };
+
+    await announceBriefTui(mockClient, envelope, sharedPolicy);
+
+    // Should not log any error for missing executeCommand (graceful fallback)
+    expect(mockLog).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: expect.stringContaining("Failed to publish open_latest_brief command"),
+        }),
+      }),
+    );
+  });
+
+
+  // --- Unified reason flow integration ---
+
+  test("announceBriefTui with deliveryReasons produces non-generic toast", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_added",
+          text: "Added requirement REQ-042",
+          entityIds: ["REQ-042"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Added requirement REQ-042",
+        whyItMatters: "Entities were updated.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.briefing.citations = [];
+    envelope.briefing.promptBlock = "";
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await announceBriefTui(mockClient, envelope, sharedPolicy);
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+
+    expect(calledWith.body?.message).not.toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+    expect(calledWith.body?.message).toContain("Added requirement REQ-042");
+    expect(calledWith.body?.message).toContain("Entities were updated.");
+  });
+
+  test("legacy v1 envelope without deliveryReasons renders through announceBriefTui", async () => {
+    // Default v1 envelope has no deliveryReasons
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await expect(
+      announceBriefTui(mockClient, envelope, sharedPolicy),
+    ).resolves.toBeDefined();
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
+      body?: { message?: string };
+    };
+    expect(calledWith.body?.message).toContain("## What changed");
+    // Legacy fallback uses the default Why it matters copy, not promptBlock
+    expect(calledWith.body?.message).toContain(
+      "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
+  test("announceBriefTui: deliveryReasons with items bypasses zero-count no-op guard", async () => {
+    const zeroCountEnvelope: IdleBriefEnvelopeV2 = {
+      ...envelope,
+      schemaVersion: "2.0",
+      unread: false,
+      counts: {
+        entitiesAdded: 0,
+        entitiesModified: 0,
+        entitiesRemoved: 0,
+        relationshipsChanged: 0,
+      },
+      changes: {
+        entities: { added: [], modified: [], removed: [] },
+        relationships: { changed: 0 },
+      },
+      validation: {
+        ...envelope.validation,
+        count: 0,
+      },
+      briefing: {
+        ...envelope.briefing,
+        citations: [],
+        changeNarrative: [],
+        deliveryReasons: {
+          version: 1,
+          items: [
+            {
+              kind: "validation_issue",
+              text: "1 validation issue detected",
+              entityIds: [],
+            },
+          ],
+          toast: {
+            title: "Kibi Knowledge Update",
+            summary: "1 validation issue detected",
+            whyItMatters:
+              "Validation issues need attention before the update is treated as settled.",
+          },
+        },
+      } as IdleBriefEnvelopeV2["briefing"],
+    };
+
+    const result = await announceBriefTui(mockClient, zeroCountEnvelope, sharedPolicy);
+
+    expect(result.toastDelivered).toBe(true);
+    expect(mockClient.tui?.showToast).toHaveBeenCalled();
+  });
+
 });

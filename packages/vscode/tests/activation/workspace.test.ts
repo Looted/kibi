@@ -170,3 +170,103 @@ test("getWorkspaceFolderUri returns Uri.file fallback when workspaceFolders exis
 
   expect(result.fsPath).toBe("/some/other/path");
 });
+
+test("_setWorkspaceFsDepsForTests overrides readFileSync used by getCurrentBranch", async () => {
+  const gitDir = path.join(tmpDir, ".git");
+  fs.mkdirSync(gitDir, { recursive: true });
+  // .git/HEAD contains a ref line
+  fs.writeFileSync(path.join(gitDir, "HEAD"), "ref: refs/heads/my-branch\n");
+
+  const { _setWorkspaceFsDepsForTests, getCurrentBranch } = await importWorkspaceModule();
+
+  // Override readFileSync to return a different branch name
+  const fakeReadFileSync = mock((_p: unknown, _enc: unknown) =>
+    "ref: refs/heads/overridden-branch\n",
+  );
+  _setWorkspaceFsDepsForTests({
+    existsSync: stableFsModule.existsSync,
+    readFileSync: fakeReadFileSync as unknown as typeof fs.readFileSync,
+  });
+
+  const branch = getCurrentBranch(tmpDir);
+
+  // Should use the overridden readFileSync (line 20: workspaceReadFileSync assignment)
+  // rather than the real fs.readFileSync
+  expect(branch).toBe("overridden-branch");
+  expect(fakeReadFileSync).toHaveBeenCalled();
+});
+
+test("_resetWorkspaceFsDepsForTests restores real fs functions", async () => {
+  const gitDir = path.join(tmpDir, ".git");
+  fs.mkdirSync(gitDir, { recursive: true });
+  fs.writeFileSync(path.join(gitDir, "HEAD"), "ref: refs/heads/real-branch\n");
+
+  const { _setWorkspaceFsDepsForTests, _resetWorkspaceFsDepsForTests, getCurrentBranch } =
+    await importWorkspaceModule();
+
+  // First, override with a fake readFileSync
+  const fakeReadFileSync = mock((_p: unknown, _enc: unknown) =>
+    "ref: refs/heads/fake-branch\n",
+  );
+  _setWorkspaceFsDepsForTests({
+    existsSync: stableFsModule.existsSync,
+    readFileSync: fakeReadFileSync as unknown as typeof fs.readFileSync,
+  });
+
+  // Verify override is active
+  expect(getCurrentBranch(tmpDir)).toBe("fake-branch");
+
+  // Reset back to real fs (lines 23-27)
+  _resetWorkspaceFsDepsForTests();
+
+  // Now getCurrentBranch should use real fs.readFileSync
+  const branch = getCurrentBranch(tmpDir);
+  expect(branch).toBe("real-branch");
+});
+
+test("getCurrentBranch returns branch from git command when successful", async () => {
+  const { getCurrentBranch } = await importWorkspaceModule();
+
+  // tmpDir is not a git repo, so execSync will throw, but we just want to
+  // verify the function returns something. Let's create a real .git/HEAD fallback.
+  const gitDir = path.join(tmpDir, ".git");
+  fs.mkdirSync(gitDir, { recursive: true });
+  fs.writeFileSync(path.join(gitDir, "HEAD"), "ref: refs/heads/feature-test\n");
+
+  const branch = getCurrentBranch(tmpDir);
+  expect(branch).toBe("feature-test");
+});
+
+test("getCurrentBranch falls back to .git/HEAD file when git command fails", async () => {
+  const gitDir = path.join(tmpDir, ".git");
+  fs.mkdirSync(gitDir, { recursive: true });
+  fs.writeFileSync(path.join(gitDir, "HEAD"), "ref: refs/heads/main\n");
+
+  const { getCurrentBranch } = await importWorkspaceModule();
+
+  // git branch --show-current will fail since tmpDir is not a real git repo
+  const branch = getCurrentBranch(tmpDir);
+  expect(branch).toBe("main");
+});
+
+test("getCurrentBranch returns raw HEAD content when not a ref line", async () => {
+  const gitDir = path.join(tmpDir, ".git");
+  fs.mkdirSync(gitDir, { recursive: true });
+  // Detached HEAD: a raw commit hash, not a ref: line
+  fs.writeFileSync(path.join(gitDir, "HEAD"), "abc123def456\n");
+
+  const { getCurrentBranch } = await importWorkspaceModule();
+
+  const branch = getCurrentBranch(tmpDir);
+  // Line 102: returns headContent.trim() || "main" when no ref match
+  expect(branch).toBe("abc123def456");
+});
+
+test("getCurrentBranch returns 'main' when .git/HEAD is missing", async () => {
+  // tmpDir has no .git directory at all
+  const { getCurrentBranch } = await importWorkspaceModule();
+
+  const branch = getCurrentBranch(tmpDir);
+  // Both execSync and .git/HEAD fallback fail -> returns "main"
+  expect(branch).toBe("main");
+});

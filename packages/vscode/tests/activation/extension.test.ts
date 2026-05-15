@@ -98,6 +98,7 @@ async function importExtensionModule() {
   const module = await import(
     `../../src/extension?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
+  module._resetWorkspaceFeaturesForTests();
   return module;
 }
 
@@ -328,4 +329,153 @@ test("activate happy path: registers everything once when workspace is immediate
     (c) => c.commandId === "kibi.focusKnowledgeBase",
   );
   expect(focusKnowledgeBaseCommands).toHaveLength(1);
+});
+
+test("activate idempotency: second activate call returns early without re-initializing features", async () => {
+  setupMinimalWorkspace(tmpDir);
+
+  // Set workspaceFolders to be available immediately
+  getWorkspaceMock().workspaceFolders = [
+    { uri: { fsPath: tmpDir, path: tmpDir, scheme: "file" } },
+  ];
+
+  // Capture output channel appendLine calls to observe idempotency log
+  const appendLineCalls: string[] = [];
+  const output = {
+    appendLine: mock((message: string) => {
+      appendLineCalls.push(message);
+    }),
+    dispose: mock(() => {}),
+  };
+
+  const window = getWindowMock();
+  const windowMock = window as unknown as {
+    createOutputChannel: (_name: string) => typeof output;
+  };
+  const originalCreateOutputChannel = windowMock.createOutputChannel;
+  windowMock.createOutputChannel = mock((_name: string) => output);
+
+  try {
+    const { activate } = await importExtensionModule();
+
+    const context = {
+      subscriptions: [] as Array<{ dispose: () => void }>,
+    };
+
+    // First activation - initializes workspace features
+    activate(context);
+
+    // Verify features were initialized
+    let win = getWindowMock();
+    expect(win.createTreeViewCalls).toHaveLength(1);
+
+    // Second activation with same module instance - should hit idempotency guard (lines 50-53)
+    activate(context);
+
+    // Should NOT have created additional tree views
+    win = getWindowMock();
+    expect(win.createTreeViewCalls).toHaveLength(1);
+
+    // Should have logged the idempotency skip message
+    expect(
+      appendLineCalls.some((msg) =>
+        msg.toLowerCase().includes("already initialized"),
+      ),
+    ).toBe(true);
+  } finally {
+    windowMock.createOutputChannel = originalCreateOutputChannel;
+  }
+});
+
+test("activate deferred path: logs deferral and registers onDidChangeWorkspaceFolders listener", async () => {
+  // Do NOT set up workspace - resolveWorkspaceRoot should return undefined
+  // so the deferred path (lines 141-153) is exercised
+  getWorkspaceMock().workspaceFolders = undefined;
+
+  // Capture output to verify deferral log
+  const appendLineCalls: string[] = [];
+  const output = {
+    appendLine: mock((message: string) => {
+      appendLineCalls.push(message);
+    }),
+    dispose: mock(() => {}),
+  };
+
+  const window = getWindowMock();
+  const windowMock = window as unknown as {
+    createOutputChannel: (_name: string) => typeof output;
+  };
+  const originalCreateOutputChannel = windowMock.createOutputChannel;
+  windowMock.createOutputChannel = mock((_name: string) => output);
+
+  try {
+    const { activate } = await importExtensionModule();
+
+    const context = {
+      subscriptions: [] as Array<{ dispose: () => void }>,
+    };
+
+    activate(context);
+
+    // Lines 141-143: Should have logged the deferral message
+    expect(
+      appendLineCalls.some((msg) => msg.includes("Deferring activation")),
+    ).toBe(true);
+
+    // Lines 144-151: Should have registered a workspace folder change listener
+    const workspace = getWorkspaceMock();
+    expect(
+      (workspace as unknown as { workspaceFolderChangeListeners: unknown[] })
+        .workspaceFolderChangeListeners,
+    ).toHaveLength(1);
+
+    // Line 152: Listener disposable should have been pushed to subscriptions
+    expect(context.subscriptions.length).toBeGreaterThan(0);
+  } finally {
+    windowMock.createOutputChannel = originalCreateOutputChannel;
+  }
+});
+
+test("activate deferred path: onDidChangeWorkspaceFolders callback initializes features when workspace appears", async () => {
+  setupMinimalWorkspace(tmpDir);
+
+  // Workspace not available at activation time
+  getWorkspaceMock().workspaceFolders = undefined;
+
+  const { activate } = await importExtensionModule();
+
+  const context = {
+    subscriptions: [] as Array<{ dispose: () => void }>,
+  };
+
+  // Activate - enters deferred path (lines 141-153)
+  activate(context);
+
+  // No features initialized yet
+  let window = getWindowMock();
+  expect(window.createTreeViewCalls).toHaveLength(0);
+
+  // Now simulate workspace folders appearing (lines 145-149 callback)
+  getWorkspaceMock().workspaceFolders = [
+    { uri: { fsPath: tmpDir, path: tmpDir, scheme: "file" } },
+  ];
+  getWorkspaceMock().emitWorkspaceFoldersChange({
+    added: [{ uri: { fsPath: tmpDir, path: tmpDir, scheme: "file" } }],
+    removed: [],
+  });
+
+  // Flush microtask queue so async operations inside the callback settle
+  await new Promise((r) => setTimeout(r, 0));
+
+  // Features should now be initialized
+  window = getWindowMock();
+  expect(window.createTreeViewCalls).toHaveLength(1);
+  expect(window.createTreeViewCalls[0].id).toBe("kibi-knowledge-base");
+
+  // Verify refresh command was registered
+  const commands = getCommandsMock();
+  const refreshCommands = commands.registerCommandCalls.filter(
+    (c) => c.commandId === "kibi.refreshTree",
+  );
+  expect(refreshCommands).toHaveLength(1);
 });

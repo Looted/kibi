@@ -353,5 +353,44 @@ describe("hook contract", () => {
         event: { type: "file.deleted", properties: { file: "old-file.ts" } },
       } as never);
     });
+
+    test("file lifecycle events still schedule sync after scheduler_sync_failed is latched", async () => {
+      const dir = makeProjectDir("auto");
+      fs.mkdirSync(path.join(dir, ".opencode"), { recursive: true });
+      fs.writeFileSync(
+        path.join(dir, ".opencode", "kibi.json"),
+        JSON.stringify({ enabled: true, sync: { enabled: true } }, null, 2),
+      );
+      let capturedOnRunComplete: ((meta: { exitCode?: number }) => void) | undefined;
+
+      (globalThis as typeof globalThis & {
+        __kibi_test_scheduler_factory?: (...args: unknown[]) => unknown;
+      }).__kibi_test_scheduler_factory = (opts: unknown) => {
+        capturedOnRunComplete = (opts as { onRunComplete?: (meta: { exitCode?: number }) => void }).onRunComplete;
+        return {
+          scheduleSync: () => {},
+          onFileEdited: () => {},
+          onToolExecuteAfter: () => {},
+          flush: async () => {},
+          dispose: () => {},
+        };
+      };
+
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      assert.ok(eventHook, "event hook should exist");
+
+      capturedOnRunComplete?.({ exitCode: 1 });
+
+      await eventHook({
+        event: { type: "file.created", properties: { file: "new-file.ts" } },
+      } as never);
+      await eventHook({
+        event: { type: "file.edited", properties: { file: "edit-file.ts" } },
+      } as never);
+      await eventHook({
+        event: { type: "file.deleted", properties: { file: "old-file.ts" } },
+      } as never);
+    });
   });
 });
