@@ -22,7 +22,7 @@ interface MockWorkspaceState {
 let tmpDir: string;
 let workspaceRoot: string;
 let branch: string;
-let context: { subscriptions: Array<{ dispose: () => void }> };
+let context: { subscriptions: Array<{ dispose: () => void }>; workspaceState: MockWorkspaceState };
 let wsState: MockWorkspaceState;
 
 // Brief template
@@ -73,7 +73,7 @@ beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-test-"));
   workspaceRoot = tmpDir;
   branch = "test-branch";
-  context = { subscriptions: [] };
+  context = { subscriptions: [], workspaceState: wsState };
   wsState = createMockWorkspaceState();
   mock.module("kibi-cli/brief-config", () => ({
     loadBriefConfig: (_workspaceRoot: string) => ({
@@ -143,6 +143,91 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
   expect(showInfo).not.toHaveBeenCalled();
 });
 
+test("registerBriefWatcher suppresses noisy operational-only brief notifications", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      title: "boulder.json",
+      summary: ".sisyphus/briefs/run-1/boulder.json",
+      briefing: {
+        ...briefTemplate.briefing,
+        tldr: ".sisyphus/briefs/run-1/boulder.json",
+      },
+      unread: true,
+      sourceFiles: [".sisyphus/briefs/run-1/boulder.json"],
+    }),
+  );
+
+  const { registerBriefWatcher } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  );
+
+  const result = registerBriefWatcher(
+    context as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  showInfo.mockReset();
+
+  watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 20));
+
+  expect(showInfo).not.toHaveBeenCalled();
+});
+
+test("registerBriefWatcher still shows specific domain brief notifications", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  fs.mkdirSync(path.join(workspaceRoot, ".kb", "briefs"), { recursive: true });
+  const briefPath = path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      title: "auth refresh brief",
+      summary: "Updated login refresh flow for the auth session guard",
+      briefing: {
+        ...briefTemplate.briefing,
+        tldr: "Updated login refresh flow for the auth session guard",
+      },
+      unread: true,
+      sourceFiles: ["packages/vscode/src/activation/briefs.ts"],
+    }),
+  );
+
+  const { registerBriefWatcher } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  );
+
+  const result = registerBriefWatcher(
+    context as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  showInfo.mockReset();
+
+  watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 20));
+
+  expect(showInfo).toHaveBeenCalled();
+});
+
 test("registerBriefWatcher ignores briefs marked as read (unread: false)", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
@@ -166,6 +251,8 @@ test("registerBriefWatcher ignores briefs marked as read (unread: false)", async
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
   const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  showInfo.mockReset();
 
   // Fire the create event - should be ignored because unread: false
   watcher.emitCreate({
