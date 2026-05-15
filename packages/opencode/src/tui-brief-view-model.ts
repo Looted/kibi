@@ -143,7 +143,10 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
   const deliveryReasons = briefing.deliveryReasons;
   let title: string | undefined = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
   if (deliveryReasons?.items?.length) {
-    title = deliveryReasons.toast.summary;
+    const domainItems = deliveryReasons.items.filter((item) => !isOperationalDeliveryItem(item));
+    if (domainItems.length > 0) {
+      title = deliveryReasons.toast.summary;
+    }
   } else if (envelope.schemaVersion === "2.0" && envelope.briefing.changeNarrative.length > 0) {
     title = envelope.briefing.changeNarrative[0]?.trim() ?? title;
   }
