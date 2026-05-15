@@ -160,11 +160,26 @@ export function registerBriefWatcher(
     }
     notifiedBriefContentHashes.add(brief.contentHash);
 
-    // Build notification message
+    // Build notification message using the most specific available text
+    const b = brief as BriefModel & {
+      title?: string;
+      deliveryReasons?: { toast?: { summary?: string } };
+    };
+    const toastSummary = b.deliveryReasons?.toast?.summary;
+    const bodyText =
+      toastSummary &&
+      !isPurelyOperationalText(toastSummary) &&
+      !isGenericFallbackText(toastSummary)
+        ? toastSummary
+        : b.title &&
+            !isPurelyOperationalText(b.title) &&
+            !isGenericFallbackText(b.title)
+          ? b.title
+          : brief.summary ?? brief.briefing?.tldr ?? "";
     const message =
       brief.type === "warning"
-        ? `New Kibi Brief: ${brief.summary} (warning)`
-        : `New Kibi Brief: ${brief.summary}`;
+        ? `New Kibi Brief: ${bodyText} (warning)`
+        : `New Kibi Brief: ${bodyText}`;
 
     const shouldNotify = getBriefSpecificity(brief);
     if (!shouldNotify) {

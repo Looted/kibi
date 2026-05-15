@@ -228,6 +228,52 @@ test("registerBriefWatcher still shows specific domain brief notifications", asy
   expect(showInfo).toHaveBeenCalled();
 });
 
+test("registerBriefWatcher uses toastSummary when available for notification body", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  fs.mkdirSync(path.join(workspaceRoot, ".kb", "briefs"), { recursive: true });
+  const briefPath = path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      title: "generic title",
+      summary: "generic summary",
+      deliveryReasons: {
+        toast: {
+          summary: "Specific toast summary for VS Code",
+        },
+      },
+      unread: true,
+    }),
+  );
+
+  const { registerBriefWatcher } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  );
+
+  const result = registerBriefWatcher(
+    context as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  showInfo.mockReset();
+
+  watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 20));
+
+  expect(showInfo).toHaveBeenCalledWith(
+    "New Kibi Brief: Specific toast summary for VS Code",
+    "View Brief",
+    "Dismiss",
+  );
+});
+
 test("registerBriefWatcher ignores briefs marked as read (unread: false)", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
