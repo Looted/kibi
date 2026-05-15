@@ -22,7 +22,10 @@ mock.module("node:child_process", () => ({
   },
 }));
 
-const { buildIndex, queryRelationshipsViaCli } = await import("../src/symbolIndex");
+const symbolIndexModuleNonce = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const { buildIndex, queryRelationshipsViaCli } = await import(
+  `../src/symbolIndex?case=${symbolIndexModuleNonce}`
+);
 
 describe("symbolIndex", () => {
   let tmpDir: string;
