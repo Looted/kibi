@@ -430,6 +430,80 @@ describe("KibiHoverProvider — real module import", () => {
     expect(cliCallCount).toBe(firstCallCount);
   });
 
+  test("provideHover uses default buildMarkdown when only execCli is injected", async () => {
+    writeManifest(`symbols:
+  - id: SYM-001
+    title: myFunc
+    sourceFile: ${testFile}
+    sourceLine: 1
+    links: [REQ-001]
+`);
+
+    const cache = createMockCache();
+    const symbolIndex = buildIndex(manifestPath, tmpDir);
+
+    const mockExecCli = mock((cmd: string) => {
+      if (cmd.includes("--relationships")) {
+        return JSON.stringify([
+          { type: "implements", from: "SYM-001", to: "REQ-001" },
+        ]);
+      }
+
+      return JSON.stringify({
+        id: "REQ-001",
+        title: "Requirement title",
+        status: "accepted",
+        tags: ["traceability"],
+      });
+    });
+
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never, {
+      execCli: mockExecCli,
+    });
+
+    const document = {
+      uri: { fsPath: testFile },
+    };
+    const position = { line: 0, character: 0 };
+    const token = { isCancellationRequested: false };
+
+    const result = await provider.provideHover(
+      document as never,
+      position as never,
+      token as never,
+    );
+
+    expect(result).not.toBeNull();
+  });
+
+  test("provideHover uses default execCli and returns null when CLI command fails", async () => {
+    writeManifest(`symbols:
+  - id: SYM-001
+    title: myFunc
+    sourceFile: ${testFile}
+    sourceLine: 1
+    links: [REQ-001]
+`);
+
+    const cache = createMockCache();
+    const symbolIndex = buildIndex(manifestPath, tmpDir);
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never);
+
+    const document = {
+      uri: { fsPath: testFile },
+    };
+    const position = { line: 0, character: 0 };
+    const token = { isCancellationRequested: false };
+
+    const result = await provider.provideHover(
+      document as never,
+      position as never,
+      token as never,
+    );
+
+    expect(result).toBeNull();
+  });
+
   test("provideHover handles invalid entity ID prefix gracefully", async () => {
     writeManifest(`symbols:
   - id: SYM-001
@@ -611,4 +685,108 @@ describe("KibiHoverProvider — real module import", () => {
     // Should return null due to cancellation
     expect(result).toBeNull();
   });
+
+  test("provideHover reuses inflight relationship lookups across concurrent calls", async () => {
+    writeManifest(`symbols:
+  - id: SYM-001
+    title: myFunc
+    sourceFile: ${testFile}
+    sourceLine: 1
+    links: [REQ-001]
+`);
+
+    const cache = createMockCache();
+    const symbolIndex = buildIndex(manifestPath, tmpDir);
+
+    let relationshipCalls = 0;
+    const mockExecCli = mock((cmd: string) => {
+      if (cmd.includes("--relationships")) {
+        relationshipCalls++;
+        return JSON.stringify([
+          { type: "implements", from: "SYM-001", to: "REQ-001" },
+        ]);
+      }
+
+      return JSON.stringify({
+        id: "REQ-001",
+        title: "Concurrent Req",
+        status: "open",
+        tags: [],
+      });
+    });
+
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never, {
+      execCli: ((cmd: string) => mockExecCli(cmd)) as never,
+      buildMarkdown: () => "# concurrent",
+    });
+
+    const document = {
+      uri: { fsPath: testFile },
+    };
+    const position = { line: 0, character: 0 };
+    const token = { isCancellationRequested: false };
+
+    const [first, second] = await Promise.all([
+      provider.provideHover(document as never, position as never, token as never),
+      provider.provideHover(document as never, position as never, token as never),
+    ]);
+
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+    expect(relationshipCalls).toBe(1);
+  });
 });
+
+  test("provideHover uses default buildHoverMarkdown when not injected", async () => {
+    writeManifest(`symbols:
+  - id: SYM-001
+    title: myFunc
+    sourceFile: ${testFile}
+    sourceLine: 1
+    links: [REQ-001]
+`);
+
+    const cache = createMockCache();
+    const symbolIndex = buildIndex(manifestPath, tmpDir);
+
+    const mockExecCli = mock((cmd: string) => {
+      if (cmd.includes("--relationships")) {
+        return JSON.stringify([
+          { type: "implements", from: "SYM-001", to: "REQ-001" },
+        ]);
+      }
+      return JSON.stringify({
+        id: "REQ-001",
+        title: "Sample Req",
+        status: "open",
+        tags: ["feature"],
+      });
+    });
+
+    // Only inject execCli, NOT buildMarkdown — so default buildHoverMarkdown is used
+    const provider = new KibiHoverProvider(
+      tmpDir,
+      symbolIndex,
+      cache as never,
+      { execCli: mockExecCli } as never,
+    );
+
+    const document = {
+      uri: { fsPath: testFile },
+    };
+    const position = { line: 0, character: 0 };
+    const token = { isCancellationRequested: false };
+
+    const result = await provider.provideHover(
+      document as never,
+      position as never,
+      token as never,
+    );
+    expect(result).not.toBeNull();
+
+    // Default buildHoverMarkdown formats: "# SYM-001" then "`file:line`"
+    const contents = (result as never as { contents: { value: string } }).contents;
+    expect(contents.value).toContain("# SYM-001");
+    expect(contents.value).toContain("REQ-001");
+    expect(contents.value).toContain("[Browse entities](command:kibi.browseLinkedEntities)");
+  });

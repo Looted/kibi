@@ -1,7 +1,5 @@
 /**
  * Extra coverage tests for activation/briefs.ts
- *
- * Covers gating, in-memory dedupe, persistent dedupe, and the "Dismiss" flow
  */
 
 import { afterEach, beforeEach, expect, mock, test } from "bun:test";
@@ -27,52 +25,74 @@ class FakeMemento {
   }
 }
 
+function createBrief(overrides: Record<string, unknown> = {}) {
+  return {
+    schemaVersion: "1.0",
+    briefId: "brief-1",
+    type: "success",
+    sessionId: "session-1",
+    branch: "main",
+    createdAt: new Date().toISOString(),
+    unread: true,
+    auditCursor: {
+      lastTimestamp: "t",
+      lastOperation: "sync",
+      entryCount: 1,
+      fileSize: 10,
+    },
+    summary: "Read me",
+    counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
+    validation: { violations: [], count: 0, diagnostics: [] },
+    briefing: { tldr: "", promptBlock: "", citations: [] },
+    contentHash: "hash-1",
+    ...overrides,
+  };
+}
+
+function writeBriefFile(
+  workspaceRoot: string,
+  filename: string,
+  overrides: Record<string, unknown> = {},
+): string {
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, filename);
+  fs.writeFileSync(briefPath, JSON.stringify(createBrief(overrides)));
+  return briefPath;
+}
+
+function installUriParseMock() {
+  Object.assign(getVscodeMockModule().Uri as unknown as Record<string, unknown>, {
+    parse: (value: string) => ({
+      scheme: "kibi-brief",
+      path: value,
+      fsPath: value,
+      toString: () => value,
+    }),
+  });
+}
+
 beforeEach(() => {
-  // Keep a fresh vscode mock state per-test
   resetVscodeMock();
+  mock.module("kibi-cli/brief-config", () => ({
+    loadBriefConfig: (_workspaceRoot: string) => ({
+      briefs: { enabled: true, channels: { vscode: true } },
+    }),
+  }));
 });
 
 afterEach(() => {
   mock.restore();
 });
 
-test("does not notify when shared brief policy disables briefs", async () => {
-  // Arrange: mock vscode and the external brief-config loader to disable briefs
+test("ignores temp files ending with .tmp", async () => {
   mock.module("vscode", () => getVscodeMockModule());
-  mock.module("kibi-cli/brief-config", () => ({
-    loadBriefConfig: (_workspaceRoot: string) => ({
-      briefs: { enabled: false, channels: { vscode: true } },
-    }),
-  }));
 
   const briefsModule = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
-  const briefsDir = path.join(tmpDir, ".kb", "briefs");
-  fs.mkdirSync(briefsDir, { recursive: true });
-
-  const briefPath = path.join(briefsDir, "1000_brief.json");
-  fs.writeFileSync(
-    briefPath,
-    JSON.stringify({
-      schemaVersion: "1.0",
-      briefId: "brief-1",
-      type: "success",
-      sessionId: "s-1",
-      branch: "develop",
-      createdAt: new Date().toISOString(),
-      unread: true,
-      auditCursor: { lastTimestamp: "t", lastOperation: "sync", entryCount: 1, fileSize: 10 },
-      summary: "Read me",
-      counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
-      validation: { violations: [], count: 0, diagnostics: [] },
-      briefing: { tldr: "", promptBlock: "", citations: [] },
-      contentHash: "hash-1",
-    }),
-  );
-
   const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
     subscriptions: unknown[];
     workspaceState: FakeMemento;
@@ -80,27 +100,52 @@ test("does not notify when shared brief policy disables briefs", async () => {
   const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
 
   const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  const watcher = result.watcher as unknown as { emitCreate: (u: { fsPath: string }) => void };
 
-  // Act: register watcher (startup scan runs asynchronously)
-  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "develop");
-  // allow startup scan / async handlers to run
-  await new Promise((r) => setTimeout(r, 0));
+  watcher.emitCreate({ fsPath: path.join(tmpDir, ".kb", "briefs", "ignored.tmp") });
+  await new Promise((r) => setTimeout(r, 10));
 
-  // Assert: since policy disables briefs we should not show a toast or persist seen hash
   expect(showInfo).not.toHaveBeenCalled();
-  expect(context.workspaceState.get(`kibi.briefs.seen::${tmpDir}::develop`)).toBeUndefined();
+  expect(context.workspaceState.keys()).toEqual([]);
 
-  // cleanup
   fs.rmSync(tmpDir, { recursive: true, force: true });
-  // dispose watcher
   result.dispose();
 });
 
-test("in-memory dedupe suppresses duplicate create/change events", async () => {
+test("returns early when no latest brief exists", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const briefsModule = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
+  const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
+    subscriptions: unknown[];
+    workspaceState: FakeMemento;
+  };
+  const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
+
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  const watcher = result.watcher as unknown as { emitCreate: (u: { fsPath: string }) => void };
+
+  watcher.emitCreate({ fsPath: path.join(tmpDir, ".kb", "briefs", "1000_brief.json") });
+  await new Promise((r) => setTimeout(r, 10));
+
+  expect(showInfo).not.toHaveBeenCalled();
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  result.dispose();
+});
+
+test("does not notify when shared brief policy disables vscode channel", async () => {
+  resetVscodeMock();
   mock.module("vscode", () => getVscodeMockModule());
   mock.module("kibi-cli/brief-config", () => ({
     loadBriefConfig: (_workspaceRoot: string) => ({
-      briefs: { enabled: true, channels: { vscode: true } },
+      briefs: { enabled: true, channels: { vscode: false } },
     }),
   }));
 
@@ -109,116 +154,82 @@ test("in-memory dedupe suppresses duplicate create/change events", async () => {
   );
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
-  const briefsDir = path.join(tmpDir, ".kb", "briefs");
-  fs.mkdirSync(briefsDir, { recursive: true });
-
-  const briefPath = path.join(briefsDir, "1000_brief.json");
-  fs.writeFileSync(
-    briefPath,
-    JSON.stringify({
-      schemaVersion: "1.0",
-      briefId: "brief-dup",
-      type: "success",
-      sessionId: "s-dup",
-      branch: "develop",
-      createdAt: new Date().toISOString(),
-      unread: true,
-      auditCursor: { lastTimestamp: "t", lastOperation: "sync", entryCount: 1, fileSize: 10 },
-      summary: "Duplicate test",
-      counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
-      validation: { violations: [], count: 0, diagnostics: [] },
-      briefing: { tldr: "", promptBlock: "", citations: [] },
-      contentHash: "dup-hash",
-    }),
-  );
-
+  writeBriefFile(tmpDir, "1000_brief.json");
   const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
     subscriptions: unknown[];
     workspaceState: FakeMemento;
   };
   const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
-
   const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
-  showInfo.mockResolvedValue("Dismiss");
 
-  // Ensure the mock's inferred return type is a list of Uri-like objects
-  const findFilesMock = mock(async (_pattern: unknown) => [] as Array<{ fsPath: string }>);
-  Object.assign(getVscodeMockModule().workspace as unknown as Record<string, unknown>, {
-    findFiles: findFilesMock,
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  await new Promise((r) => setTimeout(r, 10));
+
+  expect(showInfo).not.toHaveBeenCalled();
+  expect(context.workspaceState.get(`kibi.briefs.seen::${tmpDir}::main`)).toBeUndefined();
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  result.dispose();
+});
+
+test("persistent dedupe returns early when content hash was already seen", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const briefsModule = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
+  const workspaceState = new FakeMemento();
+  await workspaceState.update(`kibi.briefs.seen::${tmpDir}::main`, "already-seen");
+  const context = { subscriptions: [], workspaceState } as {
+    subscriptions: unknown[];
+    workspaceState: FakeMemento;
+  };
+  const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+
+  const briefPath = writeBriefFile(tmpDir, "1000_brief.json", {
+    contentHash: "already-seen",
   });
-  findFilesMock.mockResolvedValue([{ fsPath: briefPath }]);
-
-  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "develop");
-  // Emit two create events in quick succession
   const watcher = result.watcher as unknown as { emitCreate: (u: { fsPath: string }) => void };
   watcher.emitCreate({ fsPath: briefPath });
-  watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 10));
 
-  // allow handlers to run (give a small scheduling window)
-  await new Promise((r) => setTimeout(r, 20));
-
-  // showInformationMessage should have been called exactly once (in-memory dedupe)
-  expect(showInfo).toHaveBeenCalledTimes(1);
+  expect(showInfo).not.toHaveBeenCalled();
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
   result.dispose();
 });
 
-test("persistent dedupe (workspaceState) prevents repeat notifications", async () => {
+test("startup scan and follow-up file event are deduped in memory", async () => {
   mock.module("vscode", () => getVscodeMockModule());
-  mock.module("kibi-cli/brief-config", () => ({
-    loadBriefConfig: (_workspaceRoot: string) => ({
-      briefs: { enabled: true, channels: { vscode: true } },
-    }),
-  }));
 
   const briefsModule = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
-  const briefsDir = path.join(tmpDir, ".kb", "briefs");
-  fs.mkdirSync(briefsDir, { recursive: true });
-
-  const briefPath = path.join(briefsDir, "1000_brief.json");
-  fs.writeFileSync(
-    briefPath,
-    JSON.stringify({
-      schemaVersion: "1.0",
-      briefId: "brief-persist",
-      type: "success",
-      sessionId: "s-persist",
-      branch: "develop",
-      createdAt: new Date().toISOString(),
-      unread: true,
-      auditCursor: { lastTimestamp: "t", lastOperation: "sync", entryCount: 1, fileSize: 10 },
-      summary: "Persisted test",
-      counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
-      validation: { violations: [], count: 0, diagnostics: [] },
-      briefing: { tldr: "", promptBlock: "", citations: [] },
-      contentHash: "persist-hash",
-    }),
-  );
-
-  const m = new FakeMemento();
-  // Simulate previously seen contentHash stored in workspace state
-  await m.update(`kibi.briefs.seen::${tmpDir}::develop`, "persist-hash");
-
-  const context = { subscriptions: [], workspaceState: m } as {
+  const briefPath = writeBriefFile(tmpDir, "1000_brief.json", {
+    contentHash: "memory-dedupe-hash",
+  });
+  const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
     subscriptions: unknown[];
     workspaceState: FakeMemento;
   };
   const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
-
   const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+  showInfo.mockResolvedValue(undefined);
 
-  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "develop");
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  await new Promise((r) => setTimeout(r, 10));
+
   const watcher = result.watcher as unknown as { emitCreate: (u: { fsPath: string }) => void };
   watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 10));
 
-  await new Promise((r) => setTimeout(r, 20));
-
-  expect(showInfo).not.toHaveBeenCalled();
+  expect(showInfo).toHaveBeenCalledTimes(1);
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
   result.dispose();
@@ -226,6 +237,45 @@ test("persistent dedupe (workspaceState) prevents repeat notifications", async (
 
 test("Dismiss selection marks brief as read without opening document", async () => {
   mock.module("vscode", () => getVscodeMockModule());
+
+  const briefsModule = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
+  const briefPath = writeBriefFile(tmpDir, "1000_brief.json", {
+    briefId: "brief-dismiss",
+    contentHash: "dismiss-hash",
+  });
+  const findFilesMock = mock(async (_pattern: unknown) => [] as Array<{ fsPath: string }>);
+  Object.assign(getVscodeMockModule().workspace as unknown as Record<string, unknown>, {
+    findFiles: findFilesMock,
+  });
+  findFilesMock.mockResolvedValue([{ fsPath: briefPath }]);
+
+  const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
+    subscriptions: unknown[];
+    workspaceState: FakeMemento;
+  };
+  const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+  showInfo.mockResolvedValue("Dismiss");
+  const showTextDocument = getVscodeMockModule().window.showTextDocument as ReturnType<typeof mock>;
+
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  await new Promise((r) => setTimeout(r, 20));
+
+  expect(showTextDocument).not.toHaveBeenCalled();
+  expect(JSON.parse(fs.readFileSync(briefPath, "utf-8")).unread).toBe(false);
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+  result.dispose();
+});
+
+test("View Brief selection opens latest brief and skips invalid JSON while marking read", async () => {
+  resetVscodeMock();
+  installUriParseMock();
+  mock.module("vscode", () => getVscodeMockModule());
   mock.module("kibi-cli/brief-config", () => ({
     loadBriefConfig: (_workspaceRoot: string) => ({
       briefs: { enabled: true, channels: { vscode: true } },
@@ -239,56 +289,90 @@ test("Dismiss selection marks brief as read without opening document", async () 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
   const briefsDir = path.join(tmpDir, ".kb", "briefs");
   fs.mkdirSync(briefsDir, { recursive: true });
+  const invalidPath = path.join(briefsDir, "0500_brief.json");
+  fs.writeFileSync(invalidPath, "{not-json");
+  const briefPath = writeBriefFile(tmpDir, "1000_brief.json", {
+    briefId: "brief-view",
+    contentHash: "view-hash",
+  });
 
-  const briefPath = path.join(briefsDir, "1000_brief.json");
-  fs.writeFileSync(
-    briefPath,
-    JSON.stringify({
-      schemaVersion: "1.0",
-      briefId: "brief-dismiss",
-      type: "success",
-      sessionId: "s-dismiss",
-      branch: "develop",
-      createdAt: new Date().toISOString(),
-      unread: true,
-      auditCursor: { lastTimestamp: "t", lastOperation: "sync", entryCount: 1, fileSize: 10 },
-      summary: "Dismiss test",
-      counts: { requirementsAdded: 0, relationshipsAdded: 0, entitiesDeleted: 0 },
-      validation: { violations: [], count: 0, diagnostics: [] },
-      briefing: { tldr: "", promptBlock: "", citations: [] },
-      contentHash: "dismiss-hash",
-    }),
-  );
+  const findFilesMock = mock(async (_pattern: unknown) => [] as Array<{ fsPath: string }>);
+  Object.assign(getVscodeMockModule().workspace as unknown as Record<string, unknown>, {
+    findFiles: findFilesMock,
+  });
+  findFilesMock.mockResolvedValue([{ fsPath: invalidPath }, { fsPath: briefPath }]);
 
   const context = { subscriptions: [], workspaceState: new FakeMemento() } as {
     subscriptions: unknown[];
     workspaceState: FakeMemento;
   };
   const output = { appendLine: mock((_m: string) => {}) } as { appendLine: (m: string) => void };
-
   const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
-  showInfo.mockResolvedValue("Dismiss");
-
-  // Ensure the mock's inferred return type is a list of Uri-like objects
-  const findFilesMock2 = mock(async (_pattern: unknown) => [] as Array<{ fsPath: string }>);
-  Object.assign(getVscodeMockModule().workspace as unknown as Record<string, unknown>, {
-    findFiles: findFilesMock2,
-  });
-  findFilesMock2.mockResolvedValue([{ fsPath: briefPath }]);
-
+  showInfo.mockResolvedValue("View Brief");
+  const openTextDocument = getVscodeMockModule().workspace.openTextDocument as ReturnType<typeof mock>;
   const showTextDocument = getVscodeMockModule().window.showTextDocument as ReturnType<typeof mock>;
 
-  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "develop");
-  const watcher = result.watcher as unknown as { emitCreate: (u: { fsPath: string }) => void };
-  watcher.emitCreate({ fsPath: briefPath });
+  const result = briefsModule.registerBriefWatcher(context, output, tmpDir, "main");
+  await new Promise((r) => setTimeout(r, 20));
 
-  await new Promise((r) => setTimeout(r, 0));
-
-  // Document should not have been opened (Dismiss) but file unread flag should be cleared
-  expect(showTextDocument).not.toHaveBeenCalled();
-  const updated = JSON.parse(fs.readFileSync(briefPath, "utf-8"));
-  expect(updated.unread).toBe(false);
+  expect(showInfo).toHaveBeenCalledTimes(1);
+  expect(openTextDocument).toHaveBeenCalledTimes(1);
+  expect(showTextDocument).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fs.readFileSync(briefPath, "utf-8")).unread).toBe(false);
+  expect(context.workspaceState.get<string>(`kibi.briefs.seen::${tmpDir}::main`)).toBe("view-hash");
 
   fs.rmSync(tmpDir, { recursive: true, force: true });
   result.dispose();
+});
+
+test("showLatestBriefCommand shows empty-state message when no brief exists", async () => {
+  resetVscodeMock();
+  installUriParseMock();
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const { showLatestBriefCommand } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
+  const workspaceState = new FakeMemento();
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  await showLatestBriefCommand(workspaceState as never, tmpDir, "main");
+
+  expect(showInfo).toHaveBeenCalledWith("No Kibi briefs available for this branch.");
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
+
+test("showLatestBriefCommand opens latest brief and marks it read", async () => {
+  resetVscodeMock();
+  installUriParseMock();
+  mock.module("vscode", () => getVscodeMockModule());
+
+  const { showLatestBriefCommand } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
+  );
+
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-"));
+  const briefsDir = path.join(tmpDir, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  fs.writeFileSync(path.join(briefsDir, "0100_brief.json"), "{bad-json");
+  const briefPath = writeBriefFile(tmpDir, "1000_brief.json", {
+    briefId: "brief-command",
+    contentHash: "command-hash",
+  });
+
+  const workspaceState = new FakeMemento();
+  const openTextDocument = getVscodeMockModule().workspace.openTextDocument as ReturnType<typeof mock>;
+  const showTextDocument = getVscodeMockModule().window.showTextDocument as ReturnType<typeof mock>;
+
+  await showLatestBriefCommand(workspaceState as never, tmpDir, "main");
+
+  expect(openTextDocument).toHaveBeenCalledTimes(1);
+  expect(showTextDocument).toHaveBeenCalledTimes(1);
+  expect(JSON.parse(fs.readFileSync(briefPath, "utf-8")).unread).toBe(false);
+  expect(workspaceState.get<string>(`kibi.briefs.seen::${tmpDir}::main`)).toBe("command-hash");
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 });

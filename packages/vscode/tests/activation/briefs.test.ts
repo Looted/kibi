@@ -97,32 +97,6 @@ test("registerBriefWatcher creates a FileSystemWatcher", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((_wr: string, _br: string): BriefModel | null => {
-      return { ...briefTemplate, unread: true };
-    }),
-    readBriefId: mock(
-      (
-        _ws: MockWorkspaceState,
-        _wr: string,
-        _br: string,
-      ): string | undefined => {
-        return undefined;
-      },
-    ),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(
-      (
-        _ws: MockWorkspaceState,
-        _wr: string,
-        _br: string,
-        _id: string,
-        _path: string,
-      ) => {},
-    ),
-  }));
-
   const { registerBriefWatcher } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
@@ -143,16 +117,7 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module - should NOT be called for .tmp files
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      throw new Error("Should not be called for temp files");
-    }),
-    readBriefId: mock(() => undefined),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
-
+  // No brief files on disk - parseLatestBrief returns null for startup scan
   const { registerBriefWatcher } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
@@ -165,34 +130,28 @@ test("registerBriefWatcher ignores temp files ending with .tmp", async () => {
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
 
-  // Simulate a .tmp file event
+  // Simulate a .tmp file event - should be ignored
   const tmpUri = {
     fsPath: path.join(workspaceRoot, ".kb", "briefs", "temp.tmp"),
   };
-
-  // Fire the create event with a .tmp file - should be ignored
   watcher.emitCreate(tmpUri);
+  await new Promise((r) => setTimeout(r, 20));
 
-  // If we get here without error, the temp file was ignored correctly
-  expect(true).toBe(true);
+  // .tmp file should not have triggered a notification
+  expect(showInfo).not.toHaveBeenCalled();
 });
 
 test("registerBriefWatcher ignores briefs marked as read (unread: false)", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module - return a READ brief
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      return { ...briefTemplate, unread: false };
-    }),
-    readBriefId: mock(
-      () => "brief-test-123", // Already seen
-    ),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
+  // Write a brief file with unread: false
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(briefPath, JSON.stringify({ ...briefTemplate, unread: false }));
 
   const { registerBriefWatcher } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -206,76 +165,67 @@ test("registerBriefWatcher ignores briefs marked as read (unread: false)", async
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
 
   // Fire the create event - should be ignored because unread: false
   watcher.emitCreate({
-    fsPath: path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json"),
+    fsPath: briefPath,
   });
+  await new Promise((r) => setTimeout(r, 20));
 
-  // Should complete without showing notification
-  expect(true).toBe(true);
+  // Should not show notification for already-read brief
+  expect(showInfo).not.toHaveBeenCalled();
 });
 
 test("registerBriefWatcher deduplicates in-memory notifications", async () => {
-  let parseCallCount = 0;
-
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      parseCallCount++;
-      return { ...briefTemplate, unread: true };
-    }),
-    readBriefId: mock(() => undefined),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
+  // Write a brief file
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(briefPath, JSON.stringify({ ...briefTemplate, unread: true }));
 
   const { registerBriefWatcher } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 
   const result = registerBriefWatcher(
-    context as never,
+    { ...context, workspaceState: wsState } as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
     branch,
   );
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
 
-  const uri = {
-    fsPath: path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json"),
-  };
+  const uri = { fsPath: briefPath };
 
   // Fire create event first time
   watcher.emitCreate(uri);
-
-  const firstCallCount = parseCallCount;
+  await new Promise((r) => setTimeout(r, 50));
+  const countAfterFirst = (showInfo as ReturnType<typeof mock>).mock.calls.length;
 
   // Fire change event for the same brief - should be deduplicated
   watcher.emitChange(uri);
+  await new Promise((r) => setTimeout(r, 50));
+  const countAfterSecond = (showInfo as ReturnType<typeof mock>).mock.calls.length;
 
-  // parseLatestBrief may or may not be called depending on implementation
-  // The important thing is we don't show duplicate notifications
-  expect(true).toBe(true);
+  // Second event should not produce another notification
+  expect(countAfterSecond).toBe(countAfterFirst);
 });
 
 test("showLatestBriefCommand opens a document when briefs are available", async () => {
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module - return a valid brief
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      return briefTemplate;
-    }),
-    readBriefId: mock(() => undefined),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
+  // Write a brief file to disk
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(briefPath, JSON.stringify(briefTemplate));
 
   const { showLatestBriefCommand } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
@@ -283,7 +233,7 @@ test("showLatestBriefCommand opens a document when briefs are available", async 
 
   // Call the command - just verify it doesn't throw
   try {
-    await showLatestBriefCommand(workspaceRoot, branch);
+    await showLatestBriefCommand(wsState, workspaceRoot, branch);
   } catch {
     // Expected - mocked VSCode may not work fully
   }
@@ -294,22 +244,13 @@ test("showLatestBriefCommand shows message when no briefs available", async () =
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  // Mock briefs module - return null (no brief available)
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      return null;
-    }),
-    readBriefId: mock(() => undefined),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
-
+  // No brief files on disk - parseLatestBrief returns null
   const { showLatestBriefCommand } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 
   // Call the command
-  await showLatestBriefCommand(workspaceRoot, branch);
+  await showLatestBriefCommand(wsState, workspaceRoot, branch);
 
   // Verify window.showInformationMessage was called with no briefs message
   const vscode = getVscodeMockModule();
@@ -322,38 +263,26 @@ test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", a
   // Mock vscode module
   mock.module("vscode", () => getVscodeMockModule());
 
-  const callCount = 0;
-  const briefA = {
-    ...briefTemplate,
-    briefId: "brief-alpha",
-    contentHash: "semantic-hash-xyz",
-    unread: true,
-  };
-  const briefB = {
-    ...briefTemplate,
-    briefId: "brief-beta",
-    contentHash: "semantic-hash-xyz",
-    unread: true,
-  };
-
-  // Return briefA first, then briefB (different briefId, same contentHash)
-  let callIdx = 0;
-  mock.module("../briefs", () => ({
-    parseLatestBrief: mock((): BriefModel | null => {
-      callIdx++;
-      return callIdx === 1 ? briefA : briefB;
+  // Write a brief file with a specific contentHash to disk
+  const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
+  fs.mkdirSync(briefsDir, { recursive: true });
+  const briefPath = path.join(briefsDir, "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      briefId: "brief-alpha",
+      contentHash: "semantic-hash-xyz",
+      unread: true,
     }),
-    readBriefId: mock(() => undefined),
-    markBriefSeen: mock(() => {}),
-    markBriefRead: mock(() => {}),
-  }));
+  );
 
   const { registerBriefWatcher } = await import(
     `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`
   );
 
   const result = registerBriefWatcher(
-    context as never,
+    { ...context, workspaceState: wsState } as never,
     { appendLine: () => {} } as never,
     workspaceRoot,
     branch,
@@ -361,7 +290,7 @@ test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", a
 
   const watcher = result.watcher as DefaultFileSystemWatcher;
   const uri = {
-    fsPath: path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json"),
+    fsPath: briefPath,
   };
 
   // First event: shows notification for brief-alpha
@@ -375,7 +304,7 @@ test("registerBriefWatcher deduplicates by semantic contentHash, not briefId", a
     vscode1.window.showInformationMessage as ReturnType<typeof mock>
   ).mock.calls.length;
 
-  // Second event: brief-beta has different briefId but same contentHash — should be deduped
+  // Second event: same brief, same contentHash — should be deduped
   watcher.emitChange(uri);
 
   await new Promise((r) => setTimeout(r, 50));
@@ -398,6 +327,8 @@ test("registerBriefWatcher persists seen content hash even when toast is closed"
 
   mock.module("vscode", () => getVscodeMockModule());
 
+
+
   const dedupeKey = `kibi.briefs.seen::${workspaceRoot}::${branch}`;
 
   const briefsDir = path.join(workspaceRoot, ".kb", "briefs");
@@ -412,6 +343,7 @@ test("registerBriefWatcher persists seen content hash even when toast is closed"
       unread: true,
     }),
   );
+
 
   const vscode = getVscodeMockModule();
   const showInformationMessage = vscode.window

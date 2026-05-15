@@ -358,6 +358,87 @@ describe("provideTextDocumentContent", () => {
     expect(result).toContain("## What changed");
   });
 
+  test("ignores malformed brief JSON files when finding a matching brief", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    fs.writeFileSync(path.join(briefsDir, "broken_brief.json"), "{not-json");
+    fs.writeFileSync(
+      path.join(briefsDir, "real-brief_brief.json"),
+      JSON.stringify(createBrief({ briefId: "real-brief" })),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/real-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("# Kibi Brief:");
+    expect(result).toContain("## What changed");
+  });
+
+  test("uses prompt block for What changed when tldr and summary are absent", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "promptblock-what-changed",
+      summary: "",
+      briefing: {
+        tldr: "",
+        promptBlock: "Prompt block fallback",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "promptblock-what-changed_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/promptblock-what-changed.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## What changed\nPrompt block fallback");
+  });
+
+  test("uses default What changed fallback when brief has no summary text", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "default-what-changed",
+      summary: "",
+      briefing: {
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "default-what-changed_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/default-what-changed.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain(
+      "## What changed\nKnowledge updates were recorded in this brief.",
+    );
+  });
+
   test("uses v2 change narrative for What changed when present", () => {
     const briefsDir = path.join(tmpDir, ".kb", "briefs");
     fs.mkdirSync(briefsDir, { recursive: true });
@@ -425,5 +506,233 @@ describe("provideTextDocumentContent", () => {
 describe("BriefDocumentProvider.scheme", () => {
   test("scheme is kibi-brief", () => {
     expect(BriefDocumentProvider.scheme).toBe("kibi-brief");
+  });
+});
+
+describe("onDidChange", () => {
+  test("registers event listener and returns disposable", () => {
+    const provider = new BriefDocumentProvider();
+    const listener = mock(() => {});
+    const disposable = provider.onDidChange(listener);
+    expect(disposable).toBeDefined();
+    expect(typeof disposable.dispose).toBe("function");
+    disposable.dispose();
+  });
+});
+
+describe("onDidChange event firing", () => {
+  test("fires event and listener receives the URI", () => {
+    const provider = new BriefDocumentProvider();
+    const received: string[] = [];
+    const disposable = provider.onDidChange((uri: any) => {
+      received.push(uri.toString());
+    });
+
+    // Fire event through the private emitter
+    const emitter = (provider as any)._onDidChange;
+    emitter.fire({ toString: () => "kibi-brief://test-uri" });
+
+    expect(received.length).toBe(1);
+    expect(received[0]).toBe("kibi-brief://test-uri");
+    disposable.dispose();
+  });
+});
+
+describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
+  test("renders constraints section when constraints present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "constraints-brief",
+      briefing: {
+        citations: [{ id: "REQ-001", title: "Auth" }],
+        constraints: [
+          { statement: "All logins require 2FA", citationIds: ["REQ-001"] },
+        ],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "constraints-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/constraints-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("### Constraints now reflected");
+    expect(result).toContain("- All logins require 2FA (REQ-001)");
+  });
+
+  test("renders regression risks section when risks present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "risks-brief",
+      briefing: {
+        citations: [{ id: "REQ-002", title: "Perf" }],
+        regressionRisks: [
+          { statement: "Cache invalidation may cause latency spike", citationIds: ["REQ-002"] },
+        ],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "risks-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/risks-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("### Regression considerations");
+    expect(result).toContain("- Cache invalidation may cause latency spike (REQ-002)");
+  });
+
+  test("renders violations with suggestion", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "violations-brief",
+    });
+    brief.validation.violations.push({
+      rule: "no-dangling-refs",
+      entityId: "REQ-999",
+      description: "Requirement has no linked test",
+      suggestion: "Add a TEST entity linked to REQ-999",
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "violations-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/violations-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("## Interpretation note");
+    expect(result).toContain("- no-dangling-refs on REQ-999: Requirement has no linked test");
+    expect(result).toContain("(Add a TEST entity linked to REQ-999)");
+  });
+
+  test("renders violation without suggestion", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "no-suggest-brief",
+    });
+    brief.validation.violations.push({
+      rule: "missing-evidence",
+      entityId: "SYM-001",
+      description: "Symbol has no requirement",
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "no-suggest-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/no-suggest-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("- missing-evidence on SYM-001: Symbol has no requirement");
+  });
+
+  test("renders Why it matters with tldr-only message (no promptBlock)", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "why-tldr-only-brief",
+      briefing: {
+        tldr: "Some meaningful update",
+        promptBlock: "",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "why-tldr-only-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/why-tldr-only-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("This update refines how the project knowledge should be interpreted");
+  });
+
+  test("renders Why it matters default message (no tldr, no promptBlock)", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "why-default-msg-brief",
+      briefing: {
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "why-default-msg-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/why-default-msg-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("This brief captures the latest project knowledge state");
+  });
+
+  test("renders What changed using summary fallback", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "summary-fallback-brief",
+      summary: "Summary-level description of changes",
+      briefing: {
+        tldr: "",
+        promptBlock: "",
+        citations: [],
+      },
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "summary-fallback-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/summary-fallback-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("Summary-level description of changes");
   });
 });
