@@ -34,7 +34,7 @@ export interface TuiBriefViewModel {
   whatChanged: string[];
 
   /** "Why it matters" section content */
-  whyItMatters: string;
+  whyItMatters: string | undefined;
 
   /** Project knowledge impact section (citations, constraints, risks) */
   knowledgeImpact: {
@@ -68,18 +68,23 @@ export interface TuiBriefViewModel {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-function firstNonEmpty(...values: Array<string | undefined>): string {
+function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
   for (const value of values) {
     const trimmed = value?.trim();
     if (trimmed) {
       return trimmed;
     }
   }
-  return "Knowledge updates were recorded in this brief.";
+  return undefined;
 }
 
-function defaultWhyItMatters(): string {
-  return "This update changes how the project knowledge should be interpreted and applied.";
+function isOperationalDeliveryItem(item: { entityIds: string[] }): boolean {
+  if (item.entityIds.length === 0) return false;
+  return item.entityIds.every((id) => {
+    const dashIdx = id.indexOf("-");
+    if (dashIdx < 0) return false;
+    return /\.[a-zA-Z0-9]+$/.test(id.slice(dashIdx + 1));
+  });
 }
 
 function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
@@ -88,12 +93,18 @@ function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
   };
   const deliveryReasons = briefing.deliveryReasons;
   if (deliveryReasons?.items?.length) {
-    return deliveryReasons.items.map((item) => item.text);
+    const domainItems = deliveryReasons.items.filter(
+      (item) => !isOperationalDeliveryItem(item),
+    );
+    if (domainItems.length > 0) {
+      return domainItems.map((item) => item.text);
+    }
   }
   if (envelope.schemaVersion === "2.0") {
     const narrative = envelope.briefing.changeNarrative
       .map((line) => line.trim())
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((line) => !line.includes(".sisyphus/"));
     if (narrative.length > 0) {
       return narrative.slice(0, 2);
     }
@@ -107,7 +118,8 @@ function deriveWhatChanged(envelope: IdleBriefEnvelope): string[] {
       ];
     }
   }
-  return [firstNonEmpty(envelope.summary, envelope.briefing.tldr)];
+  const fallback = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+  return fallback ? [fallback] : [];
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────
@@ -129,7 +141,7 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
     deliveryReasons?: DeliveryReasons;
   };
   const deliveryReasons = briefing.deliveryReasons;
-  let title = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+  let title: string | undefined = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
   if (deliveryReasons?.items?.length) {
     title = deliveryReasons.toast.summary;
   } else if (envelope.schemaVersion === "2.0" && envelope.briefing.changeNarrative.length > 0) {
@@ -144,11 +156,11 @@ export function buildTuiBriefViewModel( // implements REQ-opencode-kibi-briefing
     type: envelope.type,
     unread: envelope.unread,
     contentHash: envelope.contentHash,
-    title,
+    title: title ?? "Kibi Brief",
     whatChanged: deriveWhatChanged(envelope),
     whyItMatters: deliveryReasons?.items?.length
-      ? deliveryReasons.toast.whyItMatters
-      : defaultWhyItMatters(),
+      ? deliveryReasons.toast.whyItMatters || undefined
+      : undefined,
     knowledgeImpact: {
       citations: envelope.briefing.citations,
       constraints: envelope.briefing.constraints ?? [],
@@ -210,9 +222,11 @@ export function buildTuiBriefSummary(envelope: IdleBriefEnvelope): string { // i
   lines.push("");
 
   // Why it matters
-  lines.push("## Why it matters");
-  lines.push(defaultWhyItMatters());
-  lines.push("");
+  if (deliveryReasons?.items?.length) {
+    lines.push("## Why it matters");
+    lines.push(deliveryReasons.toast.whyItMatters || "");
+    lines.push("");
+  }
 
   // Project knowledge impact
   const hasKnowledgeImpact =
