@@ -99,25 +99,27 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
   return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items), whyItMatters: toastWhy(items) } };
 }
 
-export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] | undefined { // implements REQ-opencode-kibi-briefing-v6
-  const allItemsOperational =
-    reasons.items.length > 0 &&
-    reasons.items.every((item) => {
-      if (item.entityIds.length === 0) return false;
-      return item.entityIds.every((id) => {
-        const dashIdx = id.indexOf("-");
-        if (dashIdx < 0) return false;
-        const name = id.slice(dashIdx + 1);
-        // Entity names with file extensions are likely from operational artifact files
-        return /\.[a-zA-Z0-9]+$/.test(name);
-      });
-    });
+function isOperationalItem(item: ReasonItem): boolean {
+  if (item.entityIds.length === 0) return false;
+  return item.entityIds.every((id) => {
+    const dashIdx = id.indexOf("-");
+    if (dashIdx < 0) return false;
+    const name = id.slice(dashIdx + 1);
+    // Entity names with file extensions are likely from operational artifact files
+    return /\.[a-zA-Z0-9]+$/.test(name);
+  });
+}
 
-  if (allItemsOperational) {
+export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] | undefined { // implements REQ-opencode-kibi-briefing-v6
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i));
+  if (domainItems.length === 0) {
     return undefined; // suppress: specific-or-silent policy
   }
-
-  return reasons.toast;
+  return {
+    title: "Kibi Knowledge Update",
+    summary: toastSummary(domainItems),
+    whyItMatters: toastWhy(domainItems),
+  };
 }
 
 export function renderFullBriefReasons(reasons: DeliveryReasons): string { // implements REQ-opencode-kibi-briefing-v6

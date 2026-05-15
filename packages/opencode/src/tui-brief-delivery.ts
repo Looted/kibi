@@ -48,19 +48,16 @@ export type DeliverResult = {
   delivered: boolean;
 };
 
-function firstNonEmpty(...values: Array<string | undefined>): string {
+function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
   for (const value of values) {
     const trimmed = value?.trim();
     if (trimmed) {
       return trimmed;
     }
   }
-  return "Knowledge updates were recorded in this brief.";
+  return undefined;
 }
 
-function defaultWhyItMatters(): string {
-  return "This update changes how the project knowledge should be interpreted and applied.";
-}
 
 function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   const lines: string[] = [];
@@ -87,21 +84,23 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
       const action = envelope.changes.entities.modified[0] ? "Modified" : "Added";
       lines.push(`${action} ${fallbackEntity.id}: ${fallbackEntity.title ?? "Untitled"}`);
     } else {
-      lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+      const fallback = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+      if (fallback) lines.push(fallback);
     }
   } else {
-    lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+    const fallback = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+    if (fallback) lines.push(fallback);
   }
   lines.push("");
 
-  lines.push("## Why it matters");
-  lines.push(
-    firstNonEmpty(
-      deliveryReasons?.items?.length ? renderedToast?.whyItMatters : undefined,
-      defaultWhyItMatters(),
-    ),
+  const whyItMatters = firstNonEmpty(
+    deliveryReasons?.items?.length ? renderedToast?.whyItMatters : undefined,
   );
-  lines.push("");
+  if (whyItMatters) {
+    lines.push("## Why it matters");
+    lines.push(whyItMatters);
+    lines.push("");
+  }
 
   const hasKnowledgeImpact =
     envelope.briefing.citations.length > 0 ||
