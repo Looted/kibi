@@ -68,12 +68,14 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
     deliveryReasons?: DeliveryReasons;
   };
   const deliveryReasons = briefing.deliveryReasons;
-  const whatChanged =
-    deliveryReasons?.items?.length
-      ? [renderToastSummary(deliveryReasons).summary]
-      : envelope.schemaVersion === "2.0"
-      ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
-      : [];
+  const renderedToast = deliveryReasons?.items?.length
+    ? renderToastSummary(deliveryReasons)
+    : undefined;
+  const whatChanged = renderedToast
+    ? [renderedToast.summary]
+    : envelope.schemaVersion === "2.0"
+    ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
+    : [];
 
   lines.push("## What changed");
   if (whatChanged.length > 0) {
@@ -95,7 +97,7 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   lines.push("## Why it matters");
   lines.push(
     firstNonEmpty(
-      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons).whyItMatters : undefined,
+      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons)?.whyItMatters : undefined,
       defaultWhyItMatters(),
     ),
   );
@@ -188,7 +190,11 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
   };
   const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
 
-  if (hasDeliveryReasons) return false;
+  if (hasDeliveryReasons) {
+    const toast = briefing.deliveryReasons ? renderToastSummary(briefing.deliveryReasons) : undefined;
+    if (toast === undefined) return true; // all operational → no-op
+    return false;
+  }
 
   // Generic operational envelope: same summary/tldr, no deliveryReasons, no impact
   const isGenericOperational =

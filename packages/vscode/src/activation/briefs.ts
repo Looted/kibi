@@ -71,8 +71,8 @@ function isPurelyOperationalText(text: string | undefined): boolean {
   const normalized = text.trim();
   if (!normalized) return false;
   return (
-    (normalized.includes(".sisyphus/") || normalized.includes("boulder.json")) &&
-    !/[a-z0-9]{2,}/i.test(normalized.replace(/\.sisyphus\/[\w./-]*/g, "").replace(/boulder\.json/g, ""))
+    normalized.includes(".sisyphus/") &&
+    !/[a-z0-9]{2,}/i.test(normalized.replace(/\.sisyphus\/[\w./-]*/g, ""))
   );
 }
 

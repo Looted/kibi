@@ -141,6 +141,6 @@ describe("brief-delivery-reasons", () => {
       },
     };
 
-    expect(renderToastSummary(genericReasons).summary).not.toContain("boulder.json");
+    expect(renderToastSummary(genericReasons)).toBeUndefined();
   });
 });

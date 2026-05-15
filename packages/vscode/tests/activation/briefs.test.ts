@@ -153,7 +153,7 @@ test("registerBriefWatcher suppresses noisy operational-only brief notifications
     briefPath,
     JSON.stringify({
       ...briefTemplate,
-      title: "boulder.json",
+      title: ".sisyphus/briefs/run-1/boulder.json",
       summary: ".sisyphus/briefs/run-1/boulder.json",
       briefing: {
         ...briefTemplate.briefing,
