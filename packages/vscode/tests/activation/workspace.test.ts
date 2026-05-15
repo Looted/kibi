@@ -185,7 +185,7 @@ test("_setWorkspaceFsDepsForTests overrides readFileSync used by getCurrentBranc
   );
   _setWorkspaceFsDepsForTests({
     existsSync: stableFsModule.existsSync,
-    readFileSync: fakeReadFileSync as typeof fs.readFileSync,
+    readFileSync: fakeReadFileSync as unknown as typeof fs.readFileSync,
   });
 
   const branch = getCurrentBranch(tmpDir);
@@ -210,7 +210,7 @@ test("_resetWorkspaceFsDepsForTests restores real fs functions", async () => {
   );
   _setWorkspaceFsDepsForTests({
     existsSync: stableFsModule.existsSync,
-    readFileSync: fakeReadFileSync as typeof fs.readFileSync,
+    readFileSync: fakeReadFileSync as unknown as typeof fs.readFileSync,
   });
 
   // Verify override is active

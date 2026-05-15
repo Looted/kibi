@@ -54,8 +54,13 @@ mock.module("../src/symbolIndex", () => ({
 // ---------------------------------------------------------------------------
 // Import real classes AFTER mocks are registered
 // ---------------------------------------------------------------------------
-const { KibiCodeLensProvider } = await import("../src/codeLensProvider");
-const { RelationshipCache } = await import("../src/relationshipCache");
+const moduleNonce = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const { KibiCodeLensProvider } = await import(
+  `../src/codeLensProvider?case=${moduleNonce}`
+);
+const { RelationshipCache } = await import(
+  `../src/relationshipCache?case=${moduleNonce}`
+);
 // Capture the workspace object that Bun snapshots into vscode.workspace inside
 // codeLensProvider.ts at `import * as vscode from "vscode"` time.  Bun freezes
 // the namespace at first import so resetVscodeMock workspace overrides do NOT
