@@ -203,18 +203,10 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
     return false;
   }
 
-  // Generic operational envelope: same summary/tldr, no deliveryReasons, no impact
-  const isGenericOperational =
-    envelope.validation.count === 0 &&
-    !hasSignificantBriefingImpact(envelope) &&
-    envelope.summary.trim() === envelope.briefing.tldr.trim() &&
-    envelope.summary.trim().length > 0;
-
   return (
-    (zeroCounts &&
-      envelope.validation.count === 0 &&
-      !hasSignificantBriefingImpact(envelope)) ||
-    isGenericOperational
+    zeroCounts &&
+    envelope.validation.count === 0 &&
+    !hasSignificantBriefingImpact(envelope)
   );
 }
 

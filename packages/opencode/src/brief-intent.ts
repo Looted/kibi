@@ -78,10 +78,10 @@ export function deriveBriefIntent(
   params: BriefIntentParams,
 ): BriefIntentResult {
   const sortedSourceFiles = sortAndDedup(params.sourceFiles);
-  const fingerprint = `brief:${params.workspaceRoot}\0${params.branch}\0${params.riskClass}\0${sortedSourceFiles.join("\0")}`;
   const nonOperationalSourceFiles = sortedSourceFiles.filter(
     (f) => !isOperationalArtifactPath(f),
   );
+  const fingerprint = `brief:${params.workspaceRoot}\0${params.branch}\0${params.riskClass}\0${nonOperationalSourceFiles.join("\0")}`;
   const seedIds = deriveSeedIds(params);
 
   if (sortedSourceFiles.length === 0) {
