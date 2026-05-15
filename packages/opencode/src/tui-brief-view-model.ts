@@ -13,6 +13,7 @@ import type {
   IdleBriefCitation,
   IdleBriefEnvelope,
   IdleBriefStatement,
+  ReasonItem,
 } from "./idle-brief-store.js";
 import { renderFullBriefReasons, renderToastSummary } from "./brief-delivery-reasons.js";
 
@@ -78,7 +79,7 @@ function firstNonEmpty(...values: Array<string | undefined>): string | undefined
   return undefined;
 }
 
-function isOperationalByEntityIds(item: { entityIds: string[] }): boolean {
+function isOperationalByEntityIds(item: ReasonItem): boolean {
   if (item.entityIds.length === 0) return false;
   return item.entityIds.every((id) => {
     const dashIdx = id.indexOf("-");
@@ -87,7 +88,7 @@ function isOperationalByEntityIds(item: { entityIds: string[] }): boolean {
   });
 }
 
-function isOperationalDeliveryItem(item: { kind: string; entityIds: string[] }, allItems: { kind: string; entityIds: string[] }[]): boolean {
+function isOperationalDeliveryItem(item: ReasonItem, allItems: ReasonItem[]): boolean {
   if (item.kind === "relationship_changed") {
     // relationship_changed items have no entityIds; treat as operational when
     // all entity-level items in the set are operational (they're relationship side-effects)
