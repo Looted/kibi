@@ -244,6 +244,23 @@ If you're on an old version, upgrade when a patch is available. Do not repeatedl
 
 ---
 
+### Interpreting Sync Failures in OpenCode
+
+When a background sync fails in OpenCode, the plugin logs an operational error with diagnostic metadata. To debug these failures, check the structured logs for the following fields:
+
+- `syncStdout`: The captured standard output from the kibi sync command.
+- `syncStderr`: The captured standard error from the kibi sync command. Often contains SWI-Prolog errors or file permission issues.
+- `syncErrorMessage`: The underlying system error message if the command failed to execute.
+
+**Idle Sync Suppression**: To prevent terminal noise, the plugin suppresses background sync attempts triggered by session idle after a `scheduler_sync_failed` event is latched for the session. Syncs will still be attempted when you edit files or execute tools, which provides opportunities for recovery once the underlying issue is fixed.
+
+To verify behavior or capture detailed logs, start OpenCode with stderr redirection:
+```bash
+opencode 2> opencode-debug.log
+```
+
+Look for entries prefixed with `[kibi-opencode]` and check for the `scheduler_sync_failed` cause in the runtime overlay metadata.
+
 ## Recovery Steps Summary
 For installation issues, see [install guide](install.md).
 

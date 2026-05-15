@@ -612,6 +612,8 @@ relationship:
 
 `executable_for` is frozen to executable test code identity only (`symbol -> test`).
 
+For the canonical symbol taxonomy, integration/e2e N/A rubric, and anti-blanket requirement checklist, see [Symbol Traceability Taxonomy](symbol-traceability-taxonomy.md).
+
 **constrained_by**
 ```yaml
 # symbol SYM-001 constrained_by adr ADR-001

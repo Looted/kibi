@@ -24,3 +24,10 @@ coveragePathIgnorePatterns = [
   # Prolog codec (plain JS, not TS source)
   "**/prolog/codec.js",
 ]
+
+# Coverage thresholds are enforced by CI quality gates outside Bun's per-file thresholding.
+
+[jsx]
+runtime = "classic"
+factory = "h"
+fragment = "Fragment"

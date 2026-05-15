@@ -11,6 +11,8 @@ tags:
   - unit
 links:
   - type: validates
+    target: REQ-cli-query
+  - type: validates
     target: SCEN-006
 ---
 

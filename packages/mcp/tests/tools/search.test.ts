@@ -104,4 +104,77 @@ describe("MCP search tool handler", () => {
     expect(result.structuredContent?.results[0]?.entity.id).toBe("REQ-404");
     expect(result.content[0]?.text).toContain("REQ-404");
   });
+
+  test("returns improved ranking for broad synthetic corpus queries", async () => {
+    await fs.writeFile(
+      path.join(
+        workspaceRoot,
+        "documentation",
+        "requirements",
+        "REQ-search-revenuecat-entitlement.md",
+      ),
+      "---\nid: REQ-search-revenuecat-entitlement\ntitle: RevenueCat entitlement restore\nstatus: open\n---\n\nPremium entitlement recovery for logged out users.\n",
+    );
+    await fs.writeFile(
+      path.join(
+        workspaceRoot,
+        "documentation",
+        "requirements",
+        "FACT-search-apple-signin-revenuecat-recovery.md",
+      ),
+      "---\nid: FACT-search-apple-signin-revenuecat-recovery\ntitle: Apple Sign-In RevenueCat recovery\nstatus: open\n---\n\nApple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in.\n",
+    );
+    await fs.writeFile(
+      path.join(
+        workspaceRoot,
+        "documentation",
+        "requirements",
+        "FACT-search-unrelated-sync-feedback.md",
+      ),
+      "---\nid: FACT-search-unrelated-sync-feedback\ntitle: Sync feedback note\nstatus: open\n---\n\nAn unrelated sync feedback artifact.\n",
+    );
+
+    const query = mock(async () => ({
+      success: true,
+      bindings: {
+        Results:
+          '[[FACT-search-apple-signin-revenuecat-recovery,req,[title="Apple Sign-In RevenueCat recovery",status=open,source="documentation/requirements/FACT-search-apple-signin-revenuecat-recovery.md"]],[REQ-search-revenuecat-entitlement,req,[title="RevenueCat entitlement restore",status=open,source="documentation/requirements/REQ-search-revenuecat-entitlement.md"]],[FACT-search-unrelated-sync-feedback,req,[title="Sync feedback note",status=open,source="documentation/requirements/FACT-search-unrelated-sync-feedback.md"]]]',
+      },
+    }));
+
+    const prolog = { query } as unknown as PrologProcess;
+    const result = await handleKbSearch(prolog, {
+      query:
+        "Apple Sign-In authentication premium recovery RevenueCat entitlement logged out unable to log in",
+      limit: 10,
+    });
+
+    expect(result.structuredContent?.results[0]?.entity.id).toBe(
+      "FACT-search-apple-signin-revenuecat-recovery",
+    );
+    expect(result.structuredContent?.results.map((r) => r.entity.id)).toContain(
+      "REQ-search-revenuecat-entitlement",
+    );
+    expect(
+      result.structuredContent?.results.some(
+        (r) => r.entity.id === "FACT-search-unrelated-sync-feedback",
+      ),
+    ).toBe(false);
+  });
+
+  test("returns no results for no-signal queries", async () => {
+    const query = mock(async () => ({
+      success: true,
+      bindings: { Results: "[]" },
+    }));
+
+    const prolog = { query } as unknown as PrologProcess;
+    const result = await handleKbSearch(prolog, {
+      query: "to in out log logged unable",
+    });
+
+    expect(result.structuredContent?.count).toBe(0);
+    expect(result.structuredContent?.results).toHaveLength(0);
+    expect(result.content[0]?.text).toContain("No search results");
+  });
 });

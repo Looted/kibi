@@ -4,6 +4,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import {
   markBriefRead,
+  selectLatestPersistedBrief,
   selectLatestUnreadBrief,
 } from "../src/idle-brief-reader";
 import type {
@@ -382,6 +383,85 @@ describe("idle-brief-reader", () => {
           "Added requirement REQ-001: Test requirement",
         ]);
       }
+    });
+  });
+
+  describe("selectLatestPersistedBrief", () => {
+    it("selects the latest persisted brief regardless of read status", () => {
+      writeBrief(1000, makeBriefV1({ briefId: "brief-1", unread: true }));
+      writeBrief(2000, makeBriefV1({ briefId: "brief-2", unread: false }));
+      writeBrief(3000, makeBriefV1({ briefId: "brief-3", unread: false }));
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-3");
+      expect(result?.filePath).toBe(path.join(briefsDir, "3000_brief.json"));
+    });
+
+    it("selects latest brief when all briefs are already read", () => {
+      writeBrief(1000, makeBriefV1({ briefId: "brief-1", unread: false }));
+      writeBrief(2000, makeBriefV1({ briefId: "brief-2", unread: false }));
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-2");
+    });
+
+    it("selects latest unread when unread ones exist", () => {
+      writeBrief(1000, makeBriefV1({ briefId: "brief-1", unread: true }));
+      writeBrief(2000, makeBriefV1({ briefId: "brief-2", unread: false }));
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-2");
+    });
+
+    it("ignores briefs from other branches", () => {
+      writeBrief(1000, makeBriefV1({ briefId: "brief-1", branch: "main" }));
+      writeBrief(
+        2000,
+        makeBriefV1({ briefId: "brief-2", branch: "feature-x" }),
+      );
+      writeBrief(
+        3000,
+        makeBriefV1({ briefId: "brief-3", branch: "feature-x" }),
+      );
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-1");
+    });
+
+    it("returns null when no briefs exist", () => {
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).toBeNull();
+    });
+
+    it("returns null when briefs directory does not exist", () => {
+      fs.rmSync(briefsDir, { recursive: true, force: true });
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).toBeNull();
+    });
+
+    it("supports schema 2.0 briefs", () => {
+      writeBrief(1000, makeBriefV1({ briefId: "brief-v1", unread: false }));
+      writeBrief(2000, makeBriefV2({ briefId: "brief-v2", unread: false }));
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).not.toBeNull();
+      expect(result?.envelope.briefId).toBe("brief-v2");
+      expect(result?.envelope.schemaVersion).toBe("2.0");
+    });
+
+    it("ignores briefs with unsupported schemaVersion", () => {
+      const wrongSchema = makeBriefV1({ briefId: "brief-1" });
+      // @ts-expect-error - intentionally testing wrong schemaVersion
+      wrongSchema.schemaVersion = "0.9";
+      writeBrief(1000, wrongSchema);
+
+      const result = selectLatestPersistedBrief(tmpDir, "main");
+      expect(result).toBeNull();
     });
   });
 });

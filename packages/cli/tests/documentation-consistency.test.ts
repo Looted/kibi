@@ -160,6 +160,44 @@ describe("flag and fact canonical wording", () => {
   });
 });
 
+describe("symbol traceability taxonomy rubric", () => {
+  test("entity schema keeps ownership, production coverage, and executable test identity disjoint", () => {
+    const content = readDoc("docs/entity-schema.md");
+
+    expect(content).toContain(
+      "`implements` is frozen to requirement ownership only (`symbol -> req`).",
+    );
+    expect(content).toContain(
+      "`covered_by` is frozen to production coverage evidence only (`symbol -> test`).",
+    );
+    expect(content).toContain(
+      "`executable_for` is frozen to executable test code identity only (`symbol -> test`).",
+    );
+    expect(content).toContain("symbol-traceability-taxonomy.md");
+  });
+
+  test("symbol taxonomy doc defines the three symbol classes, N/A rules, and anti-blanket checklist", () => {
+    const content = readDoc("docs/symbol-traceability-taxonomy.md");
+
+    expect(content).toContain("Production runtime symbols");
+    expect(content).toContain("Executable test symbols");
+    expect(content).toContain("Metadata / non-executable symbols");
+    expect(content).toContain("`implements` = direct requirement ownership");
+    expect(content).toContain("`covered_by` = production coverage evidence");
+    expect(content).toContain("`executable_for` = executable test code identity");
+    expect(content).toContain(
+      "Never use `covered_by` as ownership and never use `executable_for` as production coverage.",
+    );
+    expect(content).toContain(
+      "A symbol that uses `executable_for` must not also carry `implements` or `covered_by`.",
+    );
+    expect(content).toContain("When integration/e2e evidence is required");
+    expect(content).toContain("Explicit N/A rationale is allowed only when all of the following are true");
+    expect(content).toContain("Anti-blanket requirement checklist");
+    expect(content).toContain("If any checkbox fails, split the requirement before adding more symbol links.");
+  });
+});
+
 // Regression tests for stale symbol aliases
 describe("symbols.yaml regression", () => {
   test("SYM-KibiMCPServer must not be present", () => {

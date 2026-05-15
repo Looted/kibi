@@ -1,16 +1,115 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync, spawnSync } from "node:child_process";
 import {
+  copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
+import { syncCommand, type SyncResult } from "../../src/commands/sync.js";
+import { PrologProcess } from "../../src/prolog.js";
+
+interface Deferred<T> {
+  promise: Promise<T>;
+  reject: (reason?: unknown) => void;
+  resolve: (value: T | PromiseLike<T>) => void;
+}
+
+interface SyncTestHookContext {
+  currentBranch: string;
+  livePath: string;
+  rebuild: boolean;
+  stagingPath: string;
+  validateOnly: boolean;
+}
+
+interface SyncTestHarness {
+  afterAttach?: (context: SyncTestHookContext) => Promise<void> | void;
+  beforeSave?: (
+    context: SyncTestHookContext & { kbModified: boolean },
+  ) => Promise<void> | void;
+  createProlog?: (options: { timeout?: number }) => PrologProcess;
+}
+
+function deferred<T>(): Deferred<T> {
+  let resolve!: Deferred<T>["resolve"];
+  let reject!: Deferred<T>["reject"];
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+function createInteractiveSyncProlog(options: { timeout?: number } = {}): PrologProcess {
+  const prolog = new PrologProcess(options);
+  (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = false;
+  return prolog;
+}
+
+async function runHarnessedSync(
+  options: { rebuild?: boolean; validateOnly?: boolean } = {},
+  harness: SyncTestHarness = {},
+): Promise<SyncResult> {
+  return (syncCommand as unknown as (
+    syncOptions: { rebuild?: boolean; validateOnly?: boolean },
+    runtime?: SyncTestHarness,
+  ) => Promise<SyncResult>)(options, {
+    createProlog: createInteractiveSyncProlog,
+    ...harness,
+  });
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
+async function settlesWithin(
+  promise: Promise<unknown>,
+  timeoutMs: number,
+): Promise<boolean> {
+  return Promise.race([
+    promise.then(() => true, () => true),
+    new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs)),
+  ]);
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function withWorkingDirectory<T>(
+  cwd: string,
+  callback: () => Promise<T>,
+): Promise<T> {
+  const previous = process.cwd();
+  process.chdir(cwd);
+  try {
+    return await callback();
+  } finally {
+    process.chdir(previous);
+  }
+}
+
+function listBranchStagingDirs(root: string, branch: string): string[] {
+  const branchesDir = path.join(root, ".kb/branches");
+  if (!existsSync(branchesDir)) {
+    return [];
+  }
+
+  return readdirSync(branchesDir).filter((entry) =>
+    entry.startsWith(`${branch}.staging.`),
+  );
+}
 
 describe("kibi sync", () => {
   const TEST_TIMEOUT_MS = 20000;
@@ -119,6 +218,215 @@ User logs in with OAuth2 provider.
     },
     TEST_TIMEOUT_MS,
   );
+
+  describe("stale_snapshot classification", () => {
+    test(
+      "classifies stale_snapshot as same-branch concurrent sync self-interference",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const baseline = await runHarnessedSync();
+          expect(baseline.success).toBe(true);
+
+          const firstAttached = deferred<void>();
+          const firstReadyToSave = deferred<void>();
+          const releaseFirst = deferred<void>();
+          const secondAttached = deferred<void>();
+          const releaseSecond = deferred<void>();
+
+          let firstFileIdentity: { ino: number; mtimeMs: number } | null = null;
+          let secondFileIdentity: { ino: number; mtimeMs: number } | null = null;
+
+          const firstSync = runHarnessedSync({}, {
+            afterAttach: ({ stagingPath }) => {
+              const stat = statSync(path.join(stagingPath, "kb.rdf"));
+              firstFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
+              firstAttached.resolve();
+            },
+            beforeSave: () => {
+              firstReadyToSave.resolve();
+              return releaseFirst.promise;
+            },
+          });
+
+          let secondSync: Promise<SyncResult> | undefined;
+
+          try {
+            expect(await settlesWithin(firstAttached.promise, 1500)).toBe(true);
+            expect(await settlesWithin(firstReadyToSave.promise, 1500)).toBe(true);
+
+            secondSync = runHarnessedSync({}, {
+              afterAttach: ({ stagingPath }) => {
+                const stat = statSync(path.join(stagingPath, "kb.rdf"));
+                secondFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
+                secondAttached.resolve();
+                return releaseSecond.promise;
+              },
+            });
+
+            expect(await settlesWithin(secondAttached.promise, 1500)).toBe(true);
+            expect(firstFileIdentity).toBeDefined();
+            expect(secondFileIdentity).toBeDefined();
+            expect(secondFileIdentity).not.toEqual(firstFileIdentity);
+
+            releaseFirst.resolve();
+            await firstSync;
+          } finally {
+            releaseSecond.resolve();
+            releaseFirst.resolve();
+            await Promise.allSettled(
+              [firstSync, secondSync].filter(
+                (promise): promise is Promise<SyncResult> => promise !== undefined,
+              ),
+            );
+          }
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "rules out isolated single-process staging delay as the stale_snapshot cause",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const baseline = await runHarnessedSync();
+          expect(baseline.success).toBe(true);
+
+          const result = await runHarnessedSync({}, {
+            afterAttach: async () => {
+              await sleep(50);
+            },
+            beforeSave: async () => {
+              await sleep(50);
+            },
+          });
+
+          expect(result.success).toBe(true);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "rules out rebuild/schema-only path as the stale_snapshot cause",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const result = await runHarnessedSync(
+            { rebuild: true },
+            {
+              afterAttach: async () => {
+                await sleep(50);
+              },
+              beforeSave: async () => {
+                await sleep(50);
+              },
+            },
+          );
+
+          expect(result.success).toBe(true);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "proves explicit external staging mutation still trips stale_snapshot",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const baseline = await runHarnessedSync();
+          expect(baseline.success).toBe(true);
+
+          const result = await runHarnessedSync({}, {
+            afterAttach: async ({ livePath, stagingPath }) => {
+              await sleep(20);
+              rmSync(path.join(stagingPath, "kb.rdf"), { force: true });
+              copyFileSync(
+                path.join(livePath, "kb.rdf"),
+                path.join(stagingPath, "kb.rdf"),
+              );
+            },
+          }).then(
+            (value) => ({ ok: true as const, value }),
+            (error) => ({ ok: false as const, error }),
+          );
+
+          expect(result.ok).toBe(false);
+          if (!result.ok) {
+            expect(getErrorMessage(result.error)).toContain("stale_snapshot");
+          }
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans up stale_snapshot unique staging directories after successful sync",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const result = await runHarnessedSync();
+
+          expect(result.success).toBe(true);
+          expect(listBranchStagingDirs(tmpDir, "main")).toEqual([]);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans up stale_snapshot unique staging directories on validate-only exit",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const result = await runHarnessedSync({ validateOnly: true });
+
+          expect(result.success).toBe(true);
+          expect(result.published).toBe(false);
+          expect(listBranchStagingDirs(tmpDir, "main")).toEqual([]);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+
+    test(
+      "cleans only its own stale_snapshot staging directory on sync failure",
+      async () => {
+        await withWorkingDirectory(tmpDir, async () => {
+          const preservedSibling = path.join(
+            tmpDir,
+            ".kb/branches",
+            `main.staging.${process.pid}.${Date.now() - 1}`,
+          );
+          mkdirSync(preservedSibling, { recursive: true });
+
+          let failedStagingPath: string | null = null;
+          const result = await runHarnessedSync(
+            {},
+            {
+              afterAttach: ({ stagingPath }) => {
+                failedStagingPath = stagingPath;
+              },
+              beforeSave: () => {
+                throw new Error("boom");
+              },
+            },
+          ).then(
+            () => ({ ok: true as const }),
+            (error) => ({ ok: false as const, error }),
+          );
+
+          expect(result.ok).toBe(false);
+          if (!result.ok) {
+            expect(getErrorMessage(result.error)).toContain("boom");
+          }
+          expect(failedStagingPath).not.toBeNull();
+          if (failedStagingPath === null) {
+            throw new Error("Expected failed staging path to be captured");
+          }
+          expect(existsSync(failedStagingPath)).toBe(false);
+          expect(existsSync(preservedSibling)).toBe(true);
+        });
+      },
+      TEST_TIMEOUT_MS,
+    );
+  });
 
   test(
     "skips unchanged files on re-run using hash cache",

@@ -8,7 +8,10 @@
  * (at your option) any later version.
  */
 
-import type { IdleBriefEnvelope } from "./idle-brief-store.js";
+import type { ToastPayload as SendToastPayload, ToastCapableClient as SendToastCapableClient } from "./toast.js";
+import { sendToast } from "./toast.js";
+import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
+import { renderToastSummary } from "./brief-delivery-reasons.js";
 import * as logger from "./logger.js";
 
 export type ToastPayload = {
@@ -61,8 +64,14 @@ function defaultWhyItMatters(): string {
 
 function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   const lines: string[] = [];
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const deliveryReasons = briefing.deliveryReasons;
   const whatChanged =
-    envelope.schemaVersion === "2.0"
+    deliveryReasons?.items?.length
+      ? [renderToastSummary(deliveryReasons).summary]
+      : envelope.schemaVersion === "2.0"
       ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
       : [];
 
@@ -84,7 +93,12 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   lines.push("");
 
   lines.push("## Why it matters");
-  lines.push(firstNonEmpty(envelope.briefing.promptBlock, defaultWhyItMatters()));
+  lines.push(
+    firstNonEmpty(
+      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons).whyItMatters : undefined,
+      defaultWhyItMatters(),
+    ),
+  );
   lines.push("");
 
   const hasKnowledgeImpact =
@@ -138,6 +152,54 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
   return lines.join("\n");
 }
 
+function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayload {
+  return {
+    variant: envelope.type === "warning" ? "warning" : "info",
+    title: "Kibi Knowledge Update",
+    message: buildTuiBriefMessage(envelope),
+    duration: 8000,
+  };
+}
+
+function hasSignificantBriefingImpact(envelope: IdleBriefEnvelope): boolean {
+  const briefing = envelope.briefing;
+  return !(
+    briefing.citations.length === 0 &&
+    (!briefing.constraints || briefing.constraints.length === 0) &&
+    (!briefing.regressionRisks || briefing.regressionRisks.length === 0) &&
+    (!briefing.missingEvidence || briefing.missingEvidence.length === 0)
+  );
+}
+
+function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
+  const counts = envelope.counts;
+  const zeroCounts =
+    "relationshipsChanged" in counts
+      ? counts.entitiesAdded === 0 &&
+        counts.entitiesModified === 0 &&
+        counts.entitiesRemoved === 0 &&
+        counts.relationshipsChanged === 0
+      : counts.requirementsAdded === 0 &&
+        counts.relationshipsAdded === 0 &&
+        counts.entitiesDeleted === 0;
+
+  return (
+    zeroCounts &&
+    envelope.validation.count === 0 &&
+    !hasSignificantBriefingImpact(envelope)
+  );
+}
+
+function getEnvelopeChangeTotal(envelope: IdleBriefEnvelope): number {
+  const counts = envelope.counts;
+  return "relationshipsChanged" in counts
+    ? counts.entitiesAdded +
+        counts.entitiesModified +
+        counts.entitiesRemoved +
+        counts.relationshipsChanged
+    : counts.requirementsAdded + counts.relationshipsAdded + counts.entitiesDeleted;
+}
+
 /**
  * Delivers a Kibi briefing to the TUI via toast notification.
  *
@@ -169,6 +231,9 @@ export async function deliverBriefTui(
 
   // Toast is the primary delivery mechanism
   if (sharedPolicy.briefs.tui.toast && typeof tui?.showToast === "function") {
+    if (isNoOpBriefEnvelope(envelope)) {
+      return { delivered: false };
+    }
     try {
       const message = buildTuiBriefMessage(envelope);
 
@@ -192,4 +257,89 @@ export async function deliverBriefTui(
     logger.info("TUI showToast API unavailable, brief not delivered");
     return { delivered: false };
   }
+}
+
+/**
+ * Client type for announcement-only TUI delivery.
+ * Extends toast capability with the SDK command bridge.
+ */
+export type AnnouncementClient = SendToastCapableClient;
+
+export type AnnouncementResult = {
+  toastDelivered: boolean;
+  commandPublished: boolean;
+};
+
+/**
+ * Announcement-only TUI delivery coordinator.
+ *
+ * Sends the summary toast and invokes the official SDK bridge
+ * (`executeCommand`) but does NOT mutate read/seen state.
+ * The caller is responsible for any state transitions after the
+ * TUI route confirms render success.
+ */
+export async function announceBriefTui( // implements REQ-opencode-kibi-briefing-v6
+  client: AnnouncementClient,
+  envelope: IdleBriefEnvelope,
+  sharedPolicy: SharedBriefPolicy,
+): Promise<AnnouncementResult> {
+  if (!sharedPolicy.briefs.channels.tui) {
+    logger.info("TUI brief delivery disabled by shared policy");
+    return { toastDelivered: false, commandPublished: false };
+  }
+
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  if (
+    !envelope.unread &&
+    isNoOpBriefEnvelope(envelope) &&
+    !(briefing.deliveryReasons?.items.length ?? 0)
+  ) {
+    return { toastDelivered: false, commandPublished: false };
+  }
+  const totalChanges = getEnvelopeChangeTotal(envelope);
+  const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
+
+  if (
+    !envelope.unread &&
+    totalChanges === 0 &&
+    envelope.validation.count === 0 &&
+    !hasDeliveryReasons &&
+    isNoOpBriefEnvelope(envelope)
+  ) {
+    return { toastDelivered: false, commandPublished: false };
+  }
+
+  let toastDelivered = false;
+  let commandPublished = false;
+
+  if (sharedPolicy.briefs.tui.toast) {
+    const toastResult = await sendToast(client, buildTuiBriefToastPayload(envelope));
+    if (toastResult.status === "delivered") {
+      toastDelivered = true;
+    } else if (toastResult.status === "failed") {
+      logger.error("Failed to deliver brief toast", {
+        event: "idle_brief_toast_failed",
+        error: toastResult.error ?? toastResult.reason,
+      });
+    } else {
+      logger.info("TUI showToast API unavailable, brief not delivered");
+    }
+  }
+
+  // Step 2: Invoke the SDK command bridge to open the brief in the TUI
+  if (typeof client.tui?.executeCommand === "function") {
+    try {
+      await client.tui.executeCommand("kibi.open_latest_brief", {});
+      commandPublished = true;
+    } catch (err) {
+      logger.error("Failed to publish open_latest_brief command", {
+        event: "idle_brief_command_failed",
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return { toastDelivered, commandPublished };
 }

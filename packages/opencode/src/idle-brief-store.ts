@@ -21,6 +21,30 @@ export interface IdleBriefStatement {
   citationIds: string[];
 }
 
+export type ReasonItem = {
+  kind:
+    | "entity_added"
+    | "entity_modified"
+    | "entity_removed"
+    | "relationship_changed"
+    | "validation_issue"
+    | "conflict_detected";
+  text: string;
+  entityIds: string[];
+  citationIds?: string[];
+  severity?: "info" | "warning" | "error";
+};
+
+export type DeliveryReasons = {
+  version: 1;
+  toast: {
+    title: string;
+    summary: string;
+    whyItMatters: string;
+  };
+  items: ReasonItem[];
+};
+
 export interface IdleBriefValidationViolation {
   rule: string;
   entityId: string;
@@ -94,6 +118,7 @@ export interface IdleBriefEnvelopeV2 extends IdleBriefBaseEnvelope {
     promptBlock: string;
     citations: IdleBriefCitation[];
     changeNarrative: string[];
+    deliveryReasons?: DeliveryReasons;
     constraints?: IdleBriefStatement[];
     regressionRisks?: IdleBriefStatement[];
     missingEvidence?: IdleBriefStatement[];
@@ -200,7 +225,36 @@ function isBriefingV2(
 ): value is IdleBriefEnvelopeV2["briefing"] {
   return (
     isBriefingBase(value) &&
-    isStringArray((value as Record<string, unknown>).changeNarrative)
+    isStringArray((value as Record<string, unknown>).changeNarrative) &&
+    ((value as Record<string, unknown>).deliveryReasons === undefined ||
+      isDeliveryReasons((value as Record<string, unknown>).deliveryReasons))
+  );
+}
+
+function isReasonItem(value: unknown): value is ReasonItem {
+  return (
+    isRecord(value) &&
+    typeof value.kind === "string" &&
+    typeof value.text === "string" &&
+    isStringArray(value.entityIds) &&
+    (value.citationIds === undefined || isStringArray(value.citationIds)) &&
+    (value.severity === undefined ||
+      value.severity === "info" ||
+      value.severity === "warning" ||
+      value.severity === "error")
+  );
+}
+
+function isDeliveryReasons(value: unknown): value is DeliveryReasons {
+  return (
+    isRecord(value) &&
+    value.version === 1 &&
+    isRecord(value.toast) &&
+    typeof value.toast.title === "string" &&
+    typeof value.toast.summary === "string" &&
+    typeof value.toast.whyItMatters === "string" &&
+    Array.isArray(value.items) &&
+    value.items.every(isReasonItem)
   );
 }
 
@@ -210,6 +264,10 @@ function isChangeItem(value: unknown): value is EntityChangeItem {
     typeof value.id === "string" &&
     typeof value.type === "string"
   );
+}
+
+function hasRenderableText(value: string): boolean {
+  return value.trim().replace(/\s+/g, " ").length > 0;
 }
 
 export function isIdleBriefEnvelope(
@@ -294,6 +352,32 @@ export function computeContentHash(payload: object): string {
       citationIds: statement.citationIds,
     }));
 
+  const normalizeReasonItems = (items: ReasonItem[] = []): ReasonItem[] =>
+    items
+      .map((item) => ({
+        kind: item.kind,
+        text: norm(item.text),
+        entityIds: [...item.entityIds].sort(),
+        ...(item.citationIds ? { citationIds: [...item.citationIds].sort() } : {}),
+        ...(item.severity ? { severity: item.severity } : {}),
+      }))
+      .filter((item) => hasRenderableText(item.text));
+
+  const normalizeDeliveryReasons = (deliveryReasons?: DeliveryReasons) => {
+    if (!deliveryReasons) return undefined;
+    const items = normalizeReasonItems(deliveryReasons.items);
+    if (items.length === 0) return undefined;
+    return {
+      version: deliveryReasons.version,
+      toast: {
+        title: norm(deliveryReasons.toast.title),
+        summary: norm(deliveryReasons.toast.summary),
+        whyItMatters: norm(deliveryReasons.toast.whyItMatters),
+      },
+      items,
+    };
+  };
+
   const normalizeChangeItems = (
     items: EntityChangeItem[],
   ): EntityChangeItem[] =>
@@ -330,6 +414,7 @@ export function computeContentHash(payload: object): string {
             changeNarrative: env.briefing.changeNarrative.map((line) =>
               norm(line),
             ),
+            deliveryReasons: normalizeDeliveryReasons(env.briefing.deliveryReasons),
             constraints: normalizeStatements(env.briefing.constraints),
             regressionRisks: normalizeStatements(env.briefing.regressionRisks),
             missingEvidence: normalizeStatements(env.briefing.missingEvidence),
@@ -366,6 +451,9 @@ export function computeContentHash(payload: object): string {
               statement: norm(m.statement),
               citationIds: m.citationIds,
             })),
+            deliveryReasons: normalizeDeliveryReasons(
+              (env.briefing as { deliveryReasons?: DeliveryReasons }).deliveryReasons,
+            ),
           },
           validation: {
             count: env.validation.count,

@@ -1,0 +1,117 @@
+# Symbol Traceability Taxonomy
+
+This rubric freezes how Kibi classifies symbols for ownership, production coverage, and integration/e2e expectations.
+
+## Frozen role split
+
+- `implements` = direct requirement ownership
+- `covered_by` = production coverage evidence
+- `executable_for` = executable test code identity
+
+Never use `covered_by` as ownership and never use `executable_for` as production coverage.
+
+A symbol that uses `executable_for` must not also carry `implements` or `covered_by`.
+
+Current engine alignment:
+
+- `executable_for` marks executable test symbols and excludes them from production ownership gates.
+- Any symbol without `executable_for` stays in the production ownership lane for `implements` and production coverage checks, even if it is metadata-heavy or non-runtime.
+
+## Symbol classes
+
+### Production runtime symbols
+
+Shipped code that executes product behavior: handlers, services, commands, UI actions, adapters, event publishers/consumers, and other runtime code.
+
+Required posture:
+
+- Own at least one granular requirement via `implements`
+- Use `covered_by` for tests that prove the owned production behavior
+- Never use `executable_for`
+
+### Executable test symbols
+
+Test files, fixtures, harnesses, setup helpers, and reusable helpers that are executed as part of a `test` entity.
+
+Required posture:
+
+- Link the symbol to the test entity with `executable_for`
+- Do not add `implements`
+- Do not add `covered_by`
+
+These symbols are test identity, not product ownership.
+
+### Metadata / non-executable symbols
+
+Symbols that primarily shape behavior without being the runtime seam themselves: schemas, registries, declarative maps, compile-time helpers, barrel metadata, and similar non-executable structure.
+
+Required posture:
+
+- Still give them direct requirement ownership with `implements` when they exist to satisfy a real behavior slice
+- Reuse shared behavior-level evidence with `covered_by` when a production or integration test proves the requirement they shape
+- Never relabel them as `executable_for` just to avoid ownership
+
+Metadata / non-executable symbols may share the same behavior-level integration/e2e evidence as the runtime symbols they support.
+
+## When integration/e2e evidence is required
+
+Integration or end-to-end evidence is required when a symbol owns behavior whose correctness depends on a real boundary or externally observed flow, for example:
+
+- crossing a process, network, filesystem, editor, CLI, or package boundary
+- proving a user-visible or operator-visible workflow
+- validating contract behavior between multiple components
+- confirming wiring that unit tests cannot prove in isolation
+
+Use one behavior-level test for all symbols participating in the same granular requirement when that test genuinely exercises the shared outcome.
+
+## Explicit N/A rationale is allowed only when all of the following are true
+
+- the symbol is metadata / non-executable, or it is helper code fully subsumed by another owned runtime symbol
+- the symbol does not introduce its own unique external boundary, user journey, or integration seam
+- a shared requirement-level test already proves the behavior that this symbol supports, or an additional integration/e2e test would be fake duplication
+- the rationale names the shared evidence or explains why no honest integration/e2e seam exists
+- the rationale is written down explicitly in docs/KB instead of being implied by omission
+
+N/A is not allowed for production runtime symbols with their own external seam or user-visible workflow.
+
+## Granular vs blanket requirements
+
+### Granular requirement
+
+A granular requirement names one coherent behavior slice with one observable outcome. A linked symbol should be able to answer: “what exact behavior do I own here?” without pointing to a whole subsystem.
+
+Good signs:
+
+- one actor, trigger, or system obligation
+- one main observable outcome or failure mode
+- can be specified by one scenario or a tight scenario cluster
+- can be verified by a focused test or a clearly shared behavior-level test
+
+### Blanket requirement
+
+A blanket requirement describes a package, plugin, subsystem, or roadmap chunk instead of one behavior slice.
+
+Blanket smells:
+
+- the subject is an entire package or subsystem
+- the sentence chains unrelated verbs with “and”
+- different symbols would implement unrelated outcomes under the same requirement
+- no single scenario/test could prove the whole statement honestly
+- symbols need the requirement only because it is the nearest umbrella doc
+
+## Anti-blanket requirement checklist
+
+If any checkbox fails, split the requirement before adding more symbol links.
+
+- [ ] Does the requirement describe one observable behavior instead of a subsystem umbrella?
+- [ ] Can one primary scenario or one tight scenario family specify it honestly?
+- [ ] Can every linked symbol explain the same outcome, not parallel unrelated outcomes?
+- [ ] Would one focused test or one shared behavior-level test verify the claim without hand-waving?
+- [ ] Does the wording avoid vague umbrella verbs like “handles”, “supports”, or “manages” unless the exact behavior is immediately enumerated?
+- [ ] Would removing one linked symbol leave the requirement mostly intact? If yes, the requirement is probably too broad.
+- [ ] Is any integration/e2e N/A decision justified by a real lack of seam instead of test-count convenience?
+
+## Repo-specific examples
+
+- Broad requirement smell: a single requirement that claims smart enforcement, posture detection, token budgeting, maintenance degradation, and completion reminders all at once is probably blanket and should be split.
+- Granular baseline: a requirement such as “the VS Code tree opens the symbol’s real source file and line” is narrow enough for direct ownership, scenario coverage, and verification.

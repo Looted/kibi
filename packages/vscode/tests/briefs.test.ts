@@ -440,3 +440,257 @@ describe("markBriefRead", () => {
     expect(recorded).toBe("brief-fail");
   });
 });
+
+/**
+ * Predicate callback coverage tests
+ *
+ * The internal helpers isCitation, isStatement, isValidationViolation,
+ * and isValidationDiagnostic are invoked via .every() on arrays.
+ * Existing tests use empty arrays so the callbacks never execute.
+ * These tests pass non-empty arrays to trigger each callback.
+ */
+describe("predicate callbacks with non-empty arrays", () => {
+  /**
+   * Creates a fully valid v1.0 brief with all array fields populated.
+   */
+  function createBriefWithPopulatedArrays(overrides: Record<string, unknown> = {}): object {
+    return {
+      schemaVersion: "1.0",
+      briefId: "brief-pred",
+      type: "success",
+      sessionId: "session-pred",
+      branch: "develop",
+      createdAt: "2026-01-15T10:00:00Z",
+      unread: true,
+      auditCursor: {
+        lastTimestamp: "2026-01-15T09:55:00Z",
+        lastOperation: "sync",
+        entryCount: 5,
+        fileSize: 1024,
+      },
+      summary: "Brief with populated arrays",
+      counts: {
+        requirementsAdded: 1,
+        relationshipsAdded: 0,
+        entitiesDeleted: 0,
+      },
+      validation: {
+        violations: [
+          {
+            rule: "no-dangling-refs",
+            entityId: "REQ-001",
+            description: "Missing reference",
+          },
+        ],
+        count: 1,
+        diagnostics: [
+          {
+            category: "coverage",
+            severity: "warning",
+            message: "Low coverage",
+          },
+        ],
+      },
+      briefing: {
+        tldr: "TL;DR predicate test",
+        promptBlock: "prompt content",
+        citations: [
+          { id: "cite-1", type: "req", title: "Requirement citation" },
+        ],
+        constraints: [
+          { statement: "Must handle errors", citationIds: ["cite-1"] },
+        ],
+        regressionRisks: [
+          { statement: "May break existing tests", citationIds: ["cite-1"] },
+        ],
+        missingEvidence: [
+          { statement: "No test for REQ-001", citationIds: [] },
+        ],
+      },
+      contentHash: "hash-pred",
+      ...overrides,
+    };
+  }
+
+  function writeBrief(brief: object): void {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(briefsDir, "1000_brief.json"),
+      JSON.stringify(brief),
+    );
+  }
+
+  test("isCitation: accepts brief with valid citations", () => {
+    writeBrief(createBriefWithPopulatedArrays());
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.briefing.citations).toHaveLength(1);
+    expect(result?.briefing.citations[0].id).toBe("cite-1");
+  });
+
+  test("isCitation: rejects brief when citation lacks id", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).briefing = {
+      ...((brief as Record<string, unknown>).briefing as Record<string, unknown>),
+      citations: [{ type: "req", title: "Missing id" }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isStatement: accepts brief with valid constraints", () => {
+    writeBrief(createBriefWithPopulatedArrays());
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.briefing.constraints).toHaveLength(1);
+    expect(result?.briefing.constraints?.[0].statement).toBe(
+      "Must handle errors",
+    );
+  });
+
+  test("isStatement: rejects brief when constraint lacks citationIds", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).briefing = {
+      ...((brief as Record<string, unknown>).briefing as Record<string, unknown>),
+      constraints: [{ statement: "Missing citationIds" }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isStatement: rejects brief when constraint has non-string citationIds", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).briefing = {
+      ...((brief as Record<string, unknown>).briefing as Record<string, unknown>),
+      constraints: [{ statement: "Bad ids", citationIds: [123] }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isStatement: accepts brief with valid regressionRisks", () => {
+    const brief = createBriefWithPopulatedArrays({
+      briefing: {
+        tldr: "TL;DR predicate test",
+        promptBlock: "prompt content",
+        citations: [{ id: "cite-1" }],
+        regressionRisks: [
+          { statement: "Risk of regression", citationIds: ["cite-1"] },
+        ],
+      },
+    });
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.briefing.regressionRisks).toHaveLength(1);
+  });
+
+  test("isStatement: accepts brief with valid missingEvidence", () => {
+    const brief = createBriefWithPopulatedArrays({
+      briefing: {
+        tldr: "TL;DR predicate test",
+        promptBlock: "prompt content",
+        citations: [{ id: "cite-1" }],
+        missingEvidence: [
+          { statement: "No evidence found", citationIds: [] },
+        ],
+      },
+    });
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.briefing.missingEvidence).toHaveLength(1);
+  });
+
+  test("isValidationViolation: accepts brief with valid violations", () => {
+    writeBrief(createBriefWithPopulatedArrays());
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.validation.violations).toHaveLength(1);
+    expect(result?.validation.violations[0].rule).toBe("no-dangling-refs");
+  });
+
+  test("isValidationViolation: rejects brief when violation lacks rule", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [{ entityId: "REQ-001", description: "Missing rule" }],
+      count: 1,
+      diagnostics: [],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isValidationViolation: rejects brief when violation lacks entityId", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [{ rule: "no-dangling-refs", description: "Missing entityId" }],
+      count: 1,
+      diagnostics: [],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isValidationViolation: rejects brief when violation lacks description", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [{ rule: "no-dangling-refs", entityId: "REQ-001" }],
+      count: 1,
+      diagnostics: [],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isValidationDiagnostic: accepts brief with valid diagnostics", () => {
+    writeBrief(createBriefWithPopulatedArrays());
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).not.toBeNull();
+    expect(result?.validation.diagnostics).toHaveLength(1);
+    expect(result?.validation.diagnostics[0].category).toBe("coverage");
+  });
+
+  test("isValidationDiagnostic: rejects brief when diagnostic lacks category", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [],
+      count: 0,
+      diagnostics: [{ severity: "warning", message: "Missing category" }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isValidationDiagnostic: rejects brief when diagnostic lacks severity", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [],
+      count: 0,
+      diagnostics: [{ category: "coverage", message: "Missing severity" }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+
+  test("isValidationDiagnostic: rejects brief when diagnostic lacks message", () => {
+    const brief = createBriefWithPopulatedArrays();
+    (brief as Record<string, unknown>).validation = {
+      violations: [],
+      count: 0,
+      diagnostics: [{ category: "coverage", severity: "warning" }],
+    };
+    writeBrief(brief);
+    const result = parseLatestBrief(tmpDir, "develop");
+    expect(result).toBeNull();
+  });
+});

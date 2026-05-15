@@ -115,10 +115,10 @@ OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command 
 
 When the plugin detects an authoritative risky edit (`behavior_candidate` or `traceability_candidate` risk class), it automatically renders a Kibi briefing before the prompt. The plugin uses two complementary paths: the `file.edited` event hook as a fast-path hint, and prompt-cycle reconciliation as an authoritative fallback for programmatic edits that bypass the event bus. Briefings are rendered directly into the prompt to ensure immediate visibility.
 
-- **Immediate delivery**: Briefings are rendered-first into the prompt guidance block headed `🧠 **Kibi briefing available**` and TUI toasts titled `Kibi Knowledge Update`.
+- **Immediate delivery**: Briefings are rendered-first into the prompt guidance block headed `🧠 **Kibi briefing available**` and TUI toasts titled `Kibi Knowledge Update`. Unread briefings automatically open the interactive TUI via the `kibi.brief` route.
 - **Narrative structure**: Delivery favors user-facing prose with `What changed` and `Why it matters`, plus conditional `Project knowledge impact` / `Interpretation note` sections when evidence or caveats exist.
 - **TL;DR fallback**: If a full briefing is unavailable, fallback output still preserves `What changed` / `Why it matters` framing while keeping the manual command cue available.
-- **Manual command**: Use `/brief-kibi` at any time to trigger an on-demand briefing if auto-delivery is skipped or fails.
+- **Manual command**: Use `/brief-kibi` or the `kibi.open_latest_brief` command at any time to trigger an on-demand briefing if auto-delivery is skipped or fails.
 
 ### Discovery-first MCP guidance
 
@@ -136,6 +136,7 @@ Internal maintenance automatically syncs the knowledge base after relevant file 
 - Single-flight scheduler (no overlapping syncs)
 - Debounce window (default: 2000ms)
 - Dirty flag triggers one trailing rerun after active sync completes
+- **Idle suppression**: Background sync attempts triggered by session idle are suppressed after an operational sync failure is latched (`scheduler_sync_failed`). Manual edits and tool executions continue to schedule syncs to allow for recovery.
 
 ### Non-Blocking UX
 
@@ -203,8 +204,10 @@ The plugin follows a **silent-except-operational-errors** policy for terminal ou
 
 The logger exposes two error-level surfaces with distinct routing semantics:
 
-- **`error(msg, metadata?)`** — Operational plugin failures. Emits exactly one prefixed `console.error` (`[kibi-opencode]`) for terminal visibility, plus `client.app.log()` when a client is bound. Structured log rejection does not emit secondary console noise. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention.
+- **`error(msg, metadata?)`** — Operational plugin failures. Emits exactly one prefixed `console.error` (`[kibi-opencode]`) for terminal visibility, plus `client.app.log()` when a client is bound. Structured log rejection does not emit secondary console noise. Use for bootstrap-needed, hook/init failures, and sync failures that require developer attention. Operational sync failure payloads include diagnostic metadata: `syncCommand`, `syncStdout`, `syncStderr`, and `syncErrorMessage`.
 - **`errorStructuredOnly(msg, metadata?)`** — Advisory background maintenance failures. Routes through `client.app.log()` only when a client is bound and remains terminal-silent even when the structured transport rejects. Use for scheduler check failures and degraded-mode latches.
+
+
 
 **Contract rule:** Once `client` is bound (after `setClient()`), advisory paths (`info()`, `warn()`, `errorStructuredOnly()`) MUST stay on `client.app.log()` and remain terminal-silent. Operational failures use `error()` for a single prefixed terminal emission without duplicating console output when structured logging rejects.
 
@@ -217,9 +220,7 @@ The plugin uses the official OpenCode toast APIs with automatic capability detec
 1. **Legacy transport**: `client.tui.toast(payload)` — used when available in plugin context
 2. **SDK transport**: `client.tui.showToast({ body: payload })` — used as fallback
 3. **No capability**: Returns `{ status: "unavailable", reason: "missing-capability" }`
-
-All toast delivery is best-effort and non-blocking. The `sendToast` helper returns a discriminated `SendToastResult` union and never throws. There is no raw HTTP fallback.
-
+The `sendToast` helper returns a discriminated `SendToastResult` union and never throws. There is no raw HTTP fallback. For rich briefing delivery, the plugin uses the `kibi.brief` route and the `kibi.open_latest_brief` command for manual retrieval.
 The `experimental.chat.system.transform` hook handles prompt injection (see [Hook Policy](#hook-policy)). The `chat.params` hook is compatibility-only and never carries prompt text.
 
 ### Hook Modes

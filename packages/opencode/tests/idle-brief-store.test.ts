@@ -107,6 +107,28 @@ describe("idle-brief-store", () => {
       contentHash: "",
     };
 
+    const baseEnvelopeV2WithReasons = {
+      ...baseEnvelopeV2,
+      briefing: {
+        ...baseEnvelopeV2.briefing,
+        deliveryReasons: {
+          version: 1 as const,
+          toast: {
+            title: "Kibi Knowledge Update",
+            summary: "  Added  requirement REQ-001  ",
+            whyItMatters: "Keeps traceability fresh",
+          },
+          items: [
+            {
+              kind: "entity_added" as const,
+              text: "  Added requirement REQ-001  ",
+              entityIds: ["REQ-001"],
+            },
+          ],
+        },
+      },
+    };
+
     it("returns deterministic sha256 hex for same input", () => {
       const h1 = computeContentHash(baseEnvelope);
       const h2 = computeContentHash(baseEnvelope);
@@ -222,6 +244,86 @@ describe("idle-brief-store", () => {
       expect(computeContentHash(env1)).not.toBe(computeContentHash(env2));
     });
 
+    it("schema 2.0 envelope with deliveryReasons loads and hashes deterministically", () => {
+      const env = baseEnvelopeV2WithReasons;
+
+      expect(env.briefing.deliveryReasons.version).toBe(1);
+      expect(computeContentHash(env)).toBe(computeContentHash(env));
+    });
+
+    it("schema 2.0 envelope without deliveryReasons still loads", () => {
+      expect(computeContentHash(baseEnvelopeV2)).toBe(
+        computeContentHash(baseEnvelopeV2),
+      );
+    });
+
+    it("changing canonical deliveryReasons items text changes contentHash", () => {
+      const env1 = baseEnvelopeV2WithReasons;
+      const env2 = {
+        ...baseEnvelopeV2WithReasons,
+        briefing: {
+          ...baseEnvelopeV2WithReasons.briefing,
+          deliveryReasons: {
+            ...baseEnvelopeV2WithReasons.briefing.deliveryReasons,
+            items: [
+              {
+                ...baseEnvelopeV2WithReasons.briefing.deliveryReasons.items[0],
+                text: "Added requirement REQ-001 with a different reason",
+              },
+            ],
+          },
+        },
+      };
+
+      expect(computeContentHash(env1)).not.toBe(computeContentHash(env2));
+    });
+
+    it("normalizes whitespace-only deliveryReasons changes", () => {
+      const env1 = baseEnvelopeV2WithReasons;
+      const env2 = {
+        ...baseEnvelopeV2WithReasons,
+        briefing: {
+          ...baseEnvelopeV2WithReasons.briefing,
+          deliveryReasons: {
+            ...baseEnvelopeV2WithReasons.briefing.deliveryReasons,
+            toast: {
+              ...baseEnvelopeV2WithReasons.briefing.deliveryReasons.toast,
+              summary: "Added requirement REQ-001",
+            },
+            items: [
+              {
+                ...baseEnvelopeV2WithReasons.briefing.deliveryReasons.items[0],
+                text: "Added   requirement   REQ-001",
+              },
+            ],
+          },
+        },
+      };
+
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
+    it("treats empty deliveryReasons items as absent", () => {
+      const env1 = baseEnvelopeV2;
+      const env2 = {
+        ...baseEnvelopeV2,
+        briefing: {
+          ...baseEnvelopeV2.briefing,
+          deliveryReasons: {
+            version: 1 as const,
+            toast: {
+              title: "Kibi Knowledge Update",
+              summary: "Added requirement REQ-001",
+              whyItMatters: "Keeps traceability fresh",
+            },
+            items: [],
+          },
+        },
+      };
+
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
     it("schema 2.0 ignores volatile fields: briefId, createdAt, sessionId, unread, auditCursor", () => {
       const env1 = {
         ...baseEnvelopeV2,
@@ -236,6 +338,49 @@ describe("idle-brief-store", () => {
         createdAt: "2026-12-31T23:59:59Z",
         sessionId: "sess-2",
         unread: false,
+      };
+
+      expect(computeContentHash(env1)).toBe(computeContentHash(env2));
+    });
+
+    it("same deliveryReasons across envelopes with different volatile fields produces same contentHash", () => {
+      const reasons = {
+        version: 1 as const,
+        toast: {
+          title: "Kibi Knowledge Update",
+          summary: "Added requirement REQ-099",
+          whyItMatters: "Entities were updated.",
+        },
+        items: [
+          {
+            kind: "entity_added" as const,
+            text: "Added requirement REQ-099",
+            entityIds: ["REQ-099"],
+          },
+        ],
+      };
+
+      const env1 = {
+        ...baseEnvelopeV2,
+        briefId: "brief-volatile-1",
+        createdAt: "2026-01-01T00:00:00Z",
+        sessionId: "sess-volatile-1",
+        unread: true,
+        briefing: {
+          ...baseEnvelopeV2.briefing,
+          deliveryReasons: reasons,
+        },
+      };
+      const env2 = {
+        ...baseEnvelopeV2,
+        briefId: "brief-volatile-2",
+        createdAt: "2026-12-31T23:59:59Z",
+        sessionId: "sess-volatile-2",
+        unread: false,
+        briefing: {
+          ...baseEnvelopeV2.briefing,
+          deliveryReasons: reasons,
+        },
       };
 
       expect(computeContentHash(env1)).toBe(computeContentHash(env2));

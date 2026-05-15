@@ -13,9 +13,11 @@ import type { PathLike } from "node:fs";
 import type fg from "fast-glob";
 import * as path from "node:path";
 import {
-  prepareStagingEnvironment,
   atomicPublish,
+  cleanupAbandonedStagingDirectories,
   cleanupStaging,
+  createUniqueStagingPath,
+  prepareStagingEnvironment,
 } from "../../../src/commands/sync/staging.js";
 
 // --- Mocks ---
@@ -85,6 +87,67 @@ describe("cleanupStaging", () => {
 
     cleanupStaging("/nonexistent/path", stagingDeps());
 
+    expect(mockRmSync).not.toHaveBeenCalled();
+  });
+});
+
+describe("createUniqueStagingPath", () => {
+  test("creates a per-run staging path with pid and timestamp suffix", () => {
+    expect(createUniqueStagingPath("main", "/repo", 4321, 1234567890)).toBe(
+      "/repo/.kb/branches/main.staging.4321.1234567890",
+    );
+  });
+});
+
+describe("cleanupAbandonedStagingDirectories", () => {
+  beforeEach(() => {
+    mockFg.mockClear();
+    mockRmSync.mockClear();
+  });
+
+  test("removes only dead-process Kibi-owned staging directories for the same branch", async () => {
+    mockExistsSync.mockImplementation(
+      (p: PathLike) => p === "/repo/.kb/branches/main.staging.111.1000",
+    );
+    mockFg.mockResolvedValue([
+      "/repo/.kb/branches/main.staging.111.1000",
+      "/repo/.kb/branches/main.staging.222.2000",
+      "/repo/.kb/branches/main.staging.invalid",
+      "/repo/.kb/branches/other.staging.333.3000",
+    ]);
+
+    await cleanupAbandonedStagingDirectories(
+      "/repo/.kb/branches/main.staging.222.2000",
+      {
+        ...stagingDeps(),
+        fg: mockFg as unknown as typeof fg,
+        isProcessAlive: (pid: number) => pid === 222,
+      },
+    );
+
+    expect(mockFg).toHaveBeenCalledWith("main.staging.*", {
+      cwd: "/repo/.kb/branches",
+      absolute: true,
+      onlyDirectories: true,
+      suppressErrors: true,
+    });
+    expect(mockRmSync).toHaveBeenCalledTimes(1);
+    expect(mockRmSync).toHaveBeenCalledWith(
+      "/repo/.kb/branches/main.staging.111.1000",
+      {
+        recursive: true,
+        force: true,
+      },
+    );
+  });
+
+  test("is a no-op for legacy fixed staging paths", async () => {
+    await cleanupAbandonedStagingDirectories("/repo/.kb/branches/main.staging", {
+      ...stagingDeps(),
+      fg: mockFg as unknown as typeof fg,
+    });
+
+    expect(mockFg).not.toHaveBeenCalled();
     expect(mockRmSync).not.toHaveBeenCalled();
   });
 });

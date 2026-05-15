@@ -32,6 +32,10 @@ import { BriefDocumentProvider } from "./briefDocumentProvider";
 // Flag to ensure workspace features are initialized exactly once (idempotency)
 let workspaceFeaturesInitialized = false;
 
+export function _resetWorkspaceFeaturesForTests(): void {
+  workspaceFeaturesInitialized = false;
+}
+
 /**
  * Shared helper to initialize all workspace-dependent features.
  * Called either immediately during activation or deferred via workspace folder change listener.

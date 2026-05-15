@@ -762,6 +762,20 @@ describe("prompt", () => {
     );
   });
 
+
+  test("guidance includes query decomposition instruction", () => {
+    const result = injectPrompt("", baseConfig);
+
+    assert.ok(
+      result.includes("Decompose broad queries"),
+      "Should include query decomposition instruction",
+    );
+    assert.ok(
+      result.includes("Apple Sign-In"),
+      "Should include decomposition example",
+    );
+  });
+
   // implements REQ-opencode-kibi-plugin-v1
   test("omits bootstrap guidance when relocated sync paths are healthy", () => {
     // Relocated-path workspaces (e.g. kibi-docs/* custom sync paths) that are

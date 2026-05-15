@@ -58,6 +58,7 @@ import { persistEntities, persistRelationships } from "./sync/persistence.js";
 import {
   atomicPublish,
   cleanupStaging,
+  createUniqueStagingPath,
   prepareStagingEnvironment,
 } from "./sync/staging.js";
 
@@ -73,9 +74,28 @@ export interface SyncResult extends SyncSummary {
   exitCode?: number;
 }
 
+interface SyncCommandRuntimeContext {
+  currentBranch: string;
+  livePath: string;
+  rebuild: boolean;
+  stagingPath: string;
+  validateOnly: boolean;
+}
+
+interface SyncCommandRuntime {
+  afterAttach?: (
+    context: SyncCommandRuntimeContext,
+  ) => Promise<void> | void;
+  beforeSave?: (
+    context: SyncCommandRuntimeContext & { kbModified: boolean },
+  ) => Promise<void> | void;
+  createProlog?: (options: { timeout: number }) => PrologProcess;
+}
+
 // implements REQ-003, REQ-007
 export async function syncCommand(
   options: { validateOnly?: boolean; rebuild?: boolean } = {},
+  runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
   const rebuild = options.rebuild ?? false;
@@ -84,6 +104,7 @@ export async function syncCommand(
   const entityCounts: Record<string, number> = {};
   let published = false;
   let currentBranch: string | undefined;
+  let stagingPath: string | undefined;
 
   const getCurrentCommit = (): string | undefined => {
     try {
@@ -298,15 +319,21 @@ export async function syncCommand(
       diagnostics.push(createKbMissingDiagnostic(currentBranch, livePath));
     }
 
-    const stagingPath = path.join(
-      process.cwd(),
-      `.kb/branches/${currentBranch}.staging`,
-    );
+    stagingPath = createUniqueStagingPath(currentBranch, process.cwd());
+    const runtimeContext: SyncCommandRuntimeContext = {
+      currentBranch,
+      livePath,
+      rebuild,
+      stagingPath,
+      validateOnly,
+    };
 
     await prepareStagingEnvironment(stagingPath, livePath, rebuild);
 
     try {
-      const prolog = new PrologProcess({ timeout: 120000 });
+      const prolog =
+        runtime.createProlog?.({ timeout: 120000 }) ??
+        new PrologProcess({ timeout: 120000 });
       await prolog.start();
 
       const attachResult = await prolog.query(`kb_attach('${stagingPath}')`);
@@ -317,6 +344,7 @@ export async function syncCommand(
           `Failed to attach to staging KB: ${attachResult.error || "Unknown error"}`,
         );
       }
+      await runtime.afterAttach?.(runtimeContext);
 
       const entityIds = new Set<string>();
 
@@ -403,6 +431,8 @@ export async function syncCommand(
         prolog.invalidateCache();
       }
 
+      await runtime.beforeSave?.({ ...runtimeContext, kbModified });
+
       const saveResult = await prolog.query("kb_save");
       if (!saveResult.success) {
         throw new SyncError(
@@ -413,6 +443,7 @@ export async function syncCommand(
       await prolog.terminate();
 
       atomicPublish(stagingPath, livePath);
+      cleanupStaging(stagingPath);
 
       const evictedHashes: Record<string, string> = {};
       const evictedSeenAt: Record<string, string> = {};
@@ -470,6 +501,9 @@ export async function syncCommand(
       throw error;
     }
   } catch (error) {
+    if (stagingPath) {
+      cleanupStaging(stagingPath);
+    }
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error(`Error: ${errorMessage}`);
 

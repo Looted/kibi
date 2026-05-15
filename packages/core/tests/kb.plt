@@ -1,7 +1,9 @@
 % PLUnit test suite for kb.pl
 :- use_module('../src/kb.pl').
 :- use_module('../src/checks.pl').
+:- use_module(library(http/json)).
 :- use_module(library(plunit)).
+:- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
 
 % Test KB directory
@@ -1874,7 +1876,369 @@ test(prolog_literal_type_unwrap) :-
 
 :- end_tests(violation_id_text_regression).
 
+:- begin_tests(checks_coverage_gaps).
+
+test(check_all_aggregates_empty_kb, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    check_all(Violations),
+    assertion(Violations.must_priority_coverage == []),
+    assertion(Violations.symbol_coverage == []),
+    assertion(Violations.symbol_traceability == []),
+    assertion(Violations.no_dangling_refs == []),
+    assertion(Violations.no_cycles == []),
+    assertion(Violations.required_fields == []).
+
+test(check_all_json_with_options_serializes_dict, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-ADR-NEEDED', "ADR needed req", open, []),
+    assert_fixture_entity(symbol, 'SYM-ADR-NEEDED', "ADR needed symbol", active, []),
+    kb_assert_relationship(implements, 'SYM-ADR-NEEDED', 'REQ-ADR-NEEDED', []),
+    checks:check_all_with_options(Violations, true),
+    member(violation('symbol-traceability', 'SYM-ADR-NEEDED', "Symbol has no ADR constraint.", _, _), Violations.symbol_traceability),
+    checks:check_all_json_with_options(Json, true),
+    atom_json_dict(Json, JsonDict, []),
+    ViolationsJson = JsonDict.get(symbol_traceability),
+    member(Row, ViolationsJson),
+    assertion(Row.get(entityId) == "SYM-ADR-NEEDED"),
+    assertion(Row.get(description) == "Symbol has no ADR constraint.").
+
+test(check_must_priority_coverage_reports_missing_scenario_semantics, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-MUST-NO-SCENARIO', "Must req without scenario", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-MUST-NO-SCENARIO', "Direct validating test", active, []),
+    kb_assert_relationship(validates, 'TEST-MUST-NO-SCENARIO', 'REQ-MUST-NO-SCENARIO', []),
+    check_must_priority_coverage(Violations),
+    member(
+        violation(
+            'must-priority-coverage',
+            'REQ-MUST-NO-SCENARIO',
+            "Must-priority requirement lacks scenario coverage",
+            "Create scenario that specifies this requirement",
+            'kb.plt'
+        ),
+        Violations
+    ).
+
+test(coverage_gap_reason_text_mappings_are_stable) :-
+    checks:coverage_gap_desc(missing_test, DescTest),
+    checks:coverage_gap_desc(missing_scenario_and_test, DescBoth),
+    checks:coverage_gap_suggestion(missing_test, SuggestTest),
+    checks:coverage_gap_suggestion(missing_scenario_and_test, SuggestBoth),
+    assertion(DescTest == "Must-priority requirement lacks test coverage"),
+    assertion(DescBoth == "Must-priority requirement lacks scenario and test coverage"),
+    assertion(SuggestTest == "Create test that validates this requirement"),
+    assertion(SuggestBoth == "Create scenario that specifies and test that validates this requirement").
+
+test(check_no_dangling_refs_reports_missing_from_and_to_entities, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-REAL', "Existing req", active, []),
+    assert_raw_relationship(verified_by, 'REQ-MISSING-FROM', 'REQ-REAL'),
+    assert_raw_relationship(verified_by, 'REQ-REAL', 'REQ-MISSING-TO'),
+    check_no_dangling_refs(Violations),
+    member(violation('no-dangling-refs', 'REQ-MISSING-FROM', "Relationship references non-existent entity: REQ-MISSING-FROM", _, ""), Violations),
+    member(violation('no-dangling-refs', 'REQ-MISSING-TO', "Relationship references non-existent entity: REQ-MISSING-TO", _, ""), Violations).
+
+test(check_required_fields_reports_each_missing_field_and_empty_source, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_raw_entity(req, 'REQ-RAW-MISSING', [
+        id='REQ-RAW-MISSING',
+        created_at="2026-05-01T00:00:00Z",
+        updated_at="2026-05-01T00:00:00Z"
+    ]),
+    check_required_fields(Violations),
+    member(violation('required-fields', 'REQ-RAW-MISSING', "Missing required field: title", "Add title to entity definition", ""), Violations),
+    member(violation('required-fields', 'REQ-RAW-MISSING', "Missing required field: status", "Add status to entity definition", ""), Violations),
+    member(violation('required-fields', 'REQ-RAW-MISSING', "Missing required field: source", "Add source to entity definition", ""), Violations).
+
+test(check_no_cycles_reports_self_cycle_and_formats_source_name, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-SELF-CYCLE', "Self cycle req", active, [source="docs/requirements/REQ-SELF-CYCLE.md"]),
+    kb_assert_relationship(depends_on, 'REQ-SELF-CYCLE', 'REQ-SELF-CYCLE', []),
+    check_no_cycles([violation('no-cycles', 'REQ-SELF-CYCLE', Description, _, 'kb.plt')]),
+    assertion(sub_string(Description, _, _, _, "kb.plt → kb.plt")).
+
+test(check_no_cycles_deduplicates_equivalent_cycles, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-CYCLE-A', "Cycle A", active, []),
+    assert_fixture_entity(req, 'REQ-CYCLE-B', "Cycle B", active, []),
+    kb_assert_relationship(depends_on, 'REQ-CYCLE-A', 'REQ-CYCLE-B', []),
+    kb_assert_relationship(depends_on, 'REQ-CYCLE-B', 'REQ-CYCLE-A', []),
+    check_no_cycles(Violations),
+    length(Violations, 1).
+
+test(check_deprecated_adrs_reports_missing_successor, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(adr, 'ADR-DEPRECATED', "Deprecated ADR", deprecated, []),
+    check_deprecated_adrs([violation('deprecated-adr-no-successor', 'ADR-DEPRECATED', _, Suggestion, _)]),
+    assertion(sub_string(Suggestion, _, _, _, "ADR-DEPRECATED")).
+
+test(check_domain_contradictions_wraps_conflict_reason, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_contradicting_requirement_pair('REQ-CONFLICT-A', 10, 'REQ-CONFLICT-B', 20),
+    check_domain_contradictions(Violations),
+    member(violation('domain-contradictions', "REQ-CONFLICT-A/REQ-CONFLICT-B", Description, _, ""), Violations),
+    assertion(sub_string(Description, _, _, _, "rate_limit")).
+
+test(check_strict_req_fact_pairing_reports_missing_property_counterpart, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-SUBJECT-ONLY', "Subject only", active, [fact_kind=subject, subject_key="checkout"]),
+    assert_fixture_entity(req, 'REQ-SUBJECT-ONLY', "Subject only req", open, []),
+    kb_assert_relationship(constrains, 'REQ-SUBJECT-ONLY', 'FACT-SUBJECT-ONLY', []),
+    check_strict_req_fact_pairing([violation('strict-req-fact-pairing', 'REQ-SUBJECT-ONLY', Description, Suggestion, 'kb.plt')]),
+    assertion(sub_string(Description, _, _, _, "has no matching strict requires_property fact")),
+    assertion(Suggestion == "Add a property_value fact via requires_property for the same subject_key").
+
+test(check_strict_req_fact_pairing_reports_missing_subject_counterpart, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-PROP-ONLY', "Property only", active, [fact_kind=property_value, subject_key="checkout", property_key="currency", operator=eq, value_type=string, value_string="usd"]),
+    assert_fixture_entity(req, 'REQ-PROP-ONLY', "Property only req", open, []),
+    kb_assert_relationship(requires_property, 'REQ-PROP-ONLY', 'FACT-PROP-ONLY', []),
+    check_strict_req_fact_pairing([violation('strict-req-fact-pairing', 'REQ-PROP-ONLY', Description, Suggestion, 'kb.plt')]),
+    assertion(sub_string(Description, _, _, _, "has no matching strict subject fact via constrains")),
+    assertion(Suggestion == "Add a subject fact via constrains for the same subject_key or remove the mismatched requires_property link").
+
+test(check_strict_req_fact_pairing_flags_wrong_fact_kinds_and_legacy_targets, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(fact, 'FACT-OBS-CONSTRAINS', "Observation fact", active, [fact_kind=observation]),
+    assert_fixture_entity(fact, 'FACT-LEGACY-PROP', "Legacy fact", active, []),
+    assert_fixture_entity(req, 'REQ-WRONG-KINDS', "Wrong kinds req", open, []),
+    kb_assert_relationship(constrains, 'REQ-WRONG-KINDS', 'FACT-OBS-CONSTRAINS', []),
+    kb_assert_relationship(requires_property, 'REQ-WRONG-KINDS', 'FACT-LEGACY-PROP', []),
+    check_strict_req_fact_pairing(Violations),
+    member(violation('strict-req-fact-pairing', 'REQ-WRONG-KINDS', DescObservation, _, _), Violations),
+    sub_string(DescObservation, _, _, _, "fact_kind=observation"),
+    member(violation('strict-req-fact-pairing', 'REQ-WRONG-KINDS', DescLegacy, _, _), Violations),
+    sub_string(DescLegacy, _, _, _, "legacy fact without fact_kind").
+
+test(adr_chain_and_current_adr_follow_supersession, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(adr, 'ADR-OLD', "Old ADR", accepted, []),
+    assert_fixture_entity(adr, 'ADR-NEW', "New ADR", accepted, []),
+    kb_assert_relationship(supersedes, 'ADR-NEW', 'ADR-OLD', []),
+    adr_chain('ADR-OLD', ['ADR-OLD', 'ADR-NEW']),
+    superseded_by('ADR-OLD', 'ADR-NEW'),
+    \+ current_adr('ADR-OLD'),
+    current_adr('ADR-NEW').
+
+test(violation_term_to_dict_unwraps_typed_literals_and_atoms) :-
+    checks:violation_term_to_dict(
+        violation(
+            'strict-fact-shape',
+            '^^'('REQ-TYPED', 'http://www.w3.org/2001/XMLSchema#string'),
+            '^^'("Typed description", 'http://www.w3.org/2001/XMLSchema#string'),
+            literal(type('http://www.w3.org/2001/XMLSchema#string', 'Typed suggestion')),
+            example_source
+        ),
+        JsonDict
+    ),
+    assertion(JsonDict.get(entityId) == "REQ-TYPED"),
+    assertion(JsonDict.get(description) == "Typed description"),
+    assertion(JsonDict.get(suggestion) == "Typed suggestion"),
+    assertion(JsonDict.get(source) == "example_source").
+
+test(with_output_to_string_and_file_base_name_helpers_normalize_output) :-
+    checks:with_output_to_string(write(hello), String),
+    checks:file_base_name("docs/specs/REQ-1.md", BaseWithPath),
+    checks:file_base_name("REQ-2.md", BaseWithoutPath),
+    assertion(String == "hello"),
+    assertion(BaseWithPath == 'REQ-1.md'),
+    assertion(BaseWithoutPath == 'REQ-2.md').
+
+test(check_all_json_and_run_checks_json_serializes_entrypoints, [setup(setup_kb), cleanup((retractall(checks:halt(_)), cleanup_kb))]) :-
+    checks:check_all_json(Json),
+    atom_json_dict(Json, Dict, []),
+    assertion(Dict.get(no_dangling_refs) == []),
+    checks:redefine_system_predicate(halt(_)),
+    assertz((checks:halt(_):-true)),
+    with_output_to(string(RunJson), checks:run_checks_json),
+    atom_json_dict(RunJson, RunDict, []),
+    assertion(RunDict.get(no_cycles) == []).
+
+test(value_field_helpers_cover_all_value_kinds) :-
+    checks:is_value_field(value_string),
+    checks:is_value_field(value_int),
+    checks:is_value_field(value_number),
+    checks:is_value_field(value_bool),
+    checks:value_type_matches_field(string, [value_string="x"]),
+    checks:value_type_matches_field(int, [value_int=1]),
+    checks:value_type_matches_field(number, [value_number=1.5]),
+    checks:value_type_matches_field(bool, [value_bool=true]).
+
+test(violation_text_and_id_fallback_convert_compounds_to_strings) :-
+    checks:violation_text(foo(bar), Text),
+    checks:violation_id_text(foo(bar), IdText),
+    assertion(Text == "foo(bar)"),
+    assertion(IdText == "foo(bar)").
+
+:- end_tests(checks_coverage_gaps).
+
+:- begin_tests(kb_wrapper_coverage_gaps).
+
+test(affected_symbols_falls_back_to_empty_list, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(req, 'REQ-NO-SYMBOLS', "No symbol req", active, []),
+    affected_symbols('REQ-NO-SYMBOLS', Symbols),
+    assertion(Symbols == []).
+
+test(coverage_gap_reports_missing_scenario_when_direct_test_exists, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-MISSING-SCENARIO', "Req missing scenario", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-DIRECT', "Direct test", active, []),
+    kb_assert_relationship(validates, 'TEST-DIRECT', 'REQ-MISSING-SCENARIO', []),
+    coverage_gap('REQ-MISSING-SCENARIO', missing_scenario).
+
+test(coverage_gap_reports_missing_test_when_only_scenario_exists, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-MISSING-TEST', "Req missing test", active, [priority=must]),
+    assert_fixture_entity(scenario, 'SCEN-ONLY', "Scenario only", active, []),
+    kb_assert_relationship(specified_by, 'REQ-MISSING-TEST', 'SCEN-ONLY', []),
+    coverage_gap('REQ-MISSING-TEST', missing_test).
+
+test(symbol_has_req_coverage_wraps_production_symbol_coverage, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-COVERED', "Covered req", active, [priority=must]),
+    assert_fixture_entity(test, 'TEST-COVERED', "Covered test", active, []),
+    assert_fixture_entity(symbol, 'SYM-COVERED', "Covered symbol", active, []),
+    kb_assert_relationship(validates, 'TEST-COVERED', 'REQ-COVERED', []),
+    kb_assert_relationship(covered_by, 'SYM-COVERED', 'TEST-COVERED', []),
+    kb:symbol_has_req_coverage('SYM-COVERED', 'REQ-COVERED').
+
+test(values_conflict_covers_all_operator_pairs) :-
+    kb:values_conflict(eq, 1, eq, 2, int),
+    kb:values_conflict(eq, 7, neq, 7, int),
+    kb:values_conflict(neq, 7, eq, 7, int),
+    kb:values_conflict(lte, 2, gte, 3, int),
+    kb:values_conflict(gte, 3, lte, 2, int),
+    kb:values_conflict(lt, 2, gt, 2, int),
+    kb:values_conflict(gt, 2, lt, 2, int),
+    kb:values_conflict(lt, 2, gte, 2, int),
+    kb:values_conflict(gte, 2, lt, 2, int),
+    kb:values_conflict(lte, 2, gt, 3, int),
+    kb:values_conflict(gt, 3, lte, 2, int).
+
+test(check_req_contradiction_throws_actionable_error, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-CHK-A', 5, 'REQ-CHK-B', 6),
+    catch(
+        check_req_contradiction('REQ-CHK-A'),
+        error(kb_contradiction(Pairs), Message),
+        ( assertion(Pairs \= []),
+          assertion(sub_string(Message, _, _, _, "Conflicts with REQ-CHK-B")) )
+    ).
+
+test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_contradicting_requirement_pair('REQ-SUPERSEDES-A', 5, 'REQ-SUPERSEDES-B', 6),
+    kb_assert_relationship(supersedes, 'REQ-SUPERSEDES-A', 'REQ-SUPERSEDES-B', []),
+    check_req_contradiction('REQ-SUPERSEDES-A').
+
+:- end_tests(kb_wrapper_coverage_gaps).
+
+:- begin_tests(kb_internal_coverage_gaps).
+
+test(kb_internal_helpers_cover_remaining_predicates, [setup(setup_kb), cleanup((retractall(kb:changed_symbol(_)), retractall(kb:changed_symbol_req(_, _)), retractall(kb:changed_symbol_loc(_, _, _, _, _)), cleanup_kb))]) :-
+    kb:'rdf meta specification'(kb_entity(_, _, _), kb_entity(?, ?, ?)),
+    kb:'rdf meta specification'(kb_relationship(_, _, _), kb_relationship(?, ?, ?)),
+    assert_fixture_entity(req, 'REQ-CONNECT-A', "Connect A", active, []),
+    assert_fixture_entity(req, 'REQ-CONNECT-B', "Connect B", active, []),
+    assert_fixture_entity(req, 'REQ-CONNECT-C', "Connect C", active, []),
+    kb_assert_relationship(depends_on, 'REQ-CONNECT-A', 'REQ-CONNECT-B', []),
+    kb_assert_relationship(depends_on, 'REQ-CONNECT-B', 'REQ-CONNECT-C', []),
+    kb:connected_entity('REQ-CONNECT-A', 'REQ-CONNECT-C', ['REQ-CONNECT-A']),
+    impacted_by_change('REQ-CONNECT-A', 'REQ-CONNECT-A'),
+    assert_fixture_entity(adr, 'ADR-NOT-DEPRECATED', "Current ADR", accepted, []),
+    deprecated_still_used('ADR-NOT-DEPRECATED', []),
+    assert_fixture_entity(test, 'TEST-REQ-BY', "Req verified_by test", active, []),
+    assert_fixture_entity(req, 'REQ-REQ-BY', "Req verified_by", active, []),
+    kb_assert_relationship(verified_by, 'REQ-REQ-BY', 'TEST-REQ-BY', []),
+    kb:requirement_verified_by_test('REQ-REQ-BY', 'TEST-REQ-BY'),
+    kb:compatible_types(number, int),
+    kb:unit_compatible(ms, ''),
+    kb:unit_compatible(ms, ms),
+    kb:scope_intersects(global, ''),
+    kb:is_numeric_type(number),
+    kb:unwrap_rdf_value(raw_value, raw_value),
+    kb:value_from_props([], unknown, ''),
+    kb:normalize_term_atom(literal(type('http://www.w3.org/2001/XMLSchema#string', 'typed-value')), TypedAtom),
+    assertion(TypedAtom == 'typed-value'),
+    kb:normalize_term_atom(foo(bar), CompoundAtom),
+    assertion(CompoundAtom == 'foo(bar)'),
+    kb:coerce_timestamp_atom(literal(type('http://www.w3.org/2001/XMLSchema#string', '2026-05-01T00:00:00Z')), TypedTs),
+    assertion(TypedTs == '2026-05-01T00:00:00Z'),
+    kb:coerce_timestamp_atom(foo(bar), CompoundTs),
+    assertion(CompoundTs == 'foo(bar)'),
+    assert_fixture_entity(symbol, 'SYM-UNCOVERED', "Uncovered symbol", active, []),
+    kb:symbol_uncovered('SYM-UNCOVERED'),
+    assert_fixture_entity(symbol, 'SYM-MIXED', "Mixed role symbol", active, []),
+    assert_fixture_entity(test, 'TEST-MIXED-EXEC', "Mixed exec test", active, []),
+    assert_fixture_entity(test, 'TEST-MIXED-COVER', "Mixed cover test", active, []),
+    kb_assert_relationship(executable_for, 'SYM-MIXED', 'TEST-MIXED-EXEC', []),
+    assert_raw_relationship(covered_by, 'SYM-MIXED', 'TEST-MIXED-COVER'),
+    mixed_role_symbol('SYM-MIXED'),
+    assert_fixture_entity(symbol, 'SYM-CHANGED', "Changed symbol", active, []),
+    assert_fixture_entity(fact, 'FACT-STRICT-SUBJECT', "Strict subject", active, [fact_kind=subject, subject_key="strict.internal"]),
+    assert_fixture_entity(fact, 'FACT-STRICT-PROP', "Strict property", active, [fact_kind=property_value, subject_key="strict.internal", property_key="mode", operator=eq, value_type=string, value_string="on"]),
+    kb:validate_strict_lane_pairing(constrains, 'REQ-CONNECT-A', 'FACT-STRICT-SUBJECT'),
+    kb:validate_strict_lane_pairing(requires_property, 'REQ-CONNECT-A', 'FACT-STRICT-PROP'),
+    kb:validate_strict_lane_pairing(relates_to, 'REQ-CONNECT-A', 'FACT-STRICT-PROP'),
+    kb:polarity_conflict(subject_key, property_key, eq, bool, true, '', '', require, eq, bool, true, '', '', forbid, Reason),
+    assertion(sub_string(Reason, _, _, _, "Polarity conflict")),
+    kb:test_matches_required_semantic([verification_scope="global"], verification_scope, global),
+    assertz(kb:changed_symbol('SYM-CHANGED')),
+    assertz(kb:changed_symbol_req('SYM-CHANGED', 'REQ-CONNECT-A')),
+    assertz(kb:changed_symbol_loc('SYM-CHANGED', 'src/file.ts', 10, 2, 'changedSymbol')),
+    kb:changed_symbol_missing_req('SYM-CHANGED', 2, 1),
+    kb:changed_symbol_violation('SYM-CHANGED', 2, 1, 'src/file.ts', 10, 2, 'changedSymbol').
+
+test(legacy_conversion_and_persistent_helpers_are_exercised, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb:convert_legacy_props([title("Legacy"), status-active, source="test://legacy", flagged], Props),
+    memberchk(title="Legacy", Props),
+    memberchk(status=active, Props),
+    memberchk(source="test://legacy", Props),
+    memberchk(flagged=true, Props),
+    kb:asserta_changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    kb:retract_changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    \+ changeset('2026-05-01T00:00:00Z', upsert, 'ENTITY-1', req-[id='ENTITY-1']),
+    kb:asserta_changeset('2026-05-01T00:00:01Z', upsert, 'ENTITY-2', req-[id='ENTITY-2']),
+    kb:retractall_changeset(_AnyTs, upsert, 'ENTITY-2', req-[id='ENTITY-2']),
+    \+ changeset(_, upsert, 'ENTITY-2', req-[id='ENTITY-2']).
+
+test(cleanup_temp_file_removes_existing_temp_file, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    TempFile = '/tmp/kibi-test-kb/temp-artifact.tmp',
+    open(TempFile, write, Stream),
+    close(Stream),
+    exists_file(TempFile),
+    kb:cleanup_temp_file(TempFile),
+    \+ exists_file(TempFile).
+
+:- end_tests(kb_internal_coverage_gaps).
+
 % Test setup/cleanup helpers
+assert_fixture_entity(Type, Id, Title, Status, ExtraProps) :-
+    append([
+        id=Id,
+        title=Title,
+        status=Status,
+        created_at="2026-05-01T00:00:00Z",
+        updated_at="2026-05-01T00:00:00Z",
+        source="test://kb.plt"
+    ], ExtraProps, Props),
+    kb_assert_entity(Type, Props).
+
+assert_raw_entity(Type, Id, Props) :-
+    kb:kb_graph(Graph),
+    atom_string(Type, TypeString),
+    format(atom(EntityUri), 'kb:entity/~w', [Id]),
+    kb:with_kb_mutex((
+        rdf_retractall(EntityUri, _, _, Graph),
+        rdf_assert(EntityUri, kb:type, TypeString^^'http://www.w3.org/2001/XMLSchema#string', Graph),
+        forall(member(Key=Value, Props), kb:store_property(EntityUri, Key, Value, Graph))
+    )).
+
+assert_raw_relationship(RelType, FromId, ToId) :-
+    kb:kb_graph(Graph),
+    kb:kb_uri(BaseUri),
+    atom_concat(BaseUri, RelType, RelUri),
+    format(atom(FromUri), 'kb:entity/~w', [FromId]),
+    format(atom(ToUri), 'kb:entity/~w', [ToId]),
+    kb:with_kb_mutex((
+        rdf_retractall(FromUri, RelUri, ToUri, Graph),
+        rdf_assert(FromUri, RelUri, ToUri, Graph)
+    )).
+
+assert_contradicting_requirement_pair(ReqA, ValueA, ReqB, ValueB) :-
+    assert_fixture_entity(fact, 'FACT-CONFLICT-SUBJECT', "Conflict subject", active, [fact_kind=subject, subject_key="api.quota"]),
+    assert_fixture_entity(fact, 'FACT-CONFLICT-A', "Conflict A", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueA]),
+    assert_fixture_entity(fact, 'FACT-CONFLICT-B', "Conflict B", active, [fact_kind=property_value, subject_key="api.quota", property_key="rate_limit", operator=eq, value_type=int, value_int=ValueB]),
+    assert_fixture_entity(req, ReqA, "Conflicting req A", open, []),
+    assert_fixture_entity(req, ReqB, "Conflicting req B", open, []),
+    kb_assert_relationship(constrains, ReqA, 'FACT-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(constrains, ReqB, 'FACT-CONFLICT-SUBJECT', []),
+    kb_assert_relationship(requires_property, ReqA, 'FACT-CONFLICT-A', []),
+    kb_assert_relationship(requires_property, ReqB, 'FACT-CONFLICT-B', []).
+
 setup_kb :-
     cleanup_test_kb,
     test_kb_dir(Dir),

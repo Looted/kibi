@@ -1,6 +1,7 @@
 // implements REQ-opencode-kibi-briefing-v4
 
 import { buildBriefingContext } from "./brief-intent.js";
+import { buildDeliveryReasons } from "./brief-delivery-reasons.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
 import {
@@ -11,6 +12,7 @@ import {
 import {
   type IdleBriefEnvelope,
   type IdleBriefEnvelopeV2,
+  type DeliveryReasons,
   computeContentHash,
   createBriefId,
 } from "./idle-brief-store.js";
@@ -382,6 +384,16 @@ function computeSummary(
   return `${changeText} | ${validationText}`;
 }
 
+function hasSignificantBriefingImpact(briefingResult: IdleBriefingResult): boolean {
+  return !(
+    briefingResult.briefingState === "no_briefing" &&
+    briefingResult.citations.length === 0 &&
+    (!briefingResult.constraints || briefingResult.constraints.length === 0) &&
+    (!briefingResult.regressionRisks || briefingResult.regressionRisks.length === 0) &&
+    (!briefingResult.missingEvidence || briefingResult.missingEvidence.length === 0)
+  );
+}
+
 function humanizeEntityType(type: string): string {
   switch (type) {
     case "req":
@@ -445,6 +457,7 @@ function buildEnvelopeParts(
   counts: IdleBriefEnvelopeV2["counts"],
   checkResult: CheckResult,
   briefingResult: IdleBriefingResult,
+  deliveryReasons?: DeliveryReasons,
 ): Omit<IdleBriefEnvelopeV2, "contentHash"> {
   const reconciled = reconcileAuditEntries(auditDelta.entries);
 
@@ -479,6 +492,7 @@ function buildEnvelopeParts(
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
       changeNarrative: buildChangeNarrative(auditDelta),
+      ...(deliveryReasons ? { deliveryReasons } : {}),
       ...(briefingResult.constraints && briefingResult.constraints.length > 0
         ? { constraints: briefingResult.constraints }
         : {}),
@@ -504,13 +518,6 @@ export async function generateIdleBrief(
 ): Promise<IdleBriefResult> {
   if (!client) {
     return { success: true, briefPath: null, envelope: null };
-  }
-  if (!auditDelta.hasChanges) {
-    return {
-      success: true,
-      briefPath: null,
-      envelope: null,
-    };
   }
   const reconciled = reconcileAuditEntries(auditDelta.entries);
   const derivedSourceFiles = [
@@ -564,9 +571,47 @@ export async function generateIdleBrief(
 
   const counts = computeCounts(auditDelta);
   const violationsCount = checkResult.violations.length;
+  if (
+    counts.entitiesAdded === 0 &&
+    counts.entitiesModified === 0 &&
+    counts.entitiesRemoved === 0 &&
+    counts.relationshipsChanged === 0 &&
+    checkResult.count === 0 &&
+    briefingResult.briefingState === "no_briefing" &&
+    briefingResult.citations.length === 0 &&
+    !briefingResult.constraints?.length &&
+    !briefingResult.regressionRisks?.length &&
+    !briefingResult.missingEvidence?.length
+  ) {
+    return { success: true, briefPath: null, envelope: null };
+  }
   const isSuccess = violationsCount === 0;
   const type: "success" | "warning" = isSuccess ? "success" : "warning";
   const summary = computeSummary(counts, violationsCount);
+  const deliveryReasons = buildDeliveryReasons({
+    entitiesAdded: reconciled.added
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    entitiesModified: reconciled.modified
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    entitiesRemoved: reconciled.removed
+      .filter((item) => item.id !== "workspace-sync")
+      .map((item) => item.id),
+    relationshipsChanged: counts.relationshipsChanged,
+    validationCount: checkResult.count,
+  });
+
+  if (
+    counts.entitiesAdded === 0 &&
+    counts.entitiesModified === 0 &&
+    counts.entitiesRemoved === 0 &&
+    counts.relationshipsChanged === 0 &&
+    violationsCount === 0 &&
+    !hasSignificantBriefingImpact(briefingResult)
+  ) {
+    return { success: true, briefPath: null, envelope: null };
+  }
 
   const briefId = createBriefId();
   const timestamp = Date.now();
@@ -583,6 +628,7 @@ export async function generateIdleBrief(
     counts,
     checkResult,
     briefingResult,
+    deliveryReasons,
   );
 
   const contentHash = computeContentHash(envelopeWithoutHash);
