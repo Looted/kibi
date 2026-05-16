@@ -146,7 +146,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "kibi-cli": "^0.7.0"
   },
   "repository": {
     "type": "git",

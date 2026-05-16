@@ -589,6 +589,124 @@ describe("briefing generate", () => {
     expect(result.content[0]?.text.toLowerCase()).toContain("brief");
   });
 
+  describe("operational artifact exclusion", () => {
+    function expectNoOperationalArtifactStrings(
+      result: BriefingGenerateResultLike,
+    ) {
+      const textBlobs = [
+        result.content[0]?.text ?? "",
+        result.structuredContent.tldr,
+        result.structuredContent.promptBlock,
+        JSON.stringify(result.structuredContent.citations),
+      ];
+
+      for (const blob of textBlobs) {
+        expect(blob).not.toContain("boulder.json");
+        expect(blob).not.toContain(".sisyphus");
+      }
+    }
+
+    test("excludes operational-only briefing inputs", async () => {
+      const root = path.join(tmp, "operational-only-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "FACT-BOULDER-001",
+            type: "fact",
+            title: "Operational artifact boulder.json should never surface",
+            status: "active",
+            source: ".sisyphus/boulder.json",
+            textRef: ".sisyphus/boulder.json#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief only from operational task-tracking data.",
+        sourceFiles: [".sisyphus/boulder.json"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("no_briefing");
+      expect(result.structuredContent.entities).toHaveLength(0);
+      expectNoOperationalArtifactStrings(result);
+    });
+
+    test("excludes operational artifacts from mixed briefing inputs", async () => {
+      const root = path.join(tmp, "mixed-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "REQ-AUTH-001",
+            type: "req",
+            title: "Authenticate users before they access the workspace",
+            status: "open",
+            source: "src/auth.ts",
+            textRef: "src/auth.ts#L12",
+          },
+          {
+            id: "FACT-BOULDER-002",
+            type: "fact",
+            title: "Operational artifact boulder.json should never surface",
+            status: "active",
+            source: ".sisyphus/boulder.json",
+            textRef: ".sisyphus/boulder.json#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from auth work and operational task-tracking data.",
+        sourceFiles: ["src/auth.ts", ".sisyphus/boulder.json"],
+      });
+
+      expect(result.structuredContent.entities.map((entity) => entity.id)).toContain(
+        "REQ-AUTH-001",
+      );
+      expect(result.structuredContent.entities.map((entity) => entity.id)).not.toContain(
+        "FACT-BOULDER-002",
+      );
+      expectNoOperationalArtifactStrings(result);
+    });
+
+    test("drops operational artifact citations from otherwise valid entities", async () => {
+      const root = path.join(tmp, "citation-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "REQ-CITE-001",
+            type: "req",
+            title: "Keep citations free of operational artifacts",
+            status: "open",
+            source: "src/citations.ts",
+            textRef: ".sisyphus/boulder.json#L8",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from a valid requirement with an operational citation.",
+        sourceFiles: ["src/citations.ts"],
+      });
+
+      expect(
+        result.structuredContent.citations.map((citation) => citation.textRef ?? ""),
+      ).not.toContain(".sisyphus/boulder.json#L8");
+      expect(result.content[0]?.text ?? "").not.toContain(".sisyphus/boulder.json");
+    });
+  });
+
   test("fails closed with no_briefing for unsupported posture and stale freshness", async () => {
     const unsupportedRoot = path.join(tmp, "unsupported-workspace");
     await fs.mkdir(unsupportedRoot, { recursive: true });

@@ -176,6 +176,25 @@ describe("tui-brief-delivery", () => {
     );
   });
 
+  test("does not toast generic operational-only envelopes", async () => {
+    envelope.summary = "Operational task tracking was updated";
+    envelope.briefing.tldr = "Operational task tracking was updated";
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+    // Zero counts + no significant briefing impact → no-op; nonzero counts without deliveryReasons
+    // cannot be determined to be operational, so they are not suppressed here
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesAdded = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesModified = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesRemoved = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 0;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.showToast).not.toHaveBeenCalled();
+  });
+
   test("prefers deliveryReasons for toast summary and why-it-matters", async () => {
     const deliveryReasons: DeliveryReasons = {
       version: 1,
@@ -207,6 +226,46 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toContain("## Why it matters\nEntities were updated.");
     expect(calledWith.body?.message).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
+    );
+  });
+
+  test("toasts a specific domain change with its subject and rationale", async () => {
+    const deliveryReasons: DeliveryReasons = {
+      version: 1,
+      items: [
+        {
+          kind: "entity_modified",
+          text: "Authentication module updated",
+          entityIds: ["REQ-AUTH-001"],
+        },
+      ],
+      toast: {
+        title: "Kibi Knowledge Update",
+        summary: "Authentication module updated",
+        whyItMatters: "Login behavior changed and needs review.",
+      },
+    };
+
+    (envelope.briefing as typeof envelope.briefing & { deliveryReasons?: DeliveryReasons }).deliveryReasons =
+      deliveryReasons;
+    envelope.summary = "";
+    envelope.briefing.tldr = "";
+    envelope.briefing.promptBlock = "";
+    envelope.briefing.citations = [];
+    envelope.briefing.constraints = undefined;
+    envelope.briefing.regressionRisks = undefined;
+    envelope.briefing.missingEvidence = undefined;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+
+    await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
+
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(1);
+    expect(mockClient.tui?.showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          message: expect.stringContaining("Authentication module updated"),
+        }),
+      }),
     );
   });
 
@@ -275,7 +334,7 @@ describe("tui-brief-delivery", () => {
     );
   });
 
-  test("produces non-empty toast even with minimal envelope", async () => {
+  test("suppresses toast when no concrete content exists", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.citations = [];
@@ -284,16 +343,10 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
-      body?: { message?: string };
-    };
-    expect(calledWith.body?.message).toContain("## What changed");
-    expect(calledWith.body?.message).toContain(
-      "Knowledge updates were recorded in this brief.",
-    );
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(0);
   });
 
-  test("uses generic fallback when no structured data exists", async () => {
+  test("suppresses toast when all content fields are empty", async () => {
     envelope.summary = "";
     envelope.briefing.tldr = "";
     envelope.briefing.promptBlock = "";
@@ -303,13 +356,7 @@ describe("tui-brief-delivery", () => {
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 
-    const calledWith = mockClient.tui?.showToast?.mock.calls[0]?.[0] as {
-      body?: { message?: string };
-    };
-
-    expect(calledWith.body?.message).toContain(
-      "This update changes how the project knowledge should be interpreted and applied.",
-    );
+    expect(mockClient.tui?.showToast).toHaveBeenCalledTimes(0);
   });
 
   test("uses tldr as fallback when summary is empty", async () => {
@@ -727,7 +774,7 @@ describe("tui-brief-delivery", () => {
     expect(calledWith.body?.message).toContain("Entities were updated.");
   });
 
-  test("legacy v1 envelope without deliveryReasons renders through announceBriefTui", async () => {
+  test("legacy v1 envelope without deliveryReasons renders without generic filler", async () => {
     // Default v1 envelope has no deliveryReasons
     (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
 
@@ -740,8 +787,9 @@ describe("tui-brief-delivery", () => {
       body?: { message?: string };
     };
     expect(calledWith.body?.message).toContain("## What changed");
-    // Legacy fallback uses the default Why it matters copy, not promptBlock
-    expect(calledWith.body?.message).toContain(
+    expect(calledWith.body?.message).toContain("Test summary");
+    // Legacy fallback no longer uses generic filler text
+    expect(calledWith.body?.message).not.toContain(
       "This update changes how the project knowledge should be interpreted and applied.",
     );
   });

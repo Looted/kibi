@@ -10,8 +10,8 @@
 
 import type { ToastPayload as SendToastPayload, ToastCapableClient as SendToastCapableClient } from "./toast.js";
 import { sendToast } from "./toast.js";
-import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
 import { renderToastSummary } from "./brief-delivery-reasons.js";
+import type { DeliveryReasons, IdleBriefEnvelope } from "./idle-brief-store.js";
 import * as logger from "./logger.js";
 
 export type ToastPayload = {
@@ -48,32 +48,31 @@ export type DeliverResult = {
   delivered: boolean;
 };
 
-function firstNonEmpty(...values: Array<string | undefined>): string {
+function firstNonEmpty(...values: Array<string | undefined>): string | undefined {
   for (const value of values) {
     const trimmed = value?.trim();
     if (trimmed) {
       return trimmed;
     }
   }
-  return "Knowledge updates were recorded in this brief.";
+  return undefined;
 }
 
-function defaultWhyItMatters(): string {
-  return "This update changes how the project knowledge should be interpreted and applied.";
-}
 
-function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
+function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string | undefined {
   const lines: string[] = [];
   const briefing = envelope.briefing as typeof envelope.briefing & {
     deliveryReasons?: DeliveryReasons;
   };
   const deliveryReasons = briefing.deliveryReasons;
-  const whatChanged =
-    deliveryReasons?.items?.length
-      ? [renderToastSummary(deliveryReasons).summary]
-      : envelope.schemaVersion === "2.0"
-      ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean)
-      : [];
+  const renderedToast = deliveryReasons?.items?.length
+    ? renderToastSummary(deliveryReasons)
+    : undefined;
+  const whatChanged = renderedToast
+    ? [renderedToast.summary]
+    : envelope.schemaVersion === "2.0"
+    ? envelope.briefing.changeNarrative.map((line) => line.trim()).filter(Boolean).filter((line) => !line.includes(".sisyphus/"))
+    : [];
 
   lines.push("## What changed");
   if (whatChanged.length > 0) {
@@ -85,21 +84,23 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
       const action = envelope.changes.entities.modified[0] ? "Modified" : "Added";
       lines.push(`${action} ${fallbackEntity.id}: ${fallbackEntity.title ?? "Untitled"}`);
     } else {
-      lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+      const fallback = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+      if (fallback) lines.push(fallback);
     }
   } else {
-    lines.push(firstNonEmpty(envelope.summary, envelope.briefing.tldr));
+    const fallback = firstNonEmpty(envelope.summary, envelope.briefing.tldr);
+    if (fallback) lines.push(fallback);
   }
   lines.push("");
 
-  lines.push("## Why it matters");
-  lines.push(
-    firstNonEmpty(
-      deliveryReasons?.items?.length ? renderToastSummary(deliveryReasons).whyItMatters : undefined,
-      defaultWhyItMatters(),
-    ),
+  const whyItMatters = firstNonEmpty(
+    deliveryReasons?.items?.length ? renderedToast?.whyItMatters : undefined,
   );
-  lines.push("");
+  if (whyItMatters) {
+    lines.push("## Why it matters");
+    lines.push(whyItMatters);
+    lines.push("");
+  }
 
   const hasKnowledgeImpact =
     envelope.briefing.citations.length > 0 ||
@@ -149,14 +150,22 @@ function buildTuiBriefMessage(envelope: IdleBriefEnvelope): string {
     lines.pop();
   }
 
-  return lines.join("\n");
+  const result = lines.join("\n");
+  if (result === "## What changed") {
+    return undefined;
+  }
+  return result;
 }
 
-function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayload {
+function buildTuiBriefToastPayload(envelope: IdleBriefEnvelope): SendToastPayload | undefined {
+  const message = buildTuiBriefMessage(envelope);
+  if (message === undefined) {
+    return undefined;
+  }
   return {
     variant: envelope.type === "warning" ? "warning" : "info",
     title: "Kibi Knowledge Update",
-    message: buildTuiBriefMessage(envelope),
+    message,
     duration: 8000,
   };
 }
@@ -183,6 +192,21 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
         counts.relationshipsAdded === 0 &&
         counts.entitiesDeleted === 0;
 
+  const briefing = envelope.briefing as typeof envelope.briefing & {
+    deliveryReasons?: DeliveryReasons;
+  };
+  const hasDeliveryReasons = (briefing.deliveryReasons?.items.length ?? 0) > 0;
+
+  if (hasDeliveryReasons) {
+    const toast = briefing.deliveryReasons ? renderToastSummary(briefing.deliveryReasons) : undefined;
+    if (toast === undefined) return true; // all operational → no-op
+    return false;
+  }
+
+  // Suppress legacy (no deliveryReasons) envelopes only when all three conditions hold:
+  // zero change counts, no validation issues, and no significant briefing impact.
+  // Matching summary/tldr alone is not sufficient — a domain-specific brief may legitimately
+  // have the same value in both fields.
   return (
     zeroCounts &&
     envelope.validation.count === 0 &&
@@ -236,6 +260,9 @@ export async function deliverBriefTui(
     }
     try {
       const message = buildTuiBriefMessage(envelope);
+      if (message === undefined) {
+        return { delivered: false };
+      }
 
       await tui.showToast({
         body: {
@@ -315,16 +342,19 @@ export async function announceBriefTui( // implements REQ-opencode-kibi-briefing
   let commandPublished = false;
 
   if (sharedPolicy.briefs.tui.toast) {
-    const toastResult = await sendToast(client, buildTuiBriefToastPayload(envelope));
-    if (toastResult.status === "delivered") {
-      toastDelivered = true;
-    } else if (toastResult.status === "failed") {
-      logger.error("Failed to deliver brief toast", {
-        event: "idle_brief_toast_failed",
-        error: toastResult.error ?? toastResult.reason,
-      });
-    } else {
-      logger.info("TUI showToast API unavailable, brief not delivered");
+    const payload = buildTuiBriefToastPayload(envelope);
+    if (payload !== undefined) {
+      const toastResult = await sendToast(client, payload);
+      if (toastResult.status === "delivered") {
+        toastDelivered = true;
+      } else if (toastResult.status === "failed") {
+        logger.error("Failed to deliver brief toast", {
+          event: "idle_brief_toast_failed",
+          error: toastResult.error ?? toastResult.reason,
+        });
+      } else {
+        logger.info("TUI showToast API unavailable, brief not delivered");
+      }
     }
   }
 

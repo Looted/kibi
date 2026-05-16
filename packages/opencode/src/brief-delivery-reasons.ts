@@ -1,3 +1,8 @@
+// Inlined from kibi-cli/operational-artifacts to avoid heavy module resolution
+function isOperationalArtifactPath(pathLike: string): boolean {
+  const normalized = pathLike.replaceAll("\\", "/");
+  return /(^|\/)\.sisyphus\//.test(normalized);
+}
 import type { DeliveryReasons, ReasonItem } from "./idle-brief-store.js";
 
 export type BuildInput = {
@@ -38,6 +43,7 @@ function mk(kind: ReasonItem["kind"], text: string, entityIds: string[]): Reason
   return { kind, text, entityIds };
 }
 
+
 function entityItems(kind: "entity_added" | "entity_modified" | "entity_removed", ids: string[]): ReasonItem[] {
   if (!ids.length) return [];
   const verb = kind === "entity_added" ? "Added" : kind === "entity_modified" ? "Updated" : "Removed";
@@ -62,14 +68,14 @@ function entityItems(kind: "entity_added" | "entity_modified" | "entity_removed"
   });
 }
 
-function toastSummary(items: ReasonItem[]): string {
+function toastSummary(items: ReasonItem[]): string | undefined {
   const first = items[0]?.text?.trim() ?? "";
   const second = items[1]?.text?.trim() ?? "";
   if (first && second) return `${first}, ${second}`;
-  return first || second || "Knowledge updates were recorded in this brief.";
+  return first || second || undefined;
 }
 
-function toastWhy(items: ReasonItem[]): string {
+function toastWhy(items: ReasonItem[]): string | undefined {
   if (items.some((i) => i.kind === "conflict_detected")) return "There is a knowledge conflict to resolve before using the brief.";
   if (items.some((i) => i.kind === "validation_issue")) return "Validation issues need attention before the update is treated as settled.";
   const hasEntities = items.some((i) => i.kind === "entity_added" || i.kind === "entity_modified" || i.kind === "entity_removed");
@@ -77,7 +83,7 @@ function toastWhy(items: ReasonItem[]): string {
   if (hasEntities && hasRelationships) return "Requirements and facts were updated.";
   if (hasEntities) return "Entities were updated.";
   if (hasRelationships) return "Relationships were updated.";
-  return "Knowledge updates were recorded in this brief.";
+  return undefined;
 }
 
 export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undefined { // implements REQ-opencode-kibi-briefing-v6
@@ -90,13 +96,50 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
   if (input.relationshipsChanged > 0) items.push(mk("relationship_changed", `Updated ${input.relationshipsChanged} relationships`, []));
   if (!items.length) return undefined;
   items.sort((a, b) => ORDER[a.kind] - ORDER[b.kind]);
-  return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items), whyItMatters: toastWhy(items) } };
+  return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items) ?? "", whyItMatters: toastWhy(items) ?? "" } };
 }
 
-export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] { // implements REQ-opencode-kibi-briefing-v6
-  return reasons.toast;
+function isOperationalByEntityIds(item: ReasonItem): boolean {
+  if (item.entityIds.length === 0) return false;
+  return item.entityIds.every((id) => {
+    const dashIdx = id.indexOf("-");
+    if (dashIdx < 0) return false;
+    const name = id.slice(dashIdx + 1);
+    // Entity names with file extensions are likely from operational artifact files
+    return /\.[a-zA-Z0-9]+$/.test(name);
+  });
+}
+
+function isOperationalItem(item: ReasonItem, allItems: ReasonItem[]): boolean {
+  if (item.kind === "relationship_changed") {
+    // relationship_changed items have no entityIds; treat as operational when
+    // all entity-level items in the set are operational (they're relationship side-effects)
+    const entityItems = allItems.filter(
+      (i) => i.kind === "entity_added" || i.kind === "entity_modified" || i.kind === "entity_removed",
+    );
+    return entityItems.length > 0 && entityItems.every(isOperationalByEntityIds);
+  }
+  return isOperationalByEntityIds(item);
+}
+
+export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] | undefined { // implements REQ-opencode-kibi-briefing-v6
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i, reasons.items));
+  if (domainItems.length === 0) {
+    return undefined; // suppress: specific-or-silent policy
+  }
+  return {
+    title: "Kibi Knowledge Update",
+    summary: toastSummary(domainItems) ?? "",
+    whyItMatters: toastWhy(domainItems) ?? "",
+  };
 }
 
 export function renderFullBriefReasons(reasons: DeliveryReasons): string { // implements REQ-opencode-kibi-briefing-v6
-  return ["## What changed", ...reasons.items.map((r) => `- ${r.text}`), "", "## Why it matters", reasons.toast.whyItMatters].join("\n");
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i, reasons.items));
+  const lines = ["## What changed", ...domainItems.map((r) => `- ${r.text}`)];
+  const whyItMatters = toastWhy(domainItems);
+  if (whyItMatters) {
+    lines.push("", "## Why it matters", whyItMatters);
+  }
+  return lines.join("\n");
 }
