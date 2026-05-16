@@ -264,6 +264,39 @@ describe("deriveBriefIntent", () => {
     assert.deepEqual(result.seedIds, []);
   });
 
+  test("returns ineligible when the only source files are operational artifacts", async () => {
+    const result = await derive({
+      sourceFiles: ["/workspace/.sisyphus/boulder.json", "/workspace/.sisyphus/notes/state.json"],
+      seedIds: ["REQ-001"],
+    });
+
+    assert.equal(result.eligible, false);
+    assert.ok(result.reason.length > 0);
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/.sisyphus/boulder.json",
+      "/workspace/.sisyphus/notes/state.json",
+    ]);
+  });
+
+  test("returns eligible with sourceFiles stripped of operational paths for mixed sessions", async () => {
+    const result = await derive({
+      sourceFiles: [
+        "/workspace/.sisyphus/boulder.json",
+        "/workspace/src/foo.ts",
+        "/workspace/.sisyphus/notes/state.json",
+        "/workspace/src/bar.ts",
+      ],
+      seedIds: ["REQ-001"],
+    });
+
+    assert.equal(result.eligible, true);
+    assert.equal(result.reason, "Eligible for auto-briefing");
+    assert.deepEqual(result.sourceFiles, [
+      "/workspace/src/bar.ts",
+      "/workspace/src/foo.ts",
+    ]);
+  });
+
   test("produces identical fingerprint for the same params twice", async () => {
     const files = ["/repo/packages/opencode/src/prompt.ts"];
     const first = await derive({

@@ -13,6 +13,7 @@ import {
   readBriefId,
 } from "../briefs";
 import { KIBI_SHOW_LATEST_BRIEF_COMMAND } from "../extensionIds";
+import { isOperationalArtifactPath } from "../operational-artifacts";
 // Lightweight, optional loadable brief-config loader with safe fallbacks
 declare const require: (module: string) => unknown;
 type BriefPolicy = {
@@ -55,6 +56,50 @@ export interface BriefWatcherResult {
  * Ensures we don't notify about the same brief twice.
  */
 const notifiedBriefContentHashes = new Set<string>();
+
+function isGenericFallbackText(text: string | undefined): boolean {
+  if (!text) return true;
+  const normalized = text.trim().toLowerCase();
+  if (!normalized) return true;
+  return ["brief", "update", "summary", "tldr", "tl;dr", "kibi brief"].some(
+    (phrase) => normalized === phrase || normalized.startsWith(`${phrase}:`) || normalized.startsWith(`${phrase} -`),
+  );
+}
+
+function isPurelyOperationalText(text: string | undefined): boolean {
+  if (!text) return false;
+  const normalized = text.trim();
+  if (!normalized) return false;
+  return (
+    normalized.includes(".sisyphus/") &&
+    !/[a-z0-9]{2,}/i.test(normalized.replace(/\.sisyphus\/[\w./-]*/g, ""))
+  );
+}
+
+function getBriefSpecificity(brief: BriefModel): boolean {
+  const b = brief as BriefModel & {
+    title?: string;
+    sourceFiles?: string[];
+  };
+  const briefingWithReasons = brief.briefing as typeof brief.briefing & {
+    deliveryReasons?: { toast?: { summary?: string } };
+  };
+
+  const title = b.title ?? "";
+  const summary = b.summary ?? b.briefing?.tldr ?? "";
+  const toastSummary = briefingWithReasons.deliveryReasons?.toast?.summary ?? "";
+  const sourceFiles = b.sourceFiles ?? [];
+
+  if (toastSummary && !isPurelyOperationalText(toastSummary) && !isGenericFallbackText(toastSummary)) return true;
+  if (title && !isPurelyOperationalText(title) && !isGenericFallbackText(title)) return true;
+  if (summary && !isPurelyOperationalText(summary) && !isGenericFallbackText(summary)) return true;
+
+  if (sourceFiles.length > 0 && sourceFiles.every((file) => isOperationalArtifactPath(file))) {
+    return false;
+  }
+
+  return false;
+}
 
 /**
  * Registers a file system watcher for brief JSON files in .kb/briefs/.
@@ -117,11 +162,34 @@ export function registerBriefWatcher(
     }
     notifiedBriefContentHashes.add(brief.contentHash);
 
-    // Build notification message
+    // Build notification message using the most specific available text
+    const b = brief as BriefModel & {
+      title?: string;
+    };
+    const briefingWithReasons = brief.briefing as typeof brief.briefing & {
+      deliveryReasons?: { toast?: { summary?: string } };
+    };
+    const toastSummary = briefingWithReasons.deliveryReasons?.toast?.summary;
+    const bodyText =
+      toastSummary &&
+      !isPurelyOperationalText(toastSummary) &&
+      !isGenericFallbackText(toastSummary)
+        ? toastSummary
+        : b.title &&
+            !isPurelyOperationalText(b.title) &&
+            !isGenericFallbackText(b.title)
+          ? b.title
+          : brief.summary ?? brief.briefing?.tldr ?? "";
     const message =
       brief.type === "warning"
-        ? `New Kibi Brief: ${brief.summary} (warning)`
-        : `New Kibi Brief: ${brief.summary}`;
+        ? `New Kibi Brief: ${bodyText} (warning)`
+        : `New Kibi Brief: ${bodyText}`;
+
+    const shouldNotify = getBriefSpecificity(brief);
+    if (!shouldNotify) {
+      markBriefSeen(context.workspaceState, workspaceRoot, branch, brief.contentHash);
+      return;
+    }
 
     // Show toast with "View Brief" and "Dismiss" actions
     const selection = await vscode.window.showInformationMessage(
