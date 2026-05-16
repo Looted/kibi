@@ -80,12 +80,14 @@ function getBriefSpecificity(brief: BriefModel): boolean {
   const b = brief as BriefModel & {
     title?: string;
     sourceFiles?: string[];
+  };
+  const briefingWithReasons = brief.briefing as typeof brief.briefing & {
     deliveryReasons?: { toast?: { summary?: string } };
   };
 
   const title = b.title ?? "";
   const summary = b.summary ?? b.briefing?.tldr ?? "";
-  const toastSummary = b.deliveryReasons?.toast?.summary ?? "";
+  const toastSummary = briefingWithReasons.deliveryReasons?.toast?.summary ?? "";
   const sourceFiles = b.sourceFiles ?? [];
 
   if (toastSummary && !isPurelyOperationalText(toastSummary) && !isGenericFallbackText(toastSummary)) return true;
@@ -163,9 +165,11 @@ export function registerBriefWatcher(
     // Build notification message using the most specific available text
     const b = brief as BriefModel & {
       title?: string;
+    };
+    const briefingWithReasons = brief.briefing as typeof brief.briefing & {
       deliveryReasons?: { toast?: { summary?: string } };
     };
-    const toastSummary = b.deliveryReasons?.toast?.summary;
+    const toastSummary = briefingWithReasons.deliveryReasons?.toast?.summary;
     const bodyText =
       toastSummary &&
       !isPurelyOperationalText(toastSummary) &&

@@ -73,8 +73,8 @@ beforeEach(() => {
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-briefs-test-"));
   workspaceRoot = tmpDir;
   branch = "test-branch";
-  context = { subscriptions: [], workspaceState: wsState };
   wsState = createMockWorkspaceState();
+  context = { subscriptions: [], workspaceState: wsState };
   mock.module("kibi-cli/brief-config", () => ({
     loadBriefConfig: (_workspaceRoot: string) => ({
       briefs: { enabled: true, channels: { vscode: true } },
@@ -239,9 +239,12 @@ test("registerBriefWatcher uses toastSummary when available for notification bod
       ...briefTemplate,
       title: "generic title",
       summary: "generic summary",
-      deliveryReasons: {
-        toast: {
-          summary: "Specific toast summary for VS Code",
+      briefing: {
+        ...briefTemplate.briefing,
+        deliveryReasons: {
+          toast: {
+            summary: "Specific toast summary for VS Code",
+          },
         },
       },
       unread: true,
