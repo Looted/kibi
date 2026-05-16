@@ -1,5 +1,36 @@
 # kibi-cli
 
+## 0.8.0
+
+### Minor Changes
+
+- 4746f3f: Briefs no longer surface internal task-tracking artifacts (such as `.sisyphus/boulder.json`) as if they were meaningful project knowledge. Notifications are now specific-or-silent: a toast only appears when the brief can say what changed and why it matters. Previously, any `.sisyphus/` file edit could trigger a brief with generic content and produce a vague "a brief is available" notification regardless of whether it contained real domain context.
+
+  - `kibi-cli`: adds `isOperationalArtifactPath(pathLike)` helper, exported as `kibi-cli/operational-artifacts`, matching `.sisyphus/**` paths as operational task-tracking artifacts
+  - `kibi-mcp`: filters operational artifact sources, entities, and citations before brief content is assembled so `.sisyphus/**` changes never appear in brief entities, citations, prompt blocks, or TLDRs
+  - `kibi-opencode`: suppresses brief eligibility for operational-only source changes; adds specificity gate to toast delivery so generic/operational envelopes do not trigger notifications
+  - `kibi-vscode`: applies same specific-or-silent semantics to VS Code brief watcher so generic/operational envelopes do not call `showInformationMessage`
+
+### Patch Changes
+
+- 7880675: Kibi now makes symbol manifest tracking harder to forget. New projects initialized with `kibi init` get a default `documentation/symbols.yaml`, and the managed pre-commit hook blocks commits when that manifest has unstaged changes so refreshed coordinates are committed with the related work.
+
+  - Create the default symbol manifest during `kibi init` when it is missing.
+  - Add a pre-commit guard that requires dirty `documentation/symbols.yaml` changes to be staged before `kibi check --staged` runs.
+
+- 2a00e15: Kibi discovery is now less noisy for broad agent queries. When agents send multi-intent natural-language searches, targeted domain-specific entities now rank above unrelated generic results. No-signal queries (containing only common stop words) return an empty result instead of arbitrary token-coverage matches. OpenCode agents are now guided to decompose broad queries into focused probes and follow up with exact `kb_query` lookups.
+
+  - `kibi-cli`: Add stop-word filtering, hyphen normalization, plural normalization, and minimum-score threshold to `search-ranking.ts`; add synthetic regression corpus tests.
+  - `kibi-mcp`: Add wrapper-level regression tests asserting improved ranking is preserved end-to-end.
+  - `kibi-opencode`: Update injected agent guidance to instruct query decomposition with concrete examples.
+
+- 8d8ebf6: Sync operations are now more resilient when multiple file edits trigger overlapping syncs. Previously, concurrent `kibi sync` runs for the same branch could collide on a shared staging directory and fail with a stale snapshot permission error. Each sync now uses an isolated staging directory, eliminating this race while preserving protection against genuine external KB mutations.
+
+  - Replace fixed `.kb/branches/<branch>.staging` with unique per-run staging directories using process ID and timestamp.
+  - Add automatic cleanup of abandoned staging directories left by crashed or terminated sync processes.
+  - Preserve atomic publish semantics and true stale-snapshot detection for external KB modifications.
+  - Fix invalid `specifies` relationship type in TEST-015 documentation that caused sync relationship warnings.
+
 ## 0.7.0
 
 ### Minor Changes
