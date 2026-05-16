@@ -1,5 +1,49 @@
 # kibi-opencode
 
+## 0.11.0
+
+### Minor Changes
+
+- 4746f3f: Briefs no longer surface internal task-tracking artifacts (such as `.sisyphus/boulder.json`) as if they were meaningful project knowledge. Notifications are now specific-or-silent: a toast only appears when the brief can say what changed and why it matters. Previously, any `.sisyphus/` file edit could trigger a brief with generic content and produce a vague "a brief is available" notification regardless of whether it contained real domain context.
+
+  - `kibi-cli`: adds `isOperationalArtifactPath(pathLike)` helper, exported as `kibi-cli/operational-artifacts`, matching `.sisyphus/**` paths as operational task-tracking artifacts
+  - `kibi-mcp`: filters operational artifact sources, entities, and citations before brief content is assembled so `.sisyphus/**` changes never appear in brief entities, citations, prompt blocks, or TLDRs
+  - `kibi-opencode`: suppresses brief eligibility for operational-only source changes; adds specificity gate to toast delivery so generic/operational envelopes do not trigger notifications
+  - `kibi-vscode`: applies same specific-or-silent semantics to VS Code brief watcher so generic/operational envelopes do not call `showInformationMessage`
+
+### Patch Changes
+
+- 2dd07e5: OpenCode bootstrap command support is now more reliable in fresh CI and Bun installations. The plugin can detect native `/init-kibi` command support when OpenCode installs the SDK as a transitive dependency of the plugin, preventing supported hosts from silently falling back to the namespaced MCP prompt.
+
+  - Resolve `@opencode-ai/sdk` metadata from Bun's plugin-sibling dependency layout during native command capability detection.
+  - Add regression coverage for the transitive SDK resolution path used by fresh installs.
+
+- b62a9a8: OpenCode sessions are now more resilient to transient background failures and idle timeouts. The plugin automatically suppresses repetitive background sync attempts after a persistent failure is detected, while ensuring manual developer actions still trigger fresh attempts to recover.
+
+  - Implement background sync suppression after latched operational failures to prevent log noise during idle periods.
+  - Add diagnostic metadata to sync failure payloads for improved observability.
+  - Ensure manual edits and tool executions bypass idle suppression to allow for graceful recovery.
+  - Restore standard operational sync behavior once the workspace state is resolved.
+
+- 2a00e15: Kibi discovery is now less noisy for broad agent queries. When agents send multi-intent natural-language searches, targeted domain-specific entities now rank above unrelated generic results. No-signal queries (containing only common stop words) return an empty result instead of arbitrary token-coverage matches. OpenCode agents are now guided to decompose broad queries into focused probes and follow up with exact `kb_query` lookups.
+
+  - `kibi-cli`: Add stop-word filtering, hyphen normalization, plural normalization, and minimum-score threshold to `search-ranking.ts`; add synthetic regression corpus tests.
+  - `kibi-mcp`: Add wrapper-level regression tests asserting improved ranking is preserved end-to-end.
+  - `kibi-opencode`: Update injected agent guidance to instruct query decomposition with concrete examples.
+
+- c06b245: Kibi brief toasts now show the specific entity-level knowledge base changes that triggered the notification (e.g. "Added requirement REQ-009", "Modified fact FACT-002") instead of a generic "Why it matters" message that always read the same. Toast and full brief now come from the same persisted reason data so the brief is always a deeper view of the same content surfaced by the toast. Automatic zero-change notifications are now suppressed — Kibi will not send a "Knowledge Update" toast or brief when no meaningful entity changes, validations, or briefing impacts occurred. The `kibi-brief` command is now available as a TUI alias to open the latest full brief without typing the full route.
+
+  - Persist `deliveryReasons` model on brief envelopes to support unified rendering.
+  - Consolidate toast and full brief content generation from a single source of truth.
+  - Implement zero-change suppression logic in `generateIdleBrief` and `announceBriefTui` to eliminate redundant notifications.
+  - Register `kibi-brief` TUI alias for direct access to the latest briefing output.
+
+- Updated dependencies [4746f3f]
+- Updated dependencies [7880675]
+- Updated dependencies [2a00e15]
+- Updated dependencies [8d8ebf6]
+  - kibi-cli@0.8.0
+
 ## 0.10.0
 
 ### Minor Changes
