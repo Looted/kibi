@@ -183,7 +183,12 @@ describe("tui-brief-delivery", () => {
     envelope.briefing.constraints = undefined;
     envelope.briefing.regressionRisks = undefined;
     envelope.briefing.missingEvidence = undefined;
-    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 1;
+    // Zero counts + no significant briefing impact → no-op; nonzero counts without deliveryReasons
+    // cannot be determined to be operational, so they are not suppressed here
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesAdded = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesModified = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).entitiesRemoved = 0;
+    (envelope.counts as IdleBriefEnvelopeV2["counts"]).relationshipsChanged = 0;
 
     await deliverBriefTui(mockClient, envelope, sharedPolicy, localConfig);
 

@@ -203,18 +203,14 @@ function isNoOpBriefEnvelope(envelope: IdleBriefEnvelope): boolean {
     return false;
   }
 
-  // Generic operational envelope: same summary/tldr, no deliveryReasons, no impact
-  const isGenericOperational =
-    envelope.validation.count === 0 &&
-    !hasSignificantBriefingImpact(envelope) &&
-    envelope.summary.trim() === envelope.briefing.tldr.trim() &&
-    envelope.summary.trim().length > 0;
-
+  // Suppress legacy (no deliveryReasons) envelopes only when all three conditions hold:
+  // zero change counts, no validation issues, and no significant briefing impact.
+  // Matching summary/tldr alone is not sufficient — a domain-specific brief may legitimately
+  // have the same value in both fields.
   return (
-    (zeroCounts &&
-      envelope.validation.count === 0 &&
-      !hasSignificantBriefingImpact(envelope)) ||
-    isGenericOperational
+    zeroCounts &&
+    envelope.validation.count === 0 &&
+    !hasSignificantBriefingImpact(envelope)
   );
 }
 

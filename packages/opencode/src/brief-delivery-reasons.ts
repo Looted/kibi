@@ -99,7 +99,7 @@ export function buildDeliveryReasons(input: BuildInput): DeliveryReasons | undef
   return { version: 1, items, toast: { title: "Kibi Knowledge Update", summary: toastSummary(items) ?? "", whyItMatters: toastWhy(items) ?? "" } };
 }
 
-function isOperationalItem(item: ReasonItem): boolean {
+function isOperationalByEntityIds(item: ReasonItem): boolean {
   if (item.entityIds.length === 0) return false;
   return item.entityIds.every((id) => {
     const dashIdx = id.indexOf("-");
@@ -110,8 +110,20 @@ function isOperationalItem(item: ReasonItem): boolean {
   });
 }
 
+function isOperationalItem(item: ReasonItem, allItems: ReasonItem[]): boolean {
+  if (item.kind === "relationship_changed") {
+    // relationship_changed items have no entityIds; treat as operational when
+    // all entity-level items in the set are operational (they're relationship side-effects)
+    const entityItems = allItems.filter(
+      (i) => i.kind === "entity_added" || i.kind === "entity_modified" || i.kind === "entity_removed",
+    );
+    return entityItems.length > 0 && entityItems.every(isOperationalByEntityIds);
+  }
+  return isOperationalByEntityIds(item);
+}
+
 export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["toast"] | undefined { // implements REQ-opencode-kibi-briefing-v6
-  const domainItems = reasons.items.filter((i) => !isOperationalItem(i));
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i, reasons.items));
   if (domainItems.length === 0) {
     return undefined; // suppress: specific-or-silent policy
   }
@@ -123,7 +135,7 @@ export function renderToastSummary(reasons: DeliveryReasons): DeliveryReasons["t
 }
 
 export function renderFullBriefReasons(reasons: DeliveryReasons): string { // implements REQ-opencode-kibi-briefing-v6
-  const domainItems = reasons.items.filter((i) => !isOperationalItem(i));
+  const domainItems = reasons.items.filter((i) => !isOperationalItem(i, reasons.items));
   const lines = ["## What changed", ...domainItems.map((r) => `- ${r.text}`)];
   const whyItMatters = toastWhy(domainItems);
   if (whyItMatters) {
