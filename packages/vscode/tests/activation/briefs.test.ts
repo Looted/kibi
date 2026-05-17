@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -84,7 +84,6 @@ beforeEach(() => {
 
 afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
-  mock.restore();
 });
 
 test("registerBriefWatcher creates a FileSystemWatcher", async () => {
@@ -532,4 +531,61 @@ test("registerBriefWatcher persists seen content hash even when toast is closed"
   await new Promise((r) => setTimeout(r, 50));
 
   expect(showInformationMessage.mock.calls.length).toBe(firstNotificationCount);
+});
+test("registerBriefWatcher appends migration required to toast when automationReview has migrationWarnings", async () => {
+  mock.module("vscode", () => getVscodeMockModule());
+
+  fs.mkdirSync(path.join(workspaceRoot, ".kb", "briefs"), { recursive: true });
+  const briefPath = path.join(workspaceRoot, ".kb", "briefs", "12345_brief.json");
+  fs.writeFileSync(
+    briefPath,
+    JSON.stringify({
+      ...briefTemplate,
+      title: "auth modeling brief",
+      summary: "Updated modeling for auth requirements",
+      briefing: {
+        ...briefTemplate.briefing,
+        tldr: "Updated modeling for auth requirements",
+      },
+      unread: true,
+      sourceFiles: ["packages/vscode/src/activation/briefs.ts"],
+      structuredContent: {
+        automationReview: {
+          generatedEntities: [],
+          strictReadinessScore: 0.5,
+          confidence: 0.6,
+          migrationWarnings: ["Schema version is outdated."],
+          contradictionRisks: [],
+          evidenceCitationIds: [],
+        },
+      },
+    }),
+  );
+
+  const { registerBriefWatcher } = await import(
+    `../../src/activation/briefs?case=${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  );
+
+  const result = registerBriefWatcher(
+    context as never,
+    { appendLine: () => {} } as never,
+    workspaceRoot,
+    branch,
+  );
+
+  const watcher = result.watcher as DefaultFileSystemWatcher;
+  const showInfo = getVscodeMockModule().window.showInformationMessage as ReturnType<typeof mock>;
+
+  showInfo.mockReset();
+
+  watcher.emitCreate({ fsPath: briefPath });
+  await new Promise((r) => setTimeout(r, 20));
+
+  expect(showInfo).toHaveBeenCalled();
+  const callArgs = showInfo.mock.calls[0] as string[];
+  expect(callArgs[0]).toContain("migration required");
+});
+
+afterAll(() => {
+  mock.restore();
 });

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import {
   type DefaultFileSystemWatcher,
   getVscodeMockModule,
@@ -103,7 +103,6 @@ beforeEach(() => {
 
 afterEach(() => {
   resetVscodeMock();
-  mock.restore();
 });
 
 test("registerTreeView returns treeDataProvider, treeView, refreshCommand, and watcher", async () => {
@@ -166,4 +165,7 @@ test("multiple watcher events each trigger refresh", async () => {
   capturedWatcher!.emitDelete();
 
   expect(emitter.fireCount).toBe(fireCountBefore + 3);
+});
+afterAll(() => {
+  mock.restore();
 });

@@ -180,10 +180,22 @@ export function registerBriefWatcher(
             !isGenericFallbackText(b.title)
           ? b.title
           : brief.summary ?? brief.briefing?.tldr ?? "";
+    // Check for migration warnings in structuredContent
+    const structuredContent = (brief as unknown as Record<string, unknown>).structuredContent;
+    const automationReview = typeof structuredContent === "object" && structuredContent !== null
+      ? (structuredContent as Record<string, unknown>).automationReview
+      : undefined;
+    const hasMigrationWarnings =
+      typeof automationReview === "object" &&
+      automationReview !== null &&
+      Array.isArray((automationReview as Record<string, unknown>).migrationWarnings) &&
+      ((automationReview as Record<string, unknown>).migrationWarnings as string[]).length > 0;
+
+    const migrationSuffix = hasMigrationWarnings ? " — migration required" : "";
     const message =
       brief.type === "warning"
-        ? `New Kibi Brief: ${bodyText} (warning)`
-        : `New Kibi Brief: ${bodyText}`;
+        ? `New Kibi Brief: ${bodyText} (warning)${migrationSuffix}`
+        : `New Kibi Brief: ${bodyText}${migrationSuffix}`;
 
     const shouldNotify = getBriefSpecificity(brief);
     if (!shouldNotify) {

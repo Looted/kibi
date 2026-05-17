@@ -388,6 +388,44 @@ describe("autopilot generate", () => {
     ).toBe(true);
   });
 
+  test("cold-start repos emit strict requirement candidates for high-confidence normative markdown", async () => {
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nCustomer data must be retained for 7 years.\n",
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+    const requirementCandidate = candidates.find(
+      (candidate) =>
+        candidate.entityType === "req" &&
+        String(candidate.title).includes("retained for 7 years"),
+    );
+    const applyPlan = requirementCandidate?.applyPlan as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const reqStep = applyPlan?.[2] as Record<string, unknown> | undefined;
+
+    expect(requirementCandidate).toBeDefined();
+    expect(requirementCandidate?.sourceKind).toBe("generic_markdown");
+    expect(applyPlan).toHaveLength(3);
+    expect(applyPlan?.[0]).toMatchObject({ type: "fact", relationships: [] });
+    expect(applyPlan?.[1]).toMatchObject({ type: "fact", relationships: [] });
+    expect(reqStep).toMatchObject({ type: "req" });
+    expect(reqStep?.relationships).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "constrains" }),
+        expect.objectContaining({ type: "requires_property" }),
+      ]),
+    );
+  });
+
   test("unsupported-language repos keep source symbol provider graceful with fallback module evidence", async () => {
     await fs.mkdir(path.join(tmp, "src"), { recursive: true });
     await fs.writeFile(

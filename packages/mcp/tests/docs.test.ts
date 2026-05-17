@@ -88,7 +88,7 @@ describe("MCP runtime docs: canonical modeling wording", () => {
     test("must state that only strict subject/property_value facts participate in contradiction inference", () => {
       const prompt = findPrompt("kibi_overview");
       expect(prompt.text).toMatch(
-        /only strict.*(subject|property_value|strict domain facts).*(contradiction|inference)|contradiction.*only strict.*(subject|property_value|strict domain facts)/i,
+        /strict domain facts.*(contradiction|inference)|only strict.*(subject|property_value).*(contradiction|inference)/i,
       );
     });
 

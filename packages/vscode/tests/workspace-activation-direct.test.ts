@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test-globals" />
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -36,7 +36,6 @@ afterEach(() => {
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  mock.restore();
 });
 
 describe("activation/workspace direct", () => {
@@ -115,4 +114,7 @@ describe("activation/workspace direct", () => {
     workspaceModule._setWorkspaceFsDepsForTests({ existsSync: () => false });
     expect(workspaceModule.getCurrentBranch(path.join(tmpDir, "missing"))).toBe("main");
   });
+});
+afterAll(() => {
+  mock.restore();
 });

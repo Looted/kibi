@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
@@ -123,7 +123,6 @@ describe("setupTransportHandlers", () => {
     process.on = originalProcessOn;
     process.env = { ...process.env, KIBI_MCP_DEBUG: originalDebug };
     // Restore all module mocks to prevent pollution of other test files
-    mock.restore();
     await restoreRealModules();
   });
 
@@ -446,7 +445,6 @@ describe("connectTransport", () => {
   });
 
   afterEach(async () => {
-    mock.restore();
     await restoreRealModules();
   });
 
@@ -471,3 +469,6 @@ describe("connectTransport", () => {
     );
   });
 });
+  afterAll(() => {
+    mock.restore();
+  });

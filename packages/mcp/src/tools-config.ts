@@ -425,6 +425,66 @@ const BASE_TOOLS = [
     },
   },
   {
+    name: "kb_model_requirement",
+    description:
+      "Convert a prose requirement plus optional extracted claim fields into a deterministic strict-lane write set. Read-only modeling returns a sequential applyPlan for later kb_upsert calls. High-confidence claims emit req+fact strict output; lower-confidence claims emit an observation review artifact. Includes migration warnings when legacy schemaVersion metadata is detected.",
+    inputSchema: {
+      type: "object",
+      required: ["text"],
+      properties: {
+        text: {
+          type: "string",
+          description:
+            "Required prose requirement text to model. Example: 'Customer data must be retained for 7 years.'",
+        },
+        source: {
+          type: "string",
+          description:
+            "Optional primary source path or provenance root used for stable IDs and text refs. Example: 'documentation/requirements/customer-retention.md'.",
+        },
+        sourceFiles: {
+          type: "array",
+          items: { type: "string" },
+          description:
+            "Optional related source files. The first value is used as the source fallback when source is omitted.",
+        },
+        confidence: {
+          type: "number",
+          default: 0.8,
+          minimum: 0,
+          maximum: 1,
+          description:
+            "Confidence score for the extracted claim. >= 0.70 yields strict-lane output; lower confidence yields observation-only review output.",
+        },
+        subjectKey: {
+          type: "string",
+          description:
+            "Optional extracted semantic claim subjectKey. Example: 'Customer.Data'.",
+        },
+        propertyKey: {
+          type: "string",
+          description:
+            "Optional extracted semantic claim propertyKey. Example: 'Retention Years'.",
+        },
+        operator: {
+          type: "string",
+          enum: ["eq", "gte", "lte", "neq", "bool", "polarity"],
+          description:
+            "Optional extracted semantic claim operator. Example: 'eq'.",
+        },
+        value: {
+          description:
+            "Optional extracted semantic claim value. Accepts string, number, or boolean.",
+        },
+        provenance: {
+          type: "string",
+          description:
+            "Optional extracted text reference. Falls back to source when omitted. Example: 'documentation/requirements/customer-retention.md#L1'.",
+        },
+      },
+    },
+  },
+  {
     name: "kb_autopilot_generate",
     description:
       "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",

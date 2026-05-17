@@ -24,5 +24,6 @@
     "symbolTraceability": {
       "requireAdr": false
     }
-  }
+  },
+  "schemaVersion": 1
 }

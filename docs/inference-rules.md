@@ -33,6 +33,9 @@ Kibi includes deterministic derived predicates for internal analysis and automat
   - numeric range gaps like `lte 2` vs `gte 3`
   - polarity conflicts like `require` vs `forbid` on the same normalized tuple
 - Scope and validity windows only conflict when they intersect.
+- **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
+- **V1 Limits:** Contradiction detection is bounded to exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
+- **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
 These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the curated public surface instead:
 
