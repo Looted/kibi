@@ -35,6 +35,7 @@ function toPosix(p: string): string {
   return p.split(path.sep).join("/");
 }
 
+// implements REQ-001
 export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   const root = path.resolve(workspaceRoot);
 
@@ -195,11 +196,22 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
       }
     }
 
-    // Nested patterns - include directory prefix
-    for (const [dirRel, ig] of nestedIgnoreMap.entries()) {
-      // we don't have direct access to the raw patterns on the ignore instance, reconstruct from keys
-      // instead, include a general glob to ignore the directory contents if there were any patterns
-      globs.push(dirRel === "." ? "**/*" : `**/${dirRel}/**`);
+    // Nested .gitignore patterns - prefix with directory path
+    // Use the raw patterns collected in nestedPatterns so we scope patterns
+    // to the nested directory instead of ignoring the entire directory.
+    // Debug: print nested patterns and the computed globs to help diagnosing test failures.
+    for (const [dirRel, patterns] of nestedPatterns.entries()) {
+      for (const p of patterns) {
+        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
+        let pat = p;
+        if (pat.startsWith("/")) pat = pat.slice(1);
+        const prefix = dirRel === "." ? "" : `${dirRel}/`;
+        if (pat.includes("/")) {
+          globs.push(`**/${prefix}${toPosix(pat)}`);
+        } else {
+          globs.push(`**/${prefix}${pat}`);
+        }
+      }
     }
 
     return Array.from(new Set(globs));

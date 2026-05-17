@@ -17,6 +17,8 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 import path from "node:path";
+import fg from "fast-glob";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import {
   type Candidate,
   buildNormativeRequirementCandidates,
@@ -819,6 +821,41 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
 
       seenByKey.set(titleKey, record);
     }
+  }
+
+  // Detect repository files that would be candidate inputs but are ignored by
+  // the repo ignore policy (e.g. .sisyphus drafts, .gitignore entries). Add
+  // them to suppressedCandidates with reason `ignored_source` so callers see
+  // why those files were omitted from candidate output.
+  try {
+    const repoIgnore = createRepoIgnorePolicy(workspaceRoot);
+    const potentialFiles = fg.sync(["**/*.md", "**/symbols.{yml,yaml}"], {
+      cwd: workspaceRoot,
+      absolute: true,
+      onlyFiles: true,
+      unique: true,
+      dot: true,
+      suppressErrors: true,
+    });
+
+    for (const absPath of potentialFiles) {
+      const rel = toWorkspaceRelativePath(workspaceRoot, absPath);
+      const explain = repoIgnore.explain(rel);
+      if (explain.ignored) {
+        // avoid duplicating existing suppressed entries for the same source
+        if (!suppressed.some((s) => String(s.sourcePath ?? "") === rel && s.reason === "ignored_source")) {
+          suppressed.push({
+            candidateId: String("") /* no candidate id for ignored source */,
+            reason: "ignored_source",
+            sourcePath: rel,
+            entityType: String("") /* unknown at this stage */,
+            detail: explain.reason,
+          } as unknown as SuppressedCandidateRecord);
+        }
+      }
+    }
+  } catch {
+    // best-effort only; ignore failures here so generation can continue
   }
 
   const candidateRecords: CandidateRecord[] = Array.from(seenByKey.values());

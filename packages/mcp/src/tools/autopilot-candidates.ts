@@ -201,6 +201,7 @@ export function buildTypedMarkdownCandidates(
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
 
   for (const filePath of getTypedMarkdownFiles(discoveryResult)) {
     try {
@@ -213,6 +214,7 @@ export function buildTypedMarkdownCandidates(
         filePath,
         workspaceRoot,
       );
+      if (ignorePolicy.isIgnored(relativePath)) continue;
       const candidateId = `md:${relativePath}:${entity.id}`;
       const upsert = buildUpsertFromExtraction({ entity, relationships });
 
@@ -538,6 +540,7 @@ export function buildNormativeRequirementCandidates(
   const seeds: NormativeRequirementSeed[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
   const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
 
   for (const rawPath of getGenericMarkdownFiles(discoveryResult)) {
     try {
@@ -546,7 +549,6 @@ export function buildNormativeRequirementCandidates(
         filePath,
         workspaceRoot,
       );
-      const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
       if (ignorePolicy.isIgnored(relativePath)) continue;
       if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
       if (!fs.existsSync(absolutePath)) continue;
