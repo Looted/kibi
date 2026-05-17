@@ -336,6 +336,55 @@ describe("autopilot generate", () => {
     expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
   });
 
+  test("ignored paths (like .sisyphus drafts) yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create an ignored draft under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [draftPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test(".gitignore-ignored markdown files yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create a markdown file and ignore it via .gitignore
+    await fs.mkdir(path.join(tmp, "secret"), { recursive: true });
+    const secretPath = path.join(tmp, "secret", "secret-doc.md");
+    await fs.writeFile(secretPath, "# ADR: Secret Decision\n");
+    await fs.writeFile(path.join(tmp, ".gitignore"), "secret/\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [secretPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test("non-ignored markdown still yields candidates", async () => {
+    // sanity check: a regular markdown under docs/ yields candidates (conservative path)
+    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
+    const notePath = path.join(tmp, "docs", "decision.md");
+    await fs.writeFile(notePath, "# ADR: Public Decision\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [notePath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.some((c) => c.entityType === "adr")).toBe(true);
+  });
+
   test("root_partial workspaces may scan but block apply", async () => {
     createPartialRepo(tmp);
 

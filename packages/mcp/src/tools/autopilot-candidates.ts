@@ -14,6 +14,7 @@ import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
 import path from "node:path";
 import fs from "node:fs";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import {
   estimateNormativeSignalConfidence,
   extractRequirementClaim,
@@ -131,12 +132,8 @@ function resolveCandidatePaths(
   return { absolutePath, relativePath };
 }
 
-function isIgnoredGenericMarkdownPath(relativePath: string): boolean {
-  const normalized = relativePath.replace(/\\/g, "/").replace(/^\.\//, "");
-  return /(^|\/)(documentation|\.kb|\.git|node_modules|vendor|vendors|third_party|third-party|dist|coverage)(\/|$)/.test(
-    normalized,
-  );
-}
+// Legacy helper removed in favor of the shared ignore policy from kibi-cli/ignore-policy.
+// Use createRepoIgnorePolicy(workspaceRoot).isIgnored(relativePath) in builders.
 
 function shouldIncludeGenericMarkdown(
   relativePath: string,
@@ -308,6 +305,7 @@ export function buildGenericMarkdownCandidates(
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
   const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
   const files = getGenericMarkdownFiles(discoveryResult);
@@ -319,7 +317,7 @@ export function buildGenericMarkdownCandidates(
         filePath,
         workspaceRoot,
       );
-      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      if (ignorePolicy.isIgnored(relativePath)) continue;
 
       // Legacy path-only discovery was conservative. Provider-scoped discovery
       // already filters eligible generic docs, so allow broader repo markdown there.
@@ -429,6 +427,7 @@ export function collectSourceOnlyAuthoringSignals(
   const signals: SourceOnlyAuthoringSignal[] = [];
   const seen = new Set<string>();
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
   const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
   for (const rawPath of getGenericMarkdownFiles(discoveryResult)) {
@@ -438,7 +437,7 @@ export function collectSourceOnlyAuthoringSignals(
         filePath,
         workspaceRoot,
       );
-      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      if (ignorePolicy.isIgnored(relativePath)) continue;
       if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
       if (!fs.existsSync(absolutePath)) continue;
 
@@ -547,7 +546,8 @@ export function buildNormativeRequirementCandidates(
         filePath,
         workspaceRoot,
       );
-      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
+      if (ignorePolicy.isIgnored(relativePath)) continue;
       if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
       if (!fs.existsSync(absolutePath)) continue;
 
