@@ -86,6 +86,11 @@
     "./operational-artifacts": {
       "types": "./dist/public/operational-artifacts.d.ts",
       "default": "./dist/public/operational-artifacts.js"
+    },
+    "./ignore-policy": {
+      "types": "./dist/public/ignore-policy.d.ts",
+      "import": "./dist/public/ignore-policy.js",
+      "default": "./dist/public/ignore-policy.js"
     }
   },
   "types": "./dist/cli.d.ts",
@@ -97,7 +102,8 @@
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
     "kibi-core": "^0.5.3",
-    "ts-morph": "^23.0.0"
+    "ts-morph": "^23.0.0",
+    "ignore": "^5.3.0"
   },
   "devDependencies": {
     "@types/node": "latest",
