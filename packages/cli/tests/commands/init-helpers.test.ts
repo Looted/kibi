@@ -110,6 +110,7 @@ describe("init-helpers", () => {
 
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     expect(config.paths).toBeDefined();
+    expect(config.schemaVersion).toBe(1);
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 

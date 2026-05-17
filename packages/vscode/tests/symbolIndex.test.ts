@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { execSync as realExecSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -276,4 +276,8 @@ describe("symbolIndex", () => {
     expect(queryRelationshipsViaCli("SYM-003", tmpDir)).toEqual([]);
     expect(execSyncCalls).toHaveLength(2);
   });
+});
+
+afterAll(() => {
+  mock.restore();
 });

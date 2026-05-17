@@ -392,6 +392,7 @@ export async function checkCommand(
       "domain-contradictions",
       "strict-fact-shape",
       "strict-req-fact-pairing",
+      "strict-readiness",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -431,6 +432,7 @@ export async function checkCommand(
       await runCheck("domain-contradictions", checkDomainContradictions);
       await runCheck("strict-fact-shape", checkStrictFactShape);
       await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
+      await runCheck("strict-readiness", checkStrictReadiness);
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
@@ -443,6 +445,12 @@ export async function checkCommand(
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;
       console.log(`[${v.rule}] ${filename}`);
+      if (filename !== v.entityId) {
+        console.log(`  Entity: ${v.entityId}`);
+      }
+      if (v.source) {
+        console.log(`  Source: ${v.source}`);
+      }
       console.log(`  ${v.description}`);
       if (options.fix && v.suggestion) {
         console.log(`  Suggestion: ${v.suggestion}`);
@@ -840,7 +848,7 @@ async function checkDomainContradictions(
     violations.push({
       rule: "domain-contradictions",
       entityId: `${reqA}/${reqB}`,
-      description: reason,
+      description: `${reason} [strict-readiness: contradiction-ready]`,
       suggestion:
         "Supersede one requirement or align both to the same required property",
     });
@@ -882,6 +890,31 @@ async function checkStrictReqFactPairing(
   const result = await prolog.query(
     `findall(violation(Rule, EntityId, Desc, Sugg, Src),
       checks:strict_req_fact_pairing_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
+  }
+
+  return violations;
+}
+
+async function checkStrictReadiness(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_readiness_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
       Violations)`,
   );
 

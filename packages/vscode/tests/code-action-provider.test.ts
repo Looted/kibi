@@ -49,7 +49,6 @@ beforeEach(() => {
 
 afterEach(() => {
   if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
-  mock.restore();
 });
 
 afterAll(() => {

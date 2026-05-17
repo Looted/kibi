@@ -17,7 +17,7 @@
  */
 
 /**
- * Public re-export barrel for shared check types.
+ * Public re-export barrel for shared check types and MCP-consumed modeling helpers.
  * Import from "kibi-cli/public/check-types" in MCP or external consumers.
  */
 export type {
@@ -26,6 +26,12 @@ export type {
   SymbolTraceabilityOptions,
   Violation,
 } from "../utils/rule-registry.js";
+export type {
+  SemanticClaim,
+  StableRequirementIds,
+  StrictModelInput,
+  StrictWriteSet,
+} from "../utils/strict-modeling.js";
 
 export {
   DEFAULT_CHECKS_CONFIG,
@@ -35,3 +41,11 @@ export {
   mergeChecksConfig,
   validateRuleName,
 } from "../utils/rule-registry.js";
+
+export {
+  buildStableRequirementIds,
+  buildStrictWriteSet,
+  modelRequirementClaims,
+  normalizePropertyKey,
+  normalizeSubjectKey,
+} from "../utils/strict-modeling.js";

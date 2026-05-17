@@ -119,6 +119,13 @@ export const RULES: readonly RuleDefinition[] = [
     defaultEnabled: false,
     category: "integrity",
   },
+  {
+    name: "strict-readiness",
+    description:
+      "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
+    defaultEnabled: false,
+    category: "integrity",
+  },
 ] as const;
 
 /**

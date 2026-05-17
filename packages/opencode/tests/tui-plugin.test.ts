@@ -1,4 +1,4 @@
-import { expect, test, describe, mock, beforeEach, afterEach } from "bun:test";
+import { expect, test, describe, mock, beforeEach, afterAll, afterEach } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -117,7 +117,6 @@ describe("TUI Plugin", () => {
   });
 
   afterEach(() => {
-    mock.restore();
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
@@ -200,7 +199,6 @@ describe("TUI Plugin - contentHash tracking and auto-open", () => {
   });
 
   afterEach(() => {
-    mock.restore();
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
@@ -355,7 +353,6 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
   });
 
   afterEach(() => {
-    mock.restore();
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
@@ -426,3 +423,6 @@ describe("TUI Plugin - channel-aware markBriefRead", () => {
     expect(() => briefRoute?.render()).not.toThrow();
   });
 });
+  afterAll(() => {
+    mock.restore();
+  });

@@ -2,7 +2,7 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
@@ -147,7 +147,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^0.8.0"
+    "kibi-cli": "^0.9.0"
   },
   "repository": {
     "type": "git",

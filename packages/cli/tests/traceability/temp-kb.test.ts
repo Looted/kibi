@@ -1,5 +1,5 @@
 import {
-  afterEach,
+  afterAll, afterEach,
   beforeEach,
   describe,
   expect,
@@ -191,7 +191,6 @@ describe("temp-kb", () => {
   });
 
   afterEach(async () => {
-    mock.restore();
     Reflect.deleteProperty(process.env, "KIBI_TRACE");
     Reflect.deleteProperty(process.env, "KIBI_DEBUG");
     // Clean up any temporary KBs created during tests
@@ -1253,3 +1252,6 @@ describe("temp-kb", () => {
     });
   });
 });
+  afterAll(() => {
+    mock.restore();
+  });

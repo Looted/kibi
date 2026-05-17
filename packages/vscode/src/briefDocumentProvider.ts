@@ -50,6 +50,75 @@ function hasKnowledgeImpactContext(brief: BriefModel): boolean {
   );
 }
 
+interface AutomationReview {
+  generatedEntities: Array<{ id: string; type: string; title: string; confidence: number }>;
+  strictReadinessScore: number;
+  confidence: number;
+  migrationWarnings: string[];
+  contradictionRisks: string[];
+  evidenceCitationIds: string[];
+}
+
+function isAutomationReviewEntity(
+  value: unknown,
+): value is { id: string; type: string; title: string; confidence: number } {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.id === "string" &&
+    typeof v.type === "string" &&
+    typeof v.title === "string" &&
+    typeof v.confidence === "number"
+  );
+}
+
+function isAutomationReview(value: unknown): value is AutomationReview {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  return (
+    typeof v.strictReadinessScore === "number" &&
+    typeof v.confidence === "number" &&
+    Array.isArray(v.generatedEntities) &&
+    v.generatedEntities.every((entity) => isAutomationReviewEntity(entity)) &&
+    Array.isArray(v.migrationWarnings) &&
+    Array.isArray(v.contradictionRisks) &&
+    Array.isArray(v.evidenceCitationIds)
+  );
+}
+
+export function getAutomationReview(brief: BriefModel): AutomationReview | null {
+  const sc = (brief as unknown as Record<string, unknown>).structuredContent;
+  if (typeof sc !== "object" || sc === null) return null;
+  const ar = (sc as Record<string, unknown>).automationReview;
+  if (!isAutomationReview(ar)) return null;
+  return ar;
+}
+
+function renderAutomationReview(review: AutomationReview): string[] {
+  const lines: string[] = [];
+  lines.push("## Automated Modeling Review");
+  lines.push(`**Strict Readiness Score:** ${review.strictReadinessScore} | **Confidence:** ${review.confidence}`);
+  lines.push(`**Generated Entities:** ${review.generatedEntities.length}`);
+  if (review.migrationWarnings.length > 0) {
+    lines.push("### Migration Warnings");
+    for (const w of review.migrationWarnings) {
+      lines.push(`- ${w}`);
+    }
+  }
+  if (review.contradictionRisks.length > 0) {
+    lines.push("### Contradiction Risks");
+    for (const r of review.contradictionRisks) {
+      lines.push(`- ${r}`);
+    }
+  }
+  if (review.evidenceCitationIds.length > 0) {
+    lines.push("### Evidence Citations");
+    lines.push(`- ${review.evidenceCitationIds.join(", ")}`);
+  }
+  lines.push("");
+  return lines;
+}
+
 export class BriefDocumentProvider
   implements vscode.TextDocumentContentProvider
 {
@@ -169,6 +238,11 @@ export class BriefDocumentProvider
         }
       }
       lines.push("");
+    }
+
+    const automationReview = getAutomationReview(brief);
+    if (automationReview) {
+      lines.push(...renderAutomationReview(automationReview));
     }
 
     return lines.join("\n");

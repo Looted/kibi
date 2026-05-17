@@ -33,6 +33,26 @@ A structured briefing with `briefingState`, `activationState`, `activationReason
 
 When evidence is insufficient, the tool fails closed with `briefingState: "no_briefing"` and no speculative sections.
 
+### `kb_model_requirement`
+
+Model a normative requirement claim into a deterministic strict write-set for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or falls back to heuristic extraction from a plain statement) and returns a ready-to-apply plan of `req` + `fact` entities with typed `constrains`/`requires_property` relationships.
+
+High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane.
+
+**Parameters:**
+- `statement` (required): Plain-language normative statement to model
+- `claim` (optional): Explicit `SemanticClaim` object with `subjectKey`, `propertyKey`, `operator`, `value`, `confidence`, and `sourceRef` fields. When provided, heuristic extraction is skipped.
+
+**Returns:**
+A `writeSet` discriminated union:
+- `isStrict: true` — includes `req`, `subjectFact`, `propertyFact`, `relationships`, and an `applyPlan` ready for sequential `kb_upsert` calls.
+- `isStrict: false` — includes a single `observationFact` for non-normative or low-confidence input.
+
+Also returns `migrationWarning` (non-null when the workspace KB schema is outdated) and `schemaVersionStatus` for pre-flight awareness.
+
+Human approval is not required. The write-set is deterministic and idempotent — the same claim always produces the same stable entity IDs (SHA-256 of normalized source/subject/property/operator/value). Apply via sequential `kb_upsert` calls at any time.
+
+
 ### `kb_query`
 
 Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.

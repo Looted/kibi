@@ -19,6 +19,7 @@ import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
 import type { StatusArgs } from "../../src/tools/status.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
+import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { BriefingGenerateArgs } from "../../src/tools/briefing-generate.js";
 
@@ -47,6 +48,7 @@ const TOOL_NAMES = [
   "kb_upsert",
   "kb_delete",
   "kb_check",
+  "kb_model_requirement",
   "kb_autopilot_generate",
   "kb_briefing_generate",
 ] as const;
@@ -265,6 +267,14 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbModelRequirement: ToolsRuntime<
+    MockProlog
+  >["handleKbModelRequirement"] = mock(
+    async (_prolog: MockProlog, args: ModelRequirementArgs): Promise<unknown> => ({
+      tool: "kb_model_requirement",
+      args,
+    }),
+  );
   const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] = mock(
     async (_prolog: MockProlog, args: AutopilotGenerateArgs): Promise<unknown> => ({
       tool: "kb_autopilot_generate",
@@ -298,6 +308,7 @@ function createRuntime() {
     handleKbSearch,
     handleKbStatus,
     handleKbUpsert,
+    handleKbModelRequirement,
     handleKbAutopilotGenerate,
     handleKbBriefingGenerate,
   } satisfies ToolsRuntime<MockProlog>;
@@ -325,6 +336,7 @@ function createRuntime() {
       handleKbSearch,
       handleKbStatus,
       handleKbUpsert,
+      handleKbModelRequirement,
       handleKbAutopilotGenerate,
       handleKbBriefingGenerate,
     },
@@ -679,6 +691,10 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbCheck).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_check"),
+    );
+    expect(spies.handleKbModelRequirement).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_model_requirement"),
     );
     expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
       mockProlog,

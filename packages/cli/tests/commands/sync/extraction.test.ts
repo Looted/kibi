@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { ExtractionResult } from "../../../src/extractors/markdown.js";
 
 // --- Mocks ---
@@ -95,7 +95,7 @@ describe("processExtractions", () => {
     mockExtractFromManifest.mockClear();
   });
 
-  afterEach(() => {
+  afterAll(() => {
     mock.restore();
   });
 
@@ -272,7 +272,7 @@ describe("processExtractions edge cases", () => {
     mockExtractFromManifest.mockClear();
   });
 
-  afterEach(() => {
+  afterAll(() => {
     mock.restore();
   });
 
@@ -340,7 +340,6 @@ describe("processExtractions error handling", () => {
 
   afterEach(() => {
     console.warn = originalConsoleWarn;
-    mock.restore();
   });
 
   test("handles FrontmatterError with Embedded Entity Violation", async () => {

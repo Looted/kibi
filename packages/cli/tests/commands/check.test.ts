@@ -67,6 +67,131 @@ describe("kibi check", () => {
   });
 
   test(
+    "reports legacy fact-linked requirements as not-ready instead of contradictions",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-LEGACY-TRACEABLE-001.md"),
+        `---
+id: FACT-LEGACY-TRACEABLE-001
+title: Legacy Account Policy Note
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-LEGACY-TRACEABLE-001.md
+---
+Legacy prose fact without strict shape
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-LEGACY-TRACEABLE-001.md"),
+        `---
+id: REQ-LEGACY-TRACEABLE-001
+title: Legacy requirement linked to a prose fact
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-LEGACY-TRACEABLE-001.md
+links:
+  - type: constrains
+    target: FACT-LEGACY-TRACEABLE-001
+---
+
+# Legacy requirement linked to a prose fact
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-readiness,domain-contradictions"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("strict-readiness");
+      expect(output).toContain("REQ-LEGACY-TRACEABLE-001");
+      expect(output).toContain("traceable");
+      expect(output).toContain("not-ready");
+      expect(output).not.toContain("domain-contradictions");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "reports subject-only requirements as has-subject and pairing violations",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-SUBJECT-ONLY-001.md"),
+        `---
+id: FACT-SUBJECT-ONLY-001
+title: Subject-only account policy
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-SUBJECT-ONLY-001.md
+fact_kind: subject
+subject_key: account.policy
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-SUBJECT-ONLY-001.md"),
+        `---
+id: REQ-SUBJECT-ONLY-001
+title: Subject-only strict requirement
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-SUBJECT-ONLY-001.md
+links:
+  - type: constrains
+    target: FACT-SUBJECT-ONLY-001
+---
+
+# Subject-only strict requirement
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-readiness,strict-req-fact-pairing"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("strict-readiness");
+      expect(output).toContain("REQ-SUBJECT-ONLY-001");
+      expect(output).toContain("has-subject");
+      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("requires_property");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "passes on valid KB",
     async () => {
       // Create valid requirement with scenario and test
@@ -856,6 +981,8 @@ links:
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("domain-contradictions");
+      expect(output).toContain("REQ-018/REQ-019");
+      expect(output).toContain("contradiction-ready");
       expect(output).toContain("user.role_assignment.max_roles");
     },
     TEST_TIMEOUT_MS,

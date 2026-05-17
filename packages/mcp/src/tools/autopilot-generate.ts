@@ -19,6 +19,7 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import path from "node:path";
 import {
   type Candidate,
+  buildNormativeRequirementCandidates,
   collectSourceOnlyAuthoringSignals,
   buildGenericMarkdownCandidates,
   buildProviderEvidenceCandidates,
@@ -26,6 +27,7 @@ import {
   buildSymbolManifestCandidates,
   type SourceOnlyAuthoringSignal,
 } from "./autopilot-candidates.js";
+import { getWorkspaceMigrationWarning } from "./model-requirement.js";
 import {
   type DiscoverySummary,
   discoverProviderEvidence,
@@ -88,6 +90,7 @@ interface AutopilotStructuredContent {
   bootstrapMode: ActivationMode;
   activationReason: string;
   applyBlocked: boolean;
+  migrationWarning: string | null;
   handoffMessage?: string;
   confidence: AutopilotConfidence;
   tldr: string;
@@ -103,6 +106,7 @@ interface AutopilotStructuredContent {
 export interface AutopilotGenerateResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: AutopilotStructuredContent;
+  migrationWarning: string | null;
   candidates: Array<Record<string, unknown>>;
   suppressedCandidates: Array<Record<string, unknown>>;
   payoffSummary: PayoffSummary;
@@ -622,6 +626,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   const activation = await resolveActivationPolicy(workspaceRoot, prolog);
   const activationState = activation.activationState;
   const activationDiscovery = discoverProviderEvidence(workspaceRoot, activation);
+  const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const declaredContext = normalizeBootstrapContext(bootstrapContext);
   const discoveredCandidatePaths = activationDiscovery.evidence.reduce<string[]>(
     (acc, item) => {
@@ -672,6 +677,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   let typedMarkdownCandidates: Candidate[] = [];
   let manifestCandidates: Candidate[] = [];
   let genericCandidates: Candidate[] = [];
+  let normativeRequirementCandidates: Candidate[] = [];
   let providerEvidenceCandidates: Candidate[] = [];
   let allCandidates: Candidate[] = [];
   const seenByKey = new Map<string, CandidateRecord>();
@@ -699,6 +705,14 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
         },
         normalizedMinConfidence,
       );
+      normativeRequirementCandidates = buildNormativeRequirementCandidates(
+        candidateDiscovery,
+        {
+          ids: existingIds,
+          workspaceRoot,
+        },
+        normalizedMinConfidence,
+      );
     }
     providerEvidenceCandidates = buildProviderEvidenceCandidates(
       candidateDiscovery,
@@ -713,6 +727,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       ...typedMarkdownCandidates,
       ...manifestCandidates,
       ...genericCandidates,
+      ...normativeRequirementCandidates,
       ...providerEvidenceCandidates,
     ];
     if (entityTypes && entityTypes.length > 0) {
@@ -858,6 +873,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     bootstrapMode: activation.activationMode,
     activationReason: activation.reason,
     applyBlocked: effectiveApplyBlocked,
+    migrationWarning,
     ...(activation.handoffMessage
       ? { handoffMessage: activation.handoffMessage }
       : {}),
@@ -880,6 +896,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       },
     ],
     structuredContent,
+    migrationWarning,
     candidates: candidateRecords,
     suppressedCandidates: suppressed,
     payoffSummary,

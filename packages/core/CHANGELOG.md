@@ -1,5 +1,16 @@
 # kibi-core
 
+## 0.5.3
+
+### Patch Changes
+
+- Kibi now supports fully automated requirement modeling and schema migrations, allowing repositories to stay up-to-date with the latest contradiction-safe modeling standards without manual intervention. The new system enforces strict readiness levels for requirement/fact pairings and automatically downgrades low-confidence claims to non-blocking observations to ensure high precision in conflict detection.
+
+  - add `kibi migrate` command for automated KB schema upgrades
+  - implement strict readiness checks and confidence-based modeling lanes
+  - update MCP guidance and CLI documentation for automated contradiction workflows
+  - extend inference rules to support v1 contradiction semantics (exact-value, range, polarity)
+
 ## 0.5.2
 
 ### Patch Changes
