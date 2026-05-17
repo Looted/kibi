@@ -235,4 +235,26 @@ describe("autopilot discovery", () => {
     // .sisyphus drafts should be excluded by hard denylist
     expect(discovered.candidates).not.toContain(".sisyphus/drafts/kibi-kb-quality-audit.md");
   });
+
+  it("respects nested .gitignore files when discovering markdown", async () => {
+    if (!fixture) throw new Error("missing fixture");
+
+    // create a docs tree with a nested .gitignore that ignores a file
+    fs.mkdirSync(path.join(fixture.root, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(fixture.root, "docs", "public.md"), "# Public\n");
+    fs.writeFileSync(path.join(fixture.root, "docs", "private-secret.md"), "# Secret\n");
+    // nested .gitignore in docs should ignore private-secret.md
+    fs.writeFileSync(path.join(fixture.root, "docs", ".gitignore"), "private-secret.md\n");
+
+    const fakeProlog = createEmptyPrologStub();
+    const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
+    expect(state).toBe("root_uninitialized");
+    expect(activation.activationMode).toBe("cold_start_bootstrap");
+
+    const discovered = discoverSources(fixture.root, activation);
+    expect(discovered.candidates).toContain("docs/public.md");
+    expect(discovered.candidates).not.toContain("docs/private-secret.md");
+  });
 });

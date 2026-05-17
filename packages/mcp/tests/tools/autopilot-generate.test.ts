@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PrologProcess } from "kibi-cli/prolog";
-import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
+import { buildGenericMarkdownCandidates, buildTypedMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
@@ -378,21 +378,20 @@ describe("autopilot generate", () => {
     });
 
     const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
 
-    // The .sisyphus draft must not appear
-    expect(
-      candidates.some((c) => String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md")),
-    ).toBe(false);
+    // The .sisyphus draft must not appear in candidates and should be listed as suppressed
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(false);
+    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(true);
+    expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
 
-    // The gitignored private doc must not appear
-    expect(
-      candidates.some((c) => String(c.sourcePath ?? "").includes("secret-doc.md")),
-    ).toBe(false);
+    // The gitignored private doc must not appear and should be listed as suppressed
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("secret-doc.md"))).toBe(false);
+    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("secret-doc.md"))).toBe(true);
+    expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
 
     // The normal requirements doc should appear
-    expect(
-      candidates.some((c) => String(c.sourcePath ?? "").includes("REQ-KEEP.md")),
-    ).toBe(true);
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("REQ-KEEP.md"))).toBe(true);
   });
 
   test("ignored paths (like .sisyphus drafts) yield zero generic candidates", async () => {
@@ -423,6 +422,49 @@ describe("autopilot generate", () => {
       { markdownFiles: [secretPath] },
       { ids: new Set<string>(), workspaceRoot: tmp },
       0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+  test(".git/info/exclude ignored markdown files yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create a markdown file and ignore it via .git/info/exclude
+    await fs.mkdir(path.join(tmp, "internal"), { recursive: true });
+    const internalPath = path.join(tmp, "internal", "internal-doc.md");
+    await fs.writeFile(internalPath, "# ADR: Internal Decision\n");
+    await fs.mkdir(path.join(tmp, ".git", "info"), { recursive: true });
+    await fs.writeFile(path.join(tmp, ".git", "info", "exclude"), "internal/\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [internalPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test("typed markdown under .sisyphus drafts is ignored by typed candidate builder", async () => {
+    createColdStartRepo(tmp);
+    // create a typed markdown (YAML frontmatter) under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftTypedPath = path.join(tmp, ".sisyphus", "drafts", "REQ-DRAFT-001.md");
+    await fs.writeFile(
+      draftTypedPath,
+      [
+        "---",
+        "id: REQ-DRAFT-001",
+        "title: \"REQ: Draft\"",
+        "status: open",
+        "---",
+        "# Requirement",
+        "Customer must remain draft.",
+      ].join("\n"),
+    );
+
+    const candidates = buildTypedMarkdownCandidates(
+      { markdownFiles: [draftTypedPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
     );
 
     expect(candidates.length).toBe(0);

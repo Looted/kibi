@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import fg from "fast-glob";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import type { PrologProcess } from "kibi-cli/prolog";
 import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
 import { runJsonModuleQuery } from "./core-module.js";
@@ -351,41 +352,12 @@ function buildIgnoredGlobs(vendoredRoots: string[], workspaceRoot: string): stri
     ignored.add(`**/${normalized}/**`);
   }
 
-  // Also respect root .gitignore and .git/info/exclude if present. This reproduces
-  // a minimal subset of the shared ignore-policy behavior by converting ignore
-  // patterns into fast-glob compatible globs. We keep this local to avoid
-  // depending on compiled CLI artifacts at runtime in tests.
+  // Use shared ignore policy to include .gitignore, nested ignores, and other rules.
   try {
-    const rootGitignore = path.join(workspaceRoot, ".gitignore");
-    if (fs.existsSync(rootGitignore)) {
-      const content = fs.readFileSync(rootGitignore, "utf8");
-      for (const line of content.split(/\r?\n/)) {
-        const p = line.trim();
-        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
-        let pat = p.startsWith("/") ? p.slice(1) : p;
-        // convert to posix
-        pat = pat.split(path.sep).join("/");
-        if (pat.includes("/")) {
-          ignored.add(`**/${pat}`);
-        } else {
-          ignored.add(`**/${pat}`);
-        }
-      }
-    }
-    const gitInfo = path.join(workspaceRoot, ".git", "info", "exclude");
-    if (fs.existsSync(gitInfo)) {
-      const content = fs.readFileSync(gitInfo, "utf8");
-      for (const line of content.split(/\r?\n/)) {
-        const p = line.trim();
-        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
-        let pat = p.startsWith("/") ? p.slice(1) : p;
-        pat = pat.split(path.sep).join("/");
-        if (pat.includes("/")) {
-          ignored.add(`**/${pat}`);
-        } else {
-          ignored.add(`**/${pat}`);
-        }
-      }
+    const policy = createRepoIgnorePolicy(workspaceRoot);
+    const globs = policy.getFastGlobIgnoreGlobs();
+    for (const glob of globs) {
+      if (glob) ignored.add(glob);
     }
   } catch {
     // best-effort only
