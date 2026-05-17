@@ -336,6 +336,65 @@ describe("autopilot generate", () => {
     expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
   });
 
+  test("autopilot generate ignores .sisyphus drafts and .gitignore-ignored docs, keeps non-ignored docs", async () => {
+    createColdStartRepo(tmp);
+
+    // Create an ignored draft under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
+
+    // Create a gitignored private doc under documentation/private
+    await fs.mkdir(path.join(tmp, "documentation", "private"), { recursive: true });
+    const privatePath = path.join(tmp, "documentation", "private", "secret-doc.md");
+    await fs.writeFile(privatePath, "# ADR: Secret Decision\n");
+    // Ignore private docs via repo .gitignore (pattern only for the temp repo)
+    await fs.writeFile(path.join(tmp, ".gitignore"), "documentation/private/*.md\n");
+
+    // Create a normal (non-ignored) requirements doc that should be discovered
+    await fs.mkdir(path.join(tmp, "documentation", "requirements"), { recursive: true });
+    const keepPath = path.join(tmp, "documentation", "requirements", "REQ-KEEP.md");
+    // Make this a typed Kibi doc (YAML frontmatter) so typed candidate generation includes it
+    await fs.writeFile(
+      keepPath,
+      [
+        "---",
+        "id: REQ-KEEP",
+        "title: \"REQ: Keep requirement\"",
+        "status: open",
+        "---",
+        "# Requirement",
+        "",
+        "Customer data must be retained for 7 years.",
+        "",
+      ].join("\n"),
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+
+    // The .sisyphus draft must not appear
+    expect(
+      candidates.some((c) => String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md")),
+    ).toBe(false);
+
+    // The gitignored private doc must not appear
+    expect(
+      candidates.some((c) => String(c.sourcePath ?? "").includes("secret-doc.md")),
+    ).toBe(false);
+
+    // The normal requirements doc should appear
+    expect(
+      candidates.some((c) => String(c.sourcePath ?? "").includes("REQ-KEEP.md")),
+    ).toBe(true);
+  });
+
   test("ignored paths (like .sisyphus drafts) yield zero generic candidates", async () => {
     createColdStartRepo(tmp);
     // create an ignored draft under .sisyphus/drafts
