@@ -17,6 +17,31 @@ Discover existing repository entities and bootstrap the KB via read-only candida
 **Returns:**
 Grouped candidate entities synthesized from declared context and codebase evidence. Candidates must be explicitly applied via `kb_upsert` after user preview and approval.
 
+## Repository Ignore Policy
+
+Kibi's discovery and autopilot generation honor repository-local Git ignore rules to avoid treating build artifacts, editor state, and tool caches as domain knowledge. During read-only discovery (for example `kb_autopilot_generate` and `kb_briefing_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
+
+- repository root `.gitignore` files and nested `.gitignore` files in subdirectories
+- `.git/info/exclude`
+
+In addition to these repository-configured ignores, Kibi hard-denies a set of common tool/runtime directories that are never inspected for candidates:
+
+- `.sisyphus/**`
+- `.opencode/**`
+- `.kb/**`
+- `.git/**`
+- `node_modules/**`
+- `vendor/**`
+- `third_party/**`
+
+Notes and v1 limitations:
+
+- Global Git excludes (for example `~/.config/git/ignore`) are not read or honored in Kibi v1.
+- Kibi v1 does not perform automatic cleanup or migration of existing KB entities that may have been created from files that are now ignored; removing previously-recorded entities is out of scope for this release.
+- No new project configuration schema is introduced in v1 to alter this behavior. Future releases may expose finer-grained controls.
+
+When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
+
 ### `kb_briefing_generate`
 
 Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs.

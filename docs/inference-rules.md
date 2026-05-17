@@ -67,3 +67,9 @@ These predicates remain useful for product features, automation, and future inte
 Bug records, incident notes, and workaround documentation should use `observation` or `meta` facts rather than strict fact modeling. Since `observation` and `meta` facts are excluded from contradiction inference, they are appropriate for non-blocking evidence.
 
 **Rule:** Use `observation` or `meta` fact_kind for bug/workaround notes. Do NOT create a `flag` entity for bugs unless there is an actual runtime/config gate.
+
+## Ignored Files and Inference
+
+Files and directories that match the repository ignore policy are excluded from Kibi's inference pipeline. Ignored files are not read for candidate synthesis and will not be inferred into KB entities by `kb_autopilot_generate`, `kb_briefing_generate`, or other discovery-oriented tools. See the MCP repository ignore policy in `docs/mcp-reference.md` for the full list of honored ignore sources and hard-denied directories.
+
+This behavior prevents editor state, tooling caches, and build outputs from polluting the knowledge base with transient or irrelevant artifacts. Note that v1 limits apply: global Git excludes (user-level `core.excludesFile`) are not read, and Kibi does not automatically remove or migrate any existing KB entities that may have been created previously from now-ignored files.
