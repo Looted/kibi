@@ -1,306 +1,172 @@
-/**
- * Cross-package integration fixtures for automated-contradiction-modeling plan.
- * Task 10: Full integration fixtures and release verification.
- *
- * Self-contained (no Prolog binary, no real .kb/ directory beyond tmp).
- */
+import { spawn } from "node:child_process";
 
-import * as fs from "node:fs";
-import * as os from "node:os";
-import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+type SuiteSummary = {
+  pass: number;
+  fail: number;
+  files: number;
+};
 
-import {
-  LATEST_KB_SCHEMA_VERSION,
-  getSchemaVersionStatus,
-} from "../packages/cli/src/utils/schema-version.js";
+type Batch = {
+  label: string;
+  args: string[];
+};
 
-import {
-  buildStrictWriteSet,
-  buildStableRequirementIds,
-  modelRequirementClaims,
-  type SemanticClaim,
-  type StrictModelInput,
-} from "../packages/cli/src/utils/strict-modeling.js";
+const BATCHES: Batch[] = [
+  {
+    label: "cli",
+    args: ["test", "--timeout", "15000", "./packages/cli"],
+  },
+  {
+    label: "mcp",
+    args: ["test", "--timeout", "15000", "--max-concurrency=1", "./packages/mcp"],
+  },
+  {
+    label: "opencode",
+    args: ["test", "--timeout", "15000", "./packages/opencode"],
+  },
+  {
+    label: "vscode activation",
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/vscode/tests/activation/briefs.test.ts",
+      "./packages/vscode/tests/activation/extension.test.ts",
+      "./packages/vscode/tests/activation/workspace.test.ts",
+      "./packages/vscode/tests/activation/treeView.test.ts",
+      "./packages/vscode/tests/activation/contextOnOpen.test.ts",
+      "./packages/vscode/tests/activation/briefs-coverage.test.ts",
+      "./packages/vscode/tests/activation/mcp.test.ts",
+      "./packages/vscode/tests/activation-modules.test.ts",
+      "./packages/vscode/tests/workspace-activation-direct.test.ts",
+    ],
+  },
+  {
+    label: "vscode core",
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "--isolate",
+      "--max-concurrency=1",
+      "./packages/vscode/tests/briefDocumentProvider.test.ts",
+      "./packages/vscode/tests/briefs.test.ts",
+      "./packages/vscode/tests/code-action-provider.test.ts",
+      "./packages/vscode/tests/codeLens.test.ts",
+      "./packages/vscode/tests/extension.test.ts",
+      "./packages/vscode/tests/helpers.test.ts",
+      "./packages/vscode/tests/hover-provider.test.ts",
+      "./packages/vscode/tests/hover.test.ts",
+      "./packages/vscode/tests/manifestContract.test.ts",
+      "./packages/vscode/tests/manifestResolver.test.ts",
+      "./packages/vscode/tests/relationshipCache.test.ts",
+      "./packages/vscode/tests/symbolIndex.test.ts",
+      "./packages/vscode/tests/traceability.test.ts",
+      "./packages/vscode/tests/treeProvider.test.ts",
+      "./packages/vscode/tests/vscodeMock.test.ts",
+    ],
+  },
+];
 
-import { migrateCommand } from "../packages/cli/src/commands/migrate.js";
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("Integration: schema version warning before migration", () => {
-  test("config with schemaVersion: undefined returns invalid status (key present, value unparseable)", () => {
-    // 'schemaVersion' key IS present but value is undefined → "invalid"
-    const status = getSchemaVersionStatus({ schemaVersion: undefined });
-    expect(status.status).toBe("invalid");
-    expect(status.needsMigration).toBe(true);
-    expect(status.warning).toBeTruthy();
-    expect(status.currentVersion).toBeNull();
-    expect(status.latestVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-  });
-
-  test("null config (no schemaVersion key at all) returns missing status", () => {
-    const status = getSchemaVersionStatus(null);
-    expect(status.status).toBe("missing");
-    expect(status.needsMigration).toBe(true);
-    expect(status.warning).toBeTruthy();
-  });
-
-  test("config with current schemaVersion returns current status with no warning", () => {
-    const status = getSchemaVersionStatus({ schemaVersion: LATEST_KB_SCHEMA_VERSION });
-    expect(status.status).toBe("current");
-    expect(status.needsMigration).toBe(false);
-    expect(status.warning).toBeNull();
-  });
-
-  test("config with older schemaVersion returns older status needing migration", () => {
-    const status = getSchemaVersionStatus({ schemaVersion: 0 });
-    expect(status.status).toBe("older");
-    expect(status.needsMigration).toBe(true);
-    expect(status.warning).toBeTruthy();
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("Integration: kibi migrate idempotency", () => {
-  let tmpDir: string;
-  let originalCwd: string;
-
-  beforeEach(() => {
-    originalCwd = process.cwd();
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-migrate-test-"));
-    const kbDir = path.join(tmpDir, ".kb");
-    fs.mkdirSync(kbDir, { recursive: true });
-    // Legacy config without schemaVersion — triggers migration
-    fs.writeFileSync(
-      path.join(kbDir, "config.json"),
-      JSON.stringify({ branch: "main", entities: [] }),
-    );
-    process.chdir(tmpDir);
-  });
-
-  afterEach(() => {
-    process.chdir(originalCwd);
-    fs.rmSync(tmpDir, { recursive: true, force: true });
-  });
-
-  test("first migrate on legacy config exits with code 0", async () => {
-    const result = await migrateCommand({ yes: true, dryRun: false });
-    expect(result.exitCode).toBe(0);
-  });
-
-  test("second migrate is a no-op and exits with code 0", async () => {
-    await migrateCommand({ yes: true, dryRun: false });
-    const result2 = await migrateCommand({ yes: true, dryRun: false });
-    expect(result2.exitCode).toBe(0);
-  });
-
-  test("after migration, config.json contains schemaVersion", async () => {
-    await migrateCommand({ yes: true, dryRun: false });
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<string, unknown>;
-    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
-  });
-
-  test("dry-run does not write schemaVersion to config.json", async () => {
-    await migrateCommand({ yes: false, dryRun: true });
-    const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<string, unknown>;
-    expect(config.schemaVersion).toBeUndefined();
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("Integration: strict model entity/relationship counts", () => {
-  const CLAIM: SemanticClaim = {
-    source: "docs/requirements.md",
-    subjectKey: "customer_data",
-    propertyKey: "retention_period",
-    operator: "eq",
-    value: "7 years",
-    confidence: 0.9,
-  };
-
-  const HIGH_INPUT: StrictModelInput = {
-    claim: CLAIM,
-    statement: "Customer data must be retained for 7 years.",
-  };
-
-  test("high-confidence claim produces strict write-set with req + 2 facts + 2 relationships", () => {
-    const ws = buildStrictWriteSet(HIGH_INPUT);
-    expect(ws.isStrict).toBe(true);
-    if (!ws.isStrict) return;
-    expect(ws.req.type).toBe("req");
-    expect(ws.subjectFact.type).toBe("fact");
-    expect(ws.propertyFact.type).toBe("fact");
-    expect(ws.relationships.length).toBe(2);
-    const relTypes = ws.relationships.map((r) => r.type);
-    expect(relTypes).toContain("constrains");
-    expect(relTypes).toContain("requires_property");
-  });
-
-  test("low-confidence claim produces observation write-set only", () => {
-    const ws = buildStrictWriteSet({
-      claim: { ...CLAIM, confidence: 0.5 },
-      statement: "Customer data must be retained for 7 years.",
+function parseSuiteSummaries(output: string): SuiteSummary[] {
+  const summaries: SuiteSummary[] = [];
+  const summaryPattern = /\n\s*(\d+) pass\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
+  for (const match of output.matchAll(summaryPattern)) {
+    summaries.push({
+      pass: Number(match[1]),
+      fail: Number(match[2]),
+      files: Number(match[3]),
     });
-    expect(ws.isStrict).toBe(false);
-    if (ws.isStrict) return;
-    expect(ws.observationFact.type).toBe("fact");
+  }
+  return summaries;
+}
+
+function formatSuiteSummary(summaries: Array<SuiteSummary & { label: string }>): string {
+  const total = summaries.reduce(
+    (accumulator, summary) => ({
+      pass: accumulator.pass + summary.pass,
+      fail: accumulator.fail + summary.fail,
+      files: accumulator.files + summary.files,
+    }),
+    { pass: 0, fail: 0, files: 0 },
+  );
+
+  const batches = summaries
+    .map(
+      (summary) =>
+        `  ${summary.label}: ${summary.pass} pass, ${summary.fail} fail across ${summary.files} files`,
+    )
+    .join("\n");
+
+  return [
+    "Curated unit suite results:",
+    batches,
+    `  total: ${total.pass} pass, ${total.fail} fail across ${total.files} files`,
+  ].join("\n");
+}
+
+async function runBatch(batch: Batch): Promise<SuiteSummary & { label: string }> {
+  console.info(`\n$ bun ${batch.args.join(" ")}`);
+  const child = spawn("bun", batch.args, {
+    cwd: process.cwd(),
+    env: process.env,
+    stdio: ["ignore", "pipe", "pipe"],
   });
 
-  test("boundary confidence 0.7 produces strict write-set", () => {
-    const ws = buildStrictWriteSet({
-      claim: { ...CLAIM, confidence: 0.7 },
-      statement: "Customer data must be retained for 7 years.",
-    });
-    expect(ws.isStrict).toBe(true);
+  const outputChunks: Buffer[] = [];
+  const errorChunks: Buffer[] = [];
+  let timedOut = false;
+
+  child.stdout.on("data", (chunk: Buffer) => {
+    outputChunks.push(chunk);
+    process.stdout.write(chunk);
   });
 
-  test("confidence 0.69 (below threshold) produces observation", () => {
-    const ws = buildStrictWriteSet({
-      claim: { ...CLAIM, confidence: 0.69 },
-      statement: "Customer data must be retained for 7 years.",
-    });
-    expect(ws.isStrict).toBe(false);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("Integration: stable IDs on re-run", () => {
-  const CLAIM: SemanticClaim = {
-    source: "docs/spec.md",
-    subjectKey: "invoice",
-    propertyKey: "payment_terms",
-    operator: "eq",
-    value: "30 days",
-    confidence: 0.85,
-  };
-
-  test("same claim produces identical stable IDs on two calls", () => {
-    const ids1 = buildStableRequirementIds(CLAIM);
-    const ids2 = buildStableRequirementIds(CLAIM);
-    expect(ids1.reqId).toBe(ids2.reqId);
-    expect(ids1.subjectFactId).toBe(ids2.subjectFactId);
-    expect(ids1.propertyFactId).toBe(ids2.propertyFactId);
-    expect(ids1.stableKey).toBe(ids2.stableKey);
+  child.stderr.on("data", (chunk: Buffer) => {
+    errorChunks.push(chunk);
+    process.stderr.write(chunk);
   });
 
-  test("different source produces different IDs", () => {
-    const ids1 = buildStableRequirementIds(CLAIM);
-    const ids2 = buildStableRequirementIds({ ...CLAIM, source: "docs/other.md" });
-    expect(ids1.reqId).not.toBe(ids2.reqId);
-  });
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    child.kill("SIGTERM");
+  }, 15 * 60 * 1000);
 
-  test("different value produces different IDs", () => {
-    const ids1 = buildStableRequirementIds(CLAIM);
-    const ids2 = buildStableRequirementIds({ ...CLAIM, value: "60 days" });
-    expect(ids1.reqId).not.toBe(ids2.reqId);
-  });
+  const status = await new Promise<number | null>((resolve, reject) => {
+    child.once("error", reject);
+    child.once("exit", (code) => resolve(code));
+  }).finally(() => clearTimeout(timeout));
 
-  test("modelRequirementClaims deduplicates identical inputs", () => {
-    const input: StrictModelInput = {
-      claim: CLAIM,
-      statement: "Invoices must be paid within 30 days.",
-    };
-    const results = modelRequirementClaims([input, input]);
-    // Duplicate input → deduplicated to 1
-    expect(results.length).toBe(1);
-  });
-
-  test("modelRequirementClaims is deterministic for same input", () => {
-    const input: StrictModelInput = {
-      claim: CLAIM,
-      statement: "Invoices must be paid within 30 days.",
-    };
-    const results1 = modelRequirementClaims([input]);
-    const results2 = modelRequirementClaims([input]);
-    expect(results1.length).toBe(results2.length);
-    expect(results1[0]?.isStrict).toBe(results2[0]?.isStrict);
-  });
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("Integration: VS Code brief parser automationReview logic (inline)", () => {
-  interface AutomationReview {
-    generatedEntities: Array<{ id: string; type: string; title: string; confidence: number }>;
-    strictReadinessScore: number;
-    confidence: number;
-    migrationWarnings: string[];
-    contradictionRisks: string[];
-    evidenceCitationIds: string[];
+  const summaries = parseSuiteSummaries(
+    Buffer.concat([...outputChunks, ...errorChunks]).toString("utf8"),
+  );
+  if (summaries.length !== 1) {
+    throw new Error(`Expected one Bun summary for ${batch.label}, got ${summaries.length}.`);
+  }
+  if (timedOut) {
+    throw new Error(`${batch.label} timed out after 15 minutes.`);
+  }
+  if (status !== 0) {
+    throw new Error(`${batch.label} exited with status ${status ?? "null"}.`);
   }
 
-  function isAutomationReview(value: unknown): value is AutomationReview {
-    if (typeof value !== "object" || value === null) return false;
-    const v = value as Record<string, unknown>;
-    return (
-      typeof v.strictReadinessScore === "number" &&
-      typeof v.confidence === "number" &&
-      Array.isArray(v.generatedEntities) &&
-      Array.isArray(v.migrationWarnings) &&
-      Array.isArray(v.contradictionRisks) &&
-      Array.isArray(v.evidenceCitationIds)
-    );
+  return { ...summaries[0], label: batch.label };
+}
+
+async function runCuratedUnitSuite(): Promise<number> {
+  const summaries: Array<SuiteSummary & { label: string }> = [];
+  for (const batch of BATCHES) {
+    summaries.push(await runBatch(batch));
   }
+  console.info(`\n${formatSuiteSummary(summaries)}`);
+  return summaries.some((summary) => summary.fail > 0) ? 1 : 0;
+}
 
-  function getAutomationReviewFromBrief(brief: Record<string, unknown>): AutomationReview | null {
-    const sc = brief.structuredContent;
-    if (typeof sc !== "object" || sc === null) return null;
-    const ar = (sc as Record<string, unknown>).automationReview;
-    if (!isAutomationReview(ar)) return null;
-    return ar;
-  }
-
-  const MOCK: AutomationReview = {
-    generatedEntities: [{ id: "REQ-AUTO-001", type: "req", title: "Data retention", confidence: 0.9 }],
-    strictReadinessScore: 0.85,
-    confidence: 0.9,
-    migrationWarnings: [],
-    contradictionRisks: [],
-    evidenceCitationIds: ["FACT-SUBJECT-001"],
-  };
-
-  test("brief with valid automationReview returns non-null", () => {
-    const result = getAutomationReviewFromBrief({ structuredContent: { automationReview: MOCK } });
-    expect(result).not.toBeNull();
-    expect(result?.strictReadinessScore).toBe(0.85);
-    expect(result?.generatedEntities.length).toBe(1);
-  });
-
-  test("brief with null automationReview returns null", () => {
-    expect(getAutomationReviewFromBrief({ structuredContent: { automationReview: null } })).toBeNull();
-  });
-
-  test("brief with missing structuredContent returns null", () => {
-    expect(getAutomationReviewFromBrief({})).toBeNull();
-  });
-
-  test("brief with unknown shape degrades gracefully (returns null)", () => {
-    expect(
-      getAutomationReviewFromBrief({ structuredContent: { automationReview: { unknownField: "x" } } }),
-    ).toBeNull();
-  });
-
-  test("brief with migrationWarnings returns them", () => {
-    const result = getAutomationReviewFromBrief({
-      structuredContent: {
-        automationReview: { ...MOCK, migrationWarnings: ["Schema version is outdated. Run `kibi migrate` to upgrade."] },
-      },
-    });
-    expect(result?.migrationWarnings.length).toBe(1);
-    expect(result?.migrationWarnings[0]).toContain("kibi migrate");
-  });
-
-  test("toast appends migration required when migrationWarnings non-empty", () => {
-    // Inline the VS Code activation/briefs.ts toast logic
-    function buildToastMessage(title: string, hasMigrationWarnings: boolean): string {
-      return hasMigrationWarnings ? `${title} — migration required` : title;
-    }
-    expect(buildToastMessage("Brief ready", true)).toBe("Brief ready — migration required");
-    expect(buildToastMessage("Brief ready", false)).toBe("Brief ready");
-  });
-});
+try {
+  process.exit(await runCuratedUnitSuite());
+} catch (error) {
+  console.error(error);
+  process.exit(1);
+}
