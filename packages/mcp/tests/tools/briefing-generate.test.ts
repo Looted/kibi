@@ -713,6 +713,79 @@ describe("briefing generate", () => {
       ).not.toContain(".sisyphus/boulder.json#L8");
       expect(result.content[0]?.text ?? "").not.toContain(".sisyphus/boulder.json");
     });
+
+    test("drops explicit .sisyphus draft paths passed as sourceFiles", async () => {
+      const root = path.join(tmp, "sisyphus-draft-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "FACT-DRAFT-001",
+            type: "fact",
+            title: "Draft should be ignored",
+            status: "active",
+            source: ".sisyphus/drafts/kibi-kb-quality-audit.md",
+            textRef: ".sisyphus/drafts/kibi-kb-quality-audit.md#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from draft path",
+        sourceFiles: [".sisyphus/drafts/kibi-kb-quality-audit.md"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("no_briefing");
+      expect(result.structuredContent.entities).toHaveLength(0);
+      expect(result.structuredContent.citations).toEqual([]);
+    });
+
+    test("skips explicit sourceFiles that are gitignored and still accepts non-ignored docs", async () => {
+      const root = path.join(tmp, "gitignore-workspace");
+      await ensureBriefingWorkspace(root);
+      // create a doc that will be gitignored
+      const secretPath = path.join(root, "documentation", "secret.md");
+      await fs.writeFile(secretPath, "# Secret\nThis is secret.");
+      // write .gitignore to ignore the secret doc
+      await fs.writeFile(path.join(root, ".gitignore"), "documentation/secret.md\n");
+
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "REQ-SECRET-001",
+            type: "req",
+            title: "This should be ignored by gitignore",
+            status: "open",
+            source: "documentation/secret.md",
+            textRef: "documentation/secret.md#L1",
+          },
+          // a normal doc that should still be picked up
+          {
+            id: "REQ-NORMAL-001",
+            type: "req",
+            title: "This should be accepted",
+            status: "open",
+            source: "documentation/requirements/REQ-BRIEF-001.md",
+            textRef: "documentation/requirements/REQ-BRIEF-001.md#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from mixed gitignored and normal docs",
+        sourceFiles: ["documentation/secret.md", "documentation/requirements/REQ-BRIEF-001.md"],
+      });
+
+      // The gitignored secret should be dropped, but the normal doc remains
+      expect(result.structuredContent.entities.map((e) => e.id)).toContain("REQ-NORMAL-001");
+      expect(result.structuredContent.entities.map((e) => e.id)).not.toContain("REQ-SECRET-001");
+    });
   });
 
   test("fails closed with no_briefing for unsupported posture and stale freshness", async () => {

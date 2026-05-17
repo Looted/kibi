@@ -334,7 +334,7 @@ function normalizeDiscoveryPaths(
   };
 }
 
-function buildIgnoredGlobs(vendoredRoots: string[]): string[] {
+function buildIgnoredGlobs(vendoredRoots: string[], workspaceRoot: string): string[] {
   const ignored = new Set<string>();
 
   for (const dirName of IGNORED_DIRECTORY_NAMES) {
@@ -349,6 +349,46 @@ function buildIgnoredGlobs(vendoredRoots: string[]): string[] {
     ignored.add(`${normalized}/**`);
     ignored.add(`**/${normalized}`);
     ignored.add(`**/${normalized}/**`);
+  }
+
+  // Also respect root .gitignore and .git/info/exclude if present. This reproduces
+  // a minimal subset of the shared ignore-policy behavior by converting ignore
+  // patterns into fast-glob compatible globs. We keep this local to avoid
+  // depending on compiled CLI artifacts at runtime in tests.
+  try {
+    const rootGitignore = path.join(workspaceRoot, ".gitignore");
+    if (fs.existsSync(rootGitignore)) {
+      const content = fs.readFileSync(rootGitignore, "utf8");
+      for (const line of content.split(/\r?\n/)) {
+        const p = line.trim();
+        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
+        let pat = p.startsWith("/") ? p.slice(1) : p;
+        // convert to posix
+        pat = pat.split(path.sep).join("/");
+        if (pat.includes("/")) {
+          ignored.add(`**/${pat}`);
+        } else {
+          ignored.add(`**/${pat}`);
+        }
+      }
+    }
+    const gitInfo = path.join(workspaceRoot, ".git", "info", "exclude");
+    if (fs.existsSync(gitInfo)) {
+      const content = fs.readFileSync(gitInfo, "utf8");
+      for (const line of content.split(/\r?\n/)) {
+        const p = line.trim();
+        if (!p || p.startsWith("#") || p.startsWith("!")) continue;
+        let pat = p.startsWith("/") ? p.slice(1) : p;
+        pat = pat.split(path.sep).join("/");
+        if (pat.includes("/")) {
+          ignored.add(`**/${pat}`);
+        } else {
+          ignored.add(`**/${pat}`);
+        }
+      }
+    }
+  } catch {
+    // best-effort only
   }
 
   return Array.from(ignored);
@@ -403,6 +443,7 @@ function runTypedKibiDocsProvider(workspaceRoot: string): EvidenceProviderResult
     onlyFiles: true,
     unique: true,
     suppressErrors: true,
+    ignore: buildIgnoredGlobs([], workspaceRoot),
   });
   const manifestFiles = discoveryPaths.symbols
     ? fg.sync(discoveryPaths.symbols, {
@@ -411,6 +452,7 @@ function runTypedKibiDocsProvider(workspaceRoot: string): EvidenceProviderResult
         onlyFiles: true,
         unique: true,
         suppressErrors: true,
+        ignore: buildIgnoredGlobs([], workspaceRoot),
       })
     : [];
 
@@ -450,7 +492,7 @@ function runGenericRepoDocsProvider(
     onlyFiles: true,
     unique: true,
     suppressErrors: true,
-    ignore: buildIgnoredGlobs(vendoredRoots),
+    ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
   });
 
   const evidence = sortUnique(markdownFiles)
@@ -633,7 +675,7 @@ function runRepoLayoutProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 
@@ -672,7 +714,7 @@ function runTestTopologyProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 
@@ -764,7 +806,7 @@ function runSourceSymbolsProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 
