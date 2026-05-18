@@ -16,6 +16,7 @@
     check_domain_contradictions/1,  % Returns list of contradiction violations
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
+    check_strict_readiness/1,       % Returns list of strict readiness audit violations
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -50,6 +51,7 @@ check_all(ViolationsDict) :-
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
+    check_strict_readiness(StrictReadiness),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -60,7 +62,8 @@ check_all(ViolationsDict) :-
         deprecated_adr_no_successor: DeprecatedADRs,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
-        strict_req_fact_pairing: StrictReqFactPairing
+        strict_req_fact_pairing: StrictReqFactPairing,
+        strict_readiness: StrictReadiness
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -445,7 +448,7 @@ check_domain_contradictions(Violations) :-
         ),
         (   contradicting_reqs(ReqA, ReqB, Reason),
             format(string(EntityId), "~w/~w", [ReqA, ReqB]),
-            Description = Reason
+            format(string(Description), "~w [strict-readiness: contradiction-ready]", [Reason])
         ),
         Violations
     ).
@@ -582,6 +585,118 @@ strict_req_fact_pairing_kind_label(legacy, "a legacy fact without fact_kind").
 strict_req_fact_pairing_kind_label(Kind, Label) :-
     format(string(Label), "a fact_kind=~w fact", [Kind]).
 
+%% check_strict_readiness(-Violations)
+% Reports current strict-readiness levels for requirements that are still not
+% contradiction-ready. Legacy and prose-only requirements remain audit-only and
+% are intentionally not treated as contradictions.
+check_strict_readiness(Violations) :-
+    findall(
+        Violation,
+        strict_readiness_violation(Violation),
+        Violations0
+    ),
+    sort(Violations0, Violations).
+
+strict_readiness_violation(violation(
+    'strict-readiness',
+    ReqId,
+    Description,
+    Suggestion,
+    Source
+)) :-
+    strict_readiness_issue(ReqId, Description, Suggestion),
+    violation_source(ReqId, req, Source).
+
+strict_readiness_issue(
+    ReqId,
+    "Strict readiness: not-ready (prose-only). Requirement has no fact links, so contradiction checks skip it.",
+    "Add a subject fact via constrains and a property_value fact via requires_property to model contradiction-safe semantics"
+) :-
+    kb_entity(ReqId, req, _),
+    strict_readiness_level(ReqId, prose_only).
+
+strict_readiness_issue(
+    ReqId,
+    "Strict readiness: not-ready (traceable). Requirement is linked to facts only through legacy or non-strict links, so contradiction checks skip it.",
+    "Replace prose or legacy fact links with a subject fact via constrains and a property_value fact via requires_property"
+) :-
+    kb_entity(ReqId, req, _),
+    strict_readiness_level(ReqId, traceable).
+
+strict_readiness_issue(
+    ReqId,
+    Description,
+    "Add a matching property_value fact via requires_property for the same subject_key"
+) :-
+    kb_entity(ReqId, req, _),
+    strict_readiness_level(ReqId, has_subject),
+    strict_readiness_primary_subject(ReqId, SubjectFactId, SubjectKey),
+    format(
+        string(Description),
+        "Strict readiness: not-ready (has-subject). Requirement constrains ~w (~w) but has no matching strict requires_property fact, so contradiction checks skip it.",
+        [SubjectFactId, SubjectKey]
+    ).
+
+strict_readiness_issue(
+    ReqId,
+    "Strict readiness: not-ready (strict-ready). Requirement has strict subject and property facts but no contradiction-ready matched pair, so contradiction checks still skip it.",
+    "Align constrains and requires_property on the same subject_key, and keep the requirement current if it should participate in contradiction checks"
+) :-
+    kb_entity(ReqId, req, _),
+    strict_readiness_level(ReqId, strict_ready).
+
+strict_readiness_level(ReqId, contradiction_ready) :-
+    kb:current_req(ReqId),
+    kb:effective_req_property_fact(
+        ReqId,
+        _SubjectKey,
+        _FactId,
+        _PropertyKey,
+        _Operator,
+        _ValueType,
+        _Value,
+        _Unit,
+        _Scope,
+        _Polarity,
+        _ValidFrom,
+        _ValidTo
+    ),
+    !.
+strict_readiness_level(ReqId, strict_ready) :-
+    strict_readiness_has_strict_subject(ReqId),
+    strict_readiness_has_strict_property(ReqId),
+    !.
+strict_readiness_level(ReqId, has_subject) :-
+    strict_readiness_has_strict_subject(ReqId),
+    !.
+strict_readiness_level(ReqId, traceable) :-
+    strict_readiness_has_fact_link(ReqId),
+    !.
+strict_readiness_level(_ReqId, prose_only).
+
+strict_readiness_has_fact_link(ReqId) :-
+    kb_relationship(constrains, ReqId, FactId),
+    kb_entity(FactId, fact, _),
+    !.
+strict_readiness_has_fact_link(ReqId) :-
+    kb_relationship(requires_property, ReqId, FactId),
+    kb_entity(FactId, fact, _),
+    !.
+
+strict_readiness_has_strict_subject(ReqId) :-
+    strict_readiness_primary_subject(ReqId, _FactId, _SubjectKey),
+    !.
+
+strict_readiness_primary_subject(ReqId, FactId, SubjectKey) :-
+    kb_relationship(constrains, ReqId, FactId),
+    strict_req_fact_pairing_fact_kind(FactId, subject),
+    kb:fact_subject_key(FactId, SubjectKey).
+
+strict_readiness_has_strict_property(ReqId) :-
+    kb_relationship(requires_property, ReqId, FactId),
+    strict_req_fact_pairing_fact_kind(FactId, property_value),
+    !.
+
 %% run_checks_json
 % Entry point for JSON output. Prints all violations as JSON to stdout.
 run_checks_json :-
@@ -630,6 +745,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_domain_contradictions(Contradictions),
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
+    check_strict_readiness(StrictReadiness),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -640,7 +756,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         deprecated_adr_no_successor: DeprecatedADRs,
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
-        strict_req_fact_pairing: StrictReqFactPairing
+        strict_req_fact_pairing: StrictReqFactPairing,
+        strict_readiness: StrictReadiness
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)

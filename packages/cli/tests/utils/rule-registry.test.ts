@@ -85,6 +85,15 @@ describe("rule-registry constants", () => {
     expect(RULE_NAMES.has("strict-req-fact-pairing")).toBe(true);
   });
 
+  test("strict-readiness rule exists and is disabled by default", () => {
+    const rule = RULES.find((r) => r.name === "strict-readiness");
+    expect(rule).toBeDefined();
+    expect(rule?.defaultEnabled).toBe(false);
+    expect(rule?.category).toBe("integrity");
+    expect(rule?.description).toContain("readiness");
+    expect(RULE_NAMES.has("strict-readiness")).toBe(true);
+  });
+
   test("RULE_NAMES is a proper Set for O(1) lookups", () => {
     expect(RULE_NAMES.has).toBeInstanceOf(Function);
     expect(RULE_NAMES.add).toBeInstanceOf(Function);
@@ -231,6 +240,13 @@ describe("getEffectiveRules", () => {
 
     expect(result.size).toBe(1);
     expect(result.has("strict-req-fact-pairing")).toBe(true);
+  });
+
+  test("CLI rules can explicitly opt into strict-readiness", () => {
+    const result = getEffectiveRules(undefined, "strict-readiness");
+
+    expect(result.size).toBe(1);
+    expect(result.has("strict-readiness")).toBe(true);
   });
 
   test("config takes precedence over defaults (config override precedence)", () => {

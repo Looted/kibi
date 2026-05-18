@@ -3,7 +3,7 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PrologProcess } from "kibi-cli/prolog";
-import { buildGenericMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
+import { buildGenericMarkdownCandidates, buildTypedMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
@@ -336,6 +336,156 @@ describe("autopilot generate", () => {
     expect(summary.providerCounts?.generic_repo_docs).toBeGreaterThanOrEqual(1);
   });
 
+  test("autopilot generate ignores .sisyphus drafts and .gitignore-ignored docs, keeps non-ignored docs", async () => {
+    createColdStartRepo(tmp);
+
+    // Create an ignored draft under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
+
+    // Create a gitignored private doc under documentation/private
+    await fs.mkdir(path.join(tmp, "documentation", "private"), { recursive: true });
+    const privatePath = path.join(tmp, "documentation", "private", "secret-doc.md");
+    await fs.writeFile(privatePath, "# ADR: Secret Decision\n");
+    // Ignore private docs via repo .gitignore (pattern only for the temp repo)
+    await fs.writeFile(path.join(tmp, ".gitignore"), "documentation/private/*.md\n");
+
+    // Create a normal (non-ignored) requirements doc that should be discovered
+    await fs.mkdir(path.join(tmp, "documentation", "requirements"), { recursive: true });
+    const keepPath = path.join(tmp, "documentation", "requirements", "REQ-KEEP.md");
+    // Make this a typed Kibi doc (YAML frontmatter) so typed candidate generation includes it
+    await fs.writeFile(
+      keepPath,
+      [
+        "---",
+        "id: REQ-KEEP",
+        "title: \"REQ: Keep requirement\"",
+        "status: open",
+        "---",
+        "# Requirement",
+        "",
+        "Customer data must be retained for 7 years.",
+        "",
+      ].join("\n"),
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+
+    // The .sisyphus draft must not appear in candidates and should be listed as suppressed
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(false);
+    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(true);
+    expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
+
+    // The gitignored private doc must not appear and should be listed as suppressed
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("secret-doc.md"))).toBe(false);
+    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("secret-doc.md"))).toBe(true);
+    expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
+
+    // The normal requirements doc should appear
+    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("REQ-KEEP.md"))).toBe(true);
+  });
+
+  test("ignored paths (like .sisyphus drafts) yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create an ignored draft under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [draftPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test(".gitignore-ignored markdown files yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create a markdown file and ignore it via .gitignore
+    await fs.mkdir(path.join(tmp, "secret"), { recursive: true });
+    const secretPath = path.join(tmp, "secret", "secret-doc.md");
+    await fs.writeFile(secretPath, "# ADR: Secret Decision\n");
+    await fs.writeFile(path.join(tmp, ".gitignore"), "secret/\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [secretPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+  test(".git/info/exclude ignored markdown files yield zero generic candidates", async () => {
+    createColdStartRepo(tmp);
+    // create a markdown file and ignore it via .git/info/exclude
+    await fs.mkdir(path.join(tmp, "internal"), { recursive: true });
+    const internalPath = path.join(tmp, "internal", "internal-doc.md");
+    await fs.writeFile(internalPath, "# ADR: Internal Decision\n");
+    await fs.mkdir(path.join(tmp, ".git", "info"), { recursive: true });
+    await fs.writeFile(path.join(tmp, ".git", "info", "exclude"), "internal/\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [internalPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test("typed markdown under .sisyphus drafts is ignored by typed candidate builder", async () => {
+    createColdStartRepo(tmp);
+    // create a typed markdown (YAML frontmatter) under .sisyphus/drafts
+    await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
+    const draftTypedPath = path.join(tmp, ".sisyphus", "drafts", "REQ-DRAFT-001.md");
+    await fs.writeFile(
+      draftTypedPath,
+      [
+        "---",
+        "id: REQ-DRAFT-001",
+        "title: \"REQ: Draft\"",
+        "status: open",
+        "---",
+        "# Requirement",
+        "Customer must remain draft.",
+      ].join("\n"),
+    );
+
+    const candidates = buildTypedMarkdownCandidates(
+      { markdownFiles: [draftTypedPath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+    );
+
+    expect(candidates.length).toBe(0);
+  });
+
+  test("non-ignored markdown still yields candidates", async () => {
+    // sanity check: a regular markdown under docs/ yields candidates (conservative path)
+    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
+    const notePath = path.join(tmp, "docs", "decision.md");
+    await fs.writeFile(notePath, "# ADR: Public Decision\n");
+
+    const candidates = buildGenericMarkdownCandidates(
+      { markdownFiles: [notePath] },
+      { ids: new Set<string>(), workspaceRoot: tmp },
+      0.8,
+    );
+
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(candidates.some((c) => c.entityType === "adr")).toBe(true);
+  });
+
   test("root_partial workspaces may scan but block apply", async () => {
     createPartialRepo(tmp);
 
@@ -386,6 +536,44 @@ describe("autopilot generate", () => {
           String(candidate.title).includes("Source symbols:"),
       ),
     ).toBe(true);
+  });
+
+  test("cold-start repos emit strict requirement candidates for high-confidence normative markdown", async () => {
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nCustomer data must be retained for 7 years.\n",
+    );
+
+    const prolog = createPrologStub(async () => emptyQueryResult());
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.8,
+    });
+
+    const candidates = res.structuredContent
+      .candidates as Array<Record<string, unknown>>;
+    const requirementCandidate = candidates.find(
+      (candidate) =>
+        candidate.entityType === "req" &&
+        String(candidate.title).includes("retained for 7 years"),
+    );
+    const applyPlan = requirementCandidate?.applyPlan as
+      | Array<Record<string, unknown>>
+      | undefined;
+    const reqStep = applyPlan?.[2] as Record<string, unknown> | undefined;
+
+    expect(requirementCandidate).toBeDefined();
+    expect(requirementCandidate?.sourceKind).toBe("generic_markdown");
+    expect(applyPlan).toHaveLength(3);
+    expect(applyPlan?.[0]).toMatchObject({ type: "fact", relationships: [] });
+    expect(applyPlan?.[1]).toMatchObject({ type: "fact", relationships: [] });
+    expect(reqStep).toMatchObject({ type: "req" });
+    expect(reqStep?.relationships).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: "constrains" }),
+        expect.objectContaining({ type: "requires_property" }),
+      ]),
+    );
   });
 
   test("unsupported-language repos keep source symbol provider graceful with fallback module evidence", async () => {

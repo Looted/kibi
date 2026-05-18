@@ -180,4 +180,81 @@ describe("autopilot discovery", () => {
     expect(discovered.candidates).toEqual([]);
     expect(summary.reason?.toLowerCase()).toContain("seeded");
   });
+
+  it("respects .gitignore and shared denylist when discovering markdown", async () => {
+    if (!fixture) throw new Error("missing fixture");
+
+    // Create standard docs and a few ignored/secret files
+    // ensureDocs creates documentation/requirements etc.
+    setupWorkspace(); // no-op for typing; ensure fixture present
+    // create docs
+    // use helper to ensure docs structure
+    // The fixture helpers expose ensureDocs via import file; call createThinRepo to populate docs
+    // createThinRepo writes documentation and root config; we prefer minimal docs without root .kb
+    // Use ensureDir + write files directly
+    fs.mkdirSync(path.join(fixture.root, "documentation", "requirements"), { recursive: true });
+    fs.writeFileSync(
+      path.join(fixture.root, "documentation", "requirements", "REQ-KEEP.md"),
+      [
+        "---",
+        "id: REQ-KEEP",
+        "title: Keep",
+        "status: open",
+        "---",
+        "# Keep",
+        "",
+      ].join("\n"),
+    );
+
+    // create a gitignored private doc
+    fs.mkdirSync(path.join(fixture.root, "documentation", "private"), { recursive: true });
+    fs.writeFileSync(path.join(fixture.root, "documentation", "private", "SECRET.md"), "# secret\n");
+
+    // create a .sisyphus draft which should be hard-denied
+    fs.mkdirSync(path.join(fixture.root, ".sisyphus", "drafts"), { recursive: true });
+    fs.writeFileSync(
+      path.join(fixture.root, ".sisyphus", "drafts", "kibi-kb-quality-audit.md"),
+      "# draft\n",
+    );
+
+    // write .gitignore to ignore private docs
+    fs.writeFileSync(path.join(fixture.root, ".gitignore"), "documentation/private/*.md\n");
+
+    const fakeProlog = createEmptyPrologStub();
+    const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
+    expect(state).toBe("root_uninitialized");
+    expect(activation.activationMode).toBe("cold_start_bootstrap");
+
+    const discovered = discoverSources(fixture.root, activation);
+    // Keep doc should be discovered
+    expect(discovered.candidates).toContain("documentation/requirements/REQ-KEEP.md");
+    // Gitignored private doc should NOT be discovered
+    expect(discovered.candidates).not.toContain("documentation/private/SECRET.md");
+    // .sisyphus drafts should be excluded by hard denylist
+    expect(discovered.candidates).not.toContain(".sisyphus/drafts/kibi-kb-quality-audit.md");
+  });
+
+  it("respects nested .gitignore files when discovering markdown", async () => {
+    if (!fixture) throw new Error("missing fixture");
+
+    // create a docs tree with a nested .gitignore that ignores a file
+    fs.mkdirSync(path.join(fixture.root, "docs"), { recursive: true });
+    fs.writeFileSync(path.join(fixture.root, "docs", "public.md"), "# Public\n");
+    fs.writeFileSync(path.join(fixture.root, "docs", "private-secret.md"), "# Secret\n");
+    // nested .gitignore in docs should ignore private-secret.md
+    fs.writeFileSync(path.join(fixture.root, "docs", ".gitignore"), "private-secret.md\n");
+
+    const fakeProlog = createEmptyPrologStub();
+    const state = await classifyActivationState(fixture.root, fakeProlog);
+    const activation = await resolveActivationPolicy(fixture.root, fakeProlog);
+
+    expect(state).toBe("root_uninitialized");
+    expect(activation.activationMode).toBe("cold_start_bootstrap");
+
+    const discovered = discoverSources(fixture.root, activation);
+    expect(discovered.candidates).toContain("docs/public.md");
+    expect(discovered.candidates).not.toContain("docs/private-secret.md");
+  });
 });

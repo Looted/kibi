@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -107,7 +107,6 @@ beforeEach(() => {
 
 afterEach(() => {
   resetVscodeMock();
-  mock.restore();
 });
 
 test("registerContextOnOpen registers workspace.onDidOpenTextDocument listener", async () => {
@@ -352,4 +351,7 @@ test("info message shown with single entity from MCP query (lines 68-72)", async
   expect(showInformationMessage).toHaveBeenCalledWith(
     expect.stringContaining("1 KB entities"),
   );
+});
+afterAll(() => {
+  mock.restore();
 });

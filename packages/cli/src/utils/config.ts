@@ -23,6 +23,7 @@ import {
   DEFAULT_CHECKS_CONFIG,
   type SymbolTraceabilityOptions,
 } from "./rule-registry.js";
+import { LATEST_KB_SCHEMA_VERSION } from "./schema-version.js";
 
 /**
  * Configuration paths for entity documentation directories.
@@ -62,6 +63,7 @@ export interface BriefsConfig {
  */
 export interface KbConfig {
   paths: KbConfigPaths;
+  schemaVersion?: number | string;
   briefs?: BriefsConfig;
   /**
    * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
@@ -98,6 +100,7 @@ const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
 export const DEFAULT_CONFIG: KbConfig & { $schema: string } = { // implements REQ-003
   $schema:
     "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
+  schemaVersion: LATEST_KB_SCHEMA_VERSION,
   paths: {
     requirements: "documentation/requirements",
     scenarios: "documentation/scenarios",
@@ -145,6 +148,31 @@ function mergeBriefsConfig(userBriefs?: Partial<BriefsConfig>): BriefsConfig {
   };
 }
 
+function readUserConfig(
+  configPath: string,
+): { userConfig: Partial<KbConfig>; useDefaultSchemaVersion: boolean } {
+  if (!existsSync(configPath)) {
+    return {
+      userConfig: {},
+      useDefaultSchemaVersion: true,
+    };
+  }
+
+  try {
+    const content = readFileSync(configPath, "utf8");
+
+    return {
+      userConfig: JSON.parse(content) as Partial<KbConfig>,
+      useDefaultSchemaVersion: false,
+    };
+  } catch {
+    return {
+      userConfig: {},
+      useDefaultSchemaVersion: true,
+    };
+  }
+}
+
 /**
  * Load and parse the Kibi configuration from .kb/config.json.
  * Falls back to DEFAULT_CONFIG if the file doesn't exist or is invalid.
@@ -155,23 +183,19 @@ function mergeBriefsConfig(userBriefs?: Partial<BriefsConfig>): BriefsConfig {
 export function loadConfig(cwd: string = process.cwd()): KbConfig {
   // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
-
-  let userConfig: Partial<KbConfig> = {};
-  if (existsSync(configPath)) {
-    try {
-      const content = readFileSync(configPath, "utf8");
-      userConfig = JSON.parse(content) as Partial<KbConfig>;
-    } catch {
-      // Invalid config, use defaults
-      userConfig = {};
-    }
-  }
+  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
 
   return {
     paths: {
       ...DEFAULT_CONFIG.paths,
       ...userConfig.paths,
     },
+    ...((userConfig.schemaVersion !== undefined || useDefaultSchemaVersion)
+      ? {
+          schemaVersion:
+            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
+        }
+      : {}),
     briefs: mergeBriefsConfig(userConfig.briefs),
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }
@@ -202,23 +226,19 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
 export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
   // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
-
-  let userConfig: Partial<KbConfig> = {};
-  if (existsSync(configPath)) {
-    try {
-      const content = readFileSync(configPath, "utf8");
-      userConfig = JSON.parse(content) as Partial<KbConfig>;
-    } catch {
-      // Invalid config, use defaults
-      userConfig = {};
-    }
-  }
+  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
 
   return {
     paths: {
       ...DEFAULT_SYNC_PATHS,
       ...userConfig.paths,
     },
+    ...((userConfig.schemaVersion !== undefined || useDefaultSchemaVersion)
+      ? {
+          schemaVersion:
+            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
+        }
+      : {}),
     briefs: mergeBriefsConfig(userConfig.briefs),
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }

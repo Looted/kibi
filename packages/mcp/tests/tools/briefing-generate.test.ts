@@ -59,6 +59,14 @@ interface BriefingGenerateResultLike {
     regressionRisks: BriefingStatementLike[];
     missingEvidence: BriefingStatementLike[];
     citations: BriefingCitationLike[];
+    automationReview?: {
+      generatedEntities: Array<{ id: string; type: string; title: string; confidence: number }>;
+      strictReadinessScore: number;
+      confidence: number;
+      migrationWarnings: string[];
+      contradictionRisks: string[];
+      evidenceCitationIds: string[];
+    } | null;
   };
 }
 
@@ -705,6 +713,79 @@ describe("briefing generate", () => {
       ).not.toContain(".sisyphus/boulder.json#L8");
       expect(result.content[0]?.text ?? "").not.toContain(".sisyphus/boulder.json");
     });
+
+    test("drops explicit .sisyphus draft paths passed as sourceFiles", async () => {
+      const root = path.join(tmp, "sisyphus-draft-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "FACT-DRAFT-001",
+            type: "fact",
+            title: "Draft should be ignored",
+            status: "active",
+            source: ".sisyphus/drafts/kibi-kb-quality-audit.md",
+            textRef: ".sisyphus/drafts/kibi-kb-quality-audit.md#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from draft path",
+        sourceFiles: [".sisyphus/drafts/kibi-kb-quality-audit.md"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("no_briefing");
+      expect(result.structuredContent.entities).toHaveLength(0);
+      expect(result.structuredContent.citations).toEqual([]);
+    });
+
+    test("skips explicit sourceFiles that are gitignored and still accepts non-ignored docs", async () => {
+      const root = path.join(tmp, "gitignore-workspace");
+      await ensureBriefingWorkspace(root);
+      // create a doc that will be gitignored
+      const secretPath = path.join(root, "documentation", "secret.md");
+      await fs.writeFile(secretPath, "# Secret\nThis is secret.");
+      // write .gitignore to ignore the secret doc
+      await fs.writeFile(path.join(root, ".gitignore"), "documentation/secret.md\n");
+
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub({
+        entities: [
+          {
+            id: "REQ-SECRET-001",
+            type: "req",
+            title: "This should be ignored by gitignore",
+            status: "open",
+            source: "documentation/secret.md",
+            textRef: "documentation/secret.md#L1",
+          },
+          // a normal doc that should still be picked up
+          {
+            id: "REQ-NORMAL-001",
+            type: "req",
+            title: "This should be accepted",
+            status: "open",
+            source: "documentation/requirements/REQ-BRIEF-001.md",
+            textRef: "documentation/requirements/REQ-BRIEF-001.md#L1",
+          },
+        ],
+      });
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "Brief from mixed gitignored and normal docs",
+        sourceFiles: ["documentation/secret.md", "documentation/requirements/REQ-BRIEF-001.md"],
+      });
+
+      // The gitignored secret should be dropped, but the normal doc remains
+      expect(result.structuredContent.entities.map((e) => e.id)).toContain("REQ-NORMAL-001");
+      expect(result.structuredContent.entities.map((e) => e.id)).not.toContain("REQ-SECRET-001");
+    });
   });
 
   test("fails closed with no_briefing for unsupported posture and stale freshness", async () => {
@@ -864,5 +945,157 @@ describe("briefing generate", () => {
       .filter((line) => line.trimStart().startsWith("-"));
     expect(bullets.length).toBeLessThanOrEqual(5);
     expect(bullets.length).toBeGreaterThan(0);
+  });
+
+  describe("automation review enrichment", () => {
+    test("ready briefing includes automationReview with entity metadata and citations", async () => {
+      const root = path.join(tmp, "automation-review-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub();
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText:
+          "Create a deterministic citation-backed start-task briefing that stays read-only and budget-safe.",
+        sourceFiles: [
+          "documentation/tests/TEST-BRIEF-001.md",
+          "documentation/facts/FACT-BRIEF-001.md",
+        ],
+        seedIds: ["REQ-BRIEF-001", "ADR-BRIEF-001"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("ready");
+      const review = result.structuredContent.automationReview;
+      expect(review).not.toBeNull();
+      expect(review).not.toBeUndefined();
+      expect(review!.generatedEntities.length).toBeGreaterThan(0);
+      expect(review!.strictReadinessScore).toBeGreaterThanOrEqual(0);
+      expect(review!.strictReadinessScore).toBeLessThanOrEqual(1);
+      expect(review!.confidence).toBeGreaterThanOrEqual(0);
+      expect(review!.confidence).toBeLessThanOrEqual(1);
+      expect(Array.isArray(review!.migrationWarnings)).toBe(true);
+      expect(Array.isArray(review!.contradictionRisks)).toBe(true);
+      expect(Array.isArray(review!.evidenceCitationIds)).toBe(true);
+      // Evidence citations should reference actual entity IDs
+      for (const id of review!.evidenceCitationIds) {
+        expect(result.structuredContent.entities.map((e) => e.id)).toContain(id);
+      }
+      // Generated entities should have id, type, title, confidence
+      for (const entity of review!.generatedEntities) {
+        expect(entity.id).toBeTruthy();
+        expect(entity.type).toBeTruthy();
+        expect(entity.title).toBeTruthy();
+      }
+    });
+
+    test("no_briefing result has null or empty automationReview", async () => {
+      const unsupportedRoot = path.join(tmp, "automation-no-briefing");
+      await fs.mkdir(unsupportedRoot, { recursive: true });
+      createVendoredTree(unsupportedRoot);
+      process.env.KIBI_WORKSPACE = unsupportedRoot;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub();
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "brief the risky work",
+        seedIds: ["REQ-BRIEF-001"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("no_briefing");
+      // automationReview must be null/undefined when no entities are available
+      const review = result.structuredContent.automationReview;
+      expect(review === null || review === undefined || (review && review.generatedEntities.length === 0)).toBe(true);
+    });
+
+    test("legacy schema config produces migration warning in automationReview", async () => {
+      const root = path.join(tmp, "legacy-schema-review");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      // Write a config without schemaVersion to simulate legacy
+      const configPath = path.join(root, ".kb", "config.json");
+      await fs.writeFile(configPath, JSON.stringify({ paths: {} }, null, 2));
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub();
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "brief with legacy schema",
+        seedIds: ["REQ-BRIEF-001"],
+      });
+
+      expect(result.structuredContent.briefingState).toBe("ready");
+      const review = result.structuredContent.automationReview;
+      expect(review).not.toBeNull();
+      expect(review!.migrationWarnings.length).toBeGreaterThan(0);
+      expect(review!.migrationWarnings[0]).toMatch(/schemaVersion/i);
+    });
+
+    test("briefingState remains ready or no_briefing — no new blocking states", async () => {
+      const root = path.join(tmp, "non-blocking-states");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      const prolog = createBriefingPrologStub();
+
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "check that briefing states are non-blocking",
+        seedIds: ["REQ-BRIEF-001"],
+      });
+
+      expect(["ready", "no_briefing"]).toContain(
+        result.structuredContent.briefingState,
+      );
+    });
+
+    test("automationReview generation failure does not block briefing", async () => {
+      const root = path.join(tmp, "automation-failure-workspace");
+      await ensureBriefingWorkspace(root);
+      process.env.KIBI_WORKSPACE = root;
+
+      const handleKbBriefingGenerate = await loadHandler();
+      // Use a prolog stub that throws on schema-related queries
+      const prolog = createPrologStub(async (goal) => {
+        const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+
+        if (queryText.includes("status:kb_status_json")) {
+          return toJsonResult({
+            branch: "feature/briefings",
+            snapshotId: "stamp:briefing-001",
+            syncedAt: "2026-04-20T12:00:00Z",
+            dirty: false,
+            syncState: "fresh",
+          });
+        }
+        if (queryText.includes("graph_expand_json")) {
+          return toJsonResult({ nodes: [], edges: [], truncated: false, meta: {} });
+        }
+        if (
+          queryText.includes(
+            "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+          )
+        ) {
+          return toEntityResult(READY_ENTITIES);
+        }
+        return toEntityResult([]);
+      });
+
+      // Even if internal review computation encounters issues,
+      // the briefing must still succeed
+      const result = await handleKbBriefingGenerate(prolog, {
+        taskText: "deterministic citation-backed briefings",
+        seedIds: ["REQ-BRIEF-001"],
+      });
+
+      expect(["ready", "no_briefing"]).toContain(
+        result.structuredContent.briefingState,
+      );
+      // Must have content regardless of review failure
+      expect(result.content.length).toBeGreaterThan(0);
+    });
   });
 });

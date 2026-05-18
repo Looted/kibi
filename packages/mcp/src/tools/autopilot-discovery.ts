@@ -7,6 +7,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import fg from "fast-glob";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import type { PrologProcess } from "kibi-cli/prolog";
 import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
 import { runJsonModuleQuery } from "./core-module.js";
@@ -334,7 +335,7 @@ function normalizeDiscoveryPaths(
   };
 }
 
-function buildIgnoredGlobs(vendoredRoots: string[]): string[] {
+function buildIgnoredGlobs(vendoredRoots: string[], workspaceRoot: string): string[] {
   const ignored = new Set<string>();
 
   for (const dirName of IGNORED_DIRECTORY_NAMES) {
@@ -349,6 +350,17 @@ function buildIgnoredGlobs(vendoredRoots: string[]): string[] {
     ignored.add(`${normalized}/**`);
     ignored.add(`**/${normalized}`);
     ignored.add(`**/${normalized}/**`);
+  }
+
+  // Use shared ignore policy to include .gitignore, nested ignores, and other rules.
+  try {
+    const policy = createRepoIgnorePolicy(workspaceRoot);
+    const globs = policy.getFastGlobIgnoreGlobs();
+    for (const glob of globs) {
+      if (glob) ignored.add(glob);
+    }
+  } catch {
+    // best-effort only
   }
 
   return Array.from(ignored);
@@ -403,6 +415,7 @@ function runTypedKibiDocsProvider(workspaceRoot: string): EvidenceProviderResult
     onlyFiles: true,
     unique: true,
     suppressErrors: true,
+    ignore: buildIgnoredGlobs([], workspaceRoot),
   });
   const manifestFiles = discoveryPaths.symbols
     ? fg.sync(discoveryPaths.symbols, {
@@ -411,6 +424,7 @@ function runTypedKibiDocsProvider(workspaceRoot: string): EvidenceProviderResult
         onlyFiles: true,
         unique: true,
         suppressErrors: true,
+        ignore: buildIgnoredGlobs([], workspaceRoot),
       })
     : [];
 
@@ -450,7 +464,7 @@ function runGenericRepoDocsProvider(
     onlyFiles: true,
     unique: true,
     suppressErrors: true,
-    ignore: buildIgnoredGlobs(vendoredRoots),
+    ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
   });
 
   const evidence = sortUnique(markdownFiles)
@@ -633,7 +647,7 @@ function runRepoLayoutProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 
@@ -672,7 +686,7 @@ function runTestTopologyProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 
@@ -764,7 +778,7 @@ function runSourceSymbolsProvider(
       onlyFiles: true,
       unique: true,
       suppressErrors: true,
-      ignore: buildIgnoredGlobs(vendoredRoots),
+      ignore: buildIgnoredGlobs(vendoredRoots, workspaceRoot),
     },
   );
 

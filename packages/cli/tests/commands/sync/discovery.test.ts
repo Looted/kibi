@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { KbConfigPaths } from "../../../src/utils/config.js";
 
 const fgMock = mock(
@@ -51,7 +51,7 @@ describe("discoverSourceFiles", () => {
     fgMock.mockReset();
   });
 
-  afterEach(() => {
+  afterAll(() => {
     mock.restore();
   });
 

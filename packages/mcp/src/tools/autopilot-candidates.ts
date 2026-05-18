@@ -2,6 +2,11 @@
 // Implements candidate assembly from public CLI extractors
 import { extractFromManifest } from "kibi-cli/extractors/manifest";
 import { extractFromMarkdown } from "kibi-cli/extractors/markdown";
+import {
+  buildStrictWriteSet,
+  modelRequirementClaims,
+  type StrictWriteSet,
+} from "kibi-cli/public/check-types";
 
 import type { ExtractionResult as ManifestExtractionResult } from "kibi-cli/extractors/manifest";
 import type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
@@ -9,6 +14,13 @@ import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
 import path from "node:path";
 import fs from "node:fs";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
+import {
+  estimateNormativeSignalConfidence,
+  extractRequirementClaim,
+  strictWriteSetToApplyPlan,
+  writeSetPrimaryEntityId,
+} from "./model-requirement.js";
 
 export interface Candidate {
   candidateId: string;
@@ -120,12 +132,8 @@ function resolveCandidatePaths(
   return { absolutePath, relativePath };
 }
 
-function isIgnoredGenericMarkdownPath(relativePath: string): boolean {
-  const normalized = relativePath.replace(/\\/g, "/").replace(/^\.\//, "");
-  return /(^|\/)(documentation|\.kb|\.git|node_modules|vendor|vendors|third_party|third-party|dist|coverage)(\/|$)/.test(
-    normalized,
-  );
-}
+// Legacy helper removed in favor of the shared ignore policy from kibi-cli/ignore-policy.
+// Use createRepoIgnorePolicy(workspaceRoot).isIgnored(relativePath) in builders.
 
 function shouldIncludeGenericMarkdown(
   relativePath: string,
@@ -147,6 +155,16 @@ function pushSignal(
   if (seen.has(key)) return;
   seen.add(key);
   signals.push(signal);
+}
+
+interface NormativeRequirementSeed {
+  input: {
+    claim: ReturnType<typeof extractRequirementClaim>["claim"];
+    statement: string;
+  };
+  writeSet: StrictWriteSet;
+  sourcePath: string;
+  evidence: string[];
 }
 
 function buildUpsertFromExtraction(
@@ -183,6 +201,7 @@ export function buildTypedMarkdownCandidates(
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
 
   for (const filePath of getTypedMarkdownFiles(discoveryResult)) {
     try {
@@ -195,6 +214,7 @@ export function buildTypedMarkdownCandidates(
         filePath,
         workspaceRoot,
       );
+      if (ignorePolicy.isIgnored(relativePath)) continue;
       const candidateId = `md:${relativePath}:${entity.id}`;
       const upsert = buildUpsertFromExtraction({ entity, relationships });
 
@@ -287,6 +307,7 @@ export function buildGenericMarkdownCandidates(
 ): Candidate[] {
   const candidates: Candidate[] = [];
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
   const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
   const files = getGenericMarkdownFiles(discoveryResult);
@@ -298,7 +319,7 @@ export function buildGenericMarkdownCandidates(
         filePath,
         workspaceRoot,
       );
-      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      if (ignorePolicy.isIgnored(relativePath)) continue;
 
       // Legacy path-only discovery was conservative. Provider-scoped discovery
       // already filters eligible generic docs, so allow broader repo markdown there.
@@ -408,6 +429,7 @@ export function collectSourceOnlyAuthoringSignals(
   const signals: SourceOnlyAuthoringSignal[] = [];
   const seen = new Set<string>();
   const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
   const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
 
   for (const rawPath of getGenericMarkdownFiles(discoveryResult)) {
@@ -417,7 +439,7 @@ export function collectSourceOnlyAuthoringSignals(
         filePath,
         workspaceRoot,
       );
-      if (isIgnoredGenericMarkdownPath(relativePath)) continue;
+      if (ignorePolicy.isIgnored(relativePath)) continue;
       if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
       if (!fs.existsSync(absolutePath)) continue;
 
@@ -509,6 +531,127 @@ export function collectSourceOnlyAuthoringSignals(
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1
+export function buildNormativeRequirementCandidates(
+  discoveryResult: DiscoveryInput,
+  existingEntities: ExistingEntitiesContext,
+  minConfidence = 0.8,
+): Candidate[] {
+  const candidates: Candidate[] = [];
+  const seeds: NormativeRequirementSeed[] = [];
+  const workspaceRoot = existingEntities.workspaceRoot ?? process.cwd();
+  const providerScopedMarkdown = hasGenericMarkdownEvidence(discoveryResult);
+  const ignorePolicy = createRepoIgnorePolicy(workspaceRoot);
+
+  for (const rawPath of getGenericMarkdownFiles(discoveryResult)) {
+    try {
+      const filePath = String(rawPath);
+      const { absolutePath, relativePath } = resolveCandidatePaths(
+        filePath,
+        workspaceRoot,
+      );
+      if (ignorePolicy.isIgnored(relativePath)) continue;
+      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
+      if (!fs.existsSync(absolutePath)) continue;
+
+      const content = fs.readFileSync(absolutePath, "utf8");
+      const lines = content.split(/\r?\n/);
+      let activeHeading: string | undefined;
+      let activeHeadingLine: number | undefined;
+      let inCodeFence = false;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line === undefined) continue;
+
+        if (/^\s*(```|~~~)/.test(line)) {
+          inCodeFence = !inCodeFence;
+          continue;
+        }
+        if (inCodeFence) continue;
+
+        const headingMatch = line.match(/^\s*#+\s*(.+)$/);
+        if (headingMatch?.[1]) {
+          activeHeading = headingMatch[1].trim();
+          activeHeadingLine = i + 1;
+          continue;
+        }
+
+        const statement = line
+          .replace(/^\s*[-*+]\s+/, "")
+          .replace(/^\s*\d+[.)]\s+/, "")
+          .trim();
+        if (!statement || !/\b(must|shall|should)\b/i.test(statement)) continue;
+
+        const confidence = estimateNormativeSignalConfidence(statement, activeHeading);
+        if (confidence < minConfidence) continue;
+
+        const extracted = extractRequirementClaim({
+          text: statement,
+          source: relativePath,
+          confidence,
+          provenance: `${relativePath}#L${i + 1}`,
+        });
+        const writeSet = buildStrictWriteSet({
+          claim: extracted.claim,
+          statement: extracted.statement,
+        });
+        if (!writeSet.isStrict) continue;
+
+        seeds.push({
+          input: {
+            claim: extracted.claim,
+            statement: extracted.statement,
+          },
+          writeSet,
+          sourcePath: absolutePath,
+          evidence: [
+            `normative_statement:${relativePath}#L${i + 1}`,
+            ...(activeHeading && activeHeadingLine
+              ? [`generic_heading:${relativePath}#L${activeHeadingLine}`]
+              : []),
+          ],
+        });
+      }
+    } catch {
+      // ignore unreadable files when deriving strict requirement candidates
+    }
+  }
+
+  const modeledIds = new Set(
+    modelRequirementClaims(seeds.map((seed) => seed.input)).map((writeSet) =>
+      writeSetPrimaryEntityId(writeSet),
+    ),
+  );
+  const emittedIds = new Set<string>();
+
+  for (const seed of seeds) {
+    const entityId = writeSetPrimaryEntityId(seed.writeSet);
+    if (!modeledIds.has(entityId) || emittedIds.has(entityId)) continue;
+    if (existingEntities.ids.has(entityId)) continue;
+
+    emittedIds.add(entityId);
+    candidates.push({
+      candidateId: `norm:${entityId.toLowerCase()}`,
+      entityType: "req",
+      title: seed.input.statement,
+      sourceKind: "generic_markdown",
+      sourcePath: seed.sourcePath,
+      confidence: seed.writeSet.confidence,
+      confidenceBand: toConfidenceBand(seed.writeSet.confidence),
+      evidence: seed.evidence,
+      relationships: seed.writeSet.relationships.map((relationship) => ({
+        type: relationship.type,
+        from: relationship.from,
+        to: relationship.to,
+      })),
+      applyPlan: strictWriteSetToApplyPlan(seed.writeSet),
+    });
+  }
+
+  return candidates;
+}
+
+// implements REQ-mcp-init-kibi-autopilot-v1
 export function buildProviderEvidenceCandidates(
   discoveryResult: DiscoveryInput,
   existingEntities: ExistingEntitiesContext,
@@ -581,5 +724,6 @@ export default {
   buildSymbolManifestCandidates,
   buildGenericMarkdownCandidates,
   collectSourceOnlyAuthoringSignals,
+  buildNormativeRequirementCandidates,
   buildProviderEvidenceCandidates,
 };

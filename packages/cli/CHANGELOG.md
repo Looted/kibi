@@ -1,5 +1,42 @@
 # kibi-cli
 
+## 0.10.0
+
+### Minor Changes
+
+- 5f715a5: Kibi now automatically respects your repository's `.gitignore` rules during knowledge base discovery. Files ignored by Git — as well as tool directories like `.sisyphus` and `.opencode` — are no longer treated as domain knowledge sources. This prevents draft and build artifacts from polluting your knowledge base.
+
+  - Added documentation describing the repository ignore policy and hard-denied directories.
+  - Clarified that Kibi honors repository `.gitignore`, nested `.gitignore`, and `.git/info/exclude` during `kb_autopilot_generate`, briefing generation, and discovery.
+  - Documented that global Git excludes are not honored in v1, and that automatic cleanup of previously-discovered KB entities is out of scope for this release.
+  - Integrated a note about ignore-aware file-event skipping in the OpenCode plugin README.
+
+## 0.9.0
+
+### Minor Changes
+
+- Kibi now records a schema version in new `.kb/config.json` files and can report migration status without rewriting existing configs during normal loads. Older repositories that never stored `schemaVersion` still load cleanly, but tooling can now detect that they need migration. The CLI also exposes shared schema-version helpers so other packages can use the same version and warning logic.
+
+  - add shared KB schema-version constants and migration status utilities for CLI consumers
+  - write `schemaVersion` into init-generated configs while preserving readable legacy versionless configs on load
+
+- The CLI can now turn extracted semantic claims into deterministic strict-model write-sets for contradiction-safe requirement authoring. Re-running the same claim produces the same requirement and fact IDs, while low-confidence claims are downgraded to review-only observations so they stay out of contradiction blocking.
+
+  - add strict modeling utilities for stable ID generation, subject/property normalization, and strict vs observation write-set assembly
+  - add CLI tests covering deterministic IDs, exact strict-lane entity/relationship counts, relationship dedupe, and low-confidence downgrade behavior
+
+### Patch Changes
+
+- Kibi now supports fully automated requirement modeling and schema migrations, allowing repositories to stay up-to-date with the latest contradiction-safe modeling standards without manual intervention. The new system enforces strict readiness levels for requirement/fact pairings and automatically downgrades low-confidence claims to non-blocking observations to ensure high precision in conflict detection.
+
+  - add `kibi migrate` command for automated KB schema upgrades
+  - implement strict readiness checks and confidence-based modeling lanes
+  - update MCP guidance and CLI documentation for automated contradiction workflows
+  - extend inference rules to support v1 contradiction semantics (exact-value, range, polarity)
+
+- Updated dependencies
+  - kibi-core@0.5.3
+
 ## 0.8.0
 
 ### Minor Changes

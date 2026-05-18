@@ -243,6 +243,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_upsert",
                       "kb_delete",
                       "kb_check",
+                      "kb_model_requirement",
                       "kb_autopilot_generate",
                       "kb_briefing_generate",
                     ]);

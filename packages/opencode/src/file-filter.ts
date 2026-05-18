@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 // implements REQ-opencode-kibi-plugin-v1
 import { createRequire } from "node:module";
 import * as path from "node:path";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 
 const _require = createRequire(import.meta.url);
 
@@ -149,6 +150,10 @@ export function shouldHandleFile(
   const rel = path.isAbsolute(filePath)
     ? path.relative(cwd, filePath).split(path.sep).join("/")
     : filePath.split(path.sep).join("/");
+  // Check shared ignore policy (root .gitignore, nested .gitignore, .git/info/exclude,
+  // and hard denylist such as .sisyphus) before other pattern checks.
+  const policy = createRepoIgnorePolicy(cwd);
+  if (policy.isIgnored(rel)) return false;
 
   const paths = loadKbSyncPaths(cwd);
 

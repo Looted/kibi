@@ -17,6 +17,31 @@ Discover existing repository entities and bootstrap the KB via read-only candida
 **Returns:**
 Grouped candidate entities synthesized from declared context and codebase evidence. Candidates must be explicitly applied via `kb_upsert` after user preview and approval.
 
+## Repository Ignore Policy
+
+Kibi's discovery and autopilot generation honor repository-local Git ignore rules to avoid treating build artifacts, editor state, and tool caches as domain knowledge. During read-only discovery (for example `kb_autopilot_generate` and `kb_briefing_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
+
+- repository root `.gitignore` files and nested `.gitignore` files in subdirectories
+- `.git/info/exclude`
+
+In addition to these repository-configured ignores, Kibi hard-denies a set of common tool/runtime directories that are never inspected for candidates:
+
+- `.sisyphus/**`
+- `.opencode/**`
+- `.kb/**`
+- `.git/**`
+- `node_modules/**`
+- `vendor/**`
+- `third_party/**`
+
+Notes and v1 limitations:
+
+- Global Git excludes (for example `~/.config/git/ignore`) are not read or honored in Kibi v1.
+- Kibi v1 does not perform automatic cleanup or migration of existing KB entities that may have been created from files that are now ignored; removing previously-recorded entities is out of scope for this release.
+- No new project configuration schema is introduced in v1 to alter this behavior. Future releases may expose finer-grained controls.
+
+When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
+
 ### `kb_briefing_generate`
 
 Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs.
@@ -32,6 +57,26 @@ At least one of `taskText`, `sourceFiles`, or `seedIds` must be non-empty.
 A structured briefing with `briefingState`, `activationState`, `activationReason`, `freshness`, `confidence`, `tldr`, `promptBlock`, `entities`, `constraints`, `regressionRisks`, `missingEvidence`, and `citations`.
 
 When evidence is insufficient, the tool fails closed with `briefingState: "no_briefing"` and no speculative sections.
+
+### `kb_model_requirement`
+
+Model a normative requirement claim into a deterministic strict write-set for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or falls back to heuristic extraction from a plain statement) and returns a ready-to-apply plan of `req` + `fact` entities with typed `constrains`/`requires_property` relationships.
+
+High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane.
+
+**Parameters:**
+- `statement` (required): Plain-language normative statement to model
+- `claim` (optional): Explicit `SemanticClaim` object with `subjectKey`, `propertyKey`, `operator`, `value`, `confidence`, and `sourceRef` fields. When provided, heuristic extraction is skipped.
+
+**Returns:**
+A `writeSet` discriminated union:
+- `isStrict: true` — includes `req`, `subjectFact`, `propertyFact`, `relationships`, and an `applyPlan` ready for sequential `kb_upsert` calls.
+- `isStrict: false` — includes a single `observationFact` for non-normative or low-confidence input.
+
+Also returns `migrationWarning` (non-null when the workspace KB schema is outdated) and `schemaVersionStatus` for pre-flight awareness.
+
+Human approval is not required. The write-set is deterministic and idempotent — the same claim always produces the same stable entity IDs (SHA-256 of normalized source/subject/property/operator/value). Apply via sequential `kb_upsert` calls at any time.
+
 
 ### `kb_query`
 

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
   createHash as realCreateHash,
   type Hash,
@@ -75,7 +75,7 @@ function makeHashMock(digestValue: string): {
 }
 
 // Restore mocks after each test to prevent pollution
-afterEach(() => {
+afterAll(() => {
   mock.restore();
 });
 

@@ -3,7 +3,7 @@
  * Tests the pure logic without vscode dependencies.
  */
 
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -100,7 +100,6 @@ afterEach(() => {
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  mock.restore();
 });
 
 describe("provideTextDocumentContent", () => {
@@ -735,4 +734,389 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
     const result = provider.provideTextDocumentContent(uri);
     expect(result).toContain("Summary-level description of changes");
   });
+});
+
+describe("renderBriefAsMarkdown — automationReview section", () => {
+  test("renders Automated Modeling Review section when automationReview is present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "automation-review-brief",
+    }) as BriefModel & { structuredContent?: unknown };
+    (brief as unknown as Record<string, unknown>).structuredContent = {
+      automationReview: {
+        generatedEntities: [
+          { id: "REQ-100", type: "req", title: "Auth requirement", confidence: 0.9 },
+          { id: "FACT-101", type: "fact", title: "Auth domain fact", confidence: 0.85 },
+          { id: "TEST-102", type: "test", title: "Auth test", confidence: 0.8 },
+        ],
+        strictReadinessScore: 0.85,
+        confidence: 0.9,
+        migrationWarnings: [],
+        contradictionRisks: ["REQ-001 may conflict with REQ-002"],
+        evidenceCitationIds: ["FACT-001", "FACT-002"],
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "automation-review-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/automation-review-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Automated Modeling Review");
+    expect(result).toContain("**Strict Readiness Score:** 0.85");
+    expect(result).toContain("**Confidence:** 0.9");
+    expect(result).toContain("**Generated Entities:** 3");
+    expect(result).toContain("### Contradiction Risks");
+    expect(result).toContain("- REQ-001 may conflict with REQ-002");
+    expect(result).toContain("### Evidence Citations");
+    expect(result).toContain("- FACT-001, FACT-002");
+  });
+
+  test("omits Automated Modeling Review section when automationReview is null", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "no-review-brief",
+    }) as BriefModel & { structuredContent?: unknown };
+    (brief as unknown as Record<string, unknown>).structuredContent = {
+      automationReview: null,
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "no-review-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/no-review-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).not.toContain("## Automated Modeling Review");
+    expect(result).toContain("## What changed");
+  });
+
+  test("omits Automated Modeling Review section when structuredContent is absent", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "no-structured-content-brief",
+    });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "no-structured-content-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/no-structured-content-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).not.toContain("## Automated Modeling Review");
+  });
+
+  test("renders migration warnings when present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "migration-warn-brief",
+    }) as BriefModel & { structuredContent?: unknown };
+    (brief as unknown as Record<string, unknown>).structuredContent = {
+      automationReview: {
+        generatedEntities: [
+          { id: "REQ-100", type: "req", title: "Auth requirement", confidence: 0.9 },
+        ],
+        strictReadinessScore: 0.7,
+        confidence: 0.8,
+        migrationWarnings: [
+          "Schema version is outdated. Run `kibi migrate` to upgrade.",
+          "Field 'priority' has been renamed to 'severity'.",
+        ],
+        contradictionRisks: [],
+        evidenceCitationIds: [],
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "migration-warn-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/migration-warn-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("### Migration Warnings");
+    expect(result).toContain(
+      "- Schema version is outdated. Run `kibi migrate` to upgrade.",
+    );
+    expect(result).toContain(
+      "- Field 'priority' has been renamed to 'severity'.",
+    );
+  });
+
+  test("degrades gracefully with empty automationReview fields", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({
+      briefId: "graceful-brief",
+    }) as BriefModel & { structuredContent?: unknown };
+    (brief as unknown as Record<string, unknown>).structuredContent = {
+      automationReview: {
+        generatedEntities: [],
+        strictReadinessScore: 0.5,
+        confidence: 0.5,
+        migrationWarnings: [],
+        contradictionRisks: [],
+        evidenceCitationIds: [],
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "graceful-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/graceful-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    // Section should render with minimal content
+    expect(result).toContain("## Automated Modeling Review");
+    expect(result).toContain("**Generated Entities:** 0");
+    // Sub-sections for empty arrays should be omitted
+    expect(result).not.toContain("### Migration Warnings");
+    expect(result).not.toContain("### Contradiction Risks");
+    expect(result).not.toContain("### Evidence Citations");
+  });
+});
+describe("renderBriefAsMarkdown — automationReview section", () => {
+  test("renders Automated Modeling Review section when automationReview is present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "automation-review-brief" });
+    const briefWithAutomation = {
+      ...brief,
+      structuredContent: {
+        automationReview: {
+          generatedEntities: [
+            { id: "REQ-AUTO-001", type: "req", title: "Auto requirement", confidence: 0.9 },
+          ],
+          strictReadinessScore: 0.85,
+          confidence: 0.9,
+          migrationWarnings: ["Schema version is outdated. Run kibi migrate to upgrade."],
+          contradictionRisks: ["REQ-001 may conflict with REQ-002"],
+          evidenceCitationIds: ["FACT-001", "FACT-002"],
+        },
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "automation-review-brief_brief.json"),
+      JSON.stringify(briefWithAutomation),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/automation-review-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Automated Modeling Review");
+    expect(result).toContain("**Strict Readiness Score:** 0.85");
+    expect(result).toContain("**Confidence:** 0.9");
+    expect(result).toContain("**Generated Entities:** 1");
+    expect(result).toContain("### Migration Warnings");
+    expect(result).toContain("- Schema version is outdated. Run kibi migrate to upgrade.");
+    expect(result).toContain("### Contradiction Risks");
+    expect(result).toContain("- REQ-001 may conflict with REQ-002");
+    expect(result).toContain("### Evidence Citations");
+    expect(result).toContain("- FACT-001, FACT-002");
+  });
+
+  test("omits Automated Modeling Review section when automationReview is null", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "null-automation-brief" });
+    const briefWithNullAutomation = {
+      ...brief,
+      structuredContent: {
+        automationReview: null,
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "null-automation-brief_brief.json"),
+      JSON.stringify(briefWithNullAutomation),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/null-automation-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).not.toContain("## Automated Modeling Review");
+  });
+
+  test("omits Automated Modeling Review section when structuredContent is missing", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "no-structured-brief" });
+
+    fs.writeFileSync(
+      path.join(briefsDir, "no-structured-brief_brief.json"),
+      JSON.stringify(brief),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/no-structured-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).not.toContain("## Automated Modeling Review");
+  });
+
+  test("renders migration warnings when present", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "migration-warn-brief" });
+    const briefWithWarnings = {
+      ...brief,
+      structuredContent: {
+        automationReview: {
+          generatedEntities: [],
+          strictReadinessScore: 0.5,
+          confidence: 0.6,
+          migrationWarnings: [
+            "Schema version is outdated.",
+            "Missing required field: strictReadinessScore.",
+          ],
+          contradictionRisks: [],
+          evidenceCitationIds: [],
+        },
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "migration-warn-brief_brief.json"),
+      JSON.stringify(briefWithWarnings),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/migration-warn-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("### Migration Warnings");
+    expect(result).toContain("- Schema version is outdated.");
+    expect(result).toContain("- Missing required field: strictReadinessScore.");
+  });
+
+  test("degrades gracefully with unknown automationReview shape", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "unknown-shape-brief" });
+    // Simulate a future/unknown version with unexpected fields
+    const briefWithUnknown = {
+      ...brief,
+      structuredContent: {
+        automationReview: {
+          version: "3.0",
+          unknownField: true,
+        },
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "unknown-shape-brief_brief.json"),
+      JSON.stringify(briefWithUnknown),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/unknown-shape-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    // Should not crash — either renders what it can or omits section
+    const result = provider.provideTextDocumentContent(uri);
+    expect(result).toContain("# Kibi Brief:");
+    expect(result).toContain("## What changed");
+  });
+
+  test("omits Migration Warnings subsection when array is empty", () => {
+    const briefsDir = path.join(tmpDir, ".kb", "briefs");
+    fs.mkdirSync(briefsDir, { recursive: true });
+
+    const brief = createBrief({ briefId: "no-migration-warn-brief" });
+    const briefWithAutomation = {
+      ...brief,
+      structuredContent: {
+        automationReview: {
+          generatedEntities: [],
+          strictReadinessScore: 0.95,
+          confidence: 0.98,
+          migrationWarnings: [],
+          contradictionRisks: ["REQ-010 may conflict with REQ-020"],
+          evidenceCitationIds: ["FACT-100"],
+        },
+      },
+    };
+
+    fs.writeFileSync(
+      path.join(briefsDir, "no-migration-warn-brief_brief.json"),
+      JSON.stringify(briefWithAutomation),
+    );
+
+    const uri = {
+      authority: encodeURIComponent(tmpDir),
+      path: "/develop/no-migration-warn-brief.md",
+    } as unknown as import("vscode").Uri;
+
+    const result = provider.provideTextDocumentContent(uri);
+
+    expect(result).toContain("## Automated Modeling Review");
+    expect(result).not.toContain("### Migration Warnings");
+    expect(result).toContain("### Contradiction Risks");
+    expect(result).toContain("### Evidence Citations");
+  });
+});
+
+afterAll(() => {
+  mock.restore();
 });

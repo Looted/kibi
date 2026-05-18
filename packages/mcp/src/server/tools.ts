@@ -37,6 +37,10 @@ import { type SearchArgs, handleKbSearch } from "../tools/search.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
 import {
+  type ModelRequirementArgs,
+  handleKbModelRequirement,
+} from "../tools/model-requirement.js";
+import {
   type AutopilotGenerateArgs,
   handleKbAutopilotGenerate,
 } from "../tools/autopilot-generate.js";
@@ -116,6 +120,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
   handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
+  handleKbModelRequirement: (
+    prolog: TProlog,
+    args: ModelRequirementArgs,
+  ) => Promise<unknown>;
   handleKbAutopilotGenerate: (prolog: TProlog, args: AutopilotGenerateArgs) => Promise<unknown>;
   handleKbBriefingGenerate: (prolog: TProlog, args: BriefingGenerateArgs) => Promise<unknown>;
 }
@@ -143,6 +151,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbSearch,
   handleKbStatus,
   handleKbUpsert,
+  handleKbModelRequirement,
   handleKbAutopilotGenerate,
   handleKbBriefingGenerate,
 };
@@ -541,6 +550,21 @@ export function registerAllTools<TProlog>(
     async (args) => {
       const prolog = await runtime.ensureProlog();
       return runtime.handleKbCheck(prolog, args as CheckArgs);
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_model_requirement",
+    toolDef("kb_model_requirement").description,
+    toolDef("kb_model_requirement").inputSchema,
+    async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbModelRequirement(
+        prolog,
+        args as unknown as ModelRequirementArgs,
+      );
     },
     runtime,
   );

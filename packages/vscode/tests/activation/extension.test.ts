@@ -6,7 +6,7 @@
  * and initializes exactly once when workspace becomes available.
  */
 
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -117,7 +117,6 @@ afterEach(() => {
   }
   process.env.PATH = originalPath;
   (globalThis as { vscode?: unknown }).vscode = undefined;
-  mock.restore();
 });
 
 test("activate defers workspace-dependent features when workspaceFolders is undefined", async () => {
@@ -478,4 +477,7 @@ test("activate deferred path: onDidChangeWorkspaceFolders callback initializes f
     (c) => c.commandId === "kibi.refreshTree",
   );
   expect(refreshCommands).toHaveLength(1);
+});
+afterAll(() => {
+  mock.restore();
 });

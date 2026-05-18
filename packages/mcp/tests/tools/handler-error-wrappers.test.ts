@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, mock, test } from "bun:test";
+import { afterAll, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverage } from "../../src/tools/coverage.js";
 import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
@@ -16,7 +16,7 @@ function createFailingProlog(error: string): PrologProcess {
   } as unknown as PrologProcess;
 }
 
-afterEach(() => {
+afterAll(() => {
   mock.restore();
 });
 

@@ -241,7 +241,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(11);
+    expect(tools.length).toBe(12);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -252,6 +252,7 @@ describe("MCP Server", () => {
       "kb_upsert",
       "kb_delete",
       "kb_check",
+      "kb_model_requirement",
       "kb_autopilot_generate",
       "kb_briefing_generate",
     ]);
@@ -363,11 +364,11 @@ describe("MCP Server", () => {
     expect(contentText).toMatch(/kb_check/);
     expect(contentText).toMatch(/Project Summary/);
     expect(contentText).toMatch(/Source of Truth/);
-    expect(contentText).toMatch(/Wait for explicit approval/i);
+    expect(contentText).toMatch(/post-hoc/i);
     expect(contentText).toMatch(/read-only/);
 
     // Assert that content mentions activation workflow concepts
-    expect(contentText).toMatch(/(activationState|activation|approval)/);
+    expect(contentText).toMatch(/(activationState|activation|approval)/i);
 
     // Assert that content does NOT mention non-public tools
     expect(contentText).not.toMatch(/kb_query_relationships/);
@@ -488,6 +489,66 @@ describe("MCP Server", () => {
     expect(result.candidates).toEqual(structured.candidates);
     expect(result.suppressedCandidates).toEqual(structured.suppressedCandidates);
     expect(result.payoffSummary).toEqual(structured.payoffSummary);
+
+    await killServer(proc);
+  }, 15000);
+
+  test("should handle tools/call for kb_model_requirement", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "tools/call",
+      params: {
+        name: "kb_model_requirement",
+        arguments: {
+          text: "Customer data must be retained for 7 years.",
+          source: "documentation/requirements/customer-retention.md",
+          confidence: 0.92,
+          subjectKey: "Customer.Data",
+          propertyKey: "Retention Years",
+          operator: "eq",
+          value: 7,
+          provenance: "documentation/requirements/customer-retention.md#L1",
+        },
+      },
+    });
+
+    const result = response.result as Record<string, unknown>;
+    expect(result).toBeDefined();
+    expect(result.isError).toBeFalsy();
+
+    const content = result.content as Array<{ type: string; text: string }>;
+    expect(content).toBeDefined();
+    expect(content.length).toBeGreaterThan(0);
+    expect(content[0]?.type).toBe("text");
+
+    const structured = result.structuredContent as Record<string, unknown>;
+    expect(structured).toBeDefined();
+    expect(structured.isStrict).toBe(true);
+    expect(Array.isArray(structured.applyPlan)).toBe(true);
+    expect((structured.applyPlan as unknown[]).length).toBe(3);
+    expect(typeof structured.writeSet).toBe("object");
+    expect(typeof structured.claim).toBe("object");
+    expect(
+      [null, expect.any(String)].some((matcher) =>
+        matcher === null
+          ? structured.migrationWarning === null
+          : typeof structured.migrationWarning === "string",
+      ),
+    ).toBe(true);
 
     await killServer(proc);
   }, 15000);
