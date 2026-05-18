@@ -155,7 +155,7 @@ jobs:
           path: packages
       - name: Tarball content verification
         run: |
-          bun test --timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
