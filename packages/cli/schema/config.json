@@ -186,6 +186,11 @@
               "type": "boolean",
               "description": "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
               "default": false
+            },
+            "strict-readiness": {
+              "type": "boolean",
+              "description": "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -229,7 +234,9 @@
           "required-fields": true,
           "deprecated-adr-no-successor": true,
           "domain-contradictions": true,
-          "strict-fact-shape": false
+          "strict-fact-shape": false,
+          "strict-req-fact-pairing": false,
+          "strict-readiness": false
         },
         "symbolTraceability": {
           "requireAdr": false

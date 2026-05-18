@@ -252,6 +252,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_delete",
                 "kb_find_gaps",
                 "kb_graph",
+                "kb_model_requirement",
                 "kb_query",
                 "kb_search",
                 "kb_status",

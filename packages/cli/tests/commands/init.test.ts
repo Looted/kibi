@@ -74,6 +74,7 @@ describe("kibi init", () => {
     expect(config.$schema).toBe(
       "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
     );
+    expect(config.schemaVersion).toBe(1);
     expect(config.paths).toBeDefined();
     expect(config.paths.requirements).toBe("documentation/requirements");
     expect(config.paths.scenarios).toBe("documentation/scenarios");
@@ -139,6 +140,7 @@ describe("kibi init", () => {
     expect(config.checks.rules["domain-contradictions"]).toBe(true);
     expect(config.checks.rules["strict-fact-shape"]).toBe(false); // disabled by default
     expect(config.checks.rules["strict-req-fact-pairing"]).toBe(false); // disabled by default
+    expect(config.checks.rules["strict-readiness"]).toBe(false); // disabled by default
     expect(config.checks.symbolTraceability).toBeDefined();
     expect(config.checks.symbolTraceability.requireAdr).toBe(false);
   });

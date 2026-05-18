@@ -1,5 +1,5 @@
 import {
-  afterEach,
+  afterAll, afterEach,
   beforeEach,
   describe,
   expect,
@@ -234,7 +234,6 @@ afterEach(() => {
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  mock.restore();
 });
 
 describe("activation/navigation", () => {
@@ -431,4 +430,7 @@ describe("activation/contextOnOpen", () => {
     );
     expect(output.appendLine).toHaveBeenCalledWith("Context query failed: mcp down");
   });
+});
+afterAll(() => {
+  mock.restore();
 });

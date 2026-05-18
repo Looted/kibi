@@ -222,6 +222,25 @@ kibi doctor
 - Git hooks missing → Run `kibi init`
 - Config invalid → Check `.kb/config.json` syntax
 
+
+## `kibi migrate`
+
+Upgrades the branch knowledge base to the latest schema version.
+
+**Behavior:**
+- Upgrades entity schemas and internal storage formats
+- Fixes legacy requirement modeling to follow strict fact-pairing rules
+- Updates `.kb/config.json` with the latest `schemaVersion`
+- Idempotent: safe to run if already on the latest version
+
+**Flags:**
+- `--dry-run` - Show what would be migrated without making changes
+- `--kb-path <path>` - Path to KB directory (optional)
+
+**Notes:**
+- Use `kibi status` to check if a migration is pending for your branch.
+- Migration is recommended when upgrading `kibi-cli` or `kibi-mcp` packages.
+
 ## `kibi gc`
 
 Garbage collects stale branch knowledge bases.

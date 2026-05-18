@@ -294,6 +294,15 @@ The plugin provides proactive guidance when agents perform file operations:
 
 - **File-delete safety guidance**: When an agent attempts to delete a file, the plugin injects a safety check reminding the agent to verify if the file implements any Kibi requirements before removal.
 
+### Repository Ignore Support
+
+The OpenCode plugin respects the repository ignore policy used by Kibi's discovery pipeline. In practice this means:
+
+- The plugin's background sync and file-event handling skip paths matched by repository `.gitignore` files, nested `.gitignore` files, and `.git/info/exclude`.
+- The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.kb`, `.git`, `node_modules`, `vendor`, `third_party`).
+
+When a file event occurs for an ignored path, the plugin skips processing and will not surface candidate guidance for that file. This avoids noisy briefings and prevents build/editor artifacts from triggering KB sync work.
+
 - **E2e reminder evidence**: File-operation reminders use exact Kibi graph evidence first (`covered_by` links to `[e2e]`-tagged entities or `/e2e/`-sourced entities) and narrow path heuristics second. Package-level e2e tests do not trigger "authoritative evidence" flags at the file level.
 
 - **Session suppression**: To minimize prompt noise, this guidance is suppressed after the first occurrence per path per session.

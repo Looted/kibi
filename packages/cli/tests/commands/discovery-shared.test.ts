@@ -1,5 +1,5 @@
 import {
-  afterEach,
+  afterAll, afterEach,
   beforeEach,
   describe,
   expect,
@@ -106,7 +106,6 @@ describe("discovery-shared", () => {
   });
 
   afterEach(() => {
-    mock.restore();
     logSpy.mockRestore();
     setBranch(originalBranch);
   });
@@ -436,3 +435,6 @@ describe("discovery-shared", () => {
     expect(genericCoverage).toContain("partial");
   });
 });
+  afterAll(() => {
+    mock.restore();
+  });

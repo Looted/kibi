@@ -1,0 +1,10 @@
+{
+  "auditVersion": 1,
+  "branch": "develop",
+  "configPath": ".kb/config.json",
+  "fromVersion": null,
+  "migratedAt": "2026-05-17T10:14:41.322Z",
+  "status": "applied",
+  "toVersion": 1,
+  "warning": "KB config schemaVersion is missing; legacy config should be migrated."
+}

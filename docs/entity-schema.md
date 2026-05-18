@@ -176,7 +176,8 @@ relationship:
   - one `fact_kind: subject` fact linked via `constrains`
   - one `fact_kind: property_value` fact linked via `requires_property`
 - For v1, the supported evolution path is append-only: create a new requirement and link it to the prior one with `supersedes`.
-- Plain requirement upserts do **not** automatically replace older `constrains` / `requires_property` semantics.
+- Automated modeling via `kb_model_requirement` or `/init-kibi` follows this pattern without requiring human approval.
+- **Low-confidence downgrade:** If confidence is < 0.7, requirements are downgraded to `observation` facts to avoid false-positive contradictions.
 - Use `observation` and `meta` facts for runtime evidence, historical notes, and governance context that should not participate in contradiction blocking.
 
 **Canonical Contradiction-Safe Example:**
@@ -226,6 +227,19 @@ links:
   - type: supersedes
     target: REQ-018
 ---
+```
+```
+
+**Schema Migration:**
+
+Older KBs can be upgraded to the latest schema using the `migrate` command. This ensures all entities are compatible with the latest contradiction and validation rules.
+
+```bash
+# Check if migration is required
+kibi status
+
+# Perform the migration
+kibi migrate
 ```
 
 **Invalid Example (Prohibited):**

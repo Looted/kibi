@@ -17,8 +17,11 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 import path from "node:path";
+import fg from "fast-glob";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import {
   type Candidate,
+  buildNormativeRequirementCandidates,
   collectSourceOnlyAuthoringSignals,
   buildGenericMarkdownCandidates,
   buildProviderEvidenceCandidates,
@@ -26,6 +29,7 @@ import {
   buildSymbolManifestCandidates,
   type SourceOnlyAuthoringSignal,
 } from "./autopilot-candidates.js";
+import { getWorkspaceMigrationWarning } from "./model-requirement.js";
 import {
   type DiscoverySummary,
   discoverProviderEvidence,
@@ -88,6 +92,7 @@ interface AutopilotStructuredContent {
   bootstrapMode: ActivationMode;
   activationReason: string;
   applyBlocked: boolean;
+  migrationWarning: string | null;
   handoffMessage?: string;
   confidence: AutopilotConfidence;
   tldr: string;
@@ -103,6 +108,7 @@ interface AutopilotStructuredContent {
 export interface AutopilotGenerateResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: AutopilotStructuredContent;
+  migrationWarning: string | null;
   candidates: Array<Record<string, unknown>>;
   suppressedCandidates: Array<Record<string, unknown>>;
   payoffSummary: PayoffSummary;
@@ -622,6 +628,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   const activation = await resolveActivationPolicy(workspaceRoot, prolog);
   const activationState = activation.activationState;
   const activationDiscovery = discoverProviderEvidence(workspaceRoot, activation);
+  const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const declaredContext = normalizeBootstrapContext(bootstrapContext);
   const discoveredCandidatePaths = activationDiscovery.evidence.reduce<string[]>(
     (acc, item) => {
@@ -672,6 +679,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   let typedMarkdownCandidates: Candidate[] = [];
   let manifestCandidates: Candidate[] = [];
   let genericCandidates: Candidate[] = [];
+  let normativeRequirementCandidates: Candidate[] = [];
   let providerEvidenceCandidates: Candidate[] = [];
   let allCandidates: Candidate[] = [];
   const seenByKey = new Map<string, CandidateRecord>();
@@ -699,6 +707,14 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
         },
         normalizedMinConfidence,
       );
+      normativeRequirementCandidates = buildNormativeRequirementCandidates(
+        candidateDiscovery,
+        {
+          ids: existingIds,
+          workspaceRoot,
+        },
+        normalizedMinConfidence,
+      );
     }
     providerEvidenceCandidates = buildProviderEvidenceCandidates(
       candidateDiscovery,
@@ -713,6 +729,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       ...typedMarkdownCandidates,
       ...manifestCandidates,
       ...genericCandidates,
+      ...normativeRequirementCandidates,
       ...providerEvidenceCandidates,
     ];
     if (entityTypes && entityTypes.length > 0) {
@@ -806,6 +823,41 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     }
   }
 
+  // Detect repository files that would be candidate inputs but are ignored by
+  // the repo ignore policy (e.g. .sisyphus drafts, .gitignore entries). Add
+  // them to suppressedCandidates with reason `ignored_source` so callers see
+  // why those files were omitted from candidate output.
+  try {
+    const repoIgnore = createRepoIgnorePolicy(workspaceRoot);
+    const potentialFiles = fg.sync(["**/*.md", "**/symbols.{yml,yaml}"], {
+      cwd: workspaceRoot,
+      absolute: true,
+      onlyFiles: true,
+      unique: true,
+      dot: true,
+      suppressErrors: true,
+    });
+
+    for (const absPath of potentialFiles) {
+      const rel = toWorkspaceRelativePath(workspaceRoot, absPath);
+      const explain = repoIgnore.explain(rel);
+      if (explain.ignored) {
+        // avoid duplicating existing suppressed entries for the same source
+        if (!suppressed.some((s) => String(s.sourcePath ?? "") === rel && s.reason === "ignored_source")) {
+          suppressed.push({
+            candidateId: String("") /* no candidate id for ignored source */,
+            reason: "ignored_source",
+            sourcePath: rel,
+            entityType: String("") /* unknown at this stage */,
+            detail: explain.reason,
+          } as unknown as SuppressedCandidateRecord);
+        }
+      }
+    }
+  } catch {
+    // best-effort only; ignore failures here so generation can continue
+  }
+
   const candidateRecords: CandidateRecord[] = Array.from(seenByKey.values());
   const payoffSummary = buildPayoffSummary(candidateRecords);
   const promptBlock = buildPromptBlock(
@@ -858,6 +910,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
     bootstrapMode: activation.activationMode,
     activationReason: activation.reason,
     applyBlocked: effectiveApplyBlocked,
+    migrationWarning,
     ...(activation.handoffMessage
       ? { handoffMessage: activation.handoffMessage }
       : {}),
@@ -880,6 +933,7 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       },
     ],
     structuredContent,
+    migrationWarning,
     candidates: candidateRecords,
     suppressedCandidates: suppressed,
     payoffSummary,

@@ -11,6 +11,8 @@ import { loadEntities } from "./entity-query.js";
 import { handleKbStatus, type StatusPayload } from "./status.js";
 import { resolveWorkspaceRoot } from "../workspace.js";
 import { isOperationalArtifactPath } from "kibi-cli/operational-artifacts";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
+import { getSchemaVersionStatus } from "kibi-cli/schema-version";
 
 export interface BriefingGenerateArgs {
   taskText?: string;
@@ -50,6 +52,22 @@ interface BriefingConfidence {
   reasons: string[];
 }
 
+interface AutomationReviewEntity {
+  id: string;
+  type: string;
+  title: string;
+  confidence: number;
+}
+
+interface AutomationReview {
+  generatedEntities: AutomationReviewEntity[];
+  strictReadinessScore: number;
+  confidence: number;
+  migrationWarnings: string[];
+  contradictionRisks: string[];
+  evidenceCitationIds: string[];
+}
+
 interface BriefingGenerateResult {
   content: Array<{ type: "text"; text: string }>;
   structuredContent: {
@@ -65,6 +83,7 @@ interface BriefingGenerateResult {
     regressionRisks: BriefingStatement[];
     missingEvidence: BriefingStatement[];
     citations: BriefingCitation[];
+    automationReview: AutomationReview | null;
   };
 }
 
@@ -194,6 +213,7 @@ function normalizeSourceFiles(
   const normalized: string[] = [];
   const seen = new Set<string>();
   const normalizedRoot = path.resolve(workspaceRoot);
+  const policy = createRepoIgnorePolicy(workspaceRoot);
 
   for (const sourceFile of sourceFiles ?? []) {
     const trimmed = String(sourceFile ?? "").trim();
@@ -215,6 +235,16 @@ function normalizeSourceFiles(
       .replace(/^\//, "");
 
     if (!normalizedPath || seen.has(normalizedPath) || isOperationalArtifactPath(normalizedPath)) continue;
+
+    // Skip paths ignored by repository ignore policy (eg .gitignore, .git/info/exclude, nested .gitignore,
+    // and hard denylist such as .kb, .git, node_modules, .sisyphus)
+    try {
+      if (policy.isIgnored(normalizedPath)) continue;
+    } catch {
+      // Be conservative on errors and do not let ignore policy break briefing generation;
+      // fall through and allow the path unless other checks exclude it.
+    }
+
     seen.add(normalizedPath);
     normalized.push(normalizedPath);
   }
@@ -236,12 +266,23 @@ function candidateKey(entity: Record<string, unknown>): string {
   return `${String(entity.type ?? "")}::${String(entity.id ?? "")}`;
 }
 
-function normalizeEntity(entity: Record<string, unknown>): Record<string, unknown> | null {
+function normalizeEntity(entity: Record<string, unknown>, workspaceRoot?: string): Record<string, unknown> | null {
   const type = stripOuterSingleQuotes(String(entity.type ?? "").trim());
   if (!isAllowedType(type)) return null;
 
   const source = entity.source ? String(entity.source).trim().split(path.sep).join("/") : undefined;
   if (source && isOperationalArtifactPath(source)) return null;
+
+  // Respect repository ignore policy for entity sources. Prefer an explicit workspaceRoot when available.
+  try {
+    if (source) {
+      const policyRoot = workspaceRoot ?? process.cwd();
+      const policy = createRepoIgnorePolicy(policyRoot);
+      if (policy.isIgnored(source)) return null;
+    }
+  } catch {
+    // Ignore errors from ignore policy to avoid blocking normalization on policy issues.
+  }
 
   return {
     ...entity,
@@ -263,8 +304,9 @@ function addCandidate(
   entity: Record<string, unknown>,
   scoreDelta: number,
   reason: string,
+  workspaceRoot?: string,
 ): void {
-  const normalizedEntity = normalizeEntity(entity);
+  const normalizedEntity = normalizeEntity(entity, workspaceRoot);
   if (!normalizedEntity) return;
 
   const key = candidateKey(normalizedEntity);
@@ -478,7 +520,7 @@ function buildPromptBlock(entities: BriefingEntity[]): string {
 
   const bullets = allBullets.slice(0, 5);
   let promptBlock = bullets.join("\n");
-  let words = promptBlock.split(/\s+/).filter(Boolean);
+  const words = promptBlock.split(/\s+/).filter(Boolean);
 
   if (words.length > 120) {
     // Hard-truncate to 120 words, preserving whole bullets where possible
@@ -490,7 +532,7 @@ function buildPromptBlock(entities: BriefingEntity[]): string {
         // Take a partial bullet that fits within budget
         const remaining = 120 - wordCount;
         if (remaining > 3) {
-          truncated.push(bulletWords.slice(0, remaining).join(" ") + "\u2026");
+          truncated.push(`${bulletWords.slice(0, remaining).join(" ")}\u2026`);
         }
         break;
       }
@@ -517,6 +559,72 @@ function buildCitations(entities: BriefingEntity[]): BriefingCitation[] {
       ...(entity.source ? { source: entity.source } : {}),
       ...(entity.textRef ? { textRef: entity.textRef } : {}),
     }));
+}
+
+function buildAutomationReviewEntities(
+  entities: BriefingEntity[],
+  confidenceScore?: number,
+): AutomationReviewEntity[] {
+  const entityConfidence =
+    typeof confidenceScore === "number" && Number.isFinite(confidenceScore)
+      ? roundScore(confidenceScore)
+      : 1;
+
+  return entities.map((entity) => ({
+    id: entity.id,
+    type: entity.type,
+    title: entity.title,
+    confidence: entityConfidence,
+  }));
+}
+
+function buildAutomationReview(
+  entities: BriefingEntity[],
+  confidence: BriefingConfidence,
+  migrationWarning: string | null,
+  prologNeighbors: Set<string>,
+): AutomationReview | null {
+  if (entities.length === 0) {
+    return null;
+  }
+
+  const generatedEntities = buildAutomationReviewEntities(
+    entities,
+    confidence.score,
+  );
+  const evidenceCitationIds = entities.map((entity) => entity.id);
+
+  const strictEntities = entities.filter(
+    (entity) => entity.type === "req" || entity.type === "fact",
+  );
+  const strictReadinessScore = roundScore(
+    strictEntities.length > 0
+      ? Math.min(1, strictEntities.length / entities.length + 0.5)
+      : 0,
+  );
+
+  const contradictionRisks: string[] = [];
+  for (const entity of strictEntities) {
+    if (entity.type === "req" && prologNeighbors.has(entity.id)) {
+      contradictionRisks.push(
+        `${entity.id} may have contradiction overlap with related requirements.`,
+      );
+    }
+  }
+
+  const migrationWarnings: string[] = [];
+  if (migrationWarning) {
+    migrationWarnings.push(migrationWarning);
+  }
+
+  return {
+    generatedEntities,
+    strictReadinessScore,
+    confidence: confidence.score,
+    migrationWarnings,
+    contradictionRisks,
+    evidenceCitationIds,
+  };
 }
 
 function roundScore(score: number): number {
@@ -572,6 +680,7 @@ function buildConfidence(
 async function expandGraphNeighbors(
   prolog: PrologProcess,
   seedIds: string[],
+  workspaceRoot?: string,
 ): Promise<Map<string, Record<string, unknown>>> {
   if (seedIds.length === 0) {
     return new Map();
@@ -595,7 +704,7 @@ async function expandGraphNeighbors(
 
   const neighbors = new Map<string, Record<string, unknown>>();
   for (const node of payload.nodes ?? []) {
-    const normalized = normalizeEntity(node);
+    const normalized = normalizeEntity(node, workspaceRoot);
     if (!normalized) continue;
     const nodeId = String(normalized.id ?? "");
     if (seedSet.has(nodeId) || !connected.has(nodeId)) continue;
@@ -683,6 +792,7 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
         regressionRisks: [],
         missingEvidence: [],
         citations: [],
+        automationReview: null,
       },
     };
   }
@@ -690,11 +800,11 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
   const candidates = new Map<string, CandidateAccumulator>();
 
   for (const entity of await loadByIds(prolog, seedIds)) {
-    addCandidate(candidates, entity, 100, "seed hit");
+    addCandidate(candidates, entity, 100, "seed hit", workspaceRoot);
   }
 
   for (const entity of await loadBySourceFiles(prolog, sourceFiles)) {
-    addCandidate(candidates, entity, 90, "source-file hit");
+    addCandidate(candidates, entity, 90, "source-file hit", workspaceRoot);
   }
 
   const rankedIds: string[] = [];
@@ -710,6 +820,7 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
         match.entity,
         70 - index,
         `text-search hit (#${index + 1})`,
+        workspaceRoot,
       );
     });
   }
@@ -722,9 +833,9 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
       ...rankedIds,
     ].filter(Boolean)),
   );
-  const graphNeighbors = await expandGraphNeighbors(prolog, graphSeeds);
+  const graphNeighbors = await expandGraphNeighbors(prolog, graphSeeds, workspaceRoot);
   for (const neighbor of graphNeighbors.values()) {
-    addCandidate(candidates, neighbor, 40, "graph neighbor");
+    addCandidate(candidates, neighbor, 40, "graph neighbor", workspaceRoot);
   }
 
   const entities = sortedEntities(candidates);
@@ -742,6 +853,30 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
   );
   const briefingState = confidence.score >= 0.55 ? "ready" : "no_briefing";
 
+  // Compute automation review metadata
+  let migrationWarning: string | null = null;
+  try {
+    const configPath = path.join(workspaceRoot, ".kb", "config.json");
+    let rawConfig: string;
+    try {
+      rawConfig = fs.readFileSync(configPath, "utf8");
+      const parsed = JSON.parse(rawConfig) as { schemaVersion?: number | string } | null;
+      const schemaStatus = getSchemaVersionStatus(parsed ?? undefined);
+      migrationWarning = schemaStatus.warning;
+    } catch {
+      migrationWarning = null;
+    }
+  } catch {
+    migrationWarning = null;
+  }
+
+  const graphNeighborIds = new Set(graphNeighbors.keys());
+  const automationReview = buildAutomationReview(
+    entities,
+    confidence,
+    migrationWarning,
+    graphNeighborIds,
+  );
   if (briefingState === "no_briefing") {
     return {
       content: [{ type: "text", text: "No briefing is available." }],
@@ -758,6 +893,7 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
         regressionRisks: [],
         missingEvidence: [],
         citations: [],
+        automationReview: null,
       },
     };
   }
@@ -777,6 +913,7 @@ export async function handleKbBriefingGenerate( // implements REQ-mcp-kibi-brief
       regressionRisks,
       missingEvidence,
       citations,
+      automationReview,
     },
   };
 }

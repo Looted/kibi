@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, expect, mock, test } from "bun:test";
+import { afterAll, afterEach, beforeEach, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -60,7 +60,6 @@ beforeEach(() => {
 
 afterEach(() => {
   fs.rmSync(tmpDir, { recursive: true, force: true });
-  mock.restore();
 });
 
 test("resolveWorkspaceRoot returns workspace folder path when workspaceFolders is set", async () => {
@@ -269,4 +268,7 @@ test("getCurrentBranch returns 'main' when .git/HEAD is missing", async () => {
   const branch = getCurrentBranch(tmpDir);
   // Both execSync and .git/HEAD fallback fail -> returns "main"
   expect(branch).toBe("main");
+});
+afterAll(() => {
+  mock.restore();
 });

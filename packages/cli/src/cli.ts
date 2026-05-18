@@ -26,6 +26,7 @@ import { gapsCommand } from "./commands/gaps.js";
 import { gcCommand } from "./commands/gc.js";
 import { graphCommand } from "./commands/graph.js";
 import { initCommand } from "./commands/init.js";
+import { migrateCommand } from "./commands/migrate.js";
 import { queryCommand } from "./commands/query.js";
 import { searchCommand } from "./commands/search.js";
 import { statusCommand } from "./commands/status.js";
@@ -68,6 +69,17 @@ program
   .action(
     withExitCode(async (options: Parameters<typeof initCommand>[0]) => {
       return initCommand(options);
+    }),
+  );
+
+program
+  .command("migrate")
+  .description("Migrate .kb/config.json to the latest schema version")
+  .option("--dry-run", "Preview migration changes without writing files")
+  .option("--yes", "Apply migration changes without prompting")
+  .action(
+    withExitCode(async (options: Parameters<typeof migrateCommand>[0]) => {
+      return migrateCommand(options);
     }),
   );
 

@@ -1,5 +1,38 @@
 # kibi-mcp
 
+## 0.13.0
+
+### Minor Changes
+
+- 5f715a5: Kibi now automatically respects your repository's `.gitignore` rules during knowledge base discovery. Files ignored by Git — as well as tool directories like `.sisyphus` and `.opencode` — are no longer treated as domain knowledge sources. This prevents draft and build artifacts from polluting your knowledge base.
+
+  - Added documentation describing the repository ignore policy and hard-denied directories.
+  - Clarified that Kibi honors repository `.gitignore`, nested `.gitignore`, and `.git/info/exclude` during `kb_autopilot_generate`, briefing generation, and discovery.
+  - Documented that global Git excludes are not honored in v1, and that automatic cleanup of previously-discovered KB entities is out of scope for this release.
+  - Integrated a note about ignore-aware file-event skipping in the OpenCode plugin README.
+
+### Patch Changes
+
+- Updated dependencies [5f715a5]
+  - kibi-cli@0.10.0
+
+## 0.12.1
+
+### Patch Changes
+
+- Kibi now supports fully automated requirement modeling and schema migrations, allowing repositories to stay up-to-date with the latest contradiction-safe modeling standards without manual intervention. The new system enforces strict readiness levels for requirement/fact pairings and automatically downgrades low-confidence claims to non-blocking observations to ensure high precision in conflict detection.
+
+  - add `kibi migrate` command for automated KB schema upgrades
+  - implement strict readiness checks and confidence-based modeling lanes
+  - update MCP guidance and CLI documentation for automated contradiction workflows
+  - extend inference rules to support v1 contradiction semantics (exact-value, range, polarity)
+
+- Updated dependencies
+- Updated dependencies
+- Updated dependencies
+  - kibi-core@0.5.3
+  - kibi-cli@0.9.0
+
 ## 0.12.0
 
 ### Minor Changes

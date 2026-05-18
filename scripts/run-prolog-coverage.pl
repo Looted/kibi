@@ -184,10 +184,12 @@ clause_coverage_row(SourceRoot, Predicate, Line, Enter, Exit) :-
     coverage_counts(ClauseRef, Enter, Exit),
     format(string(Predicate), '~w:~w/~d', [Module, Name, Arity]).
 
+%% Only succeed when coverage data for the clause is available.
+%% If prolog_coverage:'$cov_data'/3 fails the clause was not instrumented
+%% and should be excluded from the coverage calculation rather than
+%% treated as an uncovered (0,0) clause.
 coverage_counts(ClauseRef, Enter, Exit) :-
-    prolog_coverage:'$cov_data'(clause(ClauseRef), Enter, Exit),
-    !.
-coverage_counts(_, 0, 0).
+    prolog_coverage:'$cov_data'(clause(ClauseRef), Enter, Exit).
 
 clause_entered(clause(_, _, Enter, _)) :-
     Enter > 0.
