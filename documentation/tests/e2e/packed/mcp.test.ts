@@ -247,18 +247,6 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_autopilot_generate",
                       "kb_briefing_generate",
                     ]);
-                      "kb_query",
-                      "kb_search",
-                      "kb_status",
-                      "kb_find_gaps",
-                      "kb_coverage",
-                      "kb_graph",
-                      "kb_upsert",
-                      "kb_delete",
-                      "kb_check",
-                      "kb_autopilot_generate",
-                      "kb_briefing_generate",
-                    ]);
                     console.log("  ✓ Available tools:", toolNames.join(", "));
 
                     resolve();
