@@ -1349,7 +1349,7 @@ function buildSyntheticSyncAuditDelta(
         });
 
         // Emit completion-reminder log only when prompt-visible reminder text is present
-        const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+        const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
         if (
           cfg.guidance.smartEnforcement.completionReminder &&
           !maintenanceDegraded &&
