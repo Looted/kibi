@@ -1,10 +1,9 @@
 import { execSync } from "node:child_process";
 import {
-  extractManifestSymbolRecordsString,
   type ManifestSymbolRecord,
+  extractManifestSymbolRecordsString,
 } from "../extractors/manifest.js";
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
-import { KIBI_SYMBOLS_MANIFEST_PATH } from "./evidence-model.js";
 import type { StagedFile } from "./git-staged.js";
 
 interface NormalizedManifestSymbol {
@@ -21,9 +20,9 @@ export interface StagedSymbolsManifestAssessment {
   sourcePaths: string[];
 }
 
-function readHeadManifestContent(): string | null {
+function readHeadManifestContent(symbolsManifestPath: string): string | null {
   try {
-    return execSync(`git show HEAD:${KIBI_SYMBOLS_MANIFEST_PATH}`, {
+    return execSync(`git show HEAD:${symbolsManifestPath}`, {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -34,13 +33,14 @@ function readHeadManifestContent(): string | null {
 
 function parseManifestRecords(
   content: string | null | undefined,
+  symbolsManifestPath: string,
 ): ManifestSymbolRecord[] | null {
   if (content === null || content === undefined) {
     return [];
   }
 
   try {
-    return extractManifestSymbolRecordsString(content, KIBI_SYMBOLS_MANIFEST_PATH);
+    return extractManifestSymbolRecordsString(content, symbolsManifestPath);
   } catch {
     return null;
   }
@@ -111,15 +111,22 @@ function uniqueSorted(paths: Iterable<string>): string[] {
 }
 
 export function assessStagedSymbolsManifest(options: {
+  symbolsManifestPath: string;
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
 }): StagedSymbolsManifestAssessment {
-  const { sourceFiles, stagedFiles } = options;
-  const headManifestRecords = parseManifestRecords(readHeadManifestContent());
-  const stagedManifestFile = stagedFiles.find(
-    (file) => file.path === KIBI_SYMBOLS_MANIFEST_PATH,
+  const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
+  const headManifestRecords = parseManifestRecords(
+    readHeadManifestContent(symbolsManifestPath),
+    symbolsManifestPath,
   );
-  const stagedManifestRecords = parseManifestRecords(stagedManifestFile?.content);
+  const stagedManifestFile = stagedFiles.find(
+    (file) => file.path === symbolsManifestPath,
+  );
+  const stagedManifestRecords = parseManifestRecords(
+    stagedManifestFile?.content,
+    symbolsManifestPath,
+  );
 
   const requiredRefreshPaths: string[] = [];
   const freshPaths = new Set<string>();
