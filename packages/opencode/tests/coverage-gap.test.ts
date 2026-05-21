@@ -211,7 +211,10 @@ priority: 1
       maintenanceDegraded: false,
     });
 
-    assert.match(prompt, /Run `kb_check` before completing this task/);
+    assert.match(
+      prompt,
+      /Kibi impact evidence is required before completion\/commit: run `kb_check` before completing this task/,
+    );
   });
 
   // implements REQ-opencode-kibi-plugin-v1

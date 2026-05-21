@@ -125,6 +125,27 @@ This applies to TypeScript (`.ts`, `.tsx`) and JavaScript (`.js`, `.jsx`) files 
 
 ### How the pre-commit hook works
 
+If you ran `kibi init`, a pre-commit hook will automatically check your staged changes. The hook enforces two hard gates:
+
+1. **Symbol traceability**: New or modified symbols must be linked to a requirement via `// implements REQ-xxx` directives. If any staged symbol lacks a requirement link, the commit is blocked.
+
+2. **Kibi impact evidence for behavior changes**: Behavior-changing source edits must include staged Kibi impact evidence — either updated KB entity markdown (requirements, scenarios, tests, facts, ADRs, flags, events) or a refreshed `documentation/symbols.yaml` when symbol coordinates change. Test-only edits (`tests/`, `*.test.*`, `*.spec.*`) and docs-only edits (`.md`) are exempt.
+
+If `kibi check --staged` reports `kibi_impact_evidence_missing` or `symbols_manifest_stale`, resolve by:
+- Querying Kibi via MCP before behavior changes
+- Staging relevant KB entity docs or symbol manifest changes
+- Running `kibi check --staged` to verify
+
+The hook also blocks commits when `documentation/symbols.yaml` has unstaged changes. Stage and commit the refreshed manifest with the code or documentation change that caused it.
+
+You can test your staged changes manually with:
+
+```bash
+npx kibi check --staged
+```
+
+For more details, see the "Staged Symbol Traceability" section in the README.
+
 If you ran `kibi init`, a pre-commit hook will automatically check your staged changes for missing requirement links. If any new or modified symbols are not linked to a requirement, your commit will be blocked with an error message. To proceed, add the appropriate `implements REQ-xxx` directive to your code.
 
 The hook also blocks commits when `documentation/symbols.yaml` has unstaged changes. Stage and commit the refreshed manifest with the code or documentation change that caused it.

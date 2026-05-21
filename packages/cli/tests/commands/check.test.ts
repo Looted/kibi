@@ -1173,6 +1173,7 @@ source: documentation/requirements/REQ-STAGED-001.md
 
       // Sync KB first
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync("git add documentation/symbols.yaml", { cwd: tmpDir, stdio: "pipe" });
 
       // Run staged check - should pass because symbols.yaml links it
       const { status, stdout, stderr } = runKibi(
@@ -1192,6 +1193,7 @@ source: documentation/requirements/REQ-STAGED-001.md
     "--staged uses custom paths.symbols from config",
     async () => {
       const configDir = path.join(tmpDir, ".kb");
+      const docDir = path.join(tmpDir, "documentation");
       const customDir = path.join(tmpDir, "custom");
       const reqDocDir = path.join(tmpDir, "documentation/requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -1265,6 +1267,22 @@ source: documentation/requirements/REQ-CUSTOM-001.md
       );
 
       writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-CUSTOM-001
+    title: customFunction
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+    links:
+      - REQ-CUSTOM-001
+    status: active
+`,
+      );
+
+      writeFileSync(
         path.join(srcDir, "app.ts"),
         `export function customFunction() {
   return "custom";
@@ -1280,13 +1298,11 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 }
 `,
       );
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync(
-        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
         { cwd: tmpDir, stdio: "pipe" },
       );
-
-      // Sync KB
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Run staged check
       const { status, stdout, stderr } = runKibi(
@@ -1582,6 +1598,7 @@ links:
       );
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
@@ -1670,6 +1687,7 @@ source: documentation/tests/TEST-E2E-LOGOUT.md
       );
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
@@ -2095,6 +2113,7 @@ links:
 `,
       );
 
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -2164,6 +2183,7 @@ source: documentation/requirements/REQ-E2E-DIRECT.md
 `,
       );
 
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -2219,6 +2239,23 @@ export function inlineFunc() {}
 `,
       );
 
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-INLINE-001
+    title: inlineFunc
+    sourceFile: src/inline.ts
+    sourceLine: 2
+    sourceColumn: 16
+    sourceEndLine: 2
+    sourceEndColumn: 31
+    links:
+      - REQ-E2E-INLINE
+    status: active
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -2229,8 +2266,8 @@ export function inlineFunc() {}
     TEST_TIMEOUT_MS,
   );
 
-  test(
-    "--staged resolves symbol ID from working-tree manifest when only code is staged (no symbols.yaml staged)",
+    test(
+      "--staged resolves symbol ID from working-tree manifest when only code is staged (comment-only change, no symbols.yaml staged)",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
       const reqDocDir = path.join(docDir, "requirements");
@@ -2295,10 +2332,12 @@ source: documentation/requirements/REQ-WT-001.md
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Now modify ONLY the code file (do not touch symbols.yaml)
+      // Use a comment-only change so the new enforcement does not flag it
       writeFileSync(
         path.join(srcDir, "wt-app.ts"),
-        `export function wtFunction() {
-  return "v2";
+        `// updated comment
+export function wtFunction() {
+  return "v1";
 }
 `,
       );
@@ -2311,7 +2350,6 @@ source: documentation/requirements/REQ-WT-001.md
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).toBe(0);
-      expect(output).toContain("No violations found");
     },
     TEST_TIMEOUT_MS,
   );

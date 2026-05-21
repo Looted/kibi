@@ -33,8 +33,27 @@ import {
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
-import { getStagedFiles } from "../traceability/git-staged.js";
+import {
+  type StagedFile,
+  getStagedFiles,
+} from "../traceability/git-staged.js";
+import {
+  KIBI_NO_IMPACT_DECLARATION,
+  KIBI_SYMBOLS_MANIFEST_PATH,
+  type KibiEntityType,
+  type KibiImpactEvidence,
+} from "../traceability/evidence-model.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
+import {
+  type KibiImpactDiagnostic,
+  collectStagedKibiDiagnostics,
+} from "../traceability/staged-diagnostics.js";
+import {
+  classifyKibiImpactEvidence,
+  isBehaviorSourceEdit,
+  parseKibiImpactOverride,
+} from "../traceability/staged-impact-contract.js";
+import { assessStagedSymbolsManifest } from "../traceability/staged-symbols-manifest.js";
 import {
   type ManifestLookup,
   createManifestLookupSentinelKey,
@@ -181,6 +200,179 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   return { manifestLookup, manifestResults };
 }
 
+const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
+  "req",
+  "scenario",
+  "test",
+  "adr",
+  "flag",
+  "event",
+  "symbol",
+  "fact",
+]);
+
+function isKibiEntityType(value: string): value is KibiEntityType {
+  return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
+}
+
+function isStagedManifestPath(filePath: string): boolean {
+  return (
+    filePath.endsWith("/symbols.yaml") ||
+    filePath.endsWith("/symbols.yml") ||
+    filePath === "symbols.yaml" ||
+    filePath === "symbols.yml"
+  );
+}
+
+function isTestOnlySourcePath(filePath: string): boolean {
+  return (
+    filePath.startsWith("tests/") ||
+    filePath.includes("/tests/") ||
+    filePath.endsWith(".test.ts") ||
+    filePath.endsWith(".test.tsx") ||
+    filePath.endsWith(".test.js") ||
+    filePath.endsWith(".test.jsx") ||
+    filePath.endsWith(".spec.ts") ||
+    filePath.endsWith(".spec.tsx") ||
+    filePath.endsWith(".spec.js") ||
+    filePath.endsWith(".spec.jsx")
+  );
+}
+
+function getStagedDiffText(stagedFile: StagedFile): string {
+  return stagedFile.diffText ?? "";
+}
+
+function formatStagedKibiDiagnostics(
+  diagnostics: KibiImpactDiagnostic[],
+): string {
+  return diagnostics
+    .map((diagnostic) => {
+      const lines = [`[${diagnostic.id}] ${diagnostic.message}`];
+      if (diagnostic.files.length > 0) {
+        lines.push(`  Files: ${diagnostic.files.join(", ")}`);
+      }
+      if (diagnostic.docs.length > 0) {
+        lines.push(`  Docs: ${diagnostic.docs.join(", ")}`);
+      }
+      lines.push(`  Suggestion: ${diagnostic.suggestion}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
+function buildStagedKibiImpactEvidence(options: {
+  stagedFiles: StagedFile[];
+  sourceFiles: StagedFile[];
+  markdownFiles: StagedFile[];
+  markdownResults: ExtractionResult[];
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+}): KibiImpactEvidence {
+  const { stagedFiles, sourceFiles, markdownFiles, markdownResults, symbolsByFile } =
+    options;
+  const sourceChanges = sourceFiles.map((file) => {
+    const symbolsForFile = symbolsByFile.get(file.path) ?? [];
+    const behaviorCandidate =
+      !isTestOnlySourcePath(file.path) &&
+      isBehaviorSourceEdit({
+        path: file.path,
+        diffText: getStagedDiffText(file),
+        intersectsBehaviorBearingSymbol: symbolsForFile.length > 0,
+        knownUserFacingSurface: false,
+      });
+
+    return {
+      path: file.path,
+      kind: behaviorCandidate
+        ? ("behavior_source_edit" as const)
+        : ("non_behavior_source_edit" as const),
+    };
+  });
+
+  const behaviorSourcePaths = sourceChanges
+    .filter((change) => change.kind === "behavior_source_edit")
+    .map((change) => change.path);
+  const allSourcePaths = sourceChanges.map((change) => change.path);
+  const behaviorSourceFiles = sourceFiles.filter((file) =>
+    behaviorSourcePaths.includes(file.path),
+  );
+  const stagedSymbolsManifest = assessStagedSymbolsManifest({
+    stagedFiles,
+    sourceFiles: behaviorSourceFiles,
+  });
+
+  const markdownResultsByPath = new Map<string, ExtractionResult>();
+  for (const [index, file] of markdownFiles.entries()) {
+    const result = markdownResults[index];
+    if (result) {
+      markdownResultsByPath.set(file.path, result);
+    }
+  }
+
+  type KbArtifact = Extract<
+    KibiImpactEvidence["mode"],
+    { kind: "kb_changes" }
+  >["kbArtifacts"][number];
+  type NoImpactOverride = Extract<
+    KibiImpactEvidence["mode"],
+    { kind: "no_impact_override" }
+  >["override"];
+
+  const resolvedKbArtifacts: KbArtifact[] = [];
+  let override: NoImpactOverride | null = null;
+
+  for (const file of markdownFiles) {
+    const parsedOverride = parseKibiImpactOverride(file.content ?? "");
+    const evidenceKind = classifyKibiImpactEvidence({
+      filePath: file.path,
+      extractionOutputChanged: false,
+      overrideDeclared: parsedOverride.declared,
+      overrideRationale: parsedOverride.rationale,
+    });
+
+    if (evidenceKind === "entity_markdown") {
+      const result = markdownResultsByPath.get(file.path);
+      if (result && isKibiEntityType(result.entity.type)) {
+        resolvedKbArtifacts.push({
+          kind: "entity_markdown",
+          path: file.path,
+          entityTypes: [result.entity.type],
+          entityIds: [result.entity.id],
+          sourcePaths: [...behaviorSourcePaths],
+        });
+      }
+      continue;
+    }
+
+    if (!parsedOverride.declared || override !== null) {
+      continue;
+    }
+
+    override = {
+      declaration: KIBI_NO_IMPACT_DECLARATION,
+      path: file.path,
+      sourcePaths: [...allSourcePaths],
+      reason: "non_behavioral_source_edit",
+      rationale: parsedOverride.rationale ?? "",
+    };
+  }
+
+  return {
+    sourceChanges,
+    symbolsManifest: {
+      path: KIBI_SYMBOLS_MANIFEST_PATH,
+      state: stagedSymbolsManifest.state,
+      sourcePaths: stagedSymbolsManifest.sourcePaths,
+    },
+    mode:
+      resolvedKbArtifacts.length > 0
+        ? { kind: "kb_changes", kbArtifacts: resolvedKbArtifacts }
+        : override
+          ? { kind: "no_impact_override", override }
+          : { kind: "missing" },
+  };
+}
+
 // implements REQ-006
 export async function checkCommand(
   options: CheckOptions,
@@ -228,7 +420,9 @@ export async function checkCommand(
         const { manifestLookup, manifestResults } =
           buildManifestLookup(stagedFiles);
 
-        const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
+        const sourceFiles = stagedFiles.filter(
+          (file) => !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
+        );
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
 
         const markdownErrors: string[] = [];
@@ -253,9 +447,14 @@ export async function checkCommand(
           return { exitCode: 1 };
         }
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
-        for (const f of codeFiles) {
+        const symbolsByFile = new Map<
+          string,
+          ReturnType<typeof extractSymbolsFromStagedFile>
+        >();
+        for (const f of sourceFiles) {
           try {
             const symbols = extractSymbolsFromStagedFile(f, manifestLookup);
+            symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {
               allSymbols.push(...symbols);
             }
@@ -275,6 +474,17 @@ export async function checkCommand(
           ...markdownResults,
         ];
 
+        const stagedKibiEvidence = buildStagedKibiImpactEvidence({
+          stagedFiles,
+          sourceFiles,
+          markdownFiles,
+          markdownResults,
+          symbolsByFile,
+        });
+        const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
+          stagedKibiEvidence,
+        );
+
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(
             "No exported symbols or staged entities found in staged files.",
@@ -283,6 +493,13 @@ export async function checkCommand(
         }
 
         if (allSymbols.length === 0) {
+          if (stagedKibiDiagnostics.length > 0) {
+            console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+            if (options.dryRun) {
+              return { exitCode: 0 };
+            }
+            return { exitCode: 1 };
+          }
           console.log("✓ No violations found in staged files.");
           return { exitCode: 0 };
         }
@@ -309,8 +526,21 @@ export async function checkCommand(
         });
         const violationsFormatted = formatStagedViolations(violationsRaw);
 
+        if (stagedKibiDiagnostics.length > 0) {
+          console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+          console.log();
+        }
+
         if (violationsRaw && violationsRaw.length > 0) {
           console.log(violationsFormatted);
+          await cleanupTempKb(tempCtx.tempDir);
+          if (options.dryRun) {
+            return { exitCode: 0 };
+          }
+          return { exitCode: 1 };
+        }
+
+        if (stagedKibiDiagnostics.length > 0) {
           await cleanupTempKb(tempCtx.tempDir);
           if (options.dryRun) {
             return { exitCode: 0 };

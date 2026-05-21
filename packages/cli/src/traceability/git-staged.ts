@@ -13,6 +13,7 @@ export interface StagedFile {
   status: Status;
   oldPath?: string; // for renames
   hunkRanges: HunkRange[]; // ranges in new-file coordinates
+  diffText?: string; // staged unified diff for the file
   content?: string; // staged file content (UTF-8)
 }
 
@@ -74,7 +75,15 @@ const SUPPORTED_EXT = new Set([
 
 const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
 
-const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
+const ENTITY_MARKDOWN_DIRS = [
+  "/requirements/",
+  "/scenarios/",
+  "/tests/",
+  "/facts/",
+  "/adr/",
+  "/flags/",
+  "/events/",
+];
 
 function shouldLogTraceDebug(): boolean {
   return isCliTraceOrDebugEnabled();
@@ -242,6 +251,7 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
       status,
       ...(oldPath !== undefined ? { oldPath } : {}),
       hunkRanges,
+      diffText,
       content,
     });
   }
