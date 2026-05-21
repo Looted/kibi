@@ -137,6 +137,8 @@ describe("git-staged", () => {
           status: "A",
           oldPath: undefined,
           hunkRanges: [{ start: 1, end: 3 }],
+          diffText:
+            "diff --git a/src/new file.ts b/src/new file.ts\n--- /dev/null\n+++ b/src/new file.ts\n",
           content: "export const created = true;\nconsole.log(created);\n",
         },
         {
@@ -144,6 +146,7 @@ describe("git-staged", () => {
           status: "R",
           oldPath: "src/old.ts",
           hunkRanges: [{ start: 1, end: 2 }],
+          diffText: "@@ -1 +1,2 @@\n+renamed\n",
           content: "export function renamed() {}\nsecond line\n",
         },
         {
@@ -151,6 +154,7 @@ describe("git-staged", () => {
           status: "M",
           oldPath: undefined,
           hunkRanges: [{ start: 1, end: 1 }],
+          diffText: "@@ -1 +1 @@\n-title\n+title\n",
           content: "---\nid: REQ-123\n---\n",
         },
         {
@@ -158,6 +162,8 @@ describe("git-staged", () => {
           status: "M",
           oldPath: undefined,
           hunkRanges: [{ start: 1, end: 3 }],
+          diffText:
+            "diff --git a/nested/symbols.yaml b/nested/symbols.yaml\n--- /dev/null\n+++ b/nested/symbols.yaml\n",
           content: "symbols:\n  - id: SYM-1\n",
         },
         {
@@ -165,6 +171,7 @@ describe("git-staged", () => {
           status: "M",
           oldPath: undefined,
           hunkRanges: [{ start: 1, end: 1 }],
+          diffText: "@@ -0,0 +1 @@\n+ok\n",
           content: "export default 1;\n",
         },
       ]);
@@ -231,6 +238,7 @@ describe("git-staged", () => {
           status: "A",
           hunkRanges: [{ start: 1, end: 1 }],
         });
+        expect(files[0]?.diffText).toContain("tracked.ts");
         expect(files[0]?.content).toContain("tracked");
       } finally {
         process.chdir(originalCwd);

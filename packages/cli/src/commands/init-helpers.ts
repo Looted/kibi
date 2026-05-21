@@ -81,6 +81,16 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # pre-commit hook for kibi
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
+# Behavior-changing source edits require staged Kibi impact evidence
+# (KB entity docs or refreshed symbols manifest). Test-only and docs-only
+# edits are exempt. See CONTRIBUTING.md for resolution paths.
+
+set -e
+
+symbols_manifest="documentation/symbols.yaml"
+# pre-commit hook for kibi
+# Hard enforcement boundary: commits are blocked only here via kibi check.
+# The OpenCode plugin remains advisory and must not replace this gate.
 
 set -e
 
