@@ -25,10 +25,13 @@ export function notifyStartup(
   cfg: StartupNotifierConfig,
 ): void {
   const message = "kibi-opencode started";
+  const displayMessage = cfg.version
+    ? `${message} (v${cfg.version})`
+    : message;
   const toastPayload: ToastPayload = {
     variant: "success",
     title: "Kibi OpenCode",
-    message,
+    message: displayMessage,
     duration: 4000,
   };
 

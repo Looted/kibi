@@ -95,6 +95,19 @@ function resolveIdleBriefDeliveryDelayMs(worktree: string): number {
   return Math.min(60_000, Math.trunc(configValue));
 }
 
+function readKibiOpencodePackageVersion(): string | undefined {
+  try {
+    const packageJson = JSON.parse(
+      fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+    ) as { version?: unknown };
+    return typeof packageJson.version === "string"
+      ? packageJson.version
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export interface PluginInput {
   worktree: string;
   directory: string;
@@ -1457,9 +1470,11 @@ function buildSyntheticSyncAuditDelta(
       });
 
     scheduleStartupNotify(() => {
+      const version = readKibiOpencodePackageVersion();
       notifyStartup(makeStartupClient(client), {
         suppressToast: cfg.ux.toastStartup === false,
         directory: input.directory,
+        ...(version ? { version } : {}),
       });
     }, 2000);
   }
