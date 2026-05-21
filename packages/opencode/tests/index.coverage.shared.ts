@@ -731,9 +731,9 @@ export function connectDatabase() { return true; }
 
     assert.equal(output.system.length, 2);
     assert.ok(
-  output.system[1]?.includes(
-    "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.",
-  ),
+      output.system[1]?.includes(
+        "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.",
+      ),
     );
     assert.ok(getEventLogs(logs, "smart_enforcement_guidance").length >= 1);
     assert.ok(

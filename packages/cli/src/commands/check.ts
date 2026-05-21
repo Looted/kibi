@@ -34,15 +34,12 @@ import {
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
-  type StagedFile,
-  getStagedFiles,
-} from "../traceability/git-staged.js";
-import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
+import { type StagedFile, getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
   type KibiImpactDiagnostic,
@@ -267,9 +264,16 @@ function buildStagedKibiImpactEvidence(options: {
   markdownFiles: StagedFile[];
   markdownResults: ExtractionResult[];
   symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  symbolsManifestPath: string;
 }): KibiImpactEvidence {
-  const { stagedFiles, sourceFiles, markdownFiles, markdownResults, symbolsByFile } =
-    options;
+  const {
+    stagedFiles,
+    sourceFiles,
+    markdownFiles,
+    markdownResults,
+    symbolsByFile,
+    symbolsManifestPath,
+  } = options;
   const sourceChanges = sourceFiles.map((file) => {
     const symbolsForFile = symbolsByFile.get(file.path) ?? [];
     const behaviorCandidate =
@@ -297,6 +301,7 @@ function buildStagedKibiImpactEvidence(options: {
     behaviorSourcePaths.includes(file.path),
   );
   const stagedSymbolsManifest = assessStagedSymbolsManifest({
+    symbolsManifestPath,
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
   });
@@ -360,7 +365,7 @@ function buildStagedKibiImpactEvidence(options: {
   return {
     sourceChanges,
     symbolsManifest: {
-      path: KIBI_SYMBOLS_MANIFEST_PATH,
+      path: symbolsManifestPath,
       state: stagedSymbolsManifest.state,
       sourcePaths: stagedSymbolsManifest.sourcePaths,
     },
@@ -419,9 +424,12 @@ export async function checkCommand(
 
         const { manifestLookup, manifestResults } =
           buildManifestLookup(stagedFiles);
+        const symbolsManifestPath =
+          loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
 
         const sourceFiles = stagedFiles.filter(
-          (file) => !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
+          (file) =>
+            !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
         );
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
 
@@ -480,10 +488,10 @@ export async function checkCommand(
           markdownFiles,
           markdownResults,
           symbolsByFile,
+          symbolsManifestPath,
         });
-        const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
-          stagedKibiEvidence,
-        );
+        const stagedKibiDiagnostics =
+          collectStagedKibiDiagnostics(stagedKibiEvidence);
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(

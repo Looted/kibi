@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
 
 import {
-  KIBI_IMPACT_DIAGNOSTIC_IDS,
   KIBI_IMPACT_DIAGNOSTICS,
+  KIBI_IMPACT_DIAGNOSTIC_IDS,
   classifyKibiImpactEvidence,
   isAuditedNoImpactOverrideAllowed,
   isBehaviorSourceEdit,
@@ -18,13 +18,19 @@ describe("staged impact contract", () => {
     ]);
 
     expect(
-      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join("\n"),
+      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join(
+        "\n",
+      ),
     ).toContain("kb_search");
     expect(
-      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join("\n"),
+      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join(
+        "\n",
+      ),
     ).toContain("kb_query");
     expect(
-      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join("\n"),
+      KIBI_IMPACT_DIAGNOSTICS.kibi_impact_evidence_missing.resolution.join(
+        "\n",
+      ),
     ).toContain("kibi check --staged");
 
     expect(
@@ -65,13 +71,30 @@ describe("staged impact contract", () => {
     ).toBe("entity_markdown");
   });
 
+  it("treats .yml and configured symbols manifest paths as valid evidence", () => {
+    expect(
+      classifyKibiImpactEvidence({
+        filePath: "documentation/symbols.yml",
+        extractionOutputChanged: true,
+      }),
+    ).toBe("symbols_manifest");
+
+    expect(
+      classifyKibiImpactEvidence({
+        filePath: "custom/my-symbols.yaml",
+        symbolsManifestPath: "custom/my-symbols.yaml",
+        extractionOutputChanged: true,
+      }),
+    ).toBe("symbols_manifest");
+  });
+
   it("excludes comment-only and formatting-only diffs from behavior source edits", () => {
     const commentOnlyDiff = [
       "@@ -1,3 +1,3 @@",
       "-// Old explanation",
       "+// New explanation",
       " export function publish() {",
-      "   return \"ok\";",
+      '   return "ok";',
       " }",
     ].join("\n");
 
@@ -79,8 +102,8 @@ describe("staged impact contract", () => {
       "@@ -1,3 +1,3 @@",
       "-export function publish(){",
       "+export function publish() {",
-      "-  return \"ok\";}",
-      "+  return \"ok\"; }",
+      '-  return "ok";}',
+      '+  return "ok"; }',
     ].join("\n");
 
     expect(
@@ -105,8 +128,8 @@ describe("staged impact contract", () => {
         diffText: [
           "@@ -1,3 +1,3 @@",
           " export function publish() {",
-          "-  return \"ok\";",
-          "+  return \"published\";",
+          '-  return "ok";',
+          '+  return "published";',
           " }",
         ].join("\n"),
         intersectsBehaviorBearingSymbol: true,
@@ -125,9 +148,10 @@ describe("staged impact contract", () => {
   it("requires rationale for audited no-impact overrides and forbids overriding genuine behavior edits", () => {
     expect(
       parseKibiImpactOverride(
-        ["Kibi-Impact: none", "Rationale: comment-only edit in exported function"].join(
-          "\n",
-        ),
+        [
+          "Kibi-Impact: none",
+          "Rationale: comment-only edit in exported function",
+        ].join("\n"),
       ),
     ).toEqual({
       declared: true,
