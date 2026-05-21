@@ -47,6 +47,7 @@ describe("evidence-model", () => {
             path: "documentation/requirements/REQ-cli-check.md",
             sourcePaths: ["packages/cli/src/traceability/check.ts"],
             entityTypes: ["req", "test"],
+            entityIds: [],
           },
         ],
       },
