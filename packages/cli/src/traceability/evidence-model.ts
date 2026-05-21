@@ -76,8 +76,8 @@ export interface KibiImpactKbArtifact {
  * - `missing`: a refresh is required but no staged manifest evidence exists.
  */
 export interface KibiImpactSymbolsManifest {
-  /** Canonical repo-relative symbols manifest path. */
-  path: typeof KIBI_SYMBOLS_MANIFEST_PATH;
+  /** Repo-relative symbols manifest path (default or configured). */
+  path: string;
   /** Explicit manifest freshness state. */
   state: "not_required" | "fresh" | "stale" | "missing";
   /** Repo-relative staged source paths whose symbol output this state describes. */
@@ -155,9 +155,7 @@ function uniqueSorted(values: Iterable<string>): string[] {
 }
 
 /** Returns staged behavior-changing source paths only. */
-export function getBehaviorSourcePaths(
-  evidence: KibiImpactEvidence,
-): string[] {
+export function getBehaviorSourcePaths(evidence: KibiImpactEvidence): string[] {
   return evidence.sourceChanges
     .filter((change) => change.kind === "behavior_source_edit")
     .map((change) => change.path)
