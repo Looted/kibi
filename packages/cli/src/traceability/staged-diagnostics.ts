@@ -1,10 +1,9 @@
 import {
   KIBI_ENTITY_SCHEMA_DOC,
-  KIBI_SYMBOLS_MANIFEST_PATH,
+  type KibiImpactEvidence,
   getBehaviorSourcePaths,
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
-  type KibiImpactEvidence,
 } from "./evidence-model.js";
 
 export type KibiImpactDiagnosticId =
@@ -46,16 +45,16 @@ function createMissingEvidenceDiagnostic(
 }
 
 function createSymbolsManifestStaleDiagnostic(
+  symbolsManifestPath: string,
   paths: string[],
 ): KibiImpactDiagnostic {
   return {
     id: "symbols_manifest_stale",
     severity: "error",
-    files: [KIBI_SYMBOLS_MANIFEST_PATH, ...paths],
+    files: [symbolsManifestPath, ...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
-    message: `${KIBI_SYMBOLS_MANIFEST_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
-    suggestion:
-      "Regenerate and stage documentation/symbols.yaml when symbol extraction output changes; do not treat the refreshed manifest as scope creep. Re-run kibi check --staged after staging the manifest.",
+    message: `${symbolsManifestPath} is stale or missing for staged source files: ${formatFileList(paths)}`,
+    suggestion: `Regenerate and stage ${symbolsManifestPath} when symbol extraction output changes; do not treat the refreshed manifest as scope creep. Re-run kibi check --staged after staging the manifest.`,
   };
 }
 
@@ -63,7 +62,9 @@ function createMissingOverrideRationaleDiagnostic(
   evidence: KibiImpactEvidence,
 ): KibiImpactDiagnostic {
   if (evidence.mode.kind !== "no_impact_override") {
-    throw new Error("Override rationale diagnostic requires a no-impact override");
+    throw new Error(
+      "Override rationale diagnostic requires a no-impact override",
+    );
   }
 
   const paths = [...evidence.mode.override.sourcePaths].sort();
@@ -105,6 +106,7 @@ export function collectStagedKibiDiagnostics(
   ) {
     diagnostics.push(
       createSymbolsManifestStaleDiagnostic(
+        evidence.symbolsManifest.path,
         [...evidence.symbolsManifest.sourcePaths].sort(),
       ),
     );
