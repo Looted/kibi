@@ -58,7 +58,7 @@ export class ManifestError extends Error {
   }
 }
 
-interface ManifestSymbol {
+export interface ManifestSymbolRecord {
   id?: string;
   title?: string;
   source?: string;
@@ -73,15 +73,21 @@ interface ManifestSymbol {
   updated_at?: string;
   links?: Array<string | { type: string; target: string }>;
   relationships?: Array<{ type: string; target: string }>;
+  sourceLine?: number;
+  sourceColumn?: number;
+  sourceEndLine?: number;
+  sourceEndColumn?: number;
+  coordinatesGeneratedAt?: string;
+  [key: string]: unknown;
 }
 
 interface ManifestFile {
-  symbols?: ManifestSymbol[];
+  symbols?: ManifestSymbolRecord[];
 }
 
 function extractRelationships(
   id: string,
-  symbol: ManifestSymbol,
+  symbol: ManifestSymbolRecord,
 ): ExtractedRelationship[] {
   const relationships: ExtractedRelationship[] = [];
 
@@ -166,6 +172,17 @@ function extractFromParsedManifest(
   });
 }
 
+function cloneManifestSymbols(
+  manifest: ManifestFile,
+  filePath: string,
+): ManifestSymbolRecord[] {
+  if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
+    throw new ManifestError("No symbols array found in manifest", filePath);
+  }
+
+  return manifest.symbols.map((symbol) => ({ ...symbol }));
+}
+
 // implements REQ-007
 export function extractFromManifestString(
   content: string,
@@ -175,6 +192,30 @@ export function extractFromManifestString(
     const manifest = parseYAML(content) as ManifestFile;
 
     return extractFromParsedManifest(manifest, filePath);
+  } catch (error) {
+    if (error instanceof ManifestError) {
+      throw error;
+    }
+
+    if (error instanceof Error) {
+      throw new ManifestError(
+        `Failed to parse manifest: ${error.message}`,
+        filePath,
+      );
+    }
+
+    throw error;
+  }
+}
+
+export function extractManifestSymbolRecordsString(
+  content: string,
+  filePath: string,
+): ManifestSymbolRecord[] {
+  try {
+    const manifest = parseYAML(content) as ManifestFile;
+
+    return cloneManifestSymbols(manifest, filePath);
   } catch (error) {
     if (error instanceof ManifestError) {
       throw error;

@@ -62,6 +62,7 @@ describe("git-staged utilities", () => {
     };
     const files = getStagedFiles(mockExec);
     expect(files.length).toBe(1);
+    expect(files[0]?.diffText).toContain("@@ -0,0 +1,3 @@");
   });
 
   it("getStagedFiles handles null-delimited git status output", () => {
@@ -78,6 +79,7 @@ describe("git-staged utilities", () => {
     expect(files).toHaveLength(1);
     expect(files[0]?.path).toBe("new.js");
     expect(files[0]?.status).toBe("A");
+    expect(files[0]?.diffText).toContain("@@ -0,0 +1,2 @@");
   });
 });
 

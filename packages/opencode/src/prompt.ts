@@ -211,14 +211,16 @@ Requirement edits need policy alignment. Run kb_check with required-fields and n
 
 Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
 - \`covered_by\` is coverage evidence only
-- Prefer scenario-first: req→scenario→test when scenarios exist`,
+- Prefer scenario-first: req→scenario→test when scenarios exist
+- Kibi impact evidence is required before completion/commit`,
 
   traceability_candidate: `📝 **Code changes detected**
 
 Production code: use \`implements\` (symbol→req) for requirement ownership. Test code: use \`executable_for\` (symbol→test).
 - \`covered_by\` is coverage evidence only
 - Prefer scenario-first: req→scenario→test when scenarios exist
-- Route durable knowledge comments to KB entities, not inline comments`,
+- Route durable knowledge comments to KB entities, not inline comments
+- documentation/symbols.yaml refresh is required when extraction output changes; do not revert as scope creep`,
 
   manual_kb_edit: `⚠️  **WARNING: Direct .kb/ edits bypass validation**
 
@@ -567,7 +569,7 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     posture !== "root_uninitialized" &&
     posture !== "root_partial"
   ) {
-    finalBlock = `${finalBlock}\n- Run \`kb_check\` before completing this task.`;
+      finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)
@@ -652,6 +654,7 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 4. **Document intent**: If you are about to explain code, STOP. Route that explanation to kb_upsert instead of inline comments.
 5. **Link during work**: When creating KB entities, include relationship rows: specified_by (req→scenario), implements (symbol→req for ownership), covered_by (symbol→test for coverage), executable_for (test code→test).
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
+7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh documentation/symbols.yaml and do not revert that update as scope creep.
 
 **Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\n${buildInitKibiBootstrapReference(capability)}`;
 }
