@@ -61,7 +61,19 @@ function toRepoRelativePath(absoluteOrRelativePath: string): string {
   return relativePath.replace(/\\/g, "/");
 }
 
-function resolveRelativeManifestPaths(): RelativeManifestPaths {
+function resolveRelativeManifestPaths(
+  symbolsManifestPath?: string,
+): RelativeManifestPaths {
+  if (symbolsManifestPath) {
+    const normalizedSymbolsPath = toRepoRelativePath(symbolsManifestPath);
+    return {
+      symbolsPath: normalizedSymbolsPath,
+      coordinatesPath: path
+        .join(path.dirname(normalizedSymbolsPath), "symbol-coordinates.yaml")
+        .replace(/\\/g, "/"),
+    };
+  }
+
   const { coordinatesPath, symbolsPath } = resolveSymbolsManifestPaths(process.cwd());
 
   return {
@@ -298,11 +310,12 @@ function getEffectiveManifestRecords(options: {
 }
 
 export function assessStagedSymbolsManifest(options: {
+  symbolsManifestPath: string;
   sourceFiles: StagedFile[];
   stagedFiles: StagedFile[];
 }): StagedSymbolsManifestAssessment {
-  const { sourceFiles, stagedFiles } = options;
-  const paths = resolveRelativeManifestPaths();
+  const { sourceFiles, stagedFiles, symbolsManifestPath } = options;
+  const paths = resolveRelativeManifestPaths(symbolsManifestPath);
   const headManifestRecords = parseManifestRecords(
     readHeadFileContent(paths.symbolsPath),
     paths.symbolsPath,

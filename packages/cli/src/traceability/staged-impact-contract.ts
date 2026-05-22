@@ -44,6 +44,7 @@ export interface KibiImpactEvidenceInput {
   extractionOutputChanged?: boolean;
   overrideDeclared?: boolean;
   overrideRationale?: string | null;
+  symbolsManifestPath?: string;
 }
 
 export interface BehaviorSourceEditInput {
@@ -133,7 +134,10 @@ export function classifyKibiImpactEvidence(
     return "entity_markdown";
   }
 
-  if (isSymbolsManifest(filePath) && input.extractionOutputChanged) {
+  if (
+    isSymbolsManifest(filePath, input.symbolsManifestPath) &&
+    input.extractionOutputChanged
+  ) {
     return "symbols_manifest";
   }
 
@@ -147,7 +151,9 @@ export function parseKibiImpactOverride(
   const rationaleMatch = text.match(/^Rationale:\s*(.+)\s*$/im);
   return {
     declared,
-    rationale: hasText(rationaleMatch?.[1]) ? rationaleMatch?.[1]?.trim() ?? null : null,
+    rationale: hasText(rationaleMatch?.[1])
+      ? (rationaleMatch?.[1]?.trim() ?? null)
+      : null,
   };
 }
 
@@ -166,10 +172,7 @@ export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
     return false;
   }
 
-  if (
-    !input.intersectsBehaviorBearingSymbol &&
-    !input.knownUserFacingSurface
-  ) {
+  if (!input.intersectsBehaviorBearingSymbol && !input.knownUserFacingSurface) {
     return false;
   }
 
@@ -182,8 +185,12 @@ export function isBehaviorSourceEdit(input: BehaviorSourceEditInput): boolean {
     return false;
   }
 
-  const removed = normalizeChangedLines(changes.filter((line) => line.kind === "remove"));
-  const added = normalizeChangedLines(changes.filter((line) => line.kind === "add"));
+  const removed = normalizeChangedLines(
+    changes.filter((line) => line.kind === "remove"),
+  );
+  const added = normalizeChangedLines(
+    changes.filter((line) => line.kind === "add"),
+  );
 
   if (removed.length > 0 && removed.join("\n") === added.join("\n")) {
     return false;
@@ -210,8 +217,37 @@ function isEntityEvidenceMarkdown(filePath: string): boolean {
   return ENTITY_EVIDENCE_SEGMENTS.some((segment) => filePath.includes(segment));
 }
 
-function isSymbolsManifest(filePath: string): boolean {
-  return filePath.endsWith("/symbols.yaml") || filePath === "symbols.yaml";
+function isSymbolsManifest(
+  filePath: string,
+  symbolsManifestPath?: string,
+): boolean {
+  const candidates = new Set<string>([
+    "symbols.yaml",
+    "symbols.yml",
+    "documentation/symbols.yaml",
+    "documentation/symbols.yml",
+  ]);
+
+  if (symbolsManifestPath) {
+    candidates.add(symbolsManifestPath);
+    if (symbolsManifestPath.endsWith(".yaml")) {
+      candidates.add(`${symbolsManifestPath.slice(0, -5)}.yml`);
+    }
+    if (symbolsManifestPath.endsWith(".yml")) {
+      candidates.add(`${symbolsManifestPath.slice(0, -4)}.yaml`);
+    }
+  }
+
+  if (candidates.has(filePath)) {
+    return true;
+  }
+
+  return (
+    filePath.endsWith("/symbols.yaml") ||
+    filePath.endsWith("/symbols.yml") ||
+    filePath === "symbols.yaml" ||
+    filePath === "symbols.yml"
+  );
 }
 
 function hasText(value: string | null | undefined): boolean {
@@ -225,7 +261,11 @@ function extractChangedLines(diffText: string): ChangedLine[] {
   const changes: ChangedLine[] = [];
 
   for (const line of lines) {
-    if (line.startsWith("+++") || line.startsWith("---") || line.startsWith("@@")) {
+    if (
+      line.startsWith("+++") ||
+      line.startsWith("---") ||
+      line.startsWith("@@")
+    ) {
       continue;
     }
 

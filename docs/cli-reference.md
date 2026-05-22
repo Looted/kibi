@@ -22,10 +22,6 @@ Initializes a kibi project in the current directory.
 - The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
 - Idempotent: safe to run multiple times
 - After running, see the quick start guide in README.md for next steps
-- Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
-- The pre-commit hook blocks commits when `documentation/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
-- Idempotent: safe to run multiple times
-- After running, see the quick start guide in README.md for next steps
 
 ## `kibi sync`
 
