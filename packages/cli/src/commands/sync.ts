@@ -94,7 +94,7 @@ interface SyncCommandRuntime {
 
 // implements REQ-003, REQ-007
 export async function syncCommand(
-  options: { validateOnly?: boolean; rebuild?: boolean } = {},
+  options: { validateOnly?: boolean; rebuild?: boolean; refreshSymbolCoordinates?: boolean } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
@@ -244,15 +244,14 @@ export async function syncCommand(
     }
 
     if (!validateOnly) {
-      for (const file of manifestFiles) {
-        try {
-          await refreshManifestCoordinates(file, process.cwd());
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : String(error);
-          console.warn(
-            `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
-          );
+      if (options.refreshSymbolCoordinates) {
+        for (const file of manifestFiles) {
+          try {
+            await refreshManifestCoordinates(file, process.cwd(), { refreshSymbolCoordinates: options.refreshSymbolCoordinates });
+          } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.warn(`Warning: Failed to refresh symbol coordinates in ${file}: ${message}`);
+          }
         }
       }
     }

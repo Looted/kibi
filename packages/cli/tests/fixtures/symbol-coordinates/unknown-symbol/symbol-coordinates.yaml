@@ -1,0 +1,7 @@
+coordinates:
+  SYM-999:
+    sourceFile: src/ghost.ts
+    sourceLine: 99
+    sourceColumn: 0
+    sourceEndLine: 99
+    sourceEndColumn: 7

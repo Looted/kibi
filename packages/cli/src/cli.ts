@@ -87,6 +87,7 @@ program
   .command("sync")
   .description("Sync entities from documents")
   .option("--validate-only", "Perform validation without mutations")
+  .option("--refresh-symbol-coordinates", "Refresh generated symbol coordinates")
   .option(
     "--rebuild",
     "Rebuild branch snapshot from scratch (discards current KB)",
@@ -97,6 +98,7 @@ program
     }),
   );
 
+program
 program
   .command("query [type]")
   .description("Query knowledge base")
