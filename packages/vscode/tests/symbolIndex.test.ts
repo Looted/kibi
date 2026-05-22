@@ -198,6 +198,72 @@ describe("symbolIndex", () => {
     expect(symbol?.links).toEqual(["REQ-quoted-001"]);
   });
 
+  test("buildIndex prefers coordinate artifact source metadata over inline manifest coordinates", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    const coordinatesPath = path.join(tmpDir, "symbol-coordinates.yaml");
+    const staleSourcePath = path.join(tmpDir, "src", "stale.ts");
+    const freshSourcePath = path.join(tmpDir, "src", "fresh.ts");
+
+    fs.mkdirSync(path.dirname(staleSourcePath), { recursive: true });
+    fs.writeFileSync(manifestPath, [
+      "symbols:",
+      "  - id: SYM-OVERLAY-001",
+      "    title: OverlaySymbol",
+      `    sourceFile: ${staleSourcePath}`,
+      "    sourceLine: 2",
+      "    links:",
+      "      - REQ-OVERLAY-001",
+    ].join("\n"));
+    fs.writeFileSync(coordinatesPath, [
+      "coordinates:",
+      "  SYM-OVERLAY-001:",
+      `    sourceFile: ${freshSourcePath}`,
+      "    sourceLine: 12",
+      "    sourceColumn: 1",
+      "    sourceEndLine: 16",
+      "    sourceEndColumn: 3",
+    ].join("\n"));
+
+    const index = buildIndex(manifestPath, tmpDir, coordinatesPath);
+
+    expect(index.byFile.has(freshSourcePath)).toBe(true);
+    expect(index.byFile.has(staleSourcePath)).toBe(false);
+    expect(index.byId.get("SYM-OVERLAY-001")).toMatchObject({
+      sourceFile: freshSourcePath,
+      sourceLine: 12,
+      links: ["REQ-OVERLAY-001"],
+    });
+  });
+
+  test("buildIndex falls back to inline manifest coordinates when coordinate artifact is missing", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    const inlineSourcePath = path.join(tmpDir, "src", "inline.ts");
+
+    fs.mkdirSync(path.dirname(inlineSourcePath), { recursive: true });
+    fs.writeFileSync(manifestPath, [
+      "symbols:",
+      "  - id: SYM-INLINE-001",
+      "    title: InlineSymbol",
+      `    sourceFile: ${inlineSourcePath}`,
+      "    sourceLine: 7",
+      "    links:",
+      "      - REQ-INLINE-001",
+    ].join("\n"));
+
+    const index = buildIndex(
+      manifestPath,
+      tmpDir,
+      path.join(tmpDir, "symbol-coordinates.yaml"),
+    );
+
+    expect(index.byFile.has(inlineSourcePath)).toBe(true);
+    expect(index.byId.get("SYM-INLINE-001")).toMatchObject({
+      sourceFile: inlineSourcePath,
+      sourceLine: 7,
+      links: ["REQ-INLINE-001"],
+    });
+  });
+
   test("buildIndex stops collecting links after a non-link line in links block", () => {
     const manifestPath = path.join(tmpDir, "symbols.yaml");
     fs.writeFileSync(
