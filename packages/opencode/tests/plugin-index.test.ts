@@ -267,7 +267,7 @@ describe.serial("index kibiOpencodePlugin", () => {
         logCalls.filter((payload) => {
           const body = payload.body as Record<string, unknown> | undefined;
           return body?.message === "kibi-opencode started";
-          }).length,
+        }).length,
         1,
       );
 

@@ -295,9 +295,16 @@ function buildStagedKibiImpactEvidence(options: {
   markdownFiles: StagedFile[];
   markdownResults: ExtractionResult[];
   symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  symbolsManifestPath: string;
 }): KibiImpactEvidence {
-  const { stagedFiles, sourceFiles, markdownFiles, markdownResults, symbolsByFile } =
-    options;
+  const {
+    stagedFiles,
+    sourceFiles,
+    markdownFiles,
+    markdownResults,
+    symbolsByFile,
+    symbolsManifestPath,
+  } = options;
   const sourceChanges = sourceFiles.map((file) => {
     const symbolsForFile = symbolsByFile.get(file.path) ?? [];
     const behaviorCandidate =
@@ -325,6 +332,7 @@ function buildStagedKibiImpactEvidence(options: {
     behaviorSourcePaths.includes(file.path),
   );
   const stagedSymbolsManifest = assessStagedSymbolsManifest({
+    symbolsManifestPath,
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
   });
@@ -466,6 +474,8 @@ export async function checkCommand(
 
         const { manifestLookup, manifestResults } =
           buildManifestLookup(stagedFiles);
+        const symbolsManifestPath =
+          loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
 
         const sourceFiles = stagedFiles.filter(
           (file) => !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
@@ -527,6 +537,7 @@ export async function checkCommand(
           markdownFiles,
           markdownResults,
           symbolsByFile,
+          symbolsManifestPath,
         });
         const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
           stagedKibiEvidence,
