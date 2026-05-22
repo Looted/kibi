@@ -1159,7 +1159,7 @@ export class ServerManager {
 `,
         );
 
-        const output = execSync(`bun ${kibiBin} sync`, {
+        const output = execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
           cwd: tmpDir,
           encoding: "utf8",
         });

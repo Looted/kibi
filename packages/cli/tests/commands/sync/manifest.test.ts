@@ -44,6 +44,8 @@ const mockEnrichSymbolCoordinates = mock(
 
 const mockParseYAML = mock((_content: string) => ({}));
 const mockDumpYAML = mock((_obj: object, _opts?: object) => "yaml-content\n");
+const mockWriteCoordinateArtifact = mock((coords:any)=> 'artifact-content\n');
+const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string)=> ({ coordinatesPath: '/workspace/documentation/symbol-coordinates.yaml' }));
 
 import {
   hasAllGeneratedCoordinates,
@@ -60,6 +62,8 @@ const manifestDeps = () => ({
   readFileSync:
     mockReadFileSync as unknown as typeof import("node:fs").readFileSync,
   writeFileSync: mockWriteFileSync as typeof import("node:fs").writeFileSync,
+  writeCoordinateArtifact: mockWriteCoordinateArtifact as unknown as typeof import("../../../src/extractors/symbol-coordinates.js").writeCoordinateArtifact,
+  resolveSymbolsManifestPaths: mockResolveSymbolsManifestPaths as unknown as typeof import("../../../src/utils/manifest-paths.js").resolveSymbolsManifestPaths,
 });
 
 // We test isRecord indirectly through refreshManifestCoordinates since it's not exported.
@@ -81,7 +85,6 @@ function makeEntry(
     sourceColumn: 0,
     sourceEndLine: 10,
     sourceEndColumn: 12,
-    coordinatesGeneratedAt: "2026-01-01T00:00:00Z",
     ...overrides,
   };
 }
@@ -171,16 +174,6 @@ describe("hasAllGeneratedCoordinates", () => {
 
   test("returns false when sourceEndColumn is missing", () => {
     const entry = makeEntry({ sourceEndColumn: undefined });
-    expect(hasAllGeneratedCoordinates(entry)).toBe(false);
-  });
-
-  test("returns false when coordinatesGeneratedAt is missing", () => {
-    const entry = makeEntry({ coordinatesGeneratedAt: undefined });
-    expect(hasAllGeneratedCoordinates(entry)).toBe(false);
-  });
-
-  test("returns false when coordinatesGeneratedAt is empty string", () => {
-    const entry = makeEntry({ coordinatesGeneratedAt: "" });
     expect(hasAllGeneratedCoordinates(entry)).toBe(false);
   });
 
@@ -565,7 +558,7 @@ describe("refreshManifestCoordinates", () => {
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
 # GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn
 # Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
 `;
     const dumpedYaml = "yaml-content\n";
@@ -592,13 +585,13 @@ describe("refreshManifestCoordinates", () => {
     await refreshManifestCoordinates(
       manifestPath,
       workspaceRoot,
-      manifestDeps(),
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
     );
 
-    expect(mockWriteFileSync).toHaveBeenCalled();
-    const callArgs = mockWriteFileSync.mock.calls[0];
-    expect(callArgs).toBeDefined();
-    const written = callArgs[1] as string;
+    // Find the writeFileSync call that wrote the manifestPath
+    const manifestCall = mockWriteFileSync.mock.calls.find(c => String(c[0]) === manifestPath);
+    expect(manifestCall).toBeDefined();
+    const written = manifestCall![1] as string;
     expect(written).toContain("new-yaml");
   });
 
@@ -783,12 +776,13 @@ describe("refreshManifestCoordinates", () => {
     await refreshManifestCoordinates(
       manifestPath,
       workspaceRoot,
-      manifestDeps(),
+      Object.assign(manifestDeps(), { refreshSymbolCoordinates: true }),
     );
 
-    expect(mockWriteFileSync).toHaveBeenCalled();
-    const callArgs = mockWriteFileSync.mock.calls[0];
-    const written = callArgs[1] as string;
+    // Find the manifest write among writes (artifact may be written too)
+    const manifestCall = mockWriteFileSync.mock.calls.find(c => String(c[0]) === manifestPath);
+    expect(manifestCall).toBeDefined();
+    const written = manifestCall![1] as string;
     expect(written).toContain("# symbols.yaml");
     expect(written).toContain("AUTHORED fields (edit freely)");
     expect(written).toContain(

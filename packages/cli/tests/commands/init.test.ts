@@ -224,7 +224,7 @@ describe("kibi init", () => {
     const content = readFileSync(preCommit, "utf8");
     expect(content).toContain("kibi check");
     expect(content).toContain("documentation/symbols.yaml");
-    expect(content).toContain("git diff --quiet --");
+    expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 
   test("exits with code 0 on success", () => {

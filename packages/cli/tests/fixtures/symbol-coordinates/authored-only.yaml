@@ -1,0 +1,4 @@
+symbols:
+  - id: SYM-001
+    title: myFunction
+    sourceFile: src/foo.ts
