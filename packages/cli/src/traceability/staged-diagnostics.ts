@@ -1,5 +1,6 @@
 import {
   KIBI_ENTITY_SCHEMA_DOC,
+  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
   getBehaviorSourcePaths,
   getMissingBehaviorSourcePaths,
@@ -41,7 +42,7 @@ function createMissingEvidenceDiagnostic(
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `Behavior-changing staged files are missing Kibi impact evidence (see ${KIBI_ENTITY_SCHEMA_DOC}): ${formatFileList(paths)}`,
     suggestion:
-      "Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence or a refreshed documentation/symbols.yaml that covers these files. Re-run kibi check --staged after staging the evidence.",
+      `Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging the evidence.`,
   };
 }
 
@@ -51,11 +52,11 @@ function createSymbolsManifestStaleDiagnostic(
   return {
     id: "symbols_manifest_stale",
     severity: "error",
-    files: [KIBI_SYMBOLS_MANIFEST_PATH, ...paths],
+    files: [KIBI_SYMBOL_COORDINATES_PATH, ...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
-    message: `${KIBI_SYMBOLS_MANIFEST_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
+    message: `${KIBI_SYMBOL_COORDINATES_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
     suggestion:
-      "Regenerate and stage documentation/symbols.yaml when symbol extraction output changes; do not treat the refreshed manifest as scope creep. Re-run kibi check --staged after staging the manifest.",
+      `Run kibi sync --refresh-symbol-coordinates && git add ${KIBI_SYMBOL_COORDINATES_PATH} ${KIBI_SYMBOLS_MANIFEST_PATH}, then re-run kibi check --staged.`,
   };
 }
 

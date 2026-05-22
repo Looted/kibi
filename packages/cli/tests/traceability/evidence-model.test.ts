@@ -3,6 +3,7 @@ import { describe, expect, it } from "bun:test";
 import {
   KIBI_ENTITY_SCHEMA_DOC,
   KIBI_NO_IMPACT_DECLARATION,
+  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
   getKbEvidencePaths,
   getMissingBehaviorSourcePaths,
@@ -73,12 +74,12 @@ describe("evidence-model", () => {
         message:
           "Behavior-changing staged files are missing Kibi impact evidence (see docs/entity-schema.md): packages/cli/src/traceability/check.ts",
         suggestion:
-          "Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence or a refreshed documentation/symbols.yaml that covers these files. Re-run kibi check --staged after staging the evidence.",
+          "Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml. Re-run kibi check --staged after staging the evidence.",
       },
     ]);
   });
 
-  it("emits symbols_manifest_stale when documentation/symbols.yaml is stale for staged source files", () => {
+  it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is stale for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
         path: KIBI_SYMBOLS_MANIFEST_PATH,
@@ -91,18 +92,18 @@ describe("evidence-model", () => {
       id: "symbols_manifest_stale",
       severity: "error",
       files: [
-        KIBI_SYMBOLS_MANIFEST_PATH,
+        KIBI_SYMBOL_COORDINATES_PATH,
         "packages/cli/src/traceability/check.ts",
       ],
       docs: [KIBI_ENTITY_SCHEMA_DOC],
       message:
-        "documentation/symbols.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
-        "Regenerate and stage documentation/symbols.yaml when symbol extraction output changes; do not treat the refreshed manifest as scope creep. Re-run kibi check --staged after staging the manifest.",
+        "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
     });
   });
 
-  it("emits symbols_manifest_stale when documentation/symbols.yaml is missing for staged source files", () => {
+  it("emits symbols_manifest_stale when documentation/symbol-coordinates.yaml is missing for staged source files", () => {
     const evidence = makeEvidence({
       symbolsManifest: {
         path: KIBI_SYMBOLS_MANIFEST_PATH,
@@ -115,14 +116,14 @@ describe("evidence-model", () => {
       id: "symbols_manifest_stale",
       severity: "error",
       files: [
-        KIBI_SYMBOLS_MANIFEST_PATH,
+        KIBI_SYMBOL_COORDINATES_PATH,
         "packages/cli/src/traceability/check.ts",
       ],
       docs: [KIBI_ENTITY_SCHEMA_DOC],
       message:
-        "documentation/symbols.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
+        "documentation/symbol-coordinates.yaml is stale or missing for staged source files: packages/cli/src/traceability/check.ts",
       suggestion:
-        "Regenerate and stage documentation/symbols.yaml when symbol extraction output changes; do not treat the refreshed manifest as scope creep. Re-run kibi check --staged after staging the manifest.",
+        "Run kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml, then re-run kibi check --staged.",
     });
   });
 
@@ -213,7 +214,7 @@ describe("evidence-model", () => {
       message:
         "Behavior-changing staged files are missing Kibi impact evidence (see docs/entity-schema.md): packages/cli/src/traceability/check.ts",
       suggestion:
-        "Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence or a refreshed documentation/symbols.yaml that covers these files. Re-run kibi check --staged after staging the evidence.",
+        "Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored documentation/symbols.yaml metadata, or refreshed documentation/symbol-coordinates.yaml. Re-run kibi check --staged after staging the evidence.",
     });
   });
 });

@@ -1172,8 +1172,14 @@ source: documentation/requirements/REQ-STAGED-001.md
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       // Sync KB first
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-      execSync("git add documentation/symbols.yaml", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync("git add documentation/symbol-coordinates.yaml documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
 
       // Run staged check - should pass because symbols.yaml links it
       const { status, stdout, stderr } = runKibi(
@@ -1298,9 +1304,12 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 }
 `,
       );
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync(
-        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts custom/my-symbols.yaml custom/symbol-coordinates.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
         { cwd: tmpDir, stdio: "pipe" },
       );
 
@@ -2113,7 +2122,10 @@ links:
 `,
       );
 
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -2183,7 +2195,10 @@ source: documentation/requirements/REQ-E2E-DIRECT.md
 `,
       );
 
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -2255,7 +2270,10 @@ export function inlineFunc() {}
 `,
       );
 
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);

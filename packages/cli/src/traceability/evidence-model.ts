@@ -12,6 +12,10 @@ export const KIBI_ENTITY_SCHEMA_DOC = "docs/entity-schema.md";
 /** Canonical symbols manifest path used by staged traceability enforcement. */
 export const KIBI_SYMBOLS_MANIFEST_PATH = "documentation/symbols.yaml";
 
+/** Canonical symbol coordinates artifact used by staged traceability enforcement. */
+export const KIBI_SYMBOL_COORDINATES_PATH =
+  "documentation/symbol-coordinates.yaml";
+
 /** Explicit declaration string for audited no-impact overrides. */
 export const KIBI_NO_IMPACT_DECLARATION = "Kibi-Impact: none";
 
@@ -54,7 +58,7 @@ export interface KibiImpactSourceChange {
  */
 export interface KibiImpactKbArtifact {
   /** Artifact category. Kept narrow to avoid heuristic interpretation. */
-  kind: "entity_markdown";
+  kind: "entity_markdown" | "symbols_manifest";
   /** Repo-relative staged KB artifact path. */
   path: string;
   /** Canonical Kibi entity types present in the staged artifact. */
@@ -66,18 +70,18 @@ export interface KibiImpactKbArtifact {
 }
 
 /**
- * Deterministic symbols manifest state for the staged change-set.
+ * Deterministic symbol coordinates artifact state for the staged change-set.
  *
  * - `not_required`: symbol extraction output did not change for the listed
  *   staged source paths.
- * - `fresh`: a staged manifest refresh covers the listed source paths.
- * - `stale`: manifest content is reverted, outdated, or otherwise does not match
+ * - `fresh`: a staged coordinate refresh covers the listed source paths.
+ * - `stale`: coordinate artifact content is reverted, outdated, or otherwise does not match
  *   the staged symbol extraction result.
- * - `missing`: a refresh is required but no staged manifest evidence exists.
+ * - `missing`: a refresh is required but no staged coordinate artifact exists.
  */
 export interface KibiImpactSymbolsManifest {
-  /** Canonical repo-relative symbols manifest path. */
-  path: typeof KIBI_SYMBOLS_MANIFEST_PATH;
+  /** Canonical repo-relative symbol coordinate artifact path. */
+  path: string;
   /** Explicit manifest freshness state. */
   state: "not_required" | "fresh" | "stale" | "missing";
   /** Repo-relative staged source paths whose symbol output this state describes. */
@@ -177,7 +181,7 @@ export function getKbCoveredSourcePaths(
   );
 }
 
-/** Returns staged source paths covered by a fresh symbols manifest refresh. */
+/** Returns staged source paths covered by a fresh symbol coordinate refresh. */
 export function getFreshSymbolsManifestSourcePaths(
   evidence: KibiImpactEvidence,
 ): string[] {

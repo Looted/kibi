@@ -349,6 +349,38 @@ describe("init-helpers", () => {
       "utf8",
     );
     expect(preCommitContent).toContain("documentation/symbols.yaml");
-    expect(preCommitContent).toContain("git diff --quiet --");
+    expect(preCommitContent).toContain("kibi sync --refresh-symbol-coordinates");
+  });
+
+  test("installGitHooks creates hooks without --refresh-symbol-coordinates", () => {
+    const gitDir = path.join(tmpDir, ".git");
+    mkdirSync(gitDir);
+
+    installGitHooks(gitDir);
+
+    const hooksDir = path.join(gitDir, "hooks");
+
+    // All automatic hooks must NOT include coordinate-refresh flags
+    const postCheckout = readFileSync(path.join(hooksDir, "post-checkout"), "utf8");
+    expect(postCheckout).not.toContain("--refresh-symbol-coordinates");
+
+    const postMerge = readFileSync(path.join(hooksDir, "post-merge"), "utf8");
+    expect(postMerge).not.toContain("--refresh-symbol-coordinates");
+
+    const postRewrite = readFileSync(path.join(hooksDir, "post-rewrite"), "utf8");
+    expect(postRewrite).not.toContain("--refresh-symbol-coordinates");
+  });
+
+  test("installed post-checkout hook preserves kibi branch ensure", () => {
+    const gitDir = path.join(tmpDir, ".git");
+    mkdirSync(gitDir);
+
+    installGitHooks(gitDir);
+
+    const hooksDir = path.join(gitDir, "hooks");
+    const postCheckout = readFileSync(path.join(hooksDir, "post-checkout"), "utf8");
+    // Must still call kibi branch ensure for branch tracking
+    expect(postCheckout).toContain("kibi branch ensure");
+    expect(postCheckout).toContain("kibi sync");
   });
 });

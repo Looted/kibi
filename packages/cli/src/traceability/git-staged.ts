@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
+import { loadConfig } from "../utils/config.js";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -73,7 +74,11 @@ const SUPPORTED_EXT = new Set([
   ".cjs",
 ]);
 
-const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
+const SUPPORTED_MANIFEST = new Set([
+  "symbols.yaml",
+  "symbols.yml",
+  "symbol-coordinates.yaml",
+]);
 
 const ENTITY_MARKDOWN_DIRS = [
   "/requirements/",
@@ -109,10 +114,19 @@ function isEntityMarkdown(p: string): boolean {
 }
 
 function isManifestFile(p: string): boolean {
-  const base = p.split(/[\/]/).pop();
+  const base = p.split(/[\\/]/).pop();
   if (!base) return false;
   for (const name of SUPPORTED_MANIFEST) {
     if (base === name) return true;
+  }
+  try {
+    const config = loadConfig(process.cwd());
+    if (config.paths.symbols) {
+      const configuredBase = config.paths.symbols.split(/[\\/]/).pop();
+      if (configuredBase && base === configuredBase) return true;
+    }
+  } catch {
+    // ignore config read errors
   }
   return false;
 }

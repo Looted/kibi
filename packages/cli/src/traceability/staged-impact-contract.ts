@@ -71,9 +71,10 @@ export interface AuditedNoImpactOverrideInput {
  * - `behavior_source_edit` is a supported source-file edit whose staged hunks
  *   intersect exported or other behavior-bearing/user-facing surfaces and whose
  *   changed lines are not comment-only or formatting-only.
- * - `kibi_impact_evidence` is staged entity markdown, refreshed
- *   `documentation/symbols.yaml` (or configured manifest) when extraction output
- *   changes, or an explicit audited `Kibi-Impact: none` declaration with
+ * - `kibi_impact_evidence` is staged entity markdown, staged authored
+ *   `documentation/symbols.yaml` metadata, refreshed
+ *   `documentation/symbol-coordinates.yaml` when extraction output changes, or
+ *   an explicit audited `Kibi-Impact: none` declaration with
  *   rationale for false positives/non-behavior-only edits.
  * - `Kibi-Impact: none` never satisfies a genuine behavior change.
  * - Test-only edits do not require new KB evidence unless they introduce
@@ -92,16 +93,16 @@ export const KIBI_IMPACT_DIAGNOSTICS: Record<
     title: "Behavior edit requires staged Kibi impact evidence",
     resolution: [
       "Query Kibi via MCP first: use kb_search for discovery, then kb_query for exact follow-up.",
-      "Stage related KB entity markdown or stage refreshed documentation/symbols.yaml when extraction output changed.",
+      "Stage related KB entity markdown, stage authored documentation/symbols.yaml metadata, or refresh coordinates with kibi sync --refresh-symbol-coordinates and stage documentation/symbol-coordinates.yaml documentation/symbols.yaml.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
   symbols_manifest_stale: {
     id: "symbols_manifest_stale",
-    title: "Symbols manifest evidence is stale for changed extraction output",
+    title: "Symbol coordinates evidence is stale for changed extraction output",
     resolution: [
-      "Refresh symbol extraction output for the changed source file.",
-      "Stage documentation/symbols.yaml (or the configured symbols manifest) in the same change as the behavior edit.",
+      "Refresh symbol coordinates for the changed source file with kibi sync --refresh-symbol-coordinates.",
+      "Stage documentation/symbol-coordinates.yaml in the same change as the behavior edit, and stage documentation/symbols.yaml only if migration cleanup changed it.",
       "Re-run or let the hook run kibi check --staged.",
     ],
   },
