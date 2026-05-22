@@ -1,0 +1,262 @@
+# symbol-coordinates.yaml
+# GENERATED coordinate artifact — do not edit manually.
+# Run `kibi sync --refresh-symbol-coordinates` to refresh.
+coordinates:
+  SYM-001:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 588
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 79
+  SYM-002:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 247
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    sourceLine: 64
+  SYM-003:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/mcp/src/tools/query.ts
+    sourceLine: 48
+  SYM-004:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 216
+    sourceFile: packages/mcp/src/tools/check.ts
+    sourceLine: 159
+  SYM-005:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 967
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 174
+  SYM-007:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 257
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    sourceLine: 252
+  SYM-010:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/server.ts
+    sourceLine: 37
+  SYM-GuidanceCache:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 162
+    sourceFile: packages/opencode/src/guidance-cache.ts
+    sourceLine: 43
+  SYM-INIT_KIBI_COMMAND_DESCRIPTION:
+    sourceColumn: 13
+    sourceEndColumn: 92
+    sourceEndLine: 9
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    sourceLine: 9
+  SYM-INIT_KIBI_COMMAND_NAME:
+    sourceColumn: 13
+    sourceEndColumn: 49
+    sourceEndLine: 7
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    sourceLine: 7
+  SYM-INIT_KIBI_COMMAND_TEMPLATE:
+    sourceColumn: 13
+    sourceEndColumn: 62
+    sourceEndLine: 8
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    sourceLine: 8
+  SYM-KB_RELATIONSHIP_TYPES:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: packages/vscode/src/shared/rdf-parser.ts
+    sourceLine: 15
+  SYM-KibiCodeActionProvider:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 106
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    sourceLine: 25
+  SYM-KibiCodeLensProvider:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 338
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 40
+  SYM-KibiTreeDataProvider:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 967
+    sourceFile: packages/vscode/src/treeProvider.ts
+    sourceLine: 174
+  SYM-LATEST_KB_SCHEMA_VERSION:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 4
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    sourceLine: 4
+  SYM-SYMBOLS_MANIFEST_COMMENT_BLOCK:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 60
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    sourceLine: 54
+  SYM-activateKibiExtension:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/vscode/src/extension.ts
+    sourceLine: 132
+  SYM-buildPrompt:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 673
+    sourceFile: packages/opencode/src/prompt.ts
+    sourceLine: 665
+  SYM-buildStableRequirementIds:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 150
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 126
+  SYM-buildStrictWriteSet:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 259
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 152
+  SYM-checkWorkspaceHealth:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 96
+    sourceFile: packages/opencode/src/workspace-health.ts
+    sourceLine: 33
+  SYM-classifyRisk:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 175
+    sourceFile: packages/opencode/src/risk-classifier.ts
+    sourceLine: 63
+  SYM-deriveBriefIntent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: packages/opencode/src/brief-intent.ts
+    sourceLine: 77
+  SYM-detectPosture:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 241
+    sourceFile: packages/opencode/src/repo-posture.ts
+    sourceLine: 162
+  SYM-estimateNormativeSignalConfidence:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 275
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 255
+  SYM-extractRequirementClaim:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 338
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 277
+  SYM-fetchBriefingResult:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 407
+    sourceFile: packages/opencode/src/briefing-runtime.ts
+    sourceLine: 353
+  SYM-getAutomationReview:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 95
+    sourceFile: packages/vscode/src/briefDocumentProvider.ts
+    sourceLine: 89
+  SYM-getKbExistenceTargets:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/opencode/src/file-filter.ts
+    sourceLine: 73
+  SYM-getWorkspaceMigrationWarning:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 409
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 390
+  SYM-handleKbBriefingGenerate:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 919
+    sourceFile: packages/mcp/src/tools/briefing-generate.ts
+    sourceLine: 743
+  SYM-handleKbModelRequirement:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 455
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 411
+  SYM-handleKbQueryRelationships:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 151
+    sourceFile: packages/mcp/src/tools/query-relationships.ts
+    sourceLine: 65
+  SYM-mergeStaticLinks:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 214
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    sourceLine: 192
+  SYM-modelRequirementClaims:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 279
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 261
+  SYM-normalizePropertyKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 111
+  SYM-normalizeSubjectKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 94
+  SYM-parseRdfRelationships:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/vscode/src/shared/rdf-parser.ts
+    sourceLine: 37
+  SYM-parseSymbolsManifest:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 197
+    sourceFile: packages/vscode/src/symbolIndex.ts
+    sourceLine: 102
+  SYM-strictWriteSetToApplyPlan:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 384
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 350
+  SYM-updateGitIgnore:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 157
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    sourceLine: 135
+  SYM-writeSetPrimaryEntityId:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 388
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    sourceLine: 386
