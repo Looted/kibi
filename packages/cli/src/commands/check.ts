@@ -39,6 +39,7 @@ import {
 } from "../traceability/git-staged.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
+  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
@@ -53,7 +54,10 @@ import {
   isBehaviorSourceEdit,
   parseKibiImpactOverride,
 } from "../traceability/staged-impact-contract.js";
-import { assessStagedSymbolsManifest } from "../traceability/staged-symbols-manifest.js";
+import {
+  assessStagedSymbolsManifest,
+  collectStagedAuthoredSymbolsManifestEvidence,
+} from "../traceability/staged-symbols-manifest.js";
 import {
   type ManifestLookup,
   createManifestLookupSentinelKey,
@@ -216,12 +220,32 @@ function isKibiEntityType(value: string): value is KibiEntityType {
 }
 
 function isStagedManifestPath(filePath: string): boolean {
-  return (
+  if (
     filePath.endsWith("/symbols.yaml") ||
     filePath.endsWith("/symbols.yml") ||
+    filePath.endsWith("/symbol-coordinates.yaml") ||
     filePath === "symbols.yaml" ||
-    filePath === "symbols.yml"
-  );
+    filePath === "symbols.yml" ||
+    filePath === "symbol-coordinates.yaml"
+  ) {
+    return true;
+  }
+  try {
+    const config = loadConfig(process.cwd());
+    if (config.paths.symbols) {
+      const relSymbols = config.paths.symbols;
+      const configuredBase = relSymbols.split(/[\\/]/).pop();
+      if (
+        filePath === relSymbols ||
+        (configuredBase && filePath.endsWith(`/${configuredBase}`))
+      ) {
+        return true;
+      }
+    }
+  } catch {
+    // ignore config read errors
+  }
+  return false;
 }
 
 function isTestOnlySourcePath(filePath: string): boolean {
@@ -259,6 +283,10 @@ function formatStagedKibiDiagnostics(
       return lines.join("\n");
     })
     .join("\n\n");
+}
+
+function uniqueSorted(values: Iterable<string>): string[] {
+  return Array.from(new Set(values)).sort();
 }
 
 function buildStagedKibiImpactEvidence(options: {
@@ -300,6 +328,11 @@ function buildStagedKibiImpactEvidence(options: {
     stagedFiles,
     sourceFiles: behaviorSourceFiles,
   });
+  const stagedAuthoredSymbolsEvidence =
+    collectStagedAuthoredSymbolsManifestEvidence({
+      stagedFiles,
+      sourceFiles: behaviorSourceFiles,
+    });
 
   const markdownResultsByPath = new Map<string, ExtractionResult>();
   for (const [index, file] of markdownFiles.entries()) {
@@ -357,10 +390,24 @@ function buildStagedKibiImpactEvidence(options: {
     };
   }
 
+  if (stagedAuthoredSymbolsEvidence.entries.length > 0) {
+    resolvedKbArtifacts.push({
+      kind: "symbols_manifest",
+      path: stagedAuthoredSymbolsEvidence.path,
+      entityTypes: ["symbol"],
+      entityIds: uniqueSorted(
+        stagedAuthoredSymbolsEvidence.entries.flatMap((entry) => entry.entityIds),
+      ),
+      sourcePaths: uniqueSorted(
+        stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
+      ),
+    });
+  }
+
   return {
     sourceChanges,
     symbolsManifest: {
-      path: KIBI_SYMBOLS_MANIFEST_PATH,
+      path: stagedSymbolsManifest.path,
       state: stagedSymbolsManifest.state,
       sourcePaths: stagedSymbolsManifest.sourcePaths,
     },

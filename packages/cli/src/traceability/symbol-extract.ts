@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { Project, ScriptKind, type SourceFile } from "ts-morph";
-import { extractFromManifest } from "../extractors/manifest.js";
+import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type TraceabilityRelationship = { type: string; to: string };
@@ -106,16 +106,13 @@ function resolveSymbolTraceability(
 
   for (const manifestPath of candidateManifestPaths) {
     try {
-      const ents = extractFromManifest(manifestPath);
-      for (const e of ents) {
-        if (e.entity.title === name) {
+      const records = readManifestWithCoordinateOverlay(manifestPath);
+      for (const record of records) {
+        if (record.title === name && typeof record.id === "string") {
           return {
-            id: e.entity.id,
+            id: record.id,
             relationships: filterTraceabilityRelationships(
-              e.relationships.map((relationship) => ({
-                type: relationship.type,
-                to: relationship.to,
-              })),
+              extractRelationshipsFromManifestRecord(record),
             ),
           };
         }
@@ -126,6 +123,45 @@ function resolveSymbolTraceability(
   }
 
   return { id: createHashFallbackId(filePath, name) };
+}
+
+function extractRelationshipsFromManifestRecord(record: {
+  links?: Array<string | { type?: unknown; target?: unknown }>;
+  relationships?: Array<{ type?: unknown; target?: unknown }>;
+}): TraceabilityRelationship[] {
+  const relationships: TraceabilityRelationship[] = [];
+
+  if (Array.isArray(record.links)) {
+    for (const link of record.links) {
+      if (typeof link === "string") {
+        relationships.push({ type: "implements", to: link });
+        continue;
+      }
+
+      if (
+        link &&
+        typeof link === "object" &&
+        typeof link.type === "string" &&
+        typeof link.target === "string"
+      ) {
+        relationships.push({ type: link.type, to: link.target });
+      }
+    }
+  }
+
+  if (Array.isArray(record.relationships)) {
+    for (const relationship of record.relationships) {
+      if (
+        relationship &&
+        typeof relationship.type === "string" &&
+        typeof relationship.target === "string"
+      ) {
+        relationships.push({ type: relationship.type, to: relationship.target });
+      }
+    }
+  }
+
+  return relationships;
 }
 
 function buildSymbolResult(

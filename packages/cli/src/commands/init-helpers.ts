@@ -39,6 +39,8 @@ const POST_CHECKOUT_HOOK = `#!/bin/sh
 # branch_flag is 1 for branch checkout, 0 for file checkout
 # Refresh branch/worktree assumptions after checkout so advisory plugin state
 # starts from synced KB data instead of stale in-memory cache assumptions.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 old_ref=$1
 new_ref=$2
@@ -61,6 +63,8 @@ const POST_MERGE_HOOK = `#!/bin/sh
 # post-merge hook for kibi
 # Parameter: squash_flag (not used)
 # Refresh KB state after merge so branch-level assumptions remain current.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 kibi sync
 `;
@@ -69,6 +73,8 @@ const POST_REWRITE_HOOK = `#!/bin/sh
 # post-rewrite hook for kibi
 # Triggered after git rebase, git commit --amend, etc.
 # Parameter: rewrite_type (rebase or amend)
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 rewrite_type=$1
 
@@ -82,31 +88,12 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
 # Behavior-changing source edits require staged Kibi impact evidence
-# (KB entity docs or refreshed symbols manifest). Test-only and docs-only
-# edits are exempt. See CONTRIBUTING.md for resolution paths.
+# (KB entity docs, authored symbols metadata, or refreshed symbol
+# coordinates). Test-only and docs-only edits are exempt.
+# Refresh with:
+#   kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml
 
 set -e
-
-symbols_manifest="documentation/symbols.yaml"
-# pre-commit hook for kibi
-# Hard enforcement boundary: commits are blocked only here via kibi check.
-# The OpenCode plugin remains advisory and must not replace this gate.
-
-set -e
-
-symbols_manifest="documentation/symbols.yaml"
-
-if [ ! -f "$symbols_manifest" ]; then
-  echo "Kibi symbols manifest is missing: $symbols_manifest" >&2
-  echo "Run 'kibi init' to create it, then stage and commit it." >&2
-  exit 1
-fi
-
-if ! git diff --quiet -- "$symbols_manifest"; then
-  echo "Kibi symbols manifest has unstaged changes: $symbols_manifest" >&2
-  echo "Stage and commit documentation/symbols.yaml with the code changes that refreshed it." >&2
-  exit 1
-fi
 
 kibi check --staged
 `;

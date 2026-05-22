@@ -60,8 +60,11 @@ function commitAll(cwd: string, message: string): void {
   });
 }
 
-function syncKb(kibiBin: string, cwd: string): void {
-  execSync(`bun ${kibiBin} sync`, { cwd, stdio: "pipe" });
+function syncKb(kibiBin: string, cwd: string, args: string[] = []): void {
+  execSync(`bun ${kibiBin} sync${args.length > 0 ? ` ${args.join(" ")}` : ""}`, {
+    cwd,
+    stdio: "pipe",
+  });
 }
 
 function createTrackedFixture(): FileMap {
@@ -124,8 +127,11 @@ ${note}
 }
 
 function commitRefreshedManifest(kibiBin: string, cwd: string): void {
-  syncKb(kibiBin, cwd);
-  execSync("git add documentation/symbols.yaml", { cwd, stdio: "pipe" });
+  syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
+  execSync("git add documentation/symbol-coordinates.yaml documentation/symbols.yaml", {
+    cwd,
+    stdio: "pipe",
+  });
   execSync('git commit -m "refresh manifest" --no-verify', {
     cwd,
     stdio: "pipe",
@@ -173,11 +179,14 @@ describe("kibi check --staged stale symbols manifest detection", () => {
         tmpDir,
         "Staged requirement note proving KB evidence exists for this edit.",
       );
-      syncKb(kibiBin, tmpDir);
-      execSync("git checkout -- documentation/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      execSync(
+        "git checkout -- documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
       execSync("git add src/greet.ts documentation/requirements/REQ-GREET-001.md", {
         cwd: tmpDir,
         stdio: "pipe",
@@ -205,11 +214,14 @@ describe("kibi check --staged stale symbols manifest detection", () => {
       commitRefreshedManifest(kibiBin, tmpDir);
 
       writeShiftedBehaviorEdit(tmpDir);
-      syncKb(kibiBin, tmpDir);
-      execSync("git add src/greet.ts documentation/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      execSync(
+        "git add src/greet.ts documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,
