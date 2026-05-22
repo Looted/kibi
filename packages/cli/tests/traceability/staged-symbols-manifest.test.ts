@@ -82,7 +82,11 @@ describe("assessStagedSymbolsManifest", () => {
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
-      expect(result).toEqual({ state: "not_required", sourcePaths: [] });
+      expect(result).toEqual({
+        state: "not_required",
+        sourcePaths: [],
+        path: "custom/symbol-coordinates.yaml",
+      });
     } finally {
       process.chdir(previousCwd);
     }
@@ -116,7 +120,11 @@ describe("assessStagedSymbolsManifest", () => {
         sourceFiles: [createSourceStagedFile(tmpDir)],
         stagedFiles: [createSourceStagedFile(tmpDir)],
       });
-      expect(result).toEqual({ state: "not_required", sourcePaths: [] });
+      expect(result).toEqual({
+        state: "not_required",
+        sourcePaths: [],
+        path: "custom/symbol-coordinates.yaml",
+      });
     } finally {
       process.chdir(previousCwd);
     }
