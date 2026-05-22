@@ -51,20 +51,30 @@ interface ManifestSymbolEntry {
   [key: string]: unknown;
 }
 
-const COMMENT_BLOCK = `# symbols.yaml
-# AUTHORED fields (edit freely):
-#   id, title, sourceFile, links, status, tags, owner, priority
-# GENERATED fields (never edit manually — overwritten by kibi sync and kb_symbols_refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
-# Run \`kibi sync\` or call the \`kb_symbols_refresh\` MCP tool to refresh coordinates.
+interface SymbolCoordinatesRecord {
+  sourceFile: string;
+  sourceLine: number;
+  sourceColumn: number;
+  sourceEndLine: number;
+  sourceEndColumn: number;
+}
+
+interface SymbolCoordinatesArtifact {
+  coordinates: Record<string, SymbolCoordinatesRecord>;
+}
+
+const SYMBOL_COORDINATES_COMMENT_BLOCK = `# symbol-coordinates.yaml
+# GENERATED coordinate artifact — do not edit manually.
+# Run \`kibi sync --refresh-symbol-coordinates\` to refresh.
 `;
+
+const DEFAULT_COORDINATE_ARTIFACT_NAME = "symbol-coordinates.yaml";
 
 const GENERATED_COORD_FIELDS = [
   "sourceLine",
   "sourceColumn",
   "sourceEndLine",
   "sourceEndColumn",
-  "coordinatesGeneratedAt",
 ] as const;
 
 const SOURCE_EXTENSIONS = new Set([
@@ -84,7 +94,7 @@ export async function handleKbSymbolsRefresh(
   // implements REQ-vscode-traceability
   const dryRun = args.dryRun === true;
   const workspaceRoot = args.workspaceRoot ?? resolveWorkspaceRoot();
-  const manifestPath = await resolveManifestPath(workspaceRoot);
+  const { coordinatesPath, manifestPath } = await resolveManifestPaths(workspaceRoot);
 
   const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
@@ -152,22 +162,18 @@ export async function handleKbSymbolsRefresh(
     }
   }
 
-  const dumped = dumpYAML(parsed, {
-    lineWidth: -1,
-    noRefs: true,
-    sortKeys: false,
-  });
-  const nextContent = `${COMMENT_BLOCK}${dumped}`;
+  const nextCoordinates = writeCoordinateArtifact(buildCoordinatesMap(finalized));
+  const currentCoordinates = await readOptionalTextFile(coordinatesPath);
 
-  if (!dryRun && rawContent !== nextContent) {
-    await writeFile(manifestPath, nextContent, "utf8");
+  if (!dryRun && currentCoordinates !== nextCoordinates) {
+    await writeFile(coordinatesPath, nextCoordinates, "utf8");
   }
 
   return {
     content: [
       {
         type: "text",
-        text: `kb_symbols_refresh ${dryRun ? "(dry run) " : ""}completed for ${path.relative(workspaceRoot, manifestPath)}: refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed}`,
+        text: `kb_symbols_refresh ${dryRun ? "(dry run) " : ""}completed for ${path.relative(workspaceRoot, coordinatesPath)}: refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed}`,
       },
     ],
     structuredContent: {
@@ -184,7 +190,7 @@ export async function refreshCoordinatesForSymbolId(
   workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
   // implements REQ-vscode-traceability
-  const manifestPath = await resolveManifestPath(workspaceRoot);
+  const { coordinatesPath, manifestPath } = await resolveManifestPaths(workspaceRoot);
   const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
 
@@ -232,18 +238,40 @@ export async function refreshCoordinatesForSymbolId(
     (field) => (original as ManifestSymbolEntry)[field] !== finalized[field],
   );
 
-  const dumped = dumpYAML(parsed, {
-    lineWidth: -1,
-    noRefs: true,
-    sortKeys: false,
-  });
-  const nextContent = `${COMMENT_BLOCK}${dumped}`;
+  const artifact = await readCoordinateArtifactFromPath(coordinatesPath);
+  const nextCoordinates = {
+    ...artifact.coordinates,
+  };
+  const coordinatesRecord = toCoordinateRecord(finalized);
 
-  if (rawContent !== nextContent) {
-    await writeFile(manifestPath, nextContent, "utf8");
+  if (coordinatesRecord) {
+    nextCoordinates[symbolId] = coordinatesRecord;
+  }
+
+  if (coordinatesRecord || Object.keys(nextCoordinates).length > 0) {
+    const nextContent = writeCoordinateArtifact(nextCoordinates);
+    const currentContent = await readOptionalTextFile(coordinatesPath);
+
+    if (currentContent !== nextContent) {
+      await writeFile(coordinatesPath, nextContent, "utf8");
+    }
   }
 
   return { refreshed, found: true };
+}
+
+async function resolveManifestPaths(
+  workspaceRoot: string,
+): Promise<{ manifestPath: string; coordinatesPath: string }> {
+  const manifestPath = await resolveManifestPath(workspaceRoot);
+
+  return {
+    manifestPath,
+    coordinatesPath: path.join(
+      path.dirname(manifestPath),
+      DEFAULT_COORDINATE_ARTIFACT_NAME,
+    ),
+  };
 }
 
 export async function resolveManifestPath(
@@ -289,9 +317,7 @@ function hasGeneratedCoordinates(entry: ManifestSymbolEntry): boolean {
     typeof entry.sourceLine === "number" &&
     typeof entry.sourceColumn === "number" &&
     typeof entry.sourceEndLine === "number" &&
-    typeof entry.sourceEndColumn === "number" &&
-    typeof entry.coordinatesGeneratedAt === "string" &&
-    entry.coordinatesGeneratedAt.length > 0
+    typeof entry.sourceEndColumn === "number"
   );
 }
 
@@ -366,7 +392,6 @@ async function fillMissingCoordinates(
         sourceColumn: match.index,
         sourceEndLine: index + 1,
         sourceEndColumn: match.index + title.length,
-        coordinatesGeneratedAt: new Date().toISOString(),
       };
     }
   } catch {
@@ -378,4 +403,126 @@ async function fillMissingCoordinates(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function normalizeCoordinateRecord(value: unknown): SymbolCoordinatesRecord | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const { sourceColumn, sourceEndColumn, sourceEndLine, sourceFile, sourceLine } =
+    value;
+
+  if (
+    typeof sourceFile !== "string" ||
+    typeof sourceLine !== "number" ||
+    typeof sourceColumn !== "number" ||
+    typeof sourceEndLine !== "number" ||
+    typeof sourceEndColumn !== "number"
+  ) {
+    return null;
+  }
+
+  return {
+    sourceFile,
+    sourceLine,
+    sourceColumn,
+    sourceEndLine,
+    sourceEndColumn,
+  };
+}
+
+function sortCoordinates(
+  coordinates: Record<string, SymbolCoordinatesRecord>,
+): Record<string, SymbolCoordinatesRecord> {
+  const sortedCoordinates: Record<string, SymbolCoordinatesRecord> = {};
+
+  for (const symbolId of Object.keys(coordinates).sort((left, right) =>
+    left.localeCompare(right),
+  )) {
+    const record = normalizeCoordinateRecord(coordinates[symbolId]);
+    if (!record) {
+      continue;
+    }
+
+    sortedCoordinates[symbolId] = record;
+  }
+
+  return sortedCoordinates;
+}
+
+function readCoordinateArtifact(content: string): SymbolCoordinatesArtifact {
+  const parsed = parseYAML(content) as unknown;
+  if (!isRecord(parsed) || !isRecord(parsed.coordinates)) {
+    return { coordinates: {} };
+  }
+
+  const coordinates: Record<string, SymbolCoordinatesRecord> = {};
+
+  for (const [symbolId, record] of Object.entries(parsed.coordinates)) {
+    const normalizedRecord = normalizeCoordinateRecord(record);
+    if (!normalizedRecord) {
+      continue;
+    }
+
+    coordinates[symbolId] = normalizedRecord;
+  }
+
+  return { coordinates };
+}
+
+function writeCoordinateArtifact(
+  coordinates: Record<string, SymbolCoordinatesRecord>,
+): string {
+  return `${SYMBOL_COORDINATES_COMMENT_BLOCK}${dumpYAML(
+    { coordinates: sortCoordinates(coordinates) },
+    {
+      lineWidth: -1,
+      noRefs: true,
+      sortKeys: true,
+    },
+  )}`;
+}
+
+function toCoordinateRecord(
+  entry: ManifestSymbolEntry,
+): SymbolCoordinatesRecord | null {
+  return normalizeCoordinateRecord(entry);
+}
+
+function buildCoordinatesMap(
+  entries: ManifestSymbolEntry[],
+): Record<string, SymbolCoordinatesRecord> {
+  const coordinates: Record<string, SymbolCoordinatesRecord> = {};
+
+  for (const entry of entries) {
+    const id = typeof entry.id === "string" ? entry.id : undefined;
+    const record = toCoordinateRecord(entry);
+    if (!id || !record) {
+      continue;
+    }
+
+    coordinates[id] = record;
+  }
+
+  return coordinates;
+}
+
+async function readCoordinateArtifactFromPath(
+  coordinatesPath: string,
+): Promise<SymbolCoordinatesArtifact> {
+  const content = await readOptionalTextFile(coordinatesPath);
+  if (content === null) {
+    return { coordinates: {} };
+  }
+
+  return readCoordinateArtifact(content);
+}
+
+async function readOptionalTextFile(filePath: string): Promise<string | null> {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch {
+    return null;
+  }
 }

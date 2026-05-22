@@ -343,6 +343,8 @@ function truncateSyncOutput(value: string | undefined): string | undefined {
   return value;
 }
 
+// Background sync runner: uses default sync (no --refresh-symbol-coordinates)
+// to avoid writing committed coordinate artifacts during automatic background execution.
 async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
   return new Promise((resolve) => {
     try {

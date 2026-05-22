@@ -14,7 +14,17 @@ import {
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { resolveSymbolsManifestPath } from "../src/shared/manifestResolver";
+import * as manifestResolver from "../src/shared/manifestResolver";
+
+const resolveSymbolsManifestPath = manifestResolver.resolveSymbolsManifestPath;
+const resolveSymbolsManifestPaths = (
+  manifestResolver as Record<string, unknown>
+).resolveSymbolsManifestPaths as
+  | ((workspaceRoot: string) => {
+      symbolsPath: string;
+      coordinatesPath: string;
+    })
+  | undefined;
 
 let tempDir: string;
 
@@ -54,6 +64,24 @@ afterAll(() => {
 });
 
 describe("resolveSymbolsManifestPath - missing config", () => {
+  test("resolveSymbolsManifestPaths returns manifest and derived coordinate artifact paths", () => {
+    expect(typeof resolveSymbolsManifestPaths).toBe("function");
+    if (typeof resolveSymbolsManifestPaths !== "function") {
+      return;
+    }
+
+    const result = resolveSymbolsManifestPaths(tempDir);
+    expect(result).toEqual({
+      symbolsPath: path.join(tempDir, "documentation", "symbols.yaml"),
+      coordinatesPath: path.join(
+        tempDir,
+        "documentation",
+        "symbol-coordinates.yaml",
+      ),
+    });
+    expect(resolveSymbolsManifestPath(tempDir)).toBe(result.symbolsPath);
+  });
+
   test("no config file falls back to default candidates", () => {
     const result = resolveSymbolsManifestPath(tempDir);
     expect(result).toBe(path.join(tempDir, "documentation", "symbols.yaml"));
@@ -132,12 +160,37 @@ describe("resolveSymbolsManifestPath - malformed config", () => {
     const symbolsYaml = path.join(tempDir, "symbols.yaml");
     fs.writeFileSync(symbolsYaml, "test: value");
 
-    const result = resolveSymbolsManifestPath(tempDir);
+    const result = manifestResolver.resolveSymbolsManifestPath(tempDir);
     expect(result).toBe(symbolsYaml);
   });
 });
 
 describe("resolveSymbolsManifestPath - paths.symbols handling", () => {
+  test("resolveSymbolsManifestPaths derives sibling coordinate artifact from configured manifest path", () => {
+    expect(typeof resolveSymbolsManifestPaths).toBe("function");
+    if (typeof resolveSymbolsManifestPaths !== "function") {
+      return;
+    }
+
+    const kbDir = path.join(tempDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    const configPath = path.join(kbDir, "config.json");
+    fs.writeFileSync(
+      configPath,
+      JSON.stringify({ paths: { symbols: "custom/nested/symbols.yaml" } }),
+    );
+
+    expect(resolveSymbolsManifestPaths(tempDir)).toEqual({
+      symbolsPath: path.join(tempDir, "custom", "nested", "symbols.yaml"),
+      coordinatesPath: path.join(
+        tempDir,
+        "custom",
+        "nested",
+        "symbol-coordinates.yaml",
+      ),
+    });
+  });
+
   test("config with paths.symbols returns resolved path", () => {
     const kbDir = path.join(tempDir, ".kb");
     fs.mkdirSync(kbDir, { recursive: true });
