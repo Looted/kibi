@@ -1,14 +1,17 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync, spawnSync } from "node:child_process";
 import {
+  closeSync,
   copyFileSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  openSync,
   readdirSync,
   readFileSync,
   rmSync,
   statSync,
+  writeSync,
   writeFileSync,
 } from "node:fs";
 import * as os from "node:os";
@@ -227,6 +230,11 @@ User logs in with OAuth2 provider.
           const baseline = await runHarnessedSync();
           expect(baseline.success).toBe(true);
 
+          // Touch a file to force re-processing (without this, cache makes sync return early)
+          const touchedFile = path.join(tmpDir, "documentation/requirements/req1.md");
+          const originalContent = readFileSync(touchedFile, "utf8");
+          writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
+
           const firstAttached = deferred<void>();
           const firstReadyToSave = deferred<void>();
           const releaseFirst = deferred<void>();
@@ -335,6 +343,11 @@ User logs in with OAuth2 provider.
           const baseline = await runHarnessedSync();
           expect(baseline.success).toBe(true);
 
+          // Touch a file to force re-processing (without this, cache makes sync return early)
+          const touchedFile = path.join(tmpDir, "documentation/requirements/req1.md");
+          const originalContent = readFileSync(touchedFile, "utf8");
+          writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
+
           const result = await runHarnessedSync({}, {
             afterAttach: async ({ livePath, stagingPath }) => {
               await sleep(20);
@@ -343,6 +356,11 @@ User logs in with OAuth2 provider.
                 path.join(livePath, "kb.rdf"),
                 path.join(stagingPath, "kb.rdf"),
               );
+
+              // Mutate the file to change its stamp and trigger stale_snapshot
+              const fd = openSync(path.join(stagingPath, "kb.rdf"), "a");
+              writeSync(fd, "\n");
+              closeSync(fd);
             },
           }).then(
             (value) => ({ ok: true as const, value }),
