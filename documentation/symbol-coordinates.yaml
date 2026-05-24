@@ -266,3 +266,27 @@ coordinates:
     sourceEndLine: 388
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 386
+  SYM-brief-marker-write:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/mcp/src/utils/brief-marker.ts
+    sourceLine: 44
+  SYM-brief-marker-load:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: packages/opencode/src/utils/brief-marker.ts
+    sourceLine: 22
+  SYM-brief-marker-delete:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: packages/opencode/src/utils/brief-marker.ts
+    sourceLine: 90
+  SYM-graph-narrator-generate:
+    sourceColumn: 1
+    sourceEndColumn: 1
+    sourceEndLine: 568
+    sourceFile: packages/opencode/src/graph-narrator.ts
+    sourceLine: 452

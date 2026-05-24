@@ -46,6 +46,13 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
    - Run targeted `kb_check` rules during iteration.
    - Run a final `kb_check` before completion.
 
+## Brief Generation (Automatic)
+
+- `kb_upsert` and `kb_delete` automatically write pending markers — agents don't need extra steps.
+- On `session.idle`, markers are consumed and a semantic brief is generated.
+- Briefs derive narrative from the KB graph: entity statuses, relationships, and patterns.
+- The graph narrator reads typed relationships (`supersedes`, `implements`, `covered_by`, `verified_by`, etc.) to tell user-centric stories.
+- Agents do NOT need to write extra summary context for briefs.
 ## Knowledge Quality Metrics
 
 Agents should monitor usage and quality signals, not just raw graph size:
