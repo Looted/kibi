@@ -31,6 +31,7 @@ import { queryCommand } from "./commands/query.js";
 import { searchCommand } from "./commands/search.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
+import { usageMetricsCommand } from "./commands/usage-metrics.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -87,7 +88,10 @@ program
   .command("sync")
   .description("Sync entities from documents")
   .option("--validate-only", "Perform validation without mutations")
-  .option("--refresh-symbol-coordinates", "Refresh generated symbol coordinates")
+  .option(
+    "--refresh-symbol-coordinates",
+    "Refresh generated symbol coordinates",
+  )
   .option(
     "--rebuild",
     "Rebuild branch snapshot from scratch (discards current KB)",
@@ -98,7 +102,7 @@ program
     }),
   );
 
-program
+program;
 program
   .command("query [type]")
   .description("Query knowledge base")
@@ -228,6 +232,17 @@ program
   .command("doctor")
   .description("Diagnose KB setup and configuration")
   .action(withExitCode(async () => doctorCommand()));
+
+program
+  .command("usage-metrics")
+  .description("Report usage and quality metrics from .kb/usage.log")
+  .option("--format <format>", "Output format: json|table", "table")
+  .option("--limit <n>", "Limit top zero-result source files", "10")
+  .action(
+    withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) => {
+      return usageMetricsCommand(options);
+    }),
+  );
 
 program
   .command("branch")

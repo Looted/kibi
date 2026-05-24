@@ -254,6 +254,12 @@ coordinates:
     sourceEndLine: 157
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 135
+  SYM-usage-metrics-command:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 100
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    sourceLine: 75
   SYM-writeSetPrimaryEntityId:
     sourceColumn: 16
     sourceEndColumn: 1
