@@ -10,7 +10,7 @@ import {
 import { KibiCodeLensProvider } from "../codeLensProvider";
 import { KibiHoverProvider } from "../hoverProvider";
 import { RelationshipCache } from "../relationshipCache";
-import { resolveSymbolsManifestPath } from "../shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "../shared/manifestResolver";
 import { type SymbolIndex, buildIndex } from "../symbolIndex";
 
 export interface TraceabilityRegistrationResult {
@@ -111,10 +111,11 @@ export function registerTraceability(
     );
   }
 
-  const manifestPath = resolveSymbolsManifestPath(workspaceRoot);
+  const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(workspaceRoot);
   const symbolIndex: SymbolIndex | null = buildIndex(
-    manifestPath,
+    symbolsPath,
     workspaceRoot,
+    coordinatesPath,
   );
   results.symbolIndex = symbolIndex;
 
