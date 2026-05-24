@@ -21,7 +21,7 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import { load as loadYaml } from "js-yaml";
 import * as vscode from "vscode";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "./shared/manifestResolver";
 import {
   type KbRelationship as SharedKbRelationship,
   parseRdfRelationships as parseRdfRelationshipsFromRdf,
@@ -300,10 +300,10 @@ export class KibiTreeDataProvider
     this.loaded = true;
     this.entities = [];
     this.relationships = [];
-    this.symbolIndex = buildIndex(
-      resolveSymbolsManifestPath(this.workspaceRoot),
-      this.workspaceRoot,
-    );
+    {
+      const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(this.workspaceRoot);
+      this.symbolIndex = buildIndex(symbolsPath, this.workspaceRoot, coordinatesPath);
+    }
 
     const fallbackData = await this.loadFallbackData();
     let rdfEntities: KbEntity[] = [];
@@ -545,7 +545,7 @@ export class KibiTreeDataProvider
           ? this.toWorkspaceRelativePath(localPath)
           : path.relative(
               this.workspaceRoot,
-              resolveSymbolsManifestPath(this.workspaceRoot),
+              resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
             ),
         localPath,
         sourceLine: symbol.sourceLine,
@@ -943,7 +943,7 @@ export class KibiTreeDataProvider
         ? this.toWorkspaceRelativePath(symbol.sourceFile)
         : path.relative(
             this.workspaceRoot,
-            resolveSymbolsManifestPath(this.workspaceRoot),
+            resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
           ),
       localPath:
         symbol.sourceFile && fs.existsSync(symbol.sourceFile)
