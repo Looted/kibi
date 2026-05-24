@@ -17,9 +17,17 @@
 */
 import type { PrologProcess } from "kibi-cli/prolog";
 import { escapeAtom, parseEntityFromList, parseListOfLists } from "kibi-cli/prolog/codec";
+import { writeBriefPendingMarker } from "../utils/brief-marker.js";
+
+type DeleteRelationship = {
+  from: string;
+  to: string;
+  type: string;
+};
 
 export interface DeleteArgs {
   ids: string[];
+  _requestId?: string;
 }
 
 export interface DeleteResult {
@@ -48,6 +56,8 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
   let deleted = 0;
   let skipped = 0;
   const errors: string[] = [];
+  const pendingEntityIds: string[] = [];
+  const pendingRelationships: DeleteRelationship[] = [];
 
   try {
     for (const id of ids) {
@@ -90,6 +100,7 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
 
       // No dependents, safe to delete
       const entityMetadata = await loadEntityMetadataForDelete(prolog, id, safeId);
+      const relationships = await loadOutgoingRelationshipsForDelete(prolog, safeId);
       const deleteGoal = buildDeleteGoal(safeId, entityMetadata);
       const deleteResult = await prolog.query(deleteGoal);
 
@@ -100,6 +111,8 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
         skipped++;
       } else {
         deleted++;
+        pendingEntityIds.push(id);
+        pendingRelationships.push(...relationships);
       }
     }
 
@@ -109,6 +122,15 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
       throw new Error(
         `Failed to save KB after delete: ${saveResult.error || "Unknown error"}`,
       );
+    }
+
+    if (pendingEntityIds.length > 0 || pendingRelationships.length > 0) {
+      writeBriefPendingMarker({
+        ...(args._requestId ? { sessionId: args._requestId } : {}),
+        operation: "delete",
+        entityIds: pendingEntityIds,
+        relationships: pendingRelationships,
+      });
     }
     prolog.invalidateCache();
 
@@ -161,6 +183,52 @@ async function loadEntityMetadataForDelete(
   const { id: _entityId, type: _entityType, ...props } = entity;
 
   return { type, props };
+}
+
+async function loadOutgoingRelationshipsForDelete(
+  prolog: PrologProcess,
+  safeId: string,
+): Promise<DeleteRelationship[]> {
+  const result = await prolog.query(
+    `findall([Type,'${safeId}',To], (member(Type, [depends_on, verified_by, validates, specified_by, relates_to, guards, publishes, consumes, implements, covered_by, executable_for, constrains, requires_property, supersedes, constrained_by]), kb_relationship(Type, '${safeId}', To)), Relationships)`,
+  );
+
+  if (!result.success) {
+    throw new Error(
+      `Failed to load outgoing relationships for entity ${safeId}: ${result.error || "Unknown error"}`,
+    );
+  }
+
+  const rows = result.bindings.Relationships
+    ? parseListOfLists(result.bindings.Relationships)
+    : [];
+
+  return rows.flatMap((row) => {
+    const type = row[0];
+    const from = row[1];
+    const to = row[2];
+    if (type === undefined || from === undefined || to === undefined) {
+      return [];
+    }
+    return [
+      {
+        type: normalizeDeleteRelationshipValue(type),
+        from: normalizeDeleteRelationshipValue(from),
+        to: normalizeDeleteRelationshipValue(to),
+      },
+    ];
+  });
+}
+
+function normalizeDeleteRelationshipValue(value: unknown): string {
+  const normalized = String(value);
+  if (
+    (normalized.startsWith("'") && normalized.endsWith("'")) ||
+    (normalized.startsWith('"') && normalized.endsWith('"'))
+  ) {
+    return normalized.slice(1, -1);
+  }
+  return normalized;
 }
 
 function buildDeleteGoal(safeId: string, metadata: DeleteEntityMetadata): string {
