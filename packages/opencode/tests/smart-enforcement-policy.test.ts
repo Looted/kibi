@@ -415,7 +415,9 @@ describe("smart enforcement contract matrix", () => {
         completionReminder: true,
       });
       assert.ok(
-        p.includes("Run `kb_check` before completing this task."),
+        p.includes(
+          "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.",
+        ),
         "Should include completion reminder for risky code edits",
       );
     });

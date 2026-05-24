@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { isCliTraceOrDebugEnabled } from "../env.js";
+import { loadConfig } from "../utils/config.js";
 
 export type Status = "A" | "M" | "R" | "D";
 
@@ -13,6 +14,7 @@ export interface StagedFile {
   status: Status;
   oldPath?: string; // for renames
   hunkRanges: HunkRange[]; // ranges in new-file coordinates
+  diffText?: string; // staged unified diff for the file
   content?: string; // staged file content (UTF-8)
 }
 
@@ -72,9 +74,21 @@ const SUPPORTED_EXT = new Set([
   ".cjs",
 ]);
 
-const SUPPORTED_MANIFEST = new Set(["symbols.yaml", "symbols.yml"]);
+const SUPPORTED_MANIFEST = new Set([
+  "symbols.yaml",
+  "symbols.yml",
+  "symbol-coordinates.yaml",
+]);
 
-const ENTITY_MARKDOWN_DIRS = ["/requirements/", "/scenarios/", "/tests/"];
+const ENTITY_MARKDOWN_DIRS = [
+  "/requirements/",
+  "/scenarios/",
+  "/tests/",
+  "/facts/",
+  "/adr/",
+  "/flags/",
+  "/events/",
+];
 
 function shouldLogTraceDebug(): boolean {
   return isCliTraceOrDebugEnabled();
@@ -100,10 +114,19 @@ function isEntityMarkdown(p: string): boolean {
 }
 
 function isManifestFile(p: string): boolean {
-  const base = p.split(/[\/]/).pop();
+  const base = p.split(/[\\/]/).pop();
   if (!base) return false;
   for (const name of SUPPORTED_MANIFEST) {
     if (base === name) return true;
+  }
+  try {
+    const config = loadConfig(process.cwd());
+    if (config.paths.symbols) {
+      const configuredBase = config.paths.symbols.split(/[\\/]/).pop();
+      if (configuredBase && base === configuredBase) return true;
+    }
+  } catch {
+    // ignore config read errors
   }
   return false;
 }
@@ -242,6 +265,7 @@ export function getStagedFiles(exec: ExecFn = execSync): StagedFile[] {
       status,
       ...(oldPath !== undefined ? { oldPath } : {}),
       hunkRanges,
+      diffText,
       content,
     });
   }

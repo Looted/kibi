@@ -18,6 +18,28 @@ Since kibi is in alpha, automatic migrations are not yet implemented. If you enc
 
 This rebuilds the entire KB from your documentation. No data is preserved from the old KB - it is regenerated from your Markdown files and YAML manifests.
 
+## Stale or Dirty Symbol Coordinates
+
+If `kibi check --staged` or the pre-commit hook fails with errors about unstaged symbol changes:
+
+**Symptom:**
+- Commit blocked due to modified code symbols not being reflected in the manifest.
+- Error message indicates `documentation/symbol-coordinates.yaml` is out of sync.
+
+**Resolution:**
+1. **Refresh the coordinates:**
+   ```bash
+   kibi sync --refresh-symbol-coordinates
+   ```
+   This command rescans your source code and updates the line/character coordinates in `documentation/symbol-coordinates.yaml`.
+
+2. **Stage the changes:**
+   ```bash
+   git add documentation/symbol-coordinates.yaml
+   ```
+
+3. **Retry the commit.**
+
 ## Dangling References
 
 If `kibi check` fails with `no-dangling-refs` violations:

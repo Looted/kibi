@@ -141,4 +141,55 @@ exit 1
     assert.match(invocations, /check --rules/);
     assert.match(invocations, /required-fields,no-dangling-refs/);
   });
+
+  test("default background sync does not pass --refresh-symbol-coordinates", async () => {
+    const completions: SyncRunMetadata[] = [];
+    const binDir = path.join(tmpDir, "bin");
+    const logFile = path.join(tmpDir, "kibi-sync-cmd.log");
+    fs.mkdirSync(binDir, { recursive: true });
+
+    // Fake kibi that logs the full command line to prove no coordinate flags
+    const kibiScript = path.join(binDir, "kibi");
+    fs.writeFileSync(
+      kibiScript,
+      `#!/bin/sh
+printf '%s\n' "$*" >> "${logFile}"
+exit 0
+`,
+    );
+    fs.chmodSync(kibiScript, 0o755);
+    process.env.PATH = `${binDir}${path.delimiter}${originalPath ?? ""}`;
+
+    const scheduler = createSyncScheduler({
+      worktree: tmpDir,
+      config: {
+        ...DEFAULTS,
+        sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 1 },
+      },
+      onRunComplete: (meta) => completions.push(meta),
+    });
+
+    scheduler.scheduleSync("manual");
+
+    for (
+      let attempt = 0;
+      attempt < 50 && completions.length === 0;
+      attempt += 1
+    ) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+
+    scheduler.dispose();
+
+    assert.equal(completions.length, 1);
+    assert.equal(completions[0]?.exitCode, 0);
+    // Verify the sync command captured by metadata
+    assert.equal(completions[0]?.syncCommand, "kibi sync");
+
+    // Verify the actual invocation log shows plain 'sync' with no coordinate flags
+    const invocations = fs.readFileSync(logFile, "utf8");
+    // The fake script logs "$*" so we see the arguments after 'kibi'
+    assert.ok(!invocations.includes("--refresh-symbol-coordinates"),
+      "background sync must not pass --refresh-symbol-coordinates");
+  });
 });

@@ -17,7 +17,7 @@
 */
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "./shared/manifestResolver";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 // queryRelationshipsViaCli is provided by ./symbolIndex
@@ -27,15 +27,17 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
 
   private index: SymbolIndex | null = null;
   private manifestPath: string;
+  private coordinatesPath: string;
   private watcher: vscode.FileSystemWatcher | null = null;
 
   constructor(private workspaceRoot: string) {
-    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
+    ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
+      resolveSymbolsManifestPaths(workspaceRoot));
     this.buildIndexFromManifest();
   }
 
   private buildIndexFromManifest(): void {
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot);
+    this.index = buildIndex(this.manifestPath, this.workspaceRoot, this.coordinatesPath);
   }
 
   /** Call this to attach a filesystem watcher and auto-rebuild the index. */
@@ -47,7 +49,8 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
       ),
     );
     const rebuild = () => {
-      this.manifestPath = resolveSymbolsManifestPath(this.workspaceRoot);
+      ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
+        resolveSymbolsManifestPaths(this.workspaceRoot));
       this.buildIndexFromManifest();
     };
     this.watcher.onDidChange(rebuild);

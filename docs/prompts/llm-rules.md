@@ -139,7 +139,7 @@ When creating or updating entities:
 
 For test and e2e symbols, the preferred traceability workflow uses durable KB relationships instead of inline code comments:
 
-1. **Model the code as a symbol** in `documentation/symbols.yaml` (or the configured symbol manifest), with `sourceFile` pointing at the test/e2e file.
+1. **Model the code as a symbol** in `documentation/symbols.yaml` (or the configured symbol manifest), with `sourceFile` pointing at the test/e2e file. Physical symbol coordinates (line/character) are maintained in `documentation/symbol-coordinates.yaml`.
 2. **Link symbol → test** using an `executable_for` relationship row during `kb_upsert` to establish its identity as test code.
 3. **Ensure the test entity is linked** to a requirement or scenario (canonical: `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`).
 

@@ -35,7 +35,7 @@ describe("notifyStartup", () => {
       body: {
         variant: "success",
         title: "Kibi OpenCode",
-        message: "kibi-opencode started",
+        message: "kibi-opencode started (v1.2.3)",
         duration: 4000,
       },
     });
@@ -78,9 +78,7 @@ describe("notifyStartup", () => {
     console.warn = consoleWarn;
 
     try {
-      notifyStartup(client as unknown as StartupNotifierClient, {
-        version: "1.2.3",
-      });
+      notifyStartup(client as unknown as StartupNotifierClient, {});
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       assert.equal(logCalls.length, 2);
@@ -92,7 +90,6 @@ describe("notifyStartup", () => {
           service: "kibi-opencode",
           level: "info",
           message: "kibi-opencode started",
-          version: "1.2.3",
         },
       });
       assert.deepEqual(logCalls[1], {
@@ -226,6 +223,14 @@ describe("notifyStartup", () => {
 
     assert.equal(toastCalls.length, 1);
     assert.equal(logCalls.length, 2);
+    assert.deepEqual(toastCalls[0], {
+      body: {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started (v1.2.3)",
+        duration: 4000,
+      },
+    });
     assert.deepEqual(logCalls[0], {
       body: {
         service: "kibi-opencode",

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
+import { load as parseYAML } from "js-yaml";
 import {
   refreshCoordinatesForSymbolId,
   resolveManifestPath,
@@ -24,6 +25,14 @@ function emptyDirSync(dir: string) {
     fs.rmSync(dir, { recursive: true, force: true });
   }
   fs.mkdirSync(dir, { recursive: true });
+}
+
+function readCoordinatesArtifact(filePath: string): Record<string, Record<string, unknown>> {
+  const parsed = parseYAML(fs.readFileSync(filePath, "utf-8")) as
+    | { coordinates?: Record<string, Record<string, unknown>> }
+    | undefined;
+
+  return parsed?.coordinates ?? {};
 }
 
 // ---------------------------------------------------------------------------
@@ -202,10 +211,15 @@ describe("resolveManifestPath - additional coverage", () => {
 describe("refreshCoordinatesForSymbolId", () => {
   let refreshTestRoot: string;
   let refreshManifestPath: string;
+  let refreshCoordinatesPath: string;
 
   beforeEach(() => {
     refreshTestRoot = makeTmpDir();
     refreshManifestPath = path.join(refreshTestRoot, "symbols.yaml");
+    refreshCoordinatesPath = path.join(
+      refreshTestRoot,
+      "symbol-coordinates.yaml",
+    );
     emptyDirSync(refreshTestRoot);
   });
 
@@ -272,9 +286,10 @@ symbols:
       refreshTestRoot,
     );
     expect(result.found).toBe(true);
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(false);
   });
 
-  it("should successfully refresh coordinates (lines 78-93, 95-96, 98-101, 103-112)", async () => {
+  it("writes refreshed coordinates to symbol-coordinates.yaml", async () => {
     const yamlWithSymbol = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
@@ -287,15 +302,35 @@ symbols:
     sourceFile: "src/test.ts"
 `;
     writeRefreshFixture(yamlWithSymbol);
+    fs.mkdirSync(path.join(refreshTestRoot, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(refreshTestRoot, "src/test.ts"),
+      "export function Test Symbol() {\n  return true;\n}\n",
+      "utf-8",
+    );
 
     const result = await refreshCoordinatesForSymbolId(
       "test-symbol",
       refreshTestRoot,
     );
     expect(result.found).toBe(true);
+    expect(result.refreshed).toBe(true);
+    expect(fs.readFileSync(refreshManifestPath, "utf-8")).toBe(yamlWithSymbol);
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(true);
+
+    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
+    expect(coordinates["test-symbol"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/test.ts",
+        sourceLine: expect.any(Number),
+        sourceColumn: expect.any(Number),
+        sourceEndLine: expect.any(Number),
+        sourceEndColumn: expect.any(Number),
+      }),
+    );
   });
 
-  it("should write file only when content changes (lines 110-112)", async () => {
+  it("preserves legacy inline coordinates when no refreshed coordinates are found", async () => {
     const yamlWithCoordinates = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
@@ -305,6 +340,7 @@ symbols:
 symbols:
   - id: test-symbol
     title: Test Symbol
+    sourceFile: "src/test.ts"
     sourceLine: 10
     sourceColumn: 0
     sourceEndLine: 20
@@ -313,11 +349,23 @@ symbols:
 `;
     writeRefreshFixture(yamlWithCoordinates);
 
-    const originalContent = fs.readFileSync(refreshManifestPath, "utf-8");
-    await refreshCoordinatesForSymbolId("test-symbol", refreshTestRoot);
+    const result = await refreshCoordinatesForSymbolId(
+      "test-symbol",
+      refreshTestRoot,
+    );
 
-    const newContent = fs.readFileSync(refreshManifestPath, "utf-8");
-    expect(newContent).toBe(originalContent);
+    expect(result).toEqual({ refreshed: false, found: true });
+    expect(fs.readFileSync(refreshManifestPath, "utf-8")).toBe(yamlWithCoordinates);
+    expect(fs.existsSync(refreshCoordinatesPath)).toBe(true);
+
+    const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
+    expect(coordinates["test-symbol"]).toEqual({
+      sourceFile: "src/test.ts",
+      sourceLine: 10,
+      sourceColumn: 0,
+      sourceEndLine: 20,
+      sourceEndColumn: 5,
+    });
   });
 });
 
@@ -392,8 +440,14 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     expect(result.found).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
-    expect(updated).toContain("sourceLine:");
-    expect(updated).toContain("coordinatesGeneratedAt:");
+    expect(updated).not.toContain("sourceLine:");
+    expect(updated).not.toContain("coordinatesGeneratedAt:");
+    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-start-server"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/server.ts",
+        sourceLine: expect.any(Number),
+      }),
+    );
   });
 
   it("should resolve coordinates for non-exported helper (parseSymbolsManifest)", async () => {
@@ -404,8 +458,14 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     expect(result.found).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
-    expect(updated).toContain("sourceLine:");
-    expect(updated).toContain("coordinatesGeneratedAt:");
+    expect(updated).not.toContain("sourceLine:");
+    expect(updated).not.toContain("coordinatesGeneratedAt:");
+    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-parse-manifest"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/server.ts",
+        sourceLine: expect.any(Number),
+      }),
+    );
   });
 
   it("should resolve coordinates for class method (mergeStaticLinks)", async () => {
@@ -416,7 +476,13 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     expect(result.found).toBe(true);
 
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
-    expect(updated).toContain("sourceLine:");
-    expect(updated).toContain("coordinatesGeneratedAt:");
+    expect(updated).not.toContain("sourceLine:");
+    expect(updated).not.toContain("coordinatesGeneratedAt:");
+    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-merge-static-links"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/server.ts",
+        sourceLine: expect.any(Number),
+      }),
+    );
   });
 });

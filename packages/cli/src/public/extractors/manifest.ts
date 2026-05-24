@@ -19,6 +19,8 @@
 export {
   extractFromManifest,
   extractFromManifestString,
+  readManifestWithCoordinateOverlay,
   type ExtractionResult,
   type ManifestError,
+  type ManifestSymbolRecord,
 } from "../../extractors/manifest.js";

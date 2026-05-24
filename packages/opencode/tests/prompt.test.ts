@@ -845,7 +845,7 @@ describe("prompt", () => {
 
 // implements REQ-opencode-smart-enforcement-v1
 describe("completion reminder policy", () => {
-  const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+  const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
   const BRIEF_KIBI_CUE =
     "Authoritative risky edit: run `/brief-kibi` before acting.";
 
@@ -1152,7 +1152,7 @@ describe("completion reminder policy", () => {
 describe("auto-brief prompt rendering", () => {
   const BRIEF_KIBI_CUE =
     "Authoritative risky edit: run `/brief-kibi` before acting.";
-  const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+  const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
   let tmpDir: string;
 
   beforeEach(() => {
@@ -1747,7 +1747,7 @@ describe("source-linked micro-brief contract", () => {
       },
     ]);
 
-    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
     const p = buildPrompt({
       recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
       posture: "root_active",
@@ -1778,7 +1778,7 @@ describe("source-linked micro-brief contract", () => {
       },
     ]);
 
-    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
     const BRIEF_KIBI_CUE =
       "Authoritative risky edit: run `/brief-kibi` before acting.";
     const p = buildPrompt({
@@ -1808,7 +1808,8 @@ describe("source-linked micro-brief contract", () => {
   });
 
   test("traceability guidance with source-linked brief and reminder stays within 5 bullets", () => {
-    const reminderText = "Run `kb_check` before completing this task.";
+    const reminderText =
+      "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
     const briefKibiCue =
       "Authoritative risky edit: run `/brief-kibi` before acting.";
 
@@ -1985,7 +1986,7 @@ describe("file-operation reminder integration", () => {
   });
 
   test("completion reminder preserved alongside file-operation reminders", () => {
-    const REMINDER_TEXT = "Run `kb_check` before completing this task.";
+    const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
     const p = buildPrompt({
       recentEdits: [{ path: "src/foo.ts", kind: "code" }],
       posture: "root_active",

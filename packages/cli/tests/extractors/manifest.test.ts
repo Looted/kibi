@@ -272,6 +272,39 @@ symbols:
     cleanup();
   });
 
+  test("extractFromManifest overlays authored entries with coordinate artifact metadata", () => {
+    const yaml = `
+symbols:
+  - id: symbol-with-overlay
+    title: Symbol With Overlay
+    sourceFile: src/inline.ts
+    sourceLine: 1
+    sourceColumn: 0
+    sourceEndLine: 1
+    sourceEndColumn: 5
+    status: active
+`;
+    const filePath = setupTestFile("test-overlay-sourcefile.yaml", yaml);
+    writeFileSync(
+      join(TEST_DIR, "symbol-coordinates.yaml"),
+      `coordinates:
+  symbol-with-overlay:
+    sourceFile: src/fresh.ts
+    sourceLine: 10
+    sourceColumn: 2
+    sourceEndLine: 12
+    sourceEndColumn: 4
+`,
+    );
+
+    const results = extractFromManifest(filePath);
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.sourceFile).toBe("src/fresh.ts");
+
+    cleanup();
+  });
+
   test("falls back to source field when sourceFile is missing (legacy)", () => {
     const yaml = `
 symbols:

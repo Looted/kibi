@@ -1,0 +1,8 @@
+symbols:
+  - id: SYM-001
+    title: myFunction
+    sourceFile: src/foo.ts
+    sourceLine: 1
+    sourceColumn: 2
+    sourceEndLine: 1
+    sourceEndColumn: 4

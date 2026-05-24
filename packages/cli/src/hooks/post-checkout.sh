@@ -4,6 +4,8 @@
 # branch_flag is 1 for branch checkout, 0 for file checkout
 # Refresh branch/worktree assumptions after checkout so advisory plugin state
 # starts from synced KB data instead of stale in-memory cache assumptions.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 old_ref=$1
 new_ref=$2

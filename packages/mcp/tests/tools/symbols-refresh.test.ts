@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -8,6 +9,7 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { load as parseYAML } from "js-yaml";
 import { handleKbSymbolsRefresh } from "../../src/tools/symbols.js";
 
 function writeWorkspaceFile(
@@ -39,6 +41,14 @@ function getSymbolBlock(raw: string, symbolId: string): string {
   return lines.slice(start, end).join("\n");
 }
 
+function readCoordinates(raw: string): Record<string, Record<string, unknown>> {
+  const parsed = parseYAML(raw) as
+    | { coordinates?: Record<string, Record<string, unknown>> }
+    | undefined;
+
+  return parsed?.coordinates ?? {};
+}
+
 describe.serial("handleKbSymbolsRefresh", () => {
   let workspaceRoot = "";
 
@@ -54,7 +64,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
     }
   });
 
-  test("refreshes changed symbols and classifies failed and unchanged entries", async () => {
+  test("writes refreshed coordinates to the coordinate artifact and leaves symbols.yaml untouched", async () => {
     writeWorkspaceFile(
       workspaceRoot,
       "src/matched.ts",
@@ -77,81 +87,85 @@ describe.serial("handleKbSymbolsRefresh", () => {
     );
 
     const manifestPath = path.join(workspaceRoot, "symbols.yaml");
-    writeFileSync(
-      manifestPath,
-      [
-        "symbols:",
-        "  - stray-entry",
-        "  - id: SYM-matched",
-        "    title: matched",
-        "    status: active",
-        "    sourceFile: src/matched.ts",
-        "  - id: SYM-failed",
-        "    title: missingSymbol",
-        "    status: active",
-        "    sourceFile: src/nomatch.ts",
-        "  - id: SYM-preserved",
-        "    title: stillMissing",
-        "    status: active",
-        "    sourceFile: src/preserved.ts",
-        "    sourceLine: 10",
-        "    sourceColumn: 1",
-        "    sourceEndLine: 10",
-        "    sourceEndColumn: 15",
-        "    coordinatesGeneratedAt: '2024-01-01T00:00:00.000Z'",
-        "  - id: SYM-doc",
-        "    title: absentFromDocs",
-        "    status: active",
-        "    sourceFile: docs/reference.md",
-        "  - id: SYM-missing-file",
-        "    title: absentFile",
-        "    status: active",
-        "    sourceFile: src/not-here.ts",
-        "  - id: SYM-no-source",
-        "    title: noSource",
-        "    status: active",
-      ].join("\n"),
-      "utf8",
-    );
+    const originalManifest = [
+      "symbols:",
+      "  - stray-entry",
+      "  - id: SYM-matched",
+      "    title: matched",
+      "    status: active",
+      "    sourceFile: src/matched.ts",
+      "  - id: SYM-failed",
+      "    title: missingSymbol",
+      "    status: active",
+      "    sourceFile: src/nomatch.ts",
+      "  - id: SYM-preserved",
+      "    title: stillMissing",
+      "    status: active",
+      "    sourceFile: src/preserved.ts",
+      "    sourceLine: 10",
+      "    sourceColumn: 1",
+      "    sourceEndLine: 10",
+      "    sourceEndColumn: 15",
+      "  - id: SYM-doc",
+      "    title: absentFromDocs",
+      "    status: active",
+      "    sourceFile: docs/reference.md",
+      "  - id: SYM-missing-file",
+      "    title: absentFile",
+      "    status: active",
+      "    sourceFile: src/not-here.ts",
+      "  - id: SYM-no-source",
+      "    title: noSource",
+      "    status: active",
+    ].join("\n");
+    writeFileSync(manifestPath, originalManifest, "utf8");
+    const coordinatesPath = path.join(workspaceRoot, "symbol-coordinates.yaml");
 
     const result = await handleKbSymbolsRefresh({
       dryRun: false,
       workspaceRoot,
     });
-    const written = readFileSync(manifestPath, "utf8");
+    const writtenManifest = readFileSync(manifestPath, "utf8");
+    const artifact = readFileSync(coordinatesPath, "utf8");
+    const coordinates = readCoordinates(artifact);
 
     expect(result.structuredContent?.dryRun).toBe(false);
-    expect(
-      (result.structuredContent?.refreshed ?? 0) +
-        (result.structuredContent?.failed ?? 0) +
-        (result.structuredContent?.unchanged ?? 0),
-    ).toBe(7);
-    expect(result.content[0]?.text).toContain("completed for symbols.yaml");
-    expect(written).toContain("# symbols.yaml");
-
-    const matched = getSymbolBlock(written, "SYM-matched");
-    const failed = getSymbolBlock(written, "SYM-failed");
-    const preserved = getSymbolBlock(written, "SYM-preserved");
-
-    expect(matched).toMatch(/sourceLine: \d+/);
-    expect(matched).toMatch(/sourceColumn: \d+/);
-    expect(matched).toMatch(/sourceEndLine: \d+/);
-    expect(matched).toMatch(/sourceEndColumn: \d+/);
-    expect(matched).toMatch(/coordinatesGeneratedAt: /);
-
-    expect(failed).not.toContain("sourceLine:");
-    expect(failed).not.toContain("coordinatesGeneratedAt:");
-
-    expect(preserved).toContain("sourceLine: 10");
-    expect(preserved).toContain("sourceColumn: 1");
-    expect(preserved).toContain("sourceEndLine: 10");
-    expect(preserved).toContain("sourceEndColumn: 15");
-    expect(preserved).toContain(
-      "coordinatesGeneratedAt: '2024-01-01T00:00:00.000Z'",
+    expect(result.structuredContent?.refreshed).toBe(1);
+    expect(result.structuredContent?.failed).toBe(1);
+    expect(result.structuredContent?.unchanged).toBe(5);
+    expect(result.content[0]?.text).toContain(
+      "completed for symbol-coordinates.yaml",
     );
+    expect(writtenManifest).toBe(originalManifest);
+    expect(existsSync(coordinatesPath)).toBe(true);
+    expect(artifact).toContain("# symbol-coordinates.yaml");
+    expect(artifact).not.toContain("coordinatesGeneratedAt:");
+
+    expect(coordinates["SYM-matched"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/matched.ts",
+        sourceLine: expect.any(Number),
+        sourceColumn: expect.any(Number),
+        sourceEndLine: expect.any(Number),
+        sourceEndColumn: expect.any(Number),
+      }),
+    );
+    expect(coordinates["SYM-preserved"]).toEqual(
+      expect.objectContaining({
+        sourceFile: "src/preserved.ts",
+        sourceLine: 10,
+        sourceColumn: 1,
+        sourceEndLine: 10,
+        sourceEndColumn: 15,
+      }),
+    );
+    expect(coordinates["SYM-failed"]).toBeUndefined();
+    expect(coordinates["SYM-doc"]).toBeUndefined();
+    expect(coordinates["SYM-missing-file"]).toBeUndefined();
+    expect(coordinates["SYM-no-source"]).toBeUndefined();
   });
 
-  test("does not write the manifest during dry runs", async () => {
+  test("does not write symbols.yaml or the coordinate artifact during dry runs", async () => {
     writeWorkspaceFile(
       workspaceRoot,
       "src/dry-run.ts",
@@ -169,6 +183,7 @@ describe.serial("handleKbSymbolsRefresh", () => {
     ].join("\n");
 
     writeFileSync(manifestPath, original, "utf8");
+    const coordinatesPath = path.join(workspaceRoot, "symbol-coordinates.yaml");
 
     const result = await handleKbSymbolsRefresh({
       dryRun: true,
@@ -182,9 +197,10 @@ describe.serial("handleKbSymbolsRefresh", () => {
         (result.structuredContent?.unchanged ?? 0),
     ).toBe(1);
     expect(result.content[0]?.text).toContain(
-      "kb_symbols_refresh (dry run) completed",
+      "kb_symbols_refresh (dry run) completed for symbol-coordinates.yaml",
     );
     expect(readFileSync(manifestPath, "utf8")).toBe(original);
+    expect(existsSync(coordinatesPath)).toBe(false);
   });
 
   test("throws a clear error for invalid symbol manifests", async () => {
