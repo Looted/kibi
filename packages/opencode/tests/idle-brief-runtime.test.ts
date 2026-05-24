@@ -1055,7 +1055,7 @@ describe("idle-brief-runtime", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(capturedArgs).toEqual({
+      expect(capturedArgs!).toEqual({
         sourceFiles: ["REQ-001"],
         seedIds: ["REQ-001", "REQ-002", "SYM-LOGIN"],
       });
