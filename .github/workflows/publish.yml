@@ -66,7 +66,7 @@ jobs:
         with:
           bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -98,7 +98,7 @@ jobs:
           cd ../mcp && npm pack
           cd ../opencode && npm pack
       - name: Upload package tarballs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: package-tarballs
           path: |
@@ -108,7 +108,7 @@ jobs:
             packages/opencode/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: vscode-vsix
           path: packages/vscode/*.vsix
@@ -143,13 +143,13 @@ jobs:
         with:
           bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download package tarballs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: package-tarballs
           path: packages
@@ -202,12 +202,12 @@ jobs:
         with:
           bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - name: Download package tarballs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: package-tarballs
           path: packages
@@ -248,7 +248,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download VS Code extension VSIX
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: vscode-vsix
           path: packages/vscode
