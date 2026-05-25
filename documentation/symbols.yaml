@@ -18,6 +18,10 @@ symbols:
         target: REQ-009
       - type: covered_by
         target: TEST-001
+    sourceLine: 79
+    sourceColumn: 13
+    sourceEndLine: 588
+    sourceEndColumn: 1
   - id: SYM-002
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -31,6 +35,10 @@ symbols:
         target: REQ-011
       - type: covered_by
         target: TEST-001
+    sourceLine: 67
+    sourceColumn: 22
+    sourceEndLine: 261
+    sourceEndColumn: 1
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -41,6 +49,10 @@ symbols:
         target: REQ-mcp-tool-query
       - type: covered_by
         target: TEST-001
+    sourceLine: 48
+    sourceColumn: 22
+    sourceEndLine: 97
+    sourceEndColumn: 1
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
@@ -54,6 +66,10 @@ symbols:
         target: REQ-core-validation-rules
       - type: covered_by
         target: TEST-001
+    sourceLine: 159
+    sourceColumn: 22
+    sourceEndLine: 216
+    sourceEndColumn: 1
   - id: SYM-005
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -68,6 +84,10 @@ symbols:
         target: REQ-vscode-sidebar-kb-tree
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 174
+    sourceColumn: 13
+    sourceEndLine: 967
+    sourceEndColumn: 1
   - id: SYM-007
     title: extractFromManifest
     sourceFile: packages/cli/src/extractors/manifest.ts
@@ -78,6 +98,10 @@ symbols:
         target: REQ-007
       - type: covered_by
         target: TEST-001
+    sourceLine: 252
+    sourceColumn: 16
+    sourceEndLine: 257
+    sourceEndColumn: 1
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -88,6 +112,10 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-001
+    sourceLine: 37
+    sourceColumn: 22
+    sourceEndLine: 57
+    sourceEndColumn: 1
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
@@ -101,6 +129,10 @@ symbols:
         target: REQ-vscode-sidebar-kb-tree
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 174
+    sourceColumn: 13
+    sourceEndLine: 967
+    sourceEndColumn: 1
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
@@ -113,6 +145,10 @@ symbols:
         target: ADR-annotation-strategy
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 25
+    sourceColumn: 13
+    sourceEndLine: 109
+    sourceEndColumn: 1
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
@@ -136,6 +172,10 @@ symbols:
         target: REQ-vscode-sidebar-kb-tree
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 132
+    sourceColumn: 16
+    sourceEndLine: 158
+    sourceEndColumn: 1
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -148,6 +188,10 @@ symbols:
         target: ADR-annotation-strategy
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 40
+    sourceColumn: 13
+    sourceEndLine: 309
+    sourceEndColumn: 1
   - id: SYM-mergeStaticLinks
     title: mergeStaticLinks
     sourceFile: packages/vscode/src/codeLensProvider.ts
@@ -158,6 +202,10 @@ symbols:
         target: REQ-vscode-source-to-kb
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 162
+    sourceColumn: 10
+    sourceEndLine: 184
+    sourceEndColumn: 3
   - id: SYM-parseSymbolsManifest
     title: parseSymbolsManifest
     sourceFile: packages/vscode/src/symbolIndex.ts
@@ -170,6 +218,10 @@ symbols:
         target: REQ-vscode-source-to-kb
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 142
+    sourceColumn: 9
+    sourceEndLine: 237
+    sourceEndColumn: 1
   - id: SYM-getKbExistenceTargets
     title: getKbExistenceTargets
     sourceFile: packages/opencode/src/file-filter.ts
@@ -180,6 +232,10 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 73
+    sourceColumn: 16
+    sourceEndLine: 103
+    sourceEndColumn: 1
   - id: SYM-checkWorkspaceHealth
     title: checkWorkspaceHealth
     sourceFile: packages/opencode/src/workspace-health.ts
@@ -190,6 +246,10 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 33
+    sourceColumn: 16
+    sourceEndLine: 96
+    sourceEndColumn: 1
   - id: SYM-detectPosture
     title: detectPosture
     sourceFile: packages/opencode/src/repo-posture.ts
@@ -200,6 +260,10 @@ symbols:
         target: REQ-opencode-posture-detection
       - type: covered_by
         target: TEST-opencode-smart-enforcement
+    sourceLine: 162
+    sourceColumn: 16
+    sourceEndLine: 241
+    sourceEndColumn: 1
   - id: SYM-classifyRisk
     title: classifyRisk
     sourceFile: packages/opencode/src/risk-classifier.ts
@@ -210,6 +274,10 @@ symbols:
         target: REQ-opencode-risk-classification
       - type: covered_by
         target: TEST-opencode-smart-enforcement
+    sourceLine: 63
+    sourceColumn: 16
+    sourceEndLine: 175
+    sourceEndColumn: 1
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
@@ -218,6 +286,38 @@ symbols:
     relationships:
       - type: implements
         target: REQ-opencode-guidance-caching
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 46
+    sourceColumn: 13
+    sourceEndLine: 165
+    sourceEndColumn: 1
+  - id: SYM-buildEnforcementScopeKey
+    title: buildEnforcementScopeKey
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 23
+    sourceColumn: 16
+    sourceEndLine: 34
+    sourceEndColumn: 1
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+  - id: SYM-buildDirtyRelevantFingerprint
+    title: buildDirtyRelevantFingerprint
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 40
+    sourceColumn: 16
+    sourceEndLine: 55
+    sourceEndColumn: 1
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
       - type: covered_by
         target: TEST-opencode-smart-enforcement
   - id: SYM-buildPrompt
@@ -240,6 +340,10 @@ symbols:
         target: TEST-opencode-agent-mcp-only
       - type: covered_by
         target: TEST-opencode-kibi-briefing-v2
+    sourceLine: 665
+    sourceColumn: 16
+    sourceEndLine: 673
+    sourceEndColumn: 1
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -250,6 +354,10 @@ symbols:
         target: REQ-vscode-source-to-kb
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 37
+    sourceColumn: 16
+    sourceEndLine: 67
+    sourceEndColumn: 1
   - id: SYM-KB_RELATIONSHIP_TYPES
     title: KB_RELATIONSHIP_TYPES
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
@@ -260,6 +368,10 @@ symbols:
         target: REQ-vscode-source-to-kb
       - type: covered_by
         target: TEST-vscode-traceability
+    sourceLine: 15
+    sourceColumn: 13
+    sourceEndLine: 28
+    sourceEndColumn: 1
   - id: SYM-kb-status-json
     title: kb_status/0 (JSON)
     sourceFile: packages/core/src/status.pl
@@ -310,6 +422,10 @@ symbols:
         target: REQ-opencode-kibi-briefing-v2
       - type: covered_by
         target: TEST-opencode-kibi-briefing-v2
+    sourceLine: 77
+    sourceColumn: 16
+    sourceEndLine: 144
+    sourceEndColumn: 1
   - id: SYM-fetchBriefingResult
     title: fetchBriefingResult
     sourceFile: packages/opencode/src/briefing-runtime.ts
@@ -320,6 +436,10 @@ symbols:
         target: REQ-opencode-kibi-briefing-v2
       - type: covered_by
         target: TEST-opencode-kibi-briefing-v2
+    sourceLine: 353
+    sourceColumn: 22
+    sourceEndLine: 407
+    sourceEndColumn: 1
   - id: SYM-kibiOpencodePlugin
     title: kibiOpencodePlugin
     sourceFile: packages/opencode/src/index.ts
@@ -340,6 +460,10 @@ symbols:
         target: REQ-mcp-kibi-briefing-v1
       - type: covered_by
         target: TEST-mcp-kibi-briefing-v1
+    sourceLine: 743
+    sourceColumn: 22
+    sourceEndLine: 919
+    sourceEndColumn: 1
   - id: SYM-updateGitIgnore
     title: updateGitIgnore
     sourceFile: packages/cli/src/commands/init-helpers.ts
@@ -350,6 +474,10 @@ symbols:
         target: REQ-cli-init
       - type: covered_by
         target: TEST-001
+    sourceLine: 135
+    sourceColumn: 16
+    sourceEndLine: 157
+    sourceEndColumn: 1
   - id: SYM-SYMBOLS_MANIFEST_COMMENT_BLOCK
     title: SYMBOLS_MANIFEST_COMMENT_BLOCK
     sourceFile: packages/cli/src/commands/sync/manifest.ts
@@ -360,6 +488,10 @@ symbols:
         target: REQ-core-extractors
       - type: covered_by
         target: TEST-007
+    sourceLine: 54
+    sourceColumn: 13
+    sourceEndLine: 60
+    sourceEndColumn: 1
   - id: SYM-INIT_KIBI_COMMAND_NAME
     title: INIT_KIBI_COMMAND_NAME
     sourceFile: packages/opencode/src/init-kibi-capability.ts
@@ -370,6 +502,10 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 13
+    sourceEndLine: 7
+    sourceEndColumn: 49
   - id: SYM-INIT_KIBI_COMMAND_TEMPLATE
     title: INIT_KIBI_COMMAND_TEMPLATE
     sourceFile: packages/opencode/src/init-kibi-capability.ts
@@ -380,6 +516,10 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 13
+    sourceEndLine: 8
+    sourceEndColumn: 62
   - id: SYM-INIT_KIBI_COMMAND_DESCRIPTION
     title: INIT_KIBI_COMMAND_DESCRIPTION
     sourceFile: packages/opencode/src/init-kibi-capability.ts
@@ -390,6 +530,10 @@ symbols:
         target: REQ-opencode-bootstrap-nudge
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 13
+    sourceEndLine: 9
+    sourceEndColumn: 92
   - id: SYM-LATEST_KB_SCHEMA_VERSION
     title: LATEST_KB_SCHEMA_VERSION
     sourceFile: packages/cli/src/utils/schema-version.ts
@@ -398,6 +542,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 41
   - id: SYM-normalizeSubjectKey
     title: normalizeSubjectKey
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -406,6 +554,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 94
+    sourceColumn: 16
+    sourceEndLine: 109
+    sourceEndColumn: 1
   - id: SYM-normalizePropertyKey
     title: normalizePropertyKey
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -414,6 +566,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 111
+    sourceColumn: 16
+    sourceEndLine: 124
+    sourceEndColumn: 1
   - id: SYM-buildStableRequirementIds
     title: buildStableRequirementIds
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -422,6 +578,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 126
+    sourceColumn: 16
+    sourceEndLine: 150
+    sourceEndColumn: 1
   - id: SYM-buildStrictWriteSet
     title: buildStrictWriteSet
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -430,6 +590,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 152
+    sourceColumn: 16
+    sourceEndLine: 259
+    sourceEndColumn: 1
   - id: SYM-modelRequirementClaims
     title: modelRequirementClaims
     sourceFile: packages/cli/src/utils/strict-modeling.ts
@@ -438,6 +602,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 261
+    sourceColumn: 16
+    sourceEndLine: 279
+    sourceEndColumn: 1
   - id: SYM-estimateNormativeSignalConfidence
     title: estimateNormativeSignalConfidence
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -446,6 +614,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+    sourceLine: 255
+    sourceColumn: 16
+    sourceEndLine: 275
+    sourceEndColumn: 1
   - id: SYM-extractRequirementClaim
     title: extractRequirementClaim
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -454,6 +626,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+    sourceLine: 277
+    sourceColumn: 16
+    sourceEndLine: 338
+    sourceEndColumn: 1
   - id: SYM-strictWriteSetToApplyPlan
     title: strictWriteSetToApplyPlan
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -462,6 +638,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+    sourceLine: 350
+    sourceColumn: 16
+    sourceEndLine: 384
+    sourceEndColumn: 1
   - id: SYM-writeSetPrimaryEntityId
     title: writeSetPrimaryEntityId
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -470,6 +650,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+    sourceLine: 386
+    sourceColumn: 16
+    sourceEndLine: 388
+    sourceEndColumn: 1
   - id: SYM-getWorkspaceMigrationWarning
     title: getWorkspaceMigrationWarning
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -478,6 +662,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-011
+    sourceLine: 390
+    sourceColumn: 22
+    sourceEndLine: 409
+    sourceEndColumn: 1
   - id: SYM-handleKbModelRequirement
     title: handleKbModelRequirement
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -486,6 +674,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+    sourceLine: 411
+    sourceColumn: 22
+    sourceEndLine: 455
+    sourceEndColumn: 1
   - id: SYM-getAutomationReview
     title: getAutomationReview
     sourceFile: packages/vscode/src/briefDocumentProvider.ts
@@ -494,7 +686,10 @@ symbols:
     relationships:
       - type: implements
         target: REQ-vscode-kibi-briefing-v3
-
+    sourceLine: 89
+    sourceColumn: 16
+    sourceEndLine: 95
+    sourceEndColumn: 1
   - id: SYM-usage-metrics-command
     title: usageMetricsCommand
     sourceFile: packages/cli/src/commands/usage-metrics.ts
@@ -503,3 +698,263 @@ symbols:
     relationships:
       - type: implements
         target: REQ-003
+    sourceLine: 75
+    sourceColumn: 22
+    sourceEndLine: 100
+    sourceEndColumn: 1
+  - id: SYM-PolicyLinkedEntityResult
+    title: PolicyLinkedEntityResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 10
+    sourceColumn: 17
+    sourceEndLine: 13
+    sourceEndColumn: 1
+  - id: SYM-EnforcementLifecycleEvent
+    title: EnforcementLifecycleEvent
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 15
+    sourceColumn: 17
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-CheckpointEvidence
+    title: CheckpointEvidence
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 20
+    sourceColumn: 12
+    sourceEndLine: 29
+    sourceEndColumn: 6
+  - id: SYM-EnforcementPolicyInput
+    title: EnforcementPolicyInput
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 54
+    sourceEndColumn: 1
+  - id: SYM-EnforcementPolicyResult
+    title: EnforcementPolicyResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 69
+    sourceColumn: 12
+    sourceEndLine: 88
+    sourceEndColumn: 7
+  - id: SYM-computeEnforcementPolicy
+    title: computeEnforcementPolicy
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 331
+    sourceColumn: 16
+    sourceEndLine: 422
+    sourceEndColumn: 1
+  - id: SYM-LinkedEntityResult
+    title: LinkedEntityResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 20
+    sourceColumn: 17
+    sourceEndLine: 23
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderParams
+    title: DeriveFileOperationReminderParams
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 25
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderResult
+    title: DeriveFileOperationReminderResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-deriveFileOperationReminder
+    title: deriveFileOperationReminder
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 61
+    sourceColumn: 16
+    sourceEndLine: 109
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointContext
+    title: KibiCheckpointContext
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRunnerOptions
+    title: KibiCheckpointRunnerOptions
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointMetadata
+    title: KibiCheckpointMetadata
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 53
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRequestResult
+    title: KibiCheckpointRequestResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 69
+    sourceColumn: 12
+    sourceEndLine: 72
+    sourceEndColumn: 61
+  - id: SYM-KibiCheckpointRunResult
+    title: KibiCheckpointRunResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 74
+    sourceColumn: 12
+    sourceEndLine: 77
+    sourceEndColumn: 55
+  - id: SYM-KibiCheckpointRunner
+    title: KibiCheckpointRunner
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 85
+    sourceColumn: 13
+    sourceEndLine: 349
+    sourceEndColumn: 1

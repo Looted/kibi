@@ -11,9 +11,9 @@ coordinates:
   SYM-002:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 261
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 64
+    sourceLine: 67
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -47,9 +47,9 @@ coordinates:
   SYM-GuidanceCache:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 165
     sourceFile: packages/opencode/src/guidance-cache.ts
-    sourceLine: 43
+    sourceLine: 46
   SYM-INIT_KIBI_COMMAND_DESCRIPTION:
     sourceColumn: 13
     sourceEndColumn: 92
@@ -77,13 +77,13 @@ coordinates:
   SYM-KibiCodeActionProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 109
     sourceFile: packages/vscode/src/codeActionProvider.ts
     sourceLine: 25
   SYM-KibiCodeLensProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 338
+    sourceEndLine: 309
     sourceFile: packages/vscode/src/codeLensProvider.ts
     sourceLine: 40
   SYM-KibiTreeDataProvider:
@@ -110,6 +110,18 @@ coordinates:
     sourceEndLine: 158
     sourceFile: packages/vscode/src/extension.ts
     sourceLine: 132
+  SYM-buildDirtyRelevantFingerprint:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 40
+  SYM-buildEnforcementScopeKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 23
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -200,18 +212,12 @@ coordinates:
     sourceEndLine: 455
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 411
-  SYM-handleKbQueryRelationships:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 151
-    sourceFile: packages/mcp/src/tools/query-relationships.ts
-    sourceLine: 65
   SYM-mergeStaticLinks:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 214
+    sourceEndLine: 184
     sourceFile: packages/vscode/src/codeLensProvider.ts
-    sourceLine: 192
+    sourceLine: 162
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -239,9 +245,9 @@ coordinates:
   SYM-parseSymbolsManifest:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 237
     sourceFile: packages/vscode/src/symbolIndex.ts
-    sourceLine: 102
+    sourceLine: 142
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -266,27 +272,99 @@ coordinates:
     sourceEndLine: 388
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 386
-  SYM-brief-marker-write:
-    sourceColumn: 13
+  SYM-CheckpointEvidence:
+    sourceColumn: 12
+    sourceEndColumn: 6
+    sourceEndLine: 29
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 20
+  SYM-DeriveFileOperationReminderParams:
+    sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 71
-    sourceFile: packages/mcp/src/utils/brief-marker.ts
-    sourceLine: 44
-  SYM-brief-marker-load:
-    sourceColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 25
+  SYM-DeriveFileOperationReminderResult:
+    sourceColumn: 17
     sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 43
+  SYM-EnforcementLifecycleEvent:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 15
+  SYM-EnforcementPolicyInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 31
+  SYM-EnforcementPolicyResult:
+    sourceColumn: 12
+    sourceEndColumn: 7
     sourceEndLine: 88
-    sourceFile: packages/opencode/src/utils/brief-marker.ts
-    sourceLine: 22
-  SYM-brief-marker-delete:
-    sourceColumn: 1
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 69
+  SYM-LinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 20
+  SYM-PolicyLinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 10
+  SYM-computeEnforcementPolicy:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 422
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 331
+  SYM-deriveFileOperationReminder:
+    sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 109
-    sourceFile: packages/opencode/src/utils/brief-marker.ts
-    sourceLine: 90
-  SYM-graph-narrator-generate:
-    sourceColumn: 1
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 61
+  SYM-KibiCheckpointContext:
+    sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 568
-    sourceFile: packages/opencode/src/graph-narrator.ts
-    sourceLine: 452
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 30
+  SYM-KibiCheckpointMetadata:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 53
+  SYM-KibiCheckpointRequestResult:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 72
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 69
+  SYM-KibiCheckpointRunResult:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 77
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 74
+  SYM-KibiCheckpointRunner:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 349
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 85
+  SYM-KibiCheckpointRunnerOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 43

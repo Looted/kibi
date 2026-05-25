@@ -1,4 +1,4 @@
-// implements REQ-opencode-smart-enforcement-v1
+// implements REQ-opencode-smart-enforcement-v1, REQ-opencode-worktree-hard-enforcement-v1
 import type { RepoPosture } from "./repo-posture.js";
 
 /**
@@ -7,15 +7,19 @@ import type { RepoPosture } from "./repo-posture.js";
  * - "strict": plugin may escalate targeted checks, completion reminders, and
  *   structured logging. Hooks/checks remain the hard enforcement boundary
  *   regardless of mode.
+ * - "hard": authoritative root-KB postures may hard-block through durable
+ *   hook/check boundaries, even when maintenance guidance is degraded.
  */
-export type EffectiveMode = "advisory" | "strict";
+// implements REQ-opencode-worktree-hard-enforcement-v1
+export type EffectiveMode = "advisory" | "strict" | "hard";
 
 /**
  * Inputs required to determine the effective smart-enforcement mode.
  */
+// implements REQ-opencode-worktree-hard-enforcement-v1
 export interface ModeInputs {
   /** Configured smart-enforcement mode. */
-  mode: "advisory" | "strict";
+  mode: "advisory" | "strict" | "hard";
   /** When true, strict mode only activates for authoritative root KB postures. */
   requireRootKbForStrict: boolean;
   /** Current repository posture from detectPosture(). */
@@ -59,9 +63,16 @@ export function isStrictEligible(inputs: ModeInputs): boolean {
  * - strict config + requireRootKbForStrict=false → strict may apply to all
  *   postures (but hooks/checks remain hard gate regardless)
  * - maintenance-degraded → advisory regardless of config
+ * - hard config → hard only for authoritative root-KB postures, even when
+ *   maintenance is degraded; non-authoritative postures stay advisory
  */
+// implements REQ-opencode-worktree-hard-enforcement-v1
 export function computeEffectiveMode(inputs: ModeInputs): EffectiveMode {
-  // implements REQ-opencode-smart-enforcement-v1
+  // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-worktree-hard-enforcement-v1
+  if (inputs.mode === "hard") {
+    return STRICT_ELIGIBLE_POSTURES.has(inputs.posture) ? "hard" : "advisory";
+  }
+
   // Maintenance-degraded always forces advisory
   if (inputs.maintenanceDegraded) {
     return "advisory";

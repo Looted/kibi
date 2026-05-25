@@ -7,6 +7,10 @@ import {
   type ReminderKind,
   createFileOperationState,
 } from "../src/file-operation-state";
+import {
+  type CacheKey,
+  GuidanceCache,
+} from "../src/guidance-cache";
 
 describe("file-operation-state", () => {
   let tmpDir: string;
@@ -263,6 +267,107 @@ describe("file-operation-state", () => {
       assert.equal(state2.peekPending("src/file.ts"), null);
       assert.equal(state2.hasShown("src/file.ts", "kibi_write"), false);
     });
+
+    it("keeps suppression separate for parallel worktree roots", () => {
+      const worktreeA = path.join(tmpDir, "worktree-a");
+      const worktreeB = path.join(tmpDir, "worktree-b");
+      fs.mkdirSync(path.join(worktreeA, "src"), { recursive: true });
+      fs.mkdirSync(path.join(worktreeB, "src"), { recursive: true });
+
+      const stateA = createFileOperationState({ worktree: worktreeA });
+      const stateB = createFileOperationState({ worktree: worktreeB });
+
+      stateA.recordLifecycle(path.join(worktreeA, "src", "shared.ts"), "edited", 1);
+      stateA.markShown(path.join(worktreeA, "src", "shared.ts"), "e2e_write");
+
+      assert.equal(
+        stateA.peekPending("src/shared.ts")?.normalizedPath,
+        path.normalize("src/shared.ts"),
+      );
+      assert.equal(
+        stateB.peekPending(path.join(worktreeB, "src", "shared.ts")),
+        null,
+      );
+      assert.equal(
+        stateB.hasShown(path.join(worktreeB, "src", "shared.ts"), "e2e_write"),
+        false,
+      );
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Enforcement scope cache isolation
+  // -------------------------------------------------------------------------
+
+  describe("enforcement scope cache isolation", () => {
+    it("builds deterministic scope keys that differ by session, worktree, branch, and dirty fingerprint", async () => {
+      const scopeModule = await import("../src/enforcement-scope").catch(
+        () => null,
+      );
+      assert.ok(scopeModule, "enforcement-scope module should exist");
+      const { buildEnforcementScopeKey } = scopeModule as {
+        buildEnforcementScopeKey(input: {
+          sessionId?: string;
+          agentIdentity?: string;
+          worktreeRoot: string;
+          branch: string;
+          dirtyRelevantFingerprint: string;
+        }): string;
+      };
+
+      const base = {
+        sessionId: "session-a",
+        agentIdentity: "sisyphus-junior",
+        worktreeRoot: "/repo/worktree-a",
+        branch: "feature-a",
+        dirtyRelevantFingerprint: "dirty-a",
+      };
+
+      assert.equal(buildEnforcementScopeKey(base), buildEnforcementScopeKey(base));
+      assert.notEqual(
+        buildEnforcementScopeKey(base),
+        buildEnforcementScopeKey({ ...base, sessionId: "session-b" }),
+      );
+      assert.notEqual(
+        buildEnforcementScopeKey(base),
+        buildEnforcementScopeKey({ ...base, worktreeRoot: "/repo/worktree-b" }),
+      );
+      assert.notEqual(
+        buildEnforcementScopeKey(base),
+        buildEnforcementScopeKey({ ...base, branch: "feature-b" }),
+      );
+      assert.notEqual(
+        buildEnforcementScopeKey(base),
+        buildEnforcementScopeKey({
+          ...base,
+          dirtyRelevantFingerprint: "dirty-b",
+        }),
+      );
+    });
+
+    it("uses hard enforcement scope key to isolate parallel session cache entries", () => {
+      const cache = new GuidanceCache(600000);
+      const baseKey: CacheKey = {
+        workspaceRoot: "/repo/worktree-a",
+        branch: "feature-a",
+        posture: "root_active",
+        riskClass: "behavior_candidate",
+        fileBucket: "code",
+      };
+      const sessionAKey = {
+        ...baseKey,
+        scopeKey: "session-a\0worktree-a\0dirty-a",
+      } as CacheKey & { scopeKey: string };
+      const sessionBKey = {
+        ...baseKey,
+        scopeKey: "session-b\0worktree-a\0dirty-a",
+      } as CacheKey & { scopeKey: string };
+
+      cache.recordSatisfied(sessionAKey, "hard-guidance");
+
+      assert.equal(cache.isSatisfied(sessionAKey), true);
+      assert.equal(cache.isSatisfied(sessionBKey), false);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -297,8 +402,9 @@ describe("file-operation-state", () => {
       const after = Date.now();
 
       const pending = state.peekPending("src/file.ts");
-      assert.ok(pending?.timestamp! >= before);
-      assert.ok(pending?.timestamp! <= after);
+      assert.ok(pending);
+      assert.ok(pending.timestamp >= before);
+      assert.ok(pending.timestamp <= after);
     });
   });
 });

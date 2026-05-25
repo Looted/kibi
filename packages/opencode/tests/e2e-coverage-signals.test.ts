@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { getE2eCoverageSignal } from "../src/e2e-coverage-signals";
+import { deriveFileOperationReminder } from "../src/file-operation-reminders";
 
 describe("getE2eCoverageSignal", () => {
   let tmpDir: string;
@@ -532,5 +533,32 @@ ${opts.body ?? "Test verification content."}
     );
 
     assert.equal(result.level, "exact");
+  });
+
+  test("hard policy preserves bounded e2e reminder when lifecycle enforcement hard-blocks", () => {
+    const result = deriveFileOperationReminder({
+      normalizedPath: "packages/opencode/src/toast.ts",
+      lifecycle: "edited",
+      pathKind: "code",
+      linkedEntityResult: { ids: ["REQ-toast"], source: "symbols" },
+      e2eSignal: {
+        level: "exact",
+        evidence: ["TEST-toast-e2e"],
+        reminderText:
+          "- This file has existing e2e coverage. Check whether the e2e tests and linked TEST entities need updates.",
+      },
+      currentSemanticRisk: "behavior_candidate",
+      posture: "root_active",
+      effectiveMode: "hard",
+      checkpointEvidence: false,
+    } as Parameters<typeof deriveFileOperationReminder>[0]);
+
+    assert.equal(result.policyDecision, "hard_block");
+    assert.match(result.lifecycleReminder ?? "", /TEST-toast-e2e/);
+    assert.equal(
+      result.e2eReminder,
+      "- This file has existing e2e coverage. Check whether the e2e tests and linked TEST entities need updates.",
+    );
+    assert.ok((result.e2eReminder ?? "").split("\n").length <= 1);
   });
 });

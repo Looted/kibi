@@ -6,6 +6,14 @@ import type { ReminderKind } from "./file-operation-state.js";
 import type {
   E2eCoverageSignal,
 } from "./e2e-coverage-signals.js";
+import {
+  computeEnforcementPolicy,
+  type CheckpointEvidence,
+  type EnforcementLifecycleEvent,
+  type EnforcementPolicyResult,
+} from "./enforcement-policy.js";
+import type { EffectiveMode } from "./smart-enforcement.js";
+import type { WorkContext } from "./work-context-resolver.js";
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -22,24 +30,30 @@ export interface DeriveFileOperationReminderParams {
   e2eSignal: E2eCoverageSignal;
   currentSemanticRisk: RiskClass;
   posture: RepoPosture;
+  effectiveMode?: EffectiveMode;
+  workContext?: WorkContext;
+  resolvedContext?: WorkContext;
+  lifecycleEvents?: EnforcementLifecycleEvent[];
+  pathKinds?: PathKind[];
+  linkedEntityResults?: LinkedEntityResult[];
+  e2eSignals?: E2eCoverageSignal[];
+  checkpointEvidence?: CheckpointEvidence;
 }
 
 export interface DeriveFileOperationReminderResult {
   lifecycleReminder: string | null;
   e2eReminder: string | null;
   reminderKindsToMark: ReminderKind[];
+  policyDecision: EnforcementPolicyResult["kind"];
+  policyResult: EnforcementPolicyResult;
 }
 
-// ── Lifecycle reminder text ─────────────────────────────────────
-
-const NEW_FILE_REMINDER =
-  "- New file detected. Add or update the necessary Kibi entities and traceability before completing this task.";
-
-const DELETED_WITH_IDS_REMINDER = (ids: string): string =>
-  `- Deleted file had linked Kibi entities: ${ids}. Update Kibi to keep traceability accurate.`;
-
-const DELETED_NO_IDS_REMINDER =
-  "- Deleted file had no linked Kibi entities. Update Kibi if this removal changes documented behavior or traceability.";
+function addUniqueReminderKind(
+  kinds: ReminderKind[],
+  kind: ReminderKind,
+): ReminderKind[] {
+  return kinds.includes(kind) ? kinds : [...kinds, kind];
+}
 
 // ── Main exported function ────────────────────────────────────
 
@@ -48,52 +62,40 @@ export function deriveFileOperationReminder(
   params: DeriveFileOperationReminderParams,
 ): DeriveFileOperationReminderResult {
   const {
+    normalizedPath,
     lifecycle,
     pathKind,
     linkedEntityResult,
     e2eSignal,
+    currentSemanticRisk,
     posture,
   } = params;
 
-  // Check if posture allows lifecycle reminders
-  const isAuthoritativePosture =
-    posture === "root_active" || posture === "hybrid_root_plus_vendored";
+  const policyResult = computeEnforcementPolicy({
+    resolvedContext: params.resolvedContext,
+    workContext: params.workContext,
+    effectiveMode: params.effectiveMode ?? "advisory",
+    lifecycleEvents: params.lifecycleEvents ?? [{ normalizedPath, lifecycle }],
+    pathKinds: params.pathKinds ?? [pathKind],
+    linkedEntityResults: params.linkedEntityResults ?? [linkedEntityResult],
+    e2eSignals: params.e2eSignals ?? [e2eSignal],
+    currentSemanticRisk,
+    checkpointEvidence: params.checkpointEvidence,
+    posture,
+  });
 
-  // Derive lifecycle reminder
-  let lifecycleReminder: string | null = null;
-  const reminderKindsToMark: ReminderKind[] = [];
-
-  if (isAuthoritativePosture) {
-    if (lifecycle === "created") {
-      // Only emit create reminder for code files (not documentation, not KB docs)
-      if (pathKind === "code") {
-        lifecycleReminder = NEW_FILE_REMINDER;
-        reminderKindsToMark.push("kibi_write");
-      }
-    } else if (lifecycle === "edited") {
-      // No generic lifecycle reminder for edited files
-      // Existing semantic risk guidance remains primary
-    } else if (lifecycle === "deleted") {
-      const ids = linkedEntityResult.ids;
-      if (ids.length > 0) {
-        lifecycleReminder = DELETED_WITH_IDS_REMINDER(ids.join(", "));
-        reminderKindsToMark.push("kibi_delete");
-      } else {
-        lifecycleReminder = DELETED_NO_IDS_REMINDER;
-        reminderKindsToMark.push("kibi_delete");
-      }
-    }
-  }
+  const lifecycleReminder = policyResult.text;
+  let reminderKindsToMark = [...policyResult.reminderKindsToMark];
 
   // Derive e2e reminder (only when e2e signal exists)
   // E2e reminders are NOT posture-gated - they're always relevant
-  let e2eReminder: string | null = null;
+  let e2eReminder = policyResult.e2eReminder;
   if (e2eSignal.level !== "none" && e2eSignal.reminderText !== null) {
     e2eReminder = e2eSignal.reminderText;
     if (lifecycle === "deleted") {
-      reminderKindsToMark.push("e2e_delete");
+      reminderKindsToMark = addUniqueReminderKind(reminderKindsToMark, "e2e_delete");
     } else {
-      reminderKindsToMark.push("e2e_write");
+      reminderKindsToMark = addUniqueReminderKind(reminderKindsToMark, "e2e_write");
     }
   }
 
@@ -101,5 +103,7 @@ export function deriveFileOperationReminder(
     lifecycleReminder,
     e2eReminder,
     reminderKindsToMark,
+    policyDecision: policyResult.kind,
+    policyResult,
   };
 }

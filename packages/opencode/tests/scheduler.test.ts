@@ -1,6 +1,12 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { DEFAULTS } from "../src/config";
+import {
+  KibiCheckpointRunner,
+  type KibiCheckpointContext,
+} from "../src/kibi-checkpoint-runner";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 
 type TimeoutToken = ReturnType<typeof setTimeout>;
@@ -42,6 +48,58 @@ async function flushAsync(): Promise<void> {
 }
 
 describe("sync scheduler", () => {
+  test("scheduler instances for parallel worktrees flush only their own pending sync", async () => {
+    const clock = createFakeClock();
+    const tmpDir = fs.mkdtempSync(path.join(process.cwd(), "test-scheduler-scope-"));
+    const worktreeA = path.join(tmpDir, "worktree-a");
+    const worktreeB = path.join(tmpDir, "worktree-b");
+    fs.mkdirSync(path.join(worktreeA, "documentation", "requirements"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(worktreeB, "documentation", "requirements"), {
+      recursive: true,
+    });
+    const runs: string[] = [];
+
+    try {
+      const makeScheduler = (worktree: string) =>
+        createSyncScheduler({
+          worktree,
+          config: {
+            ...DEFAULTS,
+            sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+          },
+          now: clock.now,
+          setTimeoutFn: clock.setTimeoutFn,
+          clearTimeoutFn: clock.clearTimeoutFn,
+          runSync: async (runWorktree) => {
+            runs.push(runWorktree);
+            return { exitCode: 0 };
+          },
+        });
+
+      const schedulerA = makeScheduler(worktreeA);
+      const schedulerB = makeScheduler(worktreeB);
+
+      schedulerA.scheduleSync(
+        "file.edited",
+        "documentation/requirements/REQ-A.md",
+      );
+      schedulerB.scheduleSync(
+        "file.edited",
+        "documentation/requirements/REQ-B.md",
+      );
+
+      await schedulerA.flush();
+      assert.deepEqual(runs, [path.resolve(worktreeA)]);
+
+      await schedulerB.flush();
+      assert.deepEqual(runs, [path.resolve(worktreeA), path.resolve(worktreeB)]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   test("three rapid relevant edits in one debounce window launch one sync", async () => {
     const clock = createFakeClock();
     let runs = 0;
@@ -664,4 +722,217 @@ test("runKibiSync normalizes empty stdout/stderr to undefined", async () => {
   assert.equal(completions[0]?.syncStdout, undefined);
   assert.equal(completions[0]?.syncStderr, undefined);
   assert.equal(completions[0]?.syncErrorMessage, undefined);
+});
+
+function createCheckpointContext(
+  overrides: Partial<KibiCheckpointContext> = {},
+): KibiCheckpointContext {
+  return {
+    workContext: {
+      worktreeRoot: process.cwd(),
+      kibiAuthorityRoot: process.cwd(),
+      branch: "main",
+      repoRelativePath: "packages/opencode/src/existing.ts",
+      posture: "root_active",
+      isAuthoritative: true,
+      isLinkedWorktree: false,
+      sessionId: "session-a",
+      agentIdentity: "agent-a",
+    },
+    filePath: "packages/opencode/src/existing.ts",
+    checkRules: ["symbol-traceability"],
+    config: {
+      ...DEFAULTS,
+      sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 0 },
+    },
+    ...overrides,
+  };
+}
+
+describe("KibiCheckpointRunner", () => {
+  test("runCheckpoint records evidence after hard guidance and successful sync/check", async () => {
+    const completions: SyncRunMetadata[] = [];
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 0 }),
+      onRunComplete: (meta) => completions.push(meta),
+    });
+    const context = createCheckpointContext();
+
+    assert.equal(runner.isCheckpointPassed("fingerprint-1", context), false);
+    const request = runner.requestCheckpoint(context, "fingerprint-1");
+    assert.equal(request.kind, "requested");
+
+    const result = await runner.runCheckpoint(context, "fingerprint-1");
+
+    assert.equal(result.kind, "passed");
+    assert.equal(completions.length, 1);
+    assert.equal(result.metadata.sync?.exitCode, 0);
+    assert.equal(result.metadata.sync?.checkExitCode, 0);
+    assert.deepEqual(result.metadata.sync?.checkRules, ["symbol-traceability"]);
+    assert.equal(runner.isCheckpointPassed("fingerprint-1", context), true);
+  });
+
+  test("runCheckpoint hard-blocks when targeted check fails", async () => {
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 1 }),
+    });
+    const context = createCheckpointContext();
+
+    runner.requestCheckpoint(context, "fingerprint-check-fail");
+    const result = await runner.runCheckpoint(context, "fingerprint-check-fail");
+
+    assert.equal(result.kind, "hard_block");
+    assert.equal(result.metadata.reason, "check_failed");
+    assert.equal(result.metadata.sync?.exitCode, 0);
+    assert.equal(result.metadata.sync?.checkExitCode, 1);
+    assert.equal(runner.isCheckpointPassed("fingerprint-check-fail", context), false);
+  });
+
+  test("runCheckpoint hard-blocks when sync fails", async () => {
+    let checkRuns = 0;
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => ({ exitCode: 1 }),
+      runCheck: async () => {
+        checkRuns += 1;
+        return { exitCode: 0 };
+      },
+    });
+    const context = createCheckpointContext();
+
+    runner.requestCheckpoint(context, "fingerprint-sync-fail");
+    const result = await runner.runCheckpoint(context, "fingerprint-sync-fail");
+
+    assert.equal(result.kind, "hard_block");
+    assert.equal(result.metadata.reason, "sync_failed");
+    assert.equal(result.metadata.sync?.exitCode, 1);
+    assert.equal(result.metadata.sync?.checkExitCode, undefined);
+    assert.equal(checkRuns, 0);
+  });
+
+  test("runCheckpoint hard-blocks with timeout metadata after 30 seconds", async () => {
+    let timeoutMs: number | undefined;
+    let timeoutCallback: (() => void) | undefined;
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => new Promise(() => {}),
+      runCheck: async () => ({ exitCode: 0 }),
+      setTimeoutFn: (fn, ms) => {
+        timeoutCallback = fn;
+        timeoutMs = ms;
+        return 1 as unknown as ReturnType<typeof setTimeout>;
+      },
+      clearTimeoutFn: () => {},
+    });
+    const context = createCheckpointContext();
+
+    runner.requestCheckpoint(context, "fingerprint-timeout");
+    const pending = runner.runCheckpoint(context, "fingerprint-timeout");
+    await flushAsync();
+    assert.equal(timeoutMs, 30_000);
+    timeoutCallback?.();
+
+    const result = await pending;
+
+    assert.equal(result.kind, "hard_block");
+    assert.equal(result.metadata.reason, "timeout");
+    assert.equal(result.metadata.timeoutMs, 30_000);
+    assert.equal(runner.isCheckpointPassed("fingerprint-timeout", context), false);
+  });
+
+  test("runCheckpoint hard-blocks maintenance-degraded authoritative roots", async () => {
+    let syncRuns = 0;
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => {
+        syncRuns += 1;
+        return { exitCode: 0 };
+      },
+      runCheck: async () => ({ exitCode: 0 }),
+    });
+    const context = createCheckpointContext({ maintenanceDegraded: true });
+
+    runner.requestCheckpoint(context, "fingerprint-degraded");
+    const result = await runner.runCheckpoint(context, "fingerprint-degraded");
+
+    assert.equal(result.kind, "hard_block");
+    assert.equal(result.metadata.reason, "maintenance_degraded");
+    assert.match(result.metadata.restoreInstructions ?? "", /restore/i);
+    assert.equal(syncRuns, 0);
+  });
+
+  test("runCheckpoint skips non-authoritative roots", async () => {
+    let syncRuns = 0;
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => {
+        syncRuns += 1;
+        return { exitCode: 0 };
+      },
+      runCheck: async () => ({ exitCode: 0 }),
+    });
+    const context = createCheckpointContext({
+      workContext: {
+        worktreeRoot: path.join(process.cwd(), "vendor", "kibi"),
+        kibiAuthorityRoot: process.cwd(),
+        branch: "main",
+        repoRelativePath: "vendor/kibi/packages/opencode/src/existing.ts",
+        posture: "vendored_only",
+        isAuthoritative: false,
+        isLinkedWorktree: false,
+        sessionId: "session-a",
+        agentIdentity: "agent-a",
+      },
+    });
+
+    const result = await runner.runCheckpoint(context, "fingerprint-non-authoritative");
+
+    assert.equal(result.kind, "skip");
+    assert.equal(result.metadata.reason, "non_authoritative");
+    assert.equal(syncRuns, 0);
+  });
+
+  test("isCheckpointPassed stays false before checkpoint and true after passed checkpoint", async () => {
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 0 }),
+    });
+    const context = createCheckpointContext();
+
+    assert.equal(runner.isCheckpointPassed("fingerprint-before-after", context), false);
+    runner.requestCheckpoint(context, "fingerprint-before-after");
+    await runner.runCheckpoint(context, "fingerprint-before-after");
+
+    assert.equal(runner.isCheckpointPassed("fingerprint-before-after", context), true);
+  });
+
+  test("passing one fingerprint does not pass another fingerprint", async () => {
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => ({ exitCode: 0 }),
+      runCheck: async () => ({ exitCode: 0 }),
+    });
+    const context = createCheckpointContext();
+
+    runner.requestCheckpoint(context, "fingerprint-1");
+    await runner.runCheckpoint(context, "fingerprint-1");
+
+    assert.equal(runner.isCheckpointPassed("fingerprint-1", context), true);
+    assert.equal(runner.isCheckpointPassed("fingerprint-2", context), false);
+  });
+
+  test("runCheckpoint does not pass when hard guidance was not requested for the fingerprint", async () => {
+    let syncRuns = 0;
+    const runner = new KibiCheckpointRunner({
+      runSync: async () => {
+        syncRuns += 1;
+        return { exitCode: 0 };
+      },
+      runCheck: async () => ({ exitCode: 0 }),
+    });
+    const context = createCheckpointContext();
+
+    const result = await runner.runCheckpoint(context, "fingerprint-without-guidance");
+
+    assert.equal(result.kind, "hard_block");
+    assert.equal(result.metadata.reason, "checkpoint_not_requested");
+    assert.equal(syncRuns, 0);
+  });
 });

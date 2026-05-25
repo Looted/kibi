@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import * as logger from "./logger.js";
 
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export interface KibiConfig {
   enabled: boolean;
   prompt: {
@@ -42,7 +42,7 @@ toastSuccesses: boolean;
     };
     smartEnforcement: {
       enabled: boolean;
-      mode: "advisory" | "strict";
+      mode: "advisory" | "strict" | "hard";
       preflightTtlMs: number;
       idleResetMs: number;
       degradedMode: "warn-once" | "structured-only";
@@ -109,7 +109,7 @@ function readJsonIfExists(filePath: string): unknown | null {
   }
 }
 
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export function validateAndMerge(obj: unknown): KibiConfig {
   if (!obj || typeof obj !== "object") {
     logger.warn("Config is not an object, using defaults");
@@ -208,7 +208,7 @@ export function validateAndMerge(obj: unknown): KibiConfig {
       };
       if (typeof se.enabled === "boolean")
         out.guidance.smartEnforcement.enabled = se.enabled;
-      if (se.mode === "advisory" || se.mode === "strict")
+      if (se.mode === "advisory" || se.mode === "strict" || se.mode === "hard")
         out.guidance.smartEnforcement.mode = se.mode;
       if (typeof se.preflightTtlMs === "number")
         out.guidance.smartEnforcement.preflightTtlMs = se.preflightTtlMs;

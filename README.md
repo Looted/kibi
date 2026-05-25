@@ -121,7 +121,7 @@ Create `.vscode/mcp.json`:
     "kibi": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "kibi-mcp"]
+      "args": ["--no-install", "kibi-mcp"]
     }
   }
 }

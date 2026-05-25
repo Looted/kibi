@@ -4,6 +4,7 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { deriveFileOperationReminder } from "../src/file-operation-reminders";
 import { getSourceLinkedRequirementIds } from "../src/source-linked-guidance";
 
 describe("getSourceLinkedRequirementIds", () => {
@@ -208,5 +209,27 @@ describe("getSourceLinkedRequirementIds", () => {
     );
     // REQ-B appears in both rows but should be deduped, preserving first occurrence
     assert.deepEqual(ids, ["REQ-A", "REQ-B", "REQ-C"]);
+  });
+
+  test("hard policy deletion guidance uses sourceFile MCP cleanup instructions when source links are missing", () => {
+    const result = deriveFileOperationReminder({
+      normalizedPath: "src/removed.ts",
+      lifecycle: "deleted",
+      pathKind: "code",
+      linkedEntityResult: { ids: [], source: "none" },
+      e2eSignal: { level: "none", evidence: [], reminderText: null },
+      currentSemanticRisk: "safe_docs_only",
+      posture: "root_active",
+      effectiveMode: "hard",
+      checkpointEvidence: false,
+    } as Parameters<typeof deriveFileOperationReminder>[0]);
+
+    assert.equal(result.policyDecision, "hard_block");
+    assert.match(result.lifecycleReminder ?? "", /kb_search/);
+    assert.match(result.lifecycleReminder ?? "", /kb_query/);
+    assert.match(result.lifecycleReminder ?? "", /sourceFile/);
+    assert.match(result.lifecycleReminder ?? "", /src\/removed\.ts/);
+    assert.match(result.lifecycleReminder ?? "", /kb_upsert/);
+    assert.doesNotMatch(result.lifecycleReminder ?? "", /kibi\s+sync|kibi\s+query/i);
   });
 });

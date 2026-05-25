@@ -1,5 +1,6 @@
 import { describe, it } from "bun:test";
 import { strict as assert } from "node:assert";
+import { validateAndMerge } from "../src/config";
 import type { RepoPosture } from "../src/repo-posture";
 import {
   type ModeInputs,
@@ -16,6 +17,38 @@ const ALL_POSTURES: RepoPosture[] = [
   "vendored_only",
   "hybrid_root_plus_vendored",
 ];
+
+describe("smart enforcement config validation", () => {
+  it('accepts mode="hard" in validateAndMerge', () => {
+    const cfg = validateAndMerge({
+      guidance: {
+        smartEnforcement: {
+          mode: "hard",
+        },
+      },
+    });
+
+    assert.equal(cfg.guidance.smartEnforcement.mode, "hard");
+  });
+
+  it('falls back to advisory for mode="invalid"', () => {
+    const cfg = validateAndMerge({
+      guidance: {
+        smartEnforcement: {
+          mode: "invalid",
+        },
+      },
+    });
+
+    assert.equal(cfg.guidance.smartEnforcement.mode, "advisory");
+  });
+
+  it('defaults mode to "advisory"', () => {
+    const cfg = validateAndMerge({});
+
+    assert.equal(cfg.guidance.smartEnforcement.mode, "advisory");
+  });
+});
 
 function makeInputs(overrides: Partial<ModeInputs>): ModeInputs {
   return {
@@ -153,6 +186,65 @@ describe("computeEffectiveMode decision matrix", () => {
         }),
       );
       assert.equal(result, "advisory");
+    });
+  });
+
+  describe("hard config hard-blocks only authoritative postures", () => {
+    it("hard + root_active → hard", () => {
+      const result = computeEffectiveMode(
+        makeInputs({
+          mode: "hard",
+          posture: "root_active",
+        }),
+      );
+
+      assert.equal(result, "hard");
+    });
+
+    it("hard + root_active + degraded → hard", () => {
+      const result = computeEffectiveMode(
+        makeInputs({
+          mode: "hard",
+          posture: "root_active",
+          maintenanceDegraded: true,
+        }),
+      );
+
+      assert.equal(result, "hard");
+    });
+
+    it("hard + hybrid_root_plus_vendored + degraded → hard", () => {
+      const result = computeEffectiveMode(
+        makeInputs({
+          mode: "hard",
+          posture: "hybrid_root_plus_vendored",
+          maintenanceDegraded: true,
+        }),
+      );
+
+      assert.equal(result, "hard");
+    });
+
+    it("hard + vendored_only → advisory", () => {
+      const result = computeEffectiveMode(
+        makeInputs({
+          mode: "hard",
+          posture: "vendored_only",
+        }),
+      );
+
+      assert.equal(result, "advisory");
+    });
+
+    it("strict + root_active → strict", () => {
+      const result = computeEffectiveMode(
+        makeInputs({
+          mode: "strict",
+          posture: "root_active",
+        }),
+      );
+
+      assert.equal(result, "strict");
     });
   });
 });

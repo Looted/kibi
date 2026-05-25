@@ -11,13 +11,22 @@ import {
   analyzeCodeFile,
 } from "./comment-analysis.js";
 import { getE2eCoverageSignal } from "./e2e-coverage-signals.js"; // implements REQ-opencode-file-context-guidance-v1
+import {
+  buildDirtyRelevantFingerprint,
+  buildEnforcementScopeKey,
+} from "./enforcement-scope.js";
 import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements REQ-opencode-file-context-guidance-v1
 import * as fileFilter from "./file-filter.js";
 import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
 import {
+  type FileOperationState,
   type FileLifecycle,
   createFileOperationState,
 } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
+import {
+  KibiCheckpointRunner,
+  type KibiCheckpointContext,
+} from "./kibi-checkpoint-runner.js";
 import {
   getInitKibiCommandCapability,
   registerInitKibiCommand,
@@ -45,8 +54,10 @@ import { SENTINEL, buildPrompt } from "./prompt.js";
 import { reconcileAuditEntries } from "./reconcile-engine.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
+import { createSyncScheduler, type SyncScheduler } from "./scheduler.js";
 import {
   type SessionEditEntry,
+  type SessionEditState,
   createSessionEditState,
 } from "./session-edit-state.js";
 import {
@@ -69,6 +80,10 @@ import {
   deletePendingBriefMarkers,
   loadPendingBriefMarkers,
 } from "./utils/brief-marker.js";
+import {
+  type WorkContext,
+  resolveWorkContext,
+} from "./work-context-resolver.js";
 
 type ToastCapableClient = SendToastClient;
 
@@ -116,6 +131,7 @@ export interface PluginInput {
   worktree: string;
   directory: string;
   sessionId?: string;
+  agentIdentity?: string;
   serverUrl?: unknown;
 
   workspace?: string;
@@ -281,7 +297,7 @@ const kibiOpencodePlugin: Plugin = async (
     currentBranch,
     cache,
     runtimeOverlay,
-    scheduler,
+    scheduler: startupScheduler,
     maintenanceDegraded,
     getMaintenanceDegraded,
     getEffectiveMode,
@@ -310,12 +326,181 @@ const kibiOpencodePlugin: Plugin = async (
   const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
   let lastRiskFilePath: string | null = null;
-  const sessionEditState = createSessionEditState({ worktree: input.worktree });
-  const fileOperationState = createFileOperationState({
-    worktree: input.worktree,
-  }); // implements REQ-opencode-file-context-guidance-v1
+  let lastRiskScopeKey: string | null = null;
+  const schedulerRegistry = new Map<string, SyncScheduler>();
+  if (startupScheduler) {
+    schedulerRegistry.set(path.resolve(input.worktree), startupScheduler);
+  }
+  const schedulerFactoryGlobals = globalThis as typeof globalThis & {
+    __kibi_test_scheduler_factory_by_worktree?: Map<
+      string,
+      typeof createSyncScheduler
+    >;
+    __kibi_test_scheduler_factory?: typeof createSyncScheduler;
+  };
+  const sessionEditStateRegistry = new Map<string, SessionEditState>();
+  const fileOperationStateRegistry = new Map<string, FileOperationState>();
+  const checkpointRunnerRegistry = new Map<string, KibiCheckpointRunner>();
+  const pathKindCacheRegistry = new Map<string, Map<string, PathKind>>();
+
+  function resolveScopedWorkContext(filePath?: string): WorkContext {
+    return resolveWorkContext({
+      inputDirectory: input.directory,
+      inputWorktree: input.worktree,
+      ...(filePath !== undefined ? { filePath } : {}),
+      ...(input.sessionId !== undefined ? { sessionId: input.sessionId } : {}),
+      ...(input.agentIdentity !== undefined
+        ? { agentIdentity: input.agentIdentity }
+        : {}),
+    });
+  }
+
+  function buildStateScopeKey(context: WorkContext, lane: string): string {
+    return buildEnforcementScopeKey({
+      sessionId: context.sessionId,
+      agentIdentity: context.agentIdentity,
+      worktreeRoot: context.worktreeRoot,
+      branch: context.branch,
+      dirtyRelevantFingerprint: lane,
+    });
+  }
+
+  function getSessionEditState(context: WorkContext): SessionEditState {
+    const key = buildStateScopeKey(context, "session-edits");
+    let state = sessionEditStateRegistry.get(key);
+    if (!state) {
+      state = createSessionEditState({ worktree: context.worktreeRoot });
+      sessionEditStateRegistry.set(key, state);
+    }
+    return state;
+  }
+
+  function getFileOperationState(context: WorkContext): FileOperationState {
+    const key = buildStateScopeKey(context, "file-operations");
+    let state = fileOperationStateRegistry.get(key);
+    if (!state) {
+      state = createFileOperationState({
+        worktree: context.worktreeRoot,
+      }); // implements REQ-opencode-file-context-guidance-v1
+      fileOperationStateRegistry.set(key, state);
+    }
+    return state;
+  }
+
+  function getCheckpointRunnerForContext(
+    context: WorkContext,
+  ): KibiCheckpointRunner {
+    const key = buildStateScopeKey(context, "checkpoint-runner");
+    let runner = checkpointRunnerRegistry.get(key);
+    if (!runner) {
+      runner = new KibiCheckpointRunner({
+        config: cfg,
+        onRunComplete: (meta) => {
+          const normalizedReason = meta.reason.endsWith(".trailing")
+            ? meta.reason.slice(0, -".trailing".length)
+            : meta.reason;
+          const isSmartEnforcementSync = normalizedReason.startsWith(
+            "smart-enforcement.",
+          );
+          if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
+            latchRuntimeDegraded("scheduler_sync_failed");
+          }
+          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+            latchRuntimeDegraded("scheduler_check_failed");
+          }
+        },
+      });
+      checkpointRunnerRegistry.set(key, runner);
+    }
+    return runner;
+  }
+
+  function getPathKindCache(context: WorkContext): Map<string, PathKind> {
+    const key = buildStateScopeKey(context, "path-kind-cache");
+    let scopedCache = pathKindCacheRegistry.get(key);
+    if (!scopedCache) {
+      scopedCache = new Map<string, PathKind>();
+      pathKindCacheRegistry.set(key, scopedCache);
+    }
+    return scopedCache;
+  }
+
+  function getSchedulerForContext(context: WorkContext): SyncScheduler | null {
+    if (!cfg.sync.enabled) {
+      return null;
+    }
+    const worktreeRoot = path.resolve(context.worktreeRoot);
+    const existing = schedulerRegistry.get(worktreeRoot);
+    if (existing) {
+      return existing;
+    }
+
+    const schedulerFactory: typeof createSyncScheduler =
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory_by_worktree?.get(
+        worktreeRoot,
+      ) ??
+      schedulerFactoryGlobals.__kibi_test_scheduler_factory ??
+      createSyncScheduler;
+
+    try {
+      const scopedScheduler = schedulerFactory({
+        worktree: worktreeRoot,
+        config: cfg,
+        onRunComplete: (meta) => {
+          const normalizedReason = meta.reason.endsWith(".trailing")
+            ? meta.reason.slice(0, -".trailing".length)
+            : meta.reason;
+          const isSmartEnforcementSync = normalizedReason.startsWith(
+            "smart-enforcement.",
+          );
+          if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
+            latchRuntimeDegraded("scheduler_sync_failed");
+          }
+          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+            latchRuntimeDegraded("scheduler_check_failed");
+          }
+        },
+      });
+      schedulerRegistry.set(worktreeRoot, scopedScheduler);
+      return scopedScheduler;
+    } catch {
+      latchRuntimeDegraded("scheduler_unavailable");
+      return null;
+    }
+  }
+
+  function buildScopedCacheKey(
+    context: WorkContext,
+    riskClass: RiskClass,
+    fileBucket: string,
+    dirtyRelevantInputs: Iterable<string | null | undefined>,
+  ): CacheKey {
+    const cacheKey: CacheKey = {
+      workspaceRoot: context.worktreeRoot,
+      branch: context.branch,
+      posture: context.posture,
+      riskClass,
+      fileBucket,
+    };
+    if (getEffectiveMode() === "hard") {
+      cacheKey.scopeKey = buildEnforcementScopeKey({
+        sessionId: context.sessionId,
+        agentIdentity: context.agentIdentity,
+        worktreeRoot: context.worktreeRoot,
+        branch: context.branch,
+        dirtyRelevantFingerprint:
+          buildDirtyRelevantFingerprint(dirtyRelevantInputs),
+      });
+    }
+    return cacheKey;
+  }
+
+  const rootWorkContext = resolveScopedWorkContext();
+  const sessionEditState = getSessionEditState(rootWorkContext);
+  const fileOperationState = getFileOperationState(rootWorkContext);
+  const scheduler = getSchedulerForContext(rootWorkContext);
   let degradedWarnedOnce = false;
-  const pathKindCache = new Map<string, PathKind>();
+  const pathKindCache = getPathKindCache(rootWorkContext);
 
   // Idle-brief state — dedupe via semantic contentHash (persisted envelope is the delivery authority)
   let idleBriefInFlight = false;
@@ -350,19 +535,23 @@ const kibiOpencodePlugin: Plugin = async (
 
   syncSessionBaseline(currentBranch);
 
-  function normalizeSessionPath(filePath: string): string {
+  function normalizeSessionPath(filePath: string, worktree = input.worktree): string {
     if (path.isAbsolute(filePath)) {
-      const relativePath = path.relative(input.worktree, filePath);
+      const relativePath = path.relative(worktree, filePath);
       return relativePath.startsWith("..") ? filePath : relativePath;
     }
     return filePath;
   }
 
-function resolveWorktreePath(filePath: string): string {
-    return input.worktree && !path.isAbsolute(filePath)
-      ? path.join(input.worktree, filePath)
+function resolveWorktreePath(filePath: string, worktree = input.worktree): string {
+    return worktree && !path.isAbsolute(filePath)
+      ? path.join(worktree, filePath)
       : filePath;
 }
+
+  function buildRiskPathScopeKey(context: WorkContext, filePath: string): string {
+    return `${buildStateScopeKey(context, "risk")}:${normalizeSessionPath(filePath, context.worktreeRoot)}`;
+  }
 
 function getKbSnapshotFingerprint(worktree: string, branch: string): string {
   try {
@@ -425,9 +614,9 @@ function buildSyntheticSyncAuditDelta(
     return normalizeSessionPath(directPath);
   }
 
-  function readFileContent(filePath: string): string {
+  function readFileContent(filePath: string, worktree = input.worktree): string {
     try {
-      return fs.readFileSync(resolveWorktreePath(filePath), "utf-8");
+      return fs.readFileSync(resolveWorktreePath(filePath, worktree), "utf-8");
     } catch {
       return "";
     }
@@ -435,33 +624,38 @@ function buildSyntheticSyncAuditDelta(
 
   function updateRecentEditsFromSession(
     sessionEdits: SessionEditEntry[],
+    scopedPathKindCache: Map<string, PathKind>,
   ): RecentEdit[] {
     recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((entry) => ({
       path: entry.filePath,
-      kind: pathKindCache.get(entry.filePath) ?? "unknown",
+      kind: scopedPathKindCache.get(entry.filePath) ?? "unknown",
       timestamp: entry.lastReconciledAt,
     }));
     return recentEdits;
   }
 
-  function deriveRiskContext(filePath: string): {
+  function deriveRiskContext(
+    context: WorkContext,
+    filePath: string,
+    scopedPathKindCache: Map<string, PathKind>,
+  ): {
     effectiveRiskClass: RiskClass;
     pathAnalysis: ReturnType<typeof analyzePath>;
     hasMustPriority: boolean;
     precomputedSuggestion: CommentAnalysisResult | null;
   } {
-    const normalizedFilePath = normalizeSessionPath(filePath);
-    const pathAnalysis = analyzePath(normalizedFilePath, input.worktree);
-    pathKindCache.set(normalizedFilePath, pathAnalysis.kind);
-    const fileContent = readFileContent(normalizedFilePath);
+    const normalizedFilePath = normalizeSessionPath(filePath, context.worktreeRoot);
+    const pathAnalysis = analyzePath(normalizedFilePath, context.worktreeRoot);
+    scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
+    const fileContent = readFileContent(normalizedFilePath, context.worktreeRoot);
     const hasMustPriority =
       pathAnalysis.kind === "requirement"
-        ? isMustPriorityRequirement(normalizedFilePath, input.worktree)
+        ? isMustPriorityRequirement(normalizedFilePath, context.worktreeRoot)
         : false;
     let precomputedSuggestion: CommentAnalysisResult | null = null;
     if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
       precomputedSuggestion = analyzeCodeFile(
-        resolveWorktreePath(normalizedFilePath),
+        resolveWorktreePath(normalizedFilePath, context.worktreeRoot),
         {
           minLines: cfg.guidance.commentDetection.minLines,
         },
@@ -482,6 +676,7 @@ function buildSyntheticSyncAuditDelta(
       pathAnalysis.kind === "code" ? precomputedSuggestion : null;
     lastRiskClass = effectiveRiskClass;
     lastRiskFilePath = normalizedFilePath;
+    lastRiskScopeKey = buildRiskPathScopeKey(context, normalizedFilePath);
     return {
       effectiveRiskClass,
       pathAnalysis,
@@ -490,34 +685,42 @@ function buildSyntheticSyncAuditDelta(
     };
   }
 
-  function buildBriefingWorkspaceContext(): BriefingWorkspaceCtx {
+  function buildBriefingWorkspaceContext(
+    context: WorkContext = rootWorkContext,
+    branch = context.branch,
+  ): BriefingWorkspaceCtx {
     return {
-      workspaceRoot: input.worktree,
-      branch: currentBranch,
-      directory: input.directory,
+      workspaceRoot: context.worktreeRoot,
+      branch,
+      directory: context.worktreeRoot,
       ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
     };
   }
 
   function buildWorkspaceContextForBranch(
     branch: string,
+    context: WorkContext = rootWorkContext,
   ): BriefingWorkspaceCtx {
     return {
-      ...buildBriefingWorkspaceContext(),
+      ...buildBriefingWorkspaceContext(context),
       branch,
     };
   }
 
   function queueBriefingFetch(
     intentResult: ReturnType<typeof computeBriefIntent>,
-    options: { skipIfCachedResultExists?: boolean } = {},
+    options: {
+      skipIfCachedResultExists?: boolean;
+      workspaceCtx?: BriefingWorkspaceCtx;
+      postureState?: WorkContext["posture"];
+    } = {},
   ): void {
     if (
       !intentResult.eligible ||
       !input.client ||
       getMaintenanceDegraded() ||
-      (posture.state !== "root_active" &&
-        posture.state !== "hybrid_root_plus_vendored")
+      ((options.postureState ?? posture.state) !== "root_active" &&
+        (options.postureState ?? posture.state) !== "hybrid_root_plus_vendored")
     ) {
       return;
     }
@@ -529,7 +732,7 @@ function buildSyntheticSyncAuditDelta(
     }
     const client = input.client;
     const fingerprint = intentResult.fingerprint;
-    const workspaceCtx = buildBriefingWorkspaceContext();
+    const workspaceCtx = options.workspaceCtx ?? buildBriefingWorkspaceContext();
     void fetchBriefingResult(client, workspaceCtx, intentResult).then(
       (result) => {
         autoBriefResults.set(fingerprint, result);
@@ -747,6 +950,15 @@ function buildSyntheticSyncAuditDelta(
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
     if (!filePath) return;
+    const eventContext = resolveScopedWorkContext(filePath);
+    const scopedSessionEditState = getSessionEditState(eventContext);
+    const scopedFileOperationState = getFileOperationState(eventContext);
+    const scopedPathKindCache = getPathKindCache(eventContext);
+    const scopedScheduler = getSchedulerForContext(eventContext);
+    const normalizedFilePath = normalizeSessionPath(
+      filePath,
+      eventContext.worktreeRoot,
+    );
 
     // Record lifecycle event into file-operation-state // implements REQ-opencode-file-context-guidance-v1
     const lifecycle: FileLifecycle =
@@ -755,84 +967,85 @@ function buildSyntheticSyncAuditDelta(
         : event.type === "file.deleted"
           ? "deleted"
           : "edited";
-    fileOperationState.recordLifecycle(filePath, lifecycle, Date.now());
-    fileOperationState.normalizePath(filePath);
+    scopedFileOperationState.recordLifecycle(filePath, lifecycle, Date.now());
+    scopedFileOperationState.normalizePath(filePath);
 
-    const pathAnalysis = analyzePath(filePath, input.worktree);
+    const pathAnalysis = analyzePath(normalizedFilePath, eventContext.worktreeRoot);
 
     // For file.deleted: derive path kind without reading content, classify for reminder routing only
     if (lifecycle === "deleted") {
       // Preserve last known semantic risk if path was already tracked during session
-      const lastKnownKind = pathKindCache.get(filePath);
+      const lastKnownKind = scopedPathKindCache.get(normalizedFilePath);
       if (lastKnownKind) {
         // Path was tracked — preserve last known semantic risk for reminder routing
-        pathKindCache.set(filePath, pathAnalysis.kind);
+        scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
       } else {
         // Not tracked — classify only for reminder routing, not auto-briefing
-        pathKindCache.set(filePath, pathAnalysis.kind);
+        scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
       }
-      sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
-      sessionEditState.reconcilePath(filePath);
-      const sessionEdits = sessionEditState.getSessionEdits();
-      recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((e) => ({
-        path: e.filePath,
-        kind: pathKindCache.get(e.filePath) ?? "unknown",
-        timestamp: e.lastReconciledAt,
-      }));
+      scopedSessionEditState.recordEventHint(
+        normalizedFilePath,
+        pathAnalysis.kind,
+        Date.now(),
+      );
+      scopedSessionEditState.reconcilePath(normalizedFilePath);
+      const sessionEdits = scopedSessionEditState.getSessionEdits();
+      updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
       // Schedule background sync for deleted files that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
       if (
         cfg.sync.enabled &&
-        scheduler &&
-        fileFilter.shouldHandleFile(filePath, input.worktree)
+        scopedScheduler &&
+        fileFilter.shouldHandleFile(
+          normalizedFilePath,
+          eventContext.worktreeRoot,
+        )
       ) {
-        scheduler.scheduleSync("file.deleted", filePath);
+        scopedScheduler.scheduleSync("file.deleted", normalizedFilePath);
       }
 
       return;
     }
 
-    sessionEditState.recordEventHint(filePath, pathAnalysis.kind, Date.now());
-    sessionEditState.reconcilePath(filePath);
-    pathKindCache.set(filePath, pathAnalysis.kind);
-    const sessionEdits = sessionEditState.getSessionEdits();
-    const focusEdit = sessionEditState.getFocusEdit();
+    scopedSessionEditState.recordEventHint(
+      normalizedFilePath,
+      pathAnalysis.kind,
+      Date.now(),
+    );
+    scopedSessionEditState.reconcilePath(normalizedFilePath);
+    scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
+    const sessionEdits = scopedSessionEditState.getSessionEdits();
+    const focusEdit = scopedSessionEditState.getFocusEdit();
 
     // Schedule background sync for file.created/file.edited that pass shouldHandleFile // implements REQ-opencode-file-context-guidance-v1
     if (
       cfg.sync.enabled &&
-      scheduler &&
-      fileFilter.shouldHandleFile(filePath, input.worktree)
+      scopedScheduler &&
+      fileFilter.shouldHandleFile(normalizedFilePath, eventContext.worktreeRoot)
     ) {
-      scheduler.scheduleSync(
+      scopedScheduler.scheduleSync(
         lifecycle === "created" ? "file.created" : "file.edited",
-        filePath,
+        normalizedFilePath,
       );
     }
 
-    let fileContent = "";
-    try {
-      const resolvedPath =
-        input.worktree && !path.isAbsolute(filePath)
-          ? path.join(input.worktree, filePath)
-          : filePath;
-      fileContent = fs.readFileSync(resolvedPath, "utf-8");
-    } catch {}
+    const fileContent = readFileContent(
+      normalizedFilePath,
+      eventContext.worktreeRoot,
+    );
 
     const hasMustPriority =
       pathAnalysis.kind === "requirement"
-        ? isMustPriorityRequirement(filePath, input.worktree)
+        ? isMustPriorityRequirement(normalizedFilePath, eventContext.worktreeRoot)
         : false;
 
     let precomputedSuggestion: CommentAnalysisResult | null = null;
     if (pathAnalysis.kind === "code" && cfg.guidance.commentDetection.enabled) {
-      const resolvedPath =
-        input.worktree && !path.isAbsolute(filePath)
-          ? path.join(input.worktree, filePath)
-          : filePath;
-
-      precomputedSuggestion = analyzeCodeFile(resolvedPath, {
-        minLines: cfg.guidance.commentDetection.minLines,
-      });
+      precomputedSuggestion = analyzeCodeFile(
+        resolveWorktreePath(normalizedFilePath, eventContext.worktreeRoot),
+        {
+          minLines: cfg.guidance.commentDetection.minLines,
+        },
+      );
     }
 
     const { riskClass } = classifyRisk({
@@ -851,19 +1064,21 @@ function buildSyntheticSyncAuditDelta(
       effectiveRiskClass === "behavior_candidate" ||
       effectiveRiskClass === "traceability_candidate";
     lastRiskClass = effectiveRiskClass;
+    lastRiskFilePath = normalizedFilePath;
+    lastRiskScopeKey = buildRiskPathScopeKey(eventContext, normalizedFilePath);
 
     logger.info("smart-enforcement.risk", {
       event: "smart_enforcement_risk",
-      file: filePath,
+      file: normalizedFilePath,
       path_kind: pathAnalysis.kind,
       risk_class: effectiveRiskClass,
-      posture_state: posture.state,
+      posture_state: eventContext.posture,
       maintenance_state: getMaintenanceDegraded()
         ? "maintenance_degraded"
         : "maintenance_available",
       under_kb: pathAnalysis.isUnderKb,
       has_must_priority: hasMustPriority,
-      posture: posture.state,
+      posture: eventContext.posture,
       reason_code: effectiveRiskClass,
       effective_mode: getEffectiveMode(),
       static_degraded: posture.maintenanceDegraded,
@@ -882,7 +1097,7 @@ function buildSyntheticSyncAuditDelta(
     if (
       !targetedChecksBlocked &&
       cfg.sync.enabled &&
-      scheduler &&
+      scopedScheduler &&
       cfg.guidance.targetedChecks.enabled
     ) {
       const traceabilityRules =
@@ -891,7 +1106,10 @@ function buildSyntheticSyncAuditDelta(
           : null;
       const kbStructuralRules =
         effectiveRiskClass === "kb_doc_structural" &&
-        fileFilter.shouldHandleFile(filePath, input.worktree)
+        fileFilter.shouldHandleFile(
+          normalizedFilePath,
+          eventContext.worktreeRoot,
+        )
           ? [
               "required-fields",
               "no-dangling-refs",
@@ -906,10 +1124,10 @@ function buildSyntheticSyncAuditDelta(
       if (checkRules) {
         logger.info("smart-enforcement.targeted-checks", {
           event: "smart_enforcement_targeted_checks",
-          file: filePath,
+          file: normalizedFilePath,
           risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
+          posture: eventContext.posture,
+          posture_state: eventContext.posture,
           guidance_action: "targeted_checks",
           effective_mode: getEffectiveMode(),
           rules: checkRules,
@@ -918,22 +1136,18 @@ function buildSyntheticSyncAuditDelta(
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
-        logger.info(`kibi-opencode: scheduling sync for ${filePath}`);
-        scheduler.scheduleSync(
+        logger.info(`kibi-opencode: scheduling sync for ${normalizedFilePath}`);
+        scopedScheduler.scheduleSync(
           effectiveRiskClass === "traceability_candidate"
             ? "smart-enforcement.traceability"
             : "smart-enforcement.kb-doc",
-          filePath,
+          normalizedFilePath,
           checkRules,
         );
       }
     }
 
-    recentEdits = sessionEdits.slice(-MAX_RECENT_EDITS).map((e) => ({
-      path: e.filePath,
-      kind: pathKindCache.get(e.filePath) ?? "unknown",
-      timestamp: e.lastReconciledAt,
-    }));
+    updateRecentEditsFromSession(sessionEdits, scopedPathKindCache);
 
     if (
       effectiveRiskClass === "safe_docs_only" ||
@@ -943,23 +1157,22 @@ function buildSyntheticSyncAuditDelta(
       return;
     }
 
-    const cacheKey: CacheKey = {
-      workspaceRoot: input.worktree,
-      branch: currentBranch,
-      posture: posture.state,
-      riskClass: effectiveRiskClass,
-      fileBucket: deriveFileBucket(pathAnalysis.kind),
-    };
+    const cacheKey = buildScopedCacheKey(
+      eventContext,
+      effectiveRiskClass,
+      deriveFileBucket(pathAnalysis.kind),
+      [normalizedFilePath, pathAnalysis.kind, effectiveRiskClass],
+    );
 
     // Always process manual_kb_edit before cache check — this is a critical safety signal
     if (effectiveRiskClass === "manual_kb_edit") {
       hasRecentKbEdit = true;
       if (cfg.guidance.warnOnKbEdits) {
-        logger.warn(`kibi-opencode: .kb edit detected for ${filePath}`);
+        logger.warn(`kibi-opencode: .kb edit detected for ${normalizedFilePath}`);
         getSessionTracker().recordWarning(
           "kb-edit",
-          filePath,
-          `Manual .kb edit: ${filePath}`,
+          normalizedFilePath,
+          `Manual .kb edit: ${normalizedFilePath}`,
         );
       }
       return;
@@ -967,11 +1180,14 @@ function buildSyntheticSyncAuditDelta(
 
     // Always emit requirement lint warnings before cache check — these are safety signals
     if (effectiveRiskClass === "req_policy_candidate") {
-      const lintWarnings = lintRequirementDoc(filePath, input.worktree);
+      const lintWarnings = lintRequirementDoc(
+        normalizedFilePath,
+        eventContext.worktreeRoot,
+      );
       for (const warning of lintWarnings) {
         getSessionTracker().recordWarning(
           warning.category,
-          filePath,
+          normalizedFilePath,
           warning.message,
         );
       }
@@ -983,10 +1199,10 @@ function buildSyntheticSyncAuditDelta(
         event: "smart_enforcement_cache",
         cache_hit: true,
         cache_state: "hit",
-        file: filePath,
+        file: normalizedFilePath,
         risk_class: effectiveRiskClass,
-        posture: posture.state,
-        posture_state: posture.state,
+        posture: eventContext.posture,
+        posture_state: eventContext.posture,
       });
       if (!isAutoBriefRisk) {
         return;
@@ -997,10 +1213,10 @@ function buildSyntheticSyncAuditDelta(
       event: "smart_enforcement_cache",
       cache_hit: false,
       cache_state: "miss",
-      file: filePath,
+      file: normalizedFilePath,
       risk_class: effectiveRiskClass,
-      posture: posture.state,
-      posture_state: posture.state,
+      posture: eventContext.posture,
+      posture_state: eventContext.posture,
     });
 
     if (effectiveRiskClass === "req_policy_candidate") {
@@ -1011,10 +1227,10 @@ function buildSyntheticSyncAuditDelta(
             : logger.info;
         logFn("smart-enforcement.degraded", {
           event: "smart_enforcement_degraded",
-          file: filePath,
+          file: normalizedFilePath,
           risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
+          posture: eventContext.posture,
+          posture_state: eventContext.posture,
           maintenance_state: getMaintenanceDegraded()
             ? "maintenance_degraded"
             : "maintenance_available",
@@ -1032,8 +1248,8 @@ function buildSyntheticSyncAuditDelta(
       if (
         !getMaintenanceDegraded() &&
         cfg.sync.enabled &&
-        scheduler &&
-        fileFilter.shouldHandleFile(filePath, input.worktree)
+        scopedScheduler &&
+        fileFilter.shouldHandleFile(normalizedFilePath, eventContext.worktreeRoot)
       ) {
         let checkRules: string[] | undefined;
         if (cfg.guidance.targetedChecks.enabled) {
@@ -1045,7 +1261,7 @@ function buildSyntheticSyncAuditDelta(
               "strict-req-fact-pairing",
             ];
             logger.info(
-              `kibi-opencode: must-priority requirement detected, scheduling elevated checks for ${filePath}`,
+              `kibi-opencode: must-priority requirement detected, scheduling elevated checks for ${normalizedFilePath}`,
             );
           } else {
             checkRules = [
@@ -1057,10 +1273,10 @@ function buildSyntheticSyncAuditDelta(
         }
         logger.info("smart-enforcement.targeted-checks", {
           event: "smart_enforcement_targeted_checks",
-          file: filePath,
+          file: normalizedFilePath,
           risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
+          posture: eventContext.posture,
+          posture_state: eventContext.posture,
           guidance_action: "targeted_checks",
           effective_mode: getEffectiveMode(),
           rules: checkRules ?? [],
@@ -1069,7 +1285,11 @@ function buildSyntheticSyncAuditDelta(
           merged_degraded: getMaintenanceDegraded(),
           overlay_cause: runtimeOverlay.primaryCause ?? null,
         });
-        scheduler?.scheduleSync("file.edited", filePath, checkRules);
+        scopedScheduler.scheduleSync(
+          "file.edited",
+          normalizedFilePath,
+          checkRules,
+        );
       }
       return;
     }
@@ -1082,10 +1302,10 @@ function buildSyntheticSyncAuditDelta(
             : logger.info;
         logFn("smart-enforcement.degraded", {
           event: "smart_enforcement_degraded",
-          file: filePath,
+          file: normalizedFilePath,
           risk_class: effectiveRiskClass,
-          posture: posture.state,
-          posture_state: posture.state,
+          posture: eventContext.posture,
+          posture_state: eventContext.posture,
           maintenance_state: getMaintenanceDegraded()
             ? "maintenance_degraded"
             : "maintenance_available",
@@ -1113,7 +1333,7 @@ function buildSyntheticSyncAuditDelta(
         if (suggestion) {
           recentCommentSuggestion = suggestion;
 
-          const dedupeKey = `${filePath}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
+          const dedupeKey = `${buildRiskPathScopeKey(eventContext, normalizedFilePath)}:${suggestion.suggestionType}:${suggestion.fingerprint}`;
           if (!seenFingerprints.has(dedupeKey)) {
             seenFingerprints.add(dedupeKey);
 
@@ -1125,11 +1345,11 @@ function buildSyntheticSyncAuditDelta(
                   : "missing-traceability";
 
             logger.warn(
-              `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${filePath}`,
+              `kibi-opencode: detected durable ${suggestion.suggestionType} knowledge in ${normalizedFilePath}`,
             );
             getSessionTracker().recordWarning(
               warningCategory,
-              filePath,
+              normalizedFilePath,
               `Consider routing this ${suggestion.suggestionType} knowledge to Kibi instead of inline comments: ${suggestion.reasoning}`,
             );
           }
@@ -1146,18 +1366,22 @@ function buildSyntheticSyncAuditDelta(
       }
 
       const sessionSourceFiles = sessionEdits.map((e) => e.filePath);
+      const briefingContext = resolveScopedWorkContext(focusEdit.filePath);
 
       const intentResult = computeBriefIntent({
         riskClass: effectiveRiskClass,
-        posture: posture.state,
+        posture: briefingContext.posture,
         maintenanceDegraded: getMaintenanceDegraded(),
         sourceFiles: sessionSourceFiles,
         focusFilePath: focusEdit.filePath,
-        worktreeRoot: input.worktree,
-        branch: currentBranch,
+        worktreeRoot: briefingContext.worktreeRoot,
+        branch: briefingContext.branch,
       });
 
-      queueBriefingFetch(intentResult);
+      queueBriefingFetch(intentResult, {
+        workspaceCtx: buildBriefingWorkspaceContext(briefingContext),
+        postureState: briefingContext.posture,
+      });
     }
 
     return;
@@ -1183,36 +1407,56 @@ function buildSyntheticSyncAuditDelta(
           !degradedWarnedOnce;
         const transformFocusFilePath =
           getTransformFocusFilePath(transformInput);
-        sessionEditState.reconcileKnownPaths();
+        const promptWorkContext = resolveScopedWorkContext(
+          transformFocusFilePath ?? undefined,
+        );
+        const promptSessionEditState = getSessionEditState(promptWorkContext);
+        const promptFileOperationState = getFileOperationState(promptWorkContext);
+        const promptPathKindCache = getPathKindCache(promptWorkContext);
+        promptSessionEditState.reconcileKnownPaths();
         if (transformFocusFilePath) {
-          sessionEditState.forceEdit(transformFocusFilePath);
+          promptSessionEditState.forceEdit(
+            normalizeSessionPath(
+              transformFocusFilePath,
+              promptWorkContext.worktreeRoot,
+            ),
+          );
         }
 
-        const transformSessionEdits = sessionEditState.getSessionEdits();
-        const transformFocusEdit = sessionEditState.getFocusEdit();
+        const transformSessionEdits = promptSessionEditState.getSessionEdits();
+        const transformFocusEdit = promptSessionEditState.getFocusEdit();
         const transformRecentEdits = transformSessionEdits
           .slice(-MAX_RECENT_EDITS)
           .map((e) => ({
             path: e.filePath,
-            kind: pathKindCache.get(e.filePath) ?? "unknown",
+            kind: promptPathKindCache.get(e.filePath) ?? "unknown",
           }));
         const transformPromptFocusEdit = transformFocusEdit
           ? {
               path: transformFocusEdit.filePath,
-              kind: pathKindCache.get(transformFocusEdit.filePath) ?? "unknown",
+              kind:
+                promptPathKindCache.get(transformFocusEdit.filePath) ??
+                "unknown",
             }
           : null;
         const riskContextFilePath =
           transformFocusEdit?.filePath ?? transformFocusFilePath;
+        const riskScopeKey = riskContextFilePath
+          ? buildRiskPathScopeKey(promptWorkContext, riskContextFilePath)
+          : null;
         let effectiveRiskClass: RiskClass | null =
-          riskContextFilePath && lastRiskFilePath === riskContextFilePath
+          riskScopeKey !== null && lastRiskScopeKey === riskScopeKey
             ? lastRiskClass
             : null;
         if (
           riskContextFilePath &&
-          (lastRiskClass === null || lastRiskFilePath !== riskContextFilePath)
+          (lastRiskClass === null || lastRiskScopeKey !== riskScopeKey)
         ) {
-          const riskCtx = deriveRiskContext(riskContextFilePath);
+          const riskCtx = deriveRiskContext(
+            promptWorkContext,
+            riskContextFilePath,
+            promptPathKindCache,
+          );
           effectiveRiskClass = riskCtx.effectiveRiskClass;
           if (!recentCommentSuggestion && riskCtx.precomputedSuggestion) {
             recentCommentSuggestion = riskCtx.precomputedSuggestion;
@@ -1230,11 +1474,11 @@ function buildSyntheticSyncAuditDelta(
         const intentResult = effectiveRiskClass
           ? computeBriefIntent({
               riskClass: effectiveRiskClass,
-              posture: posture.state,
+              posture: promptWorkContext.posture,
               maintenanceDegraded,
               sourceFiles: promptSourceFiles,
-              worktreeRoot: input.worktree,
-              branch: currentBranch,
+              worktreeRoot: promptWorkContext.worktreeRoot,
+              branch: promptWorkContext.branch,
               ...(promptFocusFilePath !== undefined
                 ? {
                     focusFilePath: promptFocusFilePath,
@@ -1249,7 +1493,11 @@ function buildSyntheticSyncAuditDelta(
           effectiveRiskClass === "behavior_candidate" ||
           effectiveRiskClass === "traceability_candidate";
         if (!autoBriefResult && isAutoBriefRisk && intentResult) {
-          queueBriefingFetch(intentResult, { skipIfCachedResultExists: true });
+          queueBriefingFetch(intentResult, {
+            skipIfCachedResultExists: true,
+            workspaceCtx: buildBriefingWorkspaceContext(promptWorkContext),
+            postureState: promptWorkContext.posture,
+          });
         }
 
         // Replay latest unread idle brief if available // implements REQ-opencode-kibi-briefing-v4
@@ -1300,13 +1548,23 @@ function buildSyntheticSyncAuditDelta(
               e2eReminder: string | null;
             }
           | undefined;
+        let hardGateBlock:
+          | {
+              shownPaths: string[];
+              remainingCount: number;
+              reason?: string;
+            }
+          | undefined;
+        let hardGateConsumedPath: string | undefined;
+        let hardGateFingerprint: string | undefined;
+        let hardGateReminderKindsToMark: ReminderKind[] = [];
         const focusPathForReminder =
           transformFocusFilePath ?? promptFocusFilePath;
         if (focusPathForReminder) {
           const normalizedFocusPath =
-            fileOperationState.normalizePath(focusPathForReminder);
+            promptFileOperationState.normalizePath(focusPathForReminder);
           const pendingLifecycle =
-            fileOperationState.peekPending(normalizedFocusPath);
+            promptFileOperationState.peekPending(normalizedFocusPath);
           if (pendingLifecycle) {
             // Check if any reminder kind for this lifecycle has not yet been shown
             const reminderKindsForLifecycle: ReminderKind[] =
@@ -1316,34 +1574,125 @@ function buildSyntheticSyncAuditDelta(
                   ? ["kibi_write", "e2e_write"]
                   : ["e2e_write"];
             const hasUnshownReminder = reminderKindsForLifecycle.some(
-              (kind) => !fileOperationState.hasShown(normalizedFocusPath, kind),
+              (kind) =>
+                !promptFileOperationState.hasShown(normalizedFocusPath, kind),
             );
             if (hasUnshownReminder) {
               // Resolve linked entities and e2e signal
               const linkedEntityResult = getFileLinkedEntityIds(
-                input.worktree,
+                promptWorkContext.worktreeRoot,
                 focusPathForReminder,
               );
               const e2eSignal = getE2eCoverageSignal(
-                input.worktree,
+                promptWorkContext.worktreeRoot,
                 focusPathForReminder,
               );
               const focusPathKind =
-                pathKindCache.get(normalizedFocusPath) ?? "unknown";
+                promptPathKindCache.get(normalizedFocusPath) ?? "unknown";
+              const effectiveMode = getEffectiveMode();
+              let checkpointEvidence = false;
+              let checkpointRunner: KibiCheckpointRunner | null = null;
+              let checkpointContext: KibiCheckpointContext | null = null;
+              const checkpointFingerprint = buildDirtyRelevantFingerprint([
+                normalizedFocusPath,
+                pendingLifecycle.lifecycle,
+                focusPathKind,
+                effectiveRiskClass ?? "safe_docs_only",
+              ]);
+              if (effectiveMode === "hard" && promptWorkContext.isAuthoritative) {
+                checkpointRunner = getCheckpointRunnerForContext(promptWorkContext);
+                checkpointContext = {
+                  workContext: promptWorkContext,
+                  config: cfg,
+                  filePath: normalizedFocusPath,
+                  maintenanceDegraded,
+                  lifecycleEvents: [
+                    {
+                      normalizedPath: normalizedFocusPath,
+                      lifecycle: pendingLifecycle.lifecycle,
+                    },
+                  ],
+                  pathKinds: [focusPathKind],
+                  linkedEntityResults: [linkedEntityResult],
+                  e2eSignals: [e2eSignal],
+                };
+                checkpointEvidence = checkpointRunner.isCheckpointPassed(
+                  checkpointFingerprint,
+                  checkpointContext,
+                );
+              }
               const reminderResult = deriveFileOperationReminder({
                 normalizedPath: normalizedFocusPath,
                 lifecycle: pendingLifecycle.lifecycle,
-                pathKind: focusPathKind as import("./path-kind.js").PathKind,
+                pathKind: focusPathKind,
                 linkedEntityResult,
                 e2eSignal,
                 currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
-                posture: posture.state,
+                posture: promptWorkContext.posture,
+                effectiveMode,
+                resolvedContext: promptWorkContext,
+                checkpointEvidence,
               });
-              fileOperationReminder = {
-                path: normalizedFocusPath,
-                lifecycleReminder: reminderResult.lifecycleReminder,
-                e2eReminder: reminderResult.e2eReminder,
-              };
+              if (reminderResult.policyDecision === "hard_block") {
+                const policyResult = reminderResult.policyResult;
+                hardGateBlock = {
+                  shownPaths:
+                    "shownPaths" in policyResult ? policyResult.shownPaths : [normalizedFocusPath],
+                  remainingCount:
+                    "remainingCount" in policyResult ? policyResult.remainingCount : 0,
+                  reason: "checkpoint_required",
+                };
+                hardGateConsumedPath = normalizedFocusPath;
+                hardGateFingerprint = checkpointFingerprint;
+                hardGateReminderKindsToMark = reminderResult.reminderKindsToMark;
+                if (checkpointRunner && checkpointContext) {
+                  const checkpointContextWithGuidance = {
+                    ...checkpointContext,
+                    hardGuidanceText: reminderResult.lifecycleReminder,
+                  } satisfies KibiCheckpointContext;
+                  const request = checkpointRunner.requestCheckpoint(
+                    checkpointContextWithGuidance,
+                    checkpointFingerprint,
+                  );
+                  if (request.kind === "requested") {
+                    void checkpointRunner
+                      .runCheckpoint(
+                        checkpointContextWithGuidance,
+                        checkpointFingerprint,
+                      )
+                      .then((result) => {
+                        logger.info("smart-enforcement.checkpoint", {
+                          event: "smart_enforcement_checkpoint",
+                          fingerprint: checkpointFingerprint,
+                          result: result.kind,
+                          reason:
+                            "reason" in result.metadata
+                              ? result.metadata.reason
+                              : undefined,
+                        });
+                      })
+                      .catch((error) => {
+                        logger.errorStructuredOnly(
+                          "smart-enforcement.checkpoint-failed",
+                          {
+                            event: "smart_enforcement_checkpoint_failed",
+                            fingerprint: checkpointFingerprint,
+                            error:
+                              error instanceof Error
+                                ? error.message
+                                : String(error),
+                          },
+                        );
+                      });
+                  }
+                }
+              } else {
+                fileOperationReminder = {
+                  path: normalizedFocusPath,
+                  lifecycleReminder: reminderResult.lifecycleReminder,
+                  e2eReminder: reminderResult.e2eReminder,
+                };
+              }
             }
           }
         }
@@ -1354,10 +1703,10 @@ function buildSyntheticSyncAuditDelta(
           workspaceHealth,
           hasRecentKbEdit,
           recentCommentSuggestion,
-          posture: posture.state,
+          posture: promptWorkContext.posture,
           cache,
-          workspaceRoot: input.worktree,
-          branch: currentBranch,
+          workspaceRoot: promptWorkContext.worktreeRoot,
+          branch: promptWorkContext.branch,
           completionReminder: cfg.guidance.smartEnforcement.completionReminder,
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
@@ -1369,13 +1718,14 @@ function buildSyntheticSyncAuditDelta(
           ...(fileOperationReminder !== undefined
             ? { fileOperationReminder }
             : {}),
+          ...(hardGateBlock !== undefined ? { hardGateBlock } : {}),
         });
 
         logger.info("smart-enforcement.guidance", {
           event: "smart_enforcement_guidance",
           emitted: guidance.trim() !== "" && guidance.trim() !== SENTINEL,
-          posture: posture.state,
-          posture_state: posture.state,
+          posture: promptWorkContext.posture,
+          posture_state: promptWorkContext.posture,
           guidance_action:
             guidance.trim() !== "" && guidance.trim() !== SENTINEL
               ? "emit"
@@ -1398,8 +1748,8 @@ function buildSyntheticSyncAuditDelta(
           logger.info("smart-enforcement.completion-reminder", {
             event: "smart_enforcement_completion_reminder",
             risk_class: lastRiskClass,
-            posture: posture.state,
-            posture_state: posture.state,
+            posture: promptWorkContext.posture,
+            posture_state: promptWorkContext.posture,
             guidance_action: "completion_reminder",
             reminder: "kb_check",
             static_degraded: posture.maintenanceDegraded,
@@ -1425,49 +1775,69 @@ function buildSyntheticSyncAuditDelta(
           // Mark shown and log only for reminders that were actually emitted
           if (lifecycleEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
-              fileOperationState.peekPending(focusPathForConsume)?.lifecycle ===
+              promptFileOperationState.peekPending(focusPathForConsume)
+                ?.lifecycle ===
               "deleted"
                 ? "kibi_delete"
                 : "kibi_write";
-            fileOperationState.markShown(focusPathForConsume, kind);
+            promptFileOperationState.markShown(focusPathForConsume, kind);
             logger.info("smart-enforcement.file-operation-reminder", {
               event: "smart_enforcement_file_operation_reminder",
               file: focusPathForConsume,
               lifecycle:
-                fileOperationState.peekPending(focusPathForConsume)
+                promptFileOperationState.peekPending(focusPathForConsume)
                   ?.lifecycle ?? null,
-              posture_state: posture.state,
+              posture_state: promptWorkContext.posture,
               risk_class: effectiveRiskClass,
             });
           }
 
           if (e2eEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
-              fileOperationState.peekPending(focusPathForConsume)?.lifecycle ===
+              promptFileOperationState.peekPending(focusPathForConsume)
+                ?.lifecycle ===
               "deleted"
                 ? "e2e_delete"
                 : "e2e_write";
-            fileOperationState.markShown(focusPathForConsume, kind);
+            promptFileOperationState.markShown(focusPathForConsume, kind);
             const e2eSignalForLog = getE2eCoverageSignal(
-              input.worktree,
+              promptWorkContext.worktreeRoot,
               focusPathForConsume,
             );
             logger.info("smart-enforcement.e2e-reminder", {
               event: "smart_enforcement_e2e_reminder",
               file: focusPathForConsume,
               lifecycle:
-                fileOperationState.peekPending(focusPathForConsume)
+                promptFileOperationState.peekPending(focusPathForConsume)
                   ?.lifecycle ?? null,
               signal_level: e2eSignalForLog.level,
-              posture_state: posture.state,
+              posture_state: promptWorkContext.posture,
               risk_class: effectiveRiskClass,
             });
           }
 
           // Consume pending only if at least one reminder was emitted
           if (lifecycleEmitted || e2eEmitted) {
-            fileOperationState.consumePending(focusPathForConsume);
+            promptFileOperationState.consumePending(focusPathForConsume);
           }
+        }
+
+        if (
+          hardGateBlock &&
+          hardGateConsumedPath &&
+          guidance.includes("🛑 Kibi hard gate blocked")
+        ) {
+          for (const kind of hardGateReminderKindsToMark) {
+            promptFileOperationState.markShown(hardGateConsumedPath, kind);
+          }
+          promptFileOperationState.consumePending(hardGateConsumedPath);
+          logger.info("smart-enforcement.hard-gate-consumed", {
+            event: "smart_enforcement_hard_gate_consumed",
+            file: hardGateConsumedPath,
+            fingerprint: hardGateFingerprint ?? null,
+            posture_state: promptWorkContext.posture,
+            risk_class: effectiveRiskClass,
+          });
         }
 
         // Latch degraded advisory warning-once state
