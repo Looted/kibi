@@ -36,4 +36,3 @@ const metadata = {
 const distDir = join(__dirname, "../dist");
 mkdirSync(distDir, { recursive: true });
 writeFileSync(join(distDir, "version-metadata.json"), JSON.stringify(metadata));
-console.log("[generate-version-metadata] version-metadata.json:", JSON.stringify(metadata));

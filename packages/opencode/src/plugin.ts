@@ -1878,6 +1878,7 @@ function buildSyntheticSyncAuditDelta(
         suppressToast: cfg.ux.toastStartup === false,
         directory: input.directory,
         ...(Object.keys(versions).length > 0 ? { versions } : {}),
+        versionMetadataSource: meta.source,
       });
     }, 2000);
   }

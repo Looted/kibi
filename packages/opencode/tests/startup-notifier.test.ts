@@ -260,6 +260,7 @@ describe("notifyStartup", () => {
     const client = { tui: { showToast: toast }, app: { log } };
     notifyStartup(client as unknown as StartupNotifierClient, {
       versions: { opencode: "1.0.0", mcp: "2.0.0", cli: "3.0.0", core: "4.0.0" },
+      versionMetadataSource: "workspace-packages",
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(toastCalls.length, 1);
@@ -278,6 +279,7 @@ describe("notifyStartup", () => {
         message: "kibi-opencode started",
         versions: { opencode: "1.0.0", mcp: "2.0.0", cli: "3.0.0", core: "4.0.0" },
         unknownVersions: [],
+        versionMetadataSource: "workspace-packages",
       },
     });
   });
@@ -290,6 +292,7 @@ describe("notifyStartup", () => {
     const client = { tui: { showToast: toast }, app: { log } };
     notifyStartup(client as unknown as StartupNotifierClient, {
       versions: { opencode: "1.0.0", mcp: "2.0.0" },
+      versionMetadataSource: "generated-dist",
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
     assert.equal(toastCalls.length, 1);
@@ -308,6 +311,7 @@ describe("notifyStartup", () => {
         message: "kibi-opencode started",
         versions: { opencode: "1.0.0", mcp: "2.0.0" },
         unknownVersions: ["cli", "core"],
+        versionMetadataSource: "generated-dist",
       },
     });
   });

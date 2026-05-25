@@ -17,6 +17,7 @@ export type StartupNotifierConfig = {
   versions?: { opencode?: string; mcp?: string; cli?: string; core?: string };
   suppressToast?: boolean;
   directory?: string;
+  versionMetadataSource?: string;
 };
 
 const VERSION_ORDER = ["opencode", "mcp", "cli", "core"] as const;
@@ -122,6 +123,10 @@ export function notifyStartup(
   if (cfg.versions && Object.keys(cfg.versions).length > 0) {
     logBody.versions = cfg.versions;
     logBody.unknownVersions = unknownVersions;
+  }
+
+  if (cfg.versionMetadataSource) {
+    logBody.versionMetadataSource = cfg.versionMetadataSource;
   }
 
   if (cfg.directory) {
