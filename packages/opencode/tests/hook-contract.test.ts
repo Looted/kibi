@@ -4,8 +4,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import type { KibiConfig } from "../src/config";
+import { buildDirtyRelevantFingerprint } from "../src/enforcement-scope";
 import { getInitKibiCommandCapability } from "../src/init-kibi-capability";
 import kibiOpencodePlugin from "../src/index";
+import {
+  KibiCheckpointRunner,
+  type KibiCheckpointContext,
+} from "../src/kibi-checkpoint-runner";
 import { SENTINEL, injectPrompt } from "../src/prompt";
 
 describe("hook contract", () => {
@@ -360,6 +365,190 @@ describe("hook contract", () => {
     assert.ok(!injected.includes("npx kibi"), "Must not suggest Kibi CLI");
   });
 
+  test("hard mode requests and runs checkpoint runner with dirty fingerprint, then consumes shown block", async () => {
+    const dir = makeProjectDir("auto");
+    setupAuthoritativeWorkspace(dir);
+    writeProjectConfig(dir, {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: false },
+      guidance: { smartEnforcement: { enabled: true, mode: "hard" } },
+    });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "src", "new-module.ts"),
+      "export function newModule() { return 1; }\n",
+    );
+
+    const seenEvidenceFingerprints: string[] = [];
+    const requestedFingerprints: string[] = [];
+    const runFingerprints: string[] = [];
+    const metadataFor = (context: KibiCheckpointContext, fingerprint: string) => ({
+      fingerprint,
+      scopeKey: `test-scope:${fingerprint}`,
+      worktree: context.workContext.worktreeRoot,
+      branch: context.workContext.branch,
+      agentIdentity: context.workContext.agentIdentity,
+      ...(context.workContext.sessionId !== undefined
+        ? { sessionId: context.workContext.sessionId }
+        : {}),
+    });
+    const evidenceSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "isCheckpointPassed",
+    ).mockImplementation((_fingerprint, _context) => {
+      seenEvidenceFingerprints.push(_fingerprint);
+      return false;
+    });
+    const requestSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "requestCheckpoint",
+    ).mockImplementation((context, fingerprint) => {
+      requestedFingerprints.push(fingerprint);
+      return {
+        kind: "requested",
+        metadata: {
+          ...metadataFor(context, fingerprint),
+          guidanceRendered: true,
+          guidanceText: context.hardGuidanceText ?? "hard guidance",
+        },
+      };
+    });
+    const runSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "runCheckpoint",
+    ).mockImplementation(async (context, fingerprint) => {
+      runFingerprints.push(fingerprint);
+      return {
+        kind: "hard_block",
+        metadata: {
+          ...metadataFor(context, fingerprint),
+          reason: "sync_not_run",
+        },
+      };
+    });
+
+    try {
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      const transformHook = hooks["experimental.chat.system.transform"];
+      assert.ok(eventHook, "event hook should exist");
+      assert.ok(transformHook, "system.transform hook should exist");
+
+      await eventHook({
+        event: { type: "file.created", properties: { file: "src/new-module.ts" } },
+      } as never);
+
+      const firstOutput = { system: ["existing system"] };
+      await transformHook(
+        { focusFilePath: "src/new-module.ts" } as never,
+        firstOutput,
+      );
+
+      const firstInjected = firstOutput.system.join("\n");
+      assert.ok(
+        firstInjected.includes("🛑 Kibi hard gate blocked"),
+        `Expected first prompt to hard-block, got: ${firstInjected}`,
+      );
+
+      const expectedFingerprint = buildDirtyRelevantFingerprint([
+        "src/new-module.ts",
+        "created",
+        "code",
+        "traceability_candidate",
+      ]);
+      assert.deepEqual(seenEvidenceFingerprints, [expectedFingerprint]);
+      assert.deepEqual(requestedFingerprints, [expectedFingerprint]);
+      assert.deepEqual(runFingerprints, [expectedFingerprint]);
+
+      const secondOutput = { system: ["existing system"] };
+      await transformHook(
+        { focusFilePath: "src/new-module.ts" } as never,
+        secondOutput,
+      );
+
+      const secondInjected = secondOutput.system.join("\n");
+      assert.ok(
+        !secondInjected.includes("🛑 Kibi hard gate blocked"),
+        `Shown hard block should be consumed, got: ${secondInjected}`,
+      );
+      assert.deepEqual(requestedFingerprints, [expectedFingerprint]);
+      assert.deepEqual(runFingerprints, [expectedFingerprint]);
+    } finally {
+      evidenceSpy.mockRestore();
+      requestSpy.mockRestore();
+      runSpy.mockRestore();
+    }
+  });
+
+  test("hard mode treats passed checkpoint evidence as satisfied", async () => {
+    const dir = makeProjectDir("auto");
+    setupAuthoritativeWorkspace(dir);
+    writeProjectConfig(dir, {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: false },
+      guidance: { smartEnforcement: { enabled: true, mode: "hard" } },
+    });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "src", "new-module.ts"),
+      "export function newModule() { return 1; }\n",
+    );
+
+    const seenEvidenceFingerprints: string[] = [];
+    const evidenceSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "isCheckpointPassed",
+    ).mockImplementation((fingerprint) => {
+      seenEvidenceFingerprints.push(fingerprint);
+      return true;
+    });
+    const requestSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "requestCheckpoint",
+    );
+    const runSpy = spyOn(KibiCheckpointRunner.prototype, "runCheckpoint");
+
+    try {
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      const transformHook = hooks["experimental.chat.system.transform"];
+      assert.ok(eventHook, "event hook should exist");
+      assert.ok(transformHook, "system.transform hook should exist");
+
+      await eventHook({
+        event: { type: "file.created", properties: { file: "src/new-module.ts" } },
+      } as never);
+
+      const output = { system: ["existing system"] };
+      await transformHook(
+        { focusFilePath: "src/new-module.ts" } as never,
+        output,
+      );
+
+      const injected = output.system.join("\n");
+      assert.ok(
+        !injected.includes("🛑 Kibi hard gate blocked"),
+        `Passed checkpoint evidence should suppress hard block, got: ${injected}`,
+      );
+      assert.deepEqual(seenEvidenceFingerprints, [
+        buildDirtyRelevantFingerprint([
+          "src/new-module.ts",
+          "created",
+          "code",
+          "traceability_candidate",
+        ]),
+      ]);
+      assert.equal(requestSpy.mock.calls.length, 0);
+      assert.equal(runSpy.mock.calls.length, 0);
+    } finally {
+      evidenceSpy.mockRestore();
+      requestSpy.mockRestore();
+      runSpy.mockRestore();
+    }
+  });
+
   test("hard mode does not block non-authoritative workspaces", async () => {
     const dir = makeProjectDir("auto");
     writeProjectConfig(dir, {
@@ -397,6 +586,58 @@ describe("hook contract", () => {
       !injected.includes("🛑 Kibi hard gate blocked"),
       `Non-authoritative workspace must not hard-block, got: ${injected}`,
     );
+  });
+
+  test("hard mode skips checkpoint runner outside authoritative workspaces", async () => {
+    const dir = makeProjectDir("auto");
+    writeProjectConfig(dir, {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: false },
+      guidance: { smartEnforcement: { enabled: true, mode: "hard" } },
+    });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "src", "vendor-module.ts"),
+      "export function vendorModule() { return 1; }\n",
+    );
+
+    const evidenceSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "isCheckpointPassed",
+    );
+    const requestSpy = spyOn(
+      KibiCheckpointRunner.prototype,
+      "requestCheckpoint",
+    );
+    const runSpy = spyOn(KibiCheckpointRunner.prototype, "runCheckpoint");
+
+    try {
+      const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+      const eventHook = hooks.event;
+      const transformHook = hooks["experimental.chat.system.transform"];
+      assert.ok(eventHook, "event hook should exist");
+      assert.ok(transformHook, "system.transform hook should exist");
+
+      await eventHook({
+        event: {
+          type: "file.created",
+          properties: { file: "src/vendor-module.ts" },
+        },
+      } as never);
+      await transformHook(
+        { focusFilePath: "src/vendor-module.ts" } as never,
+        { system: [] as string[] },
+      );
+
+      assert.equal(evidenceSpy.mock.calls.length, 0);
+      assert.equal(requestSpy.mock.calls.length, 0);
+      assert.equal(runSpy.mock.calls.length, 0);
+    } finally {
+      evidenceSpy.mockRestore();
+      requestSpy.mockRestore();
+      runSpy.mockRestore();
+    }
   });
 
   describe("session.idle hook", () => {

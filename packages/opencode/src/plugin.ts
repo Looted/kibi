@@ -24,6 +24,10 @@ import {
   createFileOperationState,
 } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
 import {
+  KibiCheckpointRunner,
+  type KibiCheckpointContext,
+} from "./kibi-checkpoint-runner.js";
+import {
   getInitKibiCommandCapability,
   registerInitKibiCommand,
   type OpenCodeConfigHookInput,
@@ -336,6 +340,7 @@ const kibiOpencodePlugin: Plugin = async (
   };
   const sessionEditStateRegistry = new Map<string, SessionEditState>();
   const fileOperationStateRegistry = new Map<string, FileOperationState>();
+  const checkpointRunnerRegistry = new Map<string, KibiCheckpointRunner>();
   const pathKindCacheRegistry = new Map<string, Map<string, PathKind>>();
 
   function resolveScopedWorkContext(filePath?: string): WorkContext {
@@ -380,6 +385,34 @@ const kibiOpencodePlugin: Plugin = async (
       fileOperationStateRegistry.set(key, state);
     }
     return state;
+  }
+
+  function getCheckpointRunnerForContext(
+    context: WorkContext,
+  ): KibiCheckpointRunner {
+    const key = buildStateScopeKey(context, "checkpoint-runner");
+    let runner = checkpointRunnerRegistry.get(key);
+    if (!runner) {
+      runner = new KibiCheckpointRunner({
+        config: cfg,
+        onRunComplete: (meta) => {
+          const normalizedReason = meta.reason.endsWith(".trailing")
+            ? meta.reason.slice(0, -".trailing".length)
+            : meta.reason;
+          const isSmartEnforcementSync = normalizedReason.startsWith(
+            "smart-enforcement.",
+          );
+          if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
+            latchRuntimeDegraded("scheduler_sync_failed");
+          }
+          if (meta.checkExitCode !== undefined && meta.checkExitCode !== 0) {
+            latchRuntimeDegraded("scheduler_check_failed");
+          }
+        },
+      });
+      checkpointRunnerRegistry.set(key, runner);
+    }
+    return runner;
   }
 
   function getPathKindCache(context: WorkContext): Map<string, PathKind> {
@@ -1522,6 +1555,9 @@ function buildSyntheticSyncAuditDelta(
               reason?: string;
             }
           | undefined;
+        let hardGateConsumedPath: string | undefined;
+        let hardGateFingerprint: string | undefined;
+        let hardGateReminderKindsToMark: ReminderKind[] = [];
         const focusPathForReminder =
           transformFocusFilePath ?? promptFocusFilePath;
         if (focusPathForReminder) {
@@ -1553,17 +1589,49 @@ function buildSyntheticSyncAuditDelta(
               );
               const focusPathKind =
                 promptPathKindCache.get(normalizedFocusPath) ?? "unknown";
+              const effectiveMode = getEffectiveMode();
+              let checkpointEvidence = false;
+              let checkpointRunner: KibiCheckpointRunner | null = null;
+              let checkpointContext: KibiCheckpointContext | null = null;
+              const checkpointFingerprint = buildDirtyRelevantFingerprint([
+                normalizedFocusPath,
+                pendingLifecycle.lifecycle,
+                focusPathKind,
+                effectiveRiskClass ?? "safe_docs_only",
+              ]);
+              if (effectiveMode === "hard" && promptWorkContext.isAuthoritative) {
+                checkpointRunner = getCheckpointRunnerForContext(promptWorkContext);
+                checkpointContext = {
+                  workContext: promptWorkContext,
+                  config: cfg,
+                  filePath: normalizedFocusPath,
+                  maintenanceDegraded,
+                  lifecycleEvents: [
+                    {
+                      normalizedPath: normalizedFocusPath,
+                      lifecycle: pendingLifecycle.lifecycle,
+                    },
+                  ],
+                  pathKinds: [focusPathKind],
+                  linkedEntityResults: [linkedEntityResult],
+                  e2eSignals: [e2eSignal],
+                };
+                checkpointEvidence = checkpointRunner.isCheckpointPassed(
+                  checkpointFingerprint,
+                  checkpointContext,
+                );
+              }
               const reminderResult = deriveFileOperationReminder({
                 normalizedPath: normalizedFocusPath,
                 lifecycle: pendingLifecycle.lifecycle,
-                pathKind: focusPathKind as import("./path-kind.js").PathKind,
+                pathKind: focusPathKind,
                 linkedEntityResult,
                 e2eSignal,
                 currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
                 posture: promptWorkContext.posture,
-                effectiveMode: getEffectiveMode(),
+                effectiveMode,
                 resolvedContext: promptWorkContext,
-                checkpointEvidence: false,
+                checkpointEvidence,
               });
               if (reminderResult.policyDecision === "hard_block") {
                 const policyResult = reminderResult.policyResult;
@@ -1574,6 +1642,50 @@ function buildSyntheticSyncAuditDelta(
                     "remainingCount" in policyResult ? policyResult.remainingCount : 0,
                   reason: "checkpoint_required",
                 };
+                hardGateConsumedPath = normalizedFocusPath;
+                hardGateFingerprint = checkpointFingerprint;
+                hardGateReminderKindsToMark = reminderResult.reminderKindsToMark;
+                if (checkpointRunner && checkpointContext) {
+                  const checkpointContextWithGuidance = {
+                    ...checkpointContext,
+                    hardGuidanceText: reminderResult.lifecycleReminder,
+                  } satisfies KibiCheckpointContext;
+                  const request = checkpointRunner.requestCheckpoint(
+                    checkpointContextWithGuidance,
+                    checkpointFingerprint,
+                  );
+                  if (request.kind === "requested") {
+                    void checkpointRunner
+                      .runCheckpoint(
+                        checkpointContextWithGuidance,
+                        checkpointFingerprint,
+                      )
+                      .then((result) => {
+                        logger.info("smart-enforcement.checkpoint", {
+                          event: "smart_enforcement_checkpoint",
+                          fingerprint: checkpointFingerprint,
+                          result: result.kind,
+                          reason:
+                            "reason" in result.metadata
+                              ? result.metadata.reason
+                              : undefined,
+                        });
+                      })
+                      .catch((error) => {
+                        logger.errorStructuredOnly(
+                          "smart-enforcement.checkpoint-failed",
+                          {
+                            event: "smart_enforcement_checkpoint_failed",
+                            fingerprint: checkpointFingerprint,
+                            error:
+                              error instanceof Error
+                                ? error.message
+                                : String(error),
+                          },
+                        );
+                      });
+                  }
+                }
               } else {
                 fileOperationReminder = {
                   path: normalizedFocusPath,
@@ -1708,6 +1820,24 @@ function buildSyntheticSyncAuditDelta(
           if (lifecycleEmitted || e2eEmitted) {
             promptFileOperationState.consumePending(focusPathForConsume);
           }
+        }
+
+        if (
+          hardGateBlock &&
+          hardGateConsumedPath &&
+          guidance.includes("🛑 Kibi hard gate blocked")
+        ) {
+          for (const kind of hardGateReminderKindsToMark) {
+            promptFileOperationState.markShown(hardGateConsumedPath, kind);
+          }
+          promptFileOperationState.consumePending(hardGateConsumedPath);
+          logger.info("smart-enforcement.hard-gate-consumed", {
+            event: "smart_enforcement_hard_gate_consumed",
+            file: hardGateConsumedPath,
+            fingerprint: hardGateFingerprint ?? null,
+            posture_state: promptWorkContext.posture,
+            risk_class: effectiveRiskClass,
+          });
         }
 
         // Latch degraded advisory warning-once state
