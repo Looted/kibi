@@ -1515,6 +1515,13 @@ function buildSyntheticSyncAuditDelta(
               e2eReminder: string | null;
             }
           | undefined;
+        let hardGateBlock:
+          | {
+              shownPaths: string[];
+              remainingCount: number;
+              reason?: string;
+            }
+          | undefined;
         const focusPathForReminder =
           transformFocusFilePath ?? promptFocusFilePath;
         if (focusPathForReminder) {
@@ -1554,12 +1561,26 @@ function buildSyntheticSyncAuditDelta(
                 e2eSignal,
                 currentSemanticRisk: effectiveRiskClass ?? "safe_docs_only",
                 posture: promptWorkContext.posture,
+                effectiveMode: getEffectiveMode(),
+                resolvedContext: promptWorkContext,
+                checkpointEvidence: false,
               });
-              fileOperationReminder = {
-                path: normalizedFocusPath,
-                lifecycleReminder: reminderResult.lifecycleReminder,
-                e2eReminder: reminderResult.e2eReminder,
-              };
+              if (reminderResult.policyDecision === "hard_block") {
+                const policyResult = reminderResult.policyResult;
+                hardGateBlock = {
+                  shownPaths:
+                    "shownPaths" in policyResult ? policyResult.shownPaths : [normalizedFocusPath],
+                  remainingCount:
+                    "remainingCount" in policyResult ? policyResult.remainingCount : 0,
+                  reason: "checkpoint_required",
+                };
+              } else {
+                fileOperationReminder = {
+                  path: normalizedFocusPath,
+                  lifecycleReminder: reminderResult.lifecycleReminder,
+                  e2eReminder: reminderResult.e2eReminder,
+                };
+              }
             }
           }
         }
@@ -1585,6 +1606,7 @@ function buildSyntheticSyncAuditDelta(
           ...(fileOperationReminder !== undefined
             ? { fileOperationReminder }
             : {}),
+          ...(hardGateBlock !== undefined ? { hardGateBlock } : {}),
         });
 
         logger.info("smart-enforcement.guidance", {

@@ -67,6 +67,34 @@ describe("hook contract", () => {
     return dir;
   }
 
+  function setupAuthoritativeWorkspace(dir: string): void {
+    fs.mkdirSync(path.join(dir, ".kb"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, ".kb", "config.json"),
+      JSON.stringify({}, null, 2),
+    );
+    for (const docDir of [
+      "documentation/requirements",
+      "documentation/scenarios",
+      "documentation/tests",
+      "documentation/adr",
+      "documentation/flags",
+      "documentation/events",
+      "documentation/facts",
+    ]) {
+      fs.mkdirSync(path.join(dir, docDir), { recursive: true });
+    }
+    fs.writeFileSync(path.join(dir, "documentation", "symbols.yaml"), "[]");
+  }
+
+  function writeProjectConfig(dir: string, config: Record<string, unknown>): void {
+    fs.mkdirSync(path.join(dir, ".opencode"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, ".opencode", "kibi.json"),
+      JSON.stringify(config, null, 2),
+    );
+  }
+
   test("system.transform is the primary prompt-text delivery hook", () => {
     // Per ADR-016: experimental.chat.system.transform carries prompt text
     const originalSystem = "Original system prompt";
@@ -280,6 +308,94 @@ describe("hook contract", () => {
     assert.ok(
       !("system" in output),
       "chat.params must not create a system property",
+    );
+  });
+
+  test("hard mode renders a deterministic MCP-only block for dirty authoritative files", async () => {
+    const dir = makeProjectDir("auto");
+    setupAuthoritativeWorkspace(dir);
+    writeProjectConfig(dir, {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: false },
+      guidance: { smartEnforcement: { enabled: true, mode: "hard" } },
+    });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "src", "new-module.ts"),
+      "export function newModule() { return 1; }\n",
+    );
+
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const eventHook = hooks.event;
+    const transformHook = hooks["experimental.chat.system.transform"];
+    assert.ok(eventHook, "event hook should exist");
+    assert.ok(transformHook, "system.transform hook should exist");
+
+    await eventHook({
+      event: { type: "file.created", properties: { file: "src/new-module.ts" } },
+    } as never);
+    const output = { system: ["existing system"] };
+    await transformHook(
+      { focusFilePath: "src/new-module.ts" } as never,
+      output,
+    );
+
+    const injected = output.system.join("\n");
+    assert.ok(
+      injected.includes("🛑 Kibi hard gate blocked"),
+      `Expected hard gate block, got: ${injected}`,
+    );
+    assert.ok(injected.includes("src/new-module.ts"));
+    for (const required of [
+      "kb_search",
+      "kb_query",
+      "sourceFile",
+      "kb_status",
+      "kb_check",
+      "kb_upsert",
+    ]) {
+      assert.ok(injected.includes(required), `Expected ${required} guidance`);
+    }
+    assert.ok(!injected.includes("npx kibi"), "Must not suggest Kibi CLI");
+  });
+
+  test("hard mode does not block non-authoritative workspaces", async () => {
+    const dir = makeProjectDir("auto");
+    writeProjectConfig(dir, {
+      enabled: true,
+      prompt: { enabled: true, hookMode: "auto" },
+      sync: { enabled: false },
+      guidance: { smartEnforcement: { enabled: true, mode: "hard" } },
+    });
+    fs.mkdirSync(path.join(dir, "src"), { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, "src", "vendor-module.ts"),
+      "export function vendorModule() { return 1; }\n",
+    );
+
+    const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
+    const eventHook = hooks.event;
+    const transformHook = hooks["experimental.chat.system.transform"];
+    assert.ok(eventHook, "event hook should exist");
+    assert.ok(transformHook, "system.transform hook should exist");
+
+    await eventHook({
+      event: {
+        type: "file.created",
+        properties: { file: "src/vendor-module.ts" },
+      },
+    } as never);
+    const output = { system: [] as string[] };
+    await transformHook(
+      { focusFilePath: "src/vendor-module.ts" } as never,
+      output,
+    );
+
+    const injected = output.system.join("\n");
+    assert.ok(
+      !injected.includes("🛑 Kibi hard gate blocked"),
+      `Non-authoritative workspace must not hard-block, got: ${injected}`,
     );
   });
 
