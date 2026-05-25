@@ -18,6 +18,11 @@ import type { GraphArgs } from "../../src/tools/graph.js";
 import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
 import type { StatusArgs } from "../../src/tools/status.js";
+import type {
+  SkillsListArgs,
+  SkillsLoadArgs,
+  SkillsReadArgs,
+} from "../../src/tools/skills.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
 import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
@@ -42,6 +47,9 @@ const TOOL_NAMES = [
   "kb_query",
   "kb_search",
   "kb_status",
+  "kb_skills_list",
+  "kb_skills_load",
+  "kb_skills_read",
   "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
@@ -261,6 +269,24 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbSkillsList: ToolsRuntime<MockProlog>["handleKbSkillsList"] = mock(
+    async (args: SkillsListArgs): Promise<unknown> => ({
+      tool: "kb_skills_list",
+      args,
+    }),
+  );
+  const handleKbSkillsLoad: ToolsRuntime<MockProlog>["handleKbSkillsLoad"] = mock(
+    async (args: SkillsLoadArgs): Promise<unknown> => ({
+      tool: "kb_skills_load",
+      args,
+    }),
+  );
+  const handleKbSkillsRead: ToolsRuntime<MockProlog>["handleKbSkillsRead"] = mock(
+    async (args: SkillsReadArgs): Promise<unknown> => ({
+      tool: "kb_skills_read",
+      args,
+    }),
+  );
   const handleKbUpsert: ToolsRuntime<MockProlog>["handleKbUpsert"] = mock(
     async (_prolog: MockProlog, args: UpsertArgs): Promise<unknown> => ({
       tool: "kb_upsert",
@@ -307,6 +333,9 @@ function createRuntime() {
     handleKbQuery,
     handleKbSearch,
     handleKbStatus,
+    handleKbSkillsList,
+    handleKbSkillsLoad,
+    handleKbSkillsRead,
     handleKbUpsert,
     handleKbModelRequirement,
     handleKbAutopilotGenerate,
@@ -335,6 +364,9 @@ function createRuntime() {
       handleKbQuery,
       handleKbSearch,
       handleKbStatus,
+      handleKbSkillsList,
+      handleKbSkillsLoad,
+      handleKbSkillsRead,
       handleKbUpsert,
       handleKbModelRequirement,
       handleKbAutopilotGenerate,
@@ -655,7 +687,7 @@ describe.serial("server tools coverage", () => {
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 3);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -667,6 +699,15 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbStatus).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_status"),
+    );
+    expect(spies.handleKbSkillsList).toHaveBeenCalledWith(
+      argsByTool.get("kb_skills_list"),
+    );
+    expect(spies.handleKbSkillsLoad).toHaveBeenCalledWith(
+      argsByTool.get("kb_skills_load"),
+    );
+    expect(spies.handleKbSkillsRead).toHaveBeenCalledWith(
+      argsByTool.get("kb_skills_read"),
     );
     expect(spies.handleKbFindGaps).toHaveBeenCalledWith(
       mockProlog,
