@@ -194,6 +194,11 @@ jobs:
     needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
       - name: Install SWI-Prolog
         run: |
           retry() {
@@ -249,6 +254,11 @@ jobs:
     needs: [build-and-test, prolog-unit-coverage]
     if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
