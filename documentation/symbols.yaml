@@ -874,3 +874,87 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 109
     sourceEndColumn: 1
+  - id: SYM-KibiCheckpointContext
+    title: KibiCheckpointContext
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRunnerOptions
+    title: KibiCheckpointRunnerOptions
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointMetadata
+    title: KibiCheckpointMetadata
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 53
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRequestResult
+    title: KibiCheckpointRequestResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 69
+    sourceColumn: 12
+    sourceEndLine: 72
+    sourceEndColumn: 61
+  - id: SYM-KibiCheckpointRunResult
+    title: KibiCheckpointRunResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 74
+    sourceColumn: 12
+    sourceEndLine: 77
+    sourceEndColumn: 55
+  - id: SYM-KibiCheckpointRunner
+    title: KibiCheckpointRunner
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 85
+    sourceColumn: 13
+    sourceEndLine: 349
+    sourceEndColumn: 1
