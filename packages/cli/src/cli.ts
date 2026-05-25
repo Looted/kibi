@@ -29,6 +29,12 @@ import { initCommand } from "./commands/init.js";
 import { migrateCommand } from "./commands/migrate.js";
 import { queryCommand } from "./commands/query.js";
 import { searchCommand } from "./commands/search.js";
+import {
+  skillsListCommand,
+  skillsLoadCommand,
+  skillsReadCommand,
+  skillsValidateCommand,
+} from "./commands/skills.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
 import { usageMetricsCommand } from "./commands/usage-metrics.js";
@@ -242,6 +248,70 @@ program
     withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) => {
       return usageMetricsCommand(options);
     }),
+  );
+
+const skillsProgram = program
+  .command("skills")
+  .description("Manage bundled markdown skills");
+
+skillsProgram
+  .command("list")
+  .description("List bundled markdown skills")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(
+    withExitCode(async (options: Parameters<typeof skillsListCommand>[0]) => {
+      return skillsListCommand(options);
+    }),
+  );
+
+skillsProgram
+  .command("load")
+  .description("Load a bundled markdown skill")
+  .argument("<id>", "Bundled skill ID")
+  .option("--format <format>", "Output format: json|markdown", "markdown")
+  .action(
+    withExitCode(
+      async (
+        id: Parameters<typeof skillsLoadCommand>[0],
+        options: Parameters<typeof skillsLoadCommand>[1],
+      ) => {
+        return skillsLoadCommand(id, options);
+      },
+    ),
+  );
+
+skillsProgram
+  .command("read")
+  .description("Read a declared bundled skill resource")
+  .argument("<id>", "Bundled skill ID")
+  .argument("<resource>", "Declared resource path")
+  .option("--format <format>", "Output format: text|json", "text")
+  .action(
+    withExitCode(
+      async (
+        id: Parameters<typeof skillsReadCommand>[0],
+        resource: Parameters<typeof skillsReadCommand>[1],
+        options: Parameters<typeof skillsReadCommand>[2],
+      ) => {
+        return skillsReadCommand(id, resource, options);
+      },
+    ),
+  );
+
+skillsProgram
+  .command("validate")
+  .description("Validate a bundled markdown skill path")
+  .argument("<path>", "Skill bundle directory or SKILL.md path")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(
+    withExitCode(
+      async (
+        pathLike: Parameters<typeof skillsValidateCommand>[0],
+        options: Parameters<typeof skillsValidateCommand>[1],
+      ) => {
+        return skillsValidateCommand(pathLike, options);
+      },
+    ),
   );
 
 program
