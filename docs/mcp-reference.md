@@ -136,6 +136,56 @@ Branch name, snapshot ID, sync state, dirty flag, and KB path metadata.
 {}
 ```
 
+MK|### `kb_skills_list`
+XZ|
+PW|List bundled Kibi agent skills available for progressive disclosure. Read-only; does not mutate the KB or require Prolog.
+QW|
+RH|**Parameters:**
+ZJ|- None
+QW|
+KQ|**Returns:**
+JP|Array of skill manifests with `id`, `name`, `version`, `description`, and declared `resources`.
+MS|
+TH|**Example:**
+YP|```json
+TT|{}
+TV|```
+NJ|
+BN|### `kb_skills_load`
+HT|
+YK|Load a bundled Kibi agent skill by ID, returning its manifest metadata, Markdown body, declared resources, content hash, and source type. Read-only; does not execute scripts or require Prolog.
+YQ|
+RH|**Parameters:**
+ZV|- `id` (required): Bundled skill ID to load. Example: `'kibi-usage'`.
+XY|
+KQ|**Returns:**
+SB|Skill bundle with `manifest`, `body`, `resources`, `hash`, and `sourceType`.
+BQ|
+TH|**Example:**
+YP|```json
+TY|{
+RN|  "id": "kibi-usage"
+MJ|}
+HP|```
+SH|
+WV|### `kb_skills_read`
+VH|
+YX|Read a declared resource from a bundled Kibi agent skill. Resource paths are restricted to the skill manifest; arbitrary file paths are not exposed. Read-only; does not require Prolog.
+PX|
+RH|**Parameters:**
+VZ|- `id` (required): Bundled skill ID. Example: `'kibi-usage'`.
+KQ|- `resource` (required): Manifest-declared resource path to read. Example: `'resources/fact-lanes.md'`.
+YY|
+KQ|**Returns:**
+VZ|Resource contents as text.
+BM|
+TH|**Example:**
+YP|```json
+TT|{
+TV|  "id": "kibi-usage",
+BQ|  "resource": "resources/fact-lanes.md"
+SZ|}
+YN|
 ### `kb_find_gaps`
 
 Run curated missing/present relationship analysis over KB entities.

@@ -59,6 +59,7 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 - **kibi-mcp** — Model Context Protocol server for LLM integration
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
+- **Skill subsystem** — Reusable Markdown skills for agent guidance (bundled skills, CLI + MCP progressive disclosure)
 
 ## Prerequisites
 
