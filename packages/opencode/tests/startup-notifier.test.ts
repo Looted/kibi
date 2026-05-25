@@ -25,7 +25,7 @@ describe("notifyStartup", () => {
     };
 
     notifyStartup(client as unknown as StartupNotifierClient, {
-      version: "1.2.3",
+      versions: { opencode: "1.2.3" },
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -35,7 +35,7 @@ describe("notifyStartup", () => {
       body: {
         variant: "success",
         title: "Kibi OpenCode",
-        message: "kibi-opencode started (v1.2.3)",
+        message: "kibi-opencode started (opencode v1.2.3)",
         duration: 4000,
       },
     });
@@ -44,7 +44,8 @@ describe("notifyStartup", () => {
         service: "kibi-opencode",
         level: "info",
         message: "kibi-opencode started",
-        version: "1.2.3",
+        versions: { opencode: "1.2.3" },
+        unknownVersions: ["mcp", "cli", "core"],
       },
     });
     assert.deepEqual(logCalls[1], {
@@ -126,7 +127,7 @@ describe("notifyStartup", () => {
     };
 
     notifyStartup(client as unknown as StartupNotifierClient, {
-      version: "1.2.3",
+      versions: { opencode: "1.2.3" },
       suppressToast: true,
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -138,7 +139,8 @@ describe("notifyStartup", () => {
         service: "kibi-opencode",
         level: "info",
         message: "kibi-opencode started",
-        version: "1.2.3",
+        versions: { opencode: "1.2.3" },
+        unknownVersions: ["mcp", "cli", "core"],
       },
     });
   });
@@ -217,7 +219,7 @@ describe("notifyStartup", () => {
     };
 
     notifyStartup(client as unknown as StartupNotifierClient, {
-      version: "1.2.3",
+      versions: { opencode: "1.2.3" },
     });
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -227,7 +229,7 @@ describe("notifyStartup", () => {
       body: {
         variant: "success",
         title: "Kibi OpenCode",
-        message: "kibi-opencode started (v1.2.3)",
+        message: "kibi-opencode started (opencode v1.2.3)",
         duration: 4000,
       },
     });
@@ -236,7 +238,8 @@ describe("notifyStartup", () => {
         service: "kibi-opencode",
         level: "info",
         message: "kibi-opencode started",
-        version: "1.2.3",
+        versions: { opencode: "1.2.3" },
+        unknownVersions: ["mcp", "cli", "core"],
       },
     });
     assert.deepEqual(logCalls[1], {
@@ -245,6 +248,66 @@ describe("notifyStartup", () => {
         level: "info",
         message: "startup toast delivered",
         transport: "sdk",
+      },
+    });
+  });
+
+  test("shows all four versions in toast when all present", async () => {
+    const toastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const toast = async (payload: unknown) => { toastCalls.push(payload); };
+    const log = async (payload: unknown) => { logCalls.push(payload); };
+    const client = { tui: { showToast: toast }, app: { log } };
+    notifyStartup(client as unknown as StartupNotifierClient, {
+      versions: { opencode: "1.0.0", mcp: "2.0.0", cli: "3.0.0", core: "4.0.0" },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(toastCalls.length, 1);
+    assert.deepEqual(toastCalls[0], {
+      body: {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started (opencode v1.0.0, mcp v2.0.0, cli v3.0.0, core v4.0.0)",
+        duration: 4000,
+      },
+    });
+    assert.deepEqual(logCalls[0], {
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "kibi-opencode started",
+        versions: { opencode: "1.0.0", mcp: "2.0.0", cli: "3.0.0", core: "4.0.0" },
+        unknownVersions: [],
+      },
+    });
+  });
+
+  test("shows partial versions in toast (only opencode and mcp)", async () => {
+    const toastCalls: unknown[] = [];
+    const logCalls: unknown[] = [];
+    const toast = async (payload: unknown) => { toastCalls.push(payload); };
+    const log = async (payload: unknown) => { logCalls.push(payload); };
+    const client = { tui: { showToast: toast }, app: { log } };
+    notifyStartup(client as unknown as StartupNotifierClient, {
+      versions: { opencode: "1.0.0", mcp: "2.0.0" },
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.equal(toastCalls.length, 1);
+    assert.deepEqual(toastCalls[0], {
+      body: {
+        variant: "success",
+        title: "Kibi OpenCode",
+        message: "kibi-opencode started (opencode v1.0.0, mcp v2.0.0)",
+        duration: 4000,
+      },
+    });
+    assert.deepEqual(logCalls[0], {
+      body: {
+        service: "kibi-opencode",
+        level: "info",
+        message: "kibi-opencode started",
+        versions: { opencode: "1.0.0", mcp: "2.0.0" },
+        unknownVersions: ["cli", "core"],
       },
     });
   });
