@@ -702,3 +702,175 @@ symbols:
     sourceColumn: 22
     sourceEndLine: 100
     sourceEndColumn: 1
+  - id: SYM-PolicyLinkedEntityResult
+    title: PolicyLinkedEntityResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 10
+    sourceColumn: 17
+    sourceEndLine: 13
+    sourceEndColumn: 1
+  - id: SYM-EnforcementLifecycleEvent
+    title: EnforcementLifecycleEvent
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 15
+    sourceColumn: 17
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-CheckpointEvidence
+    title: CheckpointEvidence
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 20
+    sourceColumn: 12
+    sourceEndLine: 29
+    sourceEndColumn: 6
+  - id: SYM-EnforcementPolicyInput
+    title: EnforcementPolicyInput
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 54
+    sourceEndColumn: 1
+  - id: SYM-EnforcementPolicyResult
+    title: EnforcementPolicyResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 69
+    sourceColumn: 12
+    sourceEndLine: 88
+    sourceEndColumn: 7
+  - id: SYM-computeEnforcementPolicy
+    title: computeEnforcementPolicy
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+    sourceLine: 331
+    sourceColumn: 16
+    sourceEndLine: 422
+    sourceEndColumn: 1
+  - id: SYM-LinkedEntityResult
+    title: LinkedEntityResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 20
+    sourceColumn: 17
+    sourceEndLine: 23
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderParams
+    title: DeriveFileOperationReminderParams
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 25
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderResult
+    title: DeriveFileOperationReminderResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-deriveFileOperationReminder
+    title: deriveFileOperationReminder
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    links:
+      - REQ-opencode-file-context-guidance-v1
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-file-context-guidance-v1
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-file-context-guidance-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+    sourceLine: 61
+    sourceColumn: 16
+    sourceEndLine: 109
+    sourceEndColumn: 1

@@ -272,3 +272,63 @@ coordinates:
     sourceEndLine: 388
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 386
+  SYM-CheckpointEvidence:
+    sourceColumn: 12
+    sourceEndColumn: 6
+    sourceEndLine: 29
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 20
+  SYM-DeriveFileOperationReminderParams:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 25
+  SYM-DeriveFileOperationReminderResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 43
+  SYM-EnforcementLifecycleEvent:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 15
+  SYM-EnforcementPolicyInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 31
+  SYM-EnforcementPolicyResult:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 88
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 69
+  SYM-LinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 20
+  SYM-PolicyLinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 10
+  SYM-computeEnforcementPolicy:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 422
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 331
+  SYM-deriveFileOperationReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 61
