@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
   existsSync,
   mkdirSync,
@@ -50,6 +50,11 @@ function validFrontmatter(overrides: Record<string, unknown> = {}) {
 }
 
 afterEach(() => {
+  rmSync(bundledSkillsDir, { recursive: true, force: true });
+  mkdirSync(bundledSkillsDir, { recursive: true });
+  rmSync(outsideFixturesDir, { recursive: true, force: true });
+});
+beforeEach(() => {
   rmSync(bundledSkillsDir, { recursive: true, force: true });
   mkdirSync(bundledSkillsDir, { recursive: true });
   rmSync(outsideFixturesDir, { recursive: true, force: true });
