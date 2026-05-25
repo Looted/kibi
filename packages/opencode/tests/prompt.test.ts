@@ -542,6 +542,47 @@ describe("prompt", () => {
     assert.equal(p.trim(), SENTINEL);
   });
 
+  test("hard gate block renders as one sentinel block with MCP-only recovery steps", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      posture: "root_active",
+      hardGateBlock: {
+        shownPaths: ["src/new-module.ts"],
+        remainingCount: 0,
+        reason: "sync_failed",
+      },
+    } as PromptContext & {
+      hardGateBlock: {
+        shownPaths: string[];
+        remainingCount: number;
+        reason: string;
+      };
+    });
+
+    const sentinelCount = p.split(SENTINEL).length - 1;
+    assert.equal(sentinelCount, 1, "Hard gate should render one sentinel");
+    const block = p.split(SENTINEL)[1]?.trimStart() ?? "";
+    assert.ok(
+      block.startsWith("🛑 Kibi hard gate blocked"),
+      `Hard gate block should start with the deterministic heading, got: ${block}`,
+    );
+    for (const tool of [
+      "kb_search",
+      "kb_query",
+      "sourceFile",
+      "kb_status",
+      "kb_check",
+      "kb_upsert",
+    ]) {
+      assert.ok(p.includes(tool), `Hard gate block should mention ${tool}`);
+    }
+    assert.ok(
+      p.includes("STOP implementation"),
+      "Hard gate should tell the agent to stop implementation",
+    );
+    assert.ok(!p.includes("kibi check"), "Hard gate must avoid Kibi CLI commands");
+  });
+
   test("vendored_only posture suppresses operational guidance", () => {
     const p = buildPrompt({
       recentEdits: [{ path: "src/foo.ts", kind: "code" }],

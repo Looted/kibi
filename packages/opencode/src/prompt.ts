@@ -186,6 +186,36 @@ export interface PromptContext {
     lifecycleReminder: string | null;
     e2eReminder: string | null;
   };
+  /** Hard-mode checkpoint block that must take prompt priority over advisory guidance. */
+  hardGateBlock?: {
+    shownPaths: string[];
+    remainingCount: number;
+    reason?: string;
+  };
+}
+
+function buildHardGateBlock(block: NonNullable<PromptContext["hardGateBlock"]>): string {
+  const pathLines = block.shownPaths.map((path) => `- \`${path}\``);
+  if (block.remainingCount > 0) {
+    pathLines.push(`- +${block.remainingCount} more dirty files`);
+  }
+  const reasonLine = block.reason ? `Reason: ${block.reason}.` : null;
+
+  return [
+    "🛑 Kibi hard gate blocked",
+    "STOP implementation until this authoritative Kibi checkpoint is satisfied.",
+    reasonLine,
+    "Affected files:",
+    ...pathLines,
+    "MCP-only recovery steps:",
+    "- Run `kb_search` for impacted requirements, tests, ADRs, and facts.",
+    "- Run `kb_query` with `sourceFile` for each affected file.",
+    "- Run `kb_status` if branch or snapshot freshness matters.",
+    "- Run `kb_upsert` for required traceability, relationship, or fact updates.",
+    "- Run `kb_check` before continuing.",
+  ]
+    .filter((line): line is string => line !== null)
+    .join("\n");
 }
 
 // ── Guidance blocks by risk class ──────────────────────────────────────
@@ -263,6 +293,10 @@ function buildContextualGuidance(
   context: PromptContext,
   capability: InitKibiCommandCapability = getInitKibiCommandCapability(),
 ): string {
+  if (context.hardGateBlock) {
+    return `${SENTINEL}\n\n${buildHardGateBlock(context.hardGateBlock)}`;
+  }
+
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
   const readyAutoBriefingAvailable =
