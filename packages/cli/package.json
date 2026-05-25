@@ -19,7 +19,7 @@
     "src/public"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
     "prepack": "npm run build"
   },
   "exports": {
