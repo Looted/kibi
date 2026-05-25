@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import Table from "cli-table3";
 import type { CommandResult } from "../cli.js";
 import {
@@ -40,7 +41,13 @@ export async function skillsLoadCommand(
   return handleSkillCommand(() => {
     const bundle = loadBundledSkill(id);
     if (options.format === "json") {
-      console.log(JSON.stringify(bundle, null, 2));
+      console.log(JSON.stringify({
+        metadata: bundle.manifest,
+        body: bundle.body,
+        resources: bundle.manifest.resources ?? [],
+        contentHash: createHash("sha256").update(bundle.body).digest("hex"),
+        sourceType: "bundled",
+      }, null, 2));
       return;
     }
 

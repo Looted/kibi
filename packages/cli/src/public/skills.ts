@@ -160,7 +160,52 @@ export function validateSkillBundle(
   const parsed = matter(readFileSync(skillFilePath, "utf8"));
   errors.push(...validateManifestData(parsed.data));
 
+  if (errors.length === 0) {
+    validateBundleContents(skillFilePath, coerceManifest(parsed.data), errors);
+  }
+
   return { valid: errors.length === 0, errors };
+}
+
+function validateBundleContents(
+  skillFilePath: string,
+  manifest: SkillManifest,
+  errors: SkillValidationError[],
+): void {
+  try {
+    assertMaxBytes(skillFilePath, SKILL_MARKDOWN_MAX_BYTES);
+  } catch (error) {
+    errors.push(new SkillValidationError("SKILL.md", error instanceof Error ? error.message : String(error)));
+  }
+
+  const rootDir = dirname(skillFilePath);
+  let realRootDir: string;
+  try {
+    realRootDir = realpathSync(rootDir);
+  } catch (error) {
+    errors.push(new SkillValidationError("SKILL.md", error instanceof Error ? error.message : String(error)));
+    return;
+  }
+
+  for (const resource of manifest.resources ?? []) {
+    const resourcePath = resolve(rootDir, resource);
+    try {
+      if (!existsSync(resourcePath)) {
+        errors.push(new SkillValidationError("resources", `Missing skill resource: ${resource}`));
+        continue;
+      }
+
+      const realResourcePath = realpathSync(resourcePath);
+      if (!isWithinRoot(realRootDir, realResourcePath)) {
+        errors.push(new SkillValidationError("resources", `Skill resource escapes bundle root: ${resource}`));
+        continue;
+      }
+
+      assertMaxBytes(resourcePath, RESOURCE_MAX_BYTES);
+    } catch (error) {
+      errors.push(new SkillValidationError("resources", error instanceof Error ? error.message : String(error)));
+    }
+  }
 }
 
 function findBundledSkillRoot(id: string): string | undefined {
@@ -311,5 +356,4 @@ function resolveSkillFilePath(pathLike: string): string {
 
   return resolved.endsWith(SKILL_FILE_NAME) ? resolved : join(resolved, SKILL_FILE_NAME);
 }
-
 

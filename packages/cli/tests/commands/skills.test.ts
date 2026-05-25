@@ -35,13 +35,20 @@ describe("kibi skills", () => {
   test("loads a bundled skill as json", () => {
     const output = runSkills(["load", "kibi-usage", "--format", "json"]);
     const bundle = JSON.parse(output) as {
-      manifest: { id: string; resources?: string[] };
+      metadata: { id: string; resources?: string[] };
       body: string;
+      resources: string[];
+      contentHash: string;
+      sourceType: string;
+      rootDir?: string;
     };
 
-    expect(bundle.manifest.id).toBe("kibi-usage");
-    expect(bundle.manifest.resources).toContain("resources/fact-lanes.md");
+    expect(bundle.metadata.id).toBe("kibi-usage");
+    expect(bundle.resources).toContain("resources/fact-lanes.md");
     expect(bundle.body).toContain("# Kibi Usage");
+    expect(bundle.contentHash).toMatch(/^[a-f0-9]{64}$/);
+    expect(bundle.sourceType).toBe("bundled");
+    expect(bundle.rootDir).toBeUndefined();
   });
 
   test("reads a declared bundled skill resource", () => {

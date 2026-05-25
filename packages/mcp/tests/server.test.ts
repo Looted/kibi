@@ -241,11 +241,14 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(12);
+    expect(tools.length).toBe(15);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
       "kb_status",
+      "kb_skills_list",
+      "kb_skills_load",
+      "kb_skills_read",
       "kb_find_gaps",
       "kb_coverage",
       "kb_graph",
