@@ -6,6 +6,8 @@ import type { RiskClass } from "./risk-classifier.js";
 /**
  * Cache key uniquely identifies a preflight context by combining
  * workspace root, branch, posture, risk class, and file bucket.
+ * Hard-enforcement callers may additionally pass scopeKey to prevent
+ * cross-session/worktree dirty-state cache hits. Advisory callers omit it.
  */
 export interface CacheKey {
   workspaceRoot: string;
@@ -13,6 +15,7 @@ export interface CacheKey {
   posture: RepoPosture;
   riskClass: RiskClass;
   fileBucket: string;
+  scopeKey?: string;
 }
 
 /**
@@ -27,7 +30,7 @@ export interface CacheEntry {
  * Serializes a CacheKey into a deterministic string for use as a Map key.
  */
 function serializeKey(key: CacheKey): string {
-  return `${key.workspaceRoot}\0${key.branch}\0${key.posture}\0${key.riskClass}\0${key.fileBucket}`;
+  return `${key.workspaceRoot}\0${key.branch}\0${key.posture}\0${key.riskClass}\0${key.fileBucket}\0${key.scopeKey ?? ""}`;
 }
 
 /**
