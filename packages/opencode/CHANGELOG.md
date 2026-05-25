@@ -1,5 +1,42 @@
 # kibi-opencode
 
+## 0.14.0
+
+### Minor Changes
+
+- 5d1bd5a: OpenCode guidance now uses one lifecycle enforcement policy for created, edited, and deleted relevant files. In hard mode, authoritative Kibi roots get a single aggregated checkpoint block that tells agents exactly which MCP tools to use before continuing, including sourceFile cleanup guidance for deleted files with no linked IDs.
+
+  Technical summary:
+
+  - Add a pure enforcement-policy module with advisory, hard-block, skip, and checkpoint-passed decisions.
+  - Route file-operation reminders through the policy and cover edited-file, deletion, non-authoritative, and aggregation cases with focused tests.
+
+- 2ee60fc: OpenCode hard enforcement can now complete a plugin-owned checkpoint instead of relying on prompt guidance alone. Authoritative roots only pass when the exact dirty fingerprint has rendered hard guidance and the internal Kibi sync/check cycle succeeds; degraded authoritative roots fail closed with restoration guidance while non-authoritative roots continue to skip hard enforcement.
+
+  Technical summary:
+
+  - Add a hard Kibi checkpoint runner with scoped in-memory evidence, scheduler flush coordination, targeted-check validation, and 30-second timeout handling.
+  - Cover pass, sync failure, check failure, timeout, degraded, non-authoritative, and fingerprint-isolation behavior in opencode scheduler tests.
+
+### Patch Changes
+
+- 882017f: OpenCode hard mode now surfaces a clear stop-state in the prompt when authoritative files are dirty and the Kibi checkpoint has not been satisfied. Agents see deterministic MCP-only recovery steps instead of advisory guidance, while non-authoritative workspaces continue without a hard block.
+
+  Technical summary:
+
+  - Add hard-gate prompt rendering with bounded affected paths and public MCP tool instructions.
+  - Thread hard-mode file-operation policy results through the plugin prompt transform and preserve non-authoritative skip behavior.
+  - Cover hard-block and no-block behavior in prompt and hook contract tests.
+
+- 1ff797b: The kibi-opencode README now fully documents the three smart-enforcement modes so users can choose the right posture for their workflow. This repository's dogfood configuration has also switched to `hard` mode, which means authoritative roots and linked git worktrees will fail closed until the Kibi checkpoint passes.
+
+  Technical summary:
+
+  - Document `advisory`, `strict`, and `hard` modes in the Smart Enforcement section with authoritative-root and linked-worktree fail-closed semantics.
+  - Update the config keys table to list `advisory`, `strict`, and `hard` as valid values for `guidance.smartEnforcement.mode`.
+  - Update the Hook Policy section to clarify that enforcement is advisory by default with opt-in strict and hard modes available.
+  - Change `.opencode/kibi.json` dogfood config from `mode: "advisory"` to `mode: "hard"`.
+
 ## 0.13.0
 
 ### Minor Changes
