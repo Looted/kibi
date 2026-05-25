@@ -45,6 +45,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 5. **Validation discipline**
    - Run targeted `kb_check` rules during iteration.
    - Run a final `kb_check` before completion.
+   - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed.
 
 ## Brief Generation (Automatic)
 

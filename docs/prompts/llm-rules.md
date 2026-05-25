@@ -176,6 +176,20 @@ Avoid these common mistakes:
 2. Maintain relationships continuously instead of batch-fixing them later.
 3. Run `kb_check` after significant structural changes.
 
+## Task Completion Contract
+
+Every implementation task that modifies source code, tests, requirements, scenarios,
+symbols, ADRs, facts, or flags MUST end with one of:
+
+1. **KB updated**: Source-linked discovery via `kb_search`, followed by `kb_query` with
+   `sourceFile`, followed by `kb_upsert`/`kb_delete` for required mutations, then `kb_check`.
+2. **No KB impact**: Include a structured rationale in the final report after source-linked
+   discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.
+3. **Deferred/Failed**: Explicitly note that KB freshness cannot be resolved in this task.
+
+The plugin surfaces a `🧠 **Kibi freshness required**` block when KB impact is
+unresolved. This block lists changed files, missing evidence, and resolution steps.
+
 ## After Completing Work
 
 1. Run `kb_check`.

@@ -586,3 +586,168 @@ describe("smart enforcement contract matrix", () => {
     });
   });
 });
+
+import { computeEnforcementPolicy, type EnforcementPolicyInput } from "../src/enforcement-policy";
+import type { KbFreshnessEvidence } from "../src/kb-freshness-state";
+import type { WorkContext } from "../src/work-context-resolver";
+
+function makeWorkContext(isAuthoritative: boolean): WorkContext {
+  return {
+    isAuthoritative,
+    posture: isAuthoritative ? "root_active" : "vendored_only",
+    kbRoot: isAuthoritative ? "/repo" : undefined,
+  } as unknown as WorkContext;
+}
+
+function makeEnforcementInput(
+  overrides: Partial<EnforcementPolicyInput>,
+): EnforcementPolicyInput {
+  return {
+    effectiveMode: "hard",
+    lifecycleEvents: [{ normalizedPath: "src/foo.ts", lifecycle: "edited" }],
+    pathKinds: ["code"],
+    resolvedContext: makeWorkContext(true),
+    ...overrides,
+  };
+}
+
+describe("KB freshness evidence in enforcement policy", () => {
+  it("source edit + missing freshness evidence (no decision) → hard_block", () => {
+    const input = makeEnforcementInput({
+      checkpointEvidence: {
+        freshness: {
+          agentIdentity: "test-agent",
+          worktree: "/repo",
+          branch: "main",
+          fingerprint: "abc123",
+          changedFiles: ["src/foo.ts"],
+          kbStatus: false,
+          sourceLinkedDiscovery: false,
+          kbMutation: false,
+          kbCheck: false,
+        } satisfies KbFreshnessEvidence,
+      },
+    });
+
+    const result = computeEnforcementPolicy(input);
+    assert.equal(result.kind, "hard_block");
+  });
+
+  it("valid updated freshness evidence → checkpoint_passed", () => {
+    const input = makeEnforcementInput({
+      checkpointEvidence: {
+        freshness: {
+          agentIdentity: "test-agent",
+          worktree: "/repo",
+          branch: "main",
+          fingerprint: "abc123",
+          changedFiles: ["src/foo.ts"],
+          kbStatus: true,
+          sourceLinkedDiscovery: true,
+          kbMutation: true,
+          kbCheck: true,
+          decision: "updated",
+        } satisfies KbFreshnessEvidence,
+      },
+    });
+
+    const result = computeEnforcementPolicy(input);
+    assert.equal(result.kind, "checkpoint_passed");
+  });
+
+  it("no-impact without sourceLinkedDiscovery → hard_block", () => {
+    const input = makeEnforcementInput({
+      checkpointEvidence: {
+        freshness: {
+          agentIdentity: "test-agent",
+          worktree: "/repo",
+          branch: "main",
+          fingerprint: "abc123",
+          changedFiles: ["src/foo.ts"],
+          kbStatus: true,
+          sourceLinkedDiscovery: false,
+          kbMutation: false,
+          kbCheck: true,
+          decision: "no-impact",
+          rationale: "test only",
+        } satisfies KbFreshnessEvidence,
+      },
+    });
+
+    const result = computeEnforcementPolicy(input);
+    assert.equal(result.kind, "hard_block");
+  });
+
+  it("advisory mode still emits guidance (not hard_block) with freshness evidence", () => {
+    const input = makeEnforcementInput({
+      effectiveMode: "advisory",
+      checkpointEvidence: {
+        freshness: {
+          agentIdentity: "test-agent",
+          worktree: "/repo",
+          branch: "main",
+          fingerprint: "abc123",
+          changedFiles: ["src/foo.ts"],
+          kbStatus: false,
+          sourceLinkedDiscovery: false,
+          kbMutation: false,
+          kbCheck: false,
+        } satisfies KbFreshnessEvidence,
+      },
+    });
+
+    const result = computeEnforcementPolicy(input);
+    assert.equal(result.kind, "advisory_guidance");
+  });
+
+  it("freshness evidence overrides legacy booleans when present", () => {
+    const input = makeEnforcementInput({
+      checkpointEvidence: {
+        kbCheck: true,
+        kbSearch: true,
+        freshness: {
+          agentIdentity: "test-agent",
+          worktree: "/repo",
+          branch: "main",
+          fingerprint: "abc123",
+          changedFiles: ["src/foo.ts"],
+          kbStatus: false,
+          sourceLinkedDiscovery: false,
+          kbMutation: false,
+          kbCheck: false,
+        } satisfies KbFreshnessEvidence,
+      },
+    });
+
+    const result = computeEnforcementPolicy(input);
+    // Legacy booleans would pass, but freshness with no decision blocks
+    assert.equal(result.kind, "hard_block");
+  });
+
+  it("hard block text includes KB freshness outcomes", () => {
+    const input = makeEnforcementInput({
+      checkpointEvidence: false,
+    });
+
+    const result = computeEnforcementPolicy(input);
+    assert.equal(result.kind, "hard_block");
+    if (result.kind === "hard_block") {
+      assert.ok(
+        result.text.includes("KB freshness resolution"),
+        "Hard block text should include KB freshness resolution section",
+      );
+      assert.ok(
+        result.text.includes("KB updated"),
+        "Hard block text should mention KB updated outcome",
+      );
+      assert.ok(
+        result.text.includes("No KB impact"),
+        "Hard block text should mention No KB impact outcome",
+      );
+      assert.ok(
+        result.text.includes("Deferred/failed"),
+        "Hard block text should mention Deferred/failed outcome",
+      );
+    }
+  });
+});

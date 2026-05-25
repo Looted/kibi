@@ -14,6 +14,7 @@ import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import type { WorkspaceHealth } from "./workspace-health.js";
+import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
@@ -192,6 +193,10 @@ export interface PromptContext {
     remainingCount: number;
     reason?: string;
   };
+  /** KB freshness evaluation from evidence store */
+  kbFreshness?: KbFreshnessEvaluation;
+  /** Paths changed for freshness evaluation (capped at 5) */
+  freshnessChangedPaths?: string[];
 }
 
 function buildHardGateBlock(block: NonNullable<PromptContext["hardGateBlock"]>): string {
@@ -348,6 +353,7 @@ ${buildBootstrapRequiredBody(capability)}`;
       context.cache &&
       context.workspaceRoot &&
       context.branch &&
+      !context.kbFreshness?.requiresEvidence &&
       riskClass
     ) {
       const focusEdit = getFocusEdit(context);
@@ -604,6 +610,28 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     posture !== "root_partial"
   ) {
       finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
+  }
+
+
+  // Prepend KB freshness block when evidence is required
+  if (context.kbFreshness?.requiresEvidence) {
+    const changedListing = context.freshnessChangedPaths?.length
+      ? `Changed: ${context.freshnessChangedPaths.slice(0, 5).map(p => `\`${p}\``).join(", ")}`
+      : null;
+    const freshnessLines = [
+      "🧠 **Kibi freshness required**",
+      changedListing,
+      `State: ${context.kbFreshness.state}. ${context.kbFreshness.reason}`,
+      ...(context.kbFreshness.missingEvidence.length > 0
+        ? [`Missing: ${context.kbFreshness.missingEvidence.join(", ")}`]
+        : []),
+      "Resolution:",
+      "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
+      "- **No KB impact**: include a no-impact rationale in your final report after source-linked discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.",
+    ].filter(Boolean).join("\n");
+    finalBlock = finalBlock
+      ? `${freshnessLines}\n\n${finalBlock}`
+      : freshnessLines;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)

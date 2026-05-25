@@ -78,6 +78,12 @@ import {
   announceBriefTui,
 } from "./tui-brief-delivery.js";
 import {
+  createKbFreshnessEvidenceStore,
+  evaluateKbFreshness,
+  type KbFreshnessScope,
+} from "./kb-freshness-state.js";
+import { classifyMeaningfulChange } from "./meaningful-change-classifier.js";
+import {
   deletePendingBriefMarkers,
   loadPendingBriefMarkers,
 } from "./utils/brief-marker.js";
@@ -331,6 +337,7 @@ const kibiOpencodePlugin: Plugin = async (
   const fileOperationStateRegistry = new Map<string, FileOperationState>();
   const checkpointRunnerRegistry = new Map<string, KibiCheckpointRunner>();
   const pathKindCacheRegistry = new Map<string, Map<string, PathKind>>();
+  const freshnessStore = createKbFreshnessEvidenceStore();
 
   function resolveScopedWorkContext(filePath?: string): WorkContext {
     return resolveWorkContext({
@@ -738,6 +745,37 @@ function buildSyntheticSyncAuditDelta(
   hooks.event = async ({ event }) => {
     const activeBranch = resolveCurrentBranch(input.worktree);
     syncSessionBaseline(activeBranch);
+
+    // Observe KB tool execution events for freshness evidence (best-effort)
+    const TOOL_EVENT_TYPES = new Set([
+      "tool.execute.after", "tool.executed", "tool.call.completed",
+      "tool.Execute.after", "tool.Call.completed",
+    ]);
+    if (TOOL_EVENT_TYPES.has(event.type)) {
+      const props = (event as { properties?: Record<string, unknown> }).properties ?? {};
+      const toolName = (props.tool ?? props.toolName ?? props.name ??
+        (props.call as Record<string, unknown> | undefined)?.name ??
+        (props.input as Record<string, unknown> | undefined)?.tool) as string | undefined;
+      if (typeof toolName === "string" && toolName.startsWith("kb_")) {
+const scope: KbFreshnessScope = {
+  ...(input.sessionId !== undefined ? { sessionId: input.sessionId } : {}),
+  agentIdentity: input.agentIdentity ?? "unknown",
+  worktree: input.worktree,
+  branch: activeBranch,
+  fingerprint: `${input.sessionId ?? ""}-${activeBranch}`,
+};
+        try {
+          freshnessStore.recordToolEvidence(scope, toolName);
+          logger.info("kb-freshness.tool-evidence", {
+            event: "kb_freshness_tool_evidence",
+            tool: toolName,
+          });
+        } catch {
+          // best-effort, never crash the event handler
+        }
+      }
+      return; // tool events don't need file lifecycle processing
+    }
 
     // Handle session.idle for idle-brief generation. OpenCode can emit idle
     // while an assistant is between tool calls, so debounce until the work
@@ -1686,6 +1724,39 @@ function buildSyntheticSyncAuditDelta(
           }
         }
 
+
+        // Build freshness evidence for the current dirty fingerprint
+        let freshnessEval: ReturnType<typeof evaluateKbFreshness> | undefined;
+        const freshnessFingerprint = `${promptWorkContext.sessionId ?? ""}-${promptWorkContext.branch}`;
+const freshnessScope: KbFreshnessScope = {
+  ...(promptWorkContext.sessionId !== undefined ? { sessionId: promptWorkContext.sessionId } : {}),
+  agentIdentity: promptWorkContext.agentIdentity,
+  worktree: promptWorkContext.worktreeRoot,
+  branch: promptWorkContext.branch,
+  fingerprint: freshnessFingerprint,
+};
+        if (transformFocusFilePath) {
+          const normalizedFocusPathForFreshness =
+            promptFileOperationState.normalizePath(transformFocusFilePath);
+          const focusPathKindForFreshness =
+            promptPathKindCache.get(normalizedFocusPathForFreshness) ?? "unknown";
+          const pendingLifecycleForFreshness =
+            promptFileOperationState.peekPending(normalizedFocusPathForFreshness);
+          const effectiveRiskClassForFreshness = effectiveRiskClass ?? "safe_docs_only";
+          const meaningfulChange = classifyMeaningfulChange({
+            normalizedPath: normalizedFocusPathForFreshness,
+            pathKind: focusPathKindForFreshness,
+            lifecycle: pendingLifecycleForFreshness?.lifecycle ?? "edited",
+            riskClass: effectiveRiskClassForFreshness,
+          });
+          if (meaningfulChange === "requires-kb-evidence") {
+            const freshnessEvidence = freshnessStore.getEvidence(
+              freshnessScope,
+              [normalizedFocusPathForFreshness],
+            );
+            freshnessEval = evaluateKbFreshness(freshnessEvidence);
+          }
+        }
         const guidance = buildPrompt({
           recentEdits: transformRecentEdits,
           focusEdit: transformPromptFocusEdit,
@@ -1708,8 +1779,11 @@ function buildSyntheticSyncAuditDelta(
             ? { fileOperationReminder }
             : {}),
           ...(hardGateBlock !== undefined ? { hardGateBlock } : {}),
+          ...(freshnessEval ? { kbFreshness: freshnessEval } : {}),
+          ...(freshnessEval && transformSessionEdits.length > 0
+            ? { freshnessChangedPaths: [...new Set(transformSessionEdits.map(e => e.filePath))].slice(0, 5) }
+            : {}),
         });
-
         logger.info("smart-enforcement.guidance", {
           event: "smart_enforcement_guidance",
           emitted: guidance.trim() !== "" && guidance.trim() !== SENTINEL,
