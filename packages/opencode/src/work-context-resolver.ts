@@ -240,7 +240,9 @@ function authoritativeForPosture(posture: RepoPosture): boolean {
 }
 
 // implements REQ-opencode-worktree-hard-enforcement-v1
-export function resolveWorkContext(input: ResolveWorkContextInput): WorkContext {
+const resolveWorkContext = function resolveWorkContext(
+  input: ResolveWorkContextInput,
+): WorkContext {
   const declaredWorktreeRoot = resolve(input.inputWorktree || input.inputDirectory);
   const declaredDirectory = resolve(input.inputDirectory || input.inputWorktree);
   const absoluteFilePath = input.filePath
@@ -274,4 +276,6 @@ export function resolveWorkContext(input: ResolveWorkContextInput): WorkContext 
     sessionId: input.sessionId,
     agentIdentity: input.agentIdentity ?? "unknown",
   };
-}
+};
+
+export { resolveWorkContext };
