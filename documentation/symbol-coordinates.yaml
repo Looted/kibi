@@ -11,9 +11,9 @@ coordinates:
   SYM-002:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 261
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 64
+    sourceLine: 67
   SYM-003:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -77,13 +77,13 @@ coordinates:
   SYM-KibiCodeActionProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 109
     sourceFile: packages/vscode/src/codeActionProvider.ts
     sourceLine: 25
   SYM-KibiCodeLensProvider:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 338
+    sourceEndLine: 309
     sourceFile: packages/vscode/src/codeLensProvider.ts
     sourceLine: 40
   SYM-KibiTreeDataProvider:
@@ -200,18 +200,12 @@ coordinates:
     sourceEndLine: 455
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 411
-  SYM-handleKbQueryRelationships:
-    sourceColumn: 22
-    sourceEndColumn: 1
-    sourceEndLine: 151
-    sourceFile: packages/mcp/src/tools/query-relationships.ts
-    sourceLine: 65
   SYM-mergeStaticLinks:
     sourceColumn: 10
     sourceEndColumn: 3
-    sourceEndLine: 214
+    sourceEndLine: 184
     sourceFile: packages/vscode/src/codeLensProvider.ts
-    sourceLine: 192
+    sourceLine: 162
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -239,9 +233,9 @@ coordinates:
   SYM-parseSymbolsManifest:
     sourceColumn: 9
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 237
     sourceFile: packages/vscode/src/symbolIndex.ts
-    sourceLine: 102
+    sourceLine: 142
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -266,27 +260,3 @@ coordinates:
     sourceEndLine: 388
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 386
-  SYM-brief-marker-write:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 71
-    sourceFile: packages/mcp/src/utils/brief-marker.ts
-    sourceLine: 44
-  SYM-brief-marker-load:
-    sourceColumn: 1
-    sourceEndColumn: 1
-    sourceEndLine: 88
-    sourceFile: packages/opencode/src/utils/brief-marker.ts
-    sourceLine: 22
-  SYM-brief-marker-delete:
-    sourceColumn: 1
-    sourceEndColumn: 1
-    sourceEndLine: 109
-    sourceFile: packages/opencode/src/utils/brief-marker.ts
-    sourceLine: 90
-  SYM-graph-narrator-generate:
-    sourceColumn: 1
-    sourceEndColumn: 1
-    sourceEndLine: 568
-    sourceFile: packages/opencode/src/graph-narrator.ts
-    sourceLine: 452

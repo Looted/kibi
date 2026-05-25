@@ -494,7 +494,6 @@ symbols:
     relationships:
       - type: implements
         target: REQ-vscode-kibi-briefing-v3
-
   - id: SYM-usage-metrics-command
     title: usageMetricsCommand
     sourceFile: packages/cli/src/commands/usage-metrics.ts
