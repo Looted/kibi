@@ -93,6 +93,10 @@ The Kibi MCP server exposes a curated public tool surface:
 - `kb_upsert`
 - `kb_delete`
 - `kb_check`
+- `kb_skills_list`
+- `kb_skills_load`
+- `kb_skills_read`
+> **Skill Guidance:** Canonical Kibi usage guidance is available as a bundled skill. Call `kb_skills_load` with `id: "kibi-usage"` to retrieve the latest agent rules, modeling heuristics, and workflow constraints. Skills are bundled only; remote install and script execution are not supported in v1.
 
 For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode. If further setup or repair is needed, ask the user/operator to handle it outside the agent session.
 

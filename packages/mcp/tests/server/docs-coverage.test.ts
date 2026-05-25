@@ -180,6 +180,48 @@ describe("server docs coverage", () => {
     expect(typeof firstContent.text).toBe("string");
   });
 
+  test("kibi://docs/tools resource includes skill tool references", async () => {
+    const resourceResolvers: Array<{
+      uri: string;
+      resolver: () => Promise<{ contents: unknown[] }>;
+    }> = [];
+
+    const mockServer = {
+      prompt: mock(() => {}),
+      resource: mock(
+        (
+          _name: string,
+          uri: string,
+          _opts: unknown,
+          resolver: () => Promise<{ contents: unknown[] }>,
+        ) => {
+          resourceResolvers.push({ uri, resolver });
+        },
+      ),
+    } as unknown as McpServer;
+
+    setupDocsAndPrompts(mockServer);
+
+    const toolsResource = resourceResolvers.find(
+      (r) => r.uri === "kibi://docs/tools",
+    );
+    expect(toolsResource).toBeDefined();
+
+    if (!toolsResource) {
+      throw new Error("Expected tools resource to be registered");
+    }
+
+    const result = await toolsResource.resolver();
+    expect(result.contents.length).toBeGreaterThan(0);
+
+    const text = String(
+      (result.contents[0] as { text: string }).text,
+    );
+    expect(text).toContain("kb_skills_list");
+    expect(text).toContain("kb_skills_load");
+    expect(text).toContain("kb_skills_read");
+  });
+
   test("setupDocsAndPrompts registers prompts before resources", () => {
     const callOrder: string[] = [];
 
