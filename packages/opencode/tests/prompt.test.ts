@@ -131,6 +131,10 @@ describe("prompt", () => {
       result.includes("kb_autopilot_generate"),
       "Should mention kb_autopilot_generate",
     );
+    assert.ok(
+      result.includes("kb_skills_load"),
+      "Should mention kb_skills_load for skill-based guidance",
+    );
 
     // Should NOT mention non-public tools
     assert.ok(
@@ -140,6 +144,19 @@ describe("prompt", () => {
     assert.ok(
       !result.includes("kb_coverage_report"),
       "Should NOT mention kb_coverage_report",
+    );
+  });
+
+  test("guidance references kb_skills_load with kibi-usage as canonical skill route", () => {
+    const result = injectPrompt("", baseConfig);
+
+    assert.ok(
+      result.includes("kb_skills_load"),
+      "Should mention kb_skills_load MCP tool",
+    );
+    assert.ok(
+      result.includes("kibi-usage"),
+      "Should reference kibi-usage as the canonical skill id",
     );
   });
 
