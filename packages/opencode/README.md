@@ -26,11 +26,11 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
 - **Source-linked micro-briefs**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
 - **Start-task risky cue**: authoritative risky edits also add a compact `/brief-kibi` cue so agents can start with an explicit Kibi briefing before acting, while staying inside the same single prompt block and token budget.
-- **Effective mode gating**: `strict` is only possible for `root_active` and `hybrid_root_plus_vendored` when `requireRootKbForStrict` is enabled; `maintenanceDegraded` overrides everything back to `advisory`
+- **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting a stop-state with MCP recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
 - **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible `kb_check` reminder exactly once per cached context
 - **Runtime maintenance overlay**: static `maintenanceDegraded` from posture is merged with a latched runtime overlay (sync disabled/unavailable/failing) so degraded state is consistently reflected in prompts, logs, and mode decisions
-- **Advisory in editor, hard in hooks**: OpenCode guidance remains non-blocking; git hooks and KB validation checks stay the durable enforcement boundary
+- **Three-mode enforcement**: `advisory` by default keeps guidance non-blocking; opt-in `strict` adds elevated validation cues; `hard` blocks the prompt for authoritative workspaces until the checkpoint cycle succeeds. Git hooks and KB validation checks remain the durable enforcement boundary for all modes.
 - **Structured observability**: posture, risk, cache, degraded-mode, targeted-check, and guidance events flow through structured plugin logs
 
 ### Dynamic Contextual Guidance
@@ -176,7 +176,7 @@ PP|| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance 
 | `guidance.sessionSummary.enabled` | boolean | `true` | Enable periodic session summary logs |
 | `guidance.sessionSummary.logIntervalMs` | number | `1800000` | Session summary interval (30 min) |
 | `guidance.smartEnforcement.enabled` | boolean | `true` | Enable posture-aware, risk-aware guidance routing |
-| `guidance.smartEnforcement.mode` | string | `"advisory"` | Smart-enforcement mode: `advisory` or `strict` |
+| `guidance.smartEnforcement.mode` | string | `"advisory"` | Smart-enforcement mode: `advisory`, `strict`, or `hard` |
 | `guidance.smartEnforcement.preflightTtlMs` | number | `600000` | Guidance/cache TTL for repeated prompt suppression |
 | `guidance.smartEnforcement.idleResetMs` | number | `1800000` | Idle window before smart-enforcement state resets |
 | `guidance.smartEnforcement.degradedMode` | string | `"warn-once"` | Degraded-mode logging policy: `warn-once` or `structured-only` |
@@ -188,7 +188,7 @@ PP|| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance 
 
 Per ADR-016, prompt text injection uses only `experimental.chat.system.transform`. The `chat.params` hook is reserved for model option enrichment (temperature, topP, etc.) and never carries prompt text.
 
-Smart enforcement keeps the plugin advisory-only: prompt injection can warn, explain, or remind, but it does not block the editor. Hard failures still belong to CLI hooks (`pre-commit`) and explicit check commands.
+Smart enforcement is `advisory` by default: prompt injection can warn, explain, or remind without blocking the editor. Opt-in `strict` escalates validation reminders, and `hard` can block the prompt for authoritative roots and linked worktrees until the Kibi checkpoint passes. Hard failures outside the plugin surface still belong to CLI hooks (`pre-commit`) and explicit check commands.
 
 ### Logging Policy
 

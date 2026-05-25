@@ -34,7 +34,7 @@
     },
     "smartEnforcement": {
       "enabled": true,
-      "mode": "advisory",
+      "mode": "hard",
       "preflightTtlMs": 600000,
       "idleResetMs": 1800000,
       "degradedMode": "warn-once",
