@@ -295,6 +295,10 @@ symbols:
   - id: SYM-buildEnforcementScopeKey
     title: buildEnforcementScopeKey
     sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 23
+    sourceColumn: 16
+    sourceEndLine: 34
+    sourceEndColumn: 1
     links:
       - REQ-opencode-worktree-hard-enforcement-v1
     relationships:
@@ -305,6 +309,10 @@ symbols:
   - id: SYM-buildDirtyRelevantFingerprint
     title: buildDirtyRelevantFingerprint
     sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 40
+    sourceColumn: 16
+    sourceEndLine: 55
+    sourceEndColumn: 1
     links:
       - REQ-opencode-worktree-hard-enforcement-v1
     relationships:
