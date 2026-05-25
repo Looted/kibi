@@ -188,6 +188,36 @@ coordinates:
     sourceEndLine: 60
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     sourceLine: 54
+  SYM-SkillNotFoundError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 51
+  SYM-SkillOversizeError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 82
+  SYM-SkillResourceNotFoundError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 58
+  SYM-SkillResourceOutOfBoundsError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 70
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 65
+  SYM-SkillValidationError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 72
   SYM-activateKibiExtension:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -209,9 +239,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 707
+    sourceEndLine: 713
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 699
+    sourceLine: 705
   SYM-buildStableRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -308,6 +338,24 @@ coordinates:
     sourceEndLine: 455
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 411
+  SYM-handleSkillCommand:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/commands/skills.ts
+    sourceLine: 94
+  SYM-listBundledSkills:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 94
+  SYM-loadBundledSkill:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 114
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 107
   SYM-mergeStaticLinks:
     sourceColumn: 10
     sourceEndColumn: 3
@@ -344,6 +392,24 @@ coordinates:
     sourceEndLine: 237
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 142
+  SYM-readBundledSkillResource:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 116
+  SYM-resetBundledSkillsDir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 31
+  SYM-setBundledSkillsDir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 27
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -362,6 +428,12 @@ coordinates:
     sourceEndLine: 100
     sourceFile: packages/cli/src/commands/usage-metrics.ts
     sourceLine: 75
+  SYM-validateSkillBundle:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 149
   SYM-writeSetPrimaryEntityId:
     sourceColumn: 16
     sourceEndColumn: 1
