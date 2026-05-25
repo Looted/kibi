@@ -21,7 +21,16 @@ const RESOURCE_MAX_BYTES = 128 * 1024;
 const SKILL_FILE_NAME = "SKILL.md";
 
 const moduleDir = dirname(fileURLToPath(import.meta.url));
-const bundledSkillsDir = resolve(moduleDir, "skills");
+let bundledSkillsDir = resolve(moduleDir, "skills");
+const defaultBundledSkillsDir = bundledSkillsDir;
+
+export function setBundledSkillsDir(dir: string): void {
+  bundledSkillsDir = dir;
+}
+
+export function resetBundledSkillsDir(): void {
+  bundledSkillsDir = defaultBundledSkillsDir;
+}
 
 export interface SkillManifest {
   id: string;
@@ -302,3 +311,5 @@ function resolveSkillFilePath(pathLike: string): string {
 
   return resolved.endsWith(SKILL_FILE_NAME) ? resolved : join(resolved, SKILL_FILE_NAME);
 }
+
+

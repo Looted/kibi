@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
 import {
   existsSync,
   mkdirSync,
@@ -16,11 +16,20 @@ import {
   listBundledSkills,
   loadBundledSkill,
   readBundledSkillResource,
+  setBundledSkillsDir,
+  resetBundledSkillsDir,
   validateSkillBundle,
 } from "../src/public/skills";
 
-const bundledSkillsDir = resolve(import.meta.dir, "../src/public/skills");
+const bundledSkillsDir = resolve(import.meta.dir, ".tmp-skills-fixtures");
 const outsideFixturesDir = resolve(import.meta.dir, ".tmp-skills-outside");
+
+beforeAll(() => {
+  setBundledSkillsDir(bundledSkillsDir);
+});
+afterAll(() => {
+  resetBundledSkillsDir();
+});
 
 function writeSkill(
   id: string,
