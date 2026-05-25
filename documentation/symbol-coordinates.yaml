@@ -332,3 +332,39 @@ coordinates:
     sourceEndLine: 109
     sourceFile: packages/opencode/src/file-operation-reminders.ts
     sourceLine: 61
+  SYM-KibiCheckpointContext:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 30
+  SYM-KibiCheckpointMetadata:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 53
+  SYM-KibiCheckpointRequestResult:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 72
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 69
+  SYM-KibiCheckpointRunResult:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 77
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 74
+  SYM-KibiCheckpointRunner:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 349
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 85
+  SYM-KibiCheckpointRunnerOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 43
