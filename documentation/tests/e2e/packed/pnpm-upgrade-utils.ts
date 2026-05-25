@@ -225,10 +225,17 @@ export function runPnpm(
 export async function installTarballsWithPnpm(
   sandbox: PnpmUpgradeSandbox,
   tarballs: string[],
+  options: { offline?: boolean } = {},
 ): Promise<CommandResult> {
+  // implements REQ-mcp-pnpm-upgrade-stale-path
+  const installArgs = ["add", "--ignore-scripts"];
+  if (options.offline !== false) {
+    installArgs.push("--offline");
+  }
+  installArgs.push(...tarballs);
   return runPnpm(
     sandbox,
-    ["add", "--offline", "--ignore-scripts", ...tarballs],
+    installArgs,
     { timeoutMs: 300000 },
   );
 }
