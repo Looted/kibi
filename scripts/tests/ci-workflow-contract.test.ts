@@ -39,6 +39,10 @@ describe("ci.yml CI workflow contract", () => {
     "packed-e2e-tarball-verify",
     "packed-e2e-branch-workflow",
   ] as const;
+  const sourceDependentPackedJobs: readonly string[] = [
+    "packed-e2e-mcp-regression",
+    "packed-e2e-tarball-verify",
+  ] as readonly string[];
   const coverageGatedJobs = [...packedJobs, "publish-dry-run"] as const;
 
   test("artifact names appear in workflow", () => {
@@ -46,11 +50,17 @@ describe("ci.yml CI workflow contract", () => {
     expect(workflowContent).toContain("kibi-e2e-tests-compiled");
   });
 
-  test("packed-e2e jobs: checkout-free and download artifacts", () => {
+  test("packed-e2e jobs: download artifacts and checkout only when source-dependent", () => {
     for (const job of packedJobs) {
       const block = extractJobBlock(workflowContent, job);
-      // Packed jobs must NOT perform a checkout
-      expect(block).not.toContain("actions/checkout@v6");
+      if (sourceDependentPackedJobs.includes(job)) {
+        // These jobs execute tests that read repo-local fixtures/source files.
+        expect(block).toContain("actions/checkout@v6");
+        expect(block).toContain("fetch-depth: 1");
+      } else {
+        // Artifact-only packed jobs should remain checkout-free.
+        expect(block).not.toContain("actions/checkout@v6");
+      }
 
       // Packed jobs must download both artifacts
       expect(block).toContain("kibi-tarballs");
@@ -91,7 +101,7 @@ describe("ci.yml CI workflow contract", () => {
   });
 
   describe("negative regression detection", () => {
-    test("rejects packed job with checkout re-added", () => {
+    test("rejects artifact-only packed job with checkout re-added", () => {
       const block = extractJobBlock(workflowContent, packedJobs[0]);
       // Simulate a mutated packed block that re-introduces checkout
       const mutated = block.replace(
