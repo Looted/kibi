@@ -69,51 +69,57 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 
 ## Installation
 
-The recommended way is to install kibi as project dev dependencies:
+Kibi is designed to run from your project, so each MCP client starts the same local `kibi-mcp` binary for that workspace.
+
+Install the CLI and MCP server as development dependencies:
 
 ```bash
 npm install --save-dev kibi-cli kibi-mcp
 ```
 
-For detailed steps, global install alternatives, and troubleshooting, see [detailed installation guide](docs/install.md).
+Prefer npm unless your project already uses another package manager. Equivalent installs are:
 
-### OpenCode Plugin
+```bash
+pnpm add -D kibi-cli kibi-mcp
+yarn add -D kibi-cli kibi-mcp
+bun add -d kibi-cli kibi-mcp
+```
 
-Add `kibi-opencode` to your project `opencode.json`:
+The recommended MCP command is:
+
+```bash
+npx --no-install kibi-mcp
+```
+
+`--no-install` makes the MCP client use the version already installed in your project instead of downloading a package at startup. Run the client from the project root, or configure the client to use that workspace as its current working directory.
+
+For detailed setup, global install alternatives, and troubleshooting, see [the installation guide](docs/install.md).
+
+### MCP client examples
+
+<details>
+<summary>OpenCode</summary>
+
+Add Kibi to your `opencode.json`:
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["kibi-opencode"]
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "enabled": true,
+      "command": ["npx", "--no-install", "kibi-mcp"]
+    }
+  }
 }
 ```
 
-OpenCode installs npm plugins declared in `plugin` automatically at startup.
+</details>
 
-### VS Code Extension
+<details>
+<summary>VS Code</summary>
 
-The Kibi VS Code extension provides a TreeView explorer for your knowledge base and built-in MCP integration.
-
-Download the latest `.vsix` from [GitHub Releases](https://github.com/Looted/kibi/releases), then install it:
-
-- **Command Palette**: `Ctrl+Shift+P` → `Extensions: Install from VSIX...` → select the file
-- **CLI**: `code --install-extension kibi-vscode-x.x.x.vsix`
-
-Every GitHub release includes the latest VS Code extension build as a `.vsix` artifact.
-
-### Repo-local dogfood workflow (this repo)
-
-For contributors to this repository only:
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
-
-```bash
-bun run build
-```
-
-### VS Code MCP
-
-Create `.vscode/mcp.json`:
+Add Kibi to `.vscode/mcp.json`:
 
 ```json
 {
@@ -127,7 +133,54 @@ Create `.vscode/mcp.json`:
 }
 ```
 
-For complete installation steps and SWI-Prolog setup, see [detailed installation guide](docs/install.md).
+</details>
+
+<details>
+<summary>Codex</summary>
+
+Add Kibi to `~/.codex/config.toml` or `$CODEX_HOME/config.toml`:
+
+```toml
+[mcp_servers.kibi]
+command = "npx"
+args = ["--no-install", "kibi-mcp"]
+enabled = true
+```
+
+Or add it with the Codex CLI:
+
+```bash
+codex mcp add kibi -- npx --no-install kibi-mcp
+```
+
+</details>
+
+<details>
+<summary>Generic MCP clients</summary>
+
+Most stdio MCP clients need the same command and arguments:
+
+```text
+command: npx
+args: --no-install kibi-mcp
+transport: stdio
+```
+
+If your client supports a working-directory setting, point it at the project where `kibi-mcp` is installed.
+
+</details>
+
+If your project uses a different package manager, keep the same MCP shape and swap the command/args for your runner, for example `pnpm exec kibi-mcp`, `yarn kibi-mcp`, or `bun kibi-mcp`.
+
+### Repo-local dogfood workflow (this repo)
+
+For contributors to this repository only:
+
+This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
+
+```bash
+bun run build
+```
 
 ## Quick Start
 
