@@ -3,6 +3,7 @@
 import { buildBriefingContext } from "./brief-intent.js";
 import { buildDeliveryReasons } from "./brief-delivery-reasons.js";
 import type { BriefingWorkspaceCtx } from "./briefing-runtime.js";
+import { generateGraphNarrative } from "./graph-narrator.js";
 import type { AuditDelta } from "./idle-brief-audit.js";
 import {
   atomicWriteBrief,
@@ -62,6 +63,8 @@ export interface IdleBriefingResult {
   regressionRisks?: IdleBriefStatement[];
   missingEvidence?: IdleBriefStatement[];
 }
+
+type IdleBriefRelationship = { from: string; to: string; type: string };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null
@@ -457,6 +460,7 @@ function buildEnvelopeParts(
   counts: IdleBriefEnvelopeV2["counts"],
   checkResult: CheckResult,
   briefingResult: IdleBriefingResult,
+  changeNarrative: string[],
   deliveryReasons?: DeliveryReasons,
 ): Omit<IdleBriefEnvelopeV2, "contentHash"> {
   const reconciled = reconcileAuditEntries(auditDelta.entries);
@@ -491,7 +495,7 @@ function buildEnvelopeParts(
       tldr: briefingResult.tldr || summary,
       promptBlock: briefingResult.promptBlock,
       citations: briefingResult.citations,
-      changeNarrative: buildChangeNarrative(auditDelta),
+      changeNarrative,
       ...(deliveryReasons ? { deliveryReasons } : {}),
       ...(briefingResult.constraints && briefingResult.constraints.length > 0
         ? { constraints: briefingResult.constraints }
@@ -514,7 +518,11 @@ export async function generateIdleBrief(
   workspaceCtx: BriefingWorkspaceCtx,
   auditDelta: AuditDelta,
   sessionId: string,
-  options?: { sourceFiles?: string[]; changedEntityIds?: string[] },
+  options?: {
+    sourceFiles?: string[];
+    changedEntityIds?: string[];
+    relationships?: IdleBriefRelationship[];
+  },
 ): Promise<IdleBriefResult> {
   if (!client) {
     return { success: true, briefPath: null, envelope: null };
@@ -537,11 +545,17 @@ export async function generateIdleBrief(
       : derivedSourceFiles.length > 0
         ? derivedSourceFiles
         : [auditDelta.entries[0]?.entityId ?? "unknown"];
+  const relationshipEntityIds = (options?.relationships ?? []).flatMap(
+    (relationship) => [relationship.from, relationship.to],
+  );
+  const mergedChangedEntityIds = options?.changedEntityIds
+    ? [...new Set([...options.changedEntityIds, ...relationshipEntityIds])]
+    : relationshipEntityIds.length > 0
+      ? [...new Set(relationshipEntityIds)]
+      : undefined;
   const briefingContext = buildBriefingContext({
     sourceFiles,
-    ...(options?.changedEntityIds
-      ? { changedEntityIds: options.changedEntityIds }
-      : {}),
+    ...(mergedChangedEntityIds ? { changedEntityIds: mergedChangedEntityIds } : {}),
   });
   const { seedIds } = briefingContext;
   let checkResult: CheckResult;
@@ -588,6 +602,13 @@ export async function generateIdleBrief(
   const isSuccess = violationsCount === 0;
   const type: "success" | "warning" = isSuccess ? "success" : "warning";
   const summary = computeSummary(counts, violationsCount);
+  const changedEntityIdsForNarrative =
+    mergedChangedEntityIds ?? [
+      ...reconciled.added.map((item) => item.id),
+      ...reconciled.modified.map((item) => item.id),
+      ...reconciled.removed.map((item) => item.id),
+    ];
+  const changedRelationships = options?.relationships ?? [];
   const deliveryReasons = buildDeliveryReasons({
     entitiesAdded: reconciled.added
       .filter((item) => item.id !== "workspace-sync")
@@ -601,6 +622,20 @@ export async function generateIdleBrief(
     relationshipsChanged: counts.relationshipsChanged,
     validationCount: checkResult.count,
   });
+  const graphNarrative = await generateGraphNarrative(
+    client,
+    workspaceCtx,
+    changedEntityIdsForNarrative,
+    changedRelationships,
+    checkResult,
+  );
+  const changeNarrative =
+    graphNarrative?.relationshipChanges.length || graphNarrative?.domains.length
+      ? [
+          ...graphNarrative.relationshipChanges,
+          ...graphNarrative.domains.flatMap((domain) => domain.changes),
+        ]
+      : buildChangeNarrative(auditDelta);
 
   if (
     counts.entitiesAdded === 0 &&
@@ -628,6 +663,7 @@ export async function generateIdleBrief(
     counts,
     checkResult,
     briefingResult,
+    changeNarrative,
     deliveryReasons,
   );
 

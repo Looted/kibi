@@ -68,6 +68,9 @@ describe("handleKbDelete", () => {
         }
 
         if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
+          if (goal.includes("Relationships")) {
+            return { success: true, bindings: { Relationships: "[]" } };
+          }
           return { success: true, bindings: { Dependents: "[]" } };
         }
 
@@ -92,7 +95,7 @@ describe("handleKbDelete", () => {
 
     const result = await handleKbDelete(prolog, { ids: ["REQ-001"] });
 
-    expect(query).toHaveBeenCalledTimes(5);
+    expect(query).toHaveBeenCalledTimes(6);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toEqual({
       deleted: 1,

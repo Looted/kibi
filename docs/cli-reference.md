@@ -224,6 +224,42 @@ kibi doctor
 - Git hooks missing → Run `kibi init`
 - Config invalid → Check `.kb/config.json` syntax
 
+## `kibi usage-metrics`
+
+Reports adoption and quality metrics from `.kb/usage.log`.
+
+**Syntax:**
+```bash
+kibi usage-metrics [--format json|table] [--limit N]
+```
+
+**Behavior:**
+- Reads `.kb/usage.log` from the current repository
+- Summarizes tool usage, branch activity, and success/error outcomes
+- Reports telemetry completeness and zero-result rates
+- Shows `kb_check` violation trend entries and grouped `kb_upsert` error categories
+- Limits the zero-result source-file leaderboard with `--limit`
+
+**Flags:**
+- `--format json|table` - Output format (default: table)
+- `--limit N` - Maximum number of top zero-result source files to include (default: 10)
+
+**Examples:**
+```bash
+# Show the default table report
+kibi usage-metrics
+
+# Export the full report structure as JSON
+kibi usage-metrics --format json
+
+# Show only the top 5 zero-result source files
+kibi usage-metrics --limit 5
+```
+
+**Notes:**
+- Returns an error if `.kb/usage.log` does not exist in the current repository
+- `--limit` must be a positive integer
+
 
 ## `kibi migrate`
 

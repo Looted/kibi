@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE rdf:RDF [
+    <!ENTITY kb 'urn-kibi:'>
+    <!ENTITY rdf 'http://www.w3.org/1999/02/22-rdf-syntax-ns#'>
+    <!ENTITY rdfs 'http://www.w3.org/2000/01/rdf-schema#'>
+    <!ENTITY xsd 'http://www.w3.org/2001/XMLSchema#'>
+]>
+
+<rdf:RDF
+    xmlns:kb="&kb;"
+    xmlns:rdf="&rdf;"
+    xmlns:rdfs="&rdfs;"
+    xmlns:xsd="&xsd;"
+    xml:base="urn-kibi:"
+>
+<rdf:Description rdf:about="kb:entity/0707c5835b72f8c1">
+  <kb:created_at rdf:datatype="&xsd;string">2024-01-16T09:00:00.000Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">0707c5835b72f8c1</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/packages/cli/tests/fixtures/scenarios/SCEN-001.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">active</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[authentication,e2e]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">Login Flow Test</kb:title>
+  <kb:updated_at rdf:datatype="&xsd;string">2024-01-16T09:00:00.000Z</kb:updated_at>
+  <kb:type rdf:datatype="&xsd;string">scenario</kb:type>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/54f6d910d63b08a6">
+  <kb:created_at rdf:datatype="&xsd;string">2024-01-15T10:30:00.000Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">54f6d910d63b08a6</kb:id>
+  <kb:owner rdf:datatype="&xsd;string">security-team</kb:owner>
+  <kb:priority rdf:datatype="&xsd;string">high</kb:priority>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/packages/cli/tests/fixtures/requirements/REQ-001.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">open</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[authentication,security,phase-1]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">User Authentication</kb:title>
+  <kb:updated_at rdf:datatype="&xsd;string">2024-01-20T14:45:00.000Z</kb:updated_at>
+  <kb:type rdf:datatype="&xsd;string">req</kb:type>
+</rdf:Description>
+
+<rdf:Description rdf:about="kb:entity/9bf321c2a538f238">
+  <kb:created_at rdf:datatype="&xsd;string">2024-01-10T11:00:00.000Z</kb:created_at>
+  <kb:id rdf:datatype="&xsd;string">9bf321c2a538f238</kb:id>
+  <kb:source rdf:datatype="&xsd;string">/home/looted/projects/kibi/packages/cli/tests/fixtures/adr/ADR-001.md</kb:source>
+  <kb:status rdf:datatype="&xsd;string">accepted</kb:status>
+  <kb:tags rdf:datatype="&xsd;string">[architecture,database]</kb:tags>
+  <kb:title rdf:datatype="&xsd;string">ADR-001 - Use PostgreSQL for Primary Database</kb:title>
+  <kb:updated_at rdf:datatype="&xsd;string">2024-01-10T11:00:00.000Z</kb:updated_at>
+  <kb:type rdf:datatype="&xsd;string">adr</kb:type>
+</rdf:Description>
+
+</rdf:RDF>

@@ -1,0 +1,228 @@
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { execSync } from "node:child_process";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
+
+describe("kibi usage-metrics", () => {
+  let tmpDir: string;
+  const kibiCli = path.resolve(__dirname, "../../src/cli.ts");
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(path.join(os.tmpdir(), "kibi-test-usage-metrics-"));
+    mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+
+    writeFileSync(
+      path.join(tmpDir, ".kb", "usage.log"),
+      [
+        JSON.stringify({
+          timestamp: "2026-05-01T10:00:00.000Z",
+          request_id: "kb_query-1",
+          tool: "kb_query",
+          telemetry: { is_autonomous: true },
+          business_args: { sourceFile: "src/a.ts" },
+          status: "success",
+          active_branch: "main",
+          zero_results: true,
+          result_count: 0,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:01:00.000Z",
+          request_id: "kb_query-2",
+          tool: "kb_query",
+          telemetry: null,
+          telemetry_status: "missing",
+          business_args: { sourceFile: "src/a.ts" },
+          status: "success",
+          active_branch: "main",
+          zero_results: true,
+          result_count: 0,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:02:00.000Z",
+          request_id: "kb_query-3",
+          tool: "kb_query",
+          telemetry: null,
+          telemetry_status: "missing",
+          args: { sourceFile: "src/b.ts" },
+          success: true,
+          active_branch: "main",
+          zero_results: true,
+          result_count: 0,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:03:00.000Z",
+          request_id: "kb_search-1",
+          tool: "kb_search",
+          telemetry: null,
+          telemetry_status: "missing",
+          business_args: { query: "traceability" },
+          status: "success",
+          active_branch: "feature/reporting",
+          zero_results: false,
+          result_count: 5,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:04:00.000Z",
+          request_id: "kb_check-1",
+          tool: "kb_check",
+          telemetry: { is_autonomous: true },
+          business_args: { rules: ["required-fields"] },
+          status: "success",
+          active_branch: "main",
+          violation_count: 3,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:05:00.000Z",
+          request_id: "kb_check-2",
+          tool: "kb_check",
+          telemetry: { is_autonomous: true },
+          business_args: { rules: ["required-fields"] },
+          status: "success",
+          active_branch: "main",
+          violation_count: 1,
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:06:00.000Z",
+          request_id: "kb_upsert-1",
+          tool: "kb_upsert",
+          telemetry: { is_autonomous: false },
+          business_args: { type: "symbol" },
+          status: "error",
+          active_branch: "main",
+          error_message:
+            "Entity validation failed: root: must NOT have additional properties",
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:07:00.000Z",
+          request_id: "kb_upsert-2",
+          tool: "kb_upsert",
+          telemetry: null,
+          telemetry_status: "missing",
+          business_args: { type: "test" },
+          success: false,
+          active_branch: "feature/reporting",
+          error:
+            "Relationship source must match the upserted entity TEST-1; received from=REQ-1",
+        }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:08:00.000Z",
+          request_id: "kb_upsert-3",
+          tool: "kb_upsert",
+          telemetry: null,
+          telemetry_status: "missing",
+          business_args: { type: "req" },
+          status: "error",
+          active_branch: "main",
+          error_message: "Some failure: detailed reason",
+        }),
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+  });
+
+  afterEach(() => {
+    if (tmpDir && existsSync(tmpDir)) {
+      rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test("reports usage metrics as json", () => {
+    const output = execSync(
+      `bun ${kibiCli} usage-metrics --format json --limit 2`,
+      { cwd: tmpDir, encoding: "utf8" },
+    );
+
+    const result = JSON.parse(output) as {
+      rowCount: number;
+      dateRange: { first: string; last: string };
+      toolCounts: Record<string, number>;
+      branchCounts: Record<string, number>;
+      outcomeCounts: { success: number; error: number };
+      telemetry: {
+        completeCount: number;
+        missingCount: number;
+        completenessRate: number;
+      };
+      zeroResults: {
+        count: number;
+        rate: number;
+        byTool: Record<string, number>;
+        topSourceFiles: Array<{ sourceFile: string; count: number }>;
+      };
+      kbCheck: {
+        violationTrend: Array<{
+          timestamp: string;
+          violationCount: number;
+        }>;
+      };
+      upsertErrors: {
+        categories: Record<string, number>;
+      };
+    };
+
+    expect(result.rowCount).toBe(9);
+    expect(result.dateRange).toEqual({
+      first: "2026-05-01T10:00:00.000Z",
+      last: "2026-05-01T10:08:00.000Z",
+    });
+    expect(result.toolCounts).toEqual({
+      kb_query: 3,
+      kb_search: 1,
+      kb_check: 2,
+      kb_upsert: 3,
+    });
+    expect(result.branchCounts).toEqual({
+      main: 7,
+      "feature/reporting": 2,
+    });
+    expect(result.outcomeCounts).toEqual({ success: 6, error: 3 });
+    expect(result.telemetry.completeCount).toBe(4);
+    expect(result.telemetry.missingCount).toBe(5);
+    expect(result.telemetry.completenessRate).toBeCloseTo(4 / 9);
+    expect(result.zeroResults.count).toBe(3);
+    expect(result.zeroResults.rate).toBeCloseTo(1 / 3);
+    expect(result.zeroResults.byTool).toEqual({ kb_query: 3 });
+    expect(result.zeroResults.topSourceFiles).toEqual([
+      { sourceFile: "src/a.ts", count: 2 },
+      { sourceFile: "src/b.ts", count: 1 },
+    ]);
+    expect(result.kbCheck.violationTrend).toEqual([
+      {
+        timestamp: "2026-05-01T10:04:00.000Z",
+        violationCount: 3,
+      },
+      {
+        timestamp: "2026-05-01T10:05:00.000Z",
+        violationCount: 1,
+      },
+    ]);
+    expect(result.upsertErrors.categories).toEqual({
+      "Entity validation failed": 1,
+      "Relationship source must match the upserted entity": 1,
+      "Some failure": 1,
+    });
+  });
+
+  test("renders table output and applies the zero-result file limit", () => {
+    const output = execSync(`bun ${kibiCli} usage-metrics --limit 1`, {
+      cwd: tmpDir,
+      encoding: "utf8",
+    });
+
+    expect(output).toContain("Row Count");
+    expect(output).toContain("Tool Counts");
+    expect(output).toContain("Telemetry");
+    expect(output).toContain("Zero-Result Source Files");
+    expect(output).toContain("kb_query");
+    expect(output).toContain("src/a.ts");
+    expect(output).not.toContain("src/b.ts");
+  });
+});

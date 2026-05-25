@@ -65,6 +65,10 @@ import {
 import {
   announceBriefTui,
 } from "./tui-brief-delivery.js";
+import {
+  deletePendingBriefMarkers,
+  loadPendingBriefMarkers,
+} from "./utils/brief-marker.js";
 
 type ToastCapableClient = SendToastClient;
 
@@ -565,6 +569,17 @@ function buildSyntheticSyncAuditDelta(
           // Gather session edits
           const sessionEdits = sessionEditState.getSessionEdits();
           const sourceFiles = sessionEdits.map((e) => e.filePath);
+          const markerResult = loadPendingBriefMarkers(idleWorkspaceRoot, idleBranch);
+          for (const issue of markerResult.issues) {
+            logger.warn("idle-brief.marker-invalid", {
+              event: "idle_brief_marker_invalid",
+              branch: idleBranch,
+              filePath: issue.filePath,
+              reason: issue.reason,
+            });
+          }
+          const markerEntityIds = markerResult.entityIds;
+          const markerRelationships = markerResult.relationships;
 
           const snapshotBeforeSync = getKbSnapshotFingerprint(
             idleWorkspaceRoot,
@@ -624,15 +639,40 @@ function buildSyntheticSyncAuditDelta(
             ...reconciled.modified.map((e) => e.id),
             ...reconciled.removed.map((e) => e.id),
           ];
+          const mergedChangedEntityIds = [
+            ...new Set([...changedEntityIds, ...markerEntityIds]),
+          ];
+          const mergedSourceFiles = [...new Set([...sourceFiles, ...markerEntityIds])];
           const result = await generateIdleBrief(
             input.client,
             workspaceCtx,
             auditDelta,
             input.sessionId ?? "unknown",
-            sourceFiles.length > 0
-              ? { sourceFiles, changedEntityIds }
-              : { changedEntityIds },
+            mergedSourceFiles.length > 0
+              ? {
+                  sourceFiles: mergedSourceFiles,
+                  changedEntityIds: mergedChangedEntityIds,
+                  relationships: markerRelationships,
+                }
+              : mergedChangedEntityIds.length > 0
+                ? {
+                    changedEntityIds: mergedChangedEntityIds,
+                    relationships: markerRelationships,
+                  }
+                : undefined,
           );
+
+          if (result.success) {
+            const deleteResult = await deletePendingBriefMarkers(markerResult.markerPaths);
+            for (const issue of deleteResult.issues) {
+              logger.warn("idle-brief.marker-delete-failed", {
+                event: "idle_brief_marker_delete_failed",
+                branch: idleBranch,
+                filePath: issue.filePath,
+                reason: issue.reason,
+              });
+            }
+          }
 
           if (result.success && result.envelope) {
             const envelope = result.envelope;

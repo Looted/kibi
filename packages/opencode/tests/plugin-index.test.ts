@@ -3769,6 +3769,7 @@ import datetime
       writePluginConfig(tmpDir, {
         enabled: true,
         prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
         sync: { enabled: true },
         ux: { toastStartup: false },
         guidance: {
@@ -3830,6 +3831,204 @@ import datetime
       assert.ok(options);
       assert.equal(options?.sourceFiles, undefined);
       assert.deepEqual(options?.changedEntityIds, ["REQ-AUDIT-ONLY"]);
+    });
+
+    it("merges matching pending brief markers into idle brief inputs and deletes them on success", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        briefs: { tui: { idleDelayMs: 0 } },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const pendingDir = path.join(tmpDir, ".kb", "briefs", "pending");
+      fs.mkdirSync(pendingDir, { recursive: true });
+      const matchingMarkerPath = path.join(pendingDir, "session-main-1.json");
+      const otherBranchMarkerPath = path.join(pendingDir, "session-develop-1.json");
+      fs.writeFileSync(
+        matchingMarkerPath,
+        JSON.stringify({
+          sessionId: "session-main",
+          timestamp: 1716576000000,
+          branch: "main",
+          operation: "upsert",
+          entityIds: ["REQ-MARKER-1", "REQ-MARKER-2"],
+          relationships: [
+            { from: "SYM-feature", to: "REQ-MARKER-1", type: "implements" },
+          ],
+        }),
+        "utf-8",
+      );
+      fs.writeFileSync(
+        otherBranchMarkerPath,
+        JSON.stringify({
+          sessionId: "session-develop",
+          timestamp: 1716576000001,
+          branch: "develop",
+          operation: "upsert",
+          entityIds: ["REQ-OTHER-BRANCH"],
+          relationships: [],
+        }),
+        "utf-8",
+      );
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => ({
+        success: true,
+        briefPath: null,
+        envelope: null,
+      }));
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async () => {},
+            },
+          },
+          sessionId: "session-idle-marker-success",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-AUDIT-ONLY",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      const options = generateSpy.mock.calls[0]?.[4] as
+        | {
+            sourceFiles?: string[];
+            changedEntityIds?: string[];
+            relationships?: Array<{ from: string; to: string; type: string }>;
+          }
+        | undefined;
+      assert.ok(options);
+      assert.deepEqual(options?.sourceFiles, ["REQ-MARKER-1", "REQ-MARKER-2"]);
+      assert.deepEqual(options?.changedEntityIds, [
+        "REQ-AUDIT-ONLY",
+        "REQ-MARKER-1",
+        "REQ-MARKER-2",
+      ]);
+      assert.deepEqual(options?.relationships, [
+        { from: "SYM-feature", to: "REQ-MARKER-1", type: "implements" },
+      ]);
+      await waitForCondition(() => fs.existsSync(matchingMarkerPath) === false);
+      assert.equal(fs.existsSync(otherBranchMarkerPath), true);
+    });
+
+    it("keeps matching pending brief markers when idle brief generation fails", async () => {
+      process.env.KIBI_BRANCH = "main";
+      setupAuthoritativeWorkspace(tmpDir);
+      installNoopScheduler(tmpDir);
+      writePluginConfig(tmpDir, {
+        enabled: true,
+        prompt: { enabled: true, hookMode: "auto" },
+        sync: { enabled: true },
+        ux: { toastStartup: false },
+        guidance: {
+          commentDetection: { enabled: false },
+          smartEnforcement: {
+            completionReminder: false,
+          },
+        },
+      });
+
+      writeAuditEntries(tmpDir, "main", [
+        {
+          timestamp: "2026-04-25T09:30:00+00:00",
+          entityId: "REQ-BACKLOG",
+        },
+      ]);
+
+      const pendingDir = path.join(tmpDir, ".kb", "briefs", "pending");
+      fs.mkdirSync(pendingDir, { recursive: true });
+      const matchingMarkerPath = path.join(pendingDir, "session-main-2.json");
+      fs.writeFileSync(
+        matchingMarkerPath,
+        JSON.stringify({
+          sessionId: "session-main",
+          timestamp: 1716576000002,
+          branch: "main",
+          operation: "upsert",
+          entityIds: ["REQ-MARKER-FAIL"],
+          relationships: [
+            { from: "SYM-feature", to: "REQ-MARKER-FAIL", type: "implements" },
+          ],
+        }),
+        "utf-8",
+      );
+
+      const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
+      generateSpy.mockImplementation(async () => ({
+        success: false,
+        briefPath: null,
+        envelope: null,
+      }));
+
+      const plugin = await loadFreshPlugin();
+      const hooks = await plugin(
+        makeInput({
+          client: {
+            app: {
+              log: async () => {},
+            },
+          },
+          sessionId: "session-idle-marker-failure",
+        }),
+      );
+
+      assert.ok(hooks.event);
+      const eventHook = hooks.event as (input: {
+        event: { type: string; properties: Record<string, unknown> };
+      }) => Promise<void>;
+
+      appendAuditEntry(tmpDir, "main", {
+        timestamp: "2026-04-25T10:00:00+00:00",
+        entityId: "REQ-AUDIT-ONLY",
+      });
+
+      await eventHook({
+        event: {
+          type: "session.idle",
+          properties: {},
+        },
+      });
+
+      await waitForCondition(() => generateSpy.mock.calls.length === 1);
+
+      assert.equal(fs.existsSync(matchingMarkerPath), true);
     });
 
     it("generates idle brief even when maintenance is degraded", async () => {

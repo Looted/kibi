@@ -99,6 +99,49 @@ function createMockClient(
   };
 }
 
+function createCapturingClient(
+  checkResult: CheckResult,
+  briefingResult: IdleBriefingResult,
+  onBriefingGenerate: (args: { sourceFiles: string[]; seedIds: string[] }) => void,
+) {
+  return {
+    session: {
+      create: async () => ({
+        data: { id: "worker-session-1" },
+      }),
+      prompt: async (parameters: {
+        sessionID: string;
+        parts: Array<{ type: string; text: string }>;
+      }) => {
+        const request = JSON.parse(parameters.parts[0]?.text ?? "{}");
+        if (request.tool === "kb_check") {
+          return {
+            data: {
+              info: { id: "msg-1", role: "assistant" },
+              parts: [{ type: "text", text: JSON.stringify(checkResult) }],
+            },
+          };
+        }
+        if (request.tool === "kb_briefing_generate") {
+          onBriefingGenerate(request.args as { sourceFiles: string[]; seedIds: string[] });
+          return {
+            data: {
+              info: { id: "msg-1", role: "assistant" },
+              parts: [{ type: "text", text: JSON.stringify(briefingResult) }],
+            },
+          };
+        }
+        return {
+          data: {
+            info: { id: "msg-1", role: "assistant" },
+            parts: [{ type: "text", text: "{}" }],
+          },
+        };
+      },
+    },
+  };
+}
+
 function createWorkspaceCtx(workspaceRoot: string): BriefingWorkspaceCtx {
   return {
     workspaceRoot,
@@ -971,6 +1014,51 @@ describe("idle-brief-runtime", () => {
       ]);
       // missingEvidence is empty so should be omitted (spread only if non-empty)
       expect(result.envelope?.briefing.missingEvidence).toBeUndefined();
+    });
+
+    it("derives briefing seedIds from relationship endpoints", async () => {
+      const workspaceCtx = createWorkspaceCtx(tempDir);
+      const auditDelta = createAuditDelta([
+        createEntityEntry("REQ-001", {
+          timestamp: "2024-01-01T00:00:00Z",
+          entityType: "req",
+          changeKind: "created",
+          source: "documentation/requirements/REQ-001.md",
+        }),
+      ]);
+
+      const checkResult: CheckResult = {
+        violations: [],
+        count: 0,
+        diagnostics: [],
+      };
+      const briefingResult: IdleBriefingResult = {
+        briefingState: "ready",
+        tldr: "Relationship-aware brief",
+        promptBlock: "",
+        citations: [],
+      };
+      let capturedArgs: { sourceFiles: string[]; seedIds: string[] } | null = null;
+
+      const client = createCapturingClient(
+        checkResult,
+        briefingResult,
+        (args) => {
+          capturedArgs = args;
+        },
+      );
+
+      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1", {
+        sourceFiles: ["REQ-001"],
+        changedEntityIds: ["REQ-001"],
+        relationships: [{ from: "SYM-LOGIN", to: "REQ-002", type: "implements" }],
+      });
+
+      expect(result.success).toBe(true);
+      expect(capturedArgs!).toEqual({
+        sourceFiles: ["REQ-001"],
+        seedIds: ["REQ-001", "REQ-002", "SYM-LOGIN"],
+      });
     });
   });
 });
