@@ -18,6 +18,59 @@
 */
 const args = globalThis.Bun?.argv?.slice(2) ?? process.argv.slice(2);
 
+async function importStartupResolution() {
+  try {
+    return await import("../dist/startup-resolution.js");
+  } catch {
+    return await import("../src/startup-resolution.ts");
+  }
+}
+
+async function serverEntrypointUrl() {
+  const { existsSync } = await import("node:fs");
+  const distUrl = new URL("../dist/server.js", import.meta.url);
+  if (existsSync(distUrl)) {
+    return distUrl.href;
+  }
+  return new URL("../src/server.ts", import.meta.url).href;
+}
+
+async function buildResolution() {
+  const {
+    compareMcpResolution,
+    formatResolutionJson,
+    readRunningPackageInfo,
+    resolveProjectLocalMcp,
+  } = await importStartupResolution();
+  const running = readRunningPackageInfo(await serverEntrypointUrl());
+  const projectLocal = resolveProjectLocalMcp(process.cwd());
+  const comparison = compareMcpResolution(running, projectLocal);
+  const result = {
+    packageName: "kibi-mcp",
+    packageVersion: running.version,
+    version: running.version,
+    resolved: running.entrypoint,
+    cwd: process.cwd(),
+    running,
+    projectLocal,
+    ...comparison,
+  };
+
+  return { result, json: formatResolutionJson(result) };
+}
+
+async function importServer(entrypoint) {
+  if (entrypoint) {
+    const { pathToFileURL } = await import("node:url");
+    return await import(pathToFileURL(entrypoint).href);
+  }
+  try {
+    return await import("../dist/server.js");
+  } catch {
+    return await import("../src/server.ts");
+  }
+}
+
 function printHelp() {
   process.stdout.write(`Usage: kibi-mcp [options]
 
@@ -25,6 +78,7 @@ Starts the Kibi MCP server over stdio.
 
 Options:
   --diagnostic-mode  enable diagnostic logging to .kb/usage.log
+  --print-resolution print kibi-mcp startup resolution JSON and exit
   -h, --help         show help
 `);
 }
@@ -33,6 +87,11 @@ if (args.includes("-h") || args.includes("--help")) {
   printHelp();
   process.exitCode = 0;
 } else {
+  if (args.includes("--print-resolution")) {
+    const { json } = await buildResolution();
+    process.stdout.write(json);
+    process.exitCode = 0;
+  } else {
   if (args.includes("--diagnostic-mode") && !process.argv.includes("--diagnostic-mode")) {
     process.argv.push("--diagnostic-mode");
   }
@@ -43,7 +102,31 @@ if (args.includes("-h") || args.includes("--help")) {
     process.env.KIBI_MCP_DIAGNOSTIC_MODE = "1";
   }
 
-  const { startServer } = await import("../dist/server.js");
+  const { result, json } = await buildResolution();
+  if (process.env.KIBI_MCP_DEBUG === "1" || args.includes("--diagnostic-mode")) {
+    process.stderr.write(json);
+  }
+
+  if (result.stale) {
+    if (result.projectLocal && process.env.KIBI_MCP_PROJECT_LOCAL_REENTRY !== "1") {
+      process.env.KIBI_MCP_PROJECT_LOCAL_REENTRY = "1";
+      process.stderr.write(
+        `[KIBI-MCP] Re-entering project-local kibi-mcp at ${result.projectLocal.entrypoint}; stale running path was ${result.running.entrypoint}\n`,
+      );
+      const { startServer } = await importServer(result.projectLocal.entrypoint);
+      startServer().catch((error) => {
+        console.error("Fatal error:", error);
+        process.exit(1);
+      });
+    } else {
+      const localEntrypoint = result.projectLocal?.entrypoint ?? "<not resolved>";
+      console.error(
+        `[KIBI-MCP] Refusing stale kibi-mcp startup. project-local entrypoint: ${localEntrypoint}; running entrypoint: ${result.running.entrypoint}`,
+      );
+      process.exit(1);
+    }
+  } else {
+  const { startServer } = await importServer();
 
   if (process.env.KIBI_MCP_DEBUG) {
   const originalStdoutWrite = process.stdout.write.bind(process.stdout);
@@ -84,4 +167,6 @@ if (args.includes("-h") || args.includes("--help")) {
     console.error("Fatal error:", error);
     process.exit(1);
   });
+  }
+  }
 }

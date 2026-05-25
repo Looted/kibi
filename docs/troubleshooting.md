@@ -264,6 +264,51 @@ npm view kibi-opencode versions
 
 If you're on an old version, upgrade when a patch is available. Do not repeatedly clear the cache on the same broken version.
 
+## MCP startup resolves stale kibi-mcp@0.13.x pnpm path
+
+### Symptom
+
+MCP startup fails with a path resolution error pointing to an old `kibi-mcp` version, such as `node_modules/.pnpm/kibi-mcp@0.13.0`. This happens after upgrading `kibi-mcp` in a project that previously used pnpm or `npx -y`.
+
+### Root Cause
+
+The MCP configuration or a package manager cache still references a stale path. `npx -y` can mix local dependency resolution, registry fetches, and npm cache behavior in ways that produce ambiguous or outdated paths. Project-local execution (`npx --no-install` or `pnpm exec`) avoids this by resolving only what is already installed in the project.
+
+### Evidence-First Recovery
+
+Do NOT delete all caches or `node_modules` as a first step. Capture evidence, inspect, and clean only what the evidence points to.
+
+1. **Capture resolution evidence:**
+   ```bash
+   npx kibi-mcp --print-resolution
+   ```
+   This prints the resolved binary path and version. If it points to `node_modules/.pnpm/kibi-mcp@0.13.0` (or any version older than what your `package.json` declares), the cache or config is stale.
+
+2. **Inspect project lockfile and MCP config:**
+   ```bash
+   grep "kibi-mcp" pnpm-lock.yaml
+   cat .vscode/mcp.json   # or opencode.json
+   ```
+   Confirm the lockfile lists the expected version and that the MCP config uses `--no-install` (for npm) or `pnpm exec` (for pnpm), not `-y`.
+
+3. **Targeted cleanup (only if evidence confirms a stale cache):**
+   ```bash
+   rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"
+   ```
+   Then restart your editor or OpenCode session.
+
+### Verification
+
+After cleanup, rerun the evidence capture:
+```bash
+npx kibi-mcp --print-resolution
+```
+The path should now match the version in `pnpm-lock.yaml` or `package-lock.json`.
+
+### Historical Context
+
+The forbidden path pattern `node_modules/.pnpm/kibi-mcp@0.13.0` was a known failure mode during the 0.13.x to 0.14.x transition. It appeared when pnpm's store or an MCP config cached an old `.pnpm` path while the project had already moved to a newer version. Always verify with `--print-resolution` before assuming a cache issue.
+
 ---
 
 ### Interpreting Sync Failures in OpenCode

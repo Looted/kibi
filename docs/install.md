@@ -68,7 +68,22 @@ For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-a
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["npx", "-y", "kibi-mcp"],
+      "command": ["npx", "--no-install", "kibi-mcp"],
+      "enabled": true
+    }
+  }
+}
+```
+
+If you use pnpm, prefer `pnpm exec` for deterministic project-local resolution:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "command": ["pnpm", "exec", "kibi-mcp"],
       "enabled": true
     }
   }
@@ -85,7 +100,21 @@ For VS Code, create `.vscode/mcp.json`. VS Code uses a `command` string with a s
     "kibi": {
       "type": "stdio",
       "command": "npx",
-      "args": ["-y", "kibi-mcp"]
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+If you use pnpm, replace `"command": "npx"` and `"args"` with:
+
+```json
+{
+  "servers": {
+    "kibi": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": ["exec", "kibi-mcp"]
     }
   }
 }
