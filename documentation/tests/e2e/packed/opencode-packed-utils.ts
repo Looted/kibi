@@ -10,6 +10,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   readdirSync,
   statSync,
   writeFileSync,
@@ -39,13 +40,34 @@ function findTarballFromEnv(
 ): string | null {
   const candidateDirs = [join(tarballEnv, pkg), tarballEnv];
 
+  // Determine the expected version from the package manifest
+  let preferredVersion: string | null = null;
+  try {
+    const pkgJsonPath = join(REPO_ROOT, "packages", pkg, "package.json");
+    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8"));
+    preferredVersion = pkgJson.version ?? null;
+  } catch {
+    // If we can't read the package.json, proceed without version matching
+  }
+
   for (const dir of candidateDirs) {
     if (!existsSync(dir)) continue;
     const files = readdirSync(dir).filter((f: string) =>
-      f.match(new RegExp(`^kibi-${pkg}-.*\\.tgz$`)),
+      f.match(new RegExp(`^kibi-${pkg}-.*\.tgz$`)),
     );
     if (files.length === 0) continue;
 
+    // Prefer version-matched tarball
+    if (preferredVersion) {
+      const versionMatched = files.find(
+        (f) => f === `kibi-${pkg}-${preferredVersion}.tgz`,
+      );
+      if (versionMatched) {
+        return join(dir, versionMatched);
+      }
+    }
+
+    // Fall back to newest by mtime
     files.sort((a: string, b: string) => {
       const statA = statSync(join(dir, a));
       const statB = statSync(join(dir, b));

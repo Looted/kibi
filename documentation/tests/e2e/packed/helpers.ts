@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   symlinkSync,
   writeFileSync,
 } from "node:fs";
@@ -80,19 +81,40 @@ function findPrePackedTarball(
 ): string | null {
   const candidateDirs = [prePackedDir, join(prePackedDir, pkg)];
 
+  // Try version-matched tarball first
+  let preferredVersion: string | null = null;
+  try {
+    const pkgJsonPath = join(REPO_ROOT, "packages", pkg, "package.json");
+    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8"));
+    preferredVersion = pkgJson.version ?? null;
+  } catch {
+    // If we can't read the package.json, proceed without version matching
+  }
+
   for (const dir of candidateDirs) {
     if (!existsSync(dir)) {
       continue;
     }
 
-    const match = execFileSync("ls", [dir], { encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .find((f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"));
+    const files = readdirSync(dir).filter(
+      (f: string) => f.startsWith(`kibi-${pkg}-`) && f.endsWith(".tgz"),
+    );
 
-    if (match) {
-      return join(dir, match);
+    if (files.length === 0) continue;
+
+    // Prefer version-matched tarball
+    if (preferredVersion) {
+      const versionMatched = files.find(
+        (f) => f === `kibi-${pkg}-${preferredVersion}.tgz`,
+      );
+      if (versionMatched) {
+        return join(dir, versionMatched);
+      }
     }
+
+    // Fall back to first match
+    const first = files[0];
+    if (first) return join(dir, first);
   }
 
   return null;
