@@ -189,7 +189,11 @@ if (RUN_NODE_TEST_SUITE) {
         const expectedVersion = currentMcpVersion();
         pinLocalKibiTransitives(sandbox, tarballs);
 
-        const oldInstall = await installTarballsWithPnpm(sandbox, [oldTarball]);
+        const oldInstall = await installTarballsWithPnpm(
+          sandbox,
+          [oldTarball],
+          { offline: false },
+        );
         assertInstallSucceeded("old kibi-mcp pnpm install", oldInstall);
         const oldResolved = await resolveInstalledKibiMcp(sandbox);
         assert.ok(
