@@ -149,7 +149,7 @@ function buildBootstrapRequiredBody(
     ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
     : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
 
-  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`.`;
+  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n- For comprehensive Kibi usage guidance, use \`kb_skills_load\` with skill id \`kibi-usage\`.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`, \`kb_skills_load\`.`;
 }
 
 // ── PromptContext ──────────────────────────────────────────────────────
@@ -690,7 +690,13 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh documentation/symbols.yaml and do not revert that update as scope creep.
 
-**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\n${buildInitKibiBootstrapReference(capability)}`;
+**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check, kb_skills_load.
+
+For comprehensive Kibi usage guidance (relationships, fact lanes, workflows), use \`kb_skills_load\` with skill id \`kibi-usage\`.
+
+Do not invoke Kibi CLI commands directly from the agent.
+
+${buildInitKibiBootstrapReference(capability)}`
 }
 
 /**
