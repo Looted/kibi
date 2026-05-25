@@ -52,7 +52,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json && bun run scripts/build-tui.ts && tsc -p tsconfig.tui-types.json",
+    "build": "tsc -p tsconfig.json && bun run scripts/generate-version-metadata.ts && bun run scripts/build-tui.ts && tsc -p tsconfig.tui-types.json",
     "build:tui": "bun run scripts/build-tui.ts && tsc -p tsconfig.tui-types.json",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
