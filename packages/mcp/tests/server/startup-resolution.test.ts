@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import {
   mkdirSync,
   mkdtempSync,
@@ -16,6 +17,12 @@ import {
   readRunningPackageInfo,
   resolveProjectLocalMcp,
 } from "../../src/startup-resolution";
+
+// Read the actual package version at test time so version bumps don't break tests.
+const pkg = JSON.parse(
+  readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
+) as { version: string };
+const runningVersion = pkg.version;
 
 function makePackage(root: string, version: string): string {
   const packageRoot = path.join(root, "node_modules", "kibi-mcp");
@@ -46,7 +53,7 @@ describe("MCP startup resolution diagnostics", () => {
       pathToFileURL(path.resolve(import.meta.dir, "../../src/server.ts")).href,
     );
 
-    expect(running.version).toBe("0.14.0");
+    expect(running.version).toBe(runningVersion);
     expect(running.packageRoot).toBe(path.resolve(import.meta.dir, "../.."));
     expect(running.entrypoint).toBe(
       path.resolve(import.meta.dir, "../../src/server.ts"),
@@ -160,7 +167,7 @@ describe("MCP startup resolution diagnostics", () => {
       stale?: unknown;
     };
     expect(resolution.packageName).toBe("kibi-mcp");
-    expect(resolution.running?.version).toBe("0.14.0");
+    expect(resolution.running?.version).toBe(runningVersion);
     expect(resolution.running?.entrypoint).toBeString();
     expect(resolution).toHaveProperty("projectLocal");
     expect(resolution).toHaveProperty("stale");
