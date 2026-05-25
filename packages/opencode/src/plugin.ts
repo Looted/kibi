@@ -69,6 +69,7 @@ import {
   type StartupNotifierClient,
   notifyStartup,
 } from "./startup-notifier.js";
+import { readKibiPackageVersions } from "./version-metadata.js";
 import {
   type ToastCapableClient as SendToastClient,
   sendToast,
@@ -114,18 +115,6 @@ function resolveIdleBriefDeliveryDelayMs(worktree: string): number {
   return Math.min(60_000, Math.trunc(configValue));
 }
 
-function readKibiOpencodePackageVersion(): string | undefined {
-  try {
-    const packageJson = JSON.parse(
-      fs.readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
-    ) as { version?: unknown };
-    return typeof packageJson.version === "string"
-      ? packageJson.version
-      : undefined;
-  } catch {
-    return undefined;
-  }
-}
 
 export interface PluginInput {
   worktree: string;
@@ -1880,11 +1869,15 @@ function buildSyntheticSyncAuditDelta(
       });
 
     scheduleStartupNotify(() => {
-      const version = readKibiOpencodePackageVersion();
+      const meta = readKibiPackageVersions();
+      const versions: Record<string, string> = {};
+      for (const key of ["opencode", "mcp", "cli", "core"] as const) {
+        if (meta[key] !== "unknown") versions[key] = meta[key];
+      }
       notifyStartup(makeStartupClient(client), {
         suppressToast: cfg.ux.toastStartup === false,
         directory: input.directory,
-        ...(version ? { version } : {}),
+        ...(Object.keys(versions).length > 0 ? { versions } : {}),
       });
     }, 2000);
   }
