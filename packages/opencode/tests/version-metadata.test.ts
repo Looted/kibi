@@ -23,17 +23,21 @@ describe("readKibiPackageVersions", () => {
     ).not.toThrow();
   });
 
-  test("reads generated dist JSON when available (after build)", () => {
-    // Point baseUrl at the dist/ directory so ./version-metadata.json resolves
-    const distUrl = new URL("../dist/version-metadata.js", import.meta.url);
-    const result = readKibiPackageVersions({ baseUrl: distUrl });
-
+  test("reads generated dist JSON when available (injected)", () => {
+    const fakeMetadata = { opencode: "1.0.0", mcp: "1.1.0", cli: "0.9.0", core: "0.4.0" };
+    const result = readKibiPackageVersions({
+      readFileSync: (path: string | URL) => {
+        if (String(path).endsWith("version-metadata.json")) {
+          return JSON.stringify(fakeMetadata);
+        }
+        throw new Error("not found");
+      },
+    });
     expect(result.source).toBe("generated-dist");
-    // Specific versions to match current package.json values
-    expect(result.opencode).toBe("0.14.0");
-    expect(result.mcp).toBe("0.14.1");
-    expect(result.cli).toBe("0.11.0");
-    expect(result.core).toBe("0.5.3");
+    expect(result.opencode).toBe("1.0.0");
+    expect(result.mcp).toBe("1.1.0");
+    expect(result.cli).toBe("0.9.0");
+    expect(result.core).toBe("0.4.0");
     expect(result.missing).toEqual([]);
   });
 
