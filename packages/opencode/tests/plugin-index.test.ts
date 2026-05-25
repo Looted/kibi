@@ -259,7 +259,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const toastBody = toastCalls[0].body as Record<string, unknown>;
       assert.equal(toastBody.variant, "success");
       assert.equal(toastBody.title, "Kibi OpenCode");
-      assert.match(String(toastBody.message), /^kibi-opencode started( \(v[0-9.]+\))?$/);
+      assert.match(String(toastBody.message), /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/);
       assert.equal(toastBody.duration, 4000);
       assert.equal(startupConfirmations.length, 1);
 
@@ -341,7 +341,7 @@ describe.serial("index kibiOpencodePlugin", () => {
       const toastBody = toastCalls[0].body as Record<string, unknown>;
       assert.equal(toastBody.variant, "success");
       assert.equal(toastBody.title, "Kibi OpenCode");
-      assert.match(String(toastBody.message), /^kibi-opencode started( \(v[0-9.]+\))?$/);
+      assert.match(String(toastBody.message), /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/);
       assert.equal(toastBody.duration, 4000);
 
       delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
