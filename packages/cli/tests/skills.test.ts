@@ -163,6 +163,19 @@ describe("skills public API", () => {
     expect(() => loadBundledSkill("big-skill")).toThrow(SkillOversizeError);
   });
 
+  test("validation fails for oversized SKILL.md files", () => {
+    const rootDir = writeSkill(
+      "big-skill",
+      validFrontmatter({ id: "big-skill" }),
+      "x".repeat(256 * 1024 + 1),
+    );
+
+    const result = validateSkillBundle(rootDir);
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.map((error) => error.field)).toContain("SKILL.md");
+  });
+
   test("rejects oversized resources", () => {
     const rootDir = writeSkill("valid-skill", validFrontmatter());
     mkdirSync(join(rootDir, "resources"), { recursive: true });
@@ -171,6 +184,33 @@ describe("skills public API", () => {
     expect(() => readBundledSkillResource("valid-skill", "resources/example.txt")).toThrow(
       SkillOversizeError,
     );
+  });
+
+  test("validation fails for oversized resources", () => {
+    const rootDir = writeSkill("valid-skill", validFrontmatter());
+    mkdirSync(join(rootDir, "resources"), { recursive: true });
+    writeFileSync(join(rootDir, "resources/example.txt"), "x".repeat(128 * 1024 + 1));
+
+    const result = validateSkillBundle(rootDir);
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.map((error) => error.field)).toContain("resources");
+  });
+
+  test("validation fails for symlink resource escapes", () => {
+    const rootDir = writeSkill(
+      "symlink-skill",
+      validFrontmatter({ id: "symlink-skill", resources: ["resources/link.txt"] }),
+    );
+    mkdirSync(join(rootDir, "resources"), { recursive: true });
+    mkdirSync(outsideFixturesDir, { recursive: true });
+    writeFileSync(join(outsideFixturesDir, "secret.txt"), "secret");
+    symlinkSync(join(outsideFixturesDir, "secret.txt"), join(rootDir, "resources/link.txt"));
+
+    const result = validateSkillBundle(rootDir);
+
+    expect(result.valid).toBe(false);
+    expect(result.errors.map((error) => error.field)).toContain("resources");
   });
 
   test("reads only declared resources", () => {
