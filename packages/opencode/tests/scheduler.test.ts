@@ -1,5 +1,7 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { DEFAULTS } from "../src/config";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 
@@ -42,6 +44,58 @@ async function flushAsync(): Promise<void> {
 }
 
 describe("sync scheduler", () => {
+  test("scheduler instances for parallel worktrees flush only their own pending sync", async () => {
+    const clock = createFakeClock();
+    const tmpDir = fs.mkdtempSync(path.join(process.cwd(), "test-scheduler-scope-"));
+    const worktreeA = path.join(tmpDir, "worktree-a");
+    const worktreeB = path.join(tmpDir, "worktree-b");
+    fs.mkdirSync(path.join(worktreeA, "documentation", "requirements"), {
+      recursive: true,
+    });
+    fs.mkdirSync(path.join(worktreeB, "documentation", "requirements"), {
+      recursive: true,
+    });
+    const runs: string[] = [];
+
+    try {
+      const makeScheduler = (worktree: string) =>
+        createSyncScheduler({
+          worktree,
+          config: {
+            ...DEFAULTS,
+            sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+          },
+          now: clock.now,
+          setTimeoutFn: clock.setTimeoutFn,
+          clearTimeoutFn: clock.clearTimeoutFn,
+          runSync: async (runWorktree) => {
+            runs.push(runWorktree);
+            return { exitCode: 0 };
+          },
+        });
+
+      const schedulerA = makeScheduler(worktreeA);
+      const schedulerB = makeScheduler(worktreeB);
+
+      schedulerA.scheduleSync(
+        "file.edited",
+        "documentation/requirements/REQ-A.md",
+      );
+      schedulerB.scheduleSync(
+        "file.edited",
+        "documentation/requirements/REQ-B.md",
+      );
+
+      await schedulerA.flush();
+      assert.deepEqual(runs, [path.resolve(worktreeA)]);
+
+      await schedulerB.flush();
+      assert.deepEqual(runs, [path.resolve(worktreeA), path.resolve(worktreeB)]);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   test("three rapid relevant edits in one debounce window launch one sync", async () => {
     const clock = createFakeClock();
     let runs = 0;

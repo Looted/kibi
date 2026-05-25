@@ -47,9 +47,9 @@ coordinates:
   SYM-GuidanceCache:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 165
     sourceFile: packages/opencode/src/guidance-cache.ts
-    sourceLine: 43
+    sourceLine: 46
   SYM-INIT_KIBI_COMMAND_DESCRIPTION:
     sourceColumn: 13
     sourceEndColumn: 92
@@ -110,6 +110,18 @@ coordinates:
     sourceEndLine: 158
     sourceFile: packages/vscode/src/extension.ts
     sourceLine: 132
+  SYM-buildDirtyRelevantFingerprint:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 40
+  SYM-buildEnforcementScopeKey:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    sourceLine: 23
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
