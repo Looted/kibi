@@ -91,6 +91,8 @@ jobs:
         run: bun run build:mcp
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
+      - name: Clean stale tarballs
+        run: bun run clean:tarballs
       - name: Pack packages
         run: |
           cd packages/core && npm pack
@@ -155,7 +157,7 @@ jobs:
           path: packages
       - name: Tarball content verification
         run: |
-          bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts packed-path-hygiene.test.ts
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5

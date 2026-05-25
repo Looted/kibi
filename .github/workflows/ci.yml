@@ -106,6 +106,9 @@ jobs:
         if: ${{ !inputs.skip_tests }}
         run: bash ./scripts/run-integration-tests.sh
 
+      - name: Clean stale tarballs
+        run: bun run clean:tarballs
+
       - name: Pack tarballs
         run: |
           cd packages/core && npm pack
@@ -229,9 +232,13 @@ jobs:
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
-      - name: Run MCP protocol regression tests
+      - name: Setup pnpm
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js
+          corepack enable
+          corepack prepare pnpm@10.24.0 --activate
+      - name: Run MCP packed regression tests
+        run: |
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js /tmp/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -263,6 +270,12 @@ jobs:
       - name: Run tarball verification
         run: |
           NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/cli-verify-tarball-core.test.js
+        env:
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 5
+      - name: Verify tarball path hygiene
+        run: |
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 packed-path-hygiene.test.ts
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
