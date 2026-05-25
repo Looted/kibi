@@ -87,6 +87,10 @@
       "types": "./dist/public/operational-artifacts.d.ts",
       "default": "./dist/public/operational-artifacts.js"
     },
+    "./skills": {
+      "types": "./dist/public/skills.d.ts",
+      "default": "./dist/public/skills.js"
+    },
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",
       "import": "./dist/public/ignore-policy.js",
