@@ -4,6 +4,7 @@
  * Tests cover all three resolution strategies and the never-throws contract.
  */
 import { describe, test, expect } from "bun:test";
+import { readFileSync } from "node:fs";
 import { readKibiPackageVersions } from "../src/version-metadata";
 
 describe("readKibiPackageVersions", () => {
@@ -47,11 +48,14 @@ describe("readKibiPackageVersions", () => {
     const srcUrl = new URL("../src/version-metadata.ts", import.meta.url);
     const result = readKibiPackageVersions({ baseUrl: srcUrl });
 
+    // Read actual versions dynamically so version bumps don't break the test
+    const readPkg = (rel: string) =>
+      JSON.parse(readFileSync(new URL(rel, import.meta.url), "utf-8"));
     expect(result.source).toBe("workspace-packages");
-    expect(result.opencode).toBe("0.15.0");
-    expect(result.mcp).toBe("0.14.2");
-    expect(result.cli).toBe("0.11.1");
-    expect(result.core).toBe("0.5.3");
+    expect(result.opencode).toBe(readPkg("../package.json").version);
+    expect(result.mcp).toBe(readPkg("../../mcp/package.json").version);
+    expect(result.cli).toBe(readPkg("../../cli/package.json").version);
+    expect(result.core).toBe(readPkg("../../core/package.json").version);
     expect(result.missing).toEqual([]);
   });
 
