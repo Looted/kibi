@@ -48,9 +48,9 @@ describe("readKibiPackageVersions", () => {
     const result = readKibiPackageVersions({ baseUrl: srcUrl });
 
     expect(result.source).toBe("workspace-packages");
-    expect(result.opencode).toBe("0.14.0");
-    expect(result.mcp).toBe("0.14.1");
-    expect(result.cli).toBe("0.11.0");
+    expect(result.opencode).toBe("0.15.0");
+    expect(result.mcp).toBe("0.14.2");
+    expect(result.cli).toBe("0.11.1");
     expect(result.core).toBe("0.5.3");
     expect(result.missing).toEqual([]);
   });
