@@ -33,6 +33,20 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 - **Three-mode enforcement**: `advisory` by default keeps guidance non-blocking; opt-in `strict` adds elevated validation cues; `hard` blocks the prompt for authoritative workspaces until the checkpoint cycle succeeds. Git hooks and KB validation checks remain the durable enforcement boundary for all modes.
 - **Structured observability**: posture, risk, cache, degraded-mode, targeted-check, and guidance events flow through structured plugin logs
 
+### KB Freshness Contract
+
+Meaningful code, test, requirement, scenario, and symbol changes now require explicit
+KB impact resolution before task completion. When source or documentation files are
+modified, the plugin evaluates KB freshness evidence and surfaces a visible
+`🧠 **Kibi freshness required**` block when KB impact is unresolved.
+
+**Allowed resolutions:**
+- **KB updated**: Run source-linked discovery via `kb_search`, create or update entities
+  with `kb_upsert` (or remove with `kb_delete`), then run `kb_check`.
+- **No KB impact**: Include a no-impact rationale in the final report after source-linked
+  discovery via `kb_search` or `kb_query(sourceFile=...)` and `kb_check`.
+- **Deferred/Failed**: Do not claim task completion.
+
 ### Dynamic Contextual Guidance
 
 The plugin provides context-aware prompt guidance based on recent edits and workspace state:

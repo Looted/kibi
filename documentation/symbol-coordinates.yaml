@@ -44,6 +44,42 @@ coordinates:
     sourceEndLine: 57
     sourceFile: packages/mcp/src/server.ts
     sourceLine: 37
+  SYM-CheckpointEvidence:
+    sourceColumn: 12
+    sourceEndColumn: 6
+    sourceEndLine: 29
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 20
+  SYM-DeriveFileOperationReminderParams:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 25
+  SYM-DeriveFileOperationReminderResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 43
+  SYM-EnforcementLifecycleEvent:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 15
+  SYM-EnforcementPolicyInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 54
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 31
+  SYM-EnforcementPolicyResult:
+    sourceColumn: 12
+    sourceEndColumn: 7
+    sourceEndLine: 88
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 69
   SYM-GuidanceCache:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -74,6 +110,42 @@ coordinates:
     sourceEndLine: 28
     sourceFile: packages/vscode/src/shared/rdf-parser.ts
     sourceLine: 15
+  SYM-KibiCheckpointContext:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 41
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 30
+  SYM-KibiCheckpointMetadata:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 53
+  SYM-KibiCheckpointRequestResult:
+    sourceColumn: 12
+    sourceEndColumn: 61
+    sourceEndLine: 72
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 69
+  SYM-KibiCheckpointRunResult:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 77
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 74
+  SYM-KibiCheckpointRunner:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 349
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 85
+  SYM-KibiCheckpointRunnerOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    sourceLine: 43
   SYM-KibiCodeActionProvider:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -98,12 +170,54 @@ coordinates:
     sourceEndLine: 4
     sourceFile: packages/cli/src/utils/schema-version.ts
     sourceLine: 4
+  SYM-LinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 23
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 20
+  SYM-PolicyLinkedEntityResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 13
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 10
   SYM-SYMBOLS_MANIFEST_COMMENT_BLOCK:
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 60
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     sourceLine: 54
+  SYM-SkillNotFoundError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 51
+  SYM-SkillOversizeError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 82
+  SYM-SkillResourceNotFoundError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 58
+  SYM-SkillResourceOutOfBoundsError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 70
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 65
+  SYM-SkillValidationError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 72
   SYM-activateKibiExtension:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -125,9 +239,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 673
+    sourceEndLine: 713
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 665
+    sourceLine: 705
   SYM-buildStableRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -152,12 +266,24 @@ coordinates:
     sourceEndLine: 175
     sourceFile: packages/opencode/src/risk-classifier.ts
     sourceLine: 63
+  SYM-computeEnforcementPolicy:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 422
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    sourceLine: 331
   SYM-deriveBriefIntent:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 144
     sourceFile: packages/opencode/src/brief-intent.ts
     sourceLine: 77
+  SYM-deriveFileOperationReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    sourceLine: 61
   SYM-detectPosture:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -212,6 +338,24 @@ coordinates:
     sourceEndLine: 455
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 411
+  SYM-handleSkillCommand:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/commands/skills.ts
+    sourceLine: 94
+  SYM-listBundledSkills:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 94
+  SYM-loadBundledSkill:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 114
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 107
   SYM-mergeStaticLinks:
     sourceColumn: 10
     sourceEndColumn: 3
@@ -248,6 +392,24 @@ coordinates:
     sourceEndLine: 237
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 142
+  SYM-readBundledSkillResource:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 147
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 116
+  SYM-resetBundledSkillsDir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 31
+  SYM-setBundledSkillsDir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 27
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -266,105 +428,15 @@ coordinates:
     sourceEndLine: 100
     sourceFile: packages/cli/src/commands/usage-metrics.ts
     sourceLine: 75
+  SYM-validateSkillBundle:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 168
+    sourceFile: packages/cli/src/public/skills.ts
+    sourceLine: 149
   SYM-writeSetPrimaryEntityId:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 388
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 386
-  SYM-CheckpointEvidence:
-    sourceColumn: 12
-    sourceEndColumn: 6
-    sourceEndLine: 29
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 20
-  SYM-DeriveFileOperationReminderParams:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 41
-    sourceFile: packages/opencode/src/file-operation-reminders.ts
-    sourceLine: 25
-  SYM-DeriveFileOperationReminderResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 49
-    sourceFile: packages/opencode/src/file-operation-reminders.ts
-    sourceLine: 43
-  SYM-EnforcementLifecycleEvent:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 18
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 15
-  SYM-EnforcementPolicyInput:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 54
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 31
-  SYM-EnforcementPolicyResult:
-    sourceColumn: 12
-    sourceEndColumn: 7
-    sourceEndLine: 88
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 69
-  SYM-LinkedEntityResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 23
-    sourceFile: packages/opencode/src/file-operation-reminders.ts
-    sourceLine: 20
-  SYM-PolicyLinkedEntityResult:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 13
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 10
-  SYM-computeEnforcementPolicy:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 422
-    sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 331
-  SYM-deriveFileOperationReminder:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 109
-    sourceFile: packages/opencode/src/file-operation-reminders.ts
-    sourceLine: 61
-  SYM-KibiCheckpointContext:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 41
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 30
-  SYM-KibiCheckpointMetadata:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 67
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 53
-  SYM-KibiCheckpointRequestResult:
-    sourceColumn: 12
-    sourceEndColumn: 61
-    sourceEndLine: 72
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 69
-  SYM-KibiCheckpointRunResult:
-    sourceColumn: 12
-    sourceEndColumn: 55
-    sourceEndLine: 77
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 74
-  SYM-KibiCheckpointRunner:
-    sourceColumn: 13
-    sourceEndColumn: 1
-    sourceEndLine: 349
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 85
-  SYM-KibiCheckpointRunnerOptions:
-    sourceColumn: 17
-    sourceEndColumn: 1
-    sourceEndLine: 51
-    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
-    sourceLine: 43

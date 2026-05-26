@@ -35,6 +35,14 @@ import { type GraphArgs, handleKbGraph } from "../tools/graph.js";
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
 import { type SearchArgs, handleKbSearch } from "../tools/search.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
+import {
+  type SkillsListArgs,
+  type SkillsLoadArgs,
+  type SkillsReadArgs,
+  handleKbSkillsList,
+  handleKbSkillsLoad,
+  handleKbSkillsRead,
+} from "../tools/skills.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
 import {
   type ModelRequirementArgs,
@@ -119,6 +127,9 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
+  handleKbSkillsList: (args: SkillsListArgs) => Promise<unknown>;
+  handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;
+  handleKbSkillsRead: (args: SkillsReadArgs) => Promise<unknown>;
   handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
   handleKbModelRequirement: (
     prolog: TProlog,
@@ -150,6 +161,9 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbQuery,
   handleKbSearch,
   handleKbStatus,
+  handleKbSkillsList,
+  handleKbSkillsLoad,
+  handleKbSkillsRead,
   handleKbUpsert,
   handleKbModelRequirement,
   handleKbAutopilotGenerate,
@@ -479,6 +493,33 @@ export function registerAllTools<TProlog>(
       const prolog = await runtime.ensureProlog();
       return runtime.handleKbStatus(prolog, args as StatusArgs);
     },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_skills_list",
+    toolDef("kb_skills_list").description,
+    toolDef("kb_skills_list").inputSchema,
+    async (args) => runtime.handleKbSkillsList(args as SkillsListArgs),
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_skills_load",
+    toolDef("kb_skills_load").description,
+    toolDef("kb_skills_load").inputSchema,
+    async (args) => runtime.handleKbSkillsLoad(args as unknown as SkillsLoadArgs),
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_skills_read",
+    toolDef("kb_skills_read").description,
+    toolDef("kb_skills_read").inputSchema,
+    async (args) => runtime.handleKbSkillsRead(args as unknown as SkillsReadArgs),
     runtime,
   );
 

@@ -131,6 +131,10 @@ describe("prompt", () => {
       result.includes("kb_autopilot_generate"),
       "Should mention kb_autopilot_generate",
     );
+    assert.ok(
+      result.includes("kb_skills_load"),
+      "Should mention kb_skills_load for skill-based guidance",
+    );
 
     // Should NOT mention non-public tools
     assert.ok(
@@ -140,6 +144,19 @@ describe("prompt", () => {
     assert.ok(
       !result.includes("kb_coverage_report"),
       "Should NOT mention kb_coverage_report",
+    );
+  });
+
+  test("guidance references kb_skills_load with kibi-usage as canonical skill route", () => {
+    const result = injectPrompt("", baseConfig);
+
+    assert.ok(
+      result.includes("kb_skills_load"),
+      "Should mention kb_skills_load MCP tool",
+    );
+    assert.ok(
+      result.includes("kibi-usage"),
+      "Should reference kibi-usage as the canonical skill id",
     );
   });
 
@@ -2302,6 +2319,205 @@ describe("file-operation reminder integration", () => {
     assert.ok(
       !p.includes(BRIEF_KIBI_CUE),
       "File-operation reminders should NOT trigger /brief-kibi cue without semantic risk",
+    );
+  });
+});
+
+// ── KB freshness block rendering ──────────────────────────────────────
+describe("KB freshness block", () => {
+  test("freshness block rendered when requiresEvidence is true", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "Session modified files without KB tool evidence",
+        missingEvidence: [],
+      },
+    });
+
+    assert.ok(
+      p.includes("\u{1F9E0} **Kibi freshness required**"),
+      "Should render the freshness block header when requiresEvidence is true",
+    );
+    assert.ok(
+      p.includes("evidence-required"),
+      "Should include the freshness state",
+    );
+    assert.ok(
+      p.includes("Session modified files without KB tool evidence"),
+      "Should include the reason",
+    );
+    assert.ok(
+      p.includes("Resolution:"),
+      "Should include resolution instructions",
+    );
+    assert.ok(
+      p.includes("kb_search"),
+      "Should mention kb_search in resolution",
+    );
+    assert.ok(
+      p.includes("kb_check"),
+      "Should mention kb_check in resolution",
+    );
+  });
+
+  test("no freshness block for clean state", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      kbFreshness: {
+        state: "clean",
+        requiresEvidence: false,
+        allowsCompletion: true,
+        reason: "No files changed",
+        missingEvidence: [],
+      },
+    });
+
+    assert.ok(
+      !p.includes("Kibi freshness required"),
+      "Should NOT render freshness block when requiresEvidence is false",
+    );
+  });
+
+  test("freshness block bypasses guidance cache", () => {
+    const cache = new GuidanceCache(600000);
+    const key: CacheKey = {
+      workspaceRoot: "/ws",
+      branch: "main",
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      fileBucket: "code",
+    };
+    // Satisfy the cache so a normal prompt would be suppressed
+    cache.recordSatisfied(key, "guidance");
+
+    // Without freshness: cache suppresses guidance
+    const p1 = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+    });
+    assert.ok(
+      !p1.includes("Code changes detected"),
+      "Cache should suppress guidance without freshness",
+    );
+
+    // With freshness: cache is bypassed and freshness block appears
+    const p2 = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      cache,
+      workspaceRoot: "/ws",
+      branch: "main",
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "Session modified files without KB tool evidence",
+        missingEvidence: ["kbCheck"],
+      },
+    });
+    assert.ok(
+      p2.includes("\u{1F9E0} **Kibi freshness required**"),
+      "Freshness block should bypass cache and be rendered",
+    );
+    assert.ok(
+      p2.includes("Missing: kbCheck"),
+      "Should show missing evidence items",
+    );
+  });
+
+  test("freshness block shows missing evidence items", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "KB was updated but required evidence is missing",
+        missingEvidence: ["kbMutation", "kbCheck"],
+      },
+    });
+
+    assert.ok(
+      p.includes("Missing: kbMutation, kbCheck"),
+      "Should list missing evidence items",
+    );
+  });
+
+  test("freshness block does not show Missing line when missingEvidence is empty", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "Session modified files without KB tool evidence",
+        missingEvidence: [],
+      },
+    });
+
+    assert.ok(
+      !p.includes("Missing:"),
+      "Should NOT render Missing line when missingEvidence is empty",
+    );
+  });
+
+  test("freshness block is prepended before existing guidance", () => {
+    const p = buildPrompt({
+      recentEdits: [{ path: "src/foo.ts", kind: "code" }],
+      posture: "root_active",
+      riskClass: "behavior_candidate",
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "Session modified files without KB tool evidence",
+        missingEvidence: [],
+      },
+    });
+
+    const freshnessIdx = p.indexOf("Kibi freshness required");
+    const codeChangesIdx = p.indexOf("Code changes detected");
+    assert.ok(
+      freshnessIdx < codeChangesIdx,
+      "Freshness block should appear before the existing guidance block",
+    );
+  });
+
+  test("freshness block renders without any other guidance (sentinel-only fallback)", () => {
+    const p = buildPrompt({
+      recentEdits: [],
+      kbFreshness: {
+        state: "evidence-required",
+        requiresEvidence: true,
+        allowsCompletion: false,
+        reason: "Session modified files without KB tool evidence",
+        missingEvidence: [],
+      },
+    });
+
+    assert.ok(
+      p.includes("\u{1F9E0} **Kibi freshness required**"),
+      "Freshness block should render even without any other guidance",
+    );
+    assert.ok(
+      p.includes(SENTINEL),
+      "Should still include sentinel",
     );
   });
 });

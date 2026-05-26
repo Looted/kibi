@@ -6,6 +6,8 @@ import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import type { EffectiveMode } from "./smart-enforcement.js";
 import type { WorkContext } from "./work-context-resolver.js";
+import type { KbFreshnessEvidence } from "./kb-freshness-state.js";
+import { evaluateKbFreshness } from "./kb-freshness-state.js";
 
 export interface PolicyLinkedEntityResult {
   ids: string[];
@@ -26,6 +28,7 @@ export type CheckpointEvidence =
       kbStatus?: boolean;
       kbCheck?: boolean;
       kbUpsert?: boolean;
+      freshness?: KbFreshnessEvidence;
     };
 
 export interface EnforcementPolicyInput {
@@ -125,6 +128,13 @@ function normalizeCheckpointEvidence(evidence: CheckpointEvidence | undefined): 
   if (!evidence) {
     return false;
   }
+
+  // Freshness evidence is more authoritative than legacy booleans
+  if (evidence.freshness) {
+    return evaluateKbFreshness(evidence.freshness).allowsCompletion;
+  }
+
+  // Legacy boolean check
   return (
     evidence.hasCheckpoint === true ||
     evidence.kbSearch === true ||
@@ -321,6 +331,10 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
       "- Run `kb_status` if branch or snapshot freshness matters.",
       `- ${deletionCleanup}`,
       "- Run `kb_check` before completing the task.",
+      "KB freshness resolution:",
+      "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
+      "- **No KB impact**: provide a no-impact rationale in your final report after source-linked discovery via `kb_search` or `kb_query(sourceFile=...)` and `kb_check`.",
+      "- **Deferred/failed**: do not claim task completion."
     ].join("\n"),
     shownPaths,
     remainingCount,

@@ -82,4 +82,66 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
        });
     });
   });
+
+  describe("Skill Subsystem References", () => {
+    test("cli-reference.md documents kibi skills commands", () => {
+      const content = getFileContent("docs/cli-reference.md");
+      expect(content).toMatch(/`kibi skills`/);
+      expect(content).toMatch(/skills list/);
+      expect(content).toMatch(/skills load/);
+      expect(content).toMatch(/skills read/);
+      expect(content).toMatch(/skills validate/);
+    });
+
+    test("mcp-reference.md documents kb_skills tools", () => {
+      const content = getFileContent("docs/mcp-reference.md");
+      expect(content).toMatch(/`kb_skills_list`/);
+      expect(content).toMatch(/`kb_skills_load`/);
+      expect(content).toMatch(/`kb_skills_read`/);
+    });
+
+    test("llm-rules.md references skill subsystem", () => {
+      const content = getFileContent("docs/prompts/llm-rules.md");
+      expect(content).toMatch(/kb_skills_load/);
+      expect(content).toMatch(/kibi-usage/);
+    });
+
+    test("README.md mentions reusable skills", () => {
+      const content = getFileContent("README.md");
+      expect(content).toMatch(/skill subsystem/i);
+      expect(content).toMatch(/bundled skills/i);
+    });
+
+    test("Docs state bundled-only skills and no remote install in v1", () => {
+      const docs = [
+        "docs/cli-reference.md",
+        "docs/mcp-reference.md",
+        "docs/prompts/llm-rules.md",
+        "README.md",
+      ];
+      docs.forEach((file) => {
+        const content = getFileContent(file);
+        // Must state that skills are bundled (not remote/marketplace)
+        expect(content).toMatch(/bundled/i);
+      });
+    });
+
+    test("Docs do not advertise remote install, marketplace, or script execution as v1 behavior", () => {
+      const docs = [
+        "docs/cli-reference.md",
+        "docs/mcp-reference.md",
+        "docs/prompts/llm-rules.md",
+        "README.md",
+      ];
+      docs.forEach((file) => {
+        const content = getFileContent(file).toLowerCase();
+        const lines = content.split('\n');
+        lines.forEach((line) => {
+          if (line.includes('marketplace') || line.includes('script execution') || line.includes('remote install')) {
+            expect(line).toMatch(/not (supported|available)/);
+          }
+        });
+      });
+    });
+  });
 });

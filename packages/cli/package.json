@@ -19,7 +19,7 @@
     "src/public"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && mkdir -p dist/public/skills && cp -r src/public/skills/. dist/public/skills/",
     "prepack": "npm run build"
   },
   "exports": {
@@ -86,6 +86,10 @@
     "./operational-artifacts": {
       "types": "./dist/public/operational-artifacts.d.ts",
       "default": "./dist/public/operational-artifacts.js"
+    },
+    "./skills": {
+      "types": "./dist/public/skills.d.ts",
+      "default": "./dist/public/skills.js"
     },
     "./ignore-policy": {
       "types": "./dist/public/ignore-policy.d.ts",

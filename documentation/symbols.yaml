@@ -295,10 +295,20 @@ symbols:
   - id: SYM-buildEnforcementScopeKey
     title: buildEnforcementScopeKey
     sourceFile: packages/opencode/src/enforcement-scope.ts
+    links:
+      - REQ-opencode-worktree-hard-enforcement-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-worktree-hard-enforcement-v1
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
     sourceLine: 23
     sourceColumn: 16
     sourceEndLine: 34
     sourceEndColumn: 1
+  - id: SYM-buildDirtyRelevantFingerprint
+    title: buildDirtyRelevantFingerprint
+    sourceFile: packages/opencode/src/enforcement-scope.ts
     links:
       - REQ-opencode-worktree-hard-enforcement-v1
     relationships:
@@ -306,20 +316,10 @@ symbols:
         target: REQ-opencode-worktree-hard-enforcement-v1
       - type: covered_by
         target: TEST-opencode-smart-enforcement
-  - id: SYM-buildDirtyRelevantFingerprint
-    title: buildDirtyRelevantFingerprint
-    sourceFile: packages/opencode/src/enforcement-scope.ts
     sourceLine: 40
     sourceColumn: 16
     sourceEndLine: 55
     sourceEndColumn: 1
-    links:
-      - REQ-opencode-worktree-hard-enforcement-v1
-    relationships:
-      - type: implements
-        target: REQ-opencode-worktree-hard-enforcement-v1
-      - type: covered_by
-        target: TEST-opencode-smart-enforcement
   - id: SYM-buildPrompt
     title: buildPrompt
     sourceFile: packages/opencode/src/prompt.ts
@@ -340,9 +340,9 @@ symbols:
         target: TEST-opencode-agent-mcp-only
       - type: covered_by
         target: TEST-opencode-kibi-briefing-v2
-    sourceLine: 665
+    sourceLine: 705
     sourceColumn: 16
-    sourceEndLine: 673
+    sourceEndLine: 713
     sourceEndColumn: 1
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
@@ -957,4 +957,148 @@ symbols:
     sourceLine: 85
     sourceColumn: 13
     sourceEndLine: 349
+    sourceEndColumn: 1
+  - id: SYM-setBundledSkillsDir
+    title: setBundledSkillsDir
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 27
+    sourceColumn: 16
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-resetBundledSkillsDir
+    title: resetBundledSkillsDir
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 31
+    sourceColumn: 16
+    sourceEndLine: 33
+    sourceEndColumn: 1
+  - id: SYM-SkillNotFoundError
+    title: SkillNotFoundError
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 51
+    sourceColumn: 13
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-SkillResourceNotFoundError
+    title: SkillResourceNotFoundError
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 58
+    sourceColumn: 13
+    sourceEndLine: 63
+    sourceEndColumn: 1
+  - id: SYM-SkillResourceOutOfBoundsError
+    title: SkillResourceOutOfBoundsError
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 65
+    sourceColumn: 13
+    sourceEndLine: 70
+    sourceEndColumn: 1
+  - id: SYM-SkillValidationError
+    title: SkillValidationError
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 72
+    sourceColumn: 13
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-SkillOversizeError
+    title: SkillOversizeError
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 82
+    sourceColumn: 13
+    sourceEndLine: 92
+    sourceEndColumn: 1
+  - id: SYM-listBundledSkills
+    title: listBundledSkills
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 94
+    sourceColumn: 16
+    sourceEndLine: 105
+    sourceEndColumn: 1
+  - id: SYM-loadBundledSkill
+    title: loadBundledSkill
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 107
+    sourceColumn: 16
+    sourceEndLine: 114
+    sourceEndColumn: 1
+  - id: SYM-readBundledSkillResource
+    title: readBundledSkillResource
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 116
+    sourceColumn: 16
+    sourceEndLine: 147
+    sourceEndColumn: 1
+  - id: SYM-validateSkillBundle
+    title: validateSkillBundle
+    sourceFile: packages/cli/src/public/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 149
+    sourceColumn: 16
+    sourceEndLine: 168
+    sourceEndColumn: 1
+  - id: SYM-handleSkillCommand
+    title: handleSkillCommand
+    sourceFile: packages/cli/src/commands/skills.ts
+    links:
+      - REQ-reusable-skill-subsystem
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+    sourceLine: 94
+    sourceColumn: 9
+    sourceEndLine: 103
     sourceEndColumn: 1

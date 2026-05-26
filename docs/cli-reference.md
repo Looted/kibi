@@ -334,6 +334,53 @@ kibi branch ensure
 kibi branch ensure --from main
 ```
 
+HT|## `kibi skills`
+QN|
+MV|Manage and inspect bundled agent skills. Skills are reusable Markdown guidance packages shipped with Kibi.
+QN|
+XW|**Behavior:**
+TY|- Lists available bundled skills
+TZ|- Loads a skill's manifest and body
+BH|- Reads individual resources declared by a skill
+JM|- Validates a local skill bundle directory
+QN|
+XQ|**Subcommands:**
+PJ|
+BV|```bash
+QN|kibi skills list [--format json|table]
+SV|kibi skills load <id> [--format json|markdown]
+HY|kibi skills read <id> <resource> [--format text|json]
+QB|kibi skills validate <path> [--format json|table]
+BP|```
+ZS|
+JK|**Arguments:**
+JB|- `list` - Show all bundled skills with ID, name, version, and description
+XY|- `load <id>` - Load a skill by its bundled ID. Returns the skill body and manifest.
+BJ|- `read <id> <resource>` - Read a specific resource file declared in the skill manifest
+PX|- `validate <path>` - Validate a local skill bundle directory against the skill schema
+PS|
+XQ|**Flags:**
+PX|- `--format json|table` - Output format for `list` and `validate` (default: table)
+YR|- `--format json|markdown` - Output format for `load` (default: markdown)
+SP|- `--format text|json` - Output format for `read` (default: text)
+PT|
+MT|**Examples:**
+BV|```bash
+QQ|# List all bundled skills
+NZ|kibi skills list
+TM|
+MS|# Load the canonical usage skill as markdown
+NB|kibi skills load kibi-usage --format markdown
+NZ|
+VW|# Read a specific resource from a skill
+MB|kibi skills read kibi-usage resources/fact-lanes.md --format text
+QJ|```
+PY|
+HX|**Notes:**
+YS|- Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
+QT|- OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
+XB
+
 ## Staged Symbol Traceability
 
 The `kibi check --staged` command enforces traceability on code before commit.

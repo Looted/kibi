@@ -14,6 +14,7 @@ import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import type { WorkspaceHealth } from "./workspace-health.js";
+import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
@@ -149,7 +150,7 @@ function buildBootstrapRequiredBody(
     ? "- When the Kibi OpenCode plugin is active and native injection is supported, use `/init-kibi` as the canonical short alias; `/kibi:init-kibi:mcp` remains the namespaced MCP fallback."
     : "- This host does not support native `/init-kibi` injection. Kibi must fail closed and does not register a fake native alias; use `/kibi:init-kibi:mcp` instead.";
 
-  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`.`;
+  return `This repository does not appear to have Kibi initialized. Agents should:\n${commandBullet}\n- The workflow uses \`kb_autopilot_generate\` for read-only synthesis; always preview and get approval before writes.\n- Ask the user/operator to run setup or repair outside this session if bootstrap is insufficient.\n- For comprehensive Kibi usage guidance, use \`kb_skills_load\` with skill id \`kibi-usage\`.\n\nUse public MCP tools only: \`kb_autopilot_generate\`, \`kb_search\`, \`kb_query\`, \`kb_status\`, \`kb_find_gaps\`, \`kb_coverage\`, \`kb_graph\`, \`kb_upsert\`, \`kb_delete\`, \`kb_check\`, \`kb_skills_load\`.`;
 }
 
 // ── PromptContext ──────────────────────────────────────────────────────
@@ -192,6 +193,10 @@ export interface PromptContext {
     remainingCount: number;
     reason?: string;
   };
+  /** KB freshness evaluation from evidence store */
+  kbFreshness?: KbFreshnessEvaluation;
+  /** Paths changed for freshness evaluation (capped at 5) */
+  freshnessChangedPaths?: string[];
 }
 
 function buildHardGateBlock(block: NonNullable<PromptContext["hardGateBlock"]>): string {
@@ -348,6 +353,7 @@ ${buildBootstrapRequiredBody(capability)}`;
       context.cache &&
       context.workspaceRoot &&
       context.branch &&
+      !context.kbFreshness?.requiresEvidence &&
       riskClass
     ) {
       const focusEdit = getFocusEdit(context);
@@ -606,6 +612,28 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
       finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
   }
 
+
+  // Prepend KB freshness block when evidence is required
+  if (context.kbFreshness?.requiresEvidence) {
+    const changedListing = context.freshnessChangedPaths?.length
+      ? `Changed: ${context.freshnessChangedPaths.slice(0, 5).map(p => `\`${p}\``).join(", ")}`
+      : null;
+    const freshnessLines = [
+      "🧠 **Kibi freshness required**",
+      changedListing,
+      `State: ${context.kbFreshness.state}. ${context.kbFreshness.reason}`,
+      ...(context.kbFreshness.missingEvidence.length > 0
+        ? [`Missing: ${context.kbFreshness.missingEvidence.join(", ")}`]
+        : []),
+      "Resolution:",
+      "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
+      "- **No KB impact**: include a no-impact rationale in your final report after source-linked discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.",
+    ].filter(Boolean).join("\n");
+    finalBlock = finalBlock
+      ? `${freshnessLines}\n\n${finalBlock}`
+      : freshnessLines;
+  }
+
   // Return: sentinel + one targeted block (or just sentinel if no block)
   return finalBlock
     ? `${SENTINEL}\n\n${finalBlock}`
@@ -690,7 +718,13 @@ Dogfood note for this repo: OpenCode here uses local built \`kibi-mcp\` and \`ki
 6. **Validate**: Run kb_check after KB mutations to catch violations early.
 7. **Before completion/commit**: Kibi impact evidence is required before completion/commit. If extraction output changes, refresh documentation/symbols.yaml and do not revert that update as scope creep.
 
-**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check.\n\nDo not invoke Kibi CLI commands directly from the agent.\n\n${buildInitKibiBootstrapReference(capability)}`;
+**Public Kibi tools only:** kb_autopilot_generate, kb_search, kb_query, kb_status, kb_find_gaps, kb_coverage, kb_graph, kb_upsert, kb_delete, kb_check, kb_skills_load.
+
+For comprehensive Kibi usage guidance (relationships, fact lanes, workflows), use \`kb_skills_load\` with skill id \`kibi-usage\`.
+
+Do not invoke Kibi CLI commands directly from the agent.
+
+${buildInitKibiBootstrapReference(capability)}`
 }
 
 /**

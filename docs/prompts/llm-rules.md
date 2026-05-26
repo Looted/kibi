@@ -93,6 +93,10 @@ The Kibi MCP server exposes a curated public tool surface:
 - `kb_upsert`
 - `kb_delete`
 - `kb_check`
+- `kb_skills_list`
+- `kb_skills_load`
+- `kb_skills_read`
+> **Skill Guidance:** Canonical Kibi usage guidance is available as a bundled skill. Call `kb_skills_load` with `id: "kibi-usage"` to retrieve the latest agent rules, modeling heuristics, and workflow constraints. Skills are bundled only; remote install and script execution are not supported in v1.
 
 For retroactive bootstrap on existing repos, use `/init-kibi` in OpenCode. If further setup or repair is needed, ask the user/operator to handle it outside the agent session.
 
@@ -171,6 +175,20 @@ Avoid these common mistakes:
 1. Create entities as you go with `kb_upsert` (sequentially).
 2. Maintain relationships continuously instead of batch-fixing them later.
 3. Run `kb_check` after significant structural changes.
+
+## Task Completion Contract
+
+Every implementation task that modifies source code, tests, requirements, scenarios,
+symbols, ADRs, facts, or flags MUST end with one of:
+
+1. **KB updated**: Source-linked discovery via `kb_search`, followed by `kb_query` with
+   `sourceFile`, followed by `kb_upsert`/`kb_delete` for required mutations, then `kb_check`.
+2. **No KB impact**: Include a structured rationale in the final report after source-linked
+   discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.
+3. **Deferred/Failed**: Explicitly note that KB freshness cannot be resolved in this task.
+
+The plugin surfaces a `🧠 **Kibi freshness required**` block when KB impact is
+unresolved. This block lists changed files, missing evidence, and resolution steps.
 
 ## After Completing Work
 

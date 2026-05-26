@@ -51,6 +51,7 @@ function renderToolsDoc(): string {
     const required = Array.isArray(tool.inputSchema?.required)
       ? tool.inputSchema.required.join(", ")
       : "none";
+    lines.push(`| \`${tool.name}\` | ${tool.description} | ${required || "none"} |`);
   }
   lines.push("");
   lines.push(
