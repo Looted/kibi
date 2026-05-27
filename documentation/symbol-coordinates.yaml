@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 588
+    sourceEndLine: 601
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 79
   SYM-002:
@@ -47,9 +47,9 @@ coordinates:
   SYM-CheckpointEvidence:
     sourceColumn: 12
     sourceEndColumn: 6
-    sourceEndLine: 29
+    sourceEndLine: 32
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 20
+    sourceLine: 22
   SYM-DeriveFileOperationReminderParams:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -65,21 +65,21 @@ coordinates:
   SYM-EnforcementLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 20
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 15
+    sourceLine: 17
   SYM-EnforcementPolicyInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 57
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 31
+    sourceLine: 34
   SYM-EnforcementPolicyResult:
     sourceColumn: 12
     sourceEndColumn: 7
-    sourceEndLine: 88
+    sourceEndLine: 91
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 69
+    sourceLine: 72
   SYM-GuidanceCache:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -179,9 +179,21 @@ coordinates:
   SYM-PolicyLinkedEntityResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 10
+    sourceLine: 12
+  SYM-PrologOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 68
+  SYM-QueryResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 73
   SYM-SYMBOLS_MANIFEST_COMMENT_BLOCK:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -239,9 +251,9 @@ coordinates:
   SYM-buildPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 713
+    sourceEndLine: 741
     sourceFile: packages/opencode/src/prompt.ts
-    sourceLine: 705
+    sourceLine: 733
   SYM-buildStableRequirementIds:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -269,9 +281,9 @@ coordinates:
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 422
+    sourceEndLine: 436
     sourceFile: packages/opencode/src/enforcement-policy.ts
-    sourceLine: 331
+    sourceLine: 345
   SYM-deriveBriefIntent:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -404,6 +416,12 @@ coordinates:
     sourceEndLine: 33
     sourceFile: packages/cli/src/public/skills.ts
     sourceLine: 31
+  SYM-resolveKbPlPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 29
   SYM-setBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1

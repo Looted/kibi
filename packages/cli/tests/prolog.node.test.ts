@@ -127,6 +127,53 @@ test("timeout message reports configured timeout (100ms) not hardcoded 30s", asy
   }
 });
 
+test("interactive mode terminates the Prolog child after a query timeout", async () => {
+  const prolog = createInteractiveProlog({ timeout: 100 });
+  try {
+    await prolog.start();
+
+    await assert.rejects(
+      () => prolog.query("repeat, fail"),
+      /Query timeout after/,
+    );
+
+    assert.strictEqual(
+      prolog.isRunning(),
+      false,
+      "timed-out interactive queries should not leave a stuck child running",
+    );
+  } finally {
+    try {
+      await prolog.terminate();
+    } catch {}
+  }
+});
+
+test("interactive mode rejects queued queries immediately after timeout termination", async () => {
+  const prolog = createInteractiveProlog({ timeout: 100 });
+  try {
+    await prolog.start();
+
+    const timedOutQuery = prolog.query("repeat, fail");
+    const queuedQuery = prolog.query("true");
+
+    await assert.rejects(timedOutQuery, /Query timeout after/);
+
+    const startedAt = Date.now();
+    await assert.rejects(queuedQuery, /Prolog process not started/);
+    const elapsed = Date.now() - startedAt;
+
+    assert(
+      elapsed < 50,
+      `queued query should reject immediately after prior timeout, took ${elapsed}ms`,
+    );
+  } finally {
+    try {
+      await prolog.terminate();
+    } catch {}
+  }
+});
+
 // Issue #53 regression tests: same-process attach/detach lifecycle failures
 // These tests reproduce the "No permission to modify static procedure 'kb:entity/4'" error
 // that occurs when reattaching to a KB in the same live Prolog process.

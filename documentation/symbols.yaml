@@ -20,7 +20,58 @@ symbols:
         target: TEST-001
     sourceLine: 79
     sourceColumn: 13
-    sourceEndLine: 588
+    sourceEndLine: 601
+    sourceEndColumn: 1
+  - id: SYM-PrologOptions
+    title: PrologOptions
+    sourceFile: packages/cli/src/prolog.ts
+    links:
+      - REQ-001
+      - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 68
+    sourceColumn: 17
+    sourceEndLine: 71
+    sourceEndColumn: 1
+  - id: SYM-QueryResult
+    title: QueryResult
+    sourceFile: packages/cli/src/prolog.ts
+    links:
+      - REQ-001
+      - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 73
+    sourceColumn: 17
+    sourceEndLine: 77
+    sourceEndColumn: 1
+  - id: SYM-resolveKbPlPath
+    title: resolveKbPlPath
+    sourceFile: packages/cli/src/prolog.ts
+    links:
+      - REQ-001
+      - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 29
+    sourceColumn: 16
+    sourceEndLine: 67
     sourceEndColumn: 1
   - id: SYM-002
     title: handleKbUpsert
@@ -340,9 +391,9 @@ symbols:
         target: TEST-opencode-agent-mcp-only
       - type: covered_by
         target: TEST-opencode-kibi-briefing-v2
-    sourceLine: 705
+    sourceLine: 733
     sourceColumn: 16
-    sourceEndLine: 713
+    sourceEndLine: 741
     sourceEndColumn: 1
   - id: SYM-parseRdfRelationships
     title: parseRdfRelationships
@@ -714,9 +765,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 10
+    sourceLine: 12
     sourceColumn: 17
-    sourceEndLine: 13
+    sourceEndLine: 15
     sourceEndColumn: 1
   - id: SYM-EnforcementLifecycleEvent
     title: EnforcementLifecycleEvent
@@ -730,9 +781,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 15
+    sourceLine: 17
     sourceColumn: 17
-    sourceEndLine: 18
+    sourceEndLine: 20
     sourceEndColumn: 1
   - id: SYM-CheckpointEvidence
     title: CheckpointEvidence
@@ -746,9 +797,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 20
+    sourceLine: 22
     sourceColumn: 12
-    sourceEndLine: 29
+    sourceEndLine: 32
     sourceEndColumn: 6
   - id: SYM-EnforcementPolicyInput
     title: EnforcementPolicyInput
@@ -762,9 +813,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 31
+    sourceLine: 34
     sourceColumn: 17
-    sourceEndLine: 54
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-EnforcementPolicyResult
     title: EnforcementPolicyResult
@@ -778,9 +829,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 69
+    sourceLine: 72
     sourceColumn: 12
-    sourceEndLine: 88
+    sourceEndLine: 91
     sourceEndColumn: 7
   - id: SYM-computeEnforcementPolicy
     title: computeEnforcementPolicy
@@ -794,9 +845,9 @@ symbols:
         target: TEST-opencode-smart-enforcement
       - type: covered_by
         target: TEST-opencode-file-context-guidance-v1
-    sourceLine: 331
+    sourceLine: 345
     sourceColumn: 16
-    sourceEndLine: 422
+    sourceEndLine: 436
     sourceEndColumn: 1
   - id: SYM-LinkedEntityResult
     title: LinkedEntityResult
