@@ -48,6 +48,24 @@ Relationship direction is fixed and semantic. Getting it wrong breaks traceabili
 
 See `resources/relationship-directions.md` for detailed payload examples.
 
+## Symbol-First Traceability
+
+Trace code through `symbol` entities, not inline legacy comments. Do not use legacy `// implements REQ-xxx` comments as the primary marker for new or modified code. If a symbol is new or its requirement ownership changes, create or update the `symbol` entity and add an `implements` relationship from the symbol to the requirement.
+
+Use comments only as a temporary backward-compatibility fallback when the symbol manifest cannot be updated in the same task. Prefer durable symbol coordinates in `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml`, then link those symbols through MCP relationships.
+
+```yaml
+# Preferred traceability model
+symbol:
+  id: SYM-admin-billing-policy
+  title: Admin billing policy check
+  status: active
+relationships:
+  - type: implements
+    from: SYM-admin-billing-policy
+    to: REQ-ADMIN-BILLING-POLICY
+```
+
 ## Strict Fact Lane
 
 Normative requirements that must participate in contradiction blocking use the strict fact lane. Create a `fact_kind: subject` fact and link it from the requirement via `constrains`. Create a `fact_kind: property_value` fact and link it via `requires_property`.
@@ -74,6 +92,67 @@ relationships:
 ```
 
 See `resources/fact-lanes.md` for the full strict vs observation lane comparison.
+
+### Granular fact examples for coherence checks
+
+Model one semantic claim per strict `property_value` fact. Reusing the same `subject_key` and `property_key` lets `domain-contradictions` compare requirements mechanically.
+
+Incoherent role-set example: `REQ-ROLE-SET-2` says the allowed user roles are exactly `[user, admin]`, while `REQ-ROLE-SET-3` says the same property is exactly `[user, admin, superadmin]`. Both constrain `FACT-USER-ROLES` and require different values for `user.roles.allowed_set`, so they cannot both be current.
+
+```yaml
+subject:
+  id: FACT-USER-ROLES
+  fact_kind: subject
+  subject_key: user.roles
+
+property_values:
+  - id: FACT-USER-ROLES-ALLOWED-2
+    fact_kind: property_value
+    subject_key: user.roles
+    property_key: user.roles.allowed_set
+    operator: eq
+    value_type: list
+    value_json: '["user", "admin"]'
+  - id: FACT-USER-ROLES-ALLOWED-3
+    fact_kind: property_value
+    subject_key: user.roles
+    property_key: user.roles.allowed_set
+    operator: eq
+    value_type: list
+    value_json: '["user", "admin", "superadmin"]'
+
+requirements:
+  - id: REQ-ROLE-SET-2
+    relationships:
+      - { type: constrains, from: REQ-ROLE-SET-2, to: FACT-USER-ROLES }
+      - { type: requires_property, from: REQ-ROLE-SET-2, to: FACT-USER-ROLES-ALLOWED-2 }
+  - id: REQ-ROLE-SET-3
+    relationships:
+      - { type: constrains, from: REQ-ROLE-SET-3, to: FACT-USER-ROLES }
+      - { type: requires_property, from: REQ-ROLE-SET-3, to: FACT-USER-ROLES-ALLOWED-3 }
+```
+
+Incoherent permission example: `REQ-ADMIN-CAN-MANAGE-BILLING` says `admin` can manage billing, while `REQ-ONLY-SUPERADMIN-MANAGES-BILLING` says the only allowed actor is `superadmin`. Model both against `billing.manage.allowed_actor` with `operator: eq` so the conflict is explicit.
+
+```yaml
+property_values:
+  - id: FACT-BILLING-MANAGE-ACTOR-ADMIN
+    fact_kind: property_value
+    subject_key: billing.manage
+    property_key: billing.manage.allowed_actor
+    operator: eq
+    value_type: string
+    value_string: admin
+  - id: FACT-BILLING-MANAGE-ACTOR-SUPERADMIN
+    fact_kind: property_value
+    subject_key: billing.manage
+    property_key: billing.manage.allowed_actor
+    operator: eq
+    value_type: string
+    value_string: superadmin
+```
+
+If a new requirement intentionally changes a value, create a replacement requirement and link the old requirement to the new one with `supersedes` instead of leaving two current contradictory requirements.
 
 ## Fact vs Flag
 
@@ -110,6 +189,7 @@ Call `kb_status` when you suspect the branch KB is stale or when switching conte
 | Anti-Pattern | Problem | Remediation |
 |-------------|---------|-------------|
 | Reversed relationship direction | Traceability queries break | Verify direction against the relationship table above |
+| Legacy implements comments | Comments are not durable queryable symbols | Create or update a `symbol` entity and link it to the requirement |
 | Bug-as-flag | `flag` misused for defect tracking | Use `fact` with `fact_kind: observation` or `meta` |
 | Parallel upserts | Lock contention and nondeterminism | Execute `kb_upsert` calls sequentially |
 | Embedded scenarios in reqs | Violates canonical traceability chain | Create separate `req`, `scen`, and `test` entities |
