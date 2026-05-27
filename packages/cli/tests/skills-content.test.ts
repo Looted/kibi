@@ -108,10 +108,30 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("Relationship direction is fixed");
   });
 
+  test("body requires symbol-first traceability instead of legacy comments", () => {
+    expect(bundle.body).toContain("Symbol-First Traceability");
+    expect(bundle.body).toContain("Do not use legacy `// implements REQ-xxx` comments");
+    expect(bundle.body).toContain("`symbol` entity");
+    expect(bundle.body).toContain("`implements` relationship from the symbol to the requirement");
+  });
+
   test("body covers strict fact lane", () => {
     expect(bundle.body).toContain(
       "Normative requirements that must participate in contradiction blocking",
     );
+  });
+
+  test("body covers granular strict facts with coherent and incoherent examples", () => {
+    expect(bundle.body).toContain("Granular fact examples for coherence checks");
+    expect(bundle.body).toContain("REQ-ROLE-SET-2");
+    expect(bundle.body).toContain("REQ-ROLE-SET-3");
+    expect(bundle.body).toContain("user.roles.allowed_set");
+    expect(bundle.body).toContain("[user, admin]");
+    expect(bundle.body).toContain("[user, admin, superadmin]");
+    expect(bundle.body).toContain("REQ-ADMIN-CAN-MANAGE-BILLING");
+    expect(bundle.body).toContain("REQ-ONLY-SUPERADMIN-MANAGES-BILLING");
+    expect(bundle.body).toContain("billing.manage.allowed_actor");
+    expect(bundle.body).toContain("domain-contradictions");
   });
 
   test("body covers fact vs flag", () => {
@@ -166,6 +186,8 @@ describe("kibi-usage skill content", () => {
     );
     expect(factLanes).toContain("fact_kind: subject");
     expect(factLanes).toContain("fact_kind: property_value");
+    expect(factLanes).toContain("user.roles.allowed_set");
+    expect(factLanes).toContain("billing.manage.allowed_actor");
 
     const workflows = readBundledSkillResource(
       "kibi-usage",
