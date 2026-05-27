@@ -118,7 +118,7 @@ if (RUN_NODE_TEST_SUITE) {
       { timeout: 120000 },
     );
 
-    it("should pass with implements directive", async () => {
+    it("should pass with authored symbol ownership metadata", async () => {
       if (!hasProlog) return;
 
       // snapshot host repo artifacts
@@ -126,18 +126,47 @@ if (RUN_NODE_TEST_SUITE) {
       const beforeSymbols = repoSymbolsHash(hostRepo);
       const beforeBranches = kbBranchesSnapshot(hostRepo);
 
-      // create a TS file with exported function and implements directive
-      const src =
-        "// implements: REQ-001\nexport function hello() { return 'ok'; }\n";
+      // Create a source file plus authored symbol metadata that links ownership
+      // to REQ-001. Inline implements comments alone are legacy-compatible for
+      // parsing, but staged checks require durable symbol evidence.
+      const src = "export function hello() { return 'ok'; }\n";
 
       const fs = await import("node:fs");
       const filePath = join(sandbox.repoDir, "file.js");
       fs.writeFileSync(filePath, src, "utf8");
 
-      await run("git", ["add", "file.js"], {
-        cwd: sandbox.repoDir,
-        env: sandbox.env,
+      const symbolsYaml = `symbols:
+  - id: SYM-HELLO-001
+    title: hello
+    sourceFile: file.js
+    links:
+      - type: implements
+        target: REQ-001
+    status: active
+`;
+      fs.writeFileSync(
+        join(sandbox.repoDir, "documentation", "symbols.yaml"),
+        symbolsYaml,
+        "utf8",
+      );
+
+      await kibi(sandbox, ["sync", "--refresh-symbol-coordinates"], {
+        timeoutMs: TEST_TIMEOUT_MS,
       });
+
+      await run(
+        "git",
+        [
+          "add",
+          "file.js",
+          "documentation/symbols.yaml",
+          "documentation/symbol-coordinates.yaml",
+        ],
+        {
+          cwd: sandbox.repoDir,
+          env: sandbox.env,
+        },
+      );
 
       let out = "";
       try {
