@@ -255,6 +255,9 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_model_requirement",
                 "kb_query",
                 "kb_search",
+                "kb_skills_list",
+                "kb_skills_load",
+                "kb_skills_read",
                 "kb_status",
                 "kb_upsert",
               ];
