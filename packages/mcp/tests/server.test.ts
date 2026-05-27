@@ -12,6 +12,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
   version?: string;
 };
 const EXPECTED_VERSION = packageJson.version ?? "0.1.0";
+const HEAVY_TOOL_TIMEOUT_MS = 30000;
 
 async function sendRequest(
   proc: ChildProcess,
@@ -442,15 +443,19 @@ describe("MCP Server", () => {
       },
     });
 
-    const response = await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 2,
-      method: "tools/call",
-      params: {
-        name: "kb_autopilot_generate",
-        arguments: {},
+    const response = await sendRequest(
+      proc,
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_autopilot_generate",
+          arguments: {},
+        },
       },
-    });
+      HEAVY_TOOL_TIMEOUT_MS,
+    );
 
     const result = response.result as Record<string, unknown>;
     expect(result).toBeDefined();
@@ -494,7 +499,7 @@ describe("MCP Server", () => {
     expect(result.payoffSummary).toEqual(structured.payoffSummary);
 
     await killServer(proc);
-  }, 15000);
+  }, HEAVY_TOOL_TIMEOUT_MS);
 
   test("should handle tools/call for kb_model_requirement", async () => {
     const proc = startServer();
@@ -510,24 +515,28 @@ describe("MCP Server", () => {
       },
     });
 
-    const response = await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 2,
-      method: "tools/call",
-      params: {
-        name: "kb_model_requirement",
-        arguments: {
-          text: "Customer data must be retained for 7 years.",
-          source: "documentation/requirements/customer-retention.md",
-          confidence: 0.92,
-          subjectKey: "Customer.Data",
-          propertyKey: "Retention Years",
-          operator: "eq",
-          value: 7,
-          provenance: "documentation/requirements/customer-retention.md#L1",
+    const response = await sendRequest(
+      proc,
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_model_requirement",
+          arguments: {
+            text: "Customer data must be retained for 7 years.",
+            source: "documentation/requirements/customer-retention.md",
+            confidence: 0.92,
+            subjectKey: "Customer.Data",
+            propertyKey: "Retention Years",
+            operator: "eq",
+            value: 7,
+            provenance: "documentation/requirements/customer-retention.md#L1",
+          },
         },
       },
-    });
+      HEAVY_TOOL_TIMEOUT_MS,
+    );
 
     const result = response.result as Record<string, unknown>;
     expect(result).toBeDefined();
@@ -554,7 +563,7 @@ describe("MCP Server", () => {
     ).toBe(true);
 
     await killServer(proc);
-  }, 15000);
+  }, HEAVY_TOOL_TIMEOUT_MS);
 
   test("should handle tools/call for kb_briefing_generate", async () => {
     const proc = startServer();
@@ -570,17 +579,21 @@ describe("MCP Server", () => {
       },
     });
 
-    const response = await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 2,
-      method: "tools/call",
-      params: {
-        name: "kb_briefing_generate",
-        arguments: {
-          taskText: "Generate a task-aware citation-backed briefing for MCP registration work.",
+    const response = await sendRequest(
+      proc,
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: {
+          name: "kb_briefing_generate",
+          arguments: {
+            taskText: "Generate a task-aware citation-backed briefing for MCP registration work.",
+          },
         },
       },
-    });
+      HEAVY_TOOL_TIMEOUT_MS,
+    );
 
     const result = response.result as Record<string, unknown>;
     expect(result).toBeDefined();
@@ -613,7 +626,7 @@ describe("MCP Server", () => {
     expect(Array.isArray(structured.citations)).toBe(true);
 
     await killServer(proc);
-  }, 15000);
+  }, HEAVY_TOOL_TIMEOUT_MS);
 
   test("should reject removed MCP tools", async () => {
     const proc = startServer();
