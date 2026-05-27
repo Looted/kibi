@@ -30,6 +30,11 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
+export interface NpmPackResult {
+  filename: string;
+  version: string;
+}
+
 type KibiPackage = "core" | "cli" | "mcp" | "opencode";
 
 const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = ["core", "cli"];
@@ -92,6 +97,27 @@ function log(message: string): void {
   }
 }
 
+export function parseNpmPackJsonOutput(output: string): NpmPackResult[] {
+  // implements REQ-opencode-kibi-plugin-v1
+  for (let i = 0; i < output.length; i += 1) {
+    if (output[i] !== "[") continue;
+
+    const remaining = output.slice(i + 1).trimStart();
+    if (!remaining.startsWith("{")) continue;
+
+    try {
+      const parsed = JSON.parse(output.slice(i)) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed as NpmPackResult[];
+      }
+    } catch {
+      // Keep scanning: earlier build output may contain non-JSON bracketed text.
+    }
+  }
+
+  throw new Error(`npm pack did not emit parseable JSON output: ${output}`);
+}
+
 /**
  * Resolve the kibi-opencode tarball.
  *
@@ -120,11 +146,6 @@ export function resolveOpencodeTarball(
   log("  📦 Packing kibi-opencode...");
   const opencodeDir = join(repoRoot, "packages/opencode");
 
-  interface PackResult {
-    filename: string;
-    version: string;
-  }
-
   let packOutput: string;
   try {
     packOutput = execFileSync("npm", ["pack", "--json"], {
@@ -141,7 +162,7 @@ export function resolveOpencodeTarball(
     );
   }
 
-  const packResults = JSON.parse(packOutput) as PackResult[];
+  const packResults = parseNpmPackJsonOutput(packOutput);
   if (!packResults?.[0]?.filename) {
     throw new Error("npm pack did not return a filename");
   }
