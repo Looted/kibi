@@ -26,6 +26,7 @@ import {
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
+import { parseNpmPackJsonOutput } from "./opencode-packed-utils.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -80,17 +81,13 @@ if (RUN_NODE_TEST_SUITE) {
           console.log("  📦 Packing kibi-opencode...");
           const opencodeDir = join(REPO_ROOT, "packages/opencode");
 
-          interface PackResult {
-            filename: string;
-          }
-
           const packOutput = execFileSync("npm", ["pack", "--json"], {
             cwd: opencodeDir,
             encoding: "utf8",
             stdio: ["pipe", "pipe", "pipe"],
           });
 
-          const packResults = JSON.parse(packOutput) as PackResult[];
+          const packResults = parseNpmPackJsonOutput(packOutput);
           if (!packResults?.[0]?.filename) {
             throw new Error("npm pack did not return a filename");
           }

@@ -1,5 +1,20 @@
 # kibi-cli
 
+## 0.11.2
+
+### Patch Changes
+
+- Kibi now recovers more cleanly when an interactive Prolog query times out. Instead of leaving the stale Prolog child running after a timeout, Kibi terminates it so the next MCP operation can restart from a clean process and surface a clearer timeout failure path.
+
+  - Terminate the interactive `PrologProcess` child when a query timeout fires.
+  - Add regression coverage proving timed-out interactive queries do not leave a stuck child running.
+
+- Kibi's bundled usage skill now gives agents clearer guidance for durable traceability and contradiction-safe facts. Agents are steered away from legacy `// implements REQ-xxx` comments and toward symbol entities linked with `implements`, and the skill now includes concrete role and permission examples that make incoherent requirements easier to model and catch.
+
+  - Update the `kibi-usage` skill with symbol-first traceability guidance.
+  - Add granular strict fact examples for role-set and billing-permission contradictions.
+  - Extend skill content tests to lock in the new guidance and examples.
+
 ## 0.11.1
 
 ### Patch Changes
