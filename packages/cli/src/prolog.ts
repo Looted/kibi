@@ -224,6 +224,7 @@ export class PrologProcess {
       this.process?.stdin?.write(`${wrappedGoal}.\n`);
 
       return new Promise((resolve, reject) => {
+        let settled = false;
         const timeoutId = setTimeout(() => {
           const msg = `Query timeout after ${this.timeout / 1000}s (pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${JSON.stringify(normalizedGoal.slice(0, 120))})`;
           if (debug) {
@@ -233,15 +234,22 @@ export class PrologProcess {
             console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
             console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
           }
-          reject(new Error(msg));
+          settled = true;
+          void this.terminate().finally(() => {
+            reject(new Error(msg));
+          });
         }, this.timeout);
 
         const checkResult = () => {
+          if (settled) {
+            return;
+          }
           if (
             this.errorBuffer.length > 0 &&
             this.errorBuffer.includes("ERROR")
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             if (debug) {
               console.error(
                 `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
@@ -261,6 +269,7 @@ export class PrologProcess {
             this.outputBuffer.match(/\]\s*$/m)
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             const result = {
               success: true,
               bindings: this.extractBindings(this.outputBuffer),
@@ -291,6 +300,7 @@ export class PrologProcess {
             this.outputBuffer.includes("fail.")
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             if (debug) {
               console.error(
                 `[prolog debug] query failed (false): ${normalizedGoal}`,
@@ -319,6 +329,9 @@ export class PrologProcess {
 
     await previousQuery;
     try {
+      if (!this.process || !this.process.stdin) {
+        throw new Error("Prolog process not started");
+      }
       return await runInteractiveQuery();
     } finally {
       releaseQuery();
