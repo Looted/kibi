@@ -1,7 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import { deepStrictEqual } from "node:assert";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { buildDeliveryReasons } from "../src/brief-delivery-reasons";
 import type { BriefingWorkspaceCtx } from "../src/briefing-runtime";
 import type { AuditDelta, AuditEntry } from "../src/idle-brief-audit";
 import {
@@ -13,7 +15,6 @@ import {
   type IdleBriefingResult,
   generateIdleBrief,
 } from "../src/idle-brief-runtime";
-import { buildDeliveryReasons } from "../src/brief-delivery-reasons";
 
 type FutureIdleBriefEnvelopeV2 = {
   schemaVersion: "2.0";
@@ -102,7 +103,10 @@ function createMockClient(
 function createCapturingClient(
   checkResult: CheckResult,
   briefingResult: IdleBriefingResult,
-  onBriefingGenerate: (args: { sourceFiles: string[]; seedIds: string[] }) => void,
+  onBriefingGenerate: (args: {
+    sourceFiles: string[];
+    seedIds: string[];
+  }) => void,
 ) {
   return {
     session: {
@@ -123,7 +127,9 @@ function createCapturingClient(
           };
         }
         if (request.tool === "kb_briefing_generate") {
-          onBriefingGenerate(request.args as { sourceFiles: string[]; seedIds: string[] });
+          onBriefingGenerate(
+            request.args as { sourceFiles: string[]; seedIds: string[] },
+          );
           return {
             data: {
               info: { id: "msg-1", role: "assistant" },
@@ -259,7 +265,11 @@ describe("idle-brief-runtime", () => {
         "session-1",
       );
 
-      expect(result).toEqual({ success: true, briefPath: null, envelope: null });
+      expect(result).toEqual({
+        success: true,
+        briefPath: null,
+        envelope: null,
+      });
       expect(fs.readdirSync(path.join(tempDir, ".kb", "briefs"))).toEqual([]);
     });
 
@@ -332,7 +342,9 @@ describe("idle-brief-runtime", () => {
 
       expect(result.briefPath).not.toBeNull();
       expect(result.envelope?.validation.count).toBe(1);
-      expect((result.envelope?.counts as { entitiesAdded: number }).entitiesAdded).toBe(0);
+      expect(
+        (result.envelope?.counts as { entitiesAdded: number }).entitiesAdded,
+      ).toBe(0);
     });
 
     it("returns success brief with zero violations", async () => {
@@ -403,9 +415,9 @@ describe("idle-brief-runtime", () => {
         "Added requirement REQ-002: Second requirement",
         "Added requirement REQ-003: Third requirement",
       ]);
-      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
-        "entity_added",
-      ]);
+      expect(
+        envelope?.briefing.deliveryReasons?.items.map((item) => item.kind),
+      ).toEqual(["entity_added"]);
     });
 
     it("includes delivery reasons for mixed entity changes", async () => {
@@ -432,17 +444,25 @@ describe("idle-brief-runtime", () => {
 
       const client = createMockClient(
         { violations: [], count: 0, diagnostics: [] },
-        { briefingState: "ready", tldr: "", promptBlock: "keep prompt guidance", citations: [] },
+        {
+          briefingState: "ready",
+          tldr: "",
+          promptBlock: "keep prompt guidance",
+          citations: [],
+        },
       );
 
-      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+      const result = await generateIdleBrief(
+        client,
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
       const envelope = result.envelope as FutureIdleBriefEnvelopeV2 | null;
 
-      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
-        "entity_modified",
-        "entity_added",
-        "entity_removed",
-      ]);
+      expect(
+        envelope?.briefing.deliveryReasons?.items.map((item) => item.kind),
+      ).toEqual(["entity_modified", "entity_added", "entity_removed"]);
       expect(envelope?.briefing.promptBlock).toBe("keep prompt guidance");
     });
 
@@ -461,17 +481,30 @@ describe("idle-brief-runtime", () => {
           count: 2,
           diagnostics: [],
         },
-        { briefingState: "ready", tldr: "", promptBlock: "prompt guidance", citations: [] },
+        {
+          briefingState: "ready",
+          tldr: "",
+          promptBlock: "prompt guidance",
+          citations: [],
+        },
       );
 
-      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1");
+      const result = await generateIdleBrief(
+        client,
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+      );
       const envelope = result.envelope as FutureIdleBriefEnvelopeV2 | null;
 
-      expect(envelope?.briefing.deliveryReasons?.items.map((item) => item.kind)).toEqual([
-        "validation_issue",
-        "relationship_changed",
-      ]);
-      expect(envelope?.briefing.deliveryReasons?.items.some((item) => item.text === "prompt guidance")).toBe(false);
+      expect(
+        envelope?.briefing.deliveryReasons?.items.map((item) => item.kind),
+      ).toEqual(["validation_issue", "relationship_changed"]);
+      expect(
+        envelope?.briefing.deliveryReasons?.items.some(
+          (item) => item.text === "prompt guidance",
+        ),
+      ).toBe(false);
     });
 
     it("omits delivery reasons when there are no changes", async () => {
@@ -697,7 +730,9 @@ describe("idle-brief-runtime", () => {
       expect(result.success).toBe(true);
       const files = fs
         .readdirSync(briefsDir)
-        .filter((file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"));
+        .filter(
+          (file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"),
+        );
       expect(files.length).toBeLessThanOrEqual(2);
     });
 
@@ -721,12 +756,20 @@ describe("idle-brief-runtime", () => {
       const briefsDir = resolveBriefsDir(tempDir);
       fs.writeFileSync(
         path.join(briefsDir, "1000_brief.json"),
-        JSON.stringify({ branch: "main", unread: false, contentHash: "old-hash" }),
+        JSON.stringify({
+          branch: "main",
+          unread: false,
+          contentHash: "old-hash",
+        }),
         "utf-8",
       );
       fs.writeFileSync(
         path.join(briefsDir, "2000_brief.json"),
-        JSON.stringify({ branch: "main", unread: false, contentHash: "new-hash" }),
+        JSON.stringify({
+          branch: "main",
+          unread: false,
+          contentHash: "new-hash",
+        }),
         "utf-8",
       );
       fs.writeFileSync(
@@ -768,7 +811,9 @@ describe("idle-brief-runtime", () => {
       ) as { main?: string[]; develop?: string[] };
       const remainingHashes = fs
         .readdirSync(briefsDir)
-        .filter((file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"))
+        .filter(
+          (file) => file.endsWith("_brief.json") && !file.endsWith(".tmp"),
+        )
         .map((file) => {
           const parsed = JSON.parse(
             fs.readFileSync(path.join(briefsDir, file), "utf-8"),
@@ -1038,7 +1083,8 @@ describe("idle-brief-runtime", () => {
         promptBlock: "",
         citations: [],
       };
-      let capturedArgs: { sourceFiles: string[]; seedIds: string[] } | null = null;
+      let capturedArgs: { sourceFiles: string[]; seedIds: string[] } | null =
+        null;
 
       const client = createCapturingClient(
         checkResult,
@@ -1048,14 +1094,28 @@ describe("idle-brief-runtime", () => {
         },
       );
 
-      const result = await generateIdleBrief(client, workspaceCtx, auditDelta, "session-1", {
-        sourceFiles: ["REQ-001"],
-        changedEntityIds: ["REQ-001"],
-        relationships: [{ from: "SYM-LOGIN", to: "REQ-002", type: "implements" }],
-      });
+      const result = await generateIdleBrief(
+        client,
+        workspaceCtx,
+        auditDelta,
+        "session-1",
+        {
+          sourceFiles: ["REQ-001"],
+          changedEntityIds: ["REQ-001"],
+          relationships: [
+            { from: "SYM-LOGIN", to: "REQ-002", type: "implements" },
+          ],
+        },
+      );
 
       expect(result.success).toBe(true);
-      expect(capturedArgs!).toEqual({
+      if (capturedArgs === null) {
+        throw new Error(
+          "Expected generateIdleBrief to pass briefing inputs to app log callback",
+        );
+      }
+
+      deepStrictEqual(capturedArgs, {
         sourceFiles: ["REQ-001"],
         seedIds: ["REQ-001", "REQ-002", "SYM-LOGIN"],
       });
