@@ -18,7 +18,7 @@ import type { BriefingRuntimeResult } from "../src/briefing-runtime";
 import { resolveAuditLogPath } from "../src/idle-brief-paths";
 import * as idleBriefRuntimeModule from "../src/idle-brief-runtime";
 import kibiOpencodePlugin from "../src/index";
-import type { PluginInput } from "../src/index";
+import type { Hooks, PluginInput } from "../src/index";
 import * as logger from "../src/logger";
 import { runPluginStartup } from "../src/plugin-startup";
 import * as promptModule from "../src/prompt";
@@ -40,6 +40,48 @@ describe.serial("index kibiOpencodePlugin", () => {
     ...overrides,
   });
 
+  const getEventHook = (hooks: Hooks): NonNullable<Hooks["event"]> => {
+    assert.ok(hooks.event);
+    return hooks.event;
+  };
+
+  const getSystemTransformHook = (
+    hooks: Hooks,
+  ): NonNullable<Hooks["experimental.chat.system.transform"]> => {
+    assert.ok(hooks["experimental.chat.system.transform"]);
+    return hooks["experimental.chat.system.transform"];
+  };
+
+  const getChatParamsHook = (
+    hooks: Hooks,
+  ): NonNullable<Hooks["chat.params"]> => {
+    assert.ok(hooks["chat.params"]);
+    return hooks["chat.params"];
+  };
+
+  const isRecord = (value: unknown): value is Record<string, unknown> => {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  };
+
+  const getSchedulerOnRunComplete = (
+    opts: unknown,
+  ): ((meta: unknown) => void) | undefined => {
+    if (!isRecord(opts) || typeof opts.onRunComplete !== "function") {
+      return undefined;
+    }
+    const callback = opts.onRunComplete;
+    return (meta: unknown) => {
+      callback(meta);
+    };
+  };
+
+  const getLogPayloadMessage = (payload: unknown): string | undefined => {
+    if (!isRecord(payload) || !isRecord(payload.body)) return undefined;
+    return typeof payload.body.message === "string"
+      ? payload.body.message
+      : undefined;
+  };
+
   const startupNotifyGlobals = globalThis as typeof globalThis & {
     __kibi_test_schedule_startup_notify?: (
       callback: () => void,
@@ -58,8 +100,8 @@ describe.serial("index kibiOpencodePlugin", () => {
   });
 
   afterEach(() => {
-    delete process.env.KIBI_BRANCH;
-    delete process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS;
+    process.env.KIBI_BRANCH = undefined;
+    process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS = undefined;
     try {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     } catch {}
@@ -245,9 +287,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: client as any,
-        project: null as any,
-        $: {} as any,
+        client: client,
+        project: null,
+        $: {},
       });
 
       const startupConfirmations = logCalls.filter((payload) => {
@@ -259,7 +301,10 @@ describe.serial("index kibiOpencodePlugin", () => {
       const toastBody = toastCalls[0].body as Record<string, unknown>;
       assert.equal(toastBody.variant, "success");
       assert.equal(toastBody.title, "Kibi OpenCode");
-      assert.match(String(toastBody.message), /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/);
+      assert.match(
+        String(toastBody.message),
+        /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/,
+      );
       assert.equal(toastBody.duration, 4000);
       assert.equal(startupConfirmations.length, 1);
 
@@ -271,8 +316,9 @@ describe.serial("index kibiOpencodePlugin", () => {
         1,
       );
 
-      delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
-        .__kibi_test_scheduler_factory;
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = undefined;
     });
 
     it("bound showToast capability", async () => {
@@ -332,20 +378,24 @@ describe.serial("index kibiOpencodePlugin", () => {
       await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: client as any,
-        project: null as any,
-        $: {} as any,
+        client: client,
+        project: null,
+        $: {},
       });
 
       assert.equal(toastCalls.length, 1);
       const toastBody = toastCalls[0].body as Record<string, unknown>;
       assert.equal(toastBody.variant, "success");
       assert.equal(toastBody.title, "Kibi OpenCode");
-      assert.match(String(toastBody.message), /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/);
+      assert.match(
+        String(toastBody.message),
+        /^kibi-opencode started( \([a-z]+ v[0-9.]+(?:, [a-z]+ v[0-9.]+)*\))?$/,
+      );
       assert.equal(toastBody.duration, 4000);
 
-      delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
-        .__kibi_test_scheduler_factory;
+      (
+        globalThis as { __kibi_test_scheduler_factory?: unknown }
+      ).__kibi_test_scheduler_factory = undefined;
     });
 
     it("does not emit startup confirmation when disabled", async () => {
@@ -368,9 +418,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: client as any,
-        project: null as any,
-        $: {} as any,
+        client: client,
+        project: null,
+        $: {},
       });
 
       assert.deepEqual(hooks, {});
@@ -451,13 +501,14 @@ describe.serial("index kibiOpencodePlugin", () => {
         await kibiOpencodePlugin({
           directory: tmpDir,
           worktree: worktree,
-          client: client as any,
-          project: null as any,
-          $: {} as any,
+          client: client,
+          project: null,
+          $: {},
         });
       } finally {
-        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
-          .__kibi_test_scheduler_factory;
+        (
+          globalThis as { __kibi_test_scheduler_factory?: unknown }
+        ).__kibi_test_scheduler_factory = undefined;
       }
 
       assert.equal(
@@ -530,13 +581,14 @@ describe.serial("index kibiOpencodePlugin", () => {
         await kibiOpencodePlugin({
           directory: tmpDir,
           worktree: worktree,
-          client: client as any,
-          project: null as any,
-          $: {} as any,
+          client: client,
+          project: null,
+          $: {},
         });
       } finally {
-        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
-          .__kibi_test_scheduler_factory;
+        (
+          globalThis as { __kibi_test_scheduler_factory?: unknown }
+        ).__kibi_test_scheduler_factory = undefined;
       }
 
       assert.equal(
@@ -588,13 +640,14 @@ describe.serial("index kibiOpencodePlugin", () => {
         await kibiOpencodePlugin({
           directory: tmpDir,
           worktree: worktree,
-          client: client as any,
-          project: null as any,
-          $: {} as any,
+          client: client,
+          project: null,
+          $: {},
         });
       } finally {
-        delete (globalThis as { __kibi_test_scheduler_factory?: unknown })
-          .__kibi_test_scheduler_factory;
+        (
+          globalThis as { __kibi_test_scheduler_factory?: unknown }
+        ).__kibi_test_scheduler_factory = undefined;
       }
 
       assert.equal(toastCalls.length, 0);
@@ -650,9 +703,9 @@ describe.serial("index kibiOpencodePlugin", () => {
     await kibiOpencodePlugin({
       directory: tmpDir,
       worktree: worktree,
-      client: null as any,
-      project: null as any,
-      $: {} as any,
+      client: undefined,
+      project: null,
+      $: {},
     });
 
     const tracker = getSessionTracker();
@@ -714,9 +767,9 @@ describe.serial("index kibiOpencodePlugin", () => {
     await kibiOpencodePlugin({
       directory: tmpDir,
       worktree: worktree,
-      client: null as any,
-      project: null as any,
-      $: {} as any,
+      client: undefined,
+      project: null,
+      $: {},
     });
 
     const tracker = getSessionTracker();
@@ -760,9 +813,9 @@ describe.serial("index kibiOpencodePlugin", () => {
     const hooks = await kibiOpencodePlugin({
       directory: tmpDir,
       worktree: worktree,
-      client: null as any,
-      project: null as any,
-      $: {} as any,
+      client: undefined,
+      project: null,
+      $: {},
     });
 
     const tracker = getSessionTracker();
@@ -801,9 +854,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(typeof hooks === "object");
@@ -840,9 +893,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(typeof hooks === "object");
@@ -870,9 +923,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(typeof hooks === "object");
@@ -900,9 +953,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
@@ -929,9 +982,9 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       // Event hook is now always created for comment detection and warnings
@@ -967,14 +1020,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1010,14 +1063,14 @@ describe.serial("index kibiOpencodePlugin", () => {
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1071,14 +1124,14 @@ Then action occurs
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1129,14 +1182,14 @@ Then the response is returned
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1186,14 +1239,14 @@ We assert that this works correctly.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1243,14 +1296,14 @@ title: Test
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1300,14 +1353,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1342,14 +1395,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const files = ["/src/file1.ts", "/src/file2.ts", "/src/file3.ts"];
       for (const file of files) {
         const mockEvent = {
@@ -1389,9 +1442,9 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["experimental.chat.system.transform"]);
@@ -1422,14 +1475,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["experimental.chat.system.transform"]);
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = {};
       const mockOutput = { system: ["original system prompt"] };
 
@@ -1463,9 +1516,9 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["experimental.chat.system.transform"]);
@@ -1496,9 +1549,9 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["chat.params"]);
@@ -1526,14 +1579,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["chat.params"]);
 
-      const chatParamsHook = hooks["chat.params"] as any;
+      const chatParamsHook = getChatParamsHook(hooks);
       const mockInput = {};
       const mockOutput = {};
 
@@ -1563,9 +1616,9 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["chat.params"]);
@@ -1593,14 +1646,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks["chat.params"]);
 
-      const chatParamsHook = hooks["chat.params"] as any;
+      const chatParamsHook = getChatParamsHook(hooks);
       const mockInput = {};
       const mockOutput = {};
 
@@ -1629,9 +1682,9 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(!hooks["experimental.chat.system.transform"]);
@@ -1686,14 +1739,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1752,14 +1805,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1818,14 +1871,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1884,14 +1937,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -1950,14 +2003,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2016,14 +2069,14 @@ with normal content.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2094,14 +2147,14 @@ This is a must-priority requirement.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2170,14 +2223,14 @@ This is a should-priority requirement.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2245,14 +2298,14 @@ This requirement has no priority field.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2285,13 +2338,13 @@ This requirement has no priority field.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       // file.created should be accepted (not thrown)
       const mockEvent = {
         event: {
@@ -2320,13 +2373,13 @@ This requirement has no priority field.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       // file.deleted should be accepted (not thrown)
       const mockEvent = {
         event: {
@@ -2355,13 +2408,13 @@ This requirement has no priority field.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       // other.event should be silently ignored
       const mockEvent = {
         event: {
@@ -2391,14 +2444,14 @@ This requirement has no priority field.
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2455,14 +2508,14 @@ class User:
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2477,7 +2530,7 @@ class User:
       // Verify prompt injection works
       assert.ok(hooks["experimental.chat.system.transform"]);
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = {};
       const mockOutput = { system: ["original system prompt"] };
 
@@ -2531,14 +2584,14 @@ import psycopg2
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2553,7 +2606,7 @@ import psycopg2
       // Verify prompt injection works
       assert.ok(hooks["experimental.chat.system.transform"]);
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = {};
       const mockOutput = { system: ["original system prompt"] };
 
@@ -2606,14 +2659,14 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2667,15 +2720,15 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       // Event hook should exist even when sync is disabled
       assert.ok(hooks.event, "Event hook should exist when sync is disabled");
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2729,12 +2782,12 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       const mockEvent = {
         event: {
           type: "file.edited",
@@ -2816,13 +2869,13 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
-      const eventHook = hooks.event as any;
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const eventHook = getEventHook(hooks);
+      const transformHook = getSystemTransformHook(hooks);
 
       // First edit: Python file with durable knowledge
       await eventHook({
@@ -2889,9 +2942,9 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       // Plugin still sets up hooks regardless of mode
@@ -2946,9 +2999,9 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       assert.ok(typeof hooks === "object");
@@ -2978,9 +3031,9 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       // Plugin still works, just in advisory mode
@@ -3010,9 +3063,9 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: worktree,
-        client: null as any,
-        project: null as any,
-        $: {} as any,
+        client: undefined,
+        project: null,
+        $: {},
       });
 
       // Plugin exposes only advisory hook surfaces — no blocking paths
@@ -3065,15 +3118,15 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
       assert.ok(hooks["experimental.chat.system.transform"]);
 
       // Trigger a code edit event so lastRiskClass gets set
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       await eventHook({
         event: {
           type: "file.edited",
@@ -3082,7 +3135,7 @@ import datetime
       });
 
       // Now trigger the transform hook to generate guidance
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockOutput = { system: ["original system prompt"] };
       await transformHook({}, mockOutput);
 
@@ -3151,14 +3204,14 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
       assert.ok(hooks["experimental.chat.system.transform"]);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
 
       // First event — populates cache
       await eventHook({
@@ -3169,7 +3222,7 @@ import datetime
       });
 
       // First transform — records cache satisfied
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       await transformHook({}, { system: ["prompt"] });
 
       // Clear log calls from first round
@@ -3237,13 +3290,13 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(hooks.event);
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       await eventHook({
         event: {
           type: "file.edited",
@@ -3252,7 +3305,7 @@ import datetime
       });
 
       // Trigger transform
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       await transformHook({}, { system: ["prompt"] });
 
       await new Promise((r) => setTimeout(r, 20));
@@ -3861,7 +3914,10 @@ import datetime
       const pendingDir = path.join(tmpDir, ".kb", "briefs", "pending");
       fs.mkdirSync(pendingDir, { recursive: true });
       const matchingMarkerPath = path.join(pendingDir, "session-main-1.json");
-      const otherBranchMarkerPath = path.join(pendingDir, "session-develop-1.json");
+      const otherBranchMarkerPath = path.join(
+        pendingDir,
+        "session-develop-1.json",
+      );
       fs.writeFileSync(
         matchingMarkerPath,
         JSON.stringify({
@@ -4112,7 +4168,6 @@ import datetime
       await waitForCondition(() => generateSpy.mock.calls.length === 1);
     });
 
-
     it("skips idle sync/flush when scheduler_sync_failed is latched, but still generates brief", async () => {
       process.env.KIBI_BRANCH = "main";
       setupAuthoritativeWorkspace(tmpDir);
@@ -4151,9 +4206,9 @@ import datetime
         >;
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      const schedulerFactory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      const schedulerFactory = (opts: unknown) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           scheduleSync: (reason: string) => {
             schedulerEvents.push(`schedule:${reason}`);
@@ -4176,7 +4231,7 @@ import datetime
       );
       schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
 
-      const logCalls: Array<{ message: string; metadata?: any }> = [];
+      const logCalls: Array<unknown> = [];
 
       const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
       generateSpy.mockImplementation(async () => {
@@ -4188,9 +4243,12 @@ import datetime
       const hooks = await plugin(
         makeInput({
           client: {
-          app: {
+            app: {
               log: async (payload: Record<string, unknown>) => {
-                logCalls.push({ message: String(payload.message), metadata: payload });
+                logCalls.push({
+                  message: String(payload.message),
+                  metadata: payload,
+                });
               },
             },
           },
@@ -4200,7 +4258,11 @@ import datetime
 
       // Latch scheduler_sync_failed via the captured onRunComplete callback
       assert.ok(capturedOnRunComplete, "onRunComplete should be captured");
-      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0, syncCommand: "kibi sync" });
+      capturedOnRunComplete?.({
+        exitCode: 1,
+        checkExitCode: 0,
+        syncCommand: "kibi sync",
+      });
 
       assert.ok(hooks.event);
       const eventHook = hooks.event as (input: {
@@ -4277,9 +4339,9 @@ import datetime
         >;
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      const schedulerFactory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      const schedulerFactory = (opts: unknown) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           scheduleSync: (reason: string) => {
             schedulerEvents.push(`schedule:${reason}`);
@@ -4302,7 +4364,7 @@ import datetime
       );
       schedulerFactoryGlobals.__kibi_test_scheduler_factory = schedulerFactory;
 
-      const logCalls: Array<{ message: string; metadata?: any }> = [];
+      const logCalls: Array<unknown> = [];
 
       const generateSpy = spyOn(idleBriefRuntimeModule, "generateIdleBrief");
       generateSpy.mockImplementation(async () => ({
@@ -4316,7 +4378,7 @@ import datetime
         makeInput({
           client: {
             app: {
-              log: async (payload: any) => {
+              log: async (payload: unknown) => {
                 logCalls.push(payload);
               },
             },
@@ -4326,7 +4388,7 @@ import datetime
       );
 
       // Latch scheduler_sync_failed
-      capturedOnRunComplete!({ exitCode: 1, checkExitCode: 0 });
+      capturedOnRunComplete?.({ exitCode: 1, checkExitCode: 0 });
 
       assert.ok(hooks.event);
       const eventHook = hooks.event as (input: {
@@ -4359,7 +4421,7 @@ import datetime
       await waitForCondition(() => generateSpy.mock.calls.length >= 1);
 
       const firstSuppressionCount = logCalls.filter(
-        (l: any) => l?.body?.message === "idle-brief.sync-suppressed",
+        (l: unknown) => getLogPayloadMessage(l) === "idle-brief.sync-suppressed",
       ).length;
 
       // Edit file before second idle to create new audit delta
@@ -4382,12 +4444,20 @@ import datetime
       await waitForCondition(() => generateSpy.mock.calls.length >= 2);
 
       const secondSuppressionCount = logCalls.filter(
-        (l: any) => l?.body?.message === "idle-brief.sync-suppressed",
+        (l: unknown) => getLogPayloadMessage(l) === "idle-brief.sync-suppressed",
       ).length;
 
       // Only one suppression breadcrumb should have been emitted across both idle events
-      assert.equal(firstSuppressionCount, 1, "first idle should emit one suppression breadcrumb");
-      assert.equal(secondSuppressionCount, 1, "second idle should not emit another suppression breadcrumb");
+      assert.equal(
+        firstSuppressionCount,
+        1,
+        "first idle should emit one suppression breadcrumb",
+      );
+      assert.equal(
+        secondSuppressionCount,
+        1,
+        "second idle should not emit another suppression breadcrumb",
+      );
     });
 
     it("resets the idle-brief baseline when the branch changes", async () => {
@@ -5494,11 +5564,11 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       await eventHook({
         event: {
           type: "file.edited",
@@ -5570,11 +5640,11 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
       await eventHook({
         event: {
           type: "file.edited",
@@ -5628,7 +5698,7 @@ import datetime
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -5636,9 +5706,9 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -5673,8 +5743,8 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
@@ -5716,7 +5786,7 @@ import datetime
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -5724,9 +5794,9 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -5738,9 +5808,11 @@ import datetime
         },
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      (globalThis).__kibi_test_scheduler_factory = (
+        opts: unknown,
+      ) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           onFileEdited: () => {},
           onToolExecuteAfter: () => {},
@@ -5754,8 +5826,8 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
@@ -5803,7 +5875,7 @@ import datetime
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -5811,9 +5883,9 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -5825,9 +5897,11 @@ import datetime
         },
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      (globalThis).__kibi_test_scheduler_factory = (
+        opts: unknown,
+      ) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           onFileEdited: () => {},
           onToolExecuteAfter: () => {},
@@ -5841,8 +5915,8 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
@@ -5891,7 +5965,7 @@ import datetime
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -5899,9 +5973,9 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -5913,9 +5987,11 @@ import datetime
         },
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      (globalThis).__kibi_test_scheduler_factory = (
+        opts: unknown,
+      ) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           onFileEdited: () => {},
           onToolExecuteAfter: () => {},
@@ -5929,8 +6005,8 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
@@ -5979,7 +6055,7 @@ import datetime
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -5987,9 +6063,9 @@ import datetime
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -6001,9 +6077,11 @@ import datetime
         },
       };
 
-      let capturedOnRunComplete: ((meta: any) => void) | undefined;
-      (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-        capturedOnRunComplete = opts.onRunComplete;
+      let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+      (globalThis).__kibi_test_scheduler_factory = (
+        opts: unknown,
+      ) => {
+        capturedOnRunComplete = getSchedulerOnRunComplete(opts);
         return {
           onFileEdited: () => {},
           onToolExecuteAfter: () => {},
@@ -6017,8 +6095,8 @@ import datetime
         directory: tmpDir,
         worktree: worktree,
         client: mockClient,
-        project: null as any,
-        $: {} as any,
+        project: null,
+        $: {},
       });
 
       assert.ok(startup, "runPluginStartup should return startup context");
@@ -6089,9 +6167,9 @@ import datetime
           app: {
             log: async () => {},
           },
-        } as any,
-        project: null as any,
-        $: {} as any,
+        },
+        project: null,
+        $: {},
       });
 
       const cleanup = () => {
@@ -6193,7 +6271,7 @@ import datetime
 
       try {
         assert.ok(hooks.event, "Should have event hook");
-        const eventHook = hooks.event as any;
+        const eventHook = getEventHook(hooks);
 
         await eventHook({
           event: {
@@ -6204,8 +6282,8 @@ import datetime
 
         // The traceability_candidate path should schedule symbol-traceability
         // using reason "smart-enforcement.traceability" (not "file.edited")
-        const traceCalls = scheduleCalls.filter(
-          (c) => c.checkRules && c.checkRules.includes("symbol-traceability"),
+        const traceCalls = scheduleCalls.filter((c) =>
+          c.checkRules?.includes("symbol-traceability"),
         );
         assert.ok(
           traceCalls.length >= 1,
@@ -6262,7 +6340,7 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
 
       await eventHook({
         event: {
@@ -6272,8 +6350,8 @@ import datetime
       });
 
       // Fact KB-doc should schedule the three structural+semantic rules
-      const factCalls = scheduleCalls.filter(
-        (c) => c.checkRules && c.checkRules.includes("strict-fact-shape"),
+      const factCalls = scheduleCalls.filter((c) =>
+        c.checkRules?.includes("strict-fact-shape"),
       );
       assert.ok(
         factCalls.length >= 1,
@@ -6343,7 +6421,7 @@ import datetime
         `Expected at least 1 scheduleSync for scenario doc, got ${JSON.stringify(scheduleCalls)}`,
       );
       assert.ok(
-        !scenCalls[0].checkRules!.includes("strict-fact-shape"),
+        !scenCalls[0].checkRules?.includes("strict-fact-shape"),
         `Scenario doc should NOT include strict-fact-shape, got ${JSON.stringify(scenCalls[0].checkRules)}`,
       );
       assert.deepEqual(
@@ -6363,7 +6441,7 @@ import datetime
       const reqFile = path.join(reqDir, "REQ-001.md");
       fs.writeFileSync(
         reqFile,
-        `---\nid: REQ-001\ntitle: Test Requirement\n---\nTest content\n`,
+        "---\nid: REQ-001\ntitle: Test Requirement\n---\nTest content\n",
       );
 
       fs.writeFileSync(
@@ -6401,8 +6479,8 @@ import datetime
       });
 
       // Requirement KB-doc should schedule structural+req-fact-pairing rules
-      const reqCalls = scheduleCalls.filter(
-        (c) => c.checkRules && c.checkRules.includes("strict-req-fact-pairing"),
+      const reqCalls = scheduleCalls.filter((c) =>
+        c.checkRules?.includes("strict-req-fact-pairing"),
       );
       assert.ok(
         reqCalls.length >= 1,
@@ -6426,7 +6504,7 @@ import datetime
       const scenFile = path.join(scenDir, "SCEN-001.md");
       fs.writeFileSync(
         scenFile,
-        `---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n`,
+        "---\nid: SCEN-001\ntitle: Test Scenario\n---\nTest content\n",
       );
 
       fs.writeFileSync(
@@ -6472,7 +6550,7 @@ import datetime
         `Expected at least 1 scheduleSync for scenario doc, got ${JSON.stringify(scheduleCalls)}`,
       );
       assert.ok(
-        !scenCalls[0].checkRules!.includes("strict-req-fact-pairing"),
+        !scenCalls[0].checkRules?.includes("strict-req-fact-pairing"),
         `Scenario doc should NOT include strict-req-fact-pairing, got ${JSON.stringify(scenCalls[0].checkRules)}`,
       );
     });
@@ -6585,7 +6663,7 @@ import datetime
         await setupWithCapturingScheduler(tmpDir);
 
       assert.ok(hooks.event, "Should have event hook");
-      const eventHook = hooks.event as any;
+      const eventHook = getEventHook(hooks);
 
       await eventHook({
         event: {
@@ -6611,7 +6689,7 @@ import datetime
     it("check.failed with symbol-traceability produces zero console.error via plugin", async () => {
       const errorSpy: string[] = [];
       const origError = console.error;
-      (console as any).error = (...args: unknown[]) => {
+      (console).error = (...args: unknown[]) => {
         errorSpy.push(args.map(String).join(" "));
       };
 
@@ -6626,17 +6704,17 @@ import datetime
           path.join(kbDir, "config.json"),
           JSON.stringify({ version: 1, maintenance: { enabled: false } }),
         );
-        [
-          "documentation/requirements",
-          "documentation/scenarios",
-          "documentation/tests",
-          "documentation/adr",
-          "documentation/flags",
-          "documentation/events",
-          "documentation/facts",
-        ].forEach((dir) =>
-          fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-        );
+      for (const dir of [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
         fs.writeFileSync(
           path.join(tmpDir, "documentation", "symbols.yaml"),
           "[]",
@@ -6670,9 +6748,11 @@ import datetime
         );
 
         // Inject a scheduler factory that simulates check failure
-        let capturedOnRunComplete: ((meta: any) => void) | undefined;
-        (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-          capturedOnRunComplete = opts.onRunComplete;
+        let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+        (globalThis).__kibi_test_scheduler_factory = (
+          opts: unknown,
+        ) => {
+          capturedOnRunComplete = getSchedulerOnRunComplete(opts);
           return {
             onFileEdited: () => {},
             onToolExecuteAfter: () => {},
@@ -6696,12 +6776,12 @@ import datetime
         const hooks = await plugin({
           directory: tmpDir,
           worktree: tmpDir,
-          client: mockClient as any,
-          project: null as any,
-          $: {} as any,
+          client: mockClient,
+          project: null,
+          $: {},
         });
 
-        const eventHook = hooks.event as any;
+        const eventHook = getEventHook(hooks);
         await eventHook({
           event: {
             type: "file.edited",
@@ -6727,14 +6807,14 @@ import datetime
         );
       } finally {
         console.error = origError;
-        delete (globalThis as any).__kibi_test_scheduler_factory;
+        (globalThis).__kibi_test_scheduler_factory = undefined;
       }
     });
 
     it("check.failed with multi-rule payload produces zero console.error via plugin", async () => {
       const errorSpy: string[] = [];
       const origError = console.error;
-      (console as any).error = (...args: unknown[]) => {
+      (console).error = (...args: unknown[]) => {
         errorSpy.push(args.map(String).join(" "));
       };
 
@@ -6749,17 +6829,17 @@ import datetime
           path.join(kbDir2, "config.json"),
           JSON.stringify({ version: 1, maintenance: { enabled: false } }),
         );
-        [
-          "documentation/requirements",
-          "documentation/scenarios",
-          "documentation/tests",
-          "documentation/adr",
-          "documentation/flags",
-          "documentation/events",
-          "documentation/facts",
-        ].forEach((dir) =>
-          fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-        );
+      for (const dir of [
+        "documentation/requirements",
+        "documentation/scenarios",
+        "documentation/tests",
+        "documentation/adr",
+        "documentation/flags",
+        "documentation/events",
+        "documentation/facts",
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
         fs.writeFileSync(
           path.join(tmpDir, "documentation", "symbols.yaml"),
           "[]",
@@ -6791,9 +6871,11 @@ import datetime
           ),
         );
 
-        let capturedOnRunComplete: ((meta: any) => void) | undefined;
-        (globalThis as any).__kibi_test_scheduler_factory = (opts: any) => {
-          capturedOnRunComplete = opts.onRunComplete;
+        let capturedOnRunComplete: ((meta: unknown) => void) | undefined;
+        (globalThis).__kibi_test_scheduler_factory = (
+          opts: unknown,
+        ) => {
+          capturedOnRunComplete = getSchedulerOnRunComplete(opts);
           return {
             onFileEdited: () => {},
             onToolExecuteAfter: () => {},
@@ -6817,12 +6899,12 @@ import datetime
         const hooks = await plugin({
           directory: tmpDir,
           worktree: tmpDir,
-          client: mockClient as any,
-          project: null as any,
-          $: {} as any,
+          client: mockClient,
+          project: null,
+          $: {},
         });
 
-        const eventHook = hooks.event as any;
+        const eventHook = getEventHook(hooks);
         await eventHook({
           event: {
             type: "file.edited",
@@ -6850,14 +6932,14 @@ import datetime
         );
       } finally {
         console.error = origError;
-        delete (globalThis as any).__kibi_test_scheduler_factory;
+        (globalThis).__kibi_test_scheduler_factory = undefined;
       }
     });
 
     it("operational startup failure still produces console.error (control)", async () => {
       const errorSpy: string[] = [];
       const origError = console.error;
-      (console as any).error = (...args: unknown[]) => {
+      (console).error = (...args: unknown[]) => {
         errorSpy.push(args.map(String).join(" "));
       };
 
@@ -6959,23 +7041,23 @@ import datetime
       );
 
       // Mock TUI client with showToast
-      let shownToast: any = null;
+      let shownToast: unknown = null;
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async (payload: any) => {
+          showToast: async (payload: unknown) => {
             shownToast = payload;
           },
         },
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
       assert.ok(hooks["experimental.chat.system.transform"]);
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = {
         worktree: tmpDir,
       };
@@ -7086,10 +7168,10 @@ import datetime
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
 
@@ -7184,10 +7266,10 @@ import datetime
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
 
@@ -7283,10 +7365,10 @@ import datetime
 
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = { worktree: tmpDir };
       const mockOutput = { system: ["original"] };
 
@@ -7372,7 +7454,7 @@ import datetime
       );
 
       let showToastCount = 0;
-      const shownToastPayloads: any[] = [];
+      const shownToastPayloads: unknown[] = [];
       fs.writeFileSync(
         path.join(opencodeDir, "kibi.json"),
         JSON.stringify(
@@ -7390,7 +7472,7 @@ import datetime
       const mockClient = {
         app: { log: async () => {} },
         tui: {
-          showToast: async (payload: any) => {
+          showToast: async (payload: unknown) => {
             showToastCount++;
             shownToastPayloads.push(payload);
           },
@@ -7398,10 +7480,10 @@ import datetime
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = { worktree: tmpDir };
 
       // First call: deliver brief-alpha
@@ -7513,10 +7595,10 @@ import datetime
       };
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
-        client: mockClient as any,
+        client: mockClient,
       });
 
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const transformHook = getSystemTransformHook(hooks);
       const mockInput = { worktree: tmpDir };
 
       // First delivery
@@ -7589,8 +7671,8 @@ import datetime
 
       assert.ok(hooks.event);
       assert.ok(hooks["experimental.chat.system.transform"]);
-      const eventHook = hooks.event as any;
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const eventHook = getEventHook(hooks);
+      const transformHook = getSystemTransformHook(hooks);
 
       // Fire file.created event
       await eventHook({
@@ -7644,8 +7726,8 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
       });
-      const eventHook = hooks.event as any;
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const eventHook = getEventHook(hooks);
+      const transformHook = getSystemTransformHook(hooks);
 
       // Fire file.created event
       await eventHook({
@@ -7701,8 +7783,8 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
       });
-      const eventHook = hooks.event as any;
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const eventHook = getEventHook(hooks);
+      const transformHook = getSystemTransformHook(hooks);
 
       // Fire file.deleted event for a file that no longer exists
       await eventHook({
@@ -7757,8 +7839,8 @@ import datetime
       const hooks = await kibiOpencodePlugin({
         ...makeInput(),
       });
-      const eventHook = hooks.event as any;
-      const transformHook = hooks["experimental.chat.system.transform"] as any;
+      const eventHook = getEventHook(hooks);
+      const transformHook = getSystemTransformHook(hooks);
 
       // Fire file.edited event (edited lifecycle has no generic reminder)
       await eventHook({

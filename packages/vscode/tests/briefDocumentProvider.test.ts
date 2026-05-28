@@ -3,7 +3,15 @@
  * Tests the pure logic without vscode dependencies.
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -312,7 +320,9 @@ describe("provideTextDocumentContent", () => {
       briefId: "interpretation-note-brief",
       briefing: {
         citations: [],
-        missingEvidence: [{ statement: "Evidence for TEST-123 is pending", citationIds: [] }],
+        missingEvidence: [
+          { statement: "Evidence for TEST-123 is pending", citationIds: [] },
+        ],
       },
     });
 
@@ -523,13 +533,13 @@ describe("onDidChange event firing", () => {
   test("fires event and listener receives the URI", () => {
     const provider = new BriefDocumentProvider();
     const received: string[] = [];
-    const disposable = provider.onDidChange((uri: any) => {
+    const disposable = provider.onDidChange((uri: import("vscode").Uri) => {
       received.push(uri.toString());
     });
 
     // Fire event through the private emitter
-    const emitter = (provider as any)._onDidChange;
-    emitter.fire({ toString: () => "kibi-brief://test-uri" });
+    const emitter = (provider as unknown as { _onDidChange: { fire: (uri: import("vscode").Uri) => void } })._onDidChange;
+    emitter.fire({ toString: () => "kibi-brief://test-uri" } as import("vscode").Uri);
 
     expect(received.length).toBe(1);
     expect(received[0]).toBe("kibi-brief://test-uri");
@@ -576,7 +586,10 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
       briefing: {
         citations: [{ id: "REQ-002", title: "Perf" }],
         regressionRisks: [
-          { statement: "Cache invalidation may cause latency spike", citationIds: ["REQ-002"] },
+          {
+            statement: "Cache invalidation may cause latency spike",
+            citationIds: ["REQ-002"],
+          },
         ],
       },
     });
@@ -593,7 +606,9 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
 
     const result = provider.provideTextDocumentContent(uri);
     expect(result).toContain("### Regression considerations");
-    expect(result).toContain("- Cache invalidation may cause latency spike (REQ-002)");
+    expect(result).toContain(
+      "- Cache invalidation may cause latency spike (REQ-002)",
+    );
   });
 
   test("renders violations with suggestion", () => {
@@ -622,7 +637,9 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
 
     const result = provider.provideTextDocumentContent(uri);
     expect(result).toContain("## Interpretation note");
-    expect(result).toContain("- no-dangling-refs on REQ-999: Requirement has no linked test");
+    expect(result).toContain(
+      "- no-dangling-refs on REQ-999: Requirement has no linked test",
+    );
     expect(result).toContain("(Add a TEST entity linked to REQ-999)");
   });
 
@@ -650,7 +667,9 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("- missing-evidence on SYM-001: Symbol has no requirement");
+    expect(result).toContain(
+      "- missing-evidence on SYM-001: Symbol has no requirement",
+    );
   });
 
   test("renders Why it matters with tldr-only message (no promptBlock)", () => {
@@ -677,7 +696,9 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("This update refines how the project knowledge should be interpreted");
+    expect(result).toContain(
+      "This update refines how the project knowledge should be interpreted",
+    );
   });
 
   test("renders Why it matters default message (no tldr, no promptBlock)", () => {
@@ -704,7 +725,9 @@ describe("renderBriefAsMarkdown — constraints, risks, violations", () => {
     } as unknown as import("vscode").Uri;
 
     const result = provider.provideTextDocumentContent(uri);
-    expect(result).toContain("This brief captures the latest project knowledge state");
+    expect(result).toContain(
+      "This brief captures the latest project knowledge state",
+    );
   });
 
   test("renders What changed using summary fallback", () => {
@@ -747,8 +770,18 @@ describe("renderBriefAsMarkdown — automationReview section", () => {
     (brief as unknown as Record<string, unknown>).structuredContent = {
       automationReview: {
         generatedEntities: [
-          { id: "REQ-100", type: "req", title: "Auth requirement", confidence: 0.9 },
-          { id: "FACT-101", type: "fact", title: "Auth domain fact", confidence: 0.85 },
+          {
+            id: "REQ-100",
+            type: "req",
+            title: "Auth requirement",
+            confidence: 0.9,
+          },
+          {
+            id: "FACT-101",
+            type: "fact",
+            title: "Auth domain fact",
+            confidence: 0.85,
+          },
           { id: "TEST-102", type: "test", title: "Auth test", confidence: 0.8 },
         ],
         strictReadinessScore: 0.85,
@@ -841,7 +874,12 @@ describe("renderBriefAsMarkdown — automationReview section", () => {
     (brief as unknown as Record<string, unknown>).structuredContent = {
       automationReview: {
         generatedEntities: [
-          { id: "REQ-100", type: "req", title: "Auth requirement", confidence: 0.9 },
+          {
+            id: "REQ-100",
+            type: "req",
+            title: "Auth requirement",
+            confidence: 0.9,
+          },
         ],
         strictReadinessScore: 0.7,
         confidence: 0.8,
@@ -925,11 +963,18 @@ describe("renderBriefAsMarkdown — automationReview section", () => {
       structuredContent: {
         automationReview: {
           generatedEntities: [
-            { id: "REQ-AUTO-001", type: "req", title: "Auto requirement", confidence: 0.9 },
+            {
+              id: "REQ-AUTO-001",
+              type: "req",
+              title: "Auto requirement",
+              confidence: 0.9,
+            },
           ],
           strictReadinessScore: 0.85,
           confidence: 0.9,
-          migrationWarnings: ["Schema version is outdated. Run kibi migrate to upgrade."],
+          migrationWarnings: [
+            "Schema version is outdated. Run kibi migrate to upgrade.",
+          ],
           contradictionRisks: ["REQ-001 may conflict with REQ-002"],
           evidenceCitationIds: ["FACT-001", "FACT-002"],
         },
@@ -953,7 +998,9 @@ describe("renderBriefAsMarkdown — automationReview section", () => {
     expect(result).toContain("**Confidence:** 0.9");
     expect(result).toContain("**Generated Entities:** 1");
     expect(result).toContain("### Migration Warnings");
-    expect(result).toContain("- Schema version is outdated. Run kibi migrate to upgrade.");
+    expect(result).toContain(
+      "- Schema version is outdated. Run kibi migrate to upgrade.",
+    );
     expect(result).toContain("### Contradiction Risks");
     expect(result).toContain("- REQ-001 may conflict with REQ-002");
     expect(result).toContain("### Evidence Citations");

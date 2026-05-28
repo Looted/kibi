@@ -81,9 +81,9 @@ describe("createSessionEditState", () => {
 
     const edits = state.getSessionEdits();
     assert.equal(edits.length, 1);
-    assert.equal(edits[0]!.filePath, "src/foo.ts");
-    assert.equal(edits[0]!.currentHash, hash("changed"));
-    assert.equal(edits[0]!.baselineHash, hash("original"));
+    assert.equal(edits[0]?.filePath, "src/foo.ts");
+    assert.equal(edits[0]?.currentHash, hash("changed"));
+    assert.equal(edits[0]?.baselineHash, hash("original"));
   });
 
   test("reconcilePath normalizes absolute path to relative", () => {
@@ -99,7 +99,7 @@ describe("createSessionEditState", () => {
 
     const edits = state.getSessionEdits();
     assert.equal(edits.length, 1);
-    assert.equal(edits[0]!.filePath, "src/bar.ts");
+    assert.equal(edits[0]?.filePath, "src/bar.ts");
   });
 
   test("reconcilePath deduplicates same file via relative and absolute", () => {
@@ -115,7 +115,7 @@ describe("createSessionEditState", () => {
     state.reconcilePath(abs);
 
     assert.equal(state.getSessionEdits().length, 1);
-    assert.equal(state.getSessionEdits()[0]!.filePath, "src/dup.ts");
+    assert.equal(state.getSessionEdits()[0]?.filePath, "src/dup.ts");
   });
 
   // -------------------------------------------------------------------------
@@ -141,7 +141,7 @@ describe("createSessionEditState", () => {
     assert.equal(state.hasSessionEdits(), true);
     const edits = state.getSessionEdits();
     assert.equal(edits.length, 1);
-    assert.equal(edits[0]!.filePath, "src/existing.ts");
+    assert.equal(edits[0]?.filePath, "src/existing.ts");
   });
 
   // -------------------------------------------------------------------------
@@ -189,10 +189,10 @@ describe("createSessionEditState", () => {
     // Now current ≠ sentinel → session edit
     assert.equal(state.hasSessionEdits(), true);
     assert.equal(state.getSessionEdits().length, 1);
-    assert.equal(state.getSessionEdits()[0]!.filePath, "src/brand-new.ts");
-    assert.equal(state.getSessionEdits()[0]!.baselineHash, "<deleted>");
+    assert.equal(state.getSessionEdits()[0]?.filePath, "src/brand-new.ts");
+    assert.equal(state.getSessionEdits()[0]?.baselineHash, "<deleted>");
     assert.equal(
-      state.getSessionEdits()[0]!.currentHash,
+      state.getSessionEdits()[0]?.currentHash,
       hash("fresh content"),
     );
   });
@@ -217,7 +217,7 @@ describe("createSessionEditState", () => {
     assert.equal(state.hasSessionEdits(), true);
     const edits = state.getSessionEdits();
     assert.equal(edits.length, 1);
-    assert.equal(edits[0]!.currentHash, "<deleted>");
+    assert.equal(edits[0]?.currentHash, "<deleted>");
   });
 
   test("recreated file with same content as startup is NOT a session edit", () => {
@@ -257,7 +257,7 @@ describe("createSessionEditState", () => {
     writeFile("src/recreate2.ts", "different");
     state.reconcilePath("src/recreate2.ts");
     assert.equal(state.hasSessionEdits(), true);
-    assert.equal(state.getSessionEdits()[0]!.currentHash, hash("different"));
+    assert.equal(state.getSessionEdits()[0]?.currentHash, hash("different"));
   });
 
   // -------------------------------------------------------------------------
@@ -304,13 +304,13 @@ describe("createSessionEditState", () => {
     state.reconcilePath("src/first.ts");
     writeFile("src/first.ts", "first-mod");
     state.reconcilePath("src/first.ts");
-    assert.equal(state.getFocusEdit()!.filePath, "src/first.ts");
+    assert.equal(state.getFocusEdit()?.filePath, "src/first.ts");
 
     writeFile("src/second.ts", "second");
     state.reconcilePath("src/second.ts");
     writeFile("src/second.ts", "second-mod");
     state.reconcilePath("src/second.ts");
-    assert.equal(state.getFocusEdit()!.filePath, "src/second.ts");
+    assert.equal(state.getFocusEdit()?.filePath, "src/second.ts");
   });
 
   // -------------------------------------------------------------------------
@@ -345,12 +345,12 @@ describe("createSessionEditState", () => {
 
     const edits = state.getSessionEdits();
     assert.equal(edits.length, 3);
-    assert.equal(edits[0]!.filePath, "src/z.ts");
-    assert.equal(edits[0]!.lastReconciledAt, 10);
-    assert.equal(edits[1]!.filePath, "src/a.ts");
-    assert.equal(edits[1]!.lastReconciledAt, 20);
-    assert.equal(edits[2]!.filePath, "src/m.ts");
-    assert.equal(edits[2]!.lastReconciledAt, 30);
+    assert.equal(edits[0]?.filePath, "src/z.ts");
+    assert.equal(edits[0]?.lastReconciledAt, 10);
+    assert.equal(edits[1]?.filePath, "src/a.ts");
+    assert.equal(edits[1]?.lastReconciledAt, 20);
+    assert.equal(edits[2]?.filePath, "src/m.ts");
+    assert.equal(edits[2]?.lastReconciledAt, 30);
   });
 
   // -------------------------------------------------------------------------
@@ -372,7 +372,7 @@ describe("createSessionEditState", () => {
     // reconcileKnownPaths should pick up the change
     state.reconcileKnownPaths();
     assert.equal(state.hasSessionEdits(), true);
-    assert.equal(state.getSessionEdits()[0]!.filePath, "src/batch.ts");
+    assert.equal(state.getSessionEdits()[0]?.filePath, "src/batch.ts");
   });
 
   // -------------------------------------------------------------------------
@@ -469,8 +469,8 @@ describe("createSessionEditState", () => {
     state.reconcilePath("src/existed.ts");
 
     assert.equal(state.hasSessionEdits(), true);
-    assert.equal(state.getSessionEdits()[0]!.currentHash, "<deleted>");
-    assert.equal(state.getSessionEdits()[0]!.baselineHash, hash("existed"));
+    assert.equal(state.getSessionEdits()[0]?.currentHash, "<deleted>");
+    assert.equal(state.getSessionEdits()[0]?.baselineHash, hash("existed"));
   });
 
   // -------------------------------------------------------------------------
@@ -485,7 +485,11 @@ describe("createSessionEditState", () => {
     writeFile("src/shape.ts", "modified");
     state.reconcilePath("src/shape.ts");
 
-    const edit = state.getSessionEdits()[0]!;
+    const editOrUndefined = state.getSessionEdits()[0];
+    if (editOrUndefined === undefined) {
+      throw new Error("Expected first session edit entry to exist");
+    }
+    const edit = editOrUndefined;
     assert.ok(edit.filePath);
     assert.equal(edit.baselineHash, hash("content"));
     assert.equal(edit.currentHash, hash("modified"));

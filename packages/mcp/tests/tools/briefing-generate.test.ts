@@ -60,7 +60,12 @@ interface BriefingGenerateResultLike {
     missingEvidence: BriefingStatementLike[];
     citations: BriefingCitationLike[];
     automationReview?: {
-      generatedEntities: Array<{ id: string; type: string; title: string; confidence: number }>;
+      generatedEntities: Array<{
+        id: string;
+        type: string;
+        title: string;
+        confidence: number;
+      }>;
       strictReadinessScore: number;
       confidence: number;
       migrationWarnings: string[];
@@ -159,11 +164,21 @@ describe("briefing generate", () => {
     await fs.mkdir(path.join(root, "documentation", "scenarios"), {
       recursive: true,
     });
-    await fs.mkdir(path.join(root, "documentation", "tests"), { recursive: true });
-    await fs.mkdir(path.join(root, "documentation", "adr"), { recursive: true });
-    await fs.mkdir(path.join(root, "documentation", "flags"), { recursive: true });
-    await fs.mkdir(path.join(root, "documentation", "events"), { recursive: true });
-    await fs.mkdir(path.join(root, "documentation", "facts"), { recursive: true });
+    await fs.mkdir(path.join(root, "documentation", "tests"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(root, "documentation", "adr"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(root, "documentation", "flags"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(root, "documentation", "events"), {
+      recursive: true,
+    });
+    await fs.mkdir(path.join(root, "documentation", "facts"), {
+      recursive: true,
+    });
     await fs.writeFile(
       path.join(root, "documentation", "symbols.yaml"),
       "symbols: []\n",
@@ -232,10 +247,7 @@ describe("briefing generate", () => {
             await walk(relativePath);
             continue;
           }
-          files.set(
-            relativePath,
-            await fs.readFile(absolutePath, "utf8"),
-          );
+          files.set(relativePath, await fs.readFile(absolutePath, "utf8"));
         }
       } catch {
         // Absent directories are part of the snapshot contract.
@@ -258,7 +270,7 @@ describe("briefing generate", () => {
   }
 
   function quoteProlog(value: string): string {
-    return value.replaceAll("\\", "\\\\").replaceAll("\"", '\\"');
+    return value.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
   }
 
   function toEntityBinding(entity: FixtureEntity): string {
@@ -292,49 +304,46 @@ describe("briefing generate", () => {
     coverageRows?: Array<{ id: string; type: string; count: number }>;
   }): PrologProcess {
     const entities = options?.entities ?? READY_ENTITIES;
-    const statusPayload =
-      options?.statusPayload ?? {
-        branch: "feature/briefings",
-        snapshotId: "stamp:briefing-001",
-        syncedAt: "2026-04-20T12:00:00Z",
-        dirty: false,
-        syncState: "fresh",
-      };
-    const graphPayload =
-      options?.graphPayload ?? {
-        nodes: entities.map((entity) => ({
-          id: entity.id,
-          type: entity.type,
-          title: entity.title,
-          status: entity.status,
-          source: entity.source,
-          textRef: entity.textRef,
-        })),
-        edges: [
-          {
-            from: "REQ-BRIEF-001",
-            type: "verified_by",
-            to: "TEST-BRIEF-001",
-          },
-          {
-            from: "REQ-BRIEF-001",
-            type: "requires_property",
-            to: "FACT-BRIEF-001",
-          },
-        ],
-        truncated: false,
-        meta: { depth: 1 },
-      };
-    const coverageRows =
-      options?.coverageRows ?? [
-        { id: "req", type: "req", count: 1 },
-        { id: "scenario", type: "scenario", count: 1 },
-        { id: "test", type: "test", count: 1 },
-        { id: "adr", type: "adr", count: 1 },
-        { id: "flag", type: "flag", count: 0 },
-        { id: "event", type: "event", count: 0 },
-        { id: "fact", type: "fact", count: 1 },
-      ];
+    const statusPayload = options?.statusPayload ?? {
+      branch: "feature/briefings",
+      snapshotId: "stamp:briefing-001",
+      syncedAt: "2026-04-20T12:00:00Z",
+      dirty: false,
+      syncState: "fresh",
+    };
+    const graphPayload = options?.graphPayload ?? {
+      nodes: entities.map((entity) => ({
+        id: entity.id,
+        type: entity.type,
+        title: entity.title,
+        status: entity.status,
+        source: entity.source,
+        textRef: entity.textRef,
+      })),
+      edges: [
+        {
+          from: "REQ-BRIEF-001",
+          type: "verified_by",
+          to: "TEST-BRIEF-001",
+        },
+        {
+          from: "REQ-BRIEF-001",
+          type: "requires_property",
+          to: "FACT-BRIEF-001",
+        },
+      ],
+      truncated: false,
+      meta: { depth: 1 },
+    };
+    const coverageRows = options?.coverageRows ?? [
+      { id: "req", type: "req", count: 1 },
+      { id: "scenario", type: "scenario", count: 1 },
+      { id: "test", type: "test", count: 1 },
+      { id: "adr", type: "adr", count: 1 },
+      { id: "flag", type: "flag", count: 0 },
+      { id: "event", type: "event", count: 0 },
+      { id: "fact", type: "fact", count: 1 },
+    ];
 
     return createPrologStub(async (goal) => {
       const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
@@ -360,7 +369,11 @@ describe("briefing generate", () => {
         return toEntityResult(matches);
       }
 
-      if (queryText.includes("findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)")) {
+      if (
+        queryText.includes(
+          "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)",
+        )
+      ) {
         return toEntityResult(entities);
       }
 
@@ -377,7 +390,9 @@ describe("briefing generate", () => {
         return toEntityResult(requested);
       }
 
-      const typedGoal = queryText.match(/kb_entity\(Id,\s*'([^']+)',\s*Props\)/);
+      const typedGoal = queryText.match(
+        /kb_entity\(Id,\s*'([^']+)',\s*Props\)/,
+      );
       if (typedGoal) {
         return toEntityResult(
           entities.filter((entity) => entity.type === typedGoal[1]),
@@ -429,7 +444,12 @@ describe("briefing generate", () => {
         throw new Error("text-only path should not call status:kb_status_json");
       }
       if (queryText.includes("graph_expand_json")) {
-        return toJsonResult({ nodes: [], edges: [], truncated: false, meta: {} });
+        return toJsonResult({
+          nodes: [],
+          edges: [],
+          truncated: false,
+          meta: {},
+        });
       }
       if (
         queryText.includes(
@@ -490,8 +510,12 @@ describe("briefing generate", () => {
       syncedAt: "2026-04-20T12:00:00Z",
     });
     expect(result.structuredContent.confidence.level).toBe("high");
-    expect(result.structuredContent.confidence.score).toBeGreaterThanOrEqual(0.55);
-    expect(result.structuredContent.entities.map((entity) => entity.id)).toEqual([
+    expect(result.structuredContent.confidence.score).toBeGreaterThanOrEqual(
+      0.55,
+    );
+    expect(
+      result.structuredContent.entities.map((entity) => entity.id),
+    ).toEqual([
       "REQ-BRIEF-001",
       "ADR-BRIEF-001",
       "TEST-BRIEF-001",
@@ -675,12 +699,12 @@ describe("briefing generate", () => {
         sourceFiles: ["src/auth.ts", ".sisyphus/boulder.json"],
       });
 
-      expect(result.structuredContent.entities.map((entity) => entity.id)).toContain(
-        "REQ-AUTH-001",
-      );
-      expect(result.structuredContent.entities.map((entity) => entity.id)).not.toContain(
-        "FACT-BOULDER-002",
-      );
+      expect(
+        result.structuredContent.entities.map((entity) => entity.id),
+      ).toContain("REQ-AUTH-001");
+      expect(
+        result.structuredContent.entities.map((entity) => entity.id),
+      ).not.toContain("FACT-BOULDER-002");
       expectNoOperationalArtifactStrings(result);
     });
 
@@ -704,14 +728,19 @@ describe("briefing generate", () => {
       });
 
       const result = await handleKbBriefingGenerate(prolog, {
-        taskText: "Brief from a valid requirement with an operational citation.",
+        taskText:
+          "Brief from a valid requirement with an operational citation.",
         sourceFiles: ["src/citations.ts"],
       });
 
       expect(
-        result.structuredContent.citations.map((citation) => citation.textRef ?? ""),
+        result.structuredContent.citations.map(
+          (citation) => citation.textRef ?? "",
+        ),
       ).not.toContain(".sisyphus/boulder.json#L8");
-      expect(result.content[0]?.text ?? "").not.toContain(".sisyphus/boulder.json");
+      expect(result.content[0]?.text ?? "").not.toContain(
+        ".sisyphus/boulder.json",
+      );
     });
 
     test("drops explicit .sisyphus draft paths passed as sourceFiles", async () => {
@@ -750,7 +779,10 @@ describe("briefing generate", () => {
       const secretPath = path.join(root, "documentation", "secret.md");
       await fs.writeFile(secretPath, "# Secret\nThis is secret.");
       // write .gitignore to ignore the secret doc
-      await fs.writeFile(path.join(root, ".gitignore"), "documentation/secret.md\n");
+      await fs.writeFile(
+        path.join(root, ".gitignore"),
+        "documentation/secret.md\n",
+      );
 
       process.env.KIBI_WORKSPACE = root;
 
@@ -779,12 +811,19 @@ describe("briefing generate", () => {
 
       const result = await handleKbBriefingGenerate(prolog, {
         taskText: "Brief from mixed gitignored and normal docs",
-        sourceFiles: ["documentation/secret.md", "documentation/requirements/REQ-BRIEF-001.md"],
+        sourceFiles: [
+          "documentation/secret.md",
+          "documentation/requirements/REQ-BRIEF-001.md",
+        ],
       });
 
       // The gitignored secret should be dropped, but the normal doc remains
-      expect(result.structuredContent.entities.map((e) => e.id)).toContain("REQ-NORMAL-001");
-      expect(result.structuredContent.entities.map((e) => e.id)).not.toContain("REQ-SECRET-001");
+      expect(result.structuredContent.entities.map((e) => e.id)).toContain(
+        "REQ-NORMAL-001",
+      );
+      expect(result.structuredContent.entities.map((e) => e.id)).not.toContain(
+        "REQ-SECRET-001",
+      );
     });
   });
 
@@ -876,25 +915,28 @@ describe("briefing generate", () => {
 
     expect(after).toEqual(before);
     expect(second.structuredContent.briefingState).toBe("ready");
-    expect(first.structuredContent.entities.map((entity) => entity.id)).toEqual([
+    expect(first.structuredContent.entities.map((entity) => entity.id)).toEqual(
+      ["REQ-BRIEF-001", "ADR-BRIEF-001", "TEST-BRIEF-001", "FACT-BRIEF-001"],
+    );
+    expect(
+      second.structuredContent.entities.map((entity) => entity.id),
+    ).toEqual([
       "REQ-BRIEF-001",
       "ADR-BRIEF-001",
       "TEST-BRIEF-001",
       "FACT-BRIEF-001",
     ]);
-    expect(second.structuredContent.entities.map((entity) => entity.id)).toEqual([
+    expect(
+      first.structuredContent.citations.map((citation) => citation.id),
+    ).toEqual([
       "REQ-BRIEF-001",
       "ADR-BRIEF-001",
       "TEST-BRIEF-001",
       "FACT-BRIEF-001",
     ]);
-    expect(first.structuredContent.citations.map((citation) => citation.id)).toEqual([
-      "REQ-BRIEF-001",
-      "ADR-BRIEF-001",
-      "TEST-BRIEF-001",
-      "FACT-BRIEF-001",
-    ]);
-    expect(second.structuredContent.citations.map((citation) => citation.id)).toEqual([
+    expect(
+      second.structuredContent.citations.map((citation) => citation.id),
+    ).toEqual([
       "REQ-BRIEF-001",
       "ADR-BRIEF-001",
       "TEST-BRIEF-001",
@@ -938,7 +980,9 @@ describe("briefing generate", () => {
 
     // Must NOT return empty promptBlock even when over budget
     expect(result.structuredContent.promptBlock.length).toBeGreaterThan(0);
-    const words = result.structuredContent.promptBlock.split(/\s+/).filter(Boolean);
+    const words = result.structuredContent.promptBlock
+      .split(/\s+/)
+      .filter(Boolean);
     expect(words.length).toBeLessThanOrEqual(120);
     const bullets = result.structuredContent.promptBlock
       .split("\n")
@@ -970,20 +1014,27 @@ describe("briefing generate", () => {
       const review = result.structuredContent.automationReview;
       expect(review).not.toBeNull();
       expect(review).not.toBeUndefined();
-      expect(review!.generatedEntities.length).toBeGreaterThan(0);
-      expect(review!.strictReadinessScore).toBeGreaterThanOrEqual(0);
-      expect(review!.strictReadinessScore).toBeLessThanOrEqual(1);
-      expect(review!.confidence).toBeGreaterThanOrEqual(0);
-      expect(review!.confidence).toBeLessThanOrEqual(1);
-      expect(Array.isArray(review!.migrationWarnings)).toBe(true);
-      expect(Array.isArray(review!.contradictionRisks)).toBe(true);
-      expect(Array.isArray(review!.evidenceCitationIds)).toBe(true);
+      if (!review) {
+        throw new Error("Expected automationReview to be present");
+      }
+      const evidenceCitationIds = review.evidenceCitationIds ?? [];
+      const generatedEntities = review.generatedEntities ?? [];
+      expect(review?.generatedEntities.length).toBeGreaterThan(0);
+      expect(review?.strictReadinessScore).toBeGreaterThanOrEqual(0);
+      expect(review?.strictReadinessScore).toBeLessThanOrEqual(1);
+      expect(review?.confidence).toBeGreaterThanOrEqual(0);
+      expect(review?.confidence).toBeLessThanOrEqual(1);
+      expect(Array.isArray(review?.migrationWarnings)).toBe(true);
+      expect(Array.isArray(review?.contradictionRisks)).toBe(true);
+      expect(Array.isArray(review?.evidenceCitationIds)).toBe(true);
       // Evidence citations should reference actual entity IDs
-      for (const id of review!.evidenceCitationIds) {
-        expect(result.structuredContent.entities.map((e) => e.id)).toContain(id);
+      for (const id of evidenceCitationIds) {
+        expect(result.structuredContent.entities.map((e) => e.id)).toContain(
+          id,
+        );
       }
       // Generated entities should have id, type, title, confidence
-      for (const entity of review!.generatedEntities) {
+      for (const entity of generatedEntities) {
         expect(entity.id).toBeTruthy();
         expect(entity.type).toBeTruthy();
         expect(entity.title).toBeTruthy();
@@ -1007,7 +1058,11 @@ describe("briefing generate", () => {
       expect(result.structuredContent.briefingState).toBe("no_briefing");
       // automationReview must be null/undefined when no entities are available
       const review = result.structuredContent.automationReview;
-      expect(review === null || review === undefined || (review && review.generatedEntities.length === 0)).toBe(true);
+      expect(
+        review === null ||
+          review === undefined ||
+          (review && review.generatedEntities.length === 0),
+      ).toBe(true);
     });
 
     test("legacy schema config produces migration warning in automationReview", async () => {
@@ -1030,8 +1085,8 @@ describe("briefing generate", () => {
       expect(result.structuredContent.briefingState).toBe("ready");
       const review = result.structuredContent.automationReview;
       expect(review).not.toBeNull();
-      expect(review!.migrationWarnings.length).toBeGreaterThan(0);
-      expect(review!.migrationWarnings[0]).toMatch(/schemaVersion/i);
+      expect(review?.migrationWarnings.length).toBeGreaterThan(0);
+      expect(review?.migrationWarnings[0]).toMatch(/schemaVersion/i);
     });
 
     test("briefingState remains ready or no_briefing — no new blocking states", async () => {
@@ -1072,7 +1127,12 @@ describe("briefing generate", () => {
           });
         }
         if (queryText.includes("graph_expand_json")) {
-          return toJsonResult({ nodes: [], edges: [], truncated: false, meta: {} });
+          return toJsonResult({
+            nodes: [],
+            edges: [],
+            truncated: false,
+            meta: {},
+          });
         }
         if (
           queryText.includes(

@@ -72,23 +72,26 @@ describe("non-blocking UX", () => {
   test("advisory check failure with fake clock does not emit console.error", async () => {
     const errorSpy: string[] = [];
     const origError = console.error;
-    (console as any).error = (...args: unknown[]) => {
+    console.error = (...args: unknown[]) => {
       errorSpy.push(args.map(String).join(" "));
     };
 
     try {
       // Use fake clock like scheduler.test.ts for deterministic timing
       let nowMs = 0;
-      let nextId = 1;
-      const tasks = new Map<number, { at: number; fn: () => void }>();
+      const tasks = new Map<
+        ReturnType<typeof setTimeout>,
+        { at: number; fn: () => void }
+      >();
       const fakeNow = () => nowMs;
       const fakeSetTimeout = (fn: () => void, ms: number) => {
-        const id = nextId++;
-        tasks.set(id, { at: nowMs + ms, fn });
-        return id as unknown as ReturnType<typeof setTimeout>;
+        const handle = setTimeout(() => {}, 0);
+        clearTimeout(handle);
+        tasks.set(handle, { at: nowMs + ms, fn });
+        return handle;
       };
       const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
-        tasks.delete(handle as unknown as number);
+        tasks.delete(handle);
       };
       const advance = (ms: number) => {
         nowMs += ms;
@@ -140,22 +143,25 @@ describe("non-blocking UX", () => {
   test("advisory multi-rule check failure with fake clock does not emit console.error", async () => {
     const errorSpy: string[] = [];
     const origError = console.error;
-    (console as any).error = (...args: unknown[]) => {
+    console.error = (...args: unknown[]) => {
       errorSpy.push(args.map(String).join(" "));
     };
 
     try {
       let nowMs = 0;
-      let nextId = 1;
-      const tasks = new Map<number, { at: number; fn: () => void }>();
+      const tasks = new Map<
+        ReturnType<typeof setTimeout>,
+        { at: number; fn: () => void }
+      >();
       const fakeNow = () => nowMs;
       const fakeSetTimeout = (fn: () => void, ms: number) => {
-        const id = nextId++;
-        tasks.set(id, { at: nowMs + ms, fn });
-        return id as unknown as ReturnType<typeof setTimeout>;
+        const handle = setTimeout(() => {}, 0);
+        clearTimeout(handle);
+        tasks.set(handle, { at: nowMs + ms, fn });
+        return handle;
       };
       const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
-        tasks.delete(handle as unknown as number);
+        tasks.delete(handle);
       };
       const advance = (ms: number) => {
         nowMs += ms;
