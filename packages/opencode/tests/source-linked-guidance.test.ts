@@ -37,13 +37,13 @@ describe("getSourceLinkedRequirementIds", () => {
       .map((e) => {
         let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n`;
         if (e.links && e.links.length > 0) {
-          entry += `    links:\n`;
+          entry += "    links:\n";
           for (const link of e.links) {
             entry += `      - ${link}\n`;
           }
         }
         if (e.relationships && e.relationships.length > 0) {
-          entry += `    relationships:\n`;
+          entry += "    relationships:\n";
           for (const rel of e.relationships) {
             entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }
@@ -230,6 +230,9 @@ describe("getSourceLinkedRequirementIds", () => {
     assert.match(result.lifecycleReminder ?? "", /sourceFile/);
     assert.match(result.lifecycleReminder ?? "", /src\/removed\.ts/);
     assert.match(result.lifecycleReminder ?? "", /kb_upsert/);
-    assert.doesNotMatch(result.lifecycleReminder ?? "", /kibi\s+sync|kibi\s+query/i);
+    assert.doesNotMatch(
+      result.lifecycleReminder ?? "",
+      /kibi\s+sync|kibi\s+query/i,
+    );
   });
 });

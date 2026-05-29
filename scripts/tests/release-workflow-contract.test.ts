@@ -24,7 +24,7 @@ function extractJobBlock(content: string, jobName: string): string {
   }
   // Walk forward to find the next job boundary (next `  [a-z]` at start of line)
   const afterHeader = startIdx + jobHeader.length;
-  const nextJobRe = /\n  [a-z]/g;
+  const nextJobRe = /\n {2}[a-z]/g;
   nextJobRe.lastIndex = afterHeader;
   const match = nextJobRe.exec(content);
   const endIdx = match ? match.index : content.length;

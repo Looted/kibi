@@ -1,5 +1,19 @@
 # kibi-vscode
 
+## 0.4.4
+
+### Patch Changes
+
+- VS Code users no longer see brief notifications or a latest-brief command from the extension. The extension remains focused on the Kibi knowledge base tree and MCP integration. Removed brief configuration no longer implies any VS Code notification behavior.
+
+  Technical summary:
+
+  - Regenerate the VS Code extension bundle after removing brief watcher, command, and virtual document provider code.
+  - Keep tree view, CodeLens, and MCP configuration surfaces intact.
+
+- Updated dependencies
+  - kibi-cli@0.11.3
+
 ## 0.4.3
 
 ### Patch Changes

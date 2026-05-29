@@ -100,12 +100,6 @@ beforeEach(() => {
     path.join(tmpDir, "src", "test.ts"),
     "// line 1\n// line 2\nexport function testSymbol() {}\n",
   );
-  // Stub git so getCurrentBranch returns "develop"
-  const binDir = path.join(tmpDir, "bin");
-  fs.mkdirSync(binDir);
-  const fakeGit = path.join(binDir, "git");
-  fs.writeFileSync(fakeGit, "#!/bin/sh\necho develop\n");
-  fs.chmodSync(fakeGit, 0o755);
 });
 
 afterEach(() => {

@@ -5,7 +5,6 @@
 export {
   resolveWorkspaceRoot,
   getWorkspaceFolderUri,
-  getCurrentBranch,
 } from "./workspace";
 export { validateMcpServerPath, findKibiMcpInPath } from "./mcp";
 export {
@@ -21,5 +20,3 @@ export {
   type TraceabilityRegistrationResult,
 } from "./traceability";
 export { registerContextOnOpen } from "./contextOnOpen";
-export { registerBriefWatcher } from "./briefs";
-export { BriefDocumentProvider } from "../briefDocumentProvider";

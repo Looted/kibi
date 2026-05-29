@@ -17,9 +17,7 @@
  */
 import * as vscode from "vscode";
 import {
-  getCurrentBranch,
   getWorkspaceFolderUri,
-  registerBriefWatcher,
   registerContextOnOpen,
   registerNavigationCommands,
   registerTraceability,
@@ -27,8 +25,6 @@ import {
   resolveWorkspaceRoot,
   validateMcpServerPath,
 } from "./activation";
-import { BriefDocumentProvider } from "./briefDocumentProvider";
-
 // Flag to ensure workspace features are initialized exactly once (idempotency)
 let workspaceFeaturesInitialized = false;
 
@@ -66,16 +62,7 @@ function initializeWorkspaceFeatures(
     workspaceFolderUri,
   );
 
-  // Get current branch for brief watching
-  const currentBranch = getCurrentBranch(workspaceRoot);
-
-  // Register brief watcher for toast notifications
-  const briefWatcherResult = registerBriefWatcher(
-    context,
-    output,
-    workspaceRoot,
-    currentBranch,
-  );
+  // Register tree view
 
   const navigationCommands = registerNavigationCommands(
     output,
@@ -91,20 +78,10 @@ function initializeWorkspaceFeatures(
 
   registerContextOnOpen(context, output, workspaceRoot);
 
-  // Register brief document provider for virtual document viewing
-  const briefProvider = new BriefDocumentProvider();
-  context.subscriptions.push(
-    vscode.workspace.registerTextDocumentContentProvider(
-      BriefDocumentProvider.scheme,
-      briefProvider,
-    ),
-  );
-
   const subscriptions: vscode.Disposable[] = [
     treeViewResult.watcher,
     treeViewResult.treeView,
     treeViewResult.refreshCommand,
-    briefWatcherResult.watcher,
     navigationCommands.openEntityCommand,
     navigationCommands.openEntityByIdCommand,
     navigationCommands.openTreeItemSourceCommand,

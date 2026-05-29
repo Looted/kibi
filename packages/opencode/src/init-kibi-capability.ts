@@ -1,12 +1,13 @@
 import fs from "node:fs";
-import path from "node:path";
 import { createRequire } from "node:module";
+import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildInitKibiAlias } from "./init-kibi-alias.js";
 
 export const INIT_KIBI_COMMAND_NAME = "init-kibi";
 export const INIT_KIBI_COMMAND_TEMPLATE = buildInitKibiAlias();
-export const INIT_KIBI_COMMAND_DESCRIPTION = "Run the Kibi interactive activation workflow."; // implements REQ-001
+export const INIT_KIBI_COMMAND_DESCRIPTION =
+  "Run the Kibi interactive activation workflow."; // implements REQ-001
 
 export interface OpenCodeCommandDefinition {
   template: string;
@@ -151,9 +152,9 @@ function buildUnsupportedReason(
         reason: `${prefix} ${detail}`,
       }
     : {
-      supported: false,
-      reason: `${prefix} ${detail}`,
-    };
+        supported: false,
+        reason: `${prefix} ${detail}`,
+      };
 }
 
 function readTextIfExists(filePath: string): string | undefined {
@@ -174,13 +175,18 @@ function readPackageVersion(filePath: string): string | undefined {
   }
 }
 
-// implements REQ-opencode-kibi-briefing-v2
 export function findSdkPackageJsonForPluginRoot(
   pluginRoot: string,
 ): string | undefined {
   const scopeRoot = path.dirname(pluginRoot);
   const candidates = [
-    path.join(pluginRoot, "node_modules", "@opencode-ai", "sdk", "package.json"),
+    path.join(
+      pluginRoot,
+      "node_modules",
+      "@opencode-ai",
+      "sdk",
+      "package.json",
+    ),
     path.join(scopeRoot, "sdk", "package.json"),
   ];
 
@@ -210,8 +216,8 @@ function resolveHostCapabilityInputs(): InitKibiCapabilityDetectionInput {
       initialEnvPwd,
       initialGithubWorkspace,
       moduleDir,
-    ].filter((value): value is string =>
-      typeof value === "string" && value.length > 0,
+    ].filter(
+      (value): value is string => typeof value === "string" && value.length > 0,
     ),
   );
   if (dogfoodHost) {
@@ -256,7 +262,6 @@ function isCommandMap(
   return isRecord(value);
 }
 
-// implements REQ-opencode-kibi-briefing-v2
 export function detectInitKibiCommandCapability(
   input: InitKibiCapabilityDetectionInput,
 ): InitKibiCommandCapability {
@@ -296,17 +301,17 @@ export function detectInitKibiCommandCapability(
   };
 }
 
-// implements REQ-opencode-kibi-briefing-v2
 export function getInitKibiCommandCapability(): InitKibiCommandCapability {
   if (cachedCapability?.supported) {
     return cachedCapability;
   }
 
-  cachedCapability = detectInitKibiCommandCapability(resolveHostCapabilityInputs());
+  cachedCapability = detectInitKibiCommandCapability(
+    resolveHostCapabilityInputs(),
+  );
   return cachedCapability;
 }
 
-// implements REQ-opencode-kibi-briefing-v2
 export function registerInitKibiCommand(
   configInput: unknown,
   capability: InitKibiCommandCapability = getInitKibiCommandCapability(),

@@ -28,7 +28,12 @@ function ensureDir(dirPath: string) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function writeEntityDoc(filePath: string, id: string, title: string, status: string) {
+function writeEntityDoc(
+  filePath: string,
+  id: string,
+  title: string,
+  status: string,
+) {
   ensureDir(path.dirname(filePath));
   fs.writeFileSync(
     filePath,
@@ -147,15 +152,23 @@ export function setupWorkspace(): AutopilotWorkspaceFixture {
 export function writeRootConfig(root: string, obj: unknown) {
   const kbDir = path.join(root, ".kb");
   fs.mkdirSync(kbDir, { recursive: true });
-  fs.writeFileSync(path.join(kbDir, "config.json"), JSON.stringify(obj, null, 2));
+  fs.writeFileSync(
+    path.join(kbDir, "config.json"),
+    JSON.stringify(obj, null, 2),
+  );
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1
 export function createVendoredTree(root: string) {
   const vend = path.join(root, "kibi");
-  fs.mkdirSync(path.join(vend, "documentation", "requirements"), { recursive: true });
+  fs.mkdirSync(path.join(vend, "documentation", "requirements"), {
+    recursive: true,
+  });
   fs.mkdirSync(path.join(vend, "packages", "mcp"), { recursive: true });
-  fs.writeFileSync(path.join(vend, "opencode.json"), JSON.stringify({ plugin: ["kibi-opencode"] }));
+  fs.writeFileSync(
+    path.join(vend, "opencode.json"),
+    JSON.stringify({ plugin: ["kibi-opencode"] }),
+  );
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1
@@ -204,25 +217,15 @@ export function createColdStartRepo(root: string) {
   );
   fs.writeFileSync(
     path.join(root, "src", "cli.ts"),
-    [
-      "export function main() {",
-      "  return \"cli\";",
-      "}",
-      "",
-    ].join("\n"),
+    ["export function main() {", '  return "cli";', "}", ""].join("\n"),
   );
   fs.writeFileSync(
     path.join(root, "src", "server.ts"),
-    [
-      "export function serve() {",
-      "  return \"server\";",
-      "}",
-      "",
-    ].join("\n"),
+    ["export function serve() {", '  return "server";', "}", ""].join("\n"),
   );
   fs.writeFileSync(
     path.join(root, "src", "routes", "health.ts"),
-    ["export const healthRoute = \"/health\";", ""].join("\n"),
+    ['export const healthRoute = "/health";', ""].join("\n"),
   );
   fs.writeFileSync(
     path.join(root, "tests", "server.test.ts"),
@@ -260,9 +263,15 @@ export function createMultiRootRepo(root: string) {
   ensureDocsAt(path.join(root, "packages", "app", "documentation"), "APP");
   ensureDocsAt(path.join(root, "packages", "api", "documentation"), "API");
   ensureDir(path.join(root, "documentation"));
-  fs.writeFileSync(path.join(root, "documentation", "symbols.yaml"), "symbols: []\n");
+  fs.writeFileSync(
+    path.join(root, "documentation", "symbols.yaml"),
+    "symbols: []\n",
+  );
   ensureDir(path.join(root, "docs"));
-  fs.writeFileSync(path.join(root, "docs", "bootstrap.md"), "# ADR: Multi-root bootstrap\n");
+  fs.writeFileSync(
+    path.join(root, "docs", "bootstrap.md"),
+    "# ADR: Multi-root bootstrap\n",
+  );
 }
 
 // implements REQ-mcp-init-kibi-autopilot-v1

@@ -20,7 +20,11 @@ export interface SessionEditEntry {
 }
 
 export interface SessionEditState {
-  recordEventHint(filePath: string, kind: EditEventKind, timestamp?: number): void;
+  recordEventHint(
+    filePath: string,
+    kind: EditEventKind,
+    timestamp?: number,
+  ): void;
   reconcilePath(filePath: string): void;
   reconcileKnownPaths(): void;
   getSessionEdits(): SessionEditEntry[];
@@ -194,7 +198,8 @@ export function createSessionEditState(opts: {
     const edits = getSessionEdits();
     if (edits.length === 0) return null;
     // edits are sorted ascending by lastReconciledAt, so last = most recent
-    return edits[edits.length - 1]!;
+    const focusEdit = edits.at(-1);
+    return focusEdit ?? null;
   }
 
   function hasSessionEdits(): boolean {

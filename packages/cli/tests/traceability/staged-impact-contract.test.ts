@@ -1,20 +1,20 @@
 import { describe, expect, it } from "bun:test";
 
 import {
-  classifyKibiImpactEvidence,
-  isAuditedNoImpactOverrideAllowed,
-  isBehaviorSourceEdit,
-  isSupportedBehaviorSourcePath,
-  parseKibiImpactOverride,
-  type BehaviorSourceEditInput,
-  type KibiImpactEvidenceInput,
-} from "../../src/traceability/staged-impact-contract.js";
-import {
   KIBI_ENTITY_SCHEMA_DOC,
   KIBI_SYMBOLS_MANIFEST_PATH,
   type KibiImpactEvidence,
 } from "../../src/traceability/evidence-model.js";
 import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
+import {
+  type BehaviorSourceEditInput,
+  type KibiImpactEvidenceInput,
+  classifyKibiImpactEvidence,
+  isAuditedNoImpactOverrideAllowed,
+  isBehaviorSourceEdit,
+  isSupportedBehaviorSourcePath,
+  parseKibiImpactOverride,
+} from "../../src/traceability/staged-impact-contract.js";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -261,9 +261,7 @@ describe("parseKibiImpactOverride", () => {
   });
 
   it("treats whitespace-only rationale as null", () => {
-    const result = parseKibiImpactOverride(
-      "Kibi-Impact: none\nRationale:   ",
-    );
+    const result = parseKibiImpactOverride("Kibi-Impact: none\nRationale:   ");
     expect(result.declared).toBe(true);
     expect(result.rationale).toBeNull();
   });

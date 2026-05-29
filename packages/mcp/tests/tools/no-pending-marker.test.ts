@@ -31,13 +31,15 @@ function createMockProlog(
   };
 }
 
-describe("brief pending markers", () => {
+describe("removed mutation pending markers", () => {
   const initialWorkspace = process.env.KIBI_WORKSPACE;
   const initialBranch = process.env.KIBI_BRANCH;
   let workspaceRoot: string;
 
   beforeEach(async () => {
-    workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-marker-"));
+    workspaceRoot = await fs.mkdtemp(
+      path.join(os.tmpdir(), "kibi-mcp-marker-"),
+    );
     await fs.mkdir(path.join(workspaceRoot, ".kb", "branches", "develop"), {
       recursive: true,
     });
@@ -59,7 +61,7 @@ describe("brief pending markers", () => {
     await fs.rm(workspaceRoot, { recursive: true, force: true });
   });
 
-  test("kb_upsert writes a pending marker and deduplicates by session", async () => {
+  test("kb_upsert does not create a pending marker", async () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-MARKER-001', _, _))") {
         return { success: false };
@@ -117,37 +119,10 @@ describe("brief pending markers", () => {
     } as Parameters<typeof handleKbUpsert>[1]);
 
     const pendingDir = path.join(workspaceRoot, ".kb", "briefs", "pending");
-    const files = await fs.readdir(pendingDir);
-
-    expect(files.length).toBe(1);
-    expect(files[0]).toMatch(/^session-marker-1-\d+\.json$/);
-
-    const marker = JSON.parse(
-      await fs.readFile(path.join(pendingDir, files[0] ?? ""), "utf8"),
-    ) as {
-      sessionId: string;
-      timestamp: number;
-      branch: string;
-      operation: string;
-      entityIds: string[];
-      relationships: Array<{ from: string; to: string; type: string }>;
-    };
-
-    expect(marker.sessionId).toBe("session-marker-1");
-    expect(marker.branch).toBe("develop");
-    expect(marker.operation).toBe("upsert");
-    expect(marker.timestamp).toBeTypeOf("number");
-    expect(marker.entityIds).toEqual(["REQ-MARKER-001"]);
-    expect(marker.relationships).toEqual([
-      {
-        from: "REQ-MARKER-001",
-        to: "SCEN-MARKER-001",
-        type: "specified_by",
-      },
-    ]);
+    await expect(fs.readdir(pendingDir)).rejects.toThrow();
   });
 
-  test("kb_delete writes deleted ids and relationship endpoints to a pending marker", async () => {
+  test("kb_delete does not create a pending marker", async () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-DELETE-MARKER-001', _, _))") {
         return { success: true };
@@ -159,7 +134,8 @@ describe("brief pending markers", () => {
         return {
           success: true,
           bindings: {
-            Relationships: "[[specified_by,'REQ-DELETE-MARKER-001','SCEN-DELETE-001']]",
+            Relationships:
+              "[[specified_by,'REQ-DELETE-MARKER-001','SCEN-DELETE-001']]",
           },
         };
       }
@@ -207,30 +183,7 @@ describe("brief pending markers", () => {
     } as Parameters<typeof handleKbDelete>[1]);
 
     const pendingDir = path.join(workspaceRoot, ".kb", "briefs", "pending");
-    const files = await fs.readdir(pendingDir);
-    expect(files.length).toBe(1);
-
-    const marker = JSON.parse(
-      await fs.readFile(path.join(pendingDir, files[0] ?? ""), "utf8"),
-    ) as {
-      sessionId: string;
-      branch: string;
-      operation: string;
-      entityIds: string[];
-      relationships: Array<{ from: string; to: string; type: string }>;
-    };
-
-    expect(marker.sessionId).toBe("session-delete-1");
-    expect(marker.branch).toBe("develop");
-    expect(marker.operation).toBe("delete");
-    expect(marker.entityIds).toEqual(["REQ-DELETE-MARKER-001"]);
-    expect(marker.relationships).toEqual([
-      {
-        from: "REQ-DELETE-MARKER-001",
-        to: "SCEN-DELETE-001",
-        type: "specified_by",
-      },
-    ]);
+    await expect(fs.readdir(pendingDir)).rejects.toThrow();
   });
 
   test("does not write a marker when the mutation fails", async () => {

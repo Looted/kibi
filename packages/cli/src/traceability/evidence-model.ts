@@ -159,9 +159,7 @@ function uniqueSorted(values: Iterable<string>): string[] {
 }
 
 /** Returns staged behavior-changing source paths only. */
-export function getBehaviorSourcePaths(
-  evidence: KibiImpactEvidence,
-): string[] {
+export function getBehaviorSourcePaths(evidence: KibiImpactEvidence): string[] {
   return evidence.sourceChanges
     .filter((change) => change.kind === "behavior_source_edit")
     .map((change) => change.path)

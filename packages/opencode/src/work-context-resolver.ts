@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync, type Stats } from "node:fs";
+import { type Stats, existsSync, readFileSync, statSync } from "node:fs";
 import {
   basename,
   dirname,
@@ -9,7 +9,7 @@ import {
   sep,
 } from "node:path";
 
-import { detectPosture, type RepoPosture } from "./repo-posture.js";
+import { type RepoPosture, detectPosture } from "./repo-posture.js";
 
 export interface ResolveWorkContextInput {
   inputDirectory: string;
@@ -56,7 +56,10 @@ function readFirstLine(path: string): string | null {
   }
 }
 
-function readLinkedGitDir(worktreeRoot: string, gitFilePath: string): string | null {
+function readLinkedGitDir(
+  worktreeRoot: string,
+  gitFilePath: string,
+): string | null {
   const firstLine = readFirstLine(gitFilePath);
   if (!firstLine?.startsWith("gitdir:")) {
     return null;
@@ -226,7 +229,10 @@ function resolveBranch(git: GitMetadata | null): string {
   return branch === "master" ? "main" : branch;
 }
 
-function normalizeRepoRelativePath(fromRoot: string, targetPath: string): string {
+function normalizeRepoRelativePath(
+  fromRoot: string,
+  targetPath: string,
+): string {
   const rawRelativePath = relative(fromRoot, targetPath);
   if (rawRelativePath.length === 0) {
     return ".";
@@ -243,8 +249,12 @@ function authoritativeForPosture(posture: RepoPosture): boolean {
 const resolveWorkContext = function resolveWorkContext(
   input: ResolveWorkContextInput,
 ): WorkContext {
-  const declaredWorktreeRoot = resolve(input.inputWorktree || input.inputDirectory);
-  const declaredDirectory = resolve(input.inputDirectory || input.inputWorktree);
+  const declaredWorktreeRoot = resolve(
+    input.inputWorktree || input.inputDirectory,
+  );
+  const declaredDirectory = resolve(
+    input.inputDirectory || input.inputWorktree,
+  );
   const absoluteFilePath = input.filePath
     ? isAbsolute(input.filePath)
       ? resolve(input.filePath)

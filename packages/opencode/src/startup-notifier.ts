@@ -1,8 +1,8 @@
 import {
-  sendToast,
   type SendToastResult,
   type ToastCapableClient,
   type ToastPayload,
+  sendToast,
 } from "./toast.js";
 
 export type { ToastPayload } from "./toast.js";

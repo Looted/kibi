@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
 import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
+import { handleKbFindGaps } from "../../src/tools/find-gaps.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
-  setupIsolatedCore,
   type IsolatedCoreFixture,
+  setupIsolatedCore,
 } from "./discovery-root-fixture.js";
 
 describe("MCP find-gaps tool handler", () => {

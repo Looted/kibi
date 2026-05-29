@@ -184,7 +184,9 @@ describe("symbol traceability taxonomy rubric", () => {
     expect(content).toContain("Metadata / non-executable symbols");
     expect(content).toContain("`implements` = direct requirement ownership");
     expect(content).toContain("`covered_by` = production coverage evidence");
-    expect(content).toContain("`executable_for` = executable test code identity");
+    expect(content).toContain(
+      "`executable_for` = executable test code identity",
+    );
     expect(content).toContain(
       "Never use `covered_by` as ownership and never use `executable_for` as production coverage.",
     );
@@ -192,9 +194,13 @@ describe("symbol traceability taxonomy rubric", () => {
       "A symbol that uses `executable_for` must not also carry `implements` or `covered_by`.",
     );
     expect(content).toContain("When integration/e2e evidence is required");
-    expect(content).toContain("Explicit N/A rationale is allowed only when all of the following are true");
+    expect(content).toContain(
+      "Explicit N/A rationale is allowed only when all of the following are true",
+    );
     expect(content).toContain("Anti-blanket requirement checklist");
-    expect(content).toContain("If any checkbox fails, split the requirement before adding more symbol links.");
+    expect(content).toContain(
+      "If any checkbox fails, split the requirement before adding more symbol links.",
+    );
   });
 });
 

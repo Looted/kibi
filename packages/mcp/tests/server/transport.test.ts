@@ -16,7 +16,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
@@ -41,6 +49,8 @@ async function importTransportModule(tag: string) {
   }));
   return import(`${TRANSPORT_MODULE_URL}?case=${tag}-${Math.random()}`);
 }
+
+type TransportModule = Awaited<ReturnType<typeof importTransportModule>>;
 
 function createMockTransport(): {
   transport: StdioServerTransport;
@@ -92,9 +102,7 @@ describe("setupTransportHandlers", () => {
   let originalProcessOn: typeof process.on;
   let capturedSigtermHandler: (() => void) | undefined;
   let originalDebug: string | undefined;
-  let setupTransportHandlers: typeof import(
-    "../../src/server/transport.js"
-  ).setupTransportHandlers;
+  let setupTransportHandlers: TransportModule["setupTransportHandlers"];
 
   beforeEach(async () => {
     originalConsoleError = console.error;
@@ -436,9 +444,7 @@ describe("setupTransportHandlers", () => {
 });
 
 describe("connectTransport", () => {
-  let connectTransport: typeof import(
-    "../../src/server/transport.js"
-  ).connectTransport;
+  let connectTransport: TransportModule["connectTransport"];
 
   beforeEach(async () => {
     ({ connectTransport } = await importTransportModule("connect-transport"));
@@ -469,6 +475,6 @@ describe("connectTransport", () => {
     );
   });
 });
-  afterAll(() => {
-    mock.restore();
-  });
+afterAll(() => {
+  mock.restore();
+});

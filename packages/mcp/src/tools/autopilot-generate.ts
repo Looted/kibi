@@ -1,3 +1,6 @@
+import path from "node:path";
+import fg from "fast-glob";
+import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,29 +19,26 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-import path from "node:path";
-import fg from "fast-glob";
-import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
+import { resolveWorkspaceRoot } from "../workspace.js";
 import {
   type Candidate,
-  buildNormativeRequirementCandidates,
-  collectSourceOnlyAuthoringSignals,
-  buildGenericMarkdownCandidates,
-  buildProviderEvidenceCandidates,
-  buildTypedMarkdownCandidates,
-  buildSymbolManifestCandidates,
   type SourceOnlyAuthoringSignal,
+  buildGenericMarkdownCandidates,
+  buildNormativeRequirementCandidates,
+  buildProviderEvidenceCandidates,
+  buildSymbolManifestCandidates,
+  buildTypedMarkdownCandidates,
+  collectSourceOnlyAuthoringSignals,
 } from "./autopilot-candidates.js";
-import { getWorkspaceMigrationWarning } from "./model-requirement.js";
 import {
+  type ActivationMode,
+  type ActivationState,
   type DiscoverySummary,
   discoverProviderEvidence,
   resolveActivationPolicy,
-  type ActivationMode,
-  type ActivationState,
 } from "./autopilot-discovery.js";
 import { loadEntities } from "./entity-query.js";
-import { resolveWorkspaceRoot } from "../workspace.js";
+import { getWorkspaceMigrationWarning } from "./model-requirement.js";
 
 export interface AutopilotBootstrapContext {
   projectSummary?: string;
@@ -74,9 +74,7 @@ export interface AutopilotGenerateArgs {
   includeGenericMarkdown?: boolean;
   minConfidence?: number;
   maxCandidates?: number;
-  entityTypes?: Array<
-    "req" | "scenario" | "test" | "adr" | "fact" | "symbol"
-  >;
+  entityTypes?: Array<"req" | "scenario" | "test" | "adr" | "fact" | "symbol">;
   bootstrapContext?: AutopilotBootstrapContext;
 }
 
@@ -134,7 +132,9 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-function normalizeOptionalString(value: string | undefined): string | undefined {
+function normalizeOptionalString(
+  value: string | undefined,
+): string | undefined {
   const trimmed = String(value ?? "").trim();
   return trimmed.length > 0 ? trimmed : undefined;
 }
@@ -156,13 +156,21 @@ function normalizeStringArray(values: string[] | undefined): string[] {
 function normalizeBootstrapContext(
   bootstrapContext?: AutopilotBootstrapContext,
 ): AutopilotDeclaredContext {
-  const projectSummary = normalizeOptionalString(bootstrapContext?.projectSummary);
+  const projectSummary = normalizeOptionalString(
+    bootstrapContext?.projectSummary,
+  );
   return {
     ...(projectSummary ? { projectSummary } : {}),
-    sourceOfTruthPaths: normalizeStringArray(bootstrapContext?.sourceOfTruthPaths),
-    sourceOfTruthNotes: normalizeStringArray(bootstrapContext?.sourceOfTruthNotes),
+    sourceOfTruthPaths: normalizeStringArray(
+      bootstrapContext?.sourceOfTruthPaths,
+    ),
+    sourceOfTruthNotes: normalizeStringArray(
+      bootstrapContext?.sourceOfTruthNotes,
+    ),
     priorityRoots: normalizeStringArray(bootstrapContext?.priorityRoots),
-    verificationAnchors: normalizeStringArray(bootstrapContext?.verificationAnchors),
+    verificationAnchors: normalizeStringArray(
+      bootstrapContext?.verificationAnchors,
+    ),
   };
 }
 
@@ -170,7 +178,10 @@ function roundScore(score: number): number {
   return Math.round(clamp(score, 0, 1) * 100) / 100;
 }
 
-function toWorkspaceRelativePath(workspaceRoot: string, targetPath: string): string {
+function toWorkspaceRelativePath(
+  workspaceRoot: string,
+  targetPath: string,
+): string {
   const relative = path.relative(workspaceRoot, targetPath);
   if (!relative.startsWith("..") && !path.isAbsolute(relative)) {
     return relative.split(path.sep).join("/");
@@ -195,7 +206,9 @@ function countCandidatesByType(
   return counts;
 }
 
-function formatCandidateTypeCounts(candidateRecords: CandidateRecord[]): string {
+function formatCandidateTypeCounts(
+  candidateRecords: CandidateRecord[],
+): string {
   const counts = countCandidatesByType(candidateRecords);
   return Object.keys(counts)
     .sort()
@@ -204,7 +217,9 @@ function formatCandidateTypeCounts(candidateRecords: CandidateRecord[]): string 
 }
 
 function summarizeSignalKinds(signals: SourceOnlyAuthoringSignal[]): string {
-  const labels = Array.from(new Set(signals.map((signal) => signal.kind.toUpperCase())));
+  const labels = Array.from(
+    new Set(signals.map((signal) => signal.kind.toUpperCase())),
+  );
   return labels.join("/");
 }
 
@@ -280,17 +295,26 @@ function buildPromptBlock(
       `- Verify after kb_check with ${listSummary(declaredContext.verificationAnchors, 2)}.`,
     );
   }
-  if (activationMode === "attached_thin_handoff" || activationMode === "attached_seeded_handoff") {
-    bullets.push("- Handoff: use kb_search, kb_briefing_generate, or kb_find_gaps to work with existing KB.");
+  if (
+    activationMode === "attached_thin_handoff" ||
+    activationMode === "attached_seeded_handoff"
+  ) {
+    bullets.push(
+      "- Handoff: use kb_search, kb_query, or gap/coverage tools to work with existing KB.",
+    );
   }
   if (scanWarnings.length > 0) {
-    bullets.push(`- Scan diagnostics: ${scanWarnings.length} warning(s) during evidence collection.`);
+    bullets.push(
+      `- Scan diagnostics: ${scanWarnings.length} warning(s) during evidence collection.`,
+    );
   }
 
   return trimPromptBlock(bullets);
 }
 
-function buildPayoffSummary(candidateRecords: CandidateRecord[]): PayoffSummary {
+function buildPayoffSummary(
+  candidateRecords: CandidateRecord[],
+): PayoffSummary {
   const current: Record<string, number> = {};
   const projectedIfAllApplied = { ...current };
   for (const candidate of candidateRecords) {
@@ -356,7 +380,8 @@ function buildRecommendedActions(
     .map((candidate) => String(candidate.candidateId ?? ""))
     .filter(Boolean);
   const isActiveRepo =
-    activationMode === "attached_thin_handoff" || activationMode === "attached_seeded_handoff";
+    activationMode === "attached_thin_handoff" ||
+    activationMode === "attached_seeded_handoff";
 
   actions.push({
     order: order++,
@@ -378,7 +403,7 @@ function buildRecommendedActions(
       order: order++,
       kind: "handoff",
       description:
-        "Use kb_briefing_generate with task-relevant seed IDs for a citation-backed briefing.",
+        "Use kb_query or kb_graph with task-relevant IDs to inspect cited KB context.",
     });
     actions.push({
       order: order++,
@@ -394,7 +419,9 @@ function buildRecommendedActions(
     actions.push({
       order: order++,
       kind: "handoff",
-      description: handoffMessage ?? blockedActivationMessage(activationMode, activationReason),
+      description:
+        handoffMessage ??
+        blockedActivationMessage(activationMode, activationReason),
     });
   } else if (candidateIds.length > 0) {
     actions.push({
@@ -409,7 +436,10 @@ function buildRecommendedActions(
     actions.push({
       order: order++,
       kind: "handoff",
-      description: buildSourceOnlyActionDescription(workspaceRoot, sourceOnlySignals),
+      description: buildSourceOnlyActionDescription(
+        workspaceRoot,
+        sourceOnlySignals,
+      ),
     });
   }
 
@@ -456,11 +486,15 @@ function buildConfidence(
       break;
     case "attached_seeded_handoff":
       score -= 0.18;
-      reasons.push("Seeded attached KB already has enough history to prefer handoff guidance.");
+      reasons.push(
+        "Seeded attached KB already has enough history to prefer handoff guidance.",
+      );
       break;
     case "vendored_blocked":
       score -= 0.25;
-      reasons.push("Vendored-only posture blocks bootstrap output from becoming actionable.");
+      reasons.push(
+        "Vendored-only posture blocks bootstrap output from becoming actionable.",
+      );
       break;
   }
 
@@ -488,23 +522,33 @@ function buildConfidence(
     score -= 0.08;
     reasons.push("No safe candidates were synthesized from current evidence.");
   } else {
-    reasons.push(`${candidateRecords.length} safe candidate(s) are ready for review.`);
+    reasons.push(
+      `${candidateRecords.length} safe candidate(s) are ready for review.`,
+    );
   }
 
   if (!promptBlock) {
     score -= 0.05;
-    reasons.push("Prompt block could not be assembled within the handoff budget.");
+    reasons.push(
+      "Prompt block could not be assembled within the handoff budget.",
+    );
   }
 
   const rounded = roundScore(score);
   const level: "high" | "medium" | "low" =
     rounded > 0.7 ? "high" : rounded >= 0.4 ? "medium" : "low";
   const policy: "full_actions" | "review_required" | "handoff_only" =
-    level === "high" ? "full_actions" : level === "medium" ? "review_required" : "handoff_only";
+    level === "high"
+      ? "full_actions"
+      : level === "medium"
+        ? "review_required"
+        : "handoff_only";
   if (policy === "review_required") {
     reasons.push("Medium confidence: review recommended before applying.");
   } else if (policy === "handoff_only") {
-    reasons.push("Low confidence: handoff-only output with diagnostic guidance.");
+    reasons.push(
+      "Low confidence: handoff-only output with diagnostic guidance.",
+    );
   }
   return {
     score: rounded,
@@ -526,7 +570,10 @@ function buildTldr(
     if (candidateRecords.length > 0 || sourceOnlySignals.length > 0) {
       return `Bootstrap guidance is ready in ${activationMode}: ${candidateRecords.length} safe candidate(s), ${sourceOnlySignals.length} source-only authoring follow-up(s), and apply remains blocked.`;
     }
-    return handoffMessage ?? blockedActivationMessage(activationMode, activationReason);
+    return (
+      handoffMessage ??
+      blockedActivationMessage(activationMode, activationReason)
+    );
   }
 
   if (candidateRecords.length > 0 || sourceOnlySignals.length > 0) {
@@ -596,7 +643,8 @@ function splitDiscoveredSources(workspaceRoot: string, candidates: string[]) {
   return { markdownFiles, manifestFiles };
 }
 
-export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi-autopilot-v1
+export async function handleKbAutopilotGenerate(
+  // implements REQ-mcp-init-kibi-autopilot-v1
   _prolog: PrologProcess,
   args: AutopilotGenerateArgs,
 ): Promise<AutopilotGenerateResult> {
@@ -627,22 +675,24 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   const workspaceRoot = resolveWorkspaceRoot();
   const activation = await resolveActivationPolicy(workspaceRoot, prolog);
   const activationState = activation.activationState;
-  const activationDiscovery = discoverProviderEvidence(workspaceRoot, activation);
+  const activationDiscovery = discoverProviderEvidence(
+    workspaceRoot,
+    activation,
+  );
   const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
   const declaredContext = normalizeBootstrapContext(bootstrapContext);
-  const discoveredCandidatePaths = activationDiscovery.evidence.reduce<string[]>(
-    (acc, item) => {
-      const relativePath = item.relativePath;
-      if (
-        typeof relativePath === "string" &&
-        (relativePath.endsWith(".md") || /symbols\.ya?ml$/i.test(relativePath))
-      ) {
-        acc.push(relativePath);
-      }
-      return acc;
-    },
-    [],
-  );
+  const discoveredCandidatePaths = activationDiscovery.evidence.reduce<
+    string[]
+  >((acc, item) => {
+    const relativePath = item.relativePath;
+    if (
+      typeof relativePath === "string" &&
+      (relativePath.endsWith(".md") || /symbols\.ya?ml$/i.test(relativePath))
+    ) {
+      acc.push(relativePath);
+    }
+    return acc;
+  }, []);
   const discovery = splitDiscoveredSources(
     workspaceRoot,
     discoveredCandidatePaths,
@@ -770,7 +820,9 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       const textRef = extractTextRefFromApplyPlan(candidate.applyPlan);
       const titleKey = normalizeTitle(entityType, title);
 
-      const upsert = Array.isArray(candidate.applyPlan) ? candidate.applyPlan[0] : null;
+      const upsert = Array.isArray(candidate.applyPlan)
+        ? candidate.applyPlan[0]
+        : null;
       let upsertId = "";
       if (upsert && typeof upsert === "object") {
         const upsertRecord = upsert as Record<string, unknown>;
@@ -793,7 +845,9 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       }
 
       if (sourceKind === "generic_markdown" && typedTitleKeys.has(titleKey)) {
-        suppressed.push(toSuppressedCandidate("shadowed_by_typed_source", record));
+        suppressed.push(
+          toSuppressedCandidate("shadowed_by_typed_source", record),
+        );
         continue;
       }
 
@@ -843,7 +897,13 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
       const explain = repoIgnore.explain(rel);
       if (explain.ignored) {
         // avoid duplicating existing suppressed entries for the same source
-        if (!suppressed.some((s) => String(s.sourcePath ?? "") === rel && s.reason === "ignored_source")) {
+        if (
+          !suppressed.some(
+            (s) =>
+              String(s.sourcePath ?? "") === rel &&
+              s.reason === "ignored_source",
+          )
+        ) {
           suppressed.push({
             candidateId: String("") /* no candidate id for ignored source */,
             reason: "ignored_source",
@@ -899,7 +959,9 @@ export async function handleKbAutopilotGenerate( // implements REQ-mcp-init-kibi
   );
   // Apply confidence policy: medium and low confidence force applyBlocked
   const effectiveApplyBlocked =
-    activation.applyBlocked || confidence.level === "medium" || confidence.level === "low";
+    activation.applyBlocked ||
+    confidence.level === "medium" ||
+    confidence.level === "low";
   const effectiveTldr =
     confidence.level === "low" && !activation.applyBlocked
       ? `Low-confidence bootstrap (${confidence.score}): review diagnostics before proceeding. ${tldr}`

@@ -24,8 +24,8 @@ The plugin now uses a posture-aware, low-token smart-enforcement model before em
 
 - **Repo posture detection**: distinguishes `root_active`, `root_partial`, `root_uninitialized`, `vendored_only`, and `hybrid_root_plus_vendored`
 - **Risk classification**: separates `safe_docs_only`, `safe_test_only`, `kb_doc_structural`, `req_policy_candidate`, `behavior_candidate`, `traceability_candidate`, and `manual_kb_edit`
-- **Source-linked micro-briefs**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
-- **Start-task risky cue**: authoritative risky edits also add a compact `/brief-kibi` cue so agents can start with an explicit Kibi briefing before acting, while staying inside the same single prompt block and token budget.
+- **Source-linked Kibi links**: risky code edits (`behavior_candidate`, `traceability_candidate`) prepend a concise list of existing Kibi links (e.g., `- Existing Kibi links: REQ-001, REQ-002`) when 1-3 concrete source-linked KB hits are found in `documentation/symbols.yaml`. Skip on cache hit.
+- **Start-task risky cue**: authoritative risky edits also add a compact Kibi context cue so agents can start with explicit source-linked guidance before acting, while staying inside the same single prompt block and token budget.
 - **Effective mode gating**: `advisory` (default) never blocks; `strict` escalates checks and reminders for `root_active` and `hybrid_root_plus_vendored` postures when `requireRootKbForStrict` is enabled; `hard` fails closed for authoritative roots and linked git worktrees, injecting a stop-state with MCP recovery steps until the Kibi checkpoint passes. `maintenanceDegraded` overrides everything back to `advisory`.
 - **Low-token prompt policy**: docs-only and test-only edits avoid unnecessary discovery prompts; vendored-only repos suppress operational bootstrap nudges; at most one contextual block is injected per prompt (≤120 words, ≤5 bullets)
 - **Completion reminder**: when `completionReminder` is enabled, risky code edits append a single prompt-visible `kb_check` reminder exactly once per cached context
@@ -127,13 +127,6 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap using only public MCP tools.
 
-When the plugin detects an authoritative risky edit (`behavior_candidate` or `traceability_candidate` risk class), it automatically renders a Kibi briefing before the prompt. The plugin uses two complementary paths: the `file.edited` event hook as a fast-path hint, and prompt-cycle reconciliation as an authoritative fallback for programmatic edits that bypass the event bus. Briefings are rendered directly into the prompt to ensure immediate visibility.
-
-- **Immediate delivery**: Briefings are rendered-first into the prompt guidance block headed `🧠 **Kibi briefing available**` and TUI toasts titled `Kibi Knowledge Update`. Unread briefings automatically open the interactive TUI via the `kibi.brief` route.
-- **Narrative structure**: Delivery favors user-facing prose with `What changed` and `Why it matters`, plus conditional `Project knowledge impact` / `Interpretation note` sections when evidence or caveats exist.
-- **TL;DR fallback**: If a full briefing is unavailable, fallback output still preserves `What changed` / `Why it matters` framing while keeping the manual command cue available.
-- **Manual command**: Use `/brief-kibi` or the `kibi.open_latest_brief` command at any time to trigger an on-demand briefing if auto-delivery is skipped or fails.
-
 ### Discovery-first MCP guidance
 
 Agent-visible guidance is intentionally limited to the curated public MCP surface:
@@ -179,7 +172,6 @@ Config files (project overrides global):
 | `ux.toastFailures` | boolean | `true` | Show failure toasts for sync/check issues |
 | `ux.toastSuccesses` | boolean | `false` | Show success toasts for sync/check completion |
 | `ux.toastCooldownMs` | number | `10000` | Cooldown between repeated UX toasts |
-| `ux.briefs.autoSubmit` | boolean | `true` | **Deprecated/No-op**: Auto-submission is no longer needed with render-first briefing |
 PP|| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.warnOnKbEdits` | boolean | `true` | Enable loud warnings for .kb/** edits |
@@ -234,7 +226,7 @@ The plugin uses the official OpenCode toast APIs with automatic capability detec
 1. **Legacy transport**: `client.tui.toast(payload)` — used when available in plugin context
 2. **SDK transport**: `client.tui.showToast({ body: payload })` — used as fallback
 3. **No capability**: Returns `{ status: "unavailable", reason: "missing-capability" }`
-The `sendToast` helper returns a discriminated `SendToastResult` union and never throws. There is no raw HTTP fallback. For rich briefing delivery, the plugin uses the `kibi.brief` route and the `kibi.open_latest_brief` command for manual retrieval.
+The `sendToast` helper returns a discriminated `SendToastResult` union and never throws. There is no raw HTTP fallback.
 The `experimental.chat.system.transform` hook handles prompt injection (see [Hook Policy](#hook-policy)). The `chat.params` hook is compatibility-only and never carries prompt text.
 
 ### Hook Modes
@@ -315,7 +307,7 @@ The OpenCode plugin respects the repository ignore policy used by Kibi's discove
 - The plugin's background sync and file-event handling skip paths matched by repository `.gitignore` files, nested `.gitignore` files, and `.git/info/exclude`.
 - The plugin also treats a curated set of tool/runtime directories as never-relevant for KB sync (for example: `.sisyphus`, `.opencode`, `.kb`, `.git`, `node_modules`, `vendor`, `third_party`).
 
-When a file event occurs for an ignored path, the plugin skips processing and will not surface candidate guidance for that file. This avoids noisy briefings and prevents build/editor artifacts from triggering KB sync work.
+When a file event occurs for an ignored path, the plugin skips processing and will not surface candidate guidance for that file. This avoids noisy sync triggers and prevents build/editor artifacts from triggering KB sync work.
 
 - **E2e reminder evidence**: File-operation reminders use exact Kibi graph evidence first (`covered_by` links to `[e2e]`-tagged entities or `/e2e/`-sourced entities) and narrow path heuristics second. Package-level e2e tests do not trigger "authoritative evidence" flags at the file level.
 

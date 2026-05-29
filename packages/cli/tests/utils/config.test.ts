@@ -59,7 +59,7 @@ describe("config", () => {
       const config = loadConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_CONFIG.paths);
-      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
+      expect("briefs" in config).toBe(false);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -126,7 +126,7 @@ describe("config", () => {
       expect(config.paths.adr).toBe(DEFAULT_CONFIG.paths.adr);
     });
 
-    test("merges briefs config - legacy config gets defaults", () => {
+    test("does not expose legacy briefs config", () => {
       const kbDir = path.join(tmpDir, ".kb");
       mkdirSync(kbDir, { recursive: true });
       const configPath = path.join(kbDir, "config.json");
@@ -142,48 +142,7 @@ describe("config", () => {
 
       const config = loadConfig(tmpDir);
 
-      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
-    });
-
-    test("merges briefs config - partial override preserves defaults", () => {
-      const kbDir = path.join(tmpDir, ".kb");
-      mkdirSync(kbDir, { recursive: true });
-      const configPath = path.join(kbDir, "config.json");
-      writeFileSync(
-        configPath,
-        JSON.stringify({
-          briefs: {
-            enabled: false,
-            channels: {
-              tui: false,
-            },
-            tui: {
-              toast: false,
-            },
-          },
-        }),
-        "utf8",
-      );
-
-      const config = loadConfig(tmpDir);
-
-      expect(config.briefs).toEqual({
-        enabled: false,
-        retention: {
-          maxPerBranch: 200,
-          maxAgeDays: 14,
-          keepUnread: true,
-        },
-        channels: {
-          vscode: true,
-          tui: false,
-        },
-        tui: {
-          toast: false,
-          appendPrompt: true,
-          idleDelayMs: 1500,
-        },
-      });
+      expect("briefs" in config).toBe(false);
     });
 
     test("merges all user paths with defaults", () => {
@@ -418,7 +377,9 @@ describe("config", () => {
 
       const config = loadConfig(tmpDir);
 
-      expect((config as unknown as { schemaVersion?: unknown }).schemaVersion).toBeUndefined();
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBeUndefined();
 
       const status = getSchemaVersionStatus(config);
       expect(status.currentVersion).toBeNull();
@@ -444,8 +405,12 @@ describe("config", () => {
 
       const config = loadConfig(tmpDir);
 
-      expect((config as unknown as { schemaVersion?: unknown }).schemaVersion).toBe("1");
-      expect(JSON.parse(readFileSync(configPath, "utf8")).schemaVersion).toBe("1");
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBe("1");
+      expect(JSON.parse(readFileSync(configPath, "utf8")).schemaVersion).toBe(
+        "1",
+      );
     });
   });
 
@@ -454,7 +419,7 @@ describe("config", () => {
       const config = loadSyncConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_SYNC_PATHS);
-      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
+      expect("briefs" in config).toBe(false);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -520,7 +485,7 @@ describe("config", () => {
       expect(config.paths.adr).toBe(DEFAULT_SYNC_PATHS.adr);
     });
 
-    test("merges briefs config - legacy config gets defaults", () => {
+    test("does not expose legacy briefs config", () => {
       const kbDir = path.join(tmpDir, ".kb");
       mkdirSync(kbDir, { recursive: true });
       const configPath = path.join(kbDir, "config.json");
@@ -536,48 +501,7 @@ describe("config", () => {
 
       const config = loadSyncConfig(tmpDir);
 
-      expect(config.briefs).toEqual(DEFAULT_CONFIG.briefs);
-    });
-
-    test("merges briefs config - partial override preserves defaults", () => {
-      const kbDir = path.join(tmpDir, ".kb");
-      mkdirSync(kbDir, { recursive: true });
-      const configPath = path.join(kbDir, "config.json");
-      writeFileSync(
-        configPath,
-        JSON.stringify({
-          briefs: {
-            enabled: false,
-            channels: {
-              vscode: false,
-            },
-            tui: {
-              appendPrompt: false,
-            },
-          },
-        }),
-        "utf8",
-      );
-
-      const config = loadSyncConfig(tmpDir);
-
-      expect(config.briefs).toEqual({
-        enabled: false,
-        retention: {
-          maxPerBranch: 200,
-          maxAgeDays: 14,
-          keepUnread: true,
-        },
-        channels: {
-          vscode: false,
-          tui: true,
-        },
-        tui: {
-          toast: true,
-          appendPrompt: false,
-          idleDelayMs: 1500,
-        },
-      });
+      expect("briefs" in config).toBe(false);
     });
 
     test("merges all user paths with DEFAULT_SYNC_PATHS", () => {
@@ -812,7 +736,9 @@ describe("config", () => {
 
       const config = loadSyncConfig(tmpDir);
 
-      expect((config as unknown as { schemaVersion?: unknown }).schemaVersion).toBeUndefined();
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBeUndefined();
       expect(config.paths.requirements).toBe("legacy/**/*.md");
     });
   });
@@ -830,24 +756,8 @@ describe("config", () => {
       expect(DEFAULT_CONFIG.paths.symbols).toBeDefined();
     });
 
-    test("DEFAULT_CONFIG has briefs config", () => {
-      expect(DEFAULT_CONFIG.briefs).toEqual({
-        enabled: true,
-        retention: {
-          maxPerBranch: 200,
-          maxAgeDays: 14,
-          keepUnread: true,
-        },
-        channels: {
-          vscode: true,
-          tui: true,
-        },
-        tui: {
-          toast: true,
-          appendPrompt: true,
-          idleDelayMs: 1500,
-        },
-      });
+    test("DEFAULT_CONFIG has no briefs config", () => {
+      expect("briefs" in DEFAULT_CONFIG).toBe(false);
     });
 
     test("DEFAULT_CONFIG has checks config", () => {
@@ -857,9 +767,10 @@ describe("config", () => {
     });
 
     test("DEFAULT_CONFIG pins the latest KB schema version", () => {
-      expect((DEFAULT_CONFIG as unknown as { schemaVersion?: unknown }).schemaVersion).toBe(
-        LATEST_KB_SCHEMA_VERSION,
-      );
+      expect(
+        (DEFAULT_CONFIG as unknown as { schemaVersion?: unknown })
+          .schemaVersion,
+      ).toBe(LATEST_KB_SCHEMA_VERSION);
     });
 
     test("schema version utilities normalize versions and flag future configs with a warning", () => {

@@ -1,4 +1,10 @@
-import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
+import {
+  type Dirent,
+  existsSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+} from "node:fs";
 import * as path from "node:path";
 import ignore from "ignore";
 
@@ -51,7 +57,7 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   const nestedPatterns = new Map<string, string[]>();
 
   function walk(dirAbs: string) {
-    let entries;
+    let entries: Dirent[];
     try {
       entries = readdirSync(dirAbs, { withFileTypes: true });
     } catch {
@@ -95,7 +101,9 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
   }
 
   // Prepare nested directories sorted by specificity (longest first)
-  const nestedDirsSorted = Array.from(nestedIgnoreMap.keys()).sort((a, b) => b.length - a.length);
+  const nestedDirsSorted = Array.from(nestedIgnoreMap.keys()).sort(
+    (a, b) => b.length - a.length,
+  );
 
   function isPathOutsideWorkspace(absPath: string): boolean {
     const rel = path.relative(root, absPath);
@@ -111,9 +119,14 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
     return false;
   }
 
-  function isIgnoredInternal(inputPath: string): { ignored: boolean; reason?: string } {
+  function isIgnoredInternal(inputPath: string): {
+    ignored: boolean;
+    reason?: string;
+  } {
     // Resolve to absolute and relative path inside workspace
-    const abs = path.isAbsolute(inputPath) ? path.resolve(inputPath) : path.resolve(root, inputPath);
+    const abs = path.isAbsolute(inputPath)
+      ? path.resolve(inputPath)
+      : path.resolve(root, inputPath);
 
     if (path.isAbsolute(inputPath) && isPathOutsideWorkspace(abs)) {
       return { ignored: true, reason: "outside_workspace" };
@@ -123,7 +136,8 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
     const relPosix = toPosix(rel);
 
     // Hard denylist always wins
-    if (matchesHardDeny(relPosix)) return { ignored: true, reason: "hard_deny" };
+    if (matchesHardDeny(relPosix))
+      return { ignored: true, reason: "hard_deny" };
 
     // Root .gitignore
     try {
@@ -147,11 +161,13 @@ export function createRepoIgnorePolicy(workspaceRoot: string): IgnorePolicy {
     for (const dirRel of nestedDirsSorted) {
       // dirRel is '.' for nested at root which we skipped, so dirRel will be like 'docs'
       if (dirRel === ".") continue;
-      if (relPosix === dirRel || relPosix.startsWith(dirRel + "/")) {
-        const sub = relPosix === dirRel ? "." : relPosix.slice(dirRel.length + 1);
-        const ig = nestedIgnoreMap.get(dirRel)!;
+      if (relPosix === dirRel || relPosix.startsWith(`${dirRel}/`)) {
+        const sub =
+          relPosix === dirRel ? "." : relPosix.slice(dirRel.length + 1);
+        const ig = nestedIgnoreMap.get(dirRel);
+        if (!ig) continue;
         try {
-          if (ig && ig.ignores(sub)) return { ignored: true, reason: "gitignored" };
+          if (ig.ignores(sub)) return { ignored: true, reason: "gitignored" };
         } catch (e) {
           // noop
         }

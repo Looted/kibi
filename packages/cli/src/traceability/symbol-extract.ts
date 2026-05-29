@@ -156,7 +156,10 @@ function extractRelationshipsFromManifestRecord(record: {
         typeof relationship.type === "string" &&
         typeof relationship.target === "string"
       ) {
-        relationships.push({ type: relationship.type, to: relationship.target });
+        relationships.push({
+          type: relationship.type,
+          to: relationship.target,
+        });
       }
     }
   }

@@ -95,7 +95,7 @@ describe("handleKbDelete", () => {
 
     const result = await handleKbDelete(prolog, { ids: ["REQ-001"] });
 
-    expect(query).toHaveBeenCalledTimes(6);
+    expect(query).toHaveBeenCalledTimes(5);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
     expect(result.structuredContent).toEqual({
       deleted: 1,
@@ -116,7 +116,8 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+        goal ===
+        "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
       ) {
         return {
           success: true,
@@ -156,7 +157,11 @@ describe("handleKbDelete", () => {
 
       if (
         goal ===
-        deleteGoal("REQ-001", "req", `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`)
+        deleteGoal(
+          "REQ-001",
+          "req",
+          `id='REQ-001', title=\"Delete req\", source=\"test://delete\"`,
+        )
       ) {
         return { success: true };
       }
@@ -226,7 +231,11 @@ describe("handleKbDelete", () => {
 
       if (
         goal ===
-        deleteGoal("REQ-MINIMAL", "req", `id='REQ-MINIMAL', title=\"Minimal delete\"`)
+        deleteGoal(
+          "REQ-MINIMAL",
+          "req",
+          `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+        )
       ) {
         return { success: true };
       }
@@ -241,7 +250,11 @@ describe("handleKbDelete", () => {
     await handleKbDelete(prolog, { ids: ["REQ-MINIMAL"] });
 
     expect(query).toHaveBeenCalledWith(
-      deleteGoal("REQ-MINIMAL", "req", `id='REQ-MINIMAL', title=\"Minimal delete\"`),
+      deleteGoal(
+        "REQ-MINIMAL",
+        "req",
+        `id='REQ-MINIMAL', title=\"Minimal delete\"`,
+      ),
     );
   });
 
@@ -408,7 +421,8 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+        goal ===
+        "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
       ) {
         return {
           success: true,
@@ -460,7 +474,8 @@ describe("handleKbDelete", () => {
       }
 
       if (
-        goal === "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+        goal ===
+        "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
       ) {
         return {
           success: true,

@@ -214,9 +214,7 @@ describe("server docs coverage", () => {
     const result = await toolsResource.resolver();
     expect(result.contents.length).toBeGreaterThan(0);
 
-    const text = String(
-      (result.contents[0] as { text: string }).text,
-    );
+    const text = String((result.contents[0] as { text: string }).text);
     expect(text).toContain("kb_skills_list");
     expect(text).toContain("kb_skills_load");
     expect(text).toContain("kb_skills_read");
@@ -264,13 +262,13 @@ describe("server docs coverage", () => {
   test("PROMPTS has expected prompt names", () => {
     const expectedNames = [
       "init-kibi",
-      "brief-kibi",
       "kibi_overview",
       "kibi_workflow",
       "kibi_constraints",
     ];
     const actualNames = PROMPTS.map((p) => p.name);
     expect(actualNames).toEqual(expectedNames);
+    expect(actualNames).not.toContain("brief-kibi");
   });
 
   test("DOC_RESOURCES has expected resource URIs", () => {

@@ -156,7 +156,10 @@ function extractFromParsedManifest(
   manifest: ManifestFile,
   filePath: string,
 ): ExtractionResult[] {
-  return extractFromManifestSymbolRecords(getManifestSymbols(manifest, filePath), filePath);
+  return extractFromManifestSymbolRecords(
+    getManifestSymbols(manifest, filePath),
+    filePath,
+  );
 }
 
 function extractFromManifestSymbolRecords(
@@ -197,7 +200,9 @@ function cloneManifestSymbols(
   manifest: ManifestFile,
   filePath: string,
 ): ManifestSymbolRecord[] {
-  return getManifestSymbols(manifest, filePath).map((symbol) => ({ ...symbol }));
+  return getManifestSymbols(manifest, filePath).map((symbol) => ({
+    ...symbol,
+  }));
 }
 
 // implements REQ-007

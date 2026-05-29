@@ -7,17 +7,17 @@ import {
   mkdirSync,
   mkdtempSync,
   openSync,
-  readdirSync,
   readFileSync,
+  readdirSync,
   rmSync,
   statSync,
-  writeSync,
   writeFileSync,
+  writeSync,
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { toPrologString } from "../../dist/prolog/codec.js";
-import { syncCommand, type SyncResult } from "../../src/commands/sync.js";
+import { type SyncResult, syncCommand } from "../../src/commands/sync.js";
 import { PrologProcess } from "../../src/prolog.js";
 
 interface Deferred<T> {
@@ -52,7 +52,9 @@ function deferred<T>(): Deferred<T> {
   return { promise, resolve, reject };
 }
 
-function createInteractiveSyncProlog(options: { timeout?: number } = {}): PrologProcess {
+function createInteractiveSyncProlog(
+  options: { timeout?: number } = {},
+): PrologProcess {
   const prolog = new PrologProcess(options);
   (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = false;
   return prolog;
@@ -62,10 +64,12 @@ async function runHarnessedSync(
   options: { rebuild?: boolean; validateOnly?: boolean } = {},
   harness: SyncTestHarness = {},
 ): Promise<SyncResult> {
-  return (syncCommand as unknown as (
-    syncOptions: { rebuild?: boolean; validateOnly?: boolean },
-    runtime?: SyncTestHarness,
-  ) => Promise<SyncResult>)(options, {
+  return (
+    syncCommand as unknown as (
+      syncOptions: { rebuild?: boolean; validateOnly?: boolean },
+      runtime?: SyncTestHarness,
+    ) => Promise<SyncResult>
+  )(options, {
     createProlog: createInteractiveSyncProlog,
     ...harness,
   });
@@ -81,8 +85,13 @@ async function settlesWithin(
   timeoutMs: number,
 ): Promise<boolean> {
   return Promise.race([
-    promise.then(() => true, () => true),
-    new Promise<boolean>((resolve) => setTimeout(() => resolve(false), timeoutMs)),
+    promise.then(
+      () => true,
+      () => true,
+    ),
+    new Promise<boolean>((resolve) =>
+      setTimeout(() => resolve(false), timeoutMs),
+    ),
   ]);
 }
 
@@ -231,7 +240,10 @@ User logs in with OAuth2 provider.
           expect(baseline.success).toBe(true);
 
           // Touch a file to force re-processing (without this, cache makes sync return early)
-          const touchedFile = path.join(tmpDir, "documentation/requirements/req1.md");
+          const touchedFile = path.join(
+            tmpDir,
+            "documentation/requirements/req1.md",
+          );
           const originalContent = readFileSync(touchedFile, "utf8");
           writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
 
@@ -242,36 +254,47 @@ User logs in with OAuth2 provider.
           const releaseSecond = deferred<void>();
 
           let firstFileIdentity: { ino: number; mtimeMs: number } | null = null;
-          let secondFileIdentity: { ino: number; mtimeMs: number } | null = null;
+          let secondFileIdentity: { ino: number; mtimeMs: number } | null =
+            null;
 
-          const firstSync = runHarnessedSync({}, {
-            afterAttach: ({ stagingPath }) => {
-              const stat = statSync(path.join(stagingPath, "kb.rdf"));
-              firstFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
-              firstAttached.resolve();
+          const firstSync = runHarnessedSync(
+            {},
+            {
+              afterAttach: ({ stagingPath }) => {
+                const stat = statSync(path.join(stagingPath, "kb.rdf"));
+                firstFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
+                firstAttached.resolve();
+              },
+              beforeSave: () => {
+                firstReadyToSave.resolve();
+                return releaseFirst.promise;
+              },
             },
-            beforeSave: () => {
-              firstReadyToSave.resolve();
-              return releaseFirst.promise;
-            },
-          });
+          );
 
           let secondSync: Promise<SyncResult> | undefined;
 
           try {
             expect(await settlesWithin(firstAttached.promise, 1500)).toBe(true);
-            expect(await settlesWithin(firstReadyToSave.promise, 1500)).toBe(true);
+            expect(await settlesWithin(firstReadyToSave.promise, 1500)).toBe(
+              true,
+            );
 
-            secondSync = runHarnessedSync({}, {
-              afterAttach: ({ stagingPath }) => {
-                const stat = statSync(path.join(stagingPath, "kb.rdf"));
-                secondFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
-                secondAttached.resolve();
-                return releaseSecond.promise;
+            secondSync = runHarnessedSync(
+              {},
+              {
+                afterAttach: ({ stagingPath }) => {
+                  const stat = statSync(path.join(stagingPath, "kb.rdf"));
+                  secondFileIdentity = { ino: stat.ino, mtimeMs: stat.mtimeMs };
+                  secondAttached.resolve();
+                  return releaseSecond.promise;
+                },
               },
-            });
+            );
 
-            expect(await settlesWithin(secondAttached.promise, 1500)).toBe(true);
+            expect(await settlesWithin(secondAttached.promise, 1500)).toBe(
+              true,
+            );
             expect(firstFileIdentity).toBeDefined();
             expect(secondFileIdentity).toBeDefined();
             expect(secondFileIdentity).not.toEqual(firstFileIdentity);
@@ -283,7 +306,8 @@ User logs in with OAuth2 provider.
             releaseFirst.resolve();
             await Promise.allSettled(
               [firstSync, secondSync].filter(
-                (promise): promise is Promise<SyncResult> => promise !== undefined,
+                (promise): promise is Promise<SyncResult> =>
+                  promise !== undefined,
               ),
             );
           }
@@ -299,14 +323,17 @@ User logs in with OAuth2 provider.
           const baseline = await runHarnessedSync();
           expect(baseline.success).toBe(true);
 
-          const result = await runHarnessedSync({}, {
-            afterAttach: async () => {
-              await sleep(50);
+          const result = await runHarnessedSync(
+            {},
+            {
+              afterAttach: async () => {
+                await sleep(50);
+              },
+              beforeSave: async () => {
+                await sleep(50);
+              },
             },
-            beforeSave: async () => {
-              await sleep(50);
-            },
-          });
+          );
 
           expect(result.success).toBe(true);
         });
@@ -344,25 +371,31 @@ User logs in with OAuth2 provider.
           expect(baseline.success).toBe(true);
 
           // Touch a file to force re-processing (without this, cache makes sync return early)
-          const touchedFile = path.join(tmpDir, "documentation/requirements/req1.md");
+          const touchedFile = path.join(
+            tmpDir,
+            "documentation/requirements/req1.md",
+          );
           const originalContent = readFileSync(touchedFile, "utf8");
           writeFileSync(touchedFile, `${originalContent}\n`, "utf8");
 
-          const result = await runHarnessedSync({}, {
-            afterAttach: async ({ livePath, stagingPath }) => {
-              await sleep(20);
-              rmSync(path.join(stagingPath, "kb.rdf"), { force: true });
-              copyFileSync(
-                path.join(livePath, "kb.rdf"),
-                path.join(stagingPath, "kb.rdf"),
-              );
+          const result = await runHarnessedSync(
+            {},
+            {
+              afterAttach: async ({ livePath, stagingPath }) => {
+                await sleep(20);
+                rmSync(path.join(stagingPath, "kb.rdf"), { force: true });
+                copyFileSync(
+                  path.join(livePath, "kb.rdf"),
+                  path.join(stagingPath, "kb.rdf"),
+                );
 
-              // Mutate the file to change its stamp and trigger stale_snapshot
-              const fd = openSync(path.join(stagingPath, "kb.rdf"), "a");
-              writeSync(fd, "\n");
-              closeSync(fd);
+                // Mutate the file to change its stamp and trigger stale_snapshot
+                const fd = openSync(path.join(stagingPath, "kb.rdf"), "a");
+                writeSync(fd, "\n");
+                closeSync(fd);
+              },
             },
-          }).then(
+          ).then(
             (value) => ({ ok: true as const, value }),
             (error) => ({ ok: false as const, error }),
           );
@@ -1007,9 +1040,7 @@ canonical_key: user.session.timeout_minutes.eq.30
         expect(fact.fact_kind).toBe("property_value");
         expect(fact.value_int).toBe(30);
         expect(fact.closed_world).toBe(true);
-        expect(fact.canonical_key).toBe(
-          "user.session.timeout_minutes.eq.30",
-        );
+        expect(fact.canonical_key).toBe("user.session.timeout_minutes.eq.30");
         expect(fact.valid_from).toMatch(/^2026-03-23T00:00:00/);
       },
       TEST_TIMEOUT_MS,
@@ -1177,10 +1208,13 @@ export class ServerManager {
 `,
         );
 
-        const output = execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
-          cwd: tmpDir,
-          encoding: "utf8",
-        });
+        const output = execSync(
+          `bun ${kibiBin} sync --refresh-symbol-coordinates`,
+          {
+            cwd: tmpDir,
+            encoding: "utf8",
+          },
+        );
 
         // All three symbols must resolve — no failures
         expect(output).toMatch(/failed=0/);

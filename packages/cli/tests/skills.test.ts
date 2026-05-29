@@ -1,4 +1,12 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "bun:test";
 import {
   existsSync,
   mkdirSync,
@@ -16,8 +24,8 @@ import {
   listBundledSkills,
   loadBundledSkill,
   readBundledSkillResource,
-  setBundledSkillsDir,
   resetBundledSkillsDir,
+  setBundledSkillsDir,
   validateSkillBundle,
 } from "../src/public/skills";
 
@@ -71,7 +79,11 @@ beforeEach(() => {
 
 describe("skills public API", () => {
   test("loads a valid manifest and markdown body", () => {
-    writeSkill("valid-skill", validFrontmatter(), "# Valid Skill\nUse it well.");
+    writeSkill(
+      "valid-skill",
+      validFrontmatter(),
+      "# Valid Skill\nUse it well.",
+    );
 
     const listed = listBundledSkills();
     const bundle = loadBundledSkill("valid-skill");
@@ -109,9 +121,11 @@ describe("skills public API", () => {
   });
 
   test("reports missing kibiCompatibility", () => {
-    const { kibiCompatibility: _compatibility, ...manifest } = validFrontmatter({
-      id: "missing-compat",
-    });
+    const { kibiCompatibility: _compatibility, ...manifest } = validFrontmatter(
+      {
+        id: "missing-compat",
+      },
+    );
     const rootDir = writeSkill("missing-compat", manifest);
 
     const result = validateSkillBundle(rootDir);
@@ -125,7 +139,10 @@ describe("skills public API", () => {
   test("reports invalid resource declarations", () => {
     const rootDir = writeSkill(
       "invalid-resource",
-      validFrontmatter({ id: "invalid-resource", resources: ["../secret.txt"] }),
+      validFrontmatter({
+        id: "invalid-resource",
+        resources: ["../secret.txt"],
+      }),
     );
 
     const result = validateSkillBundle(rootDir);
@@ -137,28 +154,38 @@ describe("skills public API", () => {
   test("rejects resource path traversal", () => {
     writeSkill("valid-skill", validFrontmatter());
 
-    expect(() => readBundledSkillResource("valid-skill", "../secret.txt")).toThrow(
-      SkillResourceOutOfBoundsError,
-    );
+    expect(() =>
+      readBundledSkillResource("valid-skill", "../secret.txt"),
+    ).toThrow(SkillResourceOutOfBoundsError);
   });
 
   test("rejects symlink resource escapes", () => {
     const rootDir = writeSkill(
       "symlink-skill",
-      validFrontmatter({ id: "symlink-skill", resources: ["resources/link.txt"] }),
+      validFrontmatter({
+        id: "symlink-skill",
+        resources: ["resources/link.txt"],
+      }),
     );
     mkdirSync(join(rootDir, "resources"), { recursive: true });
     mkdirSync(outsideFixturesDir, { recursive: true });
     writeFileSync(join(outsideFixturesDir, "secret.txt"), "secret");
-    symlinkSync(join(outsideFixturesDir, "secret.txt"), join(rootDir, "resources/link.txt"));
-
-    expect(() => readBundledSkillResource("symlink-skill", "resources/link.txt")).toThrow(
-      SkillResourceOutOfBoundsError,
+    symlinkSync(
+      join(outsideFixturesDir, "secret.txt"),
+      join(rootDir, "resources/link.txt"),
     );
+
+    expect(() =>
+      readBundledSkillResource("symlink-skill", "resources/link.txt"),
+    ).toThrow(SkillResourceOutOfBoundsError);
   });
 
   test("rejects oversized SKILL.md files", () => {
-    writeSkill("big-skill", validFrontmatter({ id: "big-skill" }), "x".repeat(256 * 1024 + 1));
+    writeSkill(
+      "big-skill",
+      validFrontmatter({ id: "big-skill" }),
+      "x".repeat(256 * 1024 + 1),
+    );
 
     expect(() => loadBundledSkill("big-skill")).toThrow(SkillOversizeError);
   });
@@ -179,17 +206,23 @@ describe("skills public API", () => {
   test("rejects oversized resources", () => {
     const rootDir = writeSkill("valid-skill", validFrontmatter());
     mkdirSync(join(rootDir, "resources"), { recursive: true });
-    writeFileSync(join(rootDir, "resources/example.txt"), "x".repeat(128 * 1024 + 1));
-
-    expect(() => readBundledSkillResource("valid-skill", "resources/example.txt")).toThrow(
-      SkillOversizeError,
+    writeFileSync(
+      join(rootDir, "resources/example.txt"),
+      "x".repeat(128 * 1024 + 1),
     );
+
+    expect(() =>
+      readBundledSkillResource("valid-skill", "resources/example.txt"),
+    ).toThrow(SkillOversizeError);
   });
 
   test("validation fails for oversized resources", () => {
     const rootDir = writeSkill("valid-skill", validFrontmatter());
     mkdirSync(join(rootDir, "resources"), { recursive: true });
-    writeFileSync(join(rootDir, "resources/example.txt"), "x".repeat(128 * 1024 + 1));
+    writeFileSync(
+      join(rootDir, "resources/example.txt"),
+      "x".repeat(128 * 1024 + 1),
+    );
 
     const result = validateSkillBundle(rootDir);
 
@@ -200,12 +233,18 @@ describe("skills public API", () => {
   test("validation fails for symlink resource escapes", () => {
     const rootDir = writeSkill(
       "symlink-skill",
-      validFrontmatter({ id: "symlink-skill", resources: ["resources/link.txt"] }),
+      validFrontmatter({
+        id: "symlink-skill",
+        resources: ["resources/link.txt"],
+      }),
     );
     mkdirSync(join(rootDir, "resources"), { recursive: true });
     mkdirSync(outsideFixturesDir, { recursive: true });
     writeFileSync(join(outsideFixturesDir, "secret.txt"), "secret");
-    symlinkSync(join(outsideFixturesDir, "secret.txt"), join(rootDir, "resources/link.txt"));
+    symlinkSync(
+      join(outsideFixturesDir, "secret.txt"),
+      join(rootDir, "resources/link.txt"),
+    );
 
     const result = validateSkillBundle(rootDir);
 
@@ -219,12 +258,12 @@ describe("skills public API", () => {
     writeFileSync(join(rootDir, "resources/example.txt"), "declared");
     writeFileSync(join(rootDir, "resources/hidden.txt"), "hidden");
 
-    expect(readBundledSkillResource("valid-skill", "resources/example.txt")).toBe(
-      "declared",
-    );
-    expect(() => readBundledSkillResource("valid-skill", "resources/hidden.txt")).toThrow(
-      SkillResourceNotFoundError,
-    );
+    expect(
+      readBundledSkillResource("valid-skill", "resources/example.txt"),
+    ).toBe("declared");
+    expect(() =>
+      readBundledSkillResource("valid-skill", "resources/hidden.txt"),
+    ).toThrow(SkillResourceNotFoundError);
   });
 
   test("returns an empty list when bundled skills directory is empty", () => {

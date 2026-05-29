@@ -16,14 +16,11 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import type { PrologProcess } from "kibi-cli/prolog";
-import { escapeAtom, parseEntityFromList, parseListOfLists } from "kibi-cli/prolog/codec";
-import { writeBriefPendingMarker } from "../utils/brief-marker.js";
-
-type DeleteRelationship = {
-  from: string;
-  to: string;
-  type: string;
-};
+import {
+  escapeAtom,
+  parseEntityFromList,
+  parseListOfLists,
+} from "kibi-cli/prolog/codec";
 
 export interface DeleteArgs {
   ids: string[];
@@ -43,7 +40,8 @@ export interface DeleteResult {
  * Handle kb.delete tool calls
  * Prevents deletion of entities with dependents (referential integrity)
  */
-export async function handleKbDelete( // implements REQ-002, REQ-011
+export async function handleKbDelete(
+  // implements REQ-002, REQ-011
   prolog: PrologProcess,
   args: DeleteArgs,
 ): Promise<DeleteResult> {
@@ -56,8 +54,6 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
   let deleted = 0;
   let skipped = 0;
   const errors: string[] = [];
-  const pendingEntityIds: string[] = [];
-  const pendingRelationships: DeleteRelationship[] = [];
 
   try {
     for (const id of ids) {
@@ -99,8 +95,11 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
       }
 
       // No dependents, safe to delete
-      const entityMetadata = await loadEntityMetadataForDelete(prolog, id, safeId);
-      const relationships = await loadOutgoingRelationshipsForDelete(prolog, safeId);
+      const entityMetadata = await loadEntityMetadataForDelete(
+        prolog,
+        id,
+        safeId,
+      );
       const deleteGoal = buildDeleteGoal(safeId, entityMetadata);
       const deleteResult = await prolog.query(deleteGoal);
 
@@ -111,8 +110,6 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
         skipped++;
       } else {
         deleted++;
-        pendingEntityIds.push(id);
-        pendingRelationships.push(...relationships);
       }
     }
 
@@ -124,14 +121,6 @@ export async function handleKbDelete( // implements REQ-002, REQ-011
       );
     }
 
-    if (pendingEntityIds.length > 0 || pendingRelationships.length > 0) {
-      writeBriefPendingMarker({
-        ...(args._requestId ? { sessionId: args._requestId } : {}),
-        operation: "delete",
-        entityIds: pendingEntityIds,
-        relationships: pendingRelationships,
-      });
-    }
     prolog.invalidateCache();
 
     return {
@@ -173,9 +162,13 @@ async function loadEntityMetadataForDelete(
     );
   }
 
-  const rows = result.bindings.Results ? parseListOfLists(result.bindings.Results) : [];
+  const rows = result.bindings.Results
+    ? parseListOfLists(result.bindings.Results)
+    : [];
   if (rows.length === 0) {
-    throw new Error(`Failed to load metadata for entity ${id}: Entity not found`);
+    throw new Error(
+      `Failed to load metadata for entity ${id}: Entity not found`,
+    );
   }
 
   const entity = parseEntityFromList(rows[0] ?? []);
@@ -185,54 +178,14 @@ async function loadEntityMetadataForDelete(
   return { type, props };
 }
 
-async function loadOutgoingRelationshipsForDelete(
-  prolog: PrologProcess,
+function buildDeleteGoal(
   safeId: string,
-): Promise<DeleteRelationship[]> {
-  const result = await prolog.query(
-    `findall([Type,'${safeId}',To], (member(Type, [depends_on, verified_by, validates, specified_by, relates_to, guards, publishes, consumes, implements, covered_by, executable_for, constrains, requires_property, supersedes, constrained_by]), kb_relationship(Type, '${safeId}', To)), Relationships)`,
-  );
-
-  if (!result.success) {
-    throw new Error(
-      `Failed to load outgoing relationships for entity ${safeId}: ${result.error || "Unknown error"}`,
-    );
-  }
-
-  const rows = result.bindings.Relationships
-    ? parseListOfLists(result.bindings.Relationships)
-    : [];
-
-  return rows.flatMap((row) => {
-    const type = row[0];
-    const from = row[1];
-    const to = row[2];
-    if (type === undefined || from === undefined || to === undefined) {
-      return [];
-    }
-    return [
-      {
-        type: normalizeDeleteRelationshipValue(type),
-        from: normalizeDeleteRelationshipValue(from),
-        to: normalizeDeleteRelationshipValue(to),
-      },
-    ];
-  });
-}
-
-function normalizeDeleteRelationshipValue(value: unknown): string {
-  const normalized = String(value);
-  if (
-    (normalized.startsWith("'") && normalized.endsWith("'")) ||
-    (normalized.startsWith('"') && normalized.endsWith('"'))
-  ) {
-    return normalized.slice(1, -1);
-  }
-  return normalized;
-}
-
-function buildDeleteGoal(safeId: string, metadata: DeleteEntityMetadata): string {
-  const auditProps = [`id='${safeId}'`, ...serializeDeleteProps(metadata.props)];
+  metadata: DeleteEntityMetadata,
+): string {
+  const auditProps = [
+    `id='${safeId}'`,
+    ...serializeDeleteProps(metadata.props),
+  ];
   return `kb_retract_entity('${safeId}', ${metadata.type}, [${auditProps.join(", ")}])`;
 }
 

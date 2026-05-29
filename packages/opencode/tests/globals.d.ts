@@ -13,7 +13,11 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare function h(tag: unknown, props: unknown, ...children: unknown[]): unknown;
+declare function h(
+  tag: unknown,
+  props: unknown,
+  ...children: unknown[]
+): unknown;
 declare const Fragment: unknown;
 
 declare namespace JSX {

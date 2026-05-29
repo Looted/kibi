@@ -46,7 +46,10 @@ function createTempGitRepo(): TempGitRepo {
 
   writeFileSync(join(root, "README.md"), "# fixture\n");
   mkdirSync(join(root, "src"), { recursive: true });
-  writeFileSync(join(root, "src", "tracked.ts"), "export const tracked = true;\n");
+  writeFileSync(
+    join(root, "src", "tracked.ts"),
+    "export const tracked = true;\n",
+  );
   git(root, "add README.md src/tracked.ts");
   git(root, "commit -m initial");
 
@@ -76,7 +79,11 @@ function createAuthoritativeKb(root: string): void {
   writeFileSync(join(root, "documentation", "symbols.yaml"), "[]\n");
 }
 
-function createLinkedWorktree(root: string, branchName: string, target: string): void {
+function createLinkedWorktree(
+  root: string,
+  branchName: string,
+  target: string,
+): void {
   git(root, `worktree add -b ${branchName} ${shellQuote(target)}`);
   expect(statSync(join(target, ".git")).isFile()).toBe(true);
   expect(readFileSync(join(target, ".git"), "utf8").startsWith("gitdir:")).toBe(
@@ -171,7 +178,10 @@ describe("resolveWorkContext", () => {
     try {
       createAuthoritativeKb(repo.root);
       const detachedWorktree = join(repo.root, "..", "detached-feature");
-      git(repo.root, `worktree add --detach ${shellQuote(detachedWorktree)} HEAD`);
+      git(
+        repo.root,
+        `worktree add --detach ${shellQuote(detachedWorktree)} HEAD`,
+      );
 
       const context = resolveWorkContext({
         inputDirectory: repo.root,

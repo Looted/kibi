@@ -1,4 +1,19 @@
-import type { AuditEntityPayload, AuditEntry } from "./idle-brief-audit.js";
+export interface AuditEntityPayload {
+  kind: "entity";
+  entityType: string;
+  changeKind?: "created" | "updated";
+  title?: string;
+  source?: string;
+  textRef?: string;
+  properties: Record<string, unknown>;
+}
+
+export interface AuditEntry {
+  timestamp: string;
+  operation: "upsert" | "delete" | "upsert_rel";
+  entityId: string;
+  payload?: AuditEntityPayload | Record<string, unknown>;
+}
 
 export interface EntityChangeItem {
   id: string;
@@ -94,10 +109,7 @@ function compareChangeItems(
   return left.type.localeCompare(right.type) || left.id.localeCompare(right.id);
 }
 
-export function reconcileAuditEntries(
-  // implements REQ-opencode-kibi-briefing-v6
-  entries: AuditEntry[],
-): ReconcileResult {
+export function reconcileAuditEntries(entries: AuditEntry[]): ReconcileResult {
   const states = new Map<string, EntityState>();
   let relationshipsChanged = 0;
 

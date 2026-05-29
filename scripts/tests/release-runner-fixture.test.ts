@@ -22,17 +22,13 @@ describe("resolveNpmFixture", () => {
   test("parses comma-separated entries into trimmed fixture set", () => {
     const result = resolveNpmFixture(" pkg-a@1.0.0 , pkg-b@2.0.0 ");
     expect(result.mode).toBe("fixture");
-    expect(result.published).toEqual(
-      new Set(["pkg-a@1.0.0", "pkg-b@2.0.0"]),
-    );
+    expect(result.published).toEqual(new Set(["pkg-a@1.0.0", "pkg-b@2.0.0"]));
   });
 
   test("ignores redundant commas and empty tokens", () => {
     const result = resolveNpmFixture(",,pkg-a@1.0.0,, ,pkg-b@2.0.0,,");
     expect(result.mode).toBe("fixture");
-    expect(result.published).toEqual(
-      new Set(["pkg-a@1.0.0", "pkg-b@2.0.0"]),
-    );
+    expect(result.published).toEqual(new Set(["pkg-a@1.0.0", "pkg-b@2.0.0"]));
   });
 
   test("preserves unknown package tokens without failing", () => {

@@ -301,8 +301,14 @@ export class KibiTreeDataProvider
     this.entities = [];
     this.relationships = [];
     {
-      const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(this.workspaceRoot);
-      this.symbolIndex = buildIndex(symbolsPath, this.workspaceRoot, coordinatesPath);
+      const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(
+        this.workspaceRoot,
+      );
+      this.symbolIndex = buildIndex(
+        symbolsPath,
+        this.workspaceRoot,
+        coordinatesPath,
+      );
     }
 
     const fallbackData = await this.loadFallbackData();

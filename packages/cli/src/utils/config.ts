@@ -39,24 +39,6 @@ export interface KbConfigPaths {
   symbols?: string;
 }
 
-export interface BriefsConfig {
-  enabled: boolean;
-  retention?: {
-    maxPerBranch?: number;
-    maxAgeDays?: number;
-    keepUnread?: boolean;
-  };
-  channels: {
-    vscode: boolean;
-    tui: boolean;
-  };
-  tui: {
-    toast: boolean;
-    appendPrompt: boolean;
-    idleDelayMs?: number;
-  };
-}
-
 /**
  * Shared configuration for Kibi.
  * Stored in .kb/config.json
@@ -64,7 +46,6 @@ export interface BriefsConfig {
 export interface KbConfig {
   paths: KbConfigPaths;
   schemaVersion?: number | string;
-  briefs?: BriefsConfig;
   /**
    * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
    * without requiring a configured default. This field is ignored but kept for compatibility.
@@ -78,26 +59,9 @@ export type { ChecksConfig, SymbolTraceabilityOptions };
 /**
  * Default configuration values for new repositories.
  */
-const DEFAULT_BRIEFS_CONFIG: BriefsConfig = {
-  enabled: true,
-  retention: {
-    maxPerBranch: 200,
-    maxAgeDays: 14,
-    keepUnread: true,
-  },
-  channels: {
-    vscode: true,
-    tui: true,
-  },
-  tui: {
-    toast: true,
-    appendPrompt: true,
-    idleDelayMs: 1500,
-  },
-};
-
 // implements REQ-003
-export const DEFAULT_CONFIG: KbConfig & { $schema: string } = { // implements REQ-003
+export const DEFAULT_CONFIG: KbConfig & { $schema: string } = {
+  // implements REQ-003
   $schema:
     "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
   schemaVersion: LATEST_KB_SCHEMA_VERSION,
@@ -111,14 +75,14 @@ export const DEFAULT_CONFIG: KbConfig & { $schema: string } = { // implements RE
     facts: "documentation/facts",
     symbols: "documentation/symbols.yaml",
   },
-  briefs: DEFAULT_BRIEFS_CONFIG,
   checks: DEFAULT_CHECKS_CONFIG,
 };
 
 /**
  * Default paths used by sync command (backward compatible glob patterns).
  */
-export const DEFAULT_SYNC_PATHS: KbConfigPaths = { // implements REQ-003
+export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
+  // implements REQ-003
   requirements: "requirements/**/*.md",
   scenarios: "scenarios/**/*.md",
   tests: "tests/**/*.md",
@@ -129,28 +93,10 @@ export const DEFAULT_SYNC_PATHS: KbConfigPaths = { // implements REQ-003
   symbols: "symbols.yaml",
 };
 
-function mergeBriefsConfig(userBriefs?: Partial<BriefsConfig>): BriefsConfig {
-  return {
-    ...DEFAULT_BRIEFS_CONFIG,
-    ...userBriefs,
-    channels: {
-      ...DEFAULT_BRIEFS_CONFIG.channels,
-      ...userBriefs?.channels,
-    },
-    tui: {
-      ...DEFAULT_BRIEFS_CONFIG.tui,
-      ...userBriefs?.tui,
-    },
-    retention: {
-      ...DEFAULT_BRIEFS_CONFIG.retention,
-      ...userBriefs?.retention,
-    },
-  };
-}
-
-function readUserConfig(
-  configPath: string,
-): { userConfig: Partial<KbConfig>; useDefaultSchemaVersion: boolean } {
+function readUserConfig(configPath: string): {
+  userConfig: Partial<KbConfig>;
+  useDefaultSchemaVersion: boolean;
+} {
   if (!existsSync(configPath)) {
     return {
       userConfig: {},
@@ -190,13 +136,12 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
       ...DEFAULT_CONFIG.paths,
       ...userConfig.paths,
     },
-    ...((userConfig.schemaVersion !== undefined || useDefaultSchemaVersion)
+    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
       ? {
           schemaVersion:
             userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
         }
       : {}),
-    briefs: mergeBriefsConfig(userConfig.briefs),
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }
       : {}),
@@ -233,13 +178,12 @@ export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
       ...DEFAULT_SYNC_PATHS,
       ...userConfig.paths,
     },
-    ...((userConfig.schemaVersion !== undefined || useDefaultSchemaVersion)
+    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
       ? {
           schemaVersion:
             userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
         }
       : {}),
-    briefs: mergeBriefsConfig(userConfig.briefs),
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }
       : {}),

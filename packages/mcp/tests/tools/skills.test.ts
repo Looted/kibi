@@ -31,7 +31,9 @@ describe("MCP skills tool handlers", () => {
     );
     expect(result.structuredContent?.contentHash).toMatch(/^[a-f0-9]{64}$/);
     expect(result.structuredContent?.sourceType).toBe("bundled");
-    expect(result.content[0]?.text).toContain("Loaded bundled skill kibi-usage");
+    expect(result.content[0]?.text).toContain(
+      "Loaded bundled skill kibi-usage",
+    );
   });
 
   test("reads declared bundled skill resources", async () => {

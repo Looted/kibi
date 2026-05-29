@@ -3,7 +3,6 @@ import {
   KIBI_CONTAINER_ID,
   KIBI_FOCUS_KB_COMMAND,
   KIBI_REFRESH_TREE_COMMAND,
-  KIBI_SHOW_LATEST_BRIEF_COMMAND,
   KIBI_VIEW_ID,
 } from "../src/extensionIds";
 
@@ -19,7 +18,6 @@ describe("VS Code manifest contract", () => {
       expect.arrayContaining([
         `onView:${KIBI_VIEW_ID}`,
         `onCommand:${KIBI_FOCUS_KB_COMMAND}`,
-        `onCommand:${KIBI_SHOW_LATEST_BRIEF_COMMAND}`,
       ]),
     );
 
@@ -37,7 +35,6 @@ describe("VS Code manifest contract", () => {
       expect.arrayContaining([
         expect.objectContaining({ command: KIBI_REFRESH_TREE_COMMAND }),
         expect.objectContaining({ command: KIBI_FOCUS_KB_COMMAND }),
-        expect.objectContaining({ command: KIBI_SHOW_LATEST_BRIEF_COMMAND }),
       ]),
     );
   });

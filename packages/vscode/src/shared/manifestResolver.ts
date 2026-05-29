@@ -67,6 +67,9 @@ export function resolveSymbolsManifestPaths(workspaceRoot: string): {
   const symbolsPath = resolveSymbolsManifestPath(workspaceRoot);
   return {
     symbolsPath,
-    coordinatesPath: path.join(path.dirname(symbolsPath), "symbol-coordinates.yaml"),
+    coordinatesPath: path.join(
+      path.dirname(symbolsPath),
+      "symbol-coordinates.yaml",
+    ),
   };
 }

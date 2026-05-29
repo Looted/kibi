@@ -1,5 +1,5 @@
-import type { PathKind } from "./path-kind.js";
 import type { FileLifecycle } from "./file-operation-state.js";
+import type { PathKind } from "./path-kind.js";
 import type { RiskClass } from "./risk-classifier.js";
 
 /**
@@ -57,10 +57,7 @@ const UPGRADE_RISK_CLASSES: ReadonlySet<RiskClass> = new Set([
   "req_policy_candidate",
 ]);
 
-function isIgnoredPath(
-  normalizedPath: string,
-  pathKind: PathKind,
-): boolean {
+function isIgnoredPath(normalizedPath: string, pathKind: PathKind): boolean {
   // Check extension-based ignored patterns.
   if (
     normalizedPath.endsWith(".tsbuildinfo") ||
@@ -82,10 +79,7 @@ function isIgnoredPath(
   // Special handling for .kb/ — only ignored when pathKind is NOT "kb".
   // Actual KB entity files (pathKind=kb) should still require evidence.
   if (pathKind !== "kb") {
-    if (
-      normalizedPath.startsWith(".kb/") ||
-      normalizedPath.includes("/.kb/")
-    ) {
+    if (normalizedPath.startsWith(".kb/") || normalizedPath.includes("/.kb/")) {
       return true;
     }
   }

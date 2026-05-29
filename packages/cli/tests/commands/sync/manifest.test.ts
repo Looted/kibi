@@ -9,6 +9,7 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import type { SymbolCoordinatesRecord } from "../../../src/extractors/symbol-coordinates.js";
 import type { ManifestSymbolEntry } from "../../../src/extractors/symbols-coordinator.js";
 
 // --- Mocks ---
@@ -44,8 +45,12 @@ const mockEnrichSymbolCoordinates = mock(
 
 const mockParseYAML = mock((_content: string) => ({}));
 const mockDumpYAML = mock((_obj: object, _opts?: object) => "yaml-content\n");
-const mockWriteCoordinateArtifact = mock((coords:any)=> 'artifact-content\n');
-const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string)=> ({ coordinatesPath: '/workspace/documentation/symbol-coordinates.yaml' }));
+const mockWriteCoordinateArtifact = mock(
+  (_coords: Record<string, SymbolCoordinatesRecord>) => "artifact-content\n",
+);
+const mockResolveSymbolsManifestPaths = mock((_workspaceRoot: string) => ({
+  coordinatesPath: "/workspace/documentation/symbol-coordinates.yaml",
+}));
 
 import {
   hasAllGeneratedCoordinates,
@@ -53,17 +58,23 @@ import {
   refreshManifestCoordinates,
 } from "../../../src/commands/sync/manifest.js";
 
-const manifestDeps = () => ({
-  dumpYAML: mockDumpYAML as typeof import("js-yaml").dump,
+type RefreshManifestDeps = NonNullable<
+  Parameters<typeof refreshManifestCoordinates>[2]
+>;
+
+const manifestDeps = (): RefreshManifestDeps => ({
+  dumpYAML: mockDumpYAML as RefreshManifestDeps["dumpYAML"],
   enrichSymbolCoordinates:
-    mockEnrichSymbolCoordinates as typeof import("../../../src/extractors/symbols-coordinator.js").enrichSymbolCoordinates,
-  existsSync: mockExistsSync as typeof import("node:fs").existsSync,
-  parseYAML: mockParseYAML as typeof import("js-yaml").load,
+    mockEnrichSymbolCoordinates as RefreshManifestDeps["enrichSymbolCoordinates"],
+  existsSync: mockExistsSync as RefreshManifestDeps["existsSync"],
+  parseYAML: mockParseYAML as RefreshManifestDeps["parseYAML"],
   readFileSync:
-    mockReadFileSync as unknown as typeof import("node:fs").readFileSync,
-  writeFileSync: mockWriteFileSync as typeof import("node:fs").writeFileSync,
-  writeCoordinateArtifact: mockWriteCoordinateArtifact as unknown as typeof import("../../../src/extractors/symbol-coordinates.js").writeCoordinateArtifact,
-  resolveSymbolsManifestPaths: mockResolveSymbolsManifestPaths as unknown as typeof import("../../../src/utils/manifest-paths.js").resolveSymbolsManifestPaths,
+    mockReadFileSync as unknown as RefreshManifestDeps["readFileSync"],
+  writeFileSync: mockWriteFileSync as RefreshManifestDeps["writeFileSync"],
+  writeCoordinateArtifact:
+    mockWriteCoordinateArtifact as unknown as RefreshManifestDeps["writeCoordinateArtifact"],
+  resolveSymbolsManifestPaths:
+    mockResolveSymbolsManifestPaths as unknown as RefreshManifestDeps["resolveSymbolsManifestPaths"],
 });
 
 // We test isRecord indirectly through refreshManifestCoordinates since it's not exported.
@@ -589,9 +600,11 @@ describe("refreshManifestCoordinates", () => {
     );
 
     // Find the writeFileSync call that wrote the manifestPath
-    const manifestCall = mockWriteFileSync.mock.calls.find(c => String(c[0]) === manifestPath);
+    const manifestCall = mockWriteFileSync.mock.calls.find(
+      (c) => String(c[0]) === manifestPath,
+    );
     expect(manifestCall).toBeDefined();
-    const written = manifestCall![1] as string;
+    const written = manifestCall?.[1] as string;
     expect(written).toContain("new-yaml");
   });
 
@@ -780,9 +793,11 @@ describe("refreshManifestCoordinates", () => {
     );
 
     // Find the manifest write among writes (artifact may be written too)
-    const manifestCall = mockWriteFileSync.mock.calls.find(c => String(c[0]) === manifestPath);
+    const manifestCall = mockWriteFileSync.mock.calls.find(
+      (c) => String(c[0]) === manifestPath,
+    );
     expect(manifestCall).toBeDefined();
-    const written = manifestCall![1] as string;
+    const written = manifestCall?.[1] as string;
     expect(written).toContain("# symbols.yaml");
     expect(written).toContain("AUTHORED fields (edit freely)");
     expect(written).toContain(

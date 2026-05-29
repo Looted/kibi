@@ -1,4 +1,3 @@
-// @ts-ignore
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync, spawnSync } from "node:child_process";
 import {
@@ -44,7 +43,7 @@ function runKibi(
 }
 
 describe("kibi check", () => {
-  const TEST_TIMEOUT_MS = 20000;
+  const TEST_TIMEOUT_MS = 30000;
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
@@ -1176,10 +1175,13 @@ source: documentation/requirements/REQ-STAGED-001.md
         cwd: tmpDir,
         stdio: "pipe",
       });
-      execSync("git add documentation/symbol-coordinates.yaml documentation/symbols.yaml", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      execSync(
+        "git add documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
 
       // Run staged check - should pass because symbols.yaml links it
       const { status, stdout, stderr } = runKibi(
@@ -2284,8 +2286,8 @@ export function inlineFunc() {}
     TEST_TIMEOUT_MS,
   );
 
-    test(
-      "--staged resolves symbol ID from working-tree manifest when only code is staged (comment-only change, no symbols.yaml staged)",
+  test(
+    "--staged resolves symbol ID from working-tree manifest when only code is staged (comment-only change, no symbols.yaml staged)",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
       const reqDocDir = path.join(docDir, "requirements");

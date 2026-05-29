@@ -242,7 +242,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(15);
+    expect(tools.length).toBe(14);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -258,9 +258,10 @@ describe("MCP Server", () => {
       "kb_check",
       "kb_model_requirement",
       "kb_autopilot_generate",
-      "kb_briefing_generate",
     ]);
-
+    expect(tools.map((tool) => tool.name)).not.toContain(
+      "kb_briefing_generate",
+    );
 
     const kbUpsert = tools.find((tool) => tool.name === "kb_upsert");
     const statusSchema = (
@@ -306,15 +307,13 @@ describe("MCP Server", () => {
 
     // Check that public prompts are included
     const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
-    const briefKibiPrompt = prompts.find((p) => p.name === "brief-kibi");
     expect(initKibiPrompt).toBeDefined();
-    expect(briefKibiPrompt).toBeDefined();
     expect(initKibiPrompt?.description).toBeDefined();
-    expect(briefKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
-    expect(typeof briefKibiPrompt?.description).toBe("string");
-    expect(initKibiPrompt?.description).toMatch(/interactive activation|new or empty/i);
-    expect(briefKibiPrompt?.description).toMatch(/citation-backed/i);
+    expect(initKibiPrompt?.description).toMatch(
+      /interactive activation|new or empty/i,
+    );
+    expect(prompts.map((prompt) => prompt.name)).not.toContain("brief-kibi");
 
     await killServer(proc);
   });
@@ -382,7 +381,7 @@ describe("MCP Server", () => {
     await killServer(proc);
   });
 
-  test("should handle prompts/get for brief-kibi", async () => {
+  test("should reject prompts/get for removed brief-kibi prompt", async () => {
     const proc = startServer();
 
     await sendRequest(proc, {
@@ -405,228 +404,203 @@ describe("MCP Server", () => {
       },
     });
 
-    const result = response.result as Record<string, unknown>;
-    expect(result).toBeDefined();
-
-    const messages = result.messages as Array<Record<string, unknown>>;
-    expect(messages).toBeDefined();
-    expect(messages.length).toBeGreaterThan(0);
-
-    const contentText = messages
-      .map((msg) => {
-        const content = msg.content as
-          | { type: string; text: string }
-          | undefined;
-        return content?.text || "";
-      })
-      .join(" ");
-
-    expect(contentText).toMatch(/kb_briefing_generate/);
-    expect(contentText).toMatch(/briefingState/);
-    expect(contentText).toMatch(/no_briefing/);
-    expect(contentText).not.toMatch(/kibi\s+(init|sync|search|query|status|check)/i);
+    const error = response.error as Record<string, unknown> | undefined;
+    expect(error).toBeDefined();
+    expect(String(error?.message ?? "")).toMatch(/not found|unknown prompt/i);
 
     await killServer(proc);
   });
 
-  test("should handle tools/call for kb_autopilot_generate", async () => {
-    const proc = startServer();
+  test(
+    "should handle tools/call for kb_autopilot_generate",
+    async () => {
+      const proc = startServer();
 
-    await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: {
-        protocolVersion: "2024-11-05",
-        capabilities: {},
-        clientInfo: { name: "test", version: "1.0" },
-      },
-    });
-
-    const response = await sendRequest(
-      proc,
-      {
+      await sendRequest(proc, {
         jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
+        id: 1,
+        method: "initialize",
         params: {
-          name: "kb_autopilot_generate",
-          arguments: {},
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
         },
-      },
-      HEAVY_TOOL_TIMEOUT_MS,
-    );
+      });
 
-    const result = response.result as Record<string, unknown>;
-    expect(result).toBeDefined();
-    expect(result.isError).toBeFalsy();
-
-    const content = result.content as Array<{ type: string; text: string }>;
-    expect(content).toBeDefined();
-    expect(content.length).toBeGreaterThan(0);
-    expect(content[0].type).toBe("text");
-
-    const structured = result.structuredContent as Record<string, unknown>;
-    expect(structured).toBeDefined();
-    expect([
-      "root_uninitialized",
-      "root_partial",
-      "vendored_only",
-      "root_active_thin",
-      "root_active_seeded",
-    ]).toContain(structured.activationState as string);
-    expect(typeof structured.activationReason).toBe("string");
-    expect(typeof structured.applyBlocked).toBe("boolean");
-    expect([
-      "cold_start_bootstrap",
-      "repair_bootstrap",
-      "attached_thin_handoff",
-      "attached_seeded_handoff",
-      "vendored_blocked",
-    ]).toContain(structured.bootstrapMode as string);
-    expect(typeof structured.tldr).toBe("string");
-    expect(typeof structured.promptBlock).toBe("string");
-    expect(typeof structured.confidence).toBe("object");
-    expect(typeof structured.declaredContext).toBe("object");
-    expect(Array.isArray(structured.recommendedActions)).toBe(true);
-    expect(Array.isArray(structured.candidates)).toBe(true);
-    expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
-    expect(typeof structured.discoverySummary).toBe("object");
-    expect(typeof structured.payoffSummary).toBe("object");
-
-    expect(result.candidates).toEqual(structured.candidates);
-    expect(result.suppressedCandidates).toEqual(structured.suppressedCandidates);
-    expect(result.payoffSummary).toEqual(structured.payoffSummary);
-
-    await killServer(proc);
-  }, HEAVY_TOOL_TIMEOUT_MS);
-
-  test("should handle tools/call for kb_model_requirement", async () => {
-    const proc = startServer();
-
-    await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: {
-        protocolVersion: "2024-11-05",
-        capabilities: {},
-        clientInfo: { name: "test", version: "1.0" },
-      },
-    });
-
-    const response = await sendRequest(
-      proc,
-      {
-        jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
-        params: {
-          name: "kb_model_requirement",
-          arguments: {
-            text: "Customer data must be retained for 7 years.",
-            source: "documentation/requirements/customer-retention.md",
-            confidence: 0.92,
-            subjectKey: "Customer.Data",
-            propertyKey: "Retention Years",
-            operator: "eq",
-            value: 7,
-            provenance: "documentation/requirements/customer-retention.md#L1",
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_autopilot_generate",
+            arguments: {},
           },
         },
-      },
-      HEAVY_TOOL_TIMEOUT_MS,
-    );
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
 
-    const result = response.result as Record<string, unknown>;
-    expect(result).toBeDefined();
-    expect(result.isError).toBeFalsy();
+      const result = response.result as Record<string, unknown>;
+      expect(result).toBeDefined();
+      expect(result.isError).toBeFalsy();
 
-    const content = result.content as Array<{ type: string; text: string }>;
-    expect(content).toBeDefined();
-    expect(content.length).toBeGreaterThan(0);
-    expect(content[0]?.type).toBe("text");
+      const content = result.content as Array<{ type: string; text: string }>;
+      expect(content).toBeDefined();
+      expect(content.length).toBeGreaterThan(0);
+      expect(content[0].type).toBe("text");
 
-    const structured = result.structuredContent as Record<string, unknown>;
-    expect(structured).toBeDefined();
-    expect(structured.isStrict).toBe(true);
-    expect(Array.isArray(structured.applyPlan)).toBe(true);
-    expect((structured.applyPlan as unknown[]).length).toBe(3);
-    expect(typeof structured.writeSet).toBe("object");
-    expect(typeof structured.claim).toBe("object");
-    expect(
-      [null, expect.any(String)].some((matcher) =>
-        matcher === null
-          ? structured.migrationWarning === null
-          : typeof structured.migrationWarning === "string",
-      ),
-    ).toBe(true);
+      const structured = result.structuredContent as Record<string, unknown>;
+      expect(structured).toBeDefined();
+      expect([
+        "root_uninitialized",
+        "root_partial",
+        "vendored_only",
+        "root_active_thin",
+        "root_active_seeded",
+      ]).toContain(structured.activationState as string);
+      expect(typeof structured.activationReason).toBe("string");
+      expect(typeof structured.applyBlocked).toBe("boolean");
+      expect([
+        "cold_start_bootstrap",
+        "repair_bootstrap",
+        "attached_thin_handoff",
+        "attached_seeded_handoff",
+        "vendored_blocked",
+      ]).toContain(structured.bootstrapMode as string);
+      expect(typeof structured.tldr).toBe("string");
+      expect(typeof structured.promptBlock).toBe("string");
+      expect(typeof structured.confidence).toBe("object");
+      expect(typeof structured.declaredContext).toBe("object");
+      expect(Array.isArray(structured.recommendedActions)).toBe(true);
+      expect(Array.isArray(structured.candidates)).toBe(true);
+      expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
+      expect(typeof structured.discoverySummary).toBe("object");
+      expect(typeof structured.payoffSummary).toBe("object");
 
-    await killServer(proc);
-  }, HEAVY_TOOL_TIMEOUT_MS);
+      expect(result.candidates).toEqual(structured.candidates);
+      expect(result.suppressedCandidates).toEqual(
+        structured.suppressedCandidates,
+      );
+      expect(result.payoffSummary).toEqual(structured.payoffSummary);
 
-  test("should handle tools/call for kb_briefing_generate", async () => {
-    const proc = startServer();
+      await killServer(proc);
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
 
-    await sendRequest(proc, {
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: {
-        protocolVersion: "2024-11-05",
-        capabilities: {},
-        clientInfo: { name: "test", version: "1.0" },
-      },
-    });
+  test(
+    "should handle tools/call for kb_model_requirement",
+    async () => {
+      const proc = startServer();
 
-    const response = await sendRequest(
-      proc,
-      {
+      await sendRequest(proc, {
         jsonrpc: "2.0",
-        id: 2,
-        method: "tools/call",
+        id: 1,
+        method: "initialize",
         params: {
-          name: "kb_briefing_generate",
-          arguments: {
-            taskText: "Generate a task-aware citation-backed briefing for MCP registration work.",
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_model_requirement",
+            arguments: {
+              text: "Customer data must be retained for 7 years.",
+              source: "documentation/requirements/customer-retention.md",
+              confidence: 0.92,
+              subjectKey: "Customer.Data",
+              propertyKey: "Retention Years",
+              operator: "eq",
+              value: 7,
+              provenance: "documentation/requirements/customer-retention.md#L1",
+            },
           },
         },
-      },
-      HEAVY_TOOL_TIMEOUT_MS,
-    );
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
 
-    const result = response.result as Record<string, unknown>;
-    expect(result).toBeDefined();
-    expect(result.isError).toBeFalsy();
+      const result = response.result as Record<string, unknown>;
+      expect(result).toBeDefined();
+      expect(result.isError).toBeFalsy();
 
-    const content = result.content as Array<{ type: string; text: string }>;
-    expect(content).toBeDefined();
-    expect(content.length).toBeGreaterThan(0);
-    expect(content[0]?.type).toBe("text");
+      const content = result.content as Array<{ type: string; text: string }>;
+      expect(content).toBeDefined();
+      expect(content.length).toBeGreaterThan(0);
+      expect(content[0]?.type).toBe("text");
 
-    const structured = result.structuredContent as Record<string, unknown>;
-    expect(structured).toBeDefined();
-    expect(["ready", "no_briefing"]).toContain(structured.briefingState as string);
-    expect([
-      "root_uninitialized",
-      "root_partial",
-      "vendored_only",
-      "root_active_thin",
-      "root_active_seeded",
-    ]).toContain(structured.activationState as string);
-    expect(typeof structured.activationReason).toBe("string");
-    expect(typeof structured.freshness).toBe("object");
-    expect(typeof structured.confidence).toBe("object");
-    expect(typeof structured.tldr).toBe("string");
-    expect(typeof structured.promptBlock).toBe("string");
-    expect(Array.isArray(structured.entities)).toBe(true);
-    expect(Array.isArray(structured.constraints)).toBe(true);
-    expect(Array.isArray(structured.regressionRisks)).toBe(true);
-    expect(Array.isArray(structured.missingEvidence)).toBe(true);
-    expect(Array.isArray(structured.citations)).toBe(true);
+      const structured = result.structuredContent as Record<string, unknown>;
+      expect(structured).toBeDefined();
+      expect(structured.isStrict).toBe(true);
+      expect(Array.isArray(structured.applyPlan)).toBe(true);
+      expect((structured.applyPlan as unknown[]).length).toBe(3);
+      expect(typeof structured.writeSet).toBe("object");
+      expect(typeof structured.claim).toBe("object");
+      expect(
+        [null, expect.any(String)].some((matcher) =>
+          matcher === null
+            ? structured.migrationWarning === null
+            : typeof structured.migrationWarning === "string",
+        ),
+      ).toBe(true);
 
-    await killServer(proc);
-  }, HEAVY_TOOL_TIMEOUT_MS);
+      await killServer(proc);
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
+
+  test(
+    "should reject tools/call for removed kb_briefing_generate",
+    async () => {
+      const proc = startServer();
+
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_briefing_generate",
+            arguments: {
+              taskText:
+                "Generate a task-aware citation-backed briefing for MCP registration work.",
+            },
+          },
+        },
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
+
+      const result = response.result as Record<string, unknown> | undefined;
+      expect(result?.isError).toBe(true);
+      const content = result?.content as
+        | Array<{ type: string; text: string }>
+        | undefined;
+      expect(content?.[0]?.text).toMatch(/not found/i);
+
+      await killServer(proc);
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
 
   test("should reject removed MCP tools", async () => {
     const proc = startServer();

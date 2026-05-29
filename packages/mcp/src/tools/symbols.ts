@@ -94,7 +94,8 @@ export async function handleKbSymbolsRefresh(
   // implements REQ-vscode-traceability
   const dryRun = args.dryRun === true;
   const workspaceRoot = args.workspaceRoot ?? resolveWorkspaceRoot();
-  const { coordinatesPath, manifestPath } = await resolveManifestPaths(workspaceRoot);
+  const { coordinatesPath, manifestPath } =
+    await resolveManifestPaths(workspaceRoot);
 
   const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
@@ -162,7 +163,9 @@ export async function handleKbSymbolsRefresh(
     }
   }
 
-  const nextCoordinates = writeCoordinateArtifact(buildCoordinatesMap(finalized));
+  const nextCoordinates = writeCoordinateArtifact(
+    buildCoordinatesMap(finalized),
+  );
   const currentCoordinates = await readOptionalTextFile(coordinatesPath);
 
   if (!dryRun && currentCoordinates !== nextCoordinates) {
@@ -190,7 +193,8 @@ export async function refreshCoordinatesForSymbolId(
   workspaceRoot: string = resolveWorkspaceRoot(),
 ): Promise<{ refreshed: boolean; found: boolean }> {
   // implements REQ-vscode-traceability
-  const { coordinatesPath, manifestPath } = await resolveManifestPaths(workspaceRoot);
+  const { coordinatesPath, manifestPath } =
+    await resolveManifestPaths(workspaceRoot);
   const rawContent = await readFile(manifestPath, "utf8");
   const parsed = parseYAML(rawContent);
 
@@ -405,13 +409,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function normalizeCoordinateRecord(value: unknown): SymbolCoordinatesRecord | null {
+function normalizeCoordinateRecord(
+  value: unknown,
+): SymbolCoordinatesRecord | null {
   if (!isRecord(value)) {
     return null;
   }
 
-  const { sourceColumn, sourceEndColumn, sourceEndLine, sourceFile, sourceLine } =
-    value;
+  const {
+    sourceColumn,
+    sourceEndColumn,
+    sourceEndLine,
+    sourceFile,
+    sourceLine,
+  } = value;
 
   if (
     typeof sourceFile !== "string" ||

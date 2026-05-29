@@ -2,9 +2,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import {
-  buildStrictWriteSet,
   type SemanticClaim,
   type StrictWriteSet,
+  buildStrictWriteSet,
 } from "kibi-cli/public/check-types";
 import { getSchemaVersionStatus } from "kibi-cli/schema-version";
 import { resolveWorkspaceRoot } from "../workspace.js";
@@ -53,12 +53,16 @@ export interface ModelRequirementResult {
 function normalizeText(text: string): string {
   const normalized = String(text ?? "").trim();
   if (!normalized) {
-    throw new Error("Requirement modeling failed: text must be a non-empty string");
+    throw new Error(
+      "Requirement modeling failed: text must be a non-empty string",
+    );
   }
   return normalized;
 }
 
-function normalizeOptionalString(value: string | undefined): string | undefined {
+function normalizeOptionalString(
+  value: string | undefined,
+): string | undefined {
   const normalized = String(value ?? "").trim();
   return normalized.length > 0 ? normalized : undefined;
 }
@@ -78,14 +82,23 @@ function normalizeSourceFiles(sourceFiles: string[] | undefined): string[] {
 }
 
 function clampConfidence(confidence: number | undefined): number {
-  const numeric = typeof confidence === "number" && Number.isFinite(confidence) ? confidence : 0.8;
+  const numeric =
+    typeof confidence === "number" && Number.isFinite(confidence)
+      ? confidence
+      : 0.8;
   return Math.round(Math.min(1, Math.max(0, numeric)) * 100) / 100;
 }
 
 function normalizeClaimValue(value: unknown): string | number | boolean {
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     if (typeof value === "number" && !Number.isFinite(value)) {
-      throw new Error("Requirement modeling failed: value must be a finite number");
+      throw new Error(
+        "Requirement modeling failed: value must be a finite number",
+      );
     }
     return value;
   }
@@ -116,7 +129,10 @@ function cleanPredicate(value: string): string {
 }
 
 function fallbackSubjectFromSource(source: string): string {
-  const basename = path.basename(source, path.extname(source)).replace(/[-_]+/g, " ").trim();
+  const basename = path
+    .basename(source, path.extname(source))
+    .replace(/[-_]+/g, " ")
+    .trim();
   return basename || "Requirement";
 }
 
@@ -276,7 +292,11 @@ export function estimateNormativeSignalConfidence(
 
 export function extractRequirementClaim(
   args: ModelRequirementArgs,
-): ExtractedRequirementClaim & { statement: string; source: string; sourceFiles: string[] } {
+): ExtractedRequirementClaim & {
+  statement: string;
+  source: string;
+  sourceFiles: string[];
+} {
   const statement = normalizeText(args.text);
   const sourceFiles = normalizeSourceFiles(args.sourceFiles);
   const source = normalizeOptionalString(args.source) ?? sourceFiles[0];
@@ -319,7 +339,12 @@ export function extractRequirementClaim(
     };
   }
 
-  const heuristic = extractHeuristicClaim(statement, source, confidence, provenance);
+  const heuristic = extractHeuristicClaim(
+    statement,
+    source,
+    confidence,
+    provenance,
+  );
   if (heuristic) {
     return {
       statement,
@@ -400,7 +425,9 @@ export async function getWorkspaceMigrationWarning(
   }
 
   try {
-    const parsed = JSON.parse(rawConfig) as { schemaVersion?: number | string } | null;
+    const parsed = JSON.parse(rawConfig) as {
+      schemaVersion?: number | string;
+    } | null;
     const status = getSchemaVersionStatus(parsed ?? undefined);
     return status.warning;
   } catch {

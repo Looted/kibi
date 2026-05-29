@@ -1,7 +1,7 @@
-import { describe, test, expect } from "bun:test";
-import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
-import * as path from "node:path";
+import { describe, expect, test } from "bun:test";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import * as path from "node:path";
 import { createRepoIgnorePolicy } from "../../src/public/ignore-policy.js";
 
 describe("createRepoIgnorePolicy", () => {

@@ -4,8 +4,8 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { DEFAULTS } from "../src/config";
 import {
-  KibiCheckpointRunner,
   type KibiCheckpointContext,
+  KibiCheckpointRunner,
 } from "../src/kibi-checkpoint-runner";
 import { type SyncRunMetadata, createSyncScheduler } from "../src/scheduler";
 
@@ -50,7 +50,9 @@ async function flushAsync(): Promise<void> {
 describe("sync scheduler", () => {
   test("scheduler instances for parallel worktrees flush only their own pending sync", async () => {
     const clock = createFakeClock();
-    const tmpDir = fs.mkdtempSync(path.join(process.cwd(), "test-scheduler-scope-"));
+    const tmpDir = fs.mkdtempSync(
+      path.join(process.cwd(), "test-scheduler-scope-"),
+    );
     const worktreeA = path.join(tmpDir, "worktree-a");
     const worktreeB = path.join(tmpDir, "worktree-b");
     fs.mkdirSync(path.join(worktreeA, "documentation", "requirements"), {
@@ -94,7 +96,10 @@ describe("sync scheduler", () => {
       assert.deepEqual(runs, [path.resolve(worktreeA)]);
 
       await schedulerB.flush();
-      assert.deepEqual(runs, [path.resolve(worktreeA), path.resolve(worktreeB)]);
+      assert.deepEqual(runs, [
+        path.resolve(worktreeA),
+        path.resolve(worktreeB),
+      ]);
     } finally {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     }
@@ -590,7 +595,10 @@ test("operational sync.failed still produces console.error (control)", async () 
       errorSpy.length >= 1,
       `Operational sync.failed must still call console.error, got: ${JSON.stringify(errorSpy)}`,
     );
-    assert.equal(errorSpy.filter((entry) => entry.includes("sync.failed")).length, 1);
+    assert.equal(
+      errorSpy.filter((entry) => entry.includes("sync.failed")).length,
+      1,
+    );
     assert.equal(completions.length, 1);
     assert.equal(completions[0]?.exitCode, 1);
   } finally {
@@ -686,9 +694,15 @@ test("runKibiSync truncates stdout/stderr exceeding 4000 chars", async () => {
   await flushAsync();
 
   assert.equal(completions.length, 1);
-  assert.equal(completions[0]?.syncStdout?.length, 4000 + "\n...[truncated]".length);
+  assert.equal(
+    completions[0]?.syncStdout?.length,
+    4000 + "\n...[truncated]".length,
+  );
   assert.ok(completions[0]?.syncStdout?.endsWith("\n...[truncated]"));
-  assert.equal(completions[0]?.syncStderr?.length, 4000 + "\n...[truncated]".length);
+  assert.equal(
+    completions[0]?.syncStderr?.length,
+    4000 + "\n...[truncated]".length,
+  );
   assert.ok(completions[0]?.syncStderr?.endsWith("\n...[truncated]"));
 });
 
@@ -781,13 +795,19 @@ describe("KibiCheckpointRunner", () => {
     const context = createCheckpointContext();
 
     runner.requestCheckpoint(context, "fingerprint-check-fail");
-    const result = await runner.runCheckpoint(context, "fingerprint-check-fail");
+    const result = await runner.runCheckpoint(
+      context,
+      "fingerprint-check-fail",
+    );
 
     assert.equal(result.kind, "hard_block");
     assert.equal(result.metadata.reason, "check_failed");
     assert.equal(result.metadata.sync?.exitCode, 0);
     assert.equal(result.metadata.sync?.checkExitCode, 1);
-    assert.equal(runner.isCheckpointPassed("fingerprint-check-fail", context), false);
+    assert.equal(
+      runner.isCheckpointPassed("fingerprint-check-fail", context),
+      false,
+    );
   });
 
   test("runCheckpoint hard-blocks when sync fails", async () => {
@@ -837,7 +857,10 @@ describe("KibiCheckpointRunner", () => {
     assert.equal(result.kind, "hard_block");
     assert.equal(result.metadata.reason, "timeout");
     assert.equal(result.metadata.timeoutMs, 30_000);
-    assert.equal(runner.isCheckpointPassed("fingerprint-timeout", context), false);
+    assert.equal(
+      runner.isCheckpointPassed("fingerprint-timeout", context),
+      false,
+    );
   });
 
   test("runCheckpoint hard-blocks maintenance-degraded authoritative roots", async () => {
@@ -883,7 +906,10 @@ describe("KibiCheckpointRunner", () => {
       },
     });
 
-    const result = await runner.runCheckpoint(context, "fingerprint-non-authoritative");
+    const result = await runner.runCheckpoint(
+      context,
+      "fingerprint-non-authoritative",
+    );
 
     assert.equal(result.kind, "skip");
     assert.equal(result.metadata.reason, "non_authoritative");
@@ -897,11 +923,17 @@ describe("KibiCheckpointRunner", () => {
     });
     const context = createCheckpointContext();
 
-    assert.equal(runner.isCheckpointPassed("fingerprint-before-after", context), false);
+    assert.equal(
+      runner.isCheckpointPassed("fingerprint-before-after", context),
+      false,
+    );
     runner.requestCheckpoint(context, "fingerprint-before-after");
     await runner.runCheckpoint(context, "fingerprint-before-after");
 
-    assert.equal(runner.isCheckpointPassed("fingerprint-before-after", context), true);
+    assert.equal(
+      runner.isCheckpointPassed("fingerprint-before-after", context),
+      true,
+    );
   });
 
   test("passing one fingerprint does not pass another fingerprint", async () => {
@@ -929,7 +961,10 @@ describe("KibiCheckpointRunner", () => {
     });
     const context = createCheckpointContext();
 
-    const result = await runner.runCheckpoint(context, "fingerprint-without-guidance");
+    const result = await runner.runCheckpoint(
+      context,
+      "fingerprint-without-guidance",
+    );
 
     assert.equal(result.kind, "hard_block");
     assert.equal(result.metadata.reason, "checkpoint_not_requested");

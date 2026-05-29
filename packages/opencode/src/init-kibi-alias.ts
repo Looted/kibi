@@ -2,7 +2,7 @@
  * Builds the canonical native alias for the Kibi MCP bootstrap workflow.
  * This is a thin wrapper over the MCP-defined workflow, preserving all
  * semantic markers while removing namespacing and keeping text concise.
- * 
+ *
  * Markers (MUST PRESERVE):
  * - "at most 4 bounded questions"
  * - "kb_autopilot_generate"
@@ -11,7 +11,6 @@
  * - "kb_check"
  * - "sequential" or similar ordering language
  */
-// implements REQ-opencode-kibi-briefing-v2
 export function buildInitKibiAlias(): string {
   const lines = [
     "# /init-kibi: Interactive Activation",

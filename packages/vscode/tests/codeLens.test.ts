@@ -66,7 +66,8 @@ const { RelationshipCache } = await import(
 // the namespace at first import so resetVscodeMock workspace overrides do NOT
 // propagate through the getter.  We hold a reference to this original object so
 // configureVscodeMock can mutate its createFileSystemWatcher in-place.
-const vscodeWorkspaceSpy = (getVscodeMockModule() as Record<string, unknown>).workspace as Record<string, unknown>;
+const vscodeWorkspaceSpy = (getVscodeMockModule() as Record<string, unknown>)
+  .workspace as Record<string, unknown>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -232,7 +233,8 @@ function configureVscodeMock() {
   // Bun snapshots vscode.workspace at codeLensProvider import time, so the
   // workspace override in resetVscodeMock doesn't reach it.  Mutate the
   // snapshotted workspace object's createFileSystemWatcher directly.
-  vscodeWorkspaceSpy.createFileSystemWatcher = mockWorkspace.createFileSystemWatcher;
+  vscodeWorkspaceSpy.createFileSystemWatcher =
+    mockWorkspace.createFileSystemWatcher;
 }
 
 type MockExtensionContext = { subscriptions: unknown[] };

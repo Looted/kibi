@@ -40,7 +40,9 @@ let capturedWatcher: DefaultFileSystemWatcher | null = null;
 const workspaceApi = {
   createFileSystemWatcher: mock((_pattern: unknown) => {
     const { DefaultFileSystemWatcher } = require("../shared/vscode-mock") as {
-      DefaultFileSystemWatcher: new (pattern?: unknown) => DefaultFileSystemWatcher;
+      DefaultFileSystemWatcher: new (
+        pattern?: unknown,
+      ) => DefaultFileSystemWatcher;
     };
     capturedWatcher = new DefaultFileSystemWatcher(_pattern);
     return capturedWatcher;
@@ -72,7 +74,11 @@ async function registerFresh(workspaceRoot = "/tmp/test-workspace") {
   context.subscriptions = [];
 
   const { registerTreeView } = await importTreeViewModule();
-  const workspaceFolderUri = { fsPath: workspaceRoot, path: workspaceRoot, scheme: "file" };
+  const workspaceFolderUri = {
+    fsPath: workspaceRoot,
+    path: workspaceRoot,
+    scheme: "file",
+  };
 
   return registerTreeView(
     context as never,
@@ -123,48 +129,52 @@ test("registerTreeView creates file system watcher for .kb/branches/**/kb.rdf", 
 
 test("watcher onDidChange triggers treeDataProvider.refresh", async () => {
   const result = await registerFresh();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const emitter = (result.treeDataProvider as any)._onDidChangeTreeData;
-  const fireCountBefore = emitter.fireCount;
+  let refreshEvents = 0;
+  result.treeDataProvider.onDidChangeTreeData(() => {
+    refreshEvents++;
+  });
 
-  capturedWatcher!.emitChange();
+  capturedWatcher?.emitChange();
 
-  expect(emitter.fireCount).toBe(fireCountBefore + 1);
+  expect(refreshEvents).toBe(1);
 });
 
 test("watcher onDidCreate triggers treeDataProvider.refresh", async () => {
   const result = await registerFresh();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const emitter = (result.treeDataProvider as any)._onDidChangeTreeData;
-  const fireCountBefore = emitter.fireCount;
+  let refreshEvents = 0;
+  result.treeDataProvider.onDidChangeTreeData(() => {
+    refreshEvents++;
+  });
 
-  capturedWatcher!.emitCreate();
+  capturedWatcher?.emitCreate();
 
-  expect(emitter.fireCount).toBe(fireCountBefore + 1);
+  expect(refreshEvents).toBe(1);
 });
 
 test("watcher onDidDelete triggers treeDataProvider.refresh", async () => {
   const result = await registerFresh();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const emitter = (result.treeDataProvider as any)._onDidChangeTreeData;
-  const fireCountBefore = emitter.fireCount;
+  let refreshEvents = 0;
+  result.treeDataProvider.onDidChangeTreeData(() => {
+    refreshEvents++;
+  });
 
-  capturedWatcher!.emitDelete();
+  capturedWatcher?.emitDelete();
 
-  expect(emitter.fireCount).toBe(fireCountBefore + 1);
+  expect(refreshEvents).toBe(1);
 });
 
 test("multiple watcher events each trigger refresh", async () => {
   const result = await registerFresh();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const emitter = (result.treeDataProvider as any)._onDidChangeTreeData;
-  const fireCountBefore = emitter.fireCount;
+  let refreshEvents = 0;
+  result.treeDataProvider.onDidChangeTreeData(() => {
+    refreshEvents++;
+  });
 
-  capturedWatcher!.emitChange();
-  capturedWatcher!.emitCreate();
-  capturedWatcher!.emitDelete();
+  capturedWatcher?.emitChange();
+  capturedWatcher?.emitCreate();
+  capturedWatcher?.emitDelete();
 
-  expect(emitter.fireCount).toBe(fireCountBefore + 3);
+  expect(refreshEvents).toBe(3);
 });
 afterAll(() => {
   mock.restore();

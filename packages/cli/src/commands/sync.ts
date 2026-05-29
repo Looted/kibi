@@ -83,9 +83,7 @@ interface SyncCommandRuntimeContext {
 }
 
 interface SyncCommandRuntime {
-  afterAttach?: (
-    context: SyncCommandRuntimeContext,
-  ) => Promise<void> | void;
+  afterAttach?: (context: SyncCommandRuntimeContext) => Promise<void> | void;
   beforeSave?: (
     context: SyncCommandRuntimeContext & { kbModified: boolean },
   ) => Promise<void> | void;
@@ -94,7 +92,11 @@ interface SyncCommandRuntime {
 
 // implements REQ-003, REQ-007
 export async function syncCommand(
-  options: { validateOnly?: boolean; rebuild?: boolean; refreshSymbolCoordinates?: boolean } = {},
+  options: {
+    validateOnly?: boolean;
+    rebuild?: boolean;
+    refreshSymbolCoordinates?: boolean;
+  } = {},
   runtime: SyncCommandRuntime = {},
 ): Promise<SyncResult> {
   const validateOnly = options.validateOnly ?? false;
@@ -247,10 +249,15 @@ export async function syncCommand(
       if (options.refreshSymbolCoordinates) {
         for (const file of manifestFiles) {
           try {
-            await refreshManifestCoordinates(file, process.cwd(), { refreshSymbolCoordinates: options.refreshSymbolCoordinates });
+            await refreshManifestCoordinates(file, process.cwd(), {
+              refreshSymbolCoordinates: options.refreshSymbolCoordinates,
+            });
           } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
-            console.warn(`Warning: Failed to refresh symbol coordinates in ${file}: ${message}`);
+            const message =
+              error instanceof Error ? error.message : String(error);
+            console.warn(
+              `Warning: Failed to refresh symbol coordinates in ${file}: ${message}`,
+            );
           }
         }
       }

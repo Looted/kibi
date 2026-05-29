@@ -34,16 +34,13 @@ import {
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
-  type StagedFile,
-  getStagedFiles,
-} from "../traceability/git-staged.js";
-import {
   KIBI_NO_IMPACT_DECLARATION,
-  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
+  KIBI_SYMBOL_COORDINATES_PATH,
   type KibiEntityType,
   type KibiImpactEvidence,
 } from "../traceability/evidence-model.js";
+import { type StagedFile, getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
 import {
   type KibiImpactDiagnostic,
@@ -404,7 +401,9 @@ function buildStagedKibiImpactEvidence(options: {
       path: stagedAuthoredSymbolsEvidence.path,
       entityTypes: ["symbol"],
       entityIds: uniqueSorted(
-        stagedAuthoredSymbolsEvidence.entries.flatMap((entry) => entry.entityIds),
+        stagedAuthoredSymbolsEvidence.entries.flatMap(
+          (entry) => entry.entityIds,
+        ),
       ),
       sourcePaths: uniqueSorted(
         stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
@@ -478,7 +477,8 @@ export async function checkCommand(
           loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
 
         const sourceFiles = stagedFiles.filter(
-          (file) => !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
+          (file) =>
+            !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
         );
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
 
@@ -539,9 +539,8 @@ export async function checkCommand(
           symbolsByFile,
           symbolsManifestPath,
         });
-        const stagedKibiDiagnostics = collectStagedKibiDiagnostics(
-          stagedKibiEvidence,
-        );
+        const stagedKibiDiagnostics =
+          collectStagedKibiDiagnostics(stagedKibiEvidence);
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(

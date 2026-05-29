@@ -26,7 +26,9 @@ describe("kb_model_requirement", () => {
   });
 
   async function loadModule(): Promise<ModelRequirementModule> {
-    return import("../../src/tools/model-requirement.js") as unknown as Promise<ModelRequirementModule>;
+    return import(
+      "../../src/tools/model-requirement.js"
+    ) as unknown as Promise<ModelRequirementModule>;
   }
 
   test("high-confidence inputs return a strict write-set, sequential applyPlan, and migrationWarning for legacy config", async () => {
@@ -55,7 +57,9 @@ describe("kb_model_requirement", () => {
     const reqStep = applyPlan[2] as Record<string, unknown> | undefined;
 
     expect(structured.isStrict).toBe(true);
-    expect(structured.migrationWarning).toEqual(expect.stringMatching(/schemaVersion/i));
+    expect(structured.migrationWarning).toEqual(
+      expect.stringMatching(/schemaVersion/i),
+    );
     expect("applyBlocked" in structured).toBe(false);
     expect(applyPlan).toHaveLength(3);
     expect(applyPlan[0]).toMatchObject({ type: "fact", relationships: [] });

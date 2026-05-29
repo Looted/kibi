@@ -25,10 +25,7 @@ type TestDocMeta = {
 // Reads a TEST-*.md file from documentation/tests/ and extracts
 // frontmatter tags, source, and body.
 
-function readTestDoc(
-  worktree: string,
-  testId: string,
-): TestDocMeta | null {
+function readTestDoc(worktree: string, testId: string): TestDocMeta | null {
   // Try common locations for TEST docs
   const candidates = [
     `documentation/tests/${testId}.md`,
@@ -41,9 +38,7 @@ function readTestDoc(
       try {
         const content = readFileSync(fullPath, "utf8");
         return parseTestDoc(content, testId);
-      } catch {
-        continue;
-      }
+      } catch {}
     }
   }
 
@@ -222,9 +217,7 @@ export function getE2eCoverageSignal(
       exactEvidence.push(targetId);
     } else if (namesPath) {
       // Heuristic: non-e2e doc that explicitly names the source path
-      heuristicEvidence.push(
-        `${targetId} (doc names path: ${srcRelPath})`,
-      );
+      heuristicEvidence.push(`${targetId} (doc names path: ${srcRelPath})`);
     }
   }
 

@@ -6,11 +6,11 @@ import * as config from "./config.js";
 import { getGuidanceCache } from "./guidance-cache.js";
 import * as logger from "./logger.js";
 import { detectPosture } from "./repo-posture.js";
-import { createSyncScheduler, type SchedulerOptions } from "./scheduler.js";
+import { type SchedulerOptions, createSyncScheduler } from "./scheduler.js";
 import { getSessionTracker } from "./session-tracker.js";
 import {
-  computeEffectiveMode,
   type EffectiveMode,
+  computeEffectiveMode,
 } from "./smart-enforcement.js";
 import { checkWorkspaceHealth } from "./workspace-health.js";
 
@@ -65,7 +65,6 @@ export interface PluginStartupContext {
 }
 
 export function resolveCurrentBranch(cwd: string): string {
-  // implements REQ-opencode-kibi-briefing-v3
   // 1. Check KIBI_BRANCH env var first (highest precedence)
   const envBranch = process.env.KIBI_BRANCH?.trim();
   if (envBranch && envBranch.length > 0) {

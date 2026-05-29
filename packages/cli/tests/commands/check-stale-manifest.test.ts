@@ -61,10 +61,13 @@ function commitAll(cwd: string, message: string): void {
 }
 
 function syncKb(kibiBin: string, cwd: string, args: string[] = []): void {
-  execSync(`bun ${kibiBin} sync${args.length > 0 ? ` ${args.join(" ")}` : ""}`, {
-    cwd,
-    stdio: "pipe",
-  });
+  execSync(
+    `bun ${kibiBin} sync${args.length > 0 ? ` ${args.join(" ")}` : ""}`,
+    {
+      cwd,
+      stdio: "pipe",
+    },
+  );
 }
 
 function createTrackedFixture(): FileMap {
@@ -94,9 +97,12 @@ status: open
 
 function writeShiftedBehaviorEdit(root: string): void {
   writeFiles(root, {
-    "src/greet.ts": `export function greet() {
+    "src/greet.ts":
+      `export function greet() {
   const subject = "world";
-  return ` + "`hello ${subject}`" + `;
+  return ` +
+      "`hello ${subject}`" +
+      `;
 }
 `,
   });
@@ -128,10 +134,13 @@ ${note}
 
 function commitRefreshedManifest(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync("git add documentation/symbol-coordinates.yaml documentation/symbols.yaml", {
-    cwd,
-    stdio: "pipe",
-  });
+  execSync(
+    "git add documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+    {
+      cwd,
+      stdio: "pipe",
+    },
+  );
   execSync('git commit -m "refresh manifest" --no-verify', {
     cwd,
     stdio: "pipe",
@@ -187,10 +196,13 @@ describe("kibi check --staged stale symbols manifest detection", () => {
           stdio: "pipe",
         },
       );
-      execSync("git add src/greet.ts documentation/requirements/REQ-GREET-001.md", {
-        cwd: tmpDir,
-        stdio: "pipe",
-      });
+      execSync(
+        "git add src/greet.ts documentation/requirements/REQ-GREET-001.md",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
 
       const { status, stdout, stderr } = runKibi(
         kibiBin,

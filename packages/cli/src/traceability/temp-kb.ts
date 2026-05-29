@@ -87,7 +87,7 @@ function escapePrologAtom(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
-  function getEntityField(entity: ExtractedEntity, field: string): unknown {
+function getEntityField(entity: ExtractedEntity, field: string): unknown {
   // ExtractedEntity declares all fact fields as optional properties, so indexing
   // via keyof is safe. The cast is confined to this single helper.
   return (entity as unknown as Record<string, unknown>)[field];
