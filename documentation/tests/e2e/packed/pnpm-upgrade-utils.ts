@@ -233,11 +233,7 @@ export async function installTarballsWithPnpm(
     installArgs.push("--offline");
   }
   installArgs.push(...tarballs);
-  return runPnpm(
-    sandbox,
-    installArgs,
-    { timeoutMs: 300000 },
-  );
+  return runPnpm(sandbox, installArgs, { timeoutMs: 300000 });
 }
 
 export async function resolveInstalledKibiMcp(

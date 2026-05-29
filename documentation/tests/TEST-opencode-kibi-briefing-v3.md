@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-kibi-briefing-v3
 title: "OpenCode Kibi Briefings v3 Verification"
-status: pending
+status: closed
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
 source: documentation/tests/TEST-opencode-kibi-briefing-v3.md

@@ -1,7 +1,7 @@
 ---
 id: TEST-vscode-kibi-briefing-v3
 title: "VS Code Kibi Briefings v3 Verification Plan"
-status: pending
+status: closed
 created_at: 2026-05-06T04:48:00Z
 updated_at: 2026-05-06T04:48:00Z
 source: documentation/tests/TEST-vscode-kibi-briefing-v3.md
@@ -29,4 +29,3 @@ Verification plan for Schema-2.0 and Deterministic Ordering in VS Code:
 |-----------|-------------|
 | `packages/vscode/tests/activation/briefs.test.ts` | Activation and auto-open behavior with new schema |
 | `packages/vscode/tests/brief-ordering.test.ts` | Deterministic filename-based selection logic |
-

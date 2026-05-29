@@ -1,7 +1,13 @@
 // Packed e2e test for local plugin loading
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -274,7 +280,10 @@ if (RUN_NODE_TEST_SUITE) {
           toastCalls.length >= 0,
           "plugin may or may not toast depending on startup timing",
         );
-        assert.ok(logCalls.length >= 0, "plugin should initialize with a client app logger");
+        assert.ok(
+          logCalls.length >= 0,
+          "plugin should initialize with a client app logger",
+        );
 
         const distToast = join(REPO_ROOT, "packages/opencode/dist/toast.js");
         const distToastContent = readFileSync(distToast, "utf-8");

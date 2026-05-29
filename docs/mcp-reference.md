@@ -19,7 +19,7 @@ Grouped candidate entities synthesized from declared context and codebase eviden
 
 ## Repository Ignore Policy
 
-Kibi's discovery and autopilot generation honor repository-local Git ignore rules to avoid treating build artifacts, editor state, and tool caches as domain knowledge. During read-only discovery (for example `kb_autopilot_generate` and `kb_briefing_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
+During read-only discovery (for example `kb_autopilot_generate`) and other file-based inference, Kibi will exclude files and directories matched by the repository ignore policy:
 
 - repository root `.gitignore` files and nested `.gitignore` files in subdirectories
 - `.git/info/exclude`
@@ -41,22 +41,6 @@ Notes and v1 limitations:
 - No new project configuration schema is introduced in v1 to alter this behavior. Future releases may expose finer-grained controls.
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
-
-### `kb_briefing_generate`
-
-Generate a deterministic, read-only, start-task briefing from task text, source files, and seed IDs.
-
-**Parameters:**
-- `taskText` (optional): Task description used to rank relevant cited entities
-- `sourceFiles` (optional): Source-file paths used to gather cited entities
-- `seedIds` (optional): Seed entity IDs used to anchor the briefing
-
-At least one of `taskText`, `sourceFiles`, or `seedIds` must be non-empty.
-
-**Returns:**
-A structured briefing with `briefingState`, `activationState`, `activationReason`, `freshness`, `confidence`, `tldr`, `promptBlock`, `entities`, `constraints`, `regressionRisks`, `missingEvidence`, and `citations`.
-
-When evidence is insufficient, the tool fails closed with `briefingState: "no_briefing"` and no speculative sections.
 
 ### `kb_model_requirement`
 
@@ -307,10 +291,6 @@ Validation report with any violations found and suggested fixes.
 
 Interactive onboarding workflow for day-0 KB activation. It guides agents to ask at most 4 bounded questions to gather declared context, call `kb_autopilot_generate` for read-only synthesis, present a preview for user approval, and perform sequential `kb_upsert` followed by `kb_check`.
 
-### `/brief-kibi`
-
-Use this prompt at task start when you need a briefing grounded in current KB evidence. It instructs agents to call `kb_briefing_generate`, inspect `briefingState`, and use only cited output. If the result is `no_briefing`, the prompt tells agents not to invent briefing claims.
-
 ## Branch Behavior
 
 - The server attaches to the active git branch automatically at startup.
@@ -322,7 +302,7 @@ Use this prompt at task start when you need a briefing grounded in current KB ev
 ## Recommended Agent Workflow
 
 1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
-2. **Start-task Briefing**: Use `kb_briefing_generate` or `/brief-kibi` when you need a citation-backed briefing before risky work.
+2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
 3. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
 4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
 5. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.

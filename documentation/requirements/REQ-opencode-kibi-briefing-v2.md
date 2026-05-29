@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefings v2: Auto-Show with Prompt-Block Rendering"
-status: open
+status: superseded
 created_at: 2026-04-23T00:00:00Z
 updated_at: 2026-04-23T00:00:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v2.md

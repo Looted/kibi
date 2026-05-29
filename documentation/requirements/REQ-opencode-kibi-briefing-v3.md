@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v3
 title: "OpenCode Kibi Briefing v3: Reliable Session-Grounded Guidance"
-status: open
+status: superseded
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v3.md
