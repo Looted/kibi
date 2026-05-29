@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v6
 title: "OpenCode Kibi Briefing v6: Schema-2.0 & Session-Delta Migration"
-status: open
+status: superseded
 created_at: 2026-05-06T04:30:00Z
 updated_at: 2026-05-06T04:30:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v6.md

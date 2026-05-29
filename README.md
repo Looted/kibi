@@ -207,7 +207,7 @@ npx kibi status
 npx kibi check
 ```
 
-> **Note:** `kibi init` installs git hooks by default and writes `.kb/` + `.kb/briefs/` ignore entries to `.gitignore`. Hooks automatically sync your KB on branch checkout and merge.
+> **Note:** `kibi init` installs git hooks by default and writes `.kb/` ignore entries to `.gitignore`. Hooks automatically sync your KB on branch checkout and merge.
 
 ### Typical discovery workflow
 

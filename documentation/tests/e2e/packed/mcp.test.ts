@@ -248,8 +248,11 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_check",
                       "kb_model_requirement",
                       "kb_autopilot_generate",
-                      "kb_briefing_generate",
                     ]);
+                    assert.ok(
+                      !toolNames.includes("kb_briefing_generate"),
+                      "Removed briefing tool should not be listed",
+                    );
                     console.log("  ✓ Available tools:", toolNames.join(", "));
 
                     resolve();
@@ -327,8 +330,13 @@ if (RUN_NODE_TEST_SUITE) {
                   responseReceived = true;
                   clearTimeout(timeout);
                   void stopProcess(mcpProcess).finally(() => {
-                    assert.ok(Array.isArray(prompts), "Prompts should be an array");
-                    const initPrompt = prompts.find((p) => p.name === "init-kibi");
+                    assert.ok(
+                      Array.isArray(prompts),
+                      "Prompts should be an array",
+                    );
+                    const initPrompt = prompts.find(
+                      (p) => p.name === "init-kibi",
+                    );
                     assert.ok(initPrompt, "init-kibi should be registered");
                     assert.match(
                       initPrompt.description ?? "",

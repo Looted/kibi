@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v4
 title: "OpenCode Kibi Briefing v4: Render-First Idle Delivery & Prompt-Time Replay"
-status: open
+status: superseded
 created_at: 2026-04-29T10:00:00Z
 updated_at: 2026-04-30T10:00:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v4.md

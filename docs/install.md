@@ -183,7 +183,7 @@ If you encounter problems with SWI-Prolog:
 After installing kibi and verifying SWI-Prolog:
 
 1. Verify your environment: `npx kibi doctor`
-2. Initialize your project: `npx kibi init` (installs hooks by default and adds `.kb/` + `.kb/briefs/` to `.gitignore`)
+2. Initialize your project: `npx kibi init` (installs hooks by default and adds `.kb/` to `.gitignore`)
 3. Import documentation: `npx kibi sync`
 4. Explore the KB: `npx kibi search <query>`
 5. Inspect branch freshness: `npx kibi status`

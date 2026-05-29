@@ -1,7 +1,7 @@
 ---
 id: REQ-vscode-kibi-briefing-v2
 title: "VS Code Kibi Briefing v2: Render-First Auto-Open Contract"
-status: open
+status: superseded
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
 source: documentation/requirements/REQ-vscode-kibi-briefing-v2.md

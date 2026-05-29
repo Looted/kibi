@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-kibi-briefing-v1
 title: "OpenCode Kibi Briefings v1: Cue-Driven Discovery Through /brief-kibi"
-status: deprecated
+status: superseded
 created_at: 2026-04-20T00:00:00Z
 updated_at: 2026-04-20T00:00:00Z
 source: documentation/requirements/REQ-opencode-kibi-briefing-v1.md

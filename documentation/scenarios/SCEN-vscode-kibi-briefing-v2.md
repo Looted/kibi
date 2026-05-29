@@ -1,7 +1,7 @@
 ---
 id: SCEN-vscode-kibi-briefing-v2
 title: "VS Code Kibi Briefing v2: Auto-Open Scenarios"
-status: active
+status: closed
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
 source: documentation/scenarios/SCEN-vscode-kibi-briefing-v2.md

@@ -26,34 +26,25 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
    - Apply approved writes via sequential `kb_upsert`.
    - Run `kb_check` after applying.
 
-2. **Use briefing for risky work**
-   - Use `/brief-kibi` or `kb_briefing_generate` when task risk/ambiguity is high.
 
-3. **Discovery before exact lookup**
+2. **Discovery before exact lookup**
    - Start with `kb_search`.
    - Follow with `kb_query` for exact entities/filters (`id`, `type`, `sourceFile`, `tags`).
    - Use `kb_status` when branch/snapshot freshness confidence matters.
    - Use `kb_find_gaps`, `kb_coverage`, `kb_graph` for curated analysis.
 
-4. **Mutation discipline**
+3. **Mutation discipline**
    - Query before mutate.
    - Create relationship endpoints before linking.
    - Run `kb_upsert` sequentially (never parallel).
    - Use small, reviewable batches.
    - Use `kb_delete` only for intentional removals with dependency awareness.
 
-5. **Validation discipline**
+4. **Validation discipline**
    - Run targeted `kb_check` rules during iteration.
    - Run a final `kb_check` before completion.
    - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed.
 
-## Brief Generation (Automatic)
-
-- `kb_upsert` and `kb_delete` automatically write pending markers — agents don't need extra steps.
-- On `session.idle`, markers are consumed and a semantic brief is generated.
-- Briefs derive narrative from the KB graph: entity statuses, relationships, and patterns.
-- The graph narrator reads typed relationships (`supersedes`, `implements`, `covered_by`, `verified_by`, etc.) to tell user-centric stories.
-- Agents do NOT need to write extra summary context for briefs.
 ## Knowledge Quality Metrics
 
 Agents should monitor usage and quality signals, not just raw graph size:

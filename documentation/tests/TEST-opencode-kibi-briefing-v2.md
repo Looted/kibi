@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-kibi-briefing-v2
 title: "OpenCode Kibi Briefings v2 Verification"
-status: passing
+status: closed
 created_at: 2026-04-23T00:00:00Z
 updated_at: 2026-04-24T09:15:00Z
 source: documentation/tests/TEST-opencode-kibi-briefing-v2.md

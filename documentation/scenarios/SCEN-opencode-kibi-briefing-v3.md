@@ -1,7 +1,7 @@
 ---
 id: SCEN-opencode-kibi-briefing-v3
 title: "OpenCode Kibi Briefing v3: Session Reconciliation and Cache Management"
-status: active
+status: closed
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md
@@ -16,7 +16,7 @@ links:
 ---
 id: SCEN-opencode-kibi-briefing-v3
 title: "OpenCode Kibi Briefing v3: Session Reconciliation and Cache Management"
-status: active
+status: closed
 created_at: 2026-04-24T00:00:00Z
 updated_at: 2026-04-24T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v3.md
@@ -70,6 +70,5 @@ links:
 **WHEN** the agent executes the `/brief-kibi` command
 **THEN** the plugin must force a fresh **reconcile** with the background worker
 **AND** the full briefing must be rendered even if a compact summary was previously shown.
-
 
 

@@ -1,7 +1,7 @@
 ---
 id: TEST-opencode-kibi-briefing-v6
 title: "OpenCode Kibi Briefings v6 Verification Plan"
-status: pending
+status: closed
 created_at: 2026-05-06T04:38:00Z
 updated_at: 2026-05-06T04:38:00Z
 source: documentation/tests/TEST-opencode-kibi-briefing-v6.md

@@ -22,159 +22,174 @@ const RUN_NODE_TEST_SUITE =
  */
 
 if (RUN_NODE_TEST_SUITE) {
-  describe("MCP CLI Help: Packed tarball regression", {
-    timeout: 120000,
-  }, () => {
-    let tarballs: Tarballs;
-    let sandbox: TestSandbox;
+  describe(
+    "MCP CLI Help: Packed tarball regression",
+    {
+      timeout: 120000,
+    },
+    () => {
+      let tarballs: Tarballs;
+      let sandbox: TestSandbox;
 
-    before(
-      async () => {
-        tarballs = await packAll();
-        sandbox = createSandbox();
-        await sandbox.install(tarballs);
-        // No need to init git repo for help tests
-        // No need to checkPrologAvailable() - help works without Prolog
-      },
-      { timeout: 120000 },
-    );
-
-    after(
-      async () => {
-        if (sandbox) {
-          await sandbox.cleanup();
-        }
-      },
-      { timeout: 60000 },
-    );
-
-    it("should display help with --help flag", { timeout: 10000 }, async () => {
-      const result = await kibiMcp(sandbox, ["--help"]);
-
-      // Verify exit code 0
-      assert.strictEqual(
-        result.exitCode,
-        0,
-        `kibi-mcp --help should exit with code 0: ${result.stderr}`,
+      before(
+        async () => {
+          tarballs = await packAll();
+          sandbox = createSandbox();
+          await sandbox.install(tarballs);
+          // No need to init git repo for help tests
+          // No need to checkPrologAvailable() - help works without Prolog
+        },
+        { timeout: 120000 },
       );
 
-      // Verify stdout contains expected help text
-      assert.ok(
-        result.stdout.includes("Usage: kibi-mcp [options]"),
-        "Help output should contain usage line",
-      );
-      assert.ok(
-        result.stdout.includes("--diagnostic-mode"),
-        "Help output should mention --diagnostic-mode flag",
-      );
-      assert.ok(
-        result.stdout.includes("-h, --help"),
-        "Help output should mention help flags",
+      after(
+        async () => {
+          if (sandbox) {
+            await sandbox.cleanup();
+          }
+        },
+        { timeout: 60000 },
       );
 
-      // Verify no jsonrpc output (help short-circuits before server)
-      assert.ok(
-        !result.stdout.includes("jsonrpc"),
-        "Help output should not contain jsonrpc (server should not start)",
+      it(
+        "should display help with --help flag",
+        { timeout: 10000 },
+        async () => {
+          const result = await kibiMcp(sandbox, ["--help"]);
+
+          // Verify exit code 0
+          assert.strictEqual(
+            result.exitCode,
+            0,
+            `kibi-mcp --help should exit with code 0: ${result.stderr}`,
+          );
+
+          // Verify stdout contains expected help text
+          assert.ok(
+            result.stdout.includes("Usage: kibi-mcp [options]"),
+            "Help output should contain usage line",
+          );
+          assert.ok(
+            result.stdout.includes("--diagnostic-mode"),
+            "Help output should mention --diagnostic-mode flag",
+          );
+          assert.ok(
+            result.stdout.includes("-h, --help"),
+            "Help output should mention help flags",
+          );
+
+          // Verify no jsonrpc output (help short-circuits before server)
+          assert.ok(
+            !result.stdout.includes("jsonrpc"),
+            "Help output should not contain jsonrpc (server should not start)",
+          );
+
+          // Verify stderr is empty
+          assert.strictEqual(
+            result.stderr,
+            "",
+            `Help output should not have stderr: ${result.stderr}`,
+          );
+
+          console.log("  ✓ --help flag works correctly");
+        },
       );
 
-      // Verify stderr is empty
-      assert.strictEqual(
-        result.stderr,
-        "",
-        `Help output should not have stderr: ${result.stderr}`,
-      );
+      it("should display help with -h flag", { timeout: 10000 }, async () => {
+        const result = await kibiMcp(sandbox, ["-h"]);
 
-      console.log("  ✓ --help flag works correctly");
-    });
+        // Verify exit code 0
+        assert.strictEqual(
+          result.exitCode,
+          0,
+          `kibi-mcp -h should exit with code 0: ${result.stderr}`,
+        );
 
-    it("should display help with -h flag", { timeout: 10000 }, async () => {
-      const result = await kibiMcp(sandbox, ["-h"]);
+        // Verify stdout contains expected help text
+        assert.ok(
+          result.stdout.includes("Usage: kibi-mcp [options]"),
+          "Help output should contain usage line",
+        );
+        assert.ok(
+          result.stdout.includes("--diagnostic-mode"),
+          "Help output should mention --diagnostic-mode flag",
+        );
+        assert.ok(
+          result.stdout.includes("-h, --help"),
+          "Help output should mention help flags",
+        );
 
-      // Verify exit code 0
-      assert.strictEqual(
-        result.exitCode,
-        0,
-        `kibi-mcp -h should exit with code 0: ${result.stderr}`,
-      );
+        // Verify no jsonrpc output (help short-circuits before server)
+        assert.ok(
+          !result.stdout.includes("jsonrpc"),
+          "Help output should not contain jsonrpc (server should not start)",
+        );
 
-      // Verify stdout contains expected help text
-      assert.ok(
-        result.stdout.includes("Usage: kibi-mcp [options]"),
-        "Help output should contain usage line",
-      );
-      assert.ok(
-        result.stdout.includes("--diagnostic-mode"),
-        "Help output should mention --diagnostic-mode flag",
-      );
-      assert.ok(
-        result.stdout.includes("-h, --help"),
-        "Help output should mention help flags",
-      );
+        // Verify stderr is empty
+        assert.strictEqual(
+          result.stderr,
+          "",
+          `Help output should not have stderr: ${result.stderr}`,
+        );
 
-      // Verify no jsonrpc output (help short-circuits before server)
-      assert.ok(
-        !result.stdout.includes("jsonrpc"),
-        "Help output should not contain jsonrpc (server should not start)",
-      );
+        console.log("  ✓ -h flag works correctly");
+      });
 
-      // Verify stderr is empty
-      assert.strictEqual(
-        result.stderr,
-        "",
-        `Help output should not have stderr: ${result.stderr}`,
-      );
+      it(
+        "should display help with --help --diagnostic-mode",
+        {
+          timeout: 10000,
+        },
+        async () => {
+          const result = await kibiMcp(sandbox, [
+            "--help",
+            "--diagnostic-mode",
+          ]);
 
-      console.log("  ✓ -h flag works correctly");
-    });
+          // Verify exit code 0
+          assert.strictEqual(
+            result.exitCode,
+            0,
+            `kibi-mcp --help --diagnostic-mode should exit with code 0: ${result.stderr}`,
+          );
 
-    it("should display help with --help --diagnostic-mode", {
-      timeout: 10000,
-    }, async () => {
-      const result = await kibiMcp(sandbox, ["--help", "--diagnostic-mode"]);
+          // Verify stdout contains expected help text
+          assert.ok(
+            result.stdout.includes("Usage: kibi-mcp [options]"),
+            "Help output should contain usage line",
+          );
+          assert.ok(
+            result.stdout.includes("--diagnostic-mode"),
+            "Help output should mention --diagnostic-mode flag",
+          );
+          assert.ok(
+            result.stdout.includes("-h, --help"),
+            "Help output should mention help flags",
+          );
 
-      // Verify exit code 0
-      assert.strictEqual(
-        result.exitCode,
-        0,
-        `kibi-mcp --help --diagnostic-mode should exit with code 0: ${result.stderr}`,
-      );
+          // Verify no jsonrpc output (help short-circuits before server)
+          assert.ok(
+            !result.stdout.includes("jsonrpc"),
+            "Help output should not contain jsonrpc (server should not start)",
+          );
 
-      // Verify stdout contains expected help text
-      assert.ok(
-        result.stdout.includes("Usage: kibi-mcp [options]"),
-        "Help output should contain usage line",
-      );
-      assert.ok(
-        result.stdout.includes("--diagnostic-mode"),
-        "Help output should mention --diagnostic-mode flag",
-      );
-      assert.ok(
-        result.stdout.includes("-h, --help"),
-        "Help output should mention help flags",
-      );
+          // Verify stderr is empty
+          assert.strictEqual(
+            result.stderr,
+            "",
+            `Help output should not have stderr: ${result.stderr}`,
+          );
 
-      // Verify no jsonrpc output (help short-circuits before server)
-      assert.ok(
-        !result.stdout.includes("jsonrpc"),
-        "Help output should not contain jsonrpc (server should not start)",
-      );
+          // Verify .kb/usage.log is absent (help short-circuits before server starts)
+          const usageLogPath = join(sandbox.repoDir, ".kb", "usage.log");
+          assert.ok(
+            !existsSync(usageLogPath),
+            ".kb/usage.log should not exist after --help (server should not start)",
+          );
 
-      // Verify stderr is empty
-      assert.strictEqual(
-        result.stderr,
-        "",
-        `Help output should not have stderr: ${result.stderr}`,
+          console.log("  ✓ --help --diagnostic-mode works correctly");
+        },
       );
-
-      // Verify .kb/usage.log is absent (help short-circuits before server starts)
-      const usageLogPath = join(sandbox.repoDir, ".kb", "usage.log");
-      assert.ok(
-        !existsSync(usageLogPath),
-        ".kb/usage.log should not exist after --help (server should not start)",
-      );
-
-      console.log("  ✓ --help --diagnostic-mode works correctly");
-    });
-  });
+    },
+  );
 }

@@ -115,7 +115,7 @@ If git operations don't trigger kibi hooks:
    ```bash
    kibi init
    ```
-   Re-running `kibi init` also refreshes `.gitignore` entries for `.kb/` and `.kb/briefs/`.
+   Re-running `kibi init` also refreshes `.gitignore` entries for `.kb/`.
 
 ### Hook Conflicts
 

@@ -1,7 +1,7 @@
 ---
 id: TEST-vscode-kibi-briefing-v2
 title: "VS Code Kibi Briefings v2 Verification"
-status: pending
+status: closed
 created_at: 2026-04-29T00:00:00Z
 updated_at: 2026-04-29T00:00:00Z
 source: documentation/tests/TEST-vscode-kibi-briefing-v2.md

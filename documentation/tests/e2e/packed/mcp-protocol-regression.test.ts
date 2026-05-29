@@ -207,7 +207,6 @@ if (RUN_NODE_TEST_SUITE) {
           "kb_check",
           "kb_model_requirement",
           "kb_autopilot_generate",
-          "kb_briefing_generate",
         ],
       );
 
@@ -241,7 +240,7 @@ if (RUN_NODE_TEST_SUITE) {
         jsonrpc: "2.0",
         id: 201,
         method: "tools/call",
-        params: { name: "kb_branch_gc", arguments: { dry_run: true } },
+        params: { name: "kb_briefing_generate", arguments: {} },
       };
 
       const initLine = JSON.parse(
