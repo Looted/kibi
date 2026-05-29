@@ -1,5 +1,19 @@
 # kibi-opencode
 
+## 0.15.1
+
+### Patch Changes
+
+- OpenCode users no longer receive automatic or manual Kibi brief delivery from the plugin. Prompt guidance, background sync, smart enforcement, and KB freshness reminders remain available without brief generation, brief toasts, or brief TUI routes. This reduces noisy single-file briefing behavior while preserving the core Kibi guidance loop.
+
+  Technical summary:
+
+  - Regenerate OpenCode dist after removing idle, prompt, and TUI briefing paths.
+  - Keep non-brief prompt guidance and sync/check functionality intact.
+
+- Updated dependencies
+  - kibi-cli@0.11.3
+
 ## 0.15.0
 
 ### Minor Changes

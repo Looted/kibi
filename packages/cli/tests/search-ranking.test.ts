@@ -8,11 +8,11 @@
  * (at your option) any later version.
  */
 
-import { describe, expect, test, beforeEach, mock, spyOn } from "bun:test";
+import { beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 import fs from "node:fs/promises";
 import path from "node:path";
 import matter from "gray-matter";
-import { rankEntities, loadMarkdownBody } from "../src/search-ranking.js";
+import { loadMarkdownBody, rankEntities } from "../src/search-ranking.js";
 
 // ---------------------------------------------------------------------------
 // Helper: build a minimal entity object
@@ -668,17 +668,17 @@ describe("rankEntities — edge cases and normalization", () => {
   });
 
   test("empty query string returns empty result", async () => {
-      const entity = makeEntity({ title: "Something" });
-      const result = await rankEntities([entity], "", "/workspace");
-  
-      expect(result).toEqual([]);
-    });
+    const entity = makeEntity({ title: "Something" });
+    const result = await rankEntities([entity], "", "/workspace");
+
+    expect(result).toEqual([]);
+  });
   test("whitespace-only query returns empty result", async () => {
-      const entity = makeEntity({ title: "Something" });
-      const result = await rankEntities([entity], "   ", "/workspace");
-  
-      expect(result).toEqual([]);
-    });
+    const entity = makeEntity({ title: "Something" });
+    const result = await rankEntities([entity], "   ", "/workspace");
+
+    expect(result).toEqual([]);
+  });
 
   test("entity with empty tags array does not crash", async () => {
     const entity = makeEntity({ title: "Auth", tags: [] });
@@ -810,11 +810,9 @@ describe("rankEntities — search quality corpus", () => {
     expect(result[0]?.entity.id).toBe(
       "FACT-search-apple-signin-revenuecat-recovery",
     );
-    expect(
-      result
-        .slice(0, 10)
-        .map((match) => match.entity.id),
-    ).not.toContain("FACT-search-unrelated-sync-feedback");
+    expect(result.slice(0, 10).map((match) => match.entity.id)).not.toContain(
+      "FACT-search-unrelated-sync-feedback",
+    );
   });
 
   test("focused RevenueCat entitlement query ranks focused requirement first", async () => {

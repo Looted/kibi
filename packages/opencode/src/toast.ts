@@ -8,7 +8,12 @@ export type ToastPayload = {
 export type SendToastResult =
   | { status: "delivered"; transport: "legacy" | "sdk" }
   | { status: "unavailable"; reason: "missing-capability" }
-  | { status: "failed"; transport: "legacy" | "sdk"; reason: string; error?: string };
+  | {
+      status: "failed";
+      transport: "legacy" | "sdk";
+      reason: string;
+      error?: string;
+    };
 
 export type ToastCapableClient = {
   tui?: {

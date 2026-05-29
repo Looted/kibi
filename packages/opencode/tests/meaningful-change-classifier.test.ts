@@ -1,7 +1,7 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
+import type { FileLifecycle } from "../src/file-operation-state.js";
 import { classifyMeaningfulChange } from "../src/meaningful-change-classifier.js";
 import type { PathKind } from "../src/path-kind.js";
-import type { FileLifecycle } from "../src/file-operation-state.js";
 import type { RiskClass } from "../src/risk-classifier.js";
 
 describe("classifyMeaningfulChange", () => {

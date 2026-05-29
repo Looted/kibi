@@ -18,9 +18,9 @@
 
 import { createHash } from "node:crypto";
 import * as path from "node:path";
-import { DEFAULT_CONFIG, type KbConfigPaths } from "./config.js";
 import type { BaseEntity, FactFields } from "../types/entities.js";
 import type { BaseRelationship } from "../types/relationships.js";
+import { DEFAULT_CONFIG, type KbConfigPaths } from "./config.js";
 
 const STRICT_CONFIDENCE_THRESHOLD = 0.7;
 
@@ -40,7 +40,9 @@ export interface StrictModelInput {
   config?: Pick<{ paths: KbConfigPaths }, "paths">;
 }
 
-type EntityProperties = Partial<Omit<BaseEntity, "created_at" | "updated_at"> & FactFields> & {
+type EntityProperties = Partial<
+  Omit<BaseEntity, "created_at" | "updated_at"> & FactFields
+> & {
   id: string;
   title: string;
   status: string;
@@ -102,7 +104,9 @@ export function normalizeSubjectKey(value: string): string {
     .replace(/(^[._]+|[._]+$)/g, "");
 
   if (!normalized) {
-    throw new Error("Semantic claim subjectKey must normalize to a non-empty value");
+    throw new Error(
+      "Semantic claim subjectKey must normalize to a non-empty value",
+    );
   }
 
   return normalized;
@@ -117,13 +121,17 @@ export function normalizePropertyKey(value: string): string {
     .replace(/^_+|_+$/g, "");
 
   if (!normalized) {
-    throw new Error("Semantic claim propertyKey must normalize to a non-empty value");
+    throw new Error(
+      "Semantic claim propertyKey must normalize to a non-empty value",
+    );
   }
 
   return normalized;
 }
 
-export function buildStableRequirementIds(claim: SemanticClaim): StableRequirementIds {
+export function buildStableRequirementIds(
+  claim: SemanticClaim,
+): StableRequirementIds {
   const normalizedSource = normalizeSourceKey(claim.source);
   const normalizedSubjectKey = normalizeSubjectKey(claim.subjectKey);
   const normalizedPropertyKey = normalizePropertyKey(claim.propertyKey);
@@ -169,9 +177,16 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
           id: ids.observationFactId,
           title: statement,
           status: "active",
-          source: buildEntitySourcePath(sourcePaths.facts, ids.observationFactId),
+          source: buildEntitySourcePath(
+            sourcePaths.facts,
+            ids.observationFactId,
+          ),
           text_ref: textRef,
-          tags: buildUniqueTags([...metadataTags, "lane:observation", "review:required"]),
+          tags: buildUniqueTags([
+            ...metadataTags,
+            "lane:observation",
+            "review:required",
+          ]),
           fact_kind: "observation",
           subject_key: ids.normalizedSubjectKey,
           property_key: ids.normalizedPropertyKey,
@@ -222,7 +237,11 @@ export function buildStrictWriteSet(input: StrictModelInput): StrictWriteSet {
       status: "active",
       source: buildEntitySourcePath(sourcePaths.facts, ids.propertyFactId),
       text_ref: textRef,
-      tags: buildUniqueTags([...metadataTags, "lane:strict", "fact:property_value"]),
+      tags: buildUniqueTags([
+        ...metadataTags,
+        "lane:strict",
+        "fact:property_value",
+      ]),
       fact_kind: "property_value",
       subject_key: ids.normalizedSubjectKey,
       property_key: ids.normalizedPropertyKey,
@@ -266,7 +285,9 @@ export function modelRequirementClaims(
 
   for (const input of inputs) {
     const writeSet = buildStrictWriteSet(input);
-    const stableId = writeSet.isStrict ? writeSet.req.id : writeSet.observationFact.id;
+    const stableId = writeSet.isStrict
+      ? writeSet.req.id
+      : writeSet.observationFact.id;
     if (seen.has(stableId)) {
       continue;
     }
@@ -293,7 +314,9 @@ function normalizeSourceKey(value: string): string {
     .replace(/(^-|-$)/g, "");
 
   if (!normalized) {
-    throw new Error("Semantic claim source must normalize to a non-empty value");
+    throw new Error(
+      "Semantic claim source must normalize to a non-empty value",
+    );
   }
 
   return normalized;
@@ -323,7 +346,10 @@ function normalizeStatement(statement: string): string {
   return normalized;
 }
 
-function normalizeTextRef(provenance: string | undefined, source: string): string {
+function normalizeTextRef(
+  provenance: string | undefined,
+  source: string,
+): string {
   const value = provenance?.trim() || source.trim();
   if (!value) {
     throw new Error("Strict modeling requires claim provenance or source");
@@ -409,7 +435,9 @@ function buildPropertyFactFields(claim: SemanticClaim): Partial<FactFields> {
   };
 }
 
-function buildTypedValueFields(value: string | number | boolean): Partial<FactFields> {
+function buildTypedValueFields(
+  value: string | number | boolean,
+): Partial<FactFields> {
   if (typeof value === "boolean") {
     return {
       value_type: "bool",
@@ -437,7 +465,9 @@ function buildTypedValueFields(value: string | number | boolean): Partial<FactFi
   };
 }
 
-function normalizePolarityValue(value: string | number | boolean): "require" | "forbid" {
+function normalizePolarityValue(
+  value: string | number | boolean,
+): "require" | "forbid" {
   if (typeof value === "boolean") {
     return value ? "require" : "forbid";
   }
@@ -449,7 +479,9 @@ function normalizePolarityValue(value: string | number | boolean): "require" | "
     }
   }
 
-  throw new Error("Polarity claims must use a boolean or the string 'require'/'forbid'");
+  throw new Error(
+    "Polarity claims must use a boolean or the string 'require'/'forbid'",
+  );
 }
 
 function normalizeBooleanValue(value: string | number | boolean): boolean {
@@ -463,7 +495,9 @@ function normalizeBooleanValue(value: string | number | boolean): boolean {
     if (normalized === "false") return false;
   }
 
-  throw new Error("Boolean claims must use a boolean or the string 'true'/'false'");
+  throw new Error(
+    "Boolean claims must use a boolean or the string 'true'/'false'",
+  );
 }
 
 function humanizeKey(value: string): string {
@@ -493,15 +527,19 @@ function dedupeRelationships(
   return deduped;
 }
 
-function resolveEntitySourcePaths(
-  configPaths: KbConfigPaths | undefined,
-): { requirements: string; facts: string } {
+function resolveEntitySourcePaths(configPaths: KbConfigPaths | undefined): {
+  requirements: string;
+  facts: string;
+} {
   return {
     requirements: normalizeEntityDirectory(
       configPaths?.requirements,
       DEFAULT_CONFIG.paths.requirements,
     ),
-    facts: normalizeEntityDirectory(configPaths?.facts, DEFAULT_CONFIG.paths.facts),
+    facts: normalizeEntityDirectory(
+      configPaths?.facts,
+      DEFAULT_CONFIG.paths.facts,
+    ),
   };
 }
 

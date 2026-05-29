@@ -73,7 +73,9 @@ export function createTsMorphSourceAnalysisProvider(): SourceAnalysisProvider {
   return {
     id: "ts-morph",
     supportsFile(filePath: string): boolean {
-      return SUPPORTED_SOURCE_EXTENSIONS.has(path.extname(filePath).toLowerCase());
+      return SUPPORTED_SOURCE_EXTENSIONS.has(
+        path.extname(filePath).toLowerCase(),
+      );
     },
     analyzeText(filePath: string, content: string): SourceAnalysisResult {
       const sourceFile = project.createSourceFile(filePath, content, {
@@ -373,7 +375,11 @@ function toSourceSymbolAnalysis(
 function chooseScriptKind(filePath: string): ScriptKind {
   const lower = filePath.toLowerCase();
   if (lower.endsWith(".tsx")) return ScriptKind.TSX;
-  if (lower.endsWith(".ts") || lower.endsWith(".mts") || lower.endsWith(".cts")) {
+  if (
+    lower.endsWith(".ts") ||
+    lower.endsWith(".mts") ||
+    lower.endsWith(".cts")
+  ) {
     return ScriptKind.TS;
   }
   if (lower.endsWith(".jsx")) return ScriptKind.JSX;

@@ -55,7 +55,11 @@ afterEach(() => {
   }
 });
 
-function createFixture(name: string, source: string, testSuite: string): Fixture {
+function createFixture(
+  name: string,
+  source: string,
+  testSuite: string,
+): Fixture {
   const rootDir = mkdtempSync(path.join(os.tmpdir(), `kibi-${name}-`));
   const srcDir = path.join(rootDir, "src");
   const testsDir = path.join(rootDir, "tests");
@@ -198,6 +202,8 @@ test(beta_done) :-
     expect(summary.coverage.percent).toBe(100);
     expect(summary.coverage.uncoveredClauses).toHaveLength(0);
     expect(summary.artifacts.annotatedFiles.length).toBeGreaterThan(0);
-    expect(readFileSync(summaryText, "utf8")).toContain("Coverage threshold met");
+    expect(readFileSync(summaryText, "utf8")).toContain(
+      "Coverage threshold met",
+    );
   });
 });

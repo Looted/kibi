@@ -114,14 +114,14 @@ describe("init-helpers", () => {
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 
-  test("updateGitIgnore adds .kb/ and .kb/briefs/", () => {
+  test("updateGitIgnore adds only .kb/", () => {
     updateGitIgnore(tmpDir);
 
     const gitignorePath = path.join(tmpDir, ".gitignore");
     expect(existsSync(gitignorePath)).toBe(true);
     const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain(".kb/");
-    expect(content).toContain(".kb/briefs/");
+    expect(content).not.toContain(".kb/briefs/");
   });
 
   test("updateGitIgnore appends to existing .gitignore", () => {
@@ -133,21 +133,20 @@ describe("init-helpers", () => {
     const content = readFileSync(gitignorePath, "utf8");
     expect(content).toContain("node_modules/");
     expect(content).toContain(".kb/");
-    expect(content).toContain(".kb/briefs/");
+    expect(content).not.toContain(".kb/briefs/");
   });
 
-  test("updateGitIgnore does not duplicate existing .kb entries", () => {
+  test("updateGitIgnore does not duplicate existing .kb entry", () => {
     const gitignorePath = path.join(tmpDir, ".gitignore");
-    writeFileSync(gitignorePath, ".kb/\n.kb/briefs/\n");
+    writeFileSync(gitignorePath, ".kb/\n");
 
     updateGitIgnore(tmpDir);
 
     const content = readFileSync(gitignorePath, "utf8");
     const kbMatches = content.match(/^\.kb\/$/gm);
-    const briefsMatches = content.match(/^\.kb\/briefs\/$/gm);
 
     expect(kbMatches?.length ?? 0).toBe(1);
-    expect(briefsMatches?.length ?? 0).toBe(1);
+    expect(content).not.toContain(".kb/briefs/");
   });
 
   test("ensureSymbolsManifestFile creates the default symbols manifest", () => {
@@ -349,7 +348,9 @@ describe("init-helpers", () => {
       "utf8",
     );
     expect(preCommitContent).toContain("documentation/symbols.yaml");
-    expect(preCommitContent).toContain("kibi sync --refresh-symbol-coordinates");
+    expect(preCommitContent).toContain(
+      "kibi sync --refresh-symbol-coordinates",
+    );
   });
 
   test("installGitHooks creates hooks without --refresh-symbol-coordinates", () => {
@@ -361,13 +362,19 @@ describe("init-helpers", () => {
     const hooksDir = path.join(gitDir, "hooks");
 
     // All automatic hooks must NOT include coordinate-refresh flags
-    const postCheckout = readFileSync(path.join(hooksDir, "post-checkout"), "utf8");
+    const postCheckout = readFileSync(
+      path.join(hooksDir, "post-checkout"),
+      "utf8",
+    );
     expect(postCheckout).not.toContain("--refresh-symbol-coordinates");
 
     const postMerge = readFileSync(path.join(hooksDir, "post-merge"), "utf8");
     expect(postMerge).not.toContain("--refresh-symbol-coordinates");
 
-    const postRewrite = readFileSync(path.join(hooksDir, "post-rewrite"), "utf8");
+    const postRewrite = readFileSync(
+      path.join(hooksDir, "post-rewrite"),
+      "utf8",
+    );
     expect(postRewrite).not.toContain("--refresh-symbol-coordinates");
   });
 
@@ -378,7 +385,10 @@ describe("init-helpers", () => {
     installGitHooks(gitDir);
 
     const hooksDir = path.join(gitDir, "hooks");
-    const postCheckout = readFileSync(path.join(hooksDir, "post-checkout"), "utf8");
+    const postCheckout = readFileSync(
+      path.join(hooksDir, "post-checkout"),
+      "utf8",
+    );
     // Must still call kibi branch ensure for branch tracking
     expect(postCheckout).toContain("kibi branch ensure");
     expect(postCheckout).toContain("kibi sync");

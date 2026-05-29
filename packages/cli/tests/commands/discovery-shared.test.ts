@@ -1,5 +1,6 @@
 import {
-  afterAll, afterEach,
+  afterAll,
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -7,7 +8,7 @@ import {
   spyOn,
   test,
 } from "bun:test";
-import { PrologProcess } from "../../src/prolog.js";
+import type { PrologProcess } from "../../src/prolog.js";
 
 type QueryResult = {
   success: boolean;
@@ -190,7 +191,7 @@ describe("discovery-shared", () => {
     );
 
     // Test fallback: clear env var and expect main
-    delete process.env.KIBI_BRANCH;
+    process.env.KIBI_BRANCH = undefined;
     // Note: actual branch depends on git state, so we just verify it returns a path
     const result = await discovery.resolveCurrentKbPath();
     expect(result).toMatch(/\.kb\/branches\//);
@@ -435,6 +436,6 @@ describe("discovery-shared", () => {
     expect(genericCoverage).toContain("partial");
   });
 });
-  afterAll(() => {
-    mock.restore();
-  });
+afterAll(() => {
+  mock.restore();
+});

@@ -71,7 +71,10 @@ describe("file-filter shouldHandleFile", () => {
       fs.writeFileSync(path.join(docsDir, ".gitignore"), "nested-ignore.md\n");
       const nestedFile = path.join(docsDir, "nested-ignore.md");
       fs.writeFileSync(nestedFile, "x");
-      const relNested = path.relative(process.cwd(), nestedFile).split(path.sep).join("/");
+      const relNested = path
+        .relative(process.cwd(), nestedFile)
+        .split(path.sep)
+        .join("/");
       const okNested = shouldHandleFile(relNested, tmp);
       assert.equal(okNested, false);
 
@@ -81,7 +84,10 @@ describe("file-filter shouldHandleFile", () => {
       fs.writeFileSync(path.join(gitInfoDir, "exclude"), "exclude-me.md\n");
       const excl = path.join(tmp, "exclude-me.md");
       fs.writeFileSync(excl, "y");
-      const relExcl = path.relative(process.cwd(), excl).split(path.sep).join("/");
+      const relExcl = path
+        .relative(process.cwd(), excl)
+        .split(path.sep)
+        .join("/");
       const okExcl = shouldHandleFile(relExcl, tmp);
       assert.equal(okExcl, false);
     } finally {
@@ -90,7 +96,10 @@ describe("file-filter shouldHandleFile", () => {
   });
 
   it("accepts non-ignored configured docs markdown", () => {
-    const ok = shouldHandleFile("documentation/requirements/NOT_IGNORED.md", process.cwd());
+    const ok = shouldHandleFile(
+      "documentation/requirements/NOT_IGNORED.md",
+      process.cwd(),
+    );
     assert.equal(ok, true);
   });
 });

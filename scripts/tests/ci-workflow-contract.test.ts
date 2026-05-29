@@ -67,7 +67,9 @@ describe("ci.yml CI workflow contract", () => {
       expect(block).toContain("kibi-e2e-tests-compiled");
 
       // Packed jobs must point the runner tests at the tarball location
-      expect(block).toContain("KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages");
+      expect(block).toContain(
+        "KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages",
+      );
     }
   });
 
@@ -83,7 +85,9 @@ describe("ci.yml CI workflow contract", () => {
     expect(block).toContain("- name: Run unit tests with coverage");
     expect(block).toContain("if: ${{ !inputs.skip_tests }}");
     expect(block).toContain("run: bun run test:coverage:unit");
-    expect(block).not.toContain("Run unit tests with coverage\n        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}");
+    expect(block).not.toContain(
+      "Run unit tests with coverage\n        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' }}",
+    );
   });
 
   test("downstream jobs wait for both JS and Prolog coverage gates", () => {

@@ -125,7 +125,10 @@ export async function cleanupAbandonedStagingDirectories(
     }
 
     const candidatePid = Number.parseInt(candidatePidText, 10);
-    if (!Number.isFinite(candidatePid) || resolved.isProcessAlive(candidatePid)) {
+    if (
+      !Number.isFinite(candidatePid) ||
+      resolved.isProcessAlive(candidatePid)
+    ) {
       continue;
     }
 

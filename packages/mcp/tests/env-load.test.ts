@@ -45,7 +45,10 @@ describe("env loading", () => {
     );
     process.env.EXISTING_KEY = "keep-me";
 
-    const result = loadEnvFile({ envFileName: ".env.test", workspaceRoot: tmpDir });
+    const result = loadEnvFile({
+      envFileName: ".env.test",
+      workspaceRoot: tmpDir,
+    });
 
     expect(result).toEqual({
       loaded: true,
@@ -60,7 +63,10 @@ describe("env loading", () => {
   });
 
   test("loadEnvFile returns unloaded result when file is missing", () => {
-    const result = loadEnvFile({ envFileName: ".env.missing", workspaceRoot: tmpDir });
+    const result = loadEnvFile({
+      envFileName: ".env.missing",
+      workspaceRoot: tmpDir,
+    });
 
     expect(result).toEqual({
       loaded: false,
@@ -75,20 +81,28 @@ describe("env loading", () => {
     const consoleError = mock(() => {});
     console.error = consoleError;
 
-    const result = loadEnvFile({ envFileName: ".env.broken", workspaceRoot: tmpDir });
+    const result = loadEnvFile({
+      envFileName: ".env.broken",
+      workspaceRoot: tmpDir,
+    });
     expect(result).toEqual({
       loaded: false,
       envFilePath: envPath,
       keysLoaded: [],
     });
     expect(consoleError).toHaveBeenCalledWith(
-      expect.stringContaining(`[Kibi] Unable to load environment file ${envPath}:`),
+      expect.stringContaining(
+        `[Kibi] Unable to load environment file ${envPath}:`,
+      ),
     );
   });
 
   test("loadDefaultEnvFile resolves workspace root and env file name from environment", () => {
     fs.mkdirSync(path.join(tmpDir, ".git"), { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, ".env.custom"), "DEFAULT_KEY=from-default\n");
+    fs.writeFileSync(
+      path.join(tmpDir, ".env.custom"),
+      "DEFAULT_KEY=from-default\n",
+    );
     process.env.KIBI_ENV_FILE = " .env.custom ";
     process.chdir(tmpDir);
 
@@ -105,6 +119,8 @@ describe("env loading", () => {
   test("getCoreModulePathOverride normalizes non-word characters in filenames", () => {
     process.env.KIBI_FOO_BAR_BAZ_PL_PATH = "/tmp/foo-bar-baz.pl";
 
-    expect(getCoreModulePathOverride("foo-bar.baz.pl")).toBe("/tmp/foo-bar-baz.pl");
+    expect(getCoreModulePathOverride("foo-bar.baz.pl")).toBe(
+      "/tmp/foo-bar-baz.pl",
+    );
   });
 });

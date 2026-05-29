@@ -6,7 +6,11 @@ import * as path from "node:path";
 
 export type FileLifecycle = "created" | "edited" | "deleted";
 
-export type ReminderKind = "kibi_write" | "kibi_delete" | "e2e_write" | "e2e_delete";
+export type ReminderKind =
+  | "kibi_write"
+  | "kibi_delete"
+  | "e2e_write"
+  | "e2e_delete";
 
 export interface PendingLifecycleEvent {
   /** Normalized file path (relative to worktree root). */
@@ -21,7 +25,11 @@ export interface FileOperationState {
   /** Normalize file path relative to worktree root. */
   normalizePath(filePath: string): string;
   /** Record a lifecycle event for a file, coalescing with existing events. */
-  recordLifecycle(filePath: string, lifecycle: FileLifecycle, timestamp?: number): void;
+  recordLifecycle(
+    filePath: string,
+    lifecycle: FileLifecycle,
+    timestamp?: number,
+  ): void;
   /** Peek at pending lifecycle event, preferring specified path if available. */
   peekPending(preferredPath?: string): PendingLifecycleEvent | null;
   /** Consume pending lifecycle event for a specific path. */
@@ -36,7 +44,8 @@ export interface FileOperationState {
 // Factory function
 // ---------------------------------------------------------------------------
 
-export function createFileOperationState(opts: {  // implements REQ-opencode-file-context-guidance-v1
+export function createFileOperationState(opts: {
+  // implements REQ-opencode-file-context-guidance-v1
   worktree: string;
   /** Custom clock for testing. Defaults to Date.now. */
   now?: () => number;
@@ -86,12 +95,18 @@ export function createFileOperationState(opts: {  // implements REQ-opencode-fil
     }
 
     // created|edited + deleted -> deleted
-    if ((existing === "created" || existing === "edited") && incoming === "deleted") {
+    if (
+      (existing === "created" || existing === "edited") &&
+      incoming === "deleted"
+    ) {
       return "deleted";
     }
 
     // deleted + created|edited -> deleted
-    if (existing === "deleted" && (incoming === "created" || incoming === "edited")) {
+    if (
+      existing === "deleted" &&
+      (incoming === "created" || incoming === "edited")
+    ) {
       return "deleted";
     }
 
@@ -128,10 +143,7 @@ export function createFileOperationState(opts: {  // implements REQ-opencode-fil
   ): void {
     const normalized = normalizeSessionPath(filePath);
     const existing = pendingLifecycleEvents.get(normalized);
-    const coalesced = coalesceLifecycle(
-      existing?.lifecycle,
-      lifecycle,
-    );
+    const coalesced = coalesceLifecycle(existing?.lifecycle, lifecycle);
 
     pendingLifecycleEvents.set(normalized, {
       normalizedPath: normalized,
@@ -140,9 +152,7 @@ export function createFileOperationState(opts: {  // implements REQ-opencode-fil
     });
   }
 
-  function peekPending(
-    preferredPath?: string,
-  ): PendingLifecycleEvent | null {
+  function peekPending(preferredPath?: string): PendingLifecycleEvent | null {
     if (preferredPath !== undefined) {
       const normalized = normalizeSessionPath(preferredPath);
       const preferred = pendingLifecycleEvents.get(normalized);

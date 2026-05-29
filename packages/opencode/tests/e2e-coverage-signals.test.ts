@@ -35,7 +35,7 @@ describe("getE2eCoverageSignal", () => {
       .map((e) => {
         let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n`;
         if (e.relationships && e.relationships.length > 0) {
-          entry += `    relationships:\n`;
+          entry += "    relationships:\n";
           for (const rel of e.relationships) {
             entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }

@@ -37,7 +37,11 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
   }
 
   private buildIndexFromManifest(): void {
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot, this.coordinatesPath);
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
   }
 
   /** Call this to attach a filesystem watcher and auto-rebuild the index. */
@@ -49,8 +53,10 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
       ),
     );
     const rebuild = () => {
-      ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
-        resolveSymbolsManifestPaths(this.workspaceRoot));
+      ({
+        symbolsPath: this.manifestPath,
+        coordinatesPath: this.coordinatesPath,
+      } = resolveSymbolsManifestPaths(this.workspaceRoot));
       this.buildIndexFromManifest();
     };
     this.watcher.onDidChange(rebuild);

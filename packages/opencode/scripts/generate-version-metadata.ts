@@ -4,7 +4,7 @@
  *
  * Runs as part of the opencode build pipeline (after tsc, before build-tui).
  */
-import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 

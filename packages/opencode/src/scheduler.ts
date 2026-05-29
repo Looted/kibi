@@ -98,7 +98,10 @@ class WorktreeSyncScheduler implements SyncScheduler {
     if (!this.config.sync.enabled) return;
 
     // Treat file.created, file.edited, and file.deleted same relevance-wise
-    const isFileLifecycle = reason === "file.edited" || reason === "file.created" || reason === "file.deleted";
+    const isFileLifecycle =
+      reason === "file.edited" ||
+      reason === "file.created" ||
+      reason === "file.deleted";
     if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
@@ -277,7 +280,13 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 
   private isIdle(): boolean {
-    return !this.inFlight && !this.timer && !this.pending && !this.dirty && !this.trailing;
+    return (
+      !this.inFlight &&
+      !this.timer &&
+      !this.pending &&
+      !this.dirty &&
+      !this.trailing
+    );
   }
 
   private resolveFlushWaitersIfIdle(): void {
@@ -304,7 +313,8 @@ class WorktreeSyncScheduler implements SyncScheduler {
     const normalizedReason = trigger.reason.endsWith(".trailing")
       ? trigger.reason.slice(0, -".trailing".length)
       : trigger.reason;
-    const isSmartEnforcementSync = normalizedReason.startsWith("smart-enforcement.");
+    const isSmartEnforcementSync =
+      normalizedReason.startsWith("smart-enforcement.");
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
@@ -353,7 +363,9 @@ async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
           const truncatedOut = truncateSyncOutput(stdout || undefined);
           const truncatedErr = truncateSyncOutput(stderr || undefined);
           const signal = error.signal ? ` (signal: ${error.signal})` : "";
-          const errorMessage = error.message ? `${error.message}${signal}` : signal || undefined;
+          const errorMessage = error.message
+            ? `${error.message}${signal}`
+            : signal || undefined;
           resolve({
             exitCode: error.code ?? 1,
             syncCommand: "kibi sync",
@@ -367,7 +379,11 @@ async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
       });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      resolve({ exitCode: 1, syncCommand: "kibi sync", syncErrorMessage: message });
+      resolve({
+        exitCode: 1,
+        syncCommand: "kibi sync",
+        syncErrorMessage: message,
+      });
     }
   });
 }

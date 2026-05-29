@@ -1,17 +1,15 @@
-// implements REQ-opencode-file-context-guidance-v1
-import type { RepoPosture } from "./repo-posture.js";
-import type { PathKind } from "./path-kind.js";
-import type { RiskClass } from "./risk-classifier.js";
-import type { ReminderKind } from "./file-operation-state.js";
-import type {
-  E2eCoverageSignal,
-} from "./e2e-coverage-signals.js";
+import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
 import {
-  computeEnforcementPolicy,
   type CheckpointEvidence,
   type EnforcementLifecycleEvent,
   type EnforcementPolicyResult,
+  computeEnforcementPolicy,
 } from "./enforcement-policy.js";
+import type { ReminderKind } from "./file-operation-state.js";
+import type { PathKind } from "./path-kind.js";
+// implements REQ-opencode-file-context-guidance-v1
+import type { RepoPosture } from "./repo-posture.js";
+import type { RiskClass } from "./risk-classifier.js";
 import type { EffectiveMode } from "./smart-enforcement.js";
 import type { WorkContext } from "./work-context-resolver.js";
 
@@ -93,9 +91,15 @@ export function deriveFileOperationReminder(
   if (e2eSignal.level !== "none" && e2eSignal.reminderText !== null) {
     e2eReminder = e2eSignal.reminderText;
     if (lifecycle === "deleted") {
-      reminderKindsToMark = addUniqueReminderKind(reminderKindsToMark, "e2e_delete");
+      reminderKindsToMark = addUniqueReminderKind(
+        reminderKindsToMark,
+        "e2e_delete",
+      );
     } else {
-      reminderKindsToMark = addUniqueReminderKind(reminderKindsToMark, "e2e_write");
+      reminderKindsToMark = addUniqueReminderKind(
+        reminderKindsToMark,
+        "e2e_write",
+      );
     }
   }
 

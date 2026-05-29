@@ -20,10 +20,13 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
+  type SymbolCoordinatesRecord,
+  writeCoordinateArtifact,
+} from "../../extractors/symbol-coordinates.js";
+import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
-import { writeCoordinateArtifact } from "../../extractors/symbol-coordinates.js";
 import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
 
 interface ManifestDeps {
@@ -106,7 +109,9 @@ export async function refreshManifestCoordinates(
   }
 
   const before = rawSymbols.map((entry) =>
-    isRecord(entry) ? ({ ...entry } as ManifestSymbolEntry) : ({} as ManifestSymbolEntry),
+    isRecord(entry)
+      ? ({ ...entry } as ManifestSymbolEntry)
+      : ({} as ManifestSymbolEntry),
   );
 
   const enriched = await resolved.enrichSymbolCoordinates(
@@ -115,7 +120,7 @@ export async function refreshManifestCoordinates(
   );
 
   // Build coordinates map keyed by symbol id
-  const coordinatesMap: Record<string, any> = {};
+  const coordinatesMap: Record<string, SymbolCoordinatesRecord> = {};
   for (const entry of enriched) {
     const id = typeof entry?.id === "string" ? entry.id : undefined;
     if (!id) continue;
@@ -139,11 +144,14 @@ export async function refreshManifestCoordinates(
   // Optionally write the coordinate artifact to the coordinates path when explicitly requested
   if (shouldRefreshCoordinates) {
     try {
-      const coordinatesPath = resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+      const coordinatesPath =
+        resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
       const artifactContent = resolved.writeCoordinateArtifact(coordinatesMap);
       resolved.writeFileSync(coordinatesPath, artifactContent, "utf8");
     } catch (err) {
-      console.warn(`Warning: Failed to write symbol-coordinates artifact: ${String(err)}`);
+      console.warn(
+        `Warning: Failed to write symbol-coordinates artifact: ${String(err)}`,
+      );
     }
   }
 
@@ -160,7 +168,7 @@ export async function refreshManifestCoordinates(
       }
     }
     // Ensure we never write coordinatesGeneratedAt
-    delete out["coordinatesGeneratedAt"];
+    out.coordinatesGeneratedAt = undefined;
     return out;
   });
 
@@ -174,7 +182,9 @@ export async function refreshManifestCoordinates(
     const previous = before[i] ?? ({} as ManifestSymbolEntry);
     const current = enriched[i] ?? previous;
     const changed = GENERATED_COORD_FIELDS.some(
-      (field) => previous[field as keyof ManifestSymbolEntry] !== current[field as keyof ManifestSymbolEntry],
+      (field) =>
+        previous[field as keyof ManifestSymbolEntry] !==
+        current[field as keyof ManifestSymbolEntry],
     );
 
     if (changed) {

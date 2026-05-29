@@ -39,13 +39,13 @@ describe("getFileLinkedEntityIds", () => {
       .map((e) => {
         let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n`;
         if (e.links && e.links.length > 0) {
-          entry += `    links:\n`;
+          entry += "    links:\n";
           for (const link of e.links) {
             entry += `      - ${link}\n`;
           }
         }
         if (e.relationships && e.relationships.length > 0) {
-          entry += `    relationships:\n`;
+          entry += "    relationships:\n";
           for (const rel of e.relationships) {
             entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }
@@ -450,7 +450,7 @@ describe("getFileLinkedTargetsByType", () => {
       .map((e) => {
         let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n`;
         if (e.relationships && e.relationships.length > 0) {
-          entry += `    relationships:\n`;
+          entry += "    relationships:\n";
           for (const rel of e.relationships) {
             entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }

@@ -7,10 +7,7 @@ import {
   type ReminderKind,
   createFileOperationState,
 } from "../src/file-operation-state";
-import {
-  type CacheKey,
-  GuidanceCache,
-} from "../src/guidance-cache";
+import { type CacheKey, GuidanceCache } from "../src/guidance-cache";
 
 describe("file-operation-state", () => {
   let tmpDir: string;
@@ -277,7 +274,11 @@ describe("file-operation-state", () => {
       const stateA = createFileOperationState({ worktree: worktreeA });
       const stateB = createFileOperationState({ worktree: worktreeB });
 
-      stateA.recordLifecycle(path.join(worktreeA, "src", "shared.ts"), "edited", 1);
+      stateA.recordLifecycle(
+        path.join(worktreeA, "src", "shared.ts"),
+        "edited",
+        1,
+      );
       stateA.markShown(path.join(worktreeA, "src", "shared.ts"), "e2e_write");
 
       assert.equal(
@@ -323,7 +324,10 @@ describe("file-operation-state", () => {
         dirtyRelevantFingerprint: "dirty-a",
       };
 
-      assert.equal(buildEnforcementScopeKey(base), buildEnforcementScopeKey(base));
+      assert.equal(
+        buildEnforcementScopeKey(base),
+        buildEnforcementScopeKey(base),
+      );
       assert.notEqual(
         buildEnforcementScopeKey(base),
         buildEnforcementScopeKey({ ...base, sessionId: "session-b" }),

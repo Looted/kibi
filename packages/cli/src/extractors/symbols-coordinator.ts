@@ -19,8 +19,8 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import {
-  createTsMorphSourceAnalysisProvider,
   type ManifestSymbolEntry,
+  createTsMorphSourceAnalysisProvider,
   enrichSymbolCoordinatesWithTsMorph,
 } from "./symbols-ts.js";
 
@@ -130,7 +130,9 @@ export function analyzeSourceText(
 export function analyzeSourceText(
   filePathOrEntries: string | ManifestSymbolEntry[],
   contentOrWorkspaceRoot: string,
-  optionsOrDeps?: AnalyzeSourceTextOptions | Partial<EnrichSymbolCoordinatesDeps>,
+  optionsOrDeps?:
+    | AnalyzeSourceTextOptions
+    | Partial<EnrichSymbolCoordinatesDeps>,
 ): SourceAnalysisResult | Promise<ManifestSymbolEntry[]> {
   if (Array.isArray(filePathOrEntries)) {
     return enrichSymbolCoordinates(
@@ -277,7 +279,10 @@ function createFallbackAnalysis(
 }
 
 function detectSourceLanguage(filePath: string): string {
-  return SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()] ?? "unknown";
+  return (
+    SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()] ??
+    "unknown"
+  );
 }
 
 function inferModuleTitle(filePath: string): string {

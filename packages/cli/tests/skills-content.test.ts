@@ -1,6 +1,8 @@
 import { beforeAll, describe, expect, test } from "bun:test";
-import { loadBundledSkill, readBundledSkillResource } from "../src/public/skills";
-
+import {
+  loadBundledSkill,
+  readBundledSkillResource,
+} from "../src/public/skills";
 
 describe("kibi-usage skill content", () => {
   let bundle: ReturnType<typeof loadBundledSkill>;
@@ -8,7 +10,6 @@ describe("kibi-usage skill content", () => {
   beforeAll(() => {
     bundle = loadBundledSkill("kibi-usage");
   });
-
 
   test("manifest has required fields", () => {
     expect(bundle.manifest.id).toBe("kibi-usage");
@@ -110,9 +111,13 @@ describe("kibi-usage skill content", () => {
 
   test("body requires symbol-first traceability instead of legacy comments", () => {
     expect(bundle.body).toContain("Symbol-First Traceability");
-    expect(bundle.body).toContain("Do not use legacy `// implements REQ-xxx` comments");
+    expect(bundle.body).toContain(
+      "Do not use legacy `// implements REQ-xxx` comments",
+    );
     expect(bundle.body).toContain("`symbol` entity");
-    expect(bundle.body).toContain("`implements` relationship from the symbol to the requirement");
+    expect(bundle.body).toContain(
+      "`implements` relationship from the symbol to the requirement",
+    );
   });
 
   test("body covers strict fact lane", () => {
@@ -122,7 +127,9 @@ describe("kibi-usage skill content", () => {
   });
 
   test("body covers granular strict facts with coherent and incoherent examples", () => {
-    expect(bundle.body).toContain("Granular fact examples for coherence checks");
+    expect(bundle.body).toContain(
+      "Granular fact examples for coherence checks",
+    );
     expect(bundle.body).toContain("REQ-ROLE-SET-2");
     expect(bundle.body).toContain("REQ-ROLE-SET-3");
     expect(bundle.body).toContain("user.roles.allowed_set");
@@ -135,7 +142,9 @@ describe("kibi-usage skill content", () => {
   });
 
   test("body covers fact vs flag", () => {
-    expect(bundle.body).toContain("Use `flag` for runtime or config gates only");
+    expect(bundle.body).toContain(
+      "Use `flag` for runtime or config gates only",
+    );
   });
 
   test("body covers create-before-link", () => {
@@ -145,9 +154,7 @@ describe("kibi-usage skill content", () => {
   });
 
   test("body covers sequential upserts", () => {
-    expect(bundle.body).toContain(
-      "Never fire `kb_upsert` calls in parallel",
-    );
+    expect(bundle.body).toContain("Never fire `kb_upsert` calls in parallel");
   });
 
   test("body covers targeted and final checks", () => {

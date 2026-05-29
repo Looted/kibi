@@ -3,7 +3,15 @@
  * Covers provideHover(), fetchRelationships(), fetchEntityDetails(), and caching.
  * Uses mock.module("vscode") to intercept the VS Code import.
  */
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -89,11 +97,7 @@ describe("KibiHoverProvider — real module import", () => {
     const cache = createMockCache();
     const symbolIndex = buildIndex(manifestPath, tmpDir);
 
-    const provider = new KibiHoverProvider(
-      tmpDir,
-      symbolIndex,
-      cache as never,
-    );
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never);
 
     const document = {
       uri: { fsPath: testFile },
@@ -121,11 +125,7 @@ describe("KibiHoverProvider — real module import", () => {
     const cache = createMockCache();
     const symbolIndex = buildIndex(manifestPath, tmpDir);
 
-    const provider = new KibiHoverProvider(
-      tmpDir,
-      symbolIndex,
-      cache as never,
-    );
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never);
 
     const document = {
       uri: { fsPath: testFile },
@@ -154,11 +154,7 @@ describe("KibiHoverProvider — real module import", () => {
     const cache = createMockCache();
     const symbolIndex = buildIndex(manifestPath, tmpDir);
 
-    const provider = new KibiHoverProvider(
-      tmpDir,
-      symbolIndex,
-      cache as never,
-    );
+    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never);
 
     // testFile doesn't match the symbol's sourceFile
     const document = {
@@ -333,7 +329,13 @@ describe("KibiHoverProvider — real module import", () => {
     const mockBuildMarkdown = mock(
       (
         sym: { id: string; title: string; file: string; line: number },
-        entities: Array<{ id: string; type: string; title: string; status: string; tags: string[] }>,
+        entities: Array<{
+          id: string;
+          type: string;
+          title: string;
+          status: string;
+          tags: string[];
+        }>,
       ) => {
         const lines = [`# ${sym.id}`];
         for (const e of entities) {
@@ -460,9 +462,14 @@ describe("KibiHoverProvider — real module import", () => {
       });
     });
 
-    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never, {
-      execCli: mockExecCli,
-    });
+    const provider = new KibiHoverProvider(
+      tmpDir,
+      symbolIndex,
+      cache as never,
+      {
+        execCli: mockExecCli,
+      },
+    );
 
     const document = {
       uri: { fsPath: testFile },
@@ -718,10 +725,15 @@ describe("KibiHoverProvider — real module import", () => {
       });
     });
 
-    const provider = new KibiHoverProvider(tmpDir, symbolIndex, cache as never, {
-      execCli: ((cmd: string) => mockExecCli(cmd)) as never,
-      buildMarkdown: () => "# concurrent",
-    });
+    const provider = new KibiHoverProvider(
+      tmpDir,
+      symbolIndex,
+      cache as never,
+      {
+        execCli: ((cmd: string) => mockExecCli(cmd)) as never,
+        buildMarkdown: () => "# concurrent",
+      },
+    );
 
     const document = {
       uri: { fsPath: testFile },
@@ -730,8 +742,16 @@ describe("KibiHoverProvider — real module import", () => {
     const token = { isCancellationRequested: false };
 
     const [first, second] = await Promise.all([
-      provider.provideHover(document as never, position as never, token as never),
-      provider.provideHover(document as never, position as never, token as never),
+      provider.provideHover(
+        document as never,
+        position as never,
+        token as never,
+      ),
+      provider.provideHover(
+        document as never,
+        position as never,
+        token as never,
+      ),
     ]);
 
     expect(first).not.toBeNull();
@@ -740,8 +760,8 @@ describe("KibiHoverProvider — real module import", () => {
   });
 });
 
-  test("provideHover uses default buildHoverMarkdown when not injected", async () => {
-    writeManifest(`symbols:
+test("provideHover uses default buildHoverMarkdown when not injected", async () => {
+  writeManifest(`symbols:
   - id: SYM-001
     title: myFunc
     sourceFile: ${testFile}
@@ -749,47 +769,50 @@ describe("KibiHoverProvider — real module import", () => {
     links: [REQ-001]
 `);
 
-    const cache = createMockCache();
-    const symbolIndex = buildIndex(manifestPath, tmpDir);
+  const cache = createMockCache();
+  const symbolIndex = buildIndex(manifestPath, tmpDir);
 
-    const mockExecCli = mock((cmd: string) => {
-      if (cmd.includes("--relationships")) {
-        return JSON.stringify([
-          { type: "implements", from: "SYM-001", to: "REQ-001" },
-        ]);
-      }
-      return JSON.stringify({
-        id: "REQ-001",
-        title: "Sample Req",
-        status: "open",
-        tags: ["feature"],
-      });
+  const mockExecCli = mock((cmd: string) => {
+    if (cmd.includes("--relationships")) {
+      return JSON.stringify([
+        { type: "implements", from: "SYM-001", to: "REQ-001" },
+      ]);
+    }
+    return JSON.stringify({
+      id: "REQ-001",
+      title: "Sample Req",
+      status: "open",
+      tags: ["feature"],
     });
-
-    // Only inject execCli, NOT buildMarkdown — so default buildHoverMarkdown is used
-    const provider = new KibiHoverProvider(
-      tmpDir,
-      symbolIndex,
-      cache as never,
-      { execCli: mockExecCli } as never,
-    );
-
-    const document = {
-      uri: { fsPath: testFile },
-    };
-    const position = { line: 0, character: 0 };
-    const token = { isCancellationRequested: false };
-
-    const result = await provider.provideHover(
-      document as never,
-      position as never,
-      token as never,
-    );
-    expect(result).not.toBeNull();
-
-    // Default buildHoverMarkdown formats: "# SYM-001" then "`file:line`"
-    const contents = (result as never as { contents: { value: string } }).contents;
-    expect(contents.value).toContain("# SYM-001");
-    expect(contents.value).toContain("REQ-001");
-    expect(contents.value).toContain("[Browse entities](command:kibi.browseLinkedEntities)");
   });
+
+  // Only inject execCli, NOT buildMarkdown — so default buildHoverMarkdown is used
+  const provider = new KibiHoverProvider(
+    tmpDir,
+    symbolIndex,
+    cache as never,
+    { execCli: mockExecCli } as never,
+  );
+
+  const document = {
+    uri: { fsPath: testFile },
+  };
+  const position = { line: 0, character: 0 };
+  const token = { isCancellationRequested: false };
+
+  const result = await provider.provideHover(
+    document as never,
+    position as never,
+    token as never,
+  );
+  expect(result).not.toBeNull();
+
+  // Default buildHoverMarkdown formats: "# SYM-001" then "`file:line`"
+  const contents = (result as never as { contents: { value: string } })
+    .contents;
+  expect(contents.value).toContain("# SYM-001");
+  expect(contents.value).toContain("REQ-001");
+  expect(contents.value).toContain(
+    "[Browse entities](command:kibi.browseLinkedEntities)",
+  );
+});

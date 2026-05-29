@@ -100,7 +100,7 @@ describe("kibi init", () => {
     expect(content).toContain("symbols: []");
   });
 
-  test("adds .kb and brief artifacts to .gitignore", () => {
+  test("adds only .kb to .gitignore", () => {
     execSync("git init", { cwd: tmpDir });
     execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
     execSync("git config user.name 'Test User'", { cwd: tmpDir });
@@ -115,7 +115,7 @@ describe("kibi init", () => {
     const content = readFileSync(gitignorePath, "utf-8");
 
     expect(content).toContain(".kb/");
-    expect(content).toContain(".kb/briefs/");
+    expect(content).not.toContain(".kb/briefs/");
   }, 30000);
 
   test("creates config.json with all check rules explicitly set to true", () => {

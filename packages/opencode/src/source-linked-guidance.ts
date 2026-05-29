@@ -16,5 +16,7 @@ export function getSourceLinkedRequirementIds(
 ): string[] {
   // Delegate to the shared file-entity-links resolver with implements-only filter.
   // implements relationships always target REQ- IDs, so no additional filtering needed.
-  return getFileLinkedTargetsByType(worktree, editedAbsolutePath, ["implements"]).slice(0, 3);
+  return getFileLinkedTargetsByType(worktree, editedAbsolutePath, [
+    "implements",
+  ]).slice(0, 3);
 }

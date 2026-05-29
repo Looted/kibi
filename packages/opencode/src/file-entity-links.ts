@@ -124,7 +124,6 @@ export function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
         const target = relTargetMatch[1];
         if (target === undefined) continue;
         pendingRel.target = target.trim();
-        continue;
       }
     }
   }
@@ -135,7 +134,8 @@ export function parseSymbolsYaml(content: string): SymbolsManifestRow[] {
 
 // ── Doc-path identity mapping ───────────────────────────────────────
 
-const DOC_ENTITY_PATTERN = /^(REQ|SCEN|TEST|ADR|FLAG|EVT|FACT)-[A-Za-z0-9_-]+\.md$/;
+const DOC_ENTITY_PATTERN =
+  /^(REQ|SCEN|TEST|ADR|FLAG|EVT|FACT)-[A-Za-z0-9_-]+\.md$/;
 
 // implements REQ-opencode-file-context-guidance-v1
 function resolveDocPathIdentity(
@@ -169,7 +169,7 @@ function resolveDocPathIdentity(
     // e.g. "documentation/requirements/**/*.md" → "documentation/requirements"
     const rootDir = pattern.replace(/\/\*\*\/.*$/, "").replace(/\/+$/, "");
 
-    if (normalizedRel.startsWith(rootDir + "/")) {
+    if (normalizedRel.startsWith(`${rootDir}/`)) {
       return entityId;
     }
   }
@@ -204,10 +204,7 @@ function normalizeFilePath(worktree: string, filePath: string): string {
     ? filePath
     : path.resolve(worktree, filePath);
 
-  return path
-    .relative(worktree, absPath)
-    .split(path.sep)
-    .join("/");
+  return path.relative(worktree, absPath).split(path.sep).join("/");
 }
 
 // ── Public API ──────────────────────────────────────────────────────
@@ -250,7 +247,8 @@ export function getFileLinkedEntityIds(
             if (!seen.has(id)) {
               seen.add(id);
               orderedIds.push(id);
-              if (orderedIds.length >= 3) return { ids: orderedIds.slice(0, 3), source: "symbols" };
+              if (orderedIds.length >= 3)
+                return { ids: orderedIds.slice(0, 3), source: "symbols" };
             }
           }
         }
@@ -263,7 +261,8 @@ export function getFileLinkedEntityIds(
         if (!seen.has(l)) {
           seen.add(l);
           orderedIds.push(l);
-          if (orderedIds.length >= 3) return { ids: orderedIds.slice(0, 3), source: "symbols" };
+          if (orderedIds.length >= 3)
+            return { ids: orderedIds.slice(0, 3), source: "symbols" };
         }
       }
     }

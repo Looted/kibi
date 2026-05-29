@@ -4,8 +4,8 @@ import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
 import { handleKbCoverage } from "../../src/tools/coverage.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
-  setupIsolatedCore,
   type IsolatedCoreFixture,
+  setupIsolatedCore,
 } from "./discovery-root-fixture.js";
 
 describe("MCP coverage tool handler", () => {

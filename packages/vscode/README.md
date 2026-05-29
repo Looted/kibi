@@ -106,33 +106,6 @@ This extension includes MCP (Model Context Protocol) server integration for AI a
 
 ZR|When branch freshness or reporting matters, the same public surface also exposes `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
 
-The extension supports brief notifications that provide contextual guidance when enabled. Brief notifications are now rendered-first in supported host environments, providing immediate context before the prompt cycle. Shared configuration in `.kb/config.json` governs the policy:
-
-```json
-{
-  "briefs": {
-    "enabled": true,
-    "channels": {
-      "vscode": true,
-      "tui": true
-    }
-  }
-}
-```
-
-- **`briefs.enabled`**: Master switch for all brief functionality (default: `true`)
-- **`briefs.channels.vscode`**: Enable/disable VS Code channel for brief notifications (default: `true`)
-- **`briefs.channels.tui`**: Enable/disable OpenCode TUI channel for brief delivery (default: `true`)
-
-**Note on Deprecated Config**: The following keys are deprecated and no-op for idle rendering as part of the render-first migration:
-- `briefs.tui.toast`
-- `briefs.tui.appendPrompt`
-- `ux.briefs.autoSubmit`
-
-These remain parseable for backward compatibility but do not affect rendering. Shared channel gating remains the authoritative control in `.kb/config.json`.
-
-When a brief is available and the VS Code channel is enabled, the extension can display brief notifications. Use `/brief-kibi` in OpenCode for manual brief retrieval regardless of channel settings.
-
 JP|## Current Limitations (v0.1)
 
 ## Current Limitations (v0.1)

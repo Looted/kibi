@@ -3,17 +3,17 @@
 import { extractFromManifest } from "kibi-cli/extractors/manifest";
 import { extractFromMarkdown } from "kibi-cli/extractors/markdown";
 import {
+  type StrictWriteSet,
   buildStrictWriteSet,
   modelRequirementClaims,
-  type StrictWriteSet,
 } from "kibi-cli/public/check-types";
 
 import type { ExtractionResult as ManifestExtractionResult } from "kibi-cli/extractors/manifest";
 import type { ExtractionResult as MarkdownExtractionResult } from "kibi-cli/extractors/markdown";
 import type { AutopilotEvidence } from "./autopilot-discovery.js";
 
-import path from "node:path";
 import fs from "node:fs";
+import path from "node:path";
 import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import {
   estimateNormativeSignalConfidence,
@@ -27,7 +27,11 @@ export interface Candidate {
   entityType: "req" | "scenario" | "test" | "adr" | "fact" | "symbol" | string;
   title: string;
   // allow other source kinds (generic) without widening other callers
-  sourceKind: "typed_markdown" | "symbol_manifest" | "generic_markdown" | string;
+  sourceKind:
+    | "typed_markdown"
+    | "symbol_manifest"
+    | "generic_markdown"
+    | string;
   sourcePath: string;
   confidence: number;
   confidenceBand: string;
@@ -86,13 +90,19 @@ function getTypedMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
 }
 
 function getManifestFiles(discoveryResult: DiscoveryInput): string[] {
-  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "symbol_manifest");
+  const evidenceFiles = getEvidenceFilePaths(
+    discoveryResult,
+    "symbol_manifest",
+  );
   if (evidenceFiles.length > 0) return evidenceFiles;
   return discoveryResult.manifestFiles ?? [];
 }
 
 function getGenericMarkdownFiles(discoveryResult: DiscoveryInput): string[] {
-  const evidenceFiles = getEvidenceFilePaths(discoveryResult, "generic_markdown");
+  const evidenceFiles = getEvidenceFilePaths(
+    discoveryResult,
+    "generic_markdown",
+  );
   if (evidenceFiles.length > 0) return evidenceFiles;
   return discoveryResult.markdownFiles ?? [];
 }
@@ -169,7 +179,9 @@ interface NormativeRequirementSeed {
 
 function buildUpsertFromExtraction(
   er: {
-    entity: ManifestExtractionResult["entity"] | MarkdownExtractionResult["entity"];
+    entity:
+      | ManifestExtractionResult["entity"]
+      | MarkdownExtractionResult["entity"];
     relationships:
       | Array<ManifestExtractionResult["relationships"][number]>
       | Array<MarkdownExtractionResult["relationships"][number]>;
@@ -205,7 +217,9 @@ export function buildTypedMarkdownCandidates(
 
   for (const filePath of getTypedMarkdownFiles(discoveryResult)) {
     try {
-      const extraction = extractFromMarkdown(filePath) as MarkdownExtractionResult;
+      const extraction = extractFromMarkdown(
+        filePath,
+      ) as MarkdownExtractionResult;
       const { entity, relationships } = extraction;
 
       if (existingEntities.ids.has(entity.id)) continue;
@@ -251,7 +265,9 @@ export function buildSymbolManifestCandidates(
 
   for (const filePath of getManifestFiles(discoveryResult)) {
     try {
-      const results = extractFromManifest(filePath) as ManifestExtractionResult[];
+      const results = extractFromManifest(
+        filePath,
+      ) as ManifestExtractionResult[];
       for (const res of results) {
         const entity = res.entity;
         const relationships = res.relationships || [];
@@ -345,7 +361,10 @@ export function buildGenericMarkdownCandidates(
         let confidence = 0;
 
         // ADR heuristic: headings that mention ADR or Architectural Decision
-        if (/\badr\b/i.test(heading) || /architectur.*decision/i.test(heading)) {
+        if (
+          /\badr\b/i.test(heading) ||
+          /architectur.*decision/i.test(heading)
+        ) {
           type = "adr";
           confidence = 0.9;
         }
@@ -369,7 +388,8 @@ export function buildGenericMarkdownCandidates(
           .replace(/(^-|-$)/g, "")
           .slice(0, 60);
         const idPrefix = type === "adr" ? "ADR" : "FACT";
-        const genId = `${idPrefix}-GEN-${slug || path.basename(relativePath).replace(/\.[^.]+$/, "")}`.toUpperCase();
+        const genId =
+          `${idPrefix}-GEN-${slug || path.basename(relativePath).replace(/\.[^.]+$/, "")}`.toUpperCase();
 
         if (existingEntities.ids.has(genId)) continue;
 
@@ -440,7 +460,8 @@ export function collectSourceOnlyAuthoringSignals(
         workspaceRoot,
       );
       if (ignorePolicy.isIgnored(relativePath)) continue;
-      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
+      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown))
+        continue;
       if (!fs.existsSync(absolutePath)) continue;
 
       const content = fs.readFileSync(absolutePath, "utf8");
@@ -483,7 +504,10 @@ export function collectSourceOnlyAuthoringSignals(
           );
         }
 
-        if (/\b(tests?|verification)\b/i.test(heading) && 0.82 >= minConfidence) {
+        if (
+          /\b(tests?|verification)\b/i.test(heading) &&
+          0.82 >= minConfidence
+        ) {
           pushSignal(
             signals,
             {
@@ -503,9 +527,12 @@ export function collectSourceOnlyAuthoringSignals(
   }
 
   for (const item of discoveryResult.evidence ?? []) {
-    const confidence = typeof item.data.confidence === "number" ? item.data.confidence : 0;
+    const confidence =
+      typeof item.data.confidence === "number" ? item.data.confidence : 0;
     if (item.kind === "test_topology" && confidence >= minConfidence) {
-      const sourcePath = item.absolutePath ?? path.resolve(workspaceRoot, item.relativePath ?? item.label);
+      const sourcePath =
+        item.absolutePath ??
+        path.resolve(workspaceRoot, item.relativePath ?? item.label);
       const relativePath = item.relativePath ?? item.label;
       pushSignal(
         signals,
@@ -515,7 +542,9 @@ export function collectSourceOnlyAuthoringSignals(
           sourcePath,
           confidence,
           evidence: Array.isArray(item.data.evidence)
-            ? item.data.evidence.filter((value): value is string => typeof value === "string")
+            ? item.data.evidence.filter(
+                (value): value is string => typeof value === "string",
+              )
             : [`test_topology:${relativePath}`],
         },
         seen,
@@ -524,7 +553,8 @@ export function collectSourceOnlyAuthoringSignals(
   }
 
   return signals.sort((left, right) => {
-    if (right.confidence !== left.confidence) return right.confidence - left.confidence;
+    if (right.confidence !== left.confidence)
+      return right.confidence - left.confidence;
     if (left.kind !== right.kind) return left.kind.localeCompare(right.kind);
     return left.sourcePath.localeCompare(right.sourcePath);
   });
@@ -550,7 +580,8 @@ export function buildNormativeRequirementCandidates(
         workspaceRoot,
       );
       if (ignorePolicy.isIgnored(relativePath)) continue;
-      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown)) continue;
+      if (!shouldIncludeGenericMarkdown(relativePath, providerScopedMarkdown))
+        continue;
       if (!fs.existsSync(absolutePath)) continue;
 
       const content = fs.readFileSync(absolutePath, "utf8");
@@ -582,7 +613,10 @@ export function buildNormativeRequirementCandidates(
           .trim();
         if (!statement || !/\b(must|shall|should)\b/i.test(statement)) continue;
 
-        const confidence = estimateNormativeSignalConfidence(statement, activeHeading);
+        const confidence = estimateNormativeSignalConfidence(
+          statement,
+          activeHeading,
+        );
         if (confidence < minConfidence) continue;
 
         const extracted = extractRequirementClaim({
@@ -662,8 +696,10 @@ export function buildProviderEvidenceCandidates(
 
   for (const item of getFactEvidence(discoveryResult)) {
     const relativePath = item.relativePath ?? item.label;
-    const absolutePath = item.absolutePath ?? path.resolve(workspaceRoot, relativePath);
-    const confidence = typeof item.data.confidence === "number" ? item.data.confidence : 0.8;
+    const absolutePath =
+      item.absolutePath ?? path.resolve(workspaceRoot, relativePath);
+    const confidence =
+      typeof item.data.confidence === "number" ? item.data.confidence : 0.8;
     if (confidence < minConfidence) continue;
 
     const factKind =
@@ -677,12 +713,17 @@ export function buildProviderEvidenceCandidates(
         ? item.data.title
         : `Autopilot evidence from ${relativePath}`;
     const slugSource = `${item.kind}-${relativePath}`;
-    const generatedId = `FACT-GEN-${slugify(slugSource, 64) || "evidence"}`.toUpperCase();
+    const generatedId =
+      `FACT-GEN-${slugify(slugSource, 64) || "evidence"}`.toUpperCase();
     if (existingEntities.ids.has(generatedId)) continue;
 
-    const textRef = relativePath.includes("#") ? relativePath : `${relativePath}`;
+    const textRef = relativePath.includes("#")
+      ? relativePath
+      : `${relativePath}`;
     const evidence = Array.isArray(item.data.evidence)
-      ? item.data.evidence.filter((value): value is string => typeof value === "string")
+      ? item.data.evidence.filter(
+          (value): value is string => typeof value === "string",
+        )
       : [];
 
     candidates.push({

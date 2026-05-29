@@ -36,7 +36,10 @@ import {
 // ---------------------------------------------------------------------------
 
 function loadPackageManifest(dir: string): { name: string; version: string } {
-  const manifestPath = join(import.meta.dir, `../../packages/${dir}/package.json`);
+  const manifestPath = join(
+    import.meta.dir,
+    `../../packages/${dir}/package.json`,
+  );
   const raw = JSON.parse(readFileSync(manifestPath, "utf8"));
   return { name: raw.name, version: raw.version };
 }
@@ -220,7 +223,9 @@ describe("release invariants: develop-to-master model", () => {
     });
 
     test("marks already-published packages correctly", () => {
-      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -288,7 +293,9 @@ describe("release invariants: develop-to-master model", () => {
     });
 
     test("source commit with changesets + partial publish returns PREPARE_RELEASE", () => {
-      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+      ]);
       const ctx = makeContext({
         commitMessage: SOURCE_COMMIT_MSG,
         changesetFiles: FRESH_CHANGESETS,

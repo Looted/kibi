@@ -26,10 +26,3 @@ The canonical workflow for any KB operation follows this pattern:
 3. kb_upsert to add missing relationship rows (sequential)
 4. kb_check with rules: ["no-dangling-refs", "symbol-traceability"]
 ```
-
-## Before Risky Work
-```
-1. /brief-kibi or kb_briefing_generate for citation-backed briefing
-2. Inspect briefingState; proceed only if ready
-3. Use constraints, regressionRisks, and cited entities from the briefing
-```

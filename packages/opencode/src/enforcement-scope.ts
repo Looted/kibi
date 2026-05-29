@@ -11,7 +11,10 @@ export interface EnforcementScopeInput {
   dirtyRelevantFingerprint: string;
 }
 
-function normalizeComponent(value: string | undefined, fallback: string): string {
+function normalizeComponent(
+  value: string | undefined,
+  fallback: string,
+): string {
   const trimmed = value?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : fallback;
 }
@@ -49,7 +52,5 @@ export function buildDirtyRelevantFingerprint(
     return "clean";
   }
 
-  return createHash("sha256")
-    .update(JSON.stringify(normalized))
-    .digest("hex");
+  return createHash("sha256").update(JSON.stringify(normalized)).digest("hex");
 }

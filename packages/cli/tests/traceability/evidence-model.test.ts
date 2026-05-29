@@ -3,12 +3,12 @@ import { describe, expect, it } from "bun:test";
 import {
   KIBI_ENTITY_SCHEMA_DOC,
   KIBI_NO_IMPACT_DECLARATION,
-  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
+  KIBI_SYMBOL_COORDINATES_PATH,
+  type KibiImpactEvidence,
   getKbEvidencePaths,
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
-  type KibiImpactEvidence,
 } from "../../src/traceability/evidence-model.js";
 import { collectStagedKibiDiagnostics } from "../../src/traceability/staged-diagnostics.js";
 
@@ -180,7 +180,8 @@ describe("evidence-model", () => {
           path: "documentation/facts/FACT-kibi-impact-none.md",
           sourcePaths: ["packages/cli/src/traceability/comments.ts"],
           reason: "false_positive",
-          rationale: "Comment-only rewrite; exported behavior and symbol graph are unchanged.",
+          rationale:
+            "Comment-only rewrite; exported behavior and symbol graph are unchanged.",
         },
       },
     });

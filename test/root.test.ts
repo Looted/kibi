@@ -18,7 +18,13 @@ const BATCHES: Batch[] = [
   },
   {
     label: "mcp",
-    args: ["test", "--timeout", "15000", "--max-concurrency=1", "./packages/mcp"],
+    args: [
+      "test",
+      "--timeout",
+      "15000",
+      "--max-concurrency=1",
+      "./packages/mcp",
+    ],
   },
   {
     label: "opencode",
@@ -32,12 +38,10 @@ const BATCHES: Batch[] = [
       "15000",
       "--isolate",
       "--max-concurrency=1",
-      "./packages/vscode/tests/activation/briefs.test.ts",
       "./packages/vscode/tests/activation/extension.test.ts",
       "./packages/vscode/tests/activation/workspace.test.ts",
       "./packages/vscode/tests/activation/treeView.test.ts",
       "./packages/vscode/tests/activation/contextOnOpen.test.ts",
-      "./packages/vscode/tests/activation/briefs-coverage.test.ts",
       "./packages/vscode/tests/activation/mcp.test.ts",
       "./packages/vscode/tests/activation-modules.test.ts",
       "./packages/vscode/tests/workspace-activation-direct.test.ts",
@@ -51,8 +55,6 @@ const BATCHES: Batch[] = [
       "15000",
       "--isolate",
       "--max-concurrency=1",
-      "./packages/vscode/tests/briefDocumentProvider.test.ts",
-      "./packages/vscode/tests/briefs.test.ts",
       "./packages/vscode/tests/code-action-provider.test.ts",
       "./packages/vscode/tests/codeLens.test.ts",
       "./packages/vscode/tests/extension.test.ts",
@@ -72,7 +74,8 @@ const BATCHES: Batch[] = [
 
 function parseSuiteSummaries(output: string): SuiteSummary[] {
   const summaries: SuiteSummary[] = [];
-  const summaryPattern = /\n\s*(\d+) pass\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
+  const summaryPattern =
+    /\n\s*(\d+) pass\n\s*(\d+) fail[\s\S]*?Ran \d+ tests across (\d+) files?/g;
   for (const match of output.matchAll(summaryPattern)) {
     summaries.push({
       pass: Number(match[1]),
@@ -83,7 +86,9 @@ function parseSuiteSummaries(output: string): SuiteSummary[] {
   return summaries;
 }
 
-function formatSuiteSummary(summaries: Array<SuiteSummary & { label: string }>): string {
+function formatSuiteSummary(
+  summaries: Array<SuiteSummary & { label: string }>,
+): string {
   const total = summaries.reduce(
     (accumulator, summary) => ({
       pass: accumulator.pass + summary.pass,
@@ -107,7 +112,9 @@ function formatSuiteSummary(summaries: Array<SuiteSummary & { label: string }>):
   ].join("\n");
 }
 
-async function runBatch(batch: Batch): Promise<SuiteSummary & { label: string }> {
+async function runBatch(
+  batch: Batch,
+): Promise<SuiteSummary & { label: string }> {
   console.info(`\n$ bun ${batch.args.join(" ")}`);
   const child = spawn("bun", batch.args, {
     cwd: process.cwd(),
@@ -129,10 +136,13 @@ async function runBatch(batch: Batch): Promise<SuiteSummary & { label: string }>
     process.stderr.write(chunk);
   });
 
-  const timeout = setTimeout(() => {
-    timedOut = true;
-    child.kill("SIGTERM");
-  }, 15 * 60 * 1000);
+  const timeout = setTimeout(
+    () => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    },
+    15 * 60 * 1000,
+  );
 
   const status = await new Promise<number | null>((resolve, reject) => {
     child.once("error", reject);
@@ -143,7 +153,9 @@ async function runBatch(batch: Batch): Promise<SuiteSummary & { label: string }>
     Buffer.concat([...outputChunks, ...errorChunks]).toString("utf8"),
   );
   if (summaries.length !== 1) {
-    throw new Error(`Expected one Bun summary for ${batch.label}, got ${summaries.length}.`);
+    throw new Error(
+      `Expected one Bun summary for ${batch.label}, got ${summaries.length}.`,
+    );
   }
   if (timedOut) {
     throw new Error(`${batch.label} timed out after 15 minutes.`);

@@ -107,10 +107,7 @@ export type FailureClassification =
   | "authoritative_external";
 
 // implements REQ-opencode-kibi-plugin-v1
-export function errorStructuredOnly(
-  msg: string,
-  metadata?: LogMetadata,
-): void {
+export function errorStructuredOnly(msg: string, metadata?: LogMetadata): void {
   if (client) {
     void client.app
       .log({

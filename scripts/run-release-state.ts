@@ -20,8 +20,8 @@
 import { execSync } from "node:child_process";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { PUBLISHABLE_DIRS, determineReleaseAction } from "./release-state";
 import { resolveNpmFixture } from "./release-runner-fixture";
+import { PUBLISHABLE_DIRS, determineReleaseAction } from "./release-state";
 
 const rootDir = join(import.meta.dir, "..");
 

@@ -2,14 +2,11 @@ import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import * as path from "node:path";
 import matter from "gray-matter";
+import { load as parseYAML } from "js-yaml";
 
-let parseYAML: (s: string) => any = (s: string) => ({ symbols: [] });
-try {
-  // prefer installed 'yaml' package if present
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  // @ts-ignore allow dynamic require in test
-  parseYAML = require("yaml").parse;
-} catch {}
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
 
 describe("Fixtures", () => {
   const fixturesDir = path.resolve(__dirname, "../../../test/fixtures");
@@ -46,6 +43,8 @@ describe("Fixtures", () => {
   test("symbols.yaml is valid", () => {
     const file = readFileSync(path.join(fixturesDir, "symbols.yaml"), "utf8");
     const data = parseYAML(file);
+    expect(isRecord(data)).toBe(true);
+    if (!isRecord(data)) return;
     expect(data).toHaveProperty("symbols");
     expect(Array.isArray(data.symbols)).toBe(true);
   });

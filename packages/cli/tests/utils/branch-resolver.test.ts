@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import {
-  execSync,
   type ExecSyncOptions,
   type ExecSyncOptionsWithBufferEncoding,
   type ExecSyncOptionsWithStringEncoding,
+  execSync,
 } from "node:child_process";
 import {
   existsSync,
@@ -17,8 +17,8 @@ import {
 import * as os from "node:os";
 import * as path from "node:path";
 import {
-  _setBranchResolverDepsForTests,
   type BranchErrorCode,
+  _setBranchResolverDepsForTests,
   copyCleanSnapshot,
   getBranchDiagnostic,
   getVolatileArtifactPatterns,

@@ -39,7 +39,8 @@ export function getSchemaVersionStatus(
   config?: SchemaVersionConfig,
 ): SchemaVersionStatus {
   const latestVersion = LATEST_KB_SCHEMA_VERSION;
-  const hasSchemaVersion = config !== null && config !== undefined && "schemaVersion" in config;
+  const hasSchemaVersion =
+    config !== null && config !== undefined && "schemaVersion" in config;
   const currentVersion = normalizeSchemaVersion(config?.schemaVersion);
 
   if (currentVersion === null) {
@@ -60,8 +61,7 @@ export function getSchemaVersionStatus(
       currentVersion,
       latestVersion,
       needsMigration: false,
-      warning:
-        `KB config schemaVersion ${currentVersion} is newer than the latest supported version ${latestVersion}.`,
+      warning: `KB config schemaVersion ${currentVersion} is newer than the latest supported version ${latestVersion}.`,
     };
   }
 
@@ -71,8 +71,7 @@ export function getSchemaVersionStatus(
       currentVersion,
       latestVersion,
       needsMigration: true,
-      warning:
-        `KB config schemaVersion ${currentVersion} is older than the latest version ${latestVersion} and should be migrated.`,
+      warning: `KB config schemaVersion ${currentVersion} is older than the latest version ${latestVersion} and should be migrated.`,
     };
   }
 

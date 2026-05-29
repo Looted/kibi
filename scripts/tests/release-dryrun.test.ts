@@ -42,7 +42,10 @@ const EVIDENCE_DIR = join(import.meta.dir, "../../.sisyphus/evidence");
 // Derive package metadata from actual package.json files so tests stay
 // future-proof across version bumps.
 function loadPackageManifest(dir: string): { name: string; version: string } {
-  const manifestPath = join(import.meta.dir, `../../packages/${dir}/package.json`);
+  const manifestPath = join(
+    import.meta.dir,
+    `../../packages/${dir}/package.json`,
+  );
   const raw = JSON.parse(readFileSync(manifestPath, "utf8"));
   return { name: raw.name, version: raw.version };
 }
@@ -232,7 +235,9 @@ describe("release dry-run: no-commit master publish model", () => {
     });
 
     test("source commit + partial publish + changesets → PREPARE_RELEASE with unpublished subset", () => {
-      const published = new Set([`${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`]);
+      const published = new Set([
+        `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
+      ]);
       const ctx = makeContext({
         changesetFiles: FRESH_CHANGESETS,
         isPublishedOnNpm: (name, ver) => published.has(`${name}@${ver}`),
@@ -405,8 +410,8 @@ Expected action: NOOP
       // Build comma-separated list from current core and cli package manifests.
       // This simulates a partial rerun where core and cli are already on npm,
       // so only mcp and opencode remain to be published.
-      const { name: coreName, version: coreVersion } = ALL_PACKAGES["core"];
-      const { name: cliName, version: cliVersion } = ALL_PACKAGES["cli"];
+      const { name: coreName, version: coreVersion } = ALL_PACKAGES.core;
+      const { name: cliName, version: cliVersion } = ALL_PACKAGES.cli;
       const mockNpm = `${coreName}@${coreVersion},${cliName}@${cliVersion}`;
 
       const raw = execSync("bun run scripts/run-release-state.ts", {

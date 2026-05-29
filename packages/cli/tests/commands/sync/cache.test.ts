@@ -18,9 +18,9 @@
 
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import {
-  createHash as realCreateHash,
   type Hash,
   type HashOptions,
+  createHash as realCreateHash,
 } from "node:crypto";
 import type { SyncCache } from "../../../src/commands/sync/cache.js";
 
@@ -37,6 +37,8 @@ const {
   toCacheKey,
   writeSyncCache,
 } = cacheModule;
+
+type SyncCacheDeps = NonNullable<Parameters<typeof readSyncCache>[1]>;
 
 type HashCreateMock = typeof realCreateHash & {
   mockReturnValue(value: Hash): HashCreateMock;
@@ -79,13 +81,12 @@ afterAll(() => {
   mock.restore();
 });
 
-const cacheDeps = () => ({
+const cacheDeps = (): SyncCacheDeps => ({
   createHash: mockCreateHash,
-  existsSync: mockExistsSync as typeof import("node:fs").existsSync,
-  mkdirSync: mockMkdirSync as typeof import("node:fs").mkdirSync,
-  readFileSync:
-    mockReadFileSync as unknown as typeof import("node:fs").readFileSync,
-  writeFileSync: mockWriteFileSync as typeof import("node:fs").writeFileSync,
+  existsSync: mockExistsSync as SyncCacheDeps["existsSync"],
+  mkdirSync: mockMkdirSync as SyncCacheDeps["mkdirSync"],
+  readFileSync: mockReadFileSync as unknown as SyncCacheDeps["readFileSync"],
+  writeFileSync: mockWriteFileSync as SyncCacheDeps["writeFileSync"],
 });
 
 // --- Helpers ---

@@ -81,16 +81,6 @@ Run the relevant plugin tests:
 bun test packages/opencode/tests
 ```
 
-### TUI Development Workflow
-
-When iterating on the Kibi briefing TUI:
-
-1. **Start the dev server**: Run `bun run dev:opencode` to watch and rebuild the plugin and TUI bundles.
-2. **Trigger a briefing**: Perform a "risky" edit (e.g., modify a requirement file) to trigger a background sync and briefing generation.
-3. **Verify Auto-Open**: Confirm the TUI automatically navigates to the `kibi.brief` route when the new briefing is ready.
-4. **Manual Navigation**: Test manual retrieval using the `kibi.open_latest_brief` command in the OpenCode command palette.
-5. **In-Place Refresh**: While viewing a briefing, perform another edit and verify the TUI content updates without flickering or closing.
-
 ### Built-artifact verification
 
 Verify the compiled `dist/` artifact reflects the repaired toast contract:

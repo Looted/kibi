@@ -47,10 +47,6 @@ describe("DEFAULTS", () => {
   });
 });
 
-test("has ux.briefs.autoSubmit default", () => {
-  expect(DEFAULTS.ux.briefs?.autoSubmit).toBe(true);
-});
-
 describe("loadConfig", () => {
   test("returns defaults when no config files exist", async () => {
     const config = await loadConfig("/nonexistent/path");

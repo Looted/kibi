@@ -147,18 +147,18 @@ export function updateGitIgnore(cwd: string): void {
     return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
   };
 
-  const updatedWithKb = ensureEntry(gitignoreContent, ".kb/");
-  const updatedContent = ensureEntry(updatedWithKb, ".kb/briefs/");
+  const updatedContent = ensureEntry(gitignoreContent, ".kb/");
 
   if (updatedContent !== gitignoreContent) {
     writeFileSync(gitignorePath, updatedContent);
-    console.log("✓ Added .kb/ and .kb/briefs/ to .gitignore");
+    console.log("✓ Added .kb/ to .gitignore");
   }
 }
 
 // implements REQ-003
 export function ensureSymbolsManifestFile(cwd: string): void {
-  const symbolsRelPath = DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
+  const symbolsRelPath =
+    DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
   const symbolsPath = path.join(cwd, symbolsRelPath);
   if (existsSync(symbolsPath)) {
     return;

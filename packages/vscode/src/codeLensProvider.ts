@@ -54,7 +54,11 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
   ) {
     ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
       resolveSymbolsManifestPaths(workspaceRoot));
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot, this.coordinatesPath);
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
     this.rebuildFileAliases();
   }
 
@@ -231,7 +235,11 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
   refresh(): void {
     ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
       resolveSymbolsManifestPaths(this.workspaceRoot));
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot, this.coordinatesPath);
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
     this.rebuildFileAliases();
     this.clearRelationshipCache();
     this._onDidChangeCodeLenses.fire();

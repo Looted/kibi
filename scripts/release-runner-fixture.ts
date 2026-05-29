@@ -27,7 +27,10 @@ export type NpmFixtureResult = NpmFixtureLive | NpmFixtureMock;
  * @returns Live mode when absent; fixture mode with a (possibly empty)
  *   set of trimmed `pkg@version` tokens when present.
  */
-export function resolveNpmFixture(envValue: string | undefined): NpmFixtureResult { // implements REQ-020
+export function resolveNpmFixture(
+  envValue: string | undefined,
+): NpmFixtureResult {
+  // implements REQ-020
   if (envValue === undefined) {
     return { mode: "live" };
   }

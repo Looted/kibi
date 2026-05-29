@@ -22,13 +22,20 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function normalizeCoordinateRecord(value: unknown): SymbolCoordinatesRecord | null {
+function normalizeCoordinateRecord(
+  value: unknown,
+): SymbolCoordinatesRecord | null {
   if (!isRecord(value)) {
     return null;
   }
 
-  const { sourceColumn, sourceEndColumn, sourceEndLine, sourceFile, sourceLine } =
-    value;
+  const {
+    sourceColumn,
+    sourceEndColumn,
+    sourceEndLine,
+    sourceFile,
+    sourceLine,
+  } = value;
 
   if (
     typeof sourceFile !== "string" ||
@@ -115,7 +122,8 @@ export function mergeCoordinatesWithManifest(
 
   return symbolRecords.map((symbolRecord) => {
     const legacyRecord: ManifestSymbolRecord = { ...symbolRecord };
-    const symbolId = typeof symbolRecord.id === "string" ? symbolRecord.id : undefined;
+    const symbolId =
+      typeof symbolRecord.id === "string" ? symbolRecord.id : undefined;
     const coordinateRecord = symbolId ? coordinates[symbolId] : undefined;
 
     if (!coordinateRecord) {

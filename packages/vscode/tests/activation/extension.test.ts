@@ -49,8 +49,8 @@ function getCommandsMock() {
 }
 
 // Helper to create a minimal workspace with .kb directory
-function setupMinimalWorkspace(tmpDir: string) {
-  const kbConfigDir = path.join(tmpDir, ".kb");
+function setupMinimalWorkspace(root: string) {
+  const kbConfigDir = path.join(root, ".kb");
   fs.mkdirSync(kbConfigDir, { recursive: true });
   fs.writeFileSync(
     path.join(kbConfigDir, "config.json"),
@@ -60,7 +60,7 @@ function setupMinimalWorkspace(tmpDir: string) {
       2,
     ),
   );
-  const branchDir = path.join(tmpDir, ".kb", "branches", "develop");
+  const branchDir = path.join(root, ".kb", "branches", "develop");
   fs.mkdirSync(branchDir, { recursive: true });
   fs.writeFileSync(
     path.join(branchDir, "kb.rdf"),
@@ -69,21 +69,11 @@ function setupMinimalWorkspace(tmpDir: string) {
          xmlns:kb="http://kibi.dev/kb/">
 </rdf:RDF>`,
   );
-  fs.mkdirSync(path.join(tmpDir, "documentation"), { recursive: true });
+  fs.mkdirSync(path.join(root, "documentation"), { recursive: true });
   fs.writeFileSync(
     path.join(tmpDir, "documentation", "symbols.yaml"),
     "symbols: []\n",
   );
-
-  // Stub git so getCurrentBranch returns "develop"
-  const binDir = path.join(tmpDir, "bin");
-  fs.mkdirSync(binDir, { recursive: true });
-  const fakeGit = path.join(binDir, "git");
-  fs.writeFileSync(fakeGit, "#!/bin/sh\necho develop\n");
-  fs.chmodSync(fakeGit, 0o755);
-
-  // Set PATH to include the fake git
-  process.env.PATH = `${binDir}:${process.env.PATH || ""}`;
 }
 
 // Helper to import extension module with fresh vscode mock
@@ -103,19 +93,16 @@ async function importExtensionModule() {
 }
 
 let tmpDir: string;
-let originalPath: string;
 
 beforeEach(() => {
   resetVscodeMock({ workspace: { workspaceFolders: undefined } });
   tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-activation-test-"));
-  originalPath = process.env.PATH || "";
 });
 
 afterEach(() => {
   if (tmpDir && fs.existsSync(tmpDir)) {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  process.env.PATH = originalPath;
   (globalThis as { vscode?: unknown }).vscode = undefined;
 });
 

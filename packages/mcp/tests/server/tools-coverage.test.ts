@@ -1,32 +1,31 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import process from "node:process";
+import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import {
+  type ToolConfig,
+  type ToolsRuntime,
   _resetSessionModulePromise,
   _setToolsServerDepsForTests,
   addTool,
   registerAllTools,
-  type ToolConfig,
-  type ToolsRuntime,
 } from "../../src/server/tools.js";
+import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
 import type { DeleteArgs } from "../../src/tools/delete.js";
 import type { FindGapsArgs } from "../../src/tools/find-gaps.js";
 import type { GraphArgs } from "../../src/tools/graph.js";
+import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
 import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
-import type { StatusArgs } from "../../src/tools/status.js";
 import type {
   SkillsListArgs,
   SkillsLoadArgs,
   SkillsReadArgs,
 } from "../../src/tools/skills.js";
+import type { StatusArgs } from "../../src/tools/status.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
-import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
-import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
-import type { BriefingGenerateArgs } from "../../src/tools/briefing-generate.js";
 
 type MockProlog = { kind: "mock-prolog" };
 type SessionModule = typeof import("../../src/server/session.js");
@@ -58,7 +57,6 @@ const TOOL_NAMES = [
   "kb_check",
   "kb_model_requirement",
   "kb_autopilot_generate",
-  "kb_briefing_generate",
 ] as const;
 
 function createDeferred<T>() {
@@ -269,51 +267,53 @@ function createRuntime() {
       args,
     }),
   );
-  const handleKbSkillsList: ToolsRuntime<MockProlog>["handleKbSkillsList"] = mock(
-    async (args: SkillsListArgs): Promise<unknown> => ({
-      tool: "kb_skills_list",
-      args,
-    }),
-  );
-  const handleKbSkillsLoad: ToolsRuntime<MockProlog>["handleKbSkillsLoad"] = mock(
-    async (args: SkillsLoadArgs): Promise<unknown> => ({
-      tool: "kb_skills_load",
-      args,
-    }),
-  );
-  const handleKbSkillsRead: ToolsRuntime<MockProlog>["handleKbSkillsRead"] = mock(
-    async (args: SkillsReadArgs): Promise<unknown> => ({
-      tool: "kb_skills_read",
-      args,
-    }),
-  );
+  const handleKbSkillsList: ToolsRuntime<MockProlog>["handleKbSkillsList"] =
+    mock(
+      async (args: SkillsListArgs): Promise<unknown> => ({
+        tool: "kb_skills_list",
+        args,
+      }),
+    );
+  const handleKbSkillsLoad: ToolsRuntime<MockProlog>["handleKbSkillsLoad"] =
+    mock(
+      async (args: SkillsLoadArgs): Promise<unknown> => ({
+        tool: "kb_skills_load",
+        args,
+      }),
+    );
+  const handleKbSkillsRead: ToolsRuntime<MockProlog>["handleKbSkillsRead"] =
+    mock(
+      async (args: SkillsReadArgs): Promise<unknown> => ({
+        tool: "kb_skills_read",
+        args,
+      }),
+    );
   const handleKbUpsert: ToolsRuntime<MockProlog>["handleKbUpsert"] = mock(
     async (_prolog: MockProlog, args: UpsertArgs): Promise<unknown> => ({
       tool: "kb_upsert",
       args,
     }),
   );
-  const handleKbModelRequirement: ToolsRuntime<
-    MockProlog
-  >["handleKbModelRequirement"] = mock(
-    async (_prolog: MockProlog, args: ModelRequirementArgs): Promise<unknown> => ({
-      tool: "kb_model_requirement",
-      args,
-    }),
-  );
-  const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] = mock(
-    async (_prolog: MockProlog, args: AutopilotGenerateArgs): Promise<unknown> => ({
-      tool: "kb_autopilot_generate",
-      args,
-    }),
-  );
-  const handleKbBriefingGenerate: ToolsRuntime<MockProlog>["handleKbBriefingGenerate"] = mock(
-    async (_prolog: MockProlog, args: BriefingGenerateArgs): Promise<unknown> => ({
-      tool: "kb_briefing_generate",
-      args,
-    }),
-  );
-
+  const handleKbModelRequirement: ToolsRuntime<MockProlog>["handleKbModelRequirement"] =
+    mock(
+      async (
+        _prolog: MockProlog,
+        args: ModelRequirementArgs,
+      ): Promise<unknown> => ({
+        tool: "kb_model_requirement",
+        args,
+      }),
+    );
+  const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
+    mock(
+      async (
+        _prolog: MockProlog,
+        args: AutopilotGenerateArgs,
+      ): Promise<unknown> => ({
+        tool: "kb_autopilot_generate",
+        args,
+      }),
+    );
   const runtime = {
     diagnosticModeEnabled,
     appendUsageLogLine,
@@ -339,7 +339,6 @@ function createRuntime() {
     handleKbUpsert,
     handleKbModelRequirement,
     handleKbAutopilotGenerate,
-    handleKbBriefingGenerate,
   } satisfies ToolsRuntime<MockProlog>;
 
   return {
@@ -370,7 +369,6 @@ function createRuntime() {
       handleKbUpsert,
       handleKbModelRequirement,
       handleKbAutopilotGenerate,
-      handleKbBriefingGenerate,
     },
   };
 }
@@ -666,8 +664,12 @@ describe.serial("server tools coverage", () => {
     registerAllTools(server, runtime);
 
     expect(registered.map((tool) => tool.name)).toEqual([...TOOL_NAMES]);
-    expect(registered.some((tool) => tool.name === "kb_autopilot_generate")).toBe(true);
-    expect(registered.some((tool) => tool.name === "kb_briefing_generate")).toBe(true);
+    expect(
+      registered.some((tool) => tool.name === "kb_autopilot_generate"),
+    ).toBe(true);
+    expect(
+      registered.some((tool) => tool.name === "kb_briefing_generate"),
+    ).toBe(false);
 
     const argsByTool = new Map<string, Record<string, unknown>>(
       TOOL_NAMES.map((name) => [name, { marker: name }]),
@@ -740,10 +742,6 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_autopilot_generate"),
-    );
-    expect(spies.handleKbBriefingGenerate).toHaveBeenCalledWith(
-      mockProlog,
-      argsByTool.get("kb_briefing_generate"),
     );
   });
 

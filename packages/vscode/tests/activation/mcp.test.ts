@@ -14,7 +14,9 @@ const executeCommand = mock(
   async (_cmd: string, ..._args: unknown[]) => undefined,
 );
 let mockExistsSync: ReturnType<typeof mock<(targetPath: string) => boolean>>;
-let mockExecSync: ReturnType<typeof mock<(command: string, options?: unknown) => string>>;
+let mockExecSync: ReturnType<
+  typeof mock<(command: string, options?: unknown) => string>
+>;
 let mockDeps: McpDeps;
 
 const workspaceApi = {

@@ -3,7 +3,7 @@
  *
  * Tests cover all three resolution strategies and the never-throws contract.
  */
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { readKibiPackageVersions } from "../src/version-metadata";
 
@@ -12,7 +12,9 @@ describe("readKibiPackageVersions", () => {
     expect(() => readKibiPackageVersions()).not.toThrow();
     expect(() =>
       readKibiPackageVersions({
-        baseUrl: new URL("file:///nonexistent-path-that-definitely-does-not-exist/"),
+        baseUrl: new URL(
+          "file:///nonexistent-path-that-definitely-does-not-exist/",
+        ),
       }),
     ).not.toThrow();
     expect(() =>
@@ -25,7 +27,12 @@ describe("readKibiPackageVersions", () => {
   });
 
   test("reads generated dist JSON when available (injected)", () => {
-    const fakeMetadata = { opencode: "1.0.0", mcp: "1.1.0", cli: "0.9.0", core: "0.4.0" };
+    const fakeMetadata = {
+      opencode: "1.0.0",
+      mcp: "1.1.0",
+      cli: "0.9.0",
+      core: "0.4.0",
+    };
     const result = readKibiPackageVersions({
       readFileSync: (path: string | URL) => {
         if (String(path).endsWith("version-metadata.json")) {

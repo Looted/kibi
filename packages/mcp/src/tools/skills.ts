@@ -50,7 +50,9 @@ export async function handleKbSkillsList(
     const skills = listBundledSkills();
     const ids = skills.map((skill) => skill.id).join(", ") || "none";
     return {
-      content: [{ type: "text", text: `Found ${skills.length} bundled skills: ${ids}` }],
+      content: [
+        { type: "text", text: `Found ${skills.length} bundled skills: ${ids}` },
+      ],
       structuredContent: { skills },
     };
   } catch (error) {
@@ -71,7 +73,9 @@ export async function handleKbSkillsLoad(
       metadata: bundle.manifest,
       body: bundle.body,
       resources,
-      contentHash: createHash("sha256").update(bundle.body, "utf8").digest("hex"),
+      contentHash: createHash("sha256")
+        .update(bundle.body, "utf8")
+        .digest("hex"),
       sourceType: "bundled",
     };
 

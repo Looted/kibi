@@ -102,7 +102,11 @@ describe("kibi search", () => {
     expect(result.results.map((r) => r.entity.id)).toContain(
       "REQ-search-revenuecat-entitlement",
     );
-    expect(result.results.some((r) => r.entity.id === "FACT-search-unrelated-sync-feedback")).toBe(false);
+    expect(
+      result.results.some(
+        (r) => r.entity.id === "FACT-search-unrelated-sync-feedback",
+      ),
+    ).toBe(false);
   });
 
   test("returns empty results for no-signal queries", () => {

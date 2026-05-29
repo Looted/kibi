@@ -15,18 +15,14 @@
 // implements TEST-opencode-python-comment-routing
 
 import assert from "node:assert";
-import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
-import { parseNpmPackJsonOutput } from "./opencode-packed-utils.js";
+import {
+  createIsolatedInstall,
+  installOpencodeTarball,
+  resolveOpencodeTarball,
+} from "./opencode-packed-utils.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -58,9 +54,11 @@ if (RUN_NODE_TEST_SUITE) {
 
       before(
         async () => {
-          tmpDir = mkdtempSync(join(tmpdir(), "kibi-python-comment-e2e-"));
-          installDir = join(tmpDir, "install");
-          mkdirSync(installDir, { recursive: true });
+          const isolatedInstall = createIsolatedInstall(
+            join(tmpDir || "/tmp", ""),
+          );
+          tmpDir = isolatedInstall.tmpDir;
+          installDir = isolatedInstall.installDir;
 
           // Write a minimal package.json so npm install works in installDir
           writeFileSync(
@@ -77,39 +75,8 @@ if (RUN_NODE_TEST_SUITE) {
             "utf8",
           );
 
-          // Pack kibi-opencode (triggers prepack → tsc build)
-          console.log("  📦 Packing kibi-opencode...");
-          const opencodeDir = join(REPO_ROOT, "packages/opencode");
-
-          const packOutput = execFileSync("npm", ["pack", "--json"], {
-            cwd: opencodeDir,
-            encoding: "utf8",
-            stdio: ["pipe", "pipe", "pipe"],
-          });
-
-          const packResults = parseNpmPackJsonOutput(packOutput);
-          if (!packResults?.[0]?.filename) {
-            throw new Error("npm pack did not return a filename");
-          }
-
-          tarballPath = join(opencodeDir, packResults[0].filename);
-          assert.ok(
-            existsSync(tarballPath),
-            `Tarball not found: ${tarballPath}`,
-          );
-          console.log(`  ✓ Packed: ${packResults[0].filename}`);
-
-          // Install tarball into isolated prefix
-          console.log("  📥 Installing kibi-opencode from tarball...");
-          execFileSync(
-            "npm",
-            ["install", "--legacy-peer-deps", "--no-audit", tarballPath],
-            {
-              cwd: installDir,
-              stdio: ["pipe", "pipe", "pipe"],
-            },
-          );
-          console.log("  ✓ Installed");
+          tarballPath = resolveOpencodeTarball(REPO_ROOT).tarballPath;
+          installOpencodeTarball(installDir, tarballPath);
         },
         { timeout: 240000 },
       );

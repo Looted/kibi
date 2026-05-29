@@ -15,8 +15,8 @@ import { PrologProcess as RealPrologProcess } from "kibi-cli/prolog";
 import { handleKbGraph } from "../../src/tools/graph.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
 import {
-  setupIsolatedCore,
   type IsolatedCoreFixture,
+  setupIsolatedCore,
 } from "./discovery-root-fixture.js";
 
 const KB_GRAPH_INTEGRATION_TIMEOUT_MS = 15_000;
@@ -96,60 +96,60 @@ describe("kb_graph multi-relationship integration", () => {
   test(
     "returns edges for all requested relationship types (issue #113)",
     async () => {
-    // Create seed entities
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-GRAPH-113",
-      properties: { title: "Graph multi-rel test", status: "open" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-GRAPH-113",
-      properties: { title: "Graph scenario", status: "active" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-GRAPH-113",
-      properties: { title: "Graph test", status: "passing" },
-    });
+      // Create seed entities
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-GRAPH-113",
+        properties: { title: "Graph multi-rel test", status: "open" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-GRAPH-113",
+        properties: { title: "Graph scenario", status: "active" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-GRAPH-113",
+        properties: { title: "Graph test", status: "passing" },
+      });
 
-    // Create relationships
-    await handleKbUpsert(prolog, {
-      type: "req",
-      id: "REQ-GRAPH-113",
-      properties: { title: "Graph multi-rel test", status: "open" },
-      relationships: [
-        { type: "specified_by", from: "REQ-GRAPH-113", to: "SCEN-GRAPH-113" },
-        { type: "verified_by", from: "REQ-GRAPH-113", to: "TEST-GRAPH-113" },
-      ],
-    });
+      // Create relationships
+      await handleKbUpsert(prolog, {
+        type: "req",
+        id: "REQ-GRAPH-113",
+        properties: { title: "Graph multi-rel test", status: "open" },
+        relationships: [
+          { type: "specified_by", from: "REQ-GRAPH-113", to: "SCEN-GRAPH-113" },
+          { type: "verified_by", from: "REQ-GRAPH-113", to: "TEST-GRAPH-113" },
+        ],
+      });
 
-    // Query with both relationship types
-    const result = await handleKbGraph(prolog, {
-      seedIds: ["REQ-GRAPH-113"],
-      relationships: ["specified_by", "verified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
+      // Query with both relationship types
+      const result = await handleKbGraph(prolog, {
+        seedIds: ["REQ-GRAPH-113"],
+        relationships: ["specified_by", "verified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
 
-    const edges = result.structuredContent?.edges ?? [];
-    const edgeTypes = edges.map((e) =>
-      String((e as Record<string, unknown>).type),
-    );
+      const edges = result.structuredContent?.edges ?? [];
+      const edgeTypes = edges.map((e) =>
+        String((e as Record<string, unknown>).type),
+      );
 
-    // Should have edges of BOTH types
-    expect(edgeTypes).toContain("specified_by");
-    expect(edgeTypes).toContain("verified_by");
-    expect(edges.length).toBe(2);
+      // Should have edges of BOTH types
+      expect(edgeTypes).toContain("specified_by");
+      expect(edgeTypes).toContain("verified_by");
+      expect(edges.length).toBe(2);
 
-    // Reversing order should produce same result
-    const reversed = await handleKbGraph(prolog, {
-      seedIds: ["REQ-GRAPH-113"],
-      relationships: ["verified_by", "specified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
-    expect(reversed.structuredContent?.edges?.length).toBe(2);
+      // Reversing order should produce same result
+      const reversed = await handleKbGraph(prolog, {
+        seedIds: ["REQ-GRAPH-113"],
+        relationships: ["verified_by", "specified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
+      expect(reversed.structuredContent?.edges?.length).toBe(2);
     },
     KB_GRAPH_INTEGRATION_TIMEOUT_MS,
   );
@@ -157,71 +157,71 @@ describe("kb_graph multi-relationship integration", () => {
   test(
     "returns scenario to test traversal edges for validates and verified_by",
     async () => {
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-GRAPH-TRACE-001",
-      properties: { title: "Graph trace scenario", status: "active" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-GRAPH-TRACE-001",
-      properties: { title: "Graph trace test", status: "passing" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-GRAPH-TRACE-002",
-      properties: { title: "Graph trace verified test", status: "passing" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "scenario",
-      id: "SCEN-GRAPH-TRACE-001",
-      properties: { title: "Graph trace scenario", status: "active" },
-      relationships: [
-        {
-          type: "verified_by",
-          from: "SCEN-GRAPH-TRACE-001",
-          to: "TEST-GRAPH-TRACE-002",
-        },
-      ],
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-GRAPH-TRACE-001",
-      properties: { title: "Graph trace test", status: "passing" },
-      relationships: [
-        {
-          type: "validates",
-          from: "TEST-GRAPH-TRACE-001",
-          to: "SCEN-GRAPH-TRACE-001",
-        },
-      ],
-    });
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-GRAPH-TRACE-001",
+        properties: { title: "Graph trace scenario", status: "active" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-GRAPH-TRACE-001",
+        properties: { title: "Graph trace test", status: "passing" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-GRAPH-TRACE-002",
+        properties: { title: "Graph trace verified test", status: "passing" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "scenario",
+        id: "SCEN-GRAPH-TRACE-001",
+        properties: { title: "Graph trace scenario", status: "active" },
+        relationships: [
+          {
+            type: "verified_by",
+            from: "SCEN-GRAPH-TRACE-001",
+            to: "TEST-GRAPH-TRACE-002",
+          },
+        ],
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-GRAPH-TRACE-001",
+        properties: { title: "Graph trace test", status: "passing" },
+        relationships: [
+          {
+            type: "validates",
+            from: "TEST-GRAPH-TRACE-001",
+            to: "SCEN-GRAPH-TRACE-001",
+          },
+        ],
+      });
 
-    const outgoing = await handleKbGraph(prolog, {
-      seedIds: ["SCEN-GRAPH-TRACE-001"],
-      relationships: ["verified_by"],
-      direction: "outgoing",
-      depth: 1,
-    });
-    const incoming = await handleKbGraph(prolog, {
-      seedIds: ["SCEN-GRAPH-TRACE-001"],
-      relationships: ["validates"],
-      direction: "incoming",
-      depth: 1,
-    });
+      const outgoing = await handleKbGraph(prolog, {
+        seedIds: ["SCEN-GRAPH-TRACE-001"],
+        relationships: ["verified_by"],
+        direction: "outgoing",
+        depth: 1,
+      });
+      const incoming = await handleKbGraph(prolog, {
+        seedIds: ["SCEN-GRAPH-TRACE-001"],
+        relationships: ["validates"],
+        direction: "incoming",
+        depth: 1,
+      });
 
-    const outgoingEdges = outgoing.structuredContent?.edges ?? [];
-    const incomingEdges = incoming.structuredContent?.edges ?? [];
-    expect(outgoingEdges).toContainEqual({
-      type: "verified_by",
-      from: "SCEN-GRAPH-TRACE-001",
-      to: "TEST-GRAPH-TRACE-002",
-    });
-    expect(incomingEdges).toContainEqual({
-      type: "validates",
-      from: "TEST-GRAPH-TRACE-001",
-      to: "SCEN-GRAPH-TRACE-001",
-    });
+      const outgoingEdges = outgoing.structuredContent?.edges ?? [];
+      const incomingEdges = incoming.structuredContent?.edges ?? [];
+      expect(outgoingEdges).toContainEqual({
+        type: "verified_by",
+        from: "SCEN-GRAPH-TRACE-001",
+        to: "TEST-GRAPH-TRACE-002",
+      });
+      expect(incomingEdges).toContainEqual({
+        type: "validates",
+        from: "TEST-GRAPH-TRACE-001",
+        to: "SCEN-GRAPH-TRACE-001",
+      });
     },
     KB_GRAPH_INTEGRATION_TIMEOUT_MS,
   );
@@ -322,9 +322,7 @@ describe("kb_graph canonical traceability chain traversal", () => {
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
-  test(
-    "traverses canonical chain: requirement → scenario → test",
-    async () => {
+  test("traverses canonical chain: requirement → scenario → test", async () => {
     // Set up the canonical authored chain:
     // REQ-CHAIN-001 --specified_by--> SCEN-CHAIN-001 --verified_by--> TEST-CHAIN-001
     // TEST-CHAIN-001 --validates--> SCEN-CHAIN-001
@@ -463,36 +461,38 @@ describe("kb_graph canonical traceability chain traversal", () => {
     expect(nodeIds).not.toContain(expect.stringMatching(/^SCEN-/));
   });
 
-  test("traverses executable_for relationship from symbol to test", async () => {
-    await handleKbUpsert(prolog, {
-      type: "symbol",
-      id: "SYM-CHAIN-001",
-      properties: { title: "Chain symbol", status: "active" },
-    });
-    await handleKbUpsert(prolog, {
-      type: "test",
-      id: "TEST-CHAIN-SYM-001",
-      properties: { title: "Chain symbol test", status: "passing" },
-    });
+  test(
+    "traverses executable_for relationship from symbol to test",
+    async () => {
+      await handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-CHAIN-001",
+        properties: { title: "Chain symbol", status: "active" },
+      });
+      await handleKbUpsert(prolog, {
+        type: "test",
+        id: "TEST-CHAIN-SYM-001",
+        properties: { title: "Chain symbol test", status: "passing" },
+      });
 
-    const relResult = await prolog.query(
-      "kb_assert_relationship(executable_for, 'SYM-CHAIN-001', 'TEST-CHAIN-SYM-001', [])",
-    );
-    expect(relResult.success).toBe(true);
+      const relResult = await prolog.query(
+        "kb_assert_relationship(executable_for, 'SYM-CHAIN-001', 'TEST-CHAIN-SYM-001', [])",
+      );
+      expect(relResult.success).toBe(true);
 
-    const result = await handleKbGraph(prolog, {
-      seedIds: ["SYM-CHAIN-001"],
-      relationships: ["executable_for"],
-      direction: "outgoing",
-      depth: 1,
-    });
+      const result = await handleKbGraph(prolog, {
+        seedIds: ["SYM-CHAIN-001"],
+        relationships: ["executable_for"],
+        direction: "outgoing",
+        depth: 1,
+      });
 
-    const edges = result.structuredContent?.edges ?? [];
-    expect(edges).toContainEqual({
-      type: "executable_for",
-      from: "SYM-CHAIN-001",
-      to: "TEST-CHAIN-SYM-001",
-    });
+      const edges = result.structuredContent?.edges ?? [];
+      expect(edges).toContainEqual({
+        type: "executable_for",
+        from: "SYM-CHAIN-001",
+        to: "TEST-CHAIN-SYM-001",
+      });
     },
     KB_GRAPH_INTEGRATION_TIMEOUT_MS,
   );
