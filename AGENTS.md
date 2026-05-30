@@ -78,6 +78,14 @@ For normative requirements that should participate in contradiction checks:
 - Link requirement -> `fact_kind: subject` via `constrains`
 - Link requirement -> `fact_kind: property_value` via `requires_property`
 
+### Predicate ontology lane (alpha)
+
+For project-local domain ontology claims:
+- Use `fact_kind: predicate_schema` to define allowed predicate signatures.
+- Use `fact_kind: predicate` to encode ground predicate claims with `predicate_name`, `predicate_args`, `canonical_key`, and optional `polarity: assert|deny`.
+- Link requirement -> `fact_kind: predicate` via `requires_predicate`.
+- Do not replace predicate facts with prose when a suitable predicate schema exists; use `observation` with `review:ontology-gap` when no predicate fits.
+
 For bugs/workarounds/governance notes:
 - Use `fact` with `fact_kind: observation` or `meta` (non-blocking lane)
 - For each bug/workaround note, prefer `observation` or `meta` fact kinds
