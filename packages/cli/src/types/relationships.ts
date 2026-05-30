@@ -26,6 +26,7 @@ export interface BaseRelationship {
     | "constrained_by"
     | "constrains"
     | "requires_property"
+    | "requires_predicate"
     | "guards"
     | "publishes"
     | "consumes"
