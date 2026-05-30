@@ -397,8 +397,8 @@ export function extractSymbolsFromStagedFile(
     }
   }
 
-  // Interfaces
-  for (const iface of sf.getInterfaces()) {
+  for (const iface of
+    typeof sf.getInterfaces === "function" ? sf.getInterfaces() : []) {
     if (!iface.isExported()) continue;
     try {
       const name = iface.getName();
@@ -421,8 +421,8 @@ export function extractSymbolsFromStagedFile(
     }
   }
 
-  // Type aliases
-  for (const alias of sf.getTypeAliases()) {
+  for (const alias of
+    typeof sf.getTypeAliases === "function" ? sf.getTypeAliases() : []) {
     if (!alias.isExported()) continue;
     try {
       const name = alias.getName();

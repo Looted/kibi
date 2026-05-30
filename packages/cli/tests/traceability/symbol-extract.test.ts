@@ -378,29 +378,31 @@ describe("symbol-extract (cache and failure branches)", () => {
       ],
     ]);
 
-    expect(
-      extractSymbolsFromStagedFile(staged, manifestLookup)[0],
-    ).toMatchObject({
-      id: "SYM-CACHE",
-      reqLinks: ["REQ-CACHE"],
-    });
-    expect(createSourceFileCalls).toHaveLength(1);
-    expect(createSourceFileCalls[0]?.scriptKind).not.toBe("undefined");
+    try {
+      expect(
+        extractSymbolsFromStagedFile(staged, manifestLookup)[0],
+      ).toMatchObject({
+        id: "SYM-CACHE",
+        reqLinks: ["REQ-CACHE"],
+      });
+      expect(createSourceFileCalls).toHaveLength(1);
+      expect(createSourceFileCalls[0]?.scriptKind).not.toBe("undefined");
 
-    now += 10;
-    extractSymbolsFromStagedFile(staged, manifestLookup);
-    expect(createSourceFileCalls).toHaveLength(1);
+      now += 10;
+      extractSymbolsFromStagedFile(staged, manifestLookup);
+      expect(createSourceFileCalls).toHaveLength(1);
 
-    const missedLookup = extractSymbolsFromStagedFile(staged, new Map())[0];
-    expect(missedLookup?.id).toHaveLength(16);
-    expect(missedLookup?.reqLinks).toEqual([]);
+      const missedLookup = extractSymbolsFromStagedFile(staged, new Map())[0];
+      expect(missedLookup?.id).toHaveLength(16);
+      expect(missedLookup?.reqLinks).toEqual([]);
 
-    now += 30_001;
-    extractSymbolsFromStagedFile(staged, manifestLookup);
-    expect(createSourceFileCalls).toHaveLength(2);
-
-    Date.now = originalDateNow;
-    Project.prototype.createSourceFile = originalCreateSourceFile;
+      now += 30_001;
+      extractSymbolsFromStagedFile(staged, manifestLookup);
+      expect(createSourceFileCalls).toHaveLength(2);
+    } finally {
+      Date.now = originalDateNow;
+      Project.prototype.createSourceFile = originalCreateSourceFile;
+    }
   });
 
   it("returns an empty list when parsing fails and caches null source files", async () => {
@@ -420,16 +422,18 @@ describe("symbol-extract (cache and failure branches)", () => {
       await loadSymbolExtractModule("null-cache");
     const staged = makeStagedFile("broken.ts", "export function broken(", "M");
 
-    expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
-    expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
-    expect(createSourceFileCalls).toBe(1);
+    try {
+      expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
+      expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
+      expect(createSourceFileCalls).toBe(1);
 
-    now += 30_001;
-    expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
-    expect(createSourceFileCalls).toBe(2);
-
-    Date.now = originalDateNow;
-    Project.prototype.createSourceFile = originalCreateSourceFile;
+      now += 30_001;
+      expect(extractSymbolsFromStagedFile(staged)).toEqual([]);
+      expect(createSourceFileCalls).toBe(2);
+    } finally {
+      Date.now = originalDateNow;
+      Project.prototype.createSourceFile = originalCreateSourceFile;
+    }
   });
 
   it("skips malformed declarations, filters hunks, and falls back through manifest and hash branches", async () => {
@@ -558,6 +562,8 @@ describe("symbol-extract (cache and failure branches)", () => {
     const sourceFile = {
       getFunctions: () => [functionNode, brokenFunction, hiddenFunction],
       getClasses: () => [classNode, brokenClass, hiddenClass],
+      getInterfaces: () => [],
+      getTypeAliases: () => [],
       getEnums: () => [enumNode, brokenEnum, hiddenEnum],
       getVariableStatements: () => [
         exportedVariableStatement,
@@ -571,48 +577,54 @@ describe("symbol-extract (cache and failure branches)", () => {
     const { extractSymbolsFromStagedFile } =
       await loadSymbolExtractModule("mocked-branches");
 
-    const modified = extractSymbolsFromStagedFile({
-      path: join(srcDir, "feature.ts"),
-      content: "irrelevant",
-      hunkRanges: [{ start: 1, end: 14 }],
-      status: "M",
-    });
+    try {
+      const modified = extractSymbolsFromStagedFile({
+        path: join(srcDir, "feature.ts"),
+        content: "irrelevant",
+        hunkRanges: [{ start: 1, end: 14 }],
+        status: "M",
+      });
 
-    expect(modified).toHaveLength(4);
-    expect(modified.map((symbol: { name: string }) => symbol.name)).toEqual([
-      "fnWithInlineReq",
-      "ManifestClass",
-      "ManifestEnum",
-      "ManifestVar",
-    ]);
-    expect(modified[0]).toMatchObject({
-      reqLinks: ["REQ-INLINE"],
-      kind: "function",
-    });
-    expect(modified[1]).toMatchObject({
-      id: "SYM-CLASS",
-      reqLinks: ["REQ-FROM-MANIFEST"],
-    });
-    expect(modified[2]).toMatchObject({
-      id: "SYM-ENUM",
-      reqLinks: ["REQ-ENUM"],
-    });
-    expect(modified[3]).toMatchObject({ id: "SYM-VAR", reqLinks: ["REQ-VAR"] });
+      expect(modified).toHaveLength(4);
+      expect(modified.map((symbol: { name: string }) => symbol.name)).toEqual([
+        "fnWithInlineReq",
+        "ManifestClass",
+        "ManifestEnum",
+        "ManifestVar",
+      ]);
+      expect(modified[0]).toMatchObject({
+        reqLinks: ["REQ-INLINE"],
+        kind: "function",
+      });
+      expect(modified[1]).toMatchObject({
+        id: "SYM-CLASS",
+        reqLinks: ["REQ-FROM-MANIFEST"],
+      });
+      expect(modified[2]).toMatchObject({
+        id: "SYM-ENUM",
+        reqLinks: ["REQ-ENUM"],
+      });
+      expect(modified[3]).toMatchObject({
+        id: "SYM-VAR",
+        reqLinks: ["REQ-VAR"],
+      });
 
-    const renamed = extractSymbolsFromStagedFile({
-      path: "single-file.ts",
-      content: "irrelevant",
-      hunkRanges: [],
-      status: "R",
-    });
-    expect(
-      renamed.some((symbol: { name: string }) => symbol.name === "HashOnlyVar"),
-    ).toBe(true);
-    expect(
-      renamed.find(
-        (symbol: { name: string; id: string }) => symbol.name === "HashOnlyVar",
-      )?.id,
-    ).toHaveLength(16);
-    Project.prototype.createSourceFile = originalCreateSourceFile;
+      const renamed = extractSymbolsFromStagedFile({
+        path: "single-file.ts",
+        content: "irrelevant",
+        hunkRanges: [],
+        status: "R",
+      });
+      expect(
+        renamed.some((symbol: { name: string }) => symbol.name === "HashOnlyVar"),
+      ).toBe(true);
+      expect(
+        renamed.find(
+          (symbol: { name: string; id: string }) => symbol.name === "HashOnlyVar",
+        )?.id,
+      ).toHaveLength(16);
+    } finally {
+      Project.prototype.createSourceFile = originalCreateSourceFile;
+    }
   });
 });
