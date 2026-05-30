@@ -460,10 +460,15 @@ Facts support two authoring lanes:
 - **Context lane** for non-blocking knowledge
   - `observation`
   - `meta`
+- **Ontology lane** for project-local predicate modeling
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
+  - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`
 
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
-`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, and property values). Requirements can link to facts using `constrains` and `requires_property` so contradictions become structural and queryable.
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, and ontology predicates). Requirements can link to strict facts using `constrains` and `requires_property`, or to ontology predicate facts using `requires_predicate`, so domain claims become structural and queryable.
+
+**Migration note:** `predicate_schema`, `predicate`, and `requires_predicate` are additive. Existing KB documents do not require a data migration, and legacy prose facts remain readable. Projects can adopt the ontology lane incrementally by adding predicate schema facts, then linking new or updated requirements to ground predicate facts via `requires_predicate`.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -522,6 +527,7 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
+| requires_predicate  | req                  | fact                 | Requirement requires a ground ontology predicate fact |
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
