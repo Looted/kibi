@@ -40,6 +40,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
 }
 
 export interface ExtractedRelationship {
@@ -51,7 +52,6 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
-  /** The per-symbol source code file, distinct from the manifest file path. */
   sourceFile?: string;
 }
 
@@ -76,6 +76,7 @@ export interface ManifestSymbolRecord {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
   created_at?: string;
   updated_at?: string;
   links?: Array<string | { type: string; target: string }>;
@@ -185,6 +186,9 @@ function extractFromManifestSymbolRecords(
       ...(symbol.priority !== undefined ? { priority: symbol.priority } : {}),
       ...(symbol.severity !== undefined ? { severity: symbol.severity } : {}),
       ...(symbol.text_ref !== undefined ? { text_ref: symbol.text_ref } : {}),
+      ...(symbol.granularity_reason !== undefined
+        ? { granularity_reason: symbol.granularity_reason }
+        : {}),
     };
     const sourceFile = symbol.sourceFile ?? symbol.source;
 

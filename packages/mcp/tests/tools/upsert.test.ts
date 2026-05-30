@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -9,6 +12,8 @@ type QueryResult = {
 };
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
+const initialCwd = process.cwd();
+let tempWorkspace: string | undefined;
 
 function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
@@ -32,12 +37,23 @@ function createMockProlog(
 afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
+  process.chdir(initialCwd);
+  if (tempWorkspace) {
+    rmSync(tempWorkspace, { recursive: true, force: true });
+    tempWorkspace = undefined;
+  }
   if (initialKibiMcpDebug === undefined) {
     Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }
 });
+
+function createTempWorkspace(): string {
+  tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
+  process.chdir(tempWorkspace);
+  return tempWorkspace;
+}
 
 describe("handleKbUpsert", () => {
   test("rejects missing required type/id arguments", async () => {
@@ -116,6 +132,86 @@ describe("handleKbUpsert", () => {
     );
 
     expect(query).not.toHaveBeenCalled();
+  });
+
+  test("rejects coarse symbol traceability when granular source symbols exist", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "greet.ts"),
+      `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+`,
+    );
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-GREET-FILE",
+        properties: {
+          title: "greetModule",
+          status: "active",
+          source: "documentation/symbols.yaml",
+          sourceFile: "src/greet.ts",
+        },
+        relationships: [
+          {
+            type: "implements",
+            from: "SYM-GREET-FILE",
+            to: "REQ-GRANULAR-001",
+          },
+        ],
+      }),
+    ).rejects.toThrow(/granular symbols are available/i);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts justified coarse symbol traceability", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "greet.ts"),
+      `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-GREET-FILE",
+      properties: {
+        title: "greetModule",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/greet.ts",
+        granularity_reason: "module-level-behavior",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-GREET-FILE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
   });
 
   test("rejects constrains relationships targeting property_value facts", async () => {

@@ -126,7 +126,7 @@ function writeShiftedBehaviorEdit(root: string): void {
 function writeSameCoordinateBehaviorEdit(root: string): void {
   writeFiles(root, {
     "src/greet.ts": `export function greet() {
-  return "hello world";
+  return "howdy";
 }
 `,
   });
@@ -141,6 +141,21 @@ status: open
 ---
 
 # Greeting behavior
+
+${note}
+`,
+  });
+}
+
+function stageGranularRequirementEvidence(root: string, note: string): void {
+  writeFiles(root, {
+    "documentation/requirements/REQ-GRANULAR-001.md": `---
+id: REQ-GRANULAR-001
+title: Granular ownership requirement
+status: open
+---
+
+# Granular ownership requirement
 
 ${note}
 `,
@@ -196,6 +211,155 @@ function createUnlinkedSymbolFixture(): FileMap {
 `,
     "src/unlinked.ts": `export function unlinkedAction() {
   return "initial";
+}
+`,
+  };
+}
+
+function createCoarseSymbolFixture(reason?: string): FileMap {
+  const reasonLine = reason ? `    granularity_reason: ${reason}\n` : "";
+  return {
+    "documentation/requirements/REQ-GRANULAR-001.md": `---
+id: REQ-GRANULAR-001
+title: Granular ownership requirement
+status: open
+---
+
+# Granular ownership requirement
+`,
+    "documentation/symbols.yaml": `symbols:
+  - id: SYM-GREET-FILE
+    title: greet.ts
+    sourceFile: src/greet.ts
+    sourceLine: 1
+    sourceColumn: 1
+    sourceEndLine: 1
+    sourceEndColumn: 1
+    links:
+      - REQ-GRANULAR-001
+${reasonLine}    status: active
+`,
+    "src/greet.ts": `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+
+export function farewell() {
+  return "bye";
+}
+`,
+  };
+}
+
+function createJustifiedCoarseAndGranularFixture(): FileMap {
+  return {
+    "documentation/requirements/REQ-GRANULAR-001.md": `---
+id: REQ-GRANULAR-001
+title: Granular ownership requirement
+status: open
+---
+
+# Granular ownership requirement
+`,
+    "documentation/symbols.yaml": `symbols:
+  - id: SYM-GREET-FILE
+    title: greet.ts
+    sourceFile: src/greet.ts
+    sourceLine: 1
+    sourceColumn: 1
+    sourceEndLine: 1
+    sourceEndColumn: 1
+    links:
+      - REQ-GRANULAR-001
+    granularity_reason: module-level-behavior
+    status: active
+  - id: SYM-GREET-FUNCTION
+    title: greet
+    sourceFile: src/greet.ts
+    links:
+      - REQ-GRANULAR-001
+    status: active
+`,
+    "src/greet.ts": `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+
+export function farewell() {
+  return "bye";
+}
+`,
+  };
+}
+
+function writeGranularBehaviorEdit(root: string): void {
+  writeFiles(root, {
+    "src/greet.ts": `export const greetModule = {};
+
+export function greet() {
+  return "howdy";
+}
+
+export function farewell() {
+  return "bye";
+}
+`,
+  });
+}
+
+function createGranularitySourceOnlyFixture(): FileMap {
+  return {
+    "documentation/requirements/REQ-GRANULAR-001.md": `---
+id: REQ-GRANULAR-001
+title: Granular ownership requirement
+status: open
+---
+
+# Granular ownership requirement
+`,
+    "src/greet.ts": `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+`,
+  };
+}
+
+function writeCoarseSymbolsManifest(root: string, options?: { reason?: string; interfaceSource?: boolean }): void {
+  const reasonLine = options?.reason
+    ? `    granularity_reason: ${options.reason}\n`
+    : "";
+  const sourceFile = options?.interfaceSource ? "src/config.ts" : "src/greet.ts";
+  const title = options?.interfaceSource ? "config.ts" : "greet.ts";
+  writeFiles(root, {
+    "documentation/symbols.yaml": `symbols:
+  - id: SYM-COARSE-ONLY
+    title: ${title}
+    sourceFile: ${sourceFile}
+    links:
+      - REQ-GRANULAR-001
+${reasonLine}    status: active
+`,
+  });
+}
+
+function createInterfaceGranularityFixture(): FileMap {
+  return {
+    "documentation/requirements/REQ-GRANULAR-001.md": `---
+id: REQ-GRANULAR-001
+title: Granular ownership requirement
+status: open
+---
+
+# Granular ownership requirement
+`,
+    "src/config.ts": `export const configModule = {};
+
+export interface ConfigOptions {
+  enabled: boolean;
 }
 `,
   };
@@ -503,6 +667,148 @@ describe("kibi check --staged impact enforcement", () => {
       expect(status).toBe(1);
       expect(output).toContain("kibi_impact_evidence_missing");
       expect(output).toContain("Traceability failed");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "fails staged code when a coarse symbol owns a file that has granular symbols",
+    async () => {
+      writeFiles(tmpDir, createCoarseSymbolFixture());
+      commitAll(tmpDir, "initial");
+      commitRefreshedCoordinates(kibiBin, tmpDir);
+
+      writeGranularBehaviorEdit(tmpDir);
+      stageGranularRequirementEvidence(
+        tmpDir,
+        "Staged requirement note proving KB evidence exists for this edit.",
+      );
+      execSync(
+        "git add src/greet.ts documentation/requirements/REQ-GRANULAR-001.md",
+        { cwd: tmpDir, stdio: "pipe" },
+      );
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("symbol_granularity_violation");
+      expect(output).toContain("SYM-GREET-FILE");
+      expect(output).toContain("greet");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "allows justified coarse symbols when granular ownership is present",
+    async () => {
+      writeFiles(tmpDir, createJustifiedCoarseAndGranularFixture());
+      commitAll(tmpDir, "initial");
+      commitRefreshedCoordinates(kibiBin, tmpDir);
+
+      writeGranularBehaviorEdit(tmpDir);
+      execSync("git add src/greet.ts", { cwd: tmpDir, stdio: "pipe" });
+      syncKb(kibiBin, tmpDir, ["--refresh-symbol-coordinates"]);
+      stageGranularRequirementEvidence(
+        tmpDir,
+        "Staged requirement note proving KB evidence exists for this edit.",
+      );
+      execSync(
+        "git add src/greet.ts documentation/requirements/REQ-GRANULAR-001.md documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+        { cwd: tmpDir, stdio: "pipe" },
+      );
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).not.toContain("symbol_granularity_violation");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "fails when only symbols.yaml adds an unjustified coarse link",
+    async () => {
+      writeFiles(tmpDir, createGranularitySourceOnlyFixture());
+      commitAll(tmpDir, "initial");
+
+      writeCoarseSymbolsManifest(tmpDir);
+      execSync("git add documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("symbol_granularity_violation");
+      expect(output).toContain("SYM-COARSE-ONLY");
+      expect(output).toContain("greet");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "passes when only symbols.yaml adds a justified coarse link",
+    async () => {
+      writeFiles(tmpDir, createGranularitySourceOnlyFixture());
+      commitAll(tmpDir, "initial");
+
+      writeCoarseSymbolsManifest(tmpDir, { reason: "module-level-behavior" });
+      execSync("git add documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(0);
+      expect(output).not.toContain("symbol_granularity_violation");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "fails coarse links when interface symbols are available",
+    async () => {
+      writeFiles(tmpDir, createInterfaceGranularityFixture());
+      commitAll(tmpDir, "initial");
+
+      writeCoarseSymbolsManifest(tmpDir, { interfaceSource: true });
+      execSync("git add documentation/symbols.yaml", {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--staged"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("symbol_granularity_violation");
+      expect(output).toContain("ConfigOptions");
     },
     TEST_TIMEOUT_MS,
   );

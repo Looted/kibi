@@ -24,8 +24,11 @@ import {
   writeFileSync,
 } from "node:fs";
 import * as path from "node:path";
+import { load as parseYAML } from "js-yaml";
+import { extractSymbolsFromStagedFile } from "../traceability/symbol-extract.js";
 import { resolveActiveBranch } from "../utils/branch-resolver.js";
 import type { KbConfig } from "../utils/config.js";
+import { DEFAULT_CONFIG } from "../utils/config.js";
 import {
   LATEST_KB_SCHEMA_VERSION,
   getSchemaVersionStatus,
@@ -48,8 +51,24 @@ interface MigrationAuditRecord {
   fromVersion: number | null;
   migratedAt: string;
   status: "applied";
+  symbolGranularityLegacyLinks: number;
   toVersion: number;
   warning: string | null;
+}
+
+interface SymbolRecord {
+  id?: unknown;
+  title?: unknown;
+  sourceFile?: unknown;
+  links?: unknown;
+  relationships?: unknown;
+  granularity_reason?: unknown;
+  [key: string]: unknown;
+}
+
+interface SymbolsManifestDocument {
+  symbols?: unknown;
+  [key: string]: unknown;
 }
 
 interface ResolvedBranch {
@@ -143,10 +162,14 @@ function loadRawConfigDocument(
 }
 
 function writeJsonAtomically(filePath: string, value: unknown): void {
+  writeTextAtomically(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+function writeTextAtomically(filePath: string, content: string): void {
   mkdirSync(path.dirname(filePath), { recursive: true });
 
   const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`;
-  writeFileSync(tempPath, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  writeFileSync(tempPath, content, "utf8");
   renameSync(tempPath, filePath);
 }
 
@@ -170,6 +193,7 @@ function buildMigrationAuditRecord(args: {
   configPath: string;
   fromVersion: number | null;
   migratedAt: string;
+  symbolGranularityLegacyLinks: number;
   warning: string | null;
 }): MigrationAuditRecord {
   return {
@@ -179,9 +203,185 @@ function buildMigrationAuditRecord(args: {
     fromVersion: args.fromVersion,
     migratedAt: args.migratedAt,
     status: "applied",
+    symbolGranularityLegacyLinks: args.symbolGranularityLegacyLinks,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     warning: args.warning,
   };
+}
+
+const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
+  "implements",
+  "covered_by",
+  "executable_for",
+]);
+
+function hasTraceabilityRelationship(symbol: SymbolRecord): boolean {
+  if (Array.isArray(symbol.links) && symbol.links.length > 0) {
+    return true;
+  }
+
+  if (!Array.isArray(symbol.relationships)) {
+    return false;
+  }
+
+  return symbol.relationships.some((relationship) => {
+    if (
+      relationship === null ||
+      typeof relationship !== "object" ||
+      Array.isArray(relationship)
+    ) {
+      return false;
+    }
+
+    const type = (relationship as { type?: unknown }).type;
+    return typeof type === "string" && TRACEABILITY_RELATIONSHIP_TYPES.has(type);
+  });
+}
+
+function getGranularNames(cwd: string, sourceFile: string): Set<string> {
+  const absolutePath = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.join(cwd, sourceFile);
+  if (!existsSync(absolutePath)) {
+    return new Set();
+  }
+
+  const symbols = extractSymbolsFromStagedFile({
+    path: sourceFile,
+    status: "M",
+    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+    content: readFileSync(absolutePath, "utf8"),
+  });
+
+  return new Set(symbols.map((symbol) => symbol.name));
+}
+
+function addLegacyReasonsToManifestText(
+  content: string,
+  symbolIds: Set<string>,
+): string {
+  if (symbolIds.size === 0) return content;
+
+  const lines = content.split("\n");
+  const output: string[] = [];
+  let activeId: string | null = null;
+  let activeHasReason = false;
+  let activePropertyIndent = "";
+
+  const flushLegacyReason = (): void => {
+    if (
+      activeId !== null &&
+      symbolIds.has(activeId) &&
+      !activeHasReason &&
+      activePropertyIndent.length > 0
+    ) {
+      output.push(`${activePropertyIndent}granularity_reason: legacy-link`);
+      activeHasReason = true;
+    }
+  };
+
+  for (const line of lines) {
+    const idMatch = line.match(/^(\s*)-\s+id:\s+(.+)\s*$/);
+    if (idMatch) {
+      flushLegacyReason();
+      activeId = idMatch[2]?.trim() ?? null;
+      activeHasReason = false;
+      activePropertyIndent = `${idMatch[1] ?? ""}  `;
+    }
+
+    if (activeId !== null && /^\s+granularity_reason:\s+/.test(line)) {
+      activeHasReason = true;
+    }
+
+    if (
+      activeId !== null &&
+      symbolIds.has(activeId) &&
+      !activeHasReason &&
+      /^\s+status:\s+/.test(line)
+    ) {
+      const indent = line.match(/^\s*/)?.[0] ?? "";
+      output.push(`${indent}granularity_reason: legacy-link`);
+      activeHasReason = true;
+    }
+
+    output.push(line);
+  }
+
+  flushLegacyReason();
+
+  return output.join("\n");
+}
+
+function migrateSymbolGranularity(options: {
+  cwd: string;
+  config: RawKbConfigDocument;
+  dryRun: boolean;
+}): { count: number; manifestPath: string | null } {
+  const configuredSymbolsPath =
+    options.config.paths?.symbols ?? DEFAULT_CONFIG.paths.symbols;
+  if (typeof configuredSymbolsPath !== "string") {
+    return { count: 0, manifestPath: null };
+  }
+
+  const manifestPath = path.isAbsolute(configuredSymbolsPath)
+    ? configuredSymbolsPath
+    : path.join(options.cwd, configuredSymbolsPath);
+  if (!existsSync(manifestPath)) {
+    return { count: 0, manifestPath };
+  }
+
+  const manifestContent = readFileSync(manifestPath, "utf8");
+  const parsed = parseYAML(manifestContent) as unknown;
+  if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+    return { count: 0, manifestPath };
+  }
+
+  const manifest = parsed as SymbolsManifestDocument;
+  if (!Array.isArray(manifest.symbols)) {
+    return { count: 0, manifestPath };
+  }
+
+  let count = 0;
+  const migratedSymbolIds = new Set<string>();
+  const granularNamesByFile = new Map<string, Set<string>>();
+
+  for (const symbol of manifest.symbols) {
+    if (symbol === null || typeof symbol !== "object" || Array.isArray(symbol)) {
+      continue;
+    }
+
+    const record = symbol as SymbolRecord;
+    if (typeof record.sourceFile !== "string") continue;
+    if (typeof record.title !== "string") continue;
+    if (typeof record.id !== "string") continue;
+    if (record.granularity_reason !== undefined) continue;
+    if (!hasTraceabilityRelationship(record)) continue;
+
+    let granularNames = granularNamesByFile.get(record.sourceFile);
+    if (granularNames === undefined) {
+      granularNames = getGranularNames(options.cwd, record.sourceFile);
+      granularNamesByFile.set(record.sourceFile, granularNames);
+    }
+
+    if (granularNames.size === 0 || granularNames.has(record.title)) {
+      continue;
+    }
+
+    count += 1;
+    if (!options.dryRun) {
+      record.granularity_reason = "legacy-link";
+      migratedSymbolIds.add(record.id);
+    }
+  }
+
+  if (count > 0 && !options.dryRun) {
+    writeTextAtomically(
+      manifestPath,
+      addLegacyReasonsToManifestText(manifestContent, migratedSymbolIds),
+    );
+  }
+
+  return { count, manifestPath };
 }
 
 // implements REQ-003
@@ -253,6 +453,11 @@ export async function migrateCommand(
     rawSchemaVersion,
     normalizedVersion,
   );
+  const symbolGranularityMigration = migrateSymbolGranularity({
+    cwd,
+    config,
+    dryRun: options.dryRun || !options.yes,
+  });
 
   if (options.dryRun) {
     console.log(
@@ -261,6 +466,11 @@ export async function migrateCommand(
     console.log(
       `dry run: would write migration audit metadata to ${auditPathRelative}.`,
     );
+    if (symbolGranularityMigration.count > 0) {
+      console.log(
+        `dry run: would mark ${symbolGranularityMigration.count} legacy coarse symbol link(s) in ${toRelativePath(cwd, symbolGranularityMigration.manifestPath ?? "symbols.yaml")}.`,
+      );
+    }
     console.log("Re-run with --yes to apply these changes.");
     return { exitCode: 0 };
   }
@@ -286,6 +496,7 @@ export async function migrateCommand(
       configPath: configPathRelative,
       fromVersion: configStatus.currentVersion,
       migratedAt,
+      symbolGranularityLegacyLinks: symbolGranularityMigration.count,
       warning: migrationWarning,
     }),
   );
@@ -293,6 +504,11 @@ export async function migrateCommand(
   console.log(
     `Migrated ${configPathRelative} schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION}.`,
   );
+  if (symbolGranularityMigration.count > 0) {
+    console.log(
+      `Marked ${symbolGranularityMigration.count} existing coarse symbol link(s) as legacy-link.`,
+    );
+  }
   console.log(`Wrote migration audit metadata to ${auditPathRelative}.`);
   console.log(
     "Migration complete. Future 'kibi migrate' runs will be a no-op.",

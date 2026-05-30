@@ -11,6 +11,7 @@ import {
 export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
   | "symbols_manifest_stale"
+  | "symbol_granularity_violation"
   | "kibi_impact_override_missing_rationale";
 
 export interface KibiImpactDiagnostic {

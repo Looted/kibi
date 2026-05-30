@@ -269,15 +269,15 @@ coordinates:
   SYM-ExtractedEntity:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 43
+    sourceEndLine: 44
     sourceFile: packages/cli/src/extractors/manifest.ts
     sourceLine: 30
   SYM-ExtractedRelationship:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 50
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 45
+    sourceLine: 46
   SYM-ExtractedRequirementClaim:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -287,7 +287,7 @@ coordinates:
   SYM-ExtractedSymbol:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 28
+    sourceEndLine: 35
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     sourceLine: 16
   SYM-ExtractionResult:
@@ -295,7 +295,7 @@ coordinates:
     sourceEndColumn: 1
     sourceEndLine: 56
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 51
+    sourceLine: 52
   SYM-FailureClassification:
     sourceColumn: 12
     sourceEndColumn: 29
@@ -521,13 +521,13 @@ coordinates:
   SYM-KibiImpactDiagnostic:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 30
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 16
+    sourceLine: 17
   SYM-KibiImpactDiagnosticId:
     sourceColumn: 12
     sourceEndColumn: 45
-    sourceEndLine: 14
+    sourceEndLine: 15
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
     sourceLine: 11
   SYM-KibiImpactEvidence:
@@ -635,15 +635,15 @@ coordinates:
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 35
+    sourceEndLine: 42
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 35
+    sourceLine: 42
   SYM-ManifestLookupEntry:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 33
+    sourceEndLine: 40
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 30
+    sourceLine: 37
   SYM-ManifestSymbolEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -653,7 +653,7 @@ coordinates:
   SYM-ManifestSymbolRecord:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 89
+    sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/manifest.ts
     sourceLine: 68
   SYM-MeaningfulChangeClass:
@@ -1121,9 +1121,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 651
+    sourceEndLine: 668
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 649
+    sourceLine: 666
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1169,15 +1169,15 @@ coordinates:
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 45
+    sourceEndLine: 48
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 32
+    sourceLine: 35
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 54
+    sourceEndLine: 57
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 47
+    sourceLine: 50
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1295,9 +1295,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 756
+    sourceEndLine: 888
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 431
+    sourceLine: 540
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1361,9 +1361,9 @@ coordinates:
   SYM-collectStagedKibiDiagnostics:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 128
+    sourceEndLine: 129
     sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
-    sourceLine: 90
+    sourceLine: 91
   SYM-computeEnforcementPolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1409,9 +1409,9 @@ coordinates:
   SYM-createManifestLookupSentinelKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 47
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 37
+    sourceLine: 44
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1535,21 +1535,21 @@ coordinates:
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 262
+    sourceEndLine: 266
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 257
+    sourceLine: 261
   SYM-extractFromManifestString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 231
+    sourceEndLine: 235
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 209
+    sourceLine: 213
   SYM-extractManifestSymbolRecordsString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 255
+    sourceEndLine: 259
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 233
+    sourceLine: 237
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1559,9 +1559,9 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 429
+    sourceEndLine: 484
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 266
+    sourceLine: 273
   SYM-findSdkPackageJsonForPluginRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1703,9 +1703,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 254
+    sourceEndLine: 294
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 66
+    sourceLine: 104
   SYM-hasAllGeneratedCoordinates:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1802,6 +1802,12 @@ coordinates:
     sourceEndLine: 203
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 171
+  SYM-markdown-ExtractedEntity:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    sourceLine: 57
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1811,9 +1817,9 @@ coordinates:
   SYM-migrateCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 302
+    sourceEndLine: 518
     sourceFile: packages/cli/src/commands/migrate.ts
-    sourceLine: 188
+    sourceLine: 388
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1907,9 +1913,9 @@ coordinates:
   SYM-readManifestWithCoordinateOverlay:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 314
+    sourceEndLine: 318
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 300
+    sourceLine: 304
   SYM-reconcileAuditEntries:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2141,9 +2147,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 263
+    sourceEndLine: 390
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 256
+    sourceLine: 383
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1

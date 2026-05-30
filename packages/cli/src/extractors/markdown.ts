@@ -67,6 +67,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
   verification_scope?: "unit" | "integration" | "end_to_end";
   verification_perspective?: "internal" | "consumer";
   // Typed fact fields - only present when type === 'fact'
@@ -97,7 +98,6 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
-  /** The per-symbol source code file, distinct from the manifest file path. */
   sourceFile?: string;
 }
 
