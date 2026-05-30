@@ -484,13 +484,13 @@ describe("temp-kb", () => {
 
       await projectStagedEntities(prolog, [result]);
 
-      const assertGoal = prolog.queries[1];
+      const assertGoal = prolog.queries[0];
       expect(typeof assertGoal).toBe("string");
       if (typeof assertGoal !== "string") {
         throw new Error("Expected string assertion goal");
       }
 
-      expect(assertGoal).toContain("kb_assert_entity(fact");
+      expect(assertGoal).toContain("kb_assert_entity_no_audit(fact");
       expect(assertGoal).toContain("tags=[alpha,beta_tag]");
       expect(assertGoal).toContain("owner=platform_team");
       expect(assertGoal).toContain("priority=high");
@@ -592,40 +592,29 @@ describe("temp-kb", () => {
       }
     });
 
-    it("throws when retracting a staged entity fails", async () => {
+    it("projects staged entities without audited retract/upsert predicates", async () => {
       const prolog = new StubPrologProcess({
-        onQuery: async (goal) => {
-          if (
-            typeof goal === "string" &&
-            goal.startsWith("kb_retract_entity(")
-          ) {
-            return { success: false, bindings: {}, error: "cannot retract" };
-          }
-
-          return { success: true, bindings: {} };
-        },
+        onQuery: async () => ({ success: true, bindings: {} }),
       });
 
-      let error: unknown;
+      await projectStagedEntities(prolog, [
+        makeExtractionResult({
+          id: "REQ-NO-AUDIT",
+          type: "req",
+          title: "No audit requirement",
+          status: "open",
+          source: "documentation/requirements/REQ-NO-AUDIT.md",
+        }),
+      ]);
 
-      try {
-        await projectStagedEntities(prolog, [
-          makeExtractionResult({
-            id: "REQ-FAIL",
-            type: "req",
-            title: "Broken requirement",
-            status: "open",
-            source: "documentation/requirements/REQ-FAIL.md",
-          }),
-        ]);
-      } catch (caught) {
-        error = caught;
-      }
-
-      expectErrorMessage(
-        error,
-        "Failed to retract staged entity REQ-FAIL: cannot retract",
-      );
+      expect(prolog.queries).not.toContain("kb_retract_entity('REQ-NO-AUDIT')");
+      expect(
+        prolog.queries.some(
+          (query) =>
+            typeof query === "string" &&
+            query.startsWith("kb_assert_entity_no_audit(req"),
+        ),
+      ).toBe(true);
     });
 
     it("throws when asserting a staged entity fails", async () => {
@@ -633,7 +622,7 @@ describe("temp-kb", () => {
         onQuery: async (goal) => {
           if (
             typeof goal === "string" &&
-            goal.startsWith("kb_assert_entity(")
+            goal.startsWith("kb_assert_entity_no_audit(")
           ) {
             return {
               success: false,
@@ -673,7 +662,7 @@ describe("temp-kb", () => {
         onQuery: async (goal) => {
           if (
             typeof goal === "string" &&
-            goal.startsWith("kb_assert_relationship(")
+            goal.startsWith("kb_assert_relationship_no_audit(")
           ) {
             return {
               success: false,

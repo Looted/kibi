@@ -153,13 +153,13 @@ function buildEntityAssertionGoal(entity: ExtractedEntity): string {
     props.push(...serializeTypedFactFields(entity));
   }
 
-  return `kb_assert_entity(${entity.type}, [${props.join(", ")}])`;
+  return `kb_assert_entity_no_audit(${entity.type}, [${props.join(", ")}])`;
 }
 
 function buildRelationshipAssertionGoal(
   relationship: ExtractedRelationship,
 ): string {
-  return `kb_assert_relationship(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)}, [])`;
+  return `kb_assert_relationship_no_audit(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)}, [])`;
 }
 
 function createCleanupHandler(tempDir: string): () => void {
@@ -218,15 +218,6 @@ export async function projectStagedEntities(
   results: ExtractionResult[],
 ): Promise<void> {
   for (const { entity } of results) {
-    const retractResult = await prolog.query(
-      `kb_retract_entity(${toPrologAtom(entity.id)})`,
-    );
-    if (!retractResult.success) {
-      throw new Error(
-        `Failed to retract staged entity ${entity.id}: ${retractResult.error || "unknown error"}`,
-      );
-    }
-
     const assertEntityResult = await prolog.query(
       buildEntityAssertionGoal(entity),
     );
