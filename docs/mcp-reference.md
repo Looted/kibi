@@ -34,11 +34,11 @@ In addition to these repository-configured ignores, Kibi hard-denies a set of co
 - `vendor/**`
 - `third_party/**`
 
-Notes and v1 limitations:
+Notes and migration limitations:
 
-- Global Git excludes (for example `~/.config/git/ignore`) are not read or honored in Kibi v1.
-- Kibi v1 does not perform automatic cleanup or migration of existing KB entities that may have been created from files that are now ignored; removing previously-recorded entities is out of scope for this release.
-- No new project configuration schema is introduced in v1 to alter this behavior. Future releases may expose finer-grained controls.
+- Global Git excludes (for example `~/.config/git/ignore`) are not read or honored.
+- When MCP tools return a non-null migration warning, run `kibi migrate --dry-run`, then `kibi migrate --yes` before relying on strict checks or automated writes.
+- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow symbol or provide an explicit `granularity_reason`.
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
 
