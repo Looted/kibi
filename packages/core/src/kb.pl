@@ -39,6 +39,8 @@
     adr_chain/2,
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
+    predicate_schema/6,
+    predicate_fact/5,
     contradicting_reqs/3,
     check_req_contradiction/1,
     normalize_term_atom/2,
@@ -961,6 +963,57 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
     ( memberchk(unit=UnitRaw, Props) -> normalize_term_atom(UnitRaw, Unit) ; Unit = '' ),
     ( memberchk(scope=ScopeRaw, Props) -> normalize_term_atom(ScopeRaw, Scope) ; Scope = '' ),
     ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = require ).
+
+%% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
+% Read one project-local ontology predicate schema fact.
+predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, predicate_schema),
+    memberchk(predicate_name=NameRaw, Props),
+    normalize_term_atom(NameRaw, Name),
+    ( memberchk(predicate_namespace=NamespaceRaw, Props) -> normalize_term_atom(NamespaceRaw, Namespace) ; Namespace = default ),
+    memberchk(predicate_arity=ArityRaw, Props),
+    normalize_term_integer(ArityRaw, Arity),
+    memberchk(argument_names=ArgumentNamesRaw, Props),
+    normalize_term_atom_list(ArgumentNamesRaw, ArgumentNames),
+    memberchk(argument_types=ArgumentTypesRaw, Props),
+    normalize_term_atom_list(ArgumentTypesRaw, ArgumentTypes).
+
+%% predicate_fact(+FactId, -Namespace, -Name, -Args, -Polarity)
+% Read one ground ontology predicate fact.
+predicate_fact(FactId, Namespace, Name, Args, Polarity) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, predicate),
+    memberchk(predicate_name=NameRaw, Props),
+    normalize_term_atom(NameRaw, Name),
+    ( memberchk(predicate_namespace=NamespaceRaw, Props) -> normalize_term_atom(NamespaceRaw, Namespace) ; Namespace = default ),
+    memberchk(predicate_args=ArgsRaw, Props),
+    normalize_term_atom_list(ArgsRaw, Args),
+    ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = assert ).
+
+normalize_term_atom_list(List, Atoms) :-
+    is_list(List),
+    !,
+    maplist(normalize_term_atom, List, Atoms).
+normalize_term_atom_list(Raw, Atoms) :-
+    unwrap_rdf_value(Raw, Value),
+    is_list(Value),
+    !,
+    maplist(normalize_term_atom, Value, Atoms).
+
+normalize_term_integer(Raw, Integer) :-
+    unwrap_rdf_value(Raw, Value),
+    (   integer(Value)
+    ->  Integer = Value
+    ;   atom(Value)
+    ->  atom_number(Value, Integer)
+    ;   string(Value)
+    ->  number_string(Integer, Value)
+    ;   Value = ^^(Nested, _Type)
+    ->  normalize_term_integer(Nested, Integer)
+    ).
 
 %% fact_valid_interval(+FactId, -ValidFrom, -ValidTo)
 % Extract optional validity bounds for property_value facts.
