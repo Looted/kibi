@@ -18,6 +18,8 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `superseded_by(OldId, NewId)`
 - `adr_chain(AnyId, Chain)`
 - `contradicting_reqs(ReqA, ReqB, Reason)`
+- `predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes)`
+- `predicate_fact(FactId, Namespace, Name, Args, Polarity)`
 
 ## Requirement contradiction semantics
 
@@ -36,6 +38,17 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
 - **V1 Limits:** Contradiction detection is bounded to exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
+
+## Predicate ontology semantics
+
+The ontology lane is an alpha extension for project-local domain predicates:
+
+- `fact_kind=predicate_schema` defines an allowed predicate signature and its argument names/types.
+- `fact_kind=predicate` stores one ground predicate claim with `predicate_args` and optional `polarity` (`assert` or `deny`).
+- Requirements link to ground predicate facts with `requires_predicate`.
+- `predicate_schema/6` and `predicate_fact/5` are read-only helpers for querying stored ontology data.
+
+Current predicate helpers do not execute stored rules or arbitrary Prolog. Predicate contradiction and rule inference remain separate future work; strict property contradictions continue to use `subject` + `property_value` facts.
 
 These predicates remain useful for product features, automation, and future internal services. Public MCP agents should use the curated public surface instead:
 

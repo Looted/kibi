@@ -13,14 +13,15 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 15 items; ensure length and membership
-    length(Sorted, 15),
+    % relationship_type/1 includes 16 items; ensure length and membership
+    length(Sorted, 16),
     member(depends_on, Sorted),
     member(executable_for, Sorted),
     member(specified_by, Sorted),
     member(verified_by, Sorted),
     member(constrains, Sorted),
-    member(requires_property, Sorted).
+    member(requires_property, Sorted),
+    member(requires_predicate, Sorted).
 
 test(valid_relationship_ok) :-
     validate_relationship(depends_on, req, req).
@@ -32,6 +33,9 @@ test(traceability_schema_valid_relationships) :-
     validate_relationship(executable_for, symbol, test),
     validate_relationship(verified_by, scenario, test),
     validate_relationship(validates, test, scenario).
+
+test(ontology_schema_valid_relationships) :-
+    validate_relationship(requires_predicate, req, fact).
 
 test(traceability_schema_invalid_relationships) :-
     \+ validate_relationship(implements, symbol, test),
@@ -108,6 +112,22 @@ test(property_value_fact_with_bool_valid) :-
     % Property_value fact with value_type="bool" and value_bool is valid
     Props = [id='FACT-FEATURE', title="Feature enabled", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FEATURE.md", fact_kind=property_value, subject_key="feature.new-ui", property_key="enabled", operator=eq, value_type=bool, value_bool=true],
     validate_entity(fact, Props).
+
+test(predicate_schema_fact_valid) :-
+    Props = [id='FACT-SCHEMA-CAN', title="Predicate schema: auth.can/3", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/ontology/auth.md", fact_kind=predicate_schema, predicate_name="can", predicate_namespace="auth", predicate_arity=3, argument_names=["actor", "action", "resource"], argument_types=["role", "action", "resource"], aliases=["may", "is allowed to"], examples=["auth.can(user, delete, post)"]],
+    validate_entity(fact, Props).
+
+test(predicate_schema_missing_argument_types_invalid) :-
+    Props = [id='FACT-SCHEMA-CAN-BAD', title="Predicate schema missing argument types", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/ontology/auth.md", fact_kind=predicate_schema, predicate_name="can", predicate_arity=3, argument_names=["actor", "action", "resource"]],
+    \+ validate_entity(fact, Props).
+
+test(predicate_fact_valid) :-
+    Props = [id='FACT-CAN-USER-DELETE-POST', title="User can delete post", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/requirements/posts.md", fact_kind=predicate, predicate_name="can", predicate_namespace="auth", predicate_args=["user", "delete", "post"], argument_types=["role", "action", "resource"], polarity=assert, canonical_key="auth.can.role:user.action:delete.resource:post.assert"],
+    validate_entity(fact, Props).
+
+test(predicate_fact_missing_canonical_key_invalid) :-
+    Props = [id='FACT-CAN-USER-DELETE-POST-BAD', title="User can delete post missing key", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/requirements/posts.md", fact_kind=predicate, predicate_name="can", predicate_args=["user", "delete", "post"], polarity=assert],
+    \+ validate_entity(fact, Props).
 
 test(property_value_fact_missing_value_field_invalid) :-
     % Property_value fact missing the matching value field is invalid
@@ -194,6 +214,10 @@ test(valid_polarity_forbid) :-
     % Valid polarity=forbid is accepted
     Props = [id='FACT-FORBID', title="Forbidden polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FORBID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=forbid],
     validate_entity(fact, Props).
+
+test(property_value_with_assert_polarity_invalid) :-
+    Props = [id='FACT-ASSERT-PROP', title="Invalid assert polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-ASSERT-PROP.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=assert],
+    \+ validate_entity(fact, Props).
 
 % Strict-lane pairing validation tests for constrains/requires_property
 
