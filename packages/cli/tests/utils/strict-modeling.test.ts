@@ -18,12 +18,12 @@
 
 import { describe, expect, test } from "bun:test";
 import {
+  type SemanticClaim,
   buildStableRequirementIds,
   buildStrictWriteSet,
   modelRequirementClaims,
   normalizePropertyKey,
   normalizeSubjectKey,
-  type SemanticClaim,
 } from "../../src/utils/strict-modeling.js";
 
 const CUSTOMER_RETENTION_STATEMENT =
@@ -136,8 +136,9 @@ describe("strict-modeling", () => {
     );
 
     const relationshipKeys = new Set(
-      writeSet.relationships.map((relationship) =>
-        `${relationship.type}:${relationship.from}:${relationship.to}`,
+      writeSet.relationships.map(
+        (relationship) =>
+          `${relationship.type}:${relationship.from}:${relationship.to}`,
       ),
     );
     expect(relationshipKeys.size).toBe(writeSet.relationships.length);
@@ -184,11 +185,18 @@ describe("strict-modeling", () => {
     if (writeSet.isStrict) {
       throw new Error("Expected observation write set");
     }
-    expect((writeSet as unknown as Record<string, unknown>).req).toBeUndefined();
-    expect((writeSet as unknown as Record<string, unknown>).subjectFact).toBeUndefined();
-    expect((writeSet as unknown as Record<string, unknown>).propertyFact).toBeUndefined();
-    expect((writeSet as unknown as Record<string, unknown>).relationships).toHaveLength(0);
-
+    expect(
+      (writeSet as unknown as Record<string, unknown>).req,
+    ).toBeUndefined();
+    expect(
+      (writeSet as unknown as Record<string, unknown>).subjectFact,
+    ).toBeUndefined();
+    expect(
+      (writeSet as unknown as Record<string, unknown>).propertyFact,
+    ).toBeUndefined();
+    expect(
+      (writeSet as unknown as Record<string, unknown>).relationships,
+    ).toHaveLength(0);
 
     expect(writeSet.observationFact.type).toBe("fact");
     expect(writeSet.observationFact.properties).toMatchObject({

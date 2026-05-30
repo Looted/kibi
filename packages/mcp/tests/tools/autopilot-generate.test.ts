@@ -3,7 +3,10 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PrologProcess } from "kibi-cli/prolog";
-import { buildGenericMarkdownCandidates, buildTypedMarkdownCandidates } from "../../src/tools/autopilot-candidates.js";
+import {
+  buildGenericMarkdownCandidates,
+  buildTypedMarkdownCandidates,
+} from "../../src/tools/autopilot-candidates.js";
 import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
@@ -58,7 +61,9 @@ interface DeclaredContextRecord extends Record<string, unknown> {
   verificationAnchors?: string[];
 }
 
-function getCandidateStatus(candidate: CandidateWithPlan | undefined): string | undefined {
+function getCandidateStatus(
+  candidate: CandidateWithPlan | undefined,
+): string | undefined {
   return candidate?.applyPlan?.[0]?.properties?.status;
 }
 
@@ -89,7 +94,8 @@ describe("autopilot generate", () => {
 
   test("source-only repo docs avoid speculative req/scenario/test candidates and emit authoring guidance", async () => {
     createColdStartRepo(tmp);
-    const readme = "# ADR: Use service mesh\n\n# Requirements\n\n# Observations\n";
+    const readme =
+      "# ADR: Use service mesh\n\n# Requirements\n\n# Observations\n";
     await fs.writeFile(path.join(tmp, "README.md"), readme);
 
     const prolog = createPrologStub(async () => emptyQueryResult());
@@ -98,9 +104,15 @@ describe("autopilot generate", () => {
       includeGenericMarkdown: true,
       minConfidence: 0.8,
     });
-    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
-    expect(candidates.some((candidate) => candidate.entityType === "adr")).toBe(true);
-    expect(candidates.some((candidate) => candidate.entityType === "fact")).toBe(true);
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+    expect(candidates.some((candidate) => candidate.entityType === "adr")).toBe(
+      true,
+    );
+    expect(
+      candidates.some((candidate) => candidate.entityType === "fact"),
+    ).toBe(true);
     expect(
       candidates.some((candidate) =>
         ["req", "scenario", "test"].includes(String(candidate.entityType)),
@@ -199,9 +211,7 @@ describe("autopilot generate", () => {
     expect(promptBlock.length).toBeGreaterThan(0);
     expect(promptBlock.trim().split(/\s+/).length).toBeLessThanOrEqual(120);
     expect(
-      promptBlock
-        .split("\n")
-        .filter((line) => line.trim().startsWith("- "))
+      promptBlock.split("\n").filter((line) => line.trim().startsWith("- "))
         .length,
     ).toBeLessThanOrEqual(5);
 
@@ -257,8 +267,9 @@ describe("autopilot generate", () => {
 
     const summary = res.structuredContent
       .discoverySummary as unknown as DiscoverySummaryRecord;
-    const candidates = res.structuredContent
-      .candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
 
     expect(summary.providersRun).toEqual([
       "typed_kibi_docs",
@@ -320,10 +331,13 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
 
-    const candidates = res.structuredContent
-      .candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
     expect(
-      candidates.some((candidate) => candidate.title === "ADR: Project Runtime"),
+      candidates.some(
+        (candidate) => candidate.title === "ADR: Project Runtime",
+      ),
     ).toBe(true);
     expect(
       candidates.some(
@@ -341,26 +355,48 @@ describe("autopilot generate", () => {
 
     // Create an ignored draft under .sisyphus/drafts
     await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
-    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    const draftPath = path.join(
+      tmp,
+      ".sisyphus",
+      "drafts",
+      "kibi-kb-quality-audit.md",
+    );
     await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
 
     // Create a gitignored private doc under documentation/private
-    await fs.mkdir(path.join(tmp, "documentation", "private"), { recursive: true });
-    const privatePath = path.join(tmp, "documentation", "private", "secret-doc.md");
+    await fs.mkdir(path.join(tmp, "documentation", "private"), {
+      recursive: true,
+    });
+    const privatePath = path.join(
+      tmp,
+      "documentation",
+      "private",
+      "secret-doc.md",
+    );
     await fs.writeFile(privatePath, "# ADR: Secret Decision\n");
     // Ignore private docs via repo .gitignore (pattern only for the temp repo)
-    await fs.writeFile(path.join(tmp, ".gitignore"), "documentation/private/*.md\n");
+    await fs.writeFile(
+      path.join(tmp, ".gitignore"),
+      "documentation/private/*.md\n",
+    );
 
     // Create a normal (non-ignored) requirements doc that should be discovered
-    await fs.mkdir(path.join(tmp, "documentation", "requirements"), { recursive: true });
-    const keepPath = path.join(tmp, "documentation", "requirements", "REQ-KEEP.md");
+    await fs.mkdir(path.join(tmp, "documentation", "requirements"), {
+      recursive: true,
+    });
+    const keepPath = path.join(
+      tmp,
+      "documentation",
+      "requirements",
+      "REQ-KEEP.md",
+    );
     // Make this a typed Kibi doc (YAML frontmatter) so typed candidate generation includes it
     await fs.writeFile(
       keepPath,
       [
         "---",
         "id: REQ-KEEP",
-        "title: \"REQ: Keep requirement\"",
+        'title: "REQ: Keep requirement"',
         "status: open",
         "---",
         "# Requirement",
@@ -377,28 +413,57 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
 
-    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
-    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
 
     // The .sisyphus draft must not appear in candidates and should be listed as suppressed
-    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(false);
-    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("kibi-kb-quality-audit.md"))).toBe(true);
+    expect(
+      candidates.some((c) =>
+        String(c.sourcePath ?? "").includes("kibi-kb-quality-audit.md"),
+      ),
+    ).toBe(false);
+    expect(
+      suppressed.some((s) =>
+        String(s.sourcePath ?? "").includes("kibi-kb-quality-audit.md"),
+      ),
+    ).toBe(true);
     expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
 
     // The gitignored private doc must not appear and should be listed as suppressed
-    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("secret-doc.md"))).toBe(false);
-    expect(suppressed.some((s) => String(s.sourcePath ?? "").includes("secret-doc.md"))).toBe(true);
+    expect(
+      candidates.some((c) =>
+        String(c.sourcePath ?? "").includes("secret-doc.md"),
+      ),
+    ).toBe(false);
+    expect(
+      suppressed.some((s) =>
+        String(s.sourcePath ?? "").includes("secret-doc.md"),
+      ),
+    ).toBe(true);
     expect(suppressed.some((s) => s.reason === "ignored_source")).toBe(true);
 
     // The normal requirements doc should appear
-    expect(candidates.some((c) => String(c.sourcePath ?? "").includes("REQ-KEEP.md"))).toBe(true);
+    expect(
+      candidates.some((c) =>
+        String(c.sourcePath ?? "").includes("REQ-KEEP.md"),
+      ),
+    ).toBe(true);
   });
 
   test("ignored paths (like .sisyphus drafts) yield zero generic candidates", async () => {
     createColdStartRepo(tmp);
     // create an ignored draft under .sisyphus/drafts
     await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
-    const draftPath = path.join(tmp, ".sisyphus", "drafts", "kibi-kb-quality-audit.md");
+    const draftPath = path.join(
+      tmp,
+      ".sisyphus",
+      "drafts",
+      "kibi-kb-quality-audit.md",
+    );
     await fs.writeFile(draftPath, "# ADR: Draft Decision\n");
 
     const candidates = buildGenericMarkdownCandidates(
@@ -433,7 +498,10 @@ describe("autopilot generate", () => {
     const internalPath = path.join(tmp, "internal", "internal-doc.md");
     await fs.writeFile(internalPath, "# ADR: Internal Decision\n");
     await fs.mkdir(path.join(tmp, ".git", "info"), { recursive: true });
-    await fs.writeFile(path.join(tmp, ".git", "info", "exclude"), "internal/\n");
+    await fs.writeFile(
+      path.join(tmp, ".git", "info", "exclude"),
+      "internal/\n",
+    );
 
     const candidates = buildGenericMarkdownCandidates(
       { markdownFiles: [internalPath] },
@@ -448,13 +516,18 @@ describe("autopilot generate", () => {
     createColdStartRepo(tmp);
     // create a typed markdown (YAML frontmatter) under .sisyphus/drafts
     await fs.mkdir(path.join(tmp, ".sisyphus", "drafts"), { recursive: true });
-    const draftTypedPath = path.join(tmp, ".sisyphus", "drafts", "REQ-DRAFT-001.md");
+    const draftTypedPath = path.join(
+      tmp,
+      ".sisyphus",
+      "drafts",
+      "REQ-DRAFT-001.md",
+    );
     await fs.writeFile(
       draftTypedPath,
       [
         "---",
         "id: REQ-DRAFT-001",
-        "title: \"REQ: Draft\"",
+        'title: "REQ: Draft"',
         "status: open",
         "---",
         "# Requirement",
@@ -524,8 +597,9 @@ describe("autopilot generate", () => {
 
     const summary = res.structuredContent
       .discoverySummary as unknown as DiscoverySummaryRecord;
-    const candidates = res.structuredContent
-      .candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
 
     expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
     expect(
@@ -550,8 +624,9 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
 
-    const candidates = res.structuredContent
-      .candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
     const requirementCandidate = candidates.find(
       (candidate) =>
         candidate.entityType === "req" &&
@@ -602,8 +677,9 @@ describe("autopilot generate", () => {
 
     const summary = res.structuredContent
       .discoverySummary as unknown as DiscoverySummaryRecord;
-    const candidates = res.structuredContent
-      .candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
 
     expect(summary.providerCounts?.source_symbols).toBeGreaterThan(0);
     expect(summary.detectedLanguages).toContain("python");
@@ -621,7 +697,10 @@ describe("autopilot generate", () => {
   test("duplicate title suppression emits flat records", async () => {
     await fs.writeFile(path.join(tmp, "README.md"), "# ADR: Shared Decision\n");
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "duplicate.md"), "# ADR: Shared Decision\n");
+    await fs.writeFile(
+      path.join(tmp, "docs", "duplicate.md"),
+      "# ADR: Shared Decision\n",
+    );
 
     const prolog = createPrologStub(async () => emptyQueryResult());
 
@@ -630,7 +709,9 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
 
-    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
     const duplicate = suppressed.find(
       (candidate) => candidate.reason === "duplicate_title",
     );
@@ -646,10 +727,13 @@ describe("autopilot generate", () => {
     await fs.mkdir(path.join(tmp, "documentation", "adr"), { recursive: true });
     await fs.writeFile(
       path.join(tmp, "documentation", "adr", "ADR-001.md"),
-      "---\nid: ADR-001\ntitle: \"ADR: Adopt Kibi\"\nstatus: proposed\n---\n# ADR Content\n",
+      '---\nid: ADR-001\ntitle: "ADR: Adopt Kibi"\nstatus: proposed\n---\n# ADR Content\n',
     );
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "decision.md"), "# ADR: Adopt Kibi\n");
+    await fs.writeFile(
+      path.join(tmp, "docs", "decision.md"),
+      "# ADR: Adopt Kibi\n",
+    );
 
     const prolog = createPrologStub(async () => emptyQueryResult());
 
@@ -658,12 +742,16 @@ describe("autopilot generate", () => {
       minConfidence: 0.8,
     });
 
-    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
     expect(
       candidates.filter((candidate) => candidate.title === "ADR: Adopt Kibi"),
     ).toHaveLength(1);
 
-    const suppressed = res.structuredContent.suppressedCandidates as Array<Record<string, unknown>>;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
     const shadowed = suppressed.find(
       (candidate) => candidate.reason === "shadowed_by_typed_source",
     );
@@ -688,7 +776,9 @@ describe("autopilot generate", () => {
     expect(res.structuredContent.activationMode).toBe("vendored_blocked");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
-    expect(res.structuredContent.activationReason.toLowerCase()).toContain("vendored");
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain(
+      "vendored",
+    );
   });
 
   test("root_active_thin returns explicit handoff mode instead of silent zero-output", async () => {
@@ -718,8 +808,12 @@ describe("autopilot generate", () => {
     expect(res.structuredContent.activationMode).toBe("attached_thin_handoff");
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
-    expect(res.structuredContent.activationReason.toLowerCase()).toContain("thin");
-    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain(
+      "thin",
+    );
+    expect(res.content[0]?.text).not.toBe(
+      "Autopilot generated 0 candidate(s).",
+    );
   });
 
   test("root_active_seeded returns explicit seeded handoff instead of silent zero-output", async () => {
@@ -748,11 +842,17 @@ describe("autopilot generate", () => {
     });
 
     expect(res.structuredContent.activationState).toBe("root_active_seeded");
-    expect(res.structuredContent.activationMode).toBe("attached_seeded_handoff");
+    expect(res.structuredContent.activationMode).toBe(
+      "attached_seeded_handoff",
+    );
     expect(res.structuredContent.applyBlocked).toBe(true);
     expect(res.structuredContent.candidates).toEqual([]);
-    expect(res.structuredContent.activationReason.toLowerCase()).toContain("seeded");
-    expect(res.content[0]?.text).not.toBe("Autopilot generated 0 candidate(s).");
+    expect(res.structuredContent.activationReason.toLowerCase()).toContain(
+      "seeded",
+    );
+    expect(res.content[0]?.text).not.toBe(
+      "Autopilot generated 0 candidate(s).",
+    );
   });
 
   test("root_active_thin handoff includes explicit KB tool recommended actions", async () => {
@@ -784,7 +884,9 @@ describe("autopilot generate", () => {
 
     // Explicit handoff actions referencing KB tools
     expect(descriptions.some((d) => d.includes("kb_search"))).toBe(true);
-    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(
+      false,
+    );
     expect(descriptions.some((d) => d.includes("kb_find_gaps"))).toBe(true);
 
     // Confidence is low for thin attached KB
@@ -830,7 +932,9 @@ describe("autopilot generate", () => {
 
     // Explicit handoff actions referencing KB tools
     expect(descriptions.some((d) => d.includes("kb_search"))).toBe(true);
-    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(true);
+    expect(descriptions.some((d) => d.includes("kb_briefing_generate"))).toBe(
+      false,
+    );
     expect(descriptions.some((d) => d.includes("kb_coverage"))).toBe(true);
 
     // Confidence is low for seeded attached KB
@@ -856,11 +960,14 @@ describe("autopilot generate", () => {
     });
 
     // Candidates should still be generated from real evidence
-    const candidates = res.structuredContent.candidates as Array<Record<string, unknown>>;
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
     expect(candidates.length).toBeGreaterThan(0);
 
     // Discovery summary should have provider results
-    const summary = res.structuredContent.discoverySummary as unknown as DiscoverySummaryRecord;
+    const summary = res.structuredContent
+      .discoverySummary as unknown as DiscoverySummaryRecord;
     expect((summary.providersRun ?? []).length).toBeGreaterThan(0);
 
     // PromptBlock should be non-empty with guidance
@@ -870,7 +977,9 @@ describe("autopilot generate", () => {
     // Confidence should be present and valid
     const confidence = res.structuredContent.confidence as ConfidenceRecord;
     expect(["high", "medium", "low"]).toContain(confidence.level ?? "");
-    expect(["full_actions", "review_required", "handoff_only"]).toContain(confidence.policy ?? "");
+    expect(["full_actions", "review_required", "handoff_only"]).toContain(
+      confidence.policy ?? "",
+    );
   });
 
   test("confidence level transitions at correct thresholds", async () => {

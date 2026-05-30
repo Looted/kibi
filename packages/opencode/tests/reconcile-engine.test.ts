@@ -1,11 +1,13 @@
 import { describe, expect, it } from "bun:test";
-import type { AuditEntry } from "../src/idle-brief-audit";
-import { reconcileAuditEntries } from "../src/reconcile-engine";
+import {
+  type AuditEntry,
+  reconcileAuditEntries,
+} from "../src/reconcile-engine";
 
 function createEntityEntry(
   overrides: Partial<AuditEntry> & {
     entityId: string;
-    operation?: string;
+    operation?: AuditEntry["operation"];
     entityType?: string;
     changeKind?: "created" | "updated";
     title?: string;
@@ -114,7 +116,7 @@ describe("reconcile-engine", () => {
         entityId: "REQ-022",
         timestamp: "2026-05-01T10:01:00Z",
         operation: "delete",
-        payload: null,
+        payload: undefined,
       }),
     ]);
 
@@ -142,7 +144,7 @@ describe("reconcile-engine", () => {
         entityId: "REQ-023",
         timestamp: "2026-05-01T10:01:00Z",
         operation: "delete",
-        payload: null,
+        payload: undefined,
       }),
     ]);
 

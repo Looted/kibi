@@ -1,33 +1,25 @@
 import * as path from "node:path";
 import type { CommentAnalysisResult } from "./comment-analysis.js";
-import type { BriefingRuntimeResult } from "./briefing-runtime.js";
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1, REQ-opencode-agent-mcp-only
 import type { KibiConfig } from "./config.js";
 import { isPluginEnabled } from "./config.js";
-import {
-  getInitKibiCommandCapability,
-  type InitKibiCommandCapability,
-} from "./init-kibi-capability.js";
 import type { CacheKey, GuidanceCache } from "./guidance-cache.js";
+import {
+  type InitKibiCommandCapability,
+  getInitKibiCommandCapability,
+} from "./init-kibi-capability.js";
+import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import { getSourceLinkedRequirementIds } from "./source-linked-guidance.js";
 import type { WorkspaceHealth } from "./workspace-health.js";
-import type { KbFreshnessEvaluation } from "./kb-freshness-state.js";
 
 const SENTINEL = "<!-- kibi-opencode -->";
 
 // ── Token budget enforcement ───────────────────────────────────────────
 const MAX_BULLETS = 5;
-const MAX_AUTO_BRIEF_BULLETS_WITH_REMINDER = 4;
 const MAX_WORDS = 117; // Reserve 3 words for sentinel so total injected prompt stays ≤ 120
-const AUTO_BRIEF_HEADER = "🧠 **Kibi briefing available**";
-
-const AUTHORITATIVE_POSTURES: RepoPosture[] = [
-  "root_active",
-  "hybrid_root_plus_vendored",
-];
 
 function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
@@ -37,7 +29,8 @@ function countBullets(lines: string[]): number {
   return lines.filter((l) => l.startsWith("-")).length;
 }
 
-const ENTITY_ID_RE = /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
+const ENTITY_ID_RE =
+  /\b(?:REQ|SYM|SCEN|TEST|ADR|FACT|FLAG|EVT)-[A-Za-z0-9_-]+\b/g;
 
 // implements REQ-opencode-file-context-guidance-v1
 function hasOverlappingEntityIds(textA: string, textB: string): boolean {
@@ -46,7 +39,10 @@ function hasOverlappingEntityIds(textA: string, textB: string): boolean {
   return idsB.length > 0 && idsB.some((id) => idsA.has(id));
 }
 
-function enforceBudget(block: string, maxBullets: number = MAX_BULLETS): string {
+function enforceBudget(
+  block: string,
+  maxBullets: number = MAX_BULLETS,
+): string {
   const lines = block.split("\n");
   if (countBullets(lines) > maxBullets || countWords(block) > MAX_WORDS) {
     // Trim to budget: keep header + first maxBullets bullet lines
@@ -74,53 +70,6 @@ function insertBulletAfterHeader(block: string, bullet: string): string {
   return `${block.slice(0, headerEnd + 1)}${bullet}\n${block.slice(headerEnd + 1)}`;
 }
 
-// implements REQ-opencode-kibi-briefing-v2
-export function buildAutoBriefingGuidance(
-  autoBriefResult: BriefingRuntimeResult | undefined,
-  completionReminder: boolean,
-): string | null {
-  if (!autoBriefResult) return null;
-
-  // Defensive: idle-brief results are persisted to .kb/briefs/, never injected into prompts.
-  // This function only handles auto-briefs from the file.edited risk-classification flow.
-  if (
-    typeof autoBriefResult === "object" &&
-    autoBriefResult !== null &&
-    ("briefId" in autoBriefResult || "schemaVersion" in autoBriefResult)
-  ) {
-    return null;
-  }
-
-  if (autoBriefResult.state === "ready") {
-    const promptBlock = autoBriefResult.promptBlock.trim();
-    if (!promptBlock) return null;
-
-    const maxBullets = completionReminder
-      ? MAX_AUTO_BRIEF_BULLETS_WITH_REMINDER
-      : MAX_BULLETS;
-    const briefingLines = promptBlock
-      .split("\n")
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith("-"))
-      .slice(0, maxBullets);
-
-    if (briefingLines.length === 0) return null;
-    return `${AUTO_BRIEF_HEADER}\n${briefingLines.join("\n")}`;
-  }
-
-  if (autoBriefResult.state === "tldr_fallback") {
-    const promptBlock = autoBriefResult.promptBlock.trim();
-    if (!promptBlock) return null;
-    return `${AUTO_BRIEF_HEADER}\n${promptBlock}`;
-  }
-
-  return null;
-}
-
-function isAuthoritativePosture(posture: RepoPosture): boolean {
-  return AUTHORITATIVE_POSTURES.includes(posture);
-}
-
 // ── File bucket derivation ─────────────────────────────────────────────
 
 function deriveFileBucket(pathKind: PathKind): string {
@@ -130,7 +79,9 @@ function deriveFileBucket(pathKind: PathKind): string {
 function getFocusEdit(
   context: PromptContext,
 ): { path: string; kind: PathKind } | undefined {
-  return context.focusEdit ?? context.recentEdits[context.recentEdits.length - 1];
+  return (
+    context.focusEdit ?? context.recentEdits[context.recentEdits.length - 1]
+  );
 }
 
 function buildInitKibiBootstrapReference(
@@ -179,8 +130,6 @@ export interface PromptContext {
   degradedMode?: "warn-once" | "structured-only";
   /** Whether to show the degraded advisory block this invocation */
   showDegradedAdvisory?: boolean;
-  /** Stored auto-brief runtime result for the current fingerprint */
-  autoBriefResult?: BriefingRuntimeResult;
   /** File-operation reminder from lifecycle and e2e coverage signals */
   fileOperationReminder?: {
     path: string;
@@ -199,7 +148,9 @@ export interface PromptContext {
   freshnessChangedPaths?: string[];
 }
 
-function buildHardGateBlock(block: NonNullable<PromptContext["hardGateBlock"]>): string {
+function buildHardGateBlock(
+  block: NonNullable<PromptContext["hardGateBlock"]>,
+): string {
   const pathLines = block.shownPaths.map((path) => `- \`${path}\``);
   if (block.remainingCount > 0) {
     pathLines.push(`- +${block.remainingCount} more dirty files`);
@@ -304,11 +255,6 @@ function buildContextualGuidance(
 
   const posture = context.posture ?? "root_active";
   const riskClass = context.riskClass;
-  const readyAutoBriefingAvailable =
-    context.autoBriefResult?.showManualCue === false;
-  const suppressSourceLinkedBrief =
-    context.autoBriefResult?.state === "ready" ||
-    context.autoBriefResult?.state === "tldr_fallback";
   const showDegraded =
     context.showDegradedAdvisory === true &&
     context.maintenanceDegraded === true &&
@@ -336,14 +282,12 @@ function buildContextualGuidance(
   else if (posture === "root_uninitialized" || posture === "root_partial") {
     const postureBlock = postureGuidance(posture, capability);
     if (postureBlock) selectedBlock = postureBlock;
-  }
-  else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
+  } else if (!context.posture && context.workspaceHealth?.needsBootstrap) {
     selectedBlock = `🔧 **Bootstrap required**
 
 ${buildBootstrapRequiredBody(capability)}`;
-  // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
-  }
-  else {
+    // Advisory guidance: check cache before selecting, since these blocks can be safely suppressed
+  } else {
     // Cache check: skip repeated advisory guidance — only after critical signals are handled above
     // Allow degraded advisory to bypass cache so it is always visible
     // File-operation reminders also bypass cache (per-path suppression handled by caller)
@@ -380,31 +324,18 @@ ${buildBootstrapRequiredBody(capability)}`;
       riskClass !== "safe_docs_only" &&
       riskClass !== "safe_test_only"
     ) {
-      const autoBriefBlock =
-        riskClass === "behavior_candidate" ||
-        riskClass === "traceability_candidate"
-          ? buildAutoBriefingGuidance(
-              context.autoBriefResult,
-              context.completionReminder === true,
-            )
-          : null;
-
-      if (autoBriefBlock) {
-        selectedBlock = autoBriefBlock;
+      // For behavior/traceability with comment suggestions, use suggestion guidance
+      if (
+        (riskClass === "behavior_candidate" ||
+          riskClass === "traceability_candidate") &&
+        context.recentCommentSuggestion
+      ) {
+        selectedBlock = buildCommentSuggestionGuidance(
+          context.recentCommentSuggestion,
+        );
       } else {
-        // For behavior/traceability with comment suggestions, use suggestion guidance
-        if (
-          (riskClass === "behavior_candidate" ||
-            riskClass === "traceability_candidate") &&
-          context.recentCommentSuggestion
-        ) {
-          selectedBlock = buildCommentSuggestionGuidance(
-            context.recentCommentSuggestion,
-          );
-        } else {
-          const block = GUIDANCE_BY_RISK[riskClass];
-          if (block) selectedBlock = block;
-        }
+        const block = GUIDANCE_BY_RISK[riskClass];
+        if (block) selectedBlock = block;
       }
     }
     // Priority 6: Legacy path-kind fallback (when no risk class)
@@ -450,23 +381,9 @@ If you're adding long explanatory comments, consider routing that knowledge to:
         selectedBlock = GUIDANCE_BY_RISK.kb_doc_structural;
       }
     }
-    } // closing brace for Priority 2-4 else block starting at 187
+  } // closing brace for Priority 2-4 else block starting at 187
 
-  if (
-    selectedBlock &&
-    (riskClass === "behavior_candidate" ||
-      riskClass === "traceability_candidate") &&
-    isAuthoritativePosture(posture) &&
-    !context.maintenanceDegraded &&
-    !readyAutoBriefingAvailable
-  ) {
-    selectedBlock = insertBulletAfterHeader(
-      selectedBlock,
-      "- Authoritative risky edit: run `/brief-kibi` before acting.",
-    );
-  }
-
-  // Source-linked micro-brief: insert after header line for code risk classes
+  // Source-linked context: insert after header line for code risk classes
   // Inserting after the header (not prepending before it) preserves the header
   // under enforceBudget's trimming logic, which only collects non-bullet lines
   // before the first bullet.
@@ -474,8 +391,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     selectedBlock &&
     (riskClass === "behavior_candidate" ||
       riskClass === "traceability_candidate") &&
-    context.workspaceRoot &&
-    !suppressSourceLinkedBrief
+    context.workspaceRoot
   ) {
     try {
       const focusEdit = getFocusEdit(context);
@@ -496,7 +412,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
         }
       }
     } catch {
-      // Non-fatal: source-linked brief is best-effort
+      // Non-fatal: source-linked context is best-effort
     }
   }
 
@@ -509,7 +425,7 @@ If you're adding long explanatory comments, consider routing that knowledge to:
     const foBullets: string[] = [];
 
     if (fileOpReminder.lifecycleReminder) {
-      // Skip lifecycleReminder if source-linked brief already shows the same IDs
+      // Skip lifecycleReminder if source-linked context already shows the same IDs
       const hasSourceLinked =
         selectedBlock?.includes("- Existing Kibi links:") === true;
       const lifecycleHasEntities =
@@ -518,10 +434,11 @@ If you're adding long explanatory comments, consider routing that knowledge to:
         hasSourceLinked &&
         lifecycleHasEntities &&
         selectedBlock !== null &&
-        hasOverlappingEntityIds(selectedBlock, fileOpReminder.lifecycleReminder);
-      if (
-        !overlapsSourceLinked
-      ) {
+        hasOverlappingEntityIds(
+          selectedBlock,
+          fileOpReminder.lifecycleReminder,
+        );
+      if (!overlapsSourceLinked) {
         foBullets.push(fileOpReminder.lifecycleReminder);
       }
     }
@@ -609,14 +526,16 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
     posture !== "root_uninitialized" &&
     posture !== "root_partial"
   ) {
-      finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
+    finalBlock = `${finalBlock}\n- Kibi impact evidence is required before completion/commit: run \`kb_check\` before completing this task.`;
   }
-
 
   // Prepend KB freshness block when evidence is required
   if (context.kbFreshness?.requiresEvidence) {
     const changedListing = context.freshnessChangedPaths?.length
-      ? `Changed: ${context.freshnessChangedPaths.slice(0, 5).map(p => `\`${p}\``).join(", ")}`
+      ? `Changed: ${context.freshnessChangedPaths
+          .slice(0, 5)
+          .map((p) => `\`${p}\``)
+          .join(", ")}`
       : null;
     const freshnessLines = [
       "🧠 **Kibi freshness required**",
@@ -628,16 +547,16 @@ The Kibi workspace is in a maintenance-degraded state. Guidance remains advisory
       "Resolution:",
       "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
       "- **No KB impact**: include a no-impact rationale in your final report after source-linked discovery via `kb_search`/`kb_query(sourceFile=...)` and `kb_check`.",
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
     finalBlock = finalBlock
       ? `${freshnessLines}\n\n${finalBlock}`
       : freshnessLines;
   }
 
   // Return: sentinel + one targeted block (or just sentinel if no block)
-  return finalBlock
-    ? `${SENTINEL}\n\n${finalBlock}`
-    : SENTINEL;
+  return finalBlock ? `${SENTINEL}\n\n${finalBlock}` : SENTINEL;
 }
 
 // ── Comment suggestion guidance (legacy compat) ────────────────────────
@@ -724,7 +643,7 @@ For comprehensive Kibi usage guidance (relationships, fact lanes, workflows), us
 
 Do not invoke Kibi CLI commands directly from the agent.
 
-${buildInitKibiBootstrapReference(capability)}`
+${buildInitKibiBootstrapReference(capability)}`;
 }
 
 /**
@@ -743,7 +662,6 @@ export function buildPrompt(
 /**
  * Inject prompt guidance if not already present.
  */
-// implements REQ-opencode-kibi-briefing-v2
 export function injectPrompt(
   current: string,
   config: KibiConfig,

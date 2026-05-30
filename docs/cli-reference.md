@@ -9,7 +9,7 @@ Initializes a kibi project in the current directory.
 **Behavior:**
 - Creates `.kb/` directory structure
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
-- Adds `.kb/` and `.kb/briefs/` to `.gitignore`
+- Adds `.kb/` to `.gitignore`
 - Creates default `config.json` with document path patterns
 - Creates `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml` when they do not already exist
 

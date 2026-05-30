@@ -5,7 +5,8 @@ import { join } from "node:path";
 import * as manifestExports from "../../src/extractors/manifest";
 
 const tempRoots: string[] = [];
-const symbolCoordinatesModulePath = "../../src/extractors/symbol-coordinates.js";
+const symbolCoordinatesModulePath =
+  "../../src/extractors/symbol-coordinates.js";
 
 function createWorkspace(): string {
   const workspaceRoot = mkdtempSync(join(tmpdir(), "kibi-symbol-coordinates-"));
@@ -29,7 +30,9 @@ describe("symbol coordinates artifact", () => {
   test("parses a valid coordinate artifact", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
-    expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe("function");
+    expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe(
+      "function",
+    );
     if (typeof symbolCoordinatesExports.readCoordinateArtifact !== "function") {
       return;
     }
@@ -63,14 +66,17 @@ describe("symbol coordinates artifact", () => {
   test("parses empty or missing coordinate artifacts as empty maps", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
-    expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe("function");
+    expect(typeof symbolCoordinatesExports.readCoordinateArtifact).toBe(
+      "function",
+    );
     if (typeof symbolCoordinatesExports.readCoordinateArtifact !== "function") {
       return;
     }
 
-    const readCoordinateArtifact = symbolCoordinatesExports.readCoordinateArtifact as (
-      content: string,
-    ) => unknown;
+    const readCoordinateArtifact =
+      symbolCoordinatesExports.readCoordinateArtifact as (
+        content: string,
+      ) => unknown;
 
     expect(readCoordinateArtifact("")).toEqual({ coordinates: {} });
     expect(readCoordinateArtifact("meta: true\n")).toEqual({ coordinates: {} });
@@ -79,14 +85,19 @@ describe("symbol coordinates artifact", () => {
   test("serializes coordinate artifacts deterministically", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
-    expect(typeof symbolCoordinatesExports.writeCoordinateArtifact).toBe("function");
-    if (typeof symbolCoordinatesExports.writeCoordinateArtifact !== "function") {
+    expect(typeof symbolCoordinatesExports.writeCoordinateArtifact).toBe(
+      "function",
+    );
+    if (
+      typeof symbolCoordinatesExports.writeCoordinateArtifact !== "function"
+    ) {
       return;
     }
 
-    const writeCoordinateArtifact = symbolCoordinatesExports.writeCoordinateArtifact as (
-      coordinates: Record<string, unknown>,
-    ) => string;
+    const writeCoordinateArtifact =
+      symbolCoordinatesExports.writeCoordinateArtifact as (
+        coordinates: Record<string, unknown>,
+      ) => string;
 
     const first = writeCoordinateArtifact({
       "SYM-002": {
@@ -147,7 +158,10 @@ coordinates:
     expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
       "function",
     );
-    if (typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !== "function") {
+    if (
+      typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !==
+      "function"
+    ) {
       return;
     }
 
@@ -196,7 +210,10 @@ coordinates:
     expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
       "function",
     );
-    if (typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !== "function") {
+    if (
+      typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !==
+      "function"
+    ) {
       return;
     }
 
@@ -229,7 +246,10 @@ coordinates:
     expect(typeof symbolCoordinatesExports.mergeCoordinatesWithManifest).toBe(
       "function",
     );
-    if (typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !== "function") {
+    if (
+      typeof symbolCoordinatesExports.mergeCoordinatesWithManifest !==
+      "function"
+    ) {
       return;
     }
 
@@ -275,8 +295,12 @@ coordinates:
   test("never writes coordinatesGeneratedAt to the coordinate artifact output", async () => {
     const symbolCoordinatesExports = await loadSymbolCoordinatesModule();
 
-    expect(typeof symbolCoordinatesExports.writeCoordinateArtifact).toBe("function");
-    if (typeof symbolCoordinatesExports.writeCoordinateArtifact !== "function") {
+    expect(typeof symbolCoordinatesExports.writeCoordinateArtifact).toBe(
+      "function",
+    );
+    if (
+      typeof symbolCoordinatesExports.writeCoordinateArtifact !== "function"
+    ) {
       return;
     }
 

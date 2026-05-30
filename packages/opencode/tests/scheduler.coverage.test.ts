@@ -189,7 +189,9 @@ exit 0
     // Verify the actual invocation log shows plain 'sync' with no coordinate flags
     const invocations = fs.readFileSync(logFile, "utf8");
     // The fake script logs "$*" so we see the arguments after 'kibi'
-    assert.ok(!invocations.includes("--refresh-symbol-coordinates"),
-      "background sync must not pass --refresh-symbol-coordinates");
+    assert.ok(
+      !invocations.includes("--refresh-symbol-coordinates"),
+      "background sync must not pass --refresh-symbol-coordinates",
+    );
   });
 });

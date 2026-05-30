@@ -146,7 +146,10 @@ async function rankEntity(
     reasons.push("tag match");
   }
 
-  const titleTokenMatches = countTokenMatches(titleForms, queryContext.signalTokens);
+  const titleTokenMatches = countTokenMatches(
+    titleForms,
+    queryContext.signalTokens,
+  );
   if (titleTokenMatches > 0) {
     score += titleTokenMatches * 8;
     reasons.push("title token coverage");
@@ -326,7 +329,10 @@ function isPhraseSearchMatch(
 }
 
 // implements REQ-mcp-search-discovery
-function countTokenMatches(haystack: SearchTextForms, tokens: string[]): number {
+function countTokenMatches(
+  haystack: SearchTextForms,
+  tokens: string[],
+): number {
   return tokens.filter(
     (token) =>
       haystack.normalized.includes(token) || haystack.compact.includes(token),

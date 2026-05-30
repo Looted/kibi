@@ -44,7 +44,9 @@ function collectKeys(value: unknown, keys: string[] = []): string[] {
     for (const item of value) collectKeys(item, keys);
     return keys;
   }
-  for (const [key, nested] of Object.entries(value as Record<string, unknown>)) {
+  for (const [key, nested] of Object.entries(
+    value as Record<string, unknown>,
+  )) {
     keys.push(key);
     collectKeys(nested, keys);
   }
@@ -114,9 +116,7 @@ describe("symbol coordinate fixtures", () => {
     const coords = loadYaml("unknown-symbol/symbol-coordinates.yaml") as {
       coordinates: Record<string, YamlObject>;
     };
-    expect(symbols.symbols.some((entry) => entry.id === "SYM-999")).toBe(
-      false,
-    );
+    expect(symbols.symbols.some((entry) => entry.id === "SYM-999")).toBe(false);
     expect(coords.coordinates["SYM-999"].sourceFile).toBe("src/ghost.ts");
   });
 });

@@ -1,4 +1,12 @@
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import { execSync as realExecSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -11,7 +19,8 @@ type ExecSyncOptions = {
   stdio: ["ignore", "pipe", "ignore"];
 };
 
-let execSyncImpl: (cmd: string, options: ExecSyncOptions) => string = realExecSync as unknown as (cmd: string, options: ExecSyncOptions) => string;
+let execSyncImpl: (cmd: string, options: ExecSyncOptions) => string =
+  realExecSync as unknown as (cmd: string, options: ExecSyncOptions) => string;
 
 const execSyncCalls: Array<{ cmd: string; options: ExecSyncOptions }> = [];
 
@@ -33,13 +42,19 @@ describe("symbolIndex", () => {
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-symbol-index-"));
     execSyncCalls.length = 0;
-    execSyncImpl = realExecSync as unknown as (cmd: string, options: ExecSyncOptions) => string;
+    execSyncImpl = realExecSync as unknown as (
+      cmd: string,
+      options: ExecSyncOptions,
+    ) => string;
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     execSyncCalls.length = 0;
-    execSyncImpl = realExecSync as unknown as (cmd: string, options: ExecSyncOptions) => string;
+    execSyncImpl = realExecSync as unknown as (
+      cmd: string,
+      options: ExecSyncOptions,
+    ) => string;
   });
 
   test("buildIndex parses symbols and links from symbols.yaml", () => {
@@ -205,24 +220,30 @@ describe("symbolIndex", () => {
     const freshSourcePath = path.join(tmpDir, "src", "fresh.ts");
 
     fs.mkdirSync(path.dirname(staleSourcePath), { recursive: true });
-    fs.writeFileSync(manifestPath, [
-      "symbols:",
-      "  - id: SYM-OVERLAY-001",
-      "    title: OverlaySymbol",
-      `    sourceFile: ${staleSourcePath}`,
-      "    sourceLine: 2",
-      "    links:",
-      "      - REQ-OVERLAY-001",
-    ].join("\n"));
-    fs.writeFileSync(coordinatesPath, [
-      "coordinates:",
-      "  SYM-OVERLAY-001:",
-      `    sourceFile: ${freshSourcePath}`,
-      "    sourceLine: 12",
-      "    sourceColumn: 1",
-      "    sourceEndLine: 16",
-      "    sourceEndColumn: 3",
-    ].join("\n"));
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-OVERLAY-001",
+        "    title: OverlaySymbol",
+        `    sourceFile: ${staleSourcePath}`,
+        "    sourceLine: 2",
+        "    links:",
+        "      - REQ-OVERLAY-001",
+      ].join("\n"),
+    );
+    fs.writeFileSync(
+      coordinatesPath,
+      [
+        "coordinates:",
+        "  SYM-OVERLAY-001:",
+        `    sourceFile: ${freshSourcePath}`,
+        "    sourceLine: 12",
+        "    sourceColumn: 1",
+        "    sourceEndLine: 16",
+        "    sourceEndColumn: 3",
+      ].join("\n"),
+    );
 
     const index = buildIndex(manifestPath, tmpDir, coordinatesPath);
 
@@ -240,15 +261,18 @@ describe("symbolIndex", () => {
     const inlineSourcePath = path.join(tmpDir, "src", "inline.ts");
 
     fs.mkdirSync(path.dirname(inlineSourcePath), { recursive: true });
-    fs.writeFileSync(manifestPath, [
-      "symbols:",
-      "  - id: SYM-INLINE-001",
-      "    title: InlineSymbol",
-      `    sourceFile: ${inlineSourcePath}`,
-      "    sourceLine: 7",
-      "    links:",
-      "      - REQ-INLINE-001",
-    ].join("\n"));
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-INLINE-001",
+        "    title: InlineSymbol",
+        `    sourceFile: ${inlineSourcePath}`,
+        "    sourceLine: 7",
+        "    links:",
+        "      - REQ-INLINE-001",
+      ].join("\n"),
+    );
 
     const index = buildIndex(
       manifestPath,

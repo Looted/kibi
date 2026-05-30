@@ -1,7 +1,7 @@
 ---
 id: REQ-vscode-kibi-briefing-v3
 title: "VS Code Kibi Briefing v3: Schema-2.0 Alignment & Deterministic Ordering"
-status: open
+status: superseded
 created_at: 2026-05-06T04:40:00Z
 updated_at: 2026-05-06T04:40:00Z
 source: documentation/requirements/REQ-vscode-kibi-briefing-v3.md
@@ -34,4 +34,3 @@ The VS Code Kibi extension must align with the Schema-2.0 briefing envelope and 
 3. **Auto-Open Preservation**: The render-first auto-open behavior established in v2 must be preserved and correctly triggered by the new deterministic selection logic.
 
 4. **Graceful Schema Fallback**: During the migration window, the extension should tolerate Schema-1.0 envelopes but apply Schema-2.0 display logic where possible.
-

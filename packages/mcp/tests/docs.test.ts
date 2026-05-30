@@ -101,11 +101,13 @@ describe("MCP runtime docs: canonical modeling wording", () => {
 
     test("must not claim 'bug' or 'workaround' are entity types", () => {
       const prompt = findPrompt("kibi_overview");
-      expect(prompt.text).not.toMatch(/type:\s*bug|entity type.*\bbug\b|\bbug\b.*entity type/i);
-      expect(prompt.text).not.toMatch(/type:\s*workaround|entity type.*workaround/i);
+      expect(prompt.text).not.toMatch(
+        /type:\s*bug|entity type.*\bbug\b|\bbug\b.*entity type/i,
+      );
+      expect(prompt.text).not.toMatch(
+        /type:\s*workaround|entity type.*workaround/i,
+      );
     });
-
-
 
     test("modeling guidance must be terse (under 250 characters for the modeling section)", () => {
       const prompt = findPrompt("kibi_overview");
@@ -136,32 +138,22 @@ describe("MCP runtime docs: canonical modeling wording", () => {
 
     test("must instruct agents to execute candidate applyPlan steps sequentially", () => {
       const prompt = findPrompt("init-kibi");
-      expect(prompt.text).toMatch(/candidate's `applyPlan`|candidate\.applyPlan/i);
+      expect(prompt.text).toMatch(
+        /candidate's `applyPlan`|candidate\.applyPlan/i,
+      );
       expect(prompt.text).toMatch(/sequentially/i);
     });
   });
 
-  describe("brief-kibi prompt", () => {
-    test("must instruct agents to call kb_briefing_generate first", () => {
-      const prompt = findPrompt("brief-kibi");
-      expect(prompt.text).toMatch(/kb_briefing_generate/);
-    });
+  describe("removed brief-kibi prompt", () => {
+    test("must not expose the removed briefing prompt or tool guidance", () => {
+      const promptNames = PROMPTS.map((p) => p.name);
+      const promptText = PROMPTS.map((p) => p.text).join("\n");
 
-    test("must require inspection of briefingState including no_briefing", () => {
-      const prompt = findPrompt("brief-kibi");
-      expect(prompt.text).toMatch(/briefingState/);
-      expect(prompt.text).toMatch(/no_briefing/);
-    });
-
-    test("must require using only cited output", () => {
-      const prompt = findPrompt("brief-kibi");
-      expect(prompt.text).toMatch(/only cited output|only use cited output|use only cited output/i);
-    });
-
-    test("must not mention undocumented APIs or CLI commands", () => {
-      const prompt = findPrompt("brief-kibi");
-      expect(prompt.text).not.toMatch(/client\.tool\.execute/i);
-      expect(prompt.text).not.toMatch(/\bkibi\s+(init|sync|search|query|status|check)\b/i);
+      expect(promptNames).not.toContain("brief-kibi");
+      expect(promptText).not.toMatch(/kb_briefing_generate/);
+      expect(promptText).not.toMatch(/briefingState/);
+      expect(promptText).not.toMatch(/no_briefing/);
     });
   });
 
@@ -197,9 +189,9 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   // ─── PROMPTS array completeness ─────────────────────────────────────────────
 
   describe("PROMPTS array", () => {
-    test("must contain kibi_overview, kibi_workflow, kibi_constraints, init-kibi, and brief-kibi", () => {
+    test("must contain kibi_overview, kibi_workflow, kibi_constraints, and init-kibi", () => {
       const promptNames = PROMPTS.map((p) => p.name);
-      expect(promptNames).toContain("brief-kibi");
+      expect(promptNames).not.toContain("brief-kibi");
       expect(promptNames).toContain("kibi_overview");
       expect(promptNames).toContain("kibi_workflow");
       expect(promptNames).toContain("kibi_constraints");

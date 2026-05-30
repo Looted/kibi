@@ -1,14 +1,14 @@
 import { createHash } from "node:crypto";
 import Table from "cli-table3";
-import type { CommandResult } from "../cli.js";
 import {
+  type SkillManifest,
+  type SkillValidationError,
   listBundledSkills,
   loadBundledSkill,
   readBundledSkillResource,
   validateSkillBundle,
-  type SkillManifest,
-  type SkillValidationError,
 } from "kibi-cli/skills";
+import type { CommandResult } from "../cli.js";
 
 interface FormatOptions<TFormat extends string> {
   format?: TFormat;
@@ -41,17 +41,25 @@ export async function skillsLoadCommand(
   return handleSkillCommand(() => {
     const bundle = loadBundledSkill(id);
     if (options.format === "json") {
-      console.log(JSON.stringify({
-        metadata: bundle.manifest,
-        body: bundle.body,
-        resources: bundle.manifest.resources ?? [],
-        contentHash: createHash("sha256").update(bundle.body).digest("hex"),
-        sourceType: "bundled",
-      }, null, 2));
+      console.log(
+        JSON.stringify(
+          {
+            metadata: bundle.manifest,
+            body: bundle.body,
+            resources: bundle.manifest.resources ?? [],
+            contentHash: createHash("sha256").update(bundle.body).digest("hex"),
+            sourceType: "bundled",
+          },
+          null,
+          2,
+        ),
+      );
       return;
     }
 
-    process.stdout.write(bundle.body.endsWith("\n") ? bundle.body : `${bundle.body}\n`);
+    process.stdout.write(
+      bundle.body.endsWith("\n") ? bundle.body : `${bundle.body}\n`,
+    );
   });
 }
 

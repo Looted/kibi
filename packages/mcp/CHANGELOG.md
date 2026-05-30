@@ -1,5 +1,19 @@
 # kibi-mcp
 
+## 0.14.3
+
+### Patch Changes
+
+- MCP clients no longer see or call the removed `kb_briefing_generate` tool. This makes the public tool list match the supported Kibi workflow and avoids clients depending on a briefing surface that no longer exists. Mutations continue to work without producing pending brief artifacts.
+
+  Technical summary:
+
+  - Remove the briefing tool and pending marker implementation from generated MCP dist.
+  - Update packed MCP E2E expectations so `kb_briefing_generate` is absent and unknown.
+
+- Updated dependencies
+  - kibi-cli@0.11.3
+
 ## 0.14.2
 
 ### Patch Changes

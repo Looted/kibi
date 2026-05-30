@@ -89,7 +89,8 @@ const TEST_CUES = [
 /**
  * Analyze a comment or prose block and suggest most appropriate entity type.
  */
-export function classifyKnowledge(text: string): KnowledgeSuggestion | null { // implements REQ-opencode-kibi-plugin-v1
+export function classifyKnowledge(text: string): KnowledgeSuggestion | null {
+  // implements REQ-opencode-kibi-plugin-v1
   if (!text || text.trim().length < 50) {
     return null;
   }
@@ -116,7 +117,7 @@ export function classifyKnowledge(text: string): KnowledgeSuggestion | null { //
       type: "fact",
       confidence: factScore >= 3 ? "high" : "medium",
       reasoning:
-        'Contains strict domain fact cues (invariants, properties, limits, cardinalities) for the strict fact lane',
+        "Contains strict domain fact cues (invariants, properties, limits, cardinalities) for the strict fact lane",
     };
   }
 

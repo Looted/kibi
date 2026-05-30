@@ -61,18 +61,24 @@ function commitAll(cwd: string, message: string): void {
 }
 
 function syncKb(kibiBin: string, cwd: string, args: string[] = []): void {
-  execSync(`bun ${kibiBin} sync${args.length > 0 ? ` ${args.join(" ")}` : ""}`, {
-    cwd,
-    stdio: "pipe",
-  });
+  execSync(
+    `bun ${kibiBin} sync${args.length > 0 ? ` ${args.join(" ")}` : ""}`,
+    {
+      cwd,
+      stdio: "pipe",
+    },
+  );
 }
 
 function commitRefreshedCoordinates(kibiBin: string, cwd: string): void {
   syncKb(kibiBin, cwd, ["--refresh-symbol-coordinates"]);
-  execSync("git add documentation/symbol-coordinates.yaml documentation/symbols.yaml", {
-    cwd,
-    stdio: "pipe",
-  });
+  execSync(
+    "git add documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+    {
+      cwd,
+      stdio: "pipe",
+    },
+  );
   execSync('git commit -m "refresh symbol coordinates" --no-verify', {
     cwd,
     stdio: "pipe",
@@ -106,9 +112,12 @@ status: open
 
 function writeShiftedBehaviorEdit(root: string): void {
   writeFiles(root, {
-    "src/greet.ts": `export function greet() {
+    "src/greet.ts":
+      `export function greet() {
   const subject = "world";
-  return ` + "`hello ${subject}`" + `;
+  return ` +
+      "`hello ${subject}`" +
+      `;
 }
 `,
   });

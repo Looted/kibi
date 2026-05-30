@@ -11,7 +11,10 @@ tags:
   - changesets
   - verification
 links:
-  - REQ-020
+  - type: validates
+    target: REQ-020
+  - type: validates
+    target: SCEN-release-automation
   - ADR-014
   - FACT-034
 ---

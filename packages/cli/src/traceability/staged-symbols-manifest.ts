@@ -1,13 +1,13 @@
 import { execSync } from "node:child_process";
 import * as path from "node:path";
 import {
-  extractManifestSymbolRecordsString,
   type ManifestSymbolRecord,
+  extractManifestSymbolRecordsString,
 } from "../extractors/manifest.js";
 import {
+  type SymbolCoordinatesArtifact,
   mergeCoordinatesWithManifest,
   readCoordinateArtifact,
-  type SymbolCoordinatesArtifact,
 } from "../extractors/symbol-coordinates.js";
 import { analyzeSourceText } from "../extractors/symbols-coordinator.js";
 import { resolveSymbolsManifestPaths } from "../utils/manifest-paths.js";
@@ -74,14 +74,15 @@ function resolveRelativeManifestPaths(
     };
   }
 
-  const { coordinatesPath, symbolsPath } = resolveSymbolsManifestPaths(process.cwd());
+  const { coordinatesPath, symbolsPath } = resolveSymbolsManifestPaths(
+    process.cwd(),
+  );
 
   return {
     symbolsPath: toRepoRelativePath(symbolsPath),
     coordinatesPath: toRepoRelativePath(coordinatesPath),
   };
 }
-
 
 function readHeadFileContent(filePath: string): string | null {
   try {
@@ -176,7 +177,9 @@ function normalizeRelationships(
 
       return [];
     })
-    .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    .sort((left, right) =>
+      JSON.stringify(left).localeCompare(JSON.stringify(right)),
+    );
 }
 
 function normalizeManifestSymbolsForSourceFile(
@@ -226,14 +229,18 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
       links: normalizeLinks(record.links),
       relationships: normalizeRelationships(record.relationships),
       tags: Array.isArray(record.tags)
-        ? record.tags.filter((tag): tag is string => typeof tag === "string").sort()
+        ? record.tags
+            .filter((tag): tag is string => typeof tag === "string")
+            .sort()
         : [],
       owner: typeof record.owner === "string" ? record.owner : null,
       priority: typeof record.priority === "string" ? record.priority : null,
       severity: typeof record.severity === "string" ? record.severity : null,
       textRef: typeof record.text_ref === "string" ? record.text_ref : null,
     }))
-    .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right)));
+    .sort((left, right) =>
+      JSON.stringify(left).localeCompare(JSON.stringify(right)),
+    );
 }
 
 function normalizeExpectedSymbolsForStagedFile(
@@ -272,7 +279,10 @@ function mergeManifestRecordsWithCoordinates(
   manifestRecords: ManifestSymbolRecord[] | null,
   coordinateArtifact: SymbolCoordinatesArtifact | null,
 ): ManifestSymbolRecord[] {
-  return mergeCoordinatesWithManifest(manifestRecords ?? [], coordinateArtifact);
+  return mergeCoordinatesWithManifest(
+    manifestRecords ?? [],
+    coordinateArtifact,
+  );
 }
 
 function getEffectiveManifestRecords(options: {
@@ -286,7 +296,8 @@ function getEffectiveManifestRecords(options: {
   stagedManifestRecords: ManifestSymbolRecord[] | null;
   stagedCoordinateArtifact: SymbolCoordinatesArtifact | null;
 } {
-  const { headCoordinateArtifact, headManifestRecords, paths, stagedFiles } = options;
+  const { headCoordinateArtifact, headManifestRecords, paths, stagedFiles } =
+    options;
   const stagedManifestFile = stagedFiles.find(
     (file) => file.path === paths.symbolsPath,
   );
@@ -375,7 +386,11 @@ export function assessStagedSymbolsManifest(options: {
 
   const sourcePaths = uniqueSorted(requiredRefreshPaths);
   if (sourcePaths.length === 0) {
-    return { state: "not_required", sourcePaths: [], path: paths.coordinatesPath };
+    return {
+      state: "not_required",
+      sourcePaths: [],
+      path: paths.coordinatesPath,
+    };
   }
 
   if (sourcePaths.every((sourcePath) => freshPaths.has(sourcePath))) {
@@ -422,7 +437,10 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
   }
 
   const headManifestRecords =
-    parseManifestRecords(readHeadFileContent(paths.symbolsPath), paths.symbolsPath) ?? [];
+    parseManifestRecords(
+      readHeadFileContent(paths.symbolsPath),
+      paths.symbolsPath,
+    ) ?? [];
   const stagedManifestRecords = parseManifestRecords(
     stagedManifestFile.content,
     paths.symbolsPath,
@@ -450,7 +468,10 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
 
     entries.push({
       sourcePath: sourceFile.path,
-      entityIds: getEntityIdsForSourceFile(stagedManifestRecords, sourceFile.path),
+      entityIds: getEntityIdsForSourceFile(
+        stagedManifestRecords,
+        sourceFile.path,
+      ),
     });
   }
 

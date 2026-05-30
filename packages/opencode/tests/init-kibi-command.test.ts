@@ -3,19 +3,19 @@ import { strict as assert } from "node:assert";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import kibiOpencodePlugin from "../src/index";
 import { buildInitKibiAlias } from "../src/init-kibi-alias";
 import {
-  detectInitKibiCommandCapability,
-  findSdkPackageJsonForPluginRoot,
-  getInitKibiCommandCapability,
   INIT_KIBI_COMMAND_DESCRIPTION,
   INIT_KIBI_COMMAND_NAME,
   INIT_KIBI_COMMAND_TEMPLATE,
   type InitKibiCommandCapability,
   type OpenCodeConfigHookInput,
+  detectInitKibiCommandCapability,
+  findSdkPackageJsonForPluginRoot,
+  getInitKibiCommandCapability,
   registerInitKibiCommand,
 } from "../src/init-kibi-capability";
-import kibiOpencodePlugin from "../src/index";
 import { buildPrompt } from "../src/prompt";
 
 const SUPPORTED_PLUGIN_DTS = `
@@ -64,7 +64,10 @@ describe("init-kibi native command support", () => {
     fs.mkdirSync(path.join(dir, ".opencode"), { recursive: true });
     fs.writeFileSync(
       path.join(dir, ".opencode", "kibi.json"),
-      JSON.stringify({ prompt: { hookMode: "auto" }, sync: { enabled: false } }),
+      JSON.stringify({
+        prompt: { hookMode: "auto" },
+        sync: { enabled: false },
+      }),
     );
     return dir;
   }
@@ -90,7 +93,10 @@ describe("init-kibi native command support", () => {
 
     await configHook(configInput);
 
-    assert.ok(configInput.command, "config hook should populate config.command");
+    assert.ok(
+      configInput.command,
+      "config hook should populate config.command",
+    );
     expect(configInput.command.existing.template).toBe("Existing command");
     expect(configInput.command[INIT_KIBI_COMMAND_NAME]?.description).toBe(
       INIT_KIBI_COMMAND_DESCRIPTION,
@@ -121,12 +127,16 @@ describe("init-kibi native command support", () => {
 
     expect(missingConfigHook.supported).toBe(false);
     if (missingConfigHook.supported) {
-      throw new Error("expected unsupported capability when config hook is absent");
+      throw new Error(
+        "expected unsupported capability when config hook is absent",
+      );
     }
     expect(missingConfigHook.reason).toContain("config hook");
     expect(missingCommandField.supported).toBe(false);
     if (missingCommandField.supported) {
-      throw new Error("expected unsupported capability when command field is absent");
+      throw new Error(
+        "expected unsupported capability when command field is absent",
+      );
     }
     expect(missingCommandField.reason).toContain("command field");
 
@@ -149,9 +159,14 @@ describe("init-kibi native command support", () => {
     fs.mkdirSync(pluginRoot, { recursive: true });
     fs.mkdirSync(sdkRoot, { recursive: true });
     const sdkPackageJsonPath = path.join(sdkRoot, "package.json");
-    fs.writeFileSync(sdkPackageJsonPath, JSON.stringify({ name: "@opencode-ai/sdk" }));
+    fs.writeFileSync(
+      sdkPackageJsonPath,
+      JSON.stringify({ name: "@opencode-ai/sdk" }),
+    );
 
-    expect(findSdkPackageJsonForPluginRoot(pluginRoot)).toBe(sdkPackageJsonPath);
+    expect(findSdkPackageJsonForPluginRoot(pluginRoot)).toBe(
+      sdkPackageJsonPath,
+    );
   });
 
   test("registers native init-kibi alias without repo-local command files", async () => {
@@ -165,7 +180,10 @@ describe("init-kibi native command support", () => {
     const configInput: OpenCodeConfigHookInput = {};
     await configHook(configInput);
 
-    assert.ok(configInput.command, "config hook should populate config.command");
+    assert.ok(
+      configInput.command,
+      "config hook should populate config.command",
+    );
     expect(configInput.command[INIT_KIBI_COMMAND_NAME]).toBeDefined();
     expect(configInput.command[INIT_KIBI_COMMAND_NAME]?.description).toBe(
       INIT_KIBI_COMMAND_DESCRIPTION,
@@ -216,7 +234,9 @@ describe("init-kibi native command support", () => {
     expect(guidance).toContain("/kibi:init-kibi:mcp");
     expect(guidance).toContain("fail closed");
     expect(guidance).not.toContain("`/init-kibi` is the canonical short alias");
-    expect(guidance).toContain("does not support native `/init-kibi` injection");
+    expect(guidance).toContain(
+      "does not support native `/init-kibi` injection",
+    );
   });
 
   test("omits native init-kibi when plugin disabled", async () => {
@@ -230,6 +250,10 @@ describe("init-kibi native command support", () => {
     const hooks = await kibiOpencodePlugin({ directory: dir, worktree: dir });
 
     assert.ok(!hooks.config, "disabled plugin should not expose config hook");
-    assert.deepEqual(Object.keys(hooks), [], "disabled plugin should return empty hooks");
+    assert.deepEqual(
+      Object.keys(hooks),
+      [],
+      "disabled plugin should return empty hooks",
+    );
   });
 });

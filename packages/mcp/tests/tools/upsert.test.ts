@@ -460,7 +460,7 @@ describe("handleKbUpsert", () => {
       relationships_created: 0,
     });
     expect(query).toHaveBeenCalledWith(
-      expect.stringContaining("kb_log_entity_upsert(updated, req,")
+      expect.stringContaining("kb_log_entity_upsert(updated, req,"),
     );
   });
 

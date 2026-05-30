@@ -1,7 +1,7 @@
 ---
 id: SCEN-opencode-kibi-briefing-v5
 title: "OpenCode Kibi Briefing v5: Session-Local & Dedupe Scenarios"
-status: active
+status: closed
 created_at: 2026-04-30T12:00:00Z
 updated_at: 2026-04-30T12:00:00Z
 source: documentation/scenarios/SCEN-opencode-kibi-briefing-v5.md

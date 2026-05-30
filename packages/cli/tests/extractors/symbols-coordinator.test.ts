@@ -3,8 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import * as symbolsCoordinatorExports from "../../src/extractors/symbols-coordinator.js";
 import {
-  enrichSymbolCoordinates,
   type ManifestSymbolEntry,
+  enrichSymbolCoordinates,
 } from "../../src/extractors/symbols-coordinator.js";
 
 type TsEnrichStub = (

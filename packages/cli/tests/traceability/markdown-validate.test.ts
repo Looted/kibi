@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import {
-  extractFromMarkdownString,
   FrontmatterError,
+  extractFromMarkdownString,
 } from "../../src/extractors/markdown";
 import { validateStagedMarkdown } from "../../src/traceability/markdown-validate";
 

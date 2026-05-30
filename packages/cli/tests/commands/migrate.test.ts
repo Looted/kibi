@@ -104,9 +104,13 @@ describe("kibi migrate", () => {
     const result = runKibi(["migrate"], tmpDir);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toContain(`Warning: Migration required for ${path.join(".kb", "config.json")}.`);
+    expect(result.stdout).toContain(
+      `Warning: Migration required for ${path.join(".kb", "config.json")}.`,
+    );
     expect(result.stdout).toContain("No changes applied.");
-    expect(result.stdout).toContain("Use --dry-run to preview or --yes to apply the migration.");
+    expect(result.stdout).toContain(
+      "Use --dry-run to preview or --yes to apply the migration.",
+    );
     expect(readFileSync(configPath, "utf8")).toBe(beforeConfig);
     expect(existsSync(auditPath)).toBe(false);
   });

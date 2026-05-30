@@ -1,11 +1,4 @@
 import * as path from "node:path";
-import { loadBriefConfig } from "kibi-cli/brief-config";
-import { computeBriefIntent } from "./brief-intent.js";
-import {
-  type BriefingRuntimeResult,
-  type BriefingWorkspaceCtx,
-  fetchBriefingResult,
-} from "./briefing-runtime.js";
 import {
   type CommentAnalysisResult,
   analyzeCodeFile,
@@ -19,74 +12,46 @@ import { getFileLinkedEntityIds } from "./file-entity-links.js"; // implements R
 import * as fileFilter from "./file-filter.js";
 import { deriveFileOperationReminder } from "./file-operation-reminders.js"; // implements REQ-opencode-file-context-guidance-v1
 import {
-  type FileOperationState,
   type FileLifecycle,
+  type FileOperationState,
   createFileOperationState,
 } from "./file-operation-state.js"; // implements REQ-opencode-file-context-guidance-v1
-import {
-  KibiCheckpointRunner,
-  type KibiCheckpointContext,
-} from "./kibi-checkpoint-runner.js";
-import {
-  getInitKibiCommandCapability,
-  registerInitKibiCommand,
-  type OpenCodeConfigHookInput,
-} from "./init-kibi-capability.js";
 import type { ReminderKind } from "./file-operation-state.js";
 import type { CacheKey } from "./guidance-cache.js";
 import {
-  type AuditDelta,
-  type AuditCursor,
-  computeAuditDelta,
-  getAuditTailCursor,
-  guardBranchChanged,
-} from "./idle-brief-audit.js";
+  type OpenCodeConfigHookInput,
+  getInitKibiCommandCapability,
+  registerInitKibiCommand,
+} from "./init-kibi-capability.js";
 import {
-  hasTuiSeenBrief,
-  selectLatestUnreadBrief,
-} from "./idle-brief-reader.js";
-import { generateIdleBrief } from "./idle-brief-runtime.js";
+  type KbFreshnessScope,
+  createKbFreshnessEvidenceStore,
+  evaluateKbFreshness,
+} from "./kb-freshness-state.js";
+import {
+  type KibiCheckpointContext,
+  KibiCheckpointRunner,
+} from "./kibi-checkpoint-runner.js";
 import * as logger from "./logger.js";
+import { classifyMeaningfulChange } from "./meaningful-change-classifier.js";
 import { type PathKind, analyzePath } from "./path-kind.js";
 import { runPluginStartup } from "./plugin-startup.js";
-import { resolveCurrentBranch } from "./plugin-startup.js";
 import { SENTINEL, buildPrompt } from "./prompt.js";
-import { reconcileAuditEntries } from "./reconcile-engine.js";
 import { isMustPriorityRequirement } from "./requirement-doc.js";
 import { type RiskClass, classifyRisk } from "./risk-classifier.js";
-import { createSyncScheduler, type SyncScheduler } from "./scheduler.js";
+import { type SyncScheduler, createSyncScheduler } from "./scheduler.js";
 import {
   type SessionEditEntry,
   type SessionEditState,
   createSessionEditState,
 } from "./session-edit-state.js";
-import {
-  type SessionBaselineState,
-  syncSessionBaselineState,
-} from "./session-fingerprint.js";
 import { type WarningCategory, getSessionTracker } from "./session-tracker.js";
 import {
   type StartupNotifierClient,
   notifyStartup,
 } from "./startup-notifier.js";
+import type { ToastCapableClient as SendToastClient } from "./toast.js";
 import { readKibiPackageVersions } from "./version-metadata.js";
-import {
-  type ToastCapableClient as SendToastClient,
-  sendToast,
-} from "./toast.js";
-import {
-  announceBriefTui,
-} from "./tui-brief-delivery.js";
-import {
-  createKbFreshnessEvidenceStore,
-  evaluateKbFreshness,
-  type KbFreshnessScope,
-} from "./kb-freshness-state.js";
-import { classifyMeaningfulChange } from "./meaningful-change-classifier.js";
-import {
-  deletePendingBriefMarkers,
-  loadPendingBriefMarkers,
-} from "./utils/brief-marker.js";
 import {
   type WorkContext,
   resolveWorkContext,
@@ -105,22 +70,6 @@ import * as fs from "node:fs";
 function deriveFileBucket(kind: PathKind): string {
   return kind;
 }
-
-function resolveIdleBriefDeliveryDelayMs(worktree: string): number {
-  const envValue = Number(process.env.KIBI_OPENCODE_IDLE_BRIEF_DELAY_MS);
-  if (Number.isFinite(envValue) && envValue >= 0) {
-    return Math.min(60_000, Math.trunc(envValue));
-  }
-
-  const sharedPolicy = loadBriefConfig(worktree) as {
-    tui?: { idleDelayMs?: number };
-  };
-  const configValue = Number(sharedPolicy.tui?.idleDelayMs ?? 1500);
-  if (!Number.isFinite(configValue)) return 1500;
-  if (configValue < 0) return 0;
-  return Math.min(60_000, Math.trunc(configValue));
-}
-
 
 export interface PluginInput {
   worktree: string;
@@ -289,7 +238,6 @@ const kibiOpencodePlugin: Plugin = async (
     cfg,
     workspaceHealth,
     posture,
-    currentBranch,
     cache,
     runtimeOverlay,
     scheduler: startupScheduler,
@@ -314,11 +262,6 @@ const kibiOpencodePlugin: Plugin = async (
   let hasRecentKbEdit = false;
   let recentCommentSuggestion: CommentAnalysisResult | null = null;
   const seenFingerprints = new Set<string>(); // For deduplication
-  // NOTE: autoBriefResults is ONLY for prompt-time auto-brief guidance (file.edited flow).
-  // Idle-brief runtime (session.idle flow) writes directly to .kb/briefs/ via generateIdleBrief()
-  // and MUST NEVER store results in this map or leak into prompt guidance.
-  const autoBriefResults = new Map<string, BriefingRuntimeResult>();
-  const toastedFingerprints = new Set<string>();
   let lastRiskClass: RiskClass | null = null;
   let lastRiskFilePath: string | null = null;
   let lastRiskScopeKey: string | null = null;
@@ -395,9 +338,8 @@ const kibiOpencodePlugin: Plugin = async (
           const normalizedReason = meta.reason.endsWith(".trailing")
             ? meta.reason.slice(0, -".trailing".length)
             : meta.reason;
-          const isSmartEnforcementSync = normalizedReason.startsWith(
-            "smart-enforcement.",
-          );
+          const isSmartEnforcementSync =
+            normalizedReason.startsWith("smart-enforcement.");
           if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
             latchRuntimeDegraded("scheduler_sync_failed");
           }
@@ -446,9 +388,8 @@ const kibiOpencodePlugin: Plugin = async (
           const normalizedReason = meta.reason.endsWith(".trailing")
             ? meta.reason.slice(0, -".trailing".length)
             : meta.reason;
-          const isSmartEnforcementSync = normalizedReason.startsWith(
-            "smart-enforcement.",
-          );
+          const isSmartEnforcementSync =
+            normalizedReason.startsWith("smart-enforcement.");
           if (meta.exitCode !== 0 && !isSmartEnforcementSync) {
             latchRuntimeDegraded("scheduler_sync_failed");
           }
@@ -492,46 +433,15 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   const rootWorkContext = resolveScopedWorkContext();
-  const sessionEditState = getSessionEditState(rootWorkContext);
   const fileOperationState = getFileOperationState(rootWorkContext);
   const scheduler = getSchedulerForContext(rootWorkContext);
   let degradedWarnedOnce = false;
   const pathKindCache = getPathKindCache(rootWorkContext);
 
-  // Idle-brief state — dedupe via semantic contentHash (persisted envelope is the delivery authority)
-  let idleBriefInFlight = false;
-  let idleBriefTrailingRerun = false;
-  let idleBriefTimer: ReturnType<typeof setTimeout> | null = null;
-  const idleBriefDeliveredHashes = new Set<string>();
-  // Session-scoped flag: at most one idle-brief.sync-suppressed breadcrumb per session
-  let idleSyncSuppressedOnce = false;
-  const replayedBriefContentHashes = new Set<string>();
-  // Session-local baseline cursor: captured once per session/worktree/branch from the audit-log tail,
-  // so the first idle brief in a fresh session only reports post-baseline changes.
-  let sessionBaselineCursor: AuditCursor | null = null;
-  let sessionBaselineFingerprint: string | null = null;
-
-  function syncSessionBaseline(branch: string): void {
-    const nextState = syncSessionBaselineState<AuditCursor>(
-      {
-        fingerprint: sessionBaselineFingerprint,
-        cursor: sessionBaselineCursor,
-      } satisfies SessionBaselineState<AuditCursor>,
-      {
-        sessionId: input.sessionId,
-        branch,
-        worktree: input.worktree,
-      },
-      () => getAuditTailCursor(input.worktree, branch),
-    );
-
-    sessionBaselineFingerprint = nextState.fingerprint;
-    sessionBaselineCursor = nextState.cursor;
-  }
-
-  syncSessionBaseline(currentBranch);
-
-  function normalizeSessionPath(filePath: string, worktree = input.worktree): string {
+  function normalizeSessionPath(
+    filePath: string,
+    worktree = input.worktree,
+  ): string {
     if (path.isAbsolute(filePath)) {
       const relativePath = path.relative(worktree, filePath);
       return relativePath.startsWith("..") ? filePath : relativePath;
@@ -539,58 +449,21 @@ const kibiOpencodePlugin: Plugin = async (
     return filePath;
   }
 
-function resolveWorktreePath(filePath: string, worktree = input.worktree): string {
+  function resolveWorktreePath(
+    filePath: string,
+    worktree = input.worktree,
+  ): string {
     return worktree && !path.isAbsolute(filePath)
       ? path.join(worktree, filePath)
       : filePath;
-}
+  }
 
-  function buildRiskPathScopeKey(context: WorkContext, filePath: string): string {
+  function buildRiskPathScopeKey(
+    context: WorkContext,
+    filePath: string,
+  ): string {
     return `${buildStateScopeKey(context, "risk")}:${normalizeSessionPath(filePath, context.worktreeRoot)}`;
   }
-
-function getKbSnapshotFingerprint(worktree: string, branch: string): string {
-  try {
-    const snapshotPath = path.join(worktree, ".kb", "branches", branch, "kb.rdf");
-    const stat = fs.statSync(snapshotPath);
-    return `${stat.size}:${stat.mtimeMs}`;
-  } catch {
-    return "missing";
-  }
-}
-
-function buildSyntheticSyncAuditDelta(
-  baseDelta: AuditDelta,
-  sourceFiles: string[],
-): AuditDelta {
-  const timestamp = new Date().toISOString();
-  const fileSource = sourceFiles[0] ?? "workspace-sync";
-  const entityId = path.basename(fileSource).replace(/\.md$/, "") || "workspace-sync";
-
-  return {
-    ...baseDelta,
-    hasChanges: true,
-    entries: [
-      {
-        timestamp,
-        operation: "upsert",
-        entityId,
-        payload: {
-          kind: "entity",
-          entityType: "fact",
-          changeKind: "updated",
-          title: entityId,
-          source: fileSource,
-          properties: {
-            id: entityId,
-            title: entityId,
-            source: fileSource,
-          },
-        },
-      },
-    ],
-  };
-}
 
   function getTransformFocusFilePath(transformInput: unknown): string | null {
     if (!transformInput || typeof transformInput !== "object") {
@@ -610,7 +483,10 @@ function buildSyntheticSyncAuditDelta(
     return normalizeSessionPath(directPath);
   }
 
-  function readFileContent(filePath: string, worktree = input.worktree): string {
+  function readFileContent(
+    filePath: string,
+    worktree = input.worktree,
+  ): string {
     try {
       return fs.readFileSync(resolveWorktreePath(filePath, worktree), "utf-8");
     } catch {
@@ -640,10 +516,16 @@ function buildSyntheticSyncAuditDelta(
     hasMustPriority: boolean;
     precomputedSuggestion: CommentAnalysisResult | null;
   } {
-    const normalizedFilePath = normalizeSessionPath(filePath, context.worktreeRoot);
+    const normalizedFilePath = normalizeSessionPath(
+      filePath,
+      context.worktreeRoot,
+    );
     const pathAnalysis = analyzePath(normalizedFilePath, context.worktreeRoot);
     scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
-    const fileContent = readFileContent(normalizedFilePath, context.worktreeRoot);
+    const fileContent = readFileContent(
+      normalizedFilePath,
+      context.worktreeRoot,
+    );
     const hasMustPriority =
       pathAnalysis.kind === "requirement"
         ? isMustPriorityRequirement(normalizedFilePath, context.worktreeRoot)
@@ -681,89 +563,35 @@ function buildSyntheticSyncAuditDelta(
     };
   }
 
-  function buildBriefingWorkspaceContext(
-    context: WorkContext = rootWorkContext,
-    branch = context.branch,
-  ): BriefingWorkspaceCtx {
-    return {
-      workspaceRoot: context.worktreeRoot,
-      branch,
-      directory: context.worktreeRoot,
-      ...(input.workspace !== undefined ? { workspace: input.workspace } : {}),
-    };
-  }
-
-  function buildWorkspaceContextForBranch(
-    branch: string,
-    context: WorkContext = rootWorkContext,
-  ): BriefingWorkspaceCtx {
-    return {
-      ...buildBriefingWorkspaceContext(context),
-      branch,
-    };
-  }
-
-  function queueBriefingFetch(
-    intentResult: ReturnType<typeof computeBriefIntent>,
-    options: {
-      skipIfCachedResultExists?: boolean;
-      workspaceCtx?: BriefingWorkspaceCtx;
-      postureState?: WorkContext["posture"];
-    } = {},
-  ): void {
-    if (
-      !intentResult.eligible ||
-      !input.client ||
-      getMaintenanceDegraded() ||
-      ((options.postureState ?? posture.state) !== "root_active" &&
-        (options.postureState ?? posture.state) !== "hybrid_root_plus_vendored")
-    ) {
-      return;
-    }
-    if (
-      options.skipIfCachedResultExists === true &&
-      autoBriefResults.has(intentResult.fingerprint)
-    ) {
-      return;
-    }
-    const client = input.client;
-    const fingerprint = intentResult.fingerprint;
-    const workspaceCtx = options.workspaceCtx ?? buildBriefingWorkspaceContext();
-    void fetchBriefingResult(client, workspaceCtx, intentResult).then(
-      (result) => {
-        autoBriefResults.set(fingerprint, result);
-        if (!toastedFingerprints.has(fingerprint)) {
-          toastedFingerprints.add(fingerprint);
-          void sendToast(makeToastClient(client), {
-            message: result.toastMessage,
-          });
-        }
-      },
-    );
-  }
-
   hooks.event = async ({ event }) => {
-    const activeBranch = resolveCurrentBranch(input.worktree);
-    syncSessionBaseline(activeBranch);
-
     // Observe KB tool execution events for freshness evidence (best-effort)
     const TOOL_EVENT_TYPES = new Set([
-      "tool.execute.after", "tool.executed", "tool.call.completed",
-      "tool.Execute.after", "tool.Call.completed",
+      "tool.execute.after",
+      "tool.executed",
+      "tool.call.completed",
+      "tool.Execute.after",
+      "tool.Call.completed",
     ]);
     if (TOOL_EVENT_TYPES.has(event.type)) {
-      const props = (event as { properties?: Record<string, unknown> }).properties ?? {};
-      const toolName = (props.tool ?? props.toolName ?? props.name ??
+      const props =
+        (event as { properties?: Record<string, unknown> }).properties ?? {};
+      const toolName = (props.tool ??
+        props.toolName ??
+        props.name ??
         (props.call as Record<string, unknown> | undefined)?.name ??
-        (props.input as Record<string, unknown> | undefined)?.tool) as string | undefined;
+        (props.input as Record<string, unknown> | undefined)?.tool) as
+        | string
+        | undefined;
       if (typeof toolName === "string" && toolName.startsWith("kb_")) {
-const scope: KbFreshnessScope = {
-  ...(input.sessionId !== undefined ? { sessionId: input.sessionId } : {}),
-  agentIdentity: input.agentIdentity ?? "unknown",
-  worktree: input.worktree,
-  branch: activeBranch,
-  fingerprint: `${input.sessionId ?? ""}-${activeBranch}`,
-};
+        const scope: KbFreshnessScope = {
+          ...(input.sessionId !== undefined
+            ? { sessionId: input.sessionId }
+            : {}),
+          agentIdentity: input.agentIdentity ?? "unknown",
+          worktree: input.worktree,
+          branch: rootWorkContext.branch,
+          fingerprint: `${input.sessionId ?? ""}-${rootWorkContext.branch}`,
+        };
         try {
           freshnessStore.recordToolEvidence(scope, toolName);
           logger.info("kb-freshness.tool-evidence", {
@@ -777,203 +605,12 @@ const scope: KbFreshnessScope = {
       return; // tool events don't need file lifecycle processing
     }
 
-    // Handle session.idle for idle-brief generation. OpenCode can emit idle
-    // while an assistant is between tool calls, so debounce until the work
-    // burst settles before generating/delivering a brief.
-    if (event.type === "session.idle") {
-      if (!input.client) return;
-
-      const idleBranch = activeBranch;
-      const idleWorkspaceRoot = input.worktree;
-
-      const runIdleBrief = async (): Promise<void> => {
-        if (idleBriefInFlight) {
-          idleBriefTrailingRerun = true;
-          return;
-        }
-
-        idleBriefInFlight = true;
-        idleBriefTrailingRerun = false;
-
-        try {
-          // Gather session edits
-          const sessionEdits = sessionEditState.getSessionEdits();
-          const sourceFiles = sessionEdits.map((e) => e.filePath);
-          const markerResult = loadPendingBriefMarkers(idleWorkspaceRoot, idleBranch);
-          for (const issue of markerResult.issues) {
-            logger.warn("idle-brief.marker-invalid", {
-              event: "idle_brief_marker_invalid",
-              branch: idleBranch,
-              filePath: issue.filePath,
-              reason: issue.reason,
-            });
-          }
-          const markerEntityIds = markerResult.entityIds;
-          const markerRelationships = markerResult.relationships;
-
-          const snapshotBeforeSync = getKbSnapshotFingerprint(
-            idleWorkspaceRoot,
-            idleBranch,
-          );
-
-          if (scheduler) {
-            const idleSyncBlocked =
-              runtimeOverlay.primaryCause === "scheduler_sync_failed";
-            if (!idleSyncBlocked) {
-              scheduler.scheduleSync("session.idle");
-              await scheduler.flush();
-            } else if (!idleSyncSuppressedOnce) {
-              idleSyncSuppressedOnce = true;
-              logger.info("idle-brief.sync-suppressed", {
-                event: "idle_brief_sync_suppressed",
-                primaryCause: runtimeOverlay.primaryCause,
-              });
-            }
-          }
-
-          const snapshotAfterSync = getKbSnapshotFingerprint(
-            idleWorkspaceRoot,
-            idleBranch,
-          );
-
-          const rawAuditDelta = computeAuditDelta(
-            idleWorkspaceRoot,
-            idleBranch,
-            sessionBaselineCursor,
-          );
-          const auditDelta =
-            rawAuditDelta.hasChanges || snapshotBeforeSync === snapshotAfterSync
-              ? rawAuditDelta
-              : buildSyntheticSyncAuditDelta(rawAuditDelta, sourceFiles);
-
-          if (!auditDelta.hasChanges) return;
-
-          // Branch switch guard
-          const currentBranchNow = resolveCurrentBranch(input.worktree);
-          if (guardBranchChanged(idleBranch, currentBranchNow)) {
-            logger.info("idle-brief.branch-changed", {
-              event: "idle_brief_branch_changed",
-              idleBranch,
-              currentBranch: currentBranchNow,
-            });
-            return;
-          }
-
-          // Generate brief
-          const workspaceCtx = buildWorkspaceContextForBranch(idleBranch);
-          const client = input.client;
-          if (!client) return;
-          const reconciled = reconcileAuditEntries(auditDelta.entries);
-          const changedEntityIds = [
-            ...reconciled.added.map((e) => e.id),
-            ...reconciled.modified.map((e) => e.id),
-            ...reconciled.removed.map((e) => e.id),
-          ];
-          const mergedChangedEntityIds = [
-            ...new Set([...changedEntityIds, ...markerEntityIds]),
-          ];
-          const mergedSourceFiles = [...new Set([...sourceFiles, ...markerEntityIds])];
-          const result = await generateIdleBrief(
-            input.client,
-            workspaceCtx,
-            auditDelta,
-            input.sessionId ?? "unknown",
-            mergedSourceFiles.length > 0
-              ? {
-                  sourceFiles: mergedSourceFiles,
-                  changedEntityIds: mergedChangedEntityIds,
-                  relationships: markerRelationships,
-                }
-              : mergedChangedEntityIds.length > 0
-                ? {
-                    changedEntityIds: mergedChangedEntityIds,
-                    relationships: markerRelationships,
-                  }
-                : undefined,
-          );
-
-          if (result.success) {
-            const deleteResult = await deletePendingBriefMarkers(markerResult.markerPaths);
-            for (const issue of deleteResult.issues) {
-              logger.warn("idle-brief.marker-delete-failed", {
-                event: "idle_brief_marker_delete_failed",
-                branch: idleBranch,
-                filePath: issue.filePath,
-                reason: issue.reason,
-              });
-            }
-          }
-
-          if (result.success && result.envelope) {
-            const envelope = result.envelope;
-            // Dedupe by semantic contentHash — persisted envelope is the delivery authority
-            const dedupeKey = `${idleWorkspaceRoot}:${idleBranch}:tui:${envelope.contentHash}`;
-            if (!idleBriefDeliveredHashes.has(dedupeKey)) {
-              idleBriefDeliveredHashes.add(dedupeKey);
-              const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-              if (client) {
-                try {
-                  const announcementResult = await announceBriefTui(
-                    makeToastClient(client),
-                    envelope,
-                    sharedPolicy,
-                  );
-                  if (
-                    announcementResult.toastDelivered ||
-                    announcementResult.commandPublished
-                  ) {
-                    replayedBriefContentHashes.add(envelope.contentHash);
-                  }
-                } catch (err) {
-                  logger.error("idle-brief.delivery-failed", {
-                    event: "idle_brief_delivery_failed",
-                    error: err instanceof Error ? err.message : String(err),
-                  });
-                }
-              }
-            }
-          } else {
-            logger.info("idle-brief.no-brief-generated", {
-              event: "idle_brief_no_brief_generated",
-              success: result.success,
-              hasEnvelope: !!result.envelope,
-            });
-          }
-        } catch (error) {
-          logger.error("idle-brief.error", {
-            event: "idle_brief_error",
-            error: error instanceof Error ? error.message : String(error),
-          });
-        } finally {
-          idleBriefInFlight = false;
-          // If trailing rerun was requested, run again
-          if (idleBriefTrailingRerun) {
-            idleBriefTrailingRerun = false;
-            void runIdleBrief();
-          }
-        }
-      };
-
-      if (idleBriefTimer) {
-        clearTimeout(idleBriefTimer);
-      }
-      idleBriefTimer = setTimeout(() => {
-        idleBriefTimer = null;
-        void runIdleBrief();
-      }, resolveIdleBriefDeliveryDelayMs(idleWorkspaceRoot));
-      return;
-    }
-
     // Accept file.created, file.edited, and file.deleted lifecycle events
     const isFileLifecycle =
       event.type === "file.created" ||
       event.type === "file.edited" ||
       event.type === "file.deleted";
     if (!isFileLifecycle) return;
-    if (idleBriefTimer) {
-      clearTimeout(idleBriefTimer);
-      idleBriefTimer = null;
-    }
     const filePath = (event as { type: string; properties: { file: string } })
       .properties.file;
     if (!filePath) return;
@@ -997,7 +634,10 @@ const scope: KbFreshnessScope = {
     scopedFileOperationState.recordLifecycle(filePath, lifecycle, Date.now());
     scopedFileOperationState.normalizePath(filePath);
 
-    const pathAnalysis = analyzePath(normalizedFilePath, eventContext.worktreeRoot);
+    const pathAnalysis = analyzePath(
+      normalizedFilePath,
+      eventContext.worktreeRoot,
+    );
 
     // For file.deleted: derive path kind without reading content, classify for reminder routing only
     if (lifecycle === "deleted") {
@@ -1007,7 +647,7 @@ const scope: KbFreshnessScope = {
         // Path was tracked — preserve last known semantic risk for reminder routing
         scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
       } else {
-        // Not tracked — classify only for reminder routing, not auto-briefing
+        // Not tracked — classify only for reminder routing.
         scopedPathKindCache.set(normalizedFilePath, pathAnalysis.kind);
       }
       scopedSessionEditState.recordEventHint(
@@ -1062,7 +702,10 @@ const scope: KbFreshnessScope = {
 
     const hasMustPriority =
       pathAnalysis.kind === "requirement"
-        ? isMustPriorityRequirement(normalizedFilePath, eventContext.worktreeRoot)
+        ? isMustPriorityRequirement(
+            normalizedFilePath,
+            eventContext.worktreeRoot,
+          )
         : false;
 
     let precomputedSuggestion: CommentAnalysisResult | null = null;
@@ -1087,9 +730,6 @@ const scope: KbFreshnessScope = {
       riskClass === "safe_docs_only" && precomputedSuggestion
         ? "traceability_candidate"
         : riskClass;
-    const isAutoBriefRisk =
-      effectiveRiskClass === "behavior_candidate" ||
-      effectiveRiskClass === "traceability_candidate";
     lastRiskClass = effectiveRiskClass;
     lastRiskFilePath = normalizedFilePath;
     lastRiskScopeKey = buildRiskPathScopeKey(eventContext, normalizedFilePath);
@@ -1195,7 +835,9 @@ const scope: KbFreshnessScope = {
     if (effectiveRiskClass === "manual_kb_edit") {
       hasRecentKbEdit = true;
       if (cfg.guidance.warnOnKbEdits) {
-        logger.warn(`kibi-opencode: .kb edit detected for ${normalizedFilePath}`);
+        logger.warn(
+          `kibi-opencode: .kb edit detected for ${normalizedFilePath}`,
+        );
         getSessionTracker().recordWarning(
           "kb-edit",
           normalizedFilePath,
@@ -1231,9 +873,7 @@ const scope: KbFreshnessScope = {
         posture: eventContext.posture,
         posture_state: eventContext.posture,
       });
-      if (!isAutoBriefRisk) {
-        return;
-      }
+      return;
     }
 
     logger.info("smart-enforcement.cache", {
@@ -1276,7 +916,10 @@ const scope: KbFreshnessScope = {
         !getMaintenanceDegraded() &&
         cfg.sync.enabled &&
         scopedScheduler &&
-        fileFilter.shouldHandleFile(normalizedFilePath, eventContext.worktreeRoot)
+        fileFilter.shouldHandleFile(
+          normalizedFilePath,
+          eventContext.worktreeRoot,
+        )
       ) {
         let checkRules: string[] | undefined;
         if (cfg.guidance.targetedChecks.enabled) {
@@ -1350,7 +993,10 @@ const scope: KbFreshnessScope = {
       return;
     }
 
-    if (isAutoBriefRisk) {
+    if (
+      effectiveRiskClass === "behavior_candidate" ||
+      effectiveRiskClass === "traceability_candidate"
+    ) {
       if (
         pathAnalysis.kind === "code" &&
         cfg.guidance.commentDetection.enabled
@@ -1386,29 +1032,6 @@ const scope: KbFreshnessScope = {
       } else {
         recentCommentSuggestion = null;
       }
-
-      if (!focusEdit) {
-        // No surviving edits (all reverted to baseline) — skip auto-brief fetch
-        return;
-      }
-
-      const sessionSourceFiles = sessionEdits.map((e) => e.filePath);
-      const briefingContext = resolveScopedWorkContext(focusEdit.filePath);
-
-      const intentResult = computeBriefIntent({
-        riskClass: effectiveRiskClass,
-        posture: briefingContext.posture,
-        maintenanceDegraded: getMaintenanceDegraded(),
-        sourceFiles: sessionSourceFiles,
-        focusFilePath: focusEdit.filePath,
-        worktreeRoot: briefingContext.worktreeRoot,
-        branch: briefingContext.branch,
-      });
-
-      queueBriefingFetch(intentResult, {
-        workspaceCtx: buildBriefingWorkspaceContext(briefingContext),
-        postureState: briefingContext.posture,
-      });
     }
 
     return;
@@ -1438,7 +1061,8 @@ const scope: KbFreshnessScope = {
           transformFocusFilePath ?? undefined,
         );
         const promptSessionEditState = getSessionEditState(promptWorkContext);
-        const promptFileOperationState = getFileOperationState(promptWorkContext);
+        const promptFileOperationState =
+          getFileOperationState(promptWorkContext);
         const promptPathKindCache = getPathKindCache(promptWorkContext);
         promptSessionEditState.reconcileKnownPaths();
         if (transformFocusFilePath) {
@@ -1493,79 +1117,8 @@ const scope: KbFreshnessScope = {
           effectiveRiskClass = lastRiskClass;
         }
 
-        const promptSourceFiles = transformSessionEdits.map(
-          (entry) => entry.filePath,
-        );
         const promptFocusFilePath: string | undefined =
           transformFocusEdit?.filePath ?? transformFocusFilePath ?? undefined;
-        const intentResult = effectiveRiskClass
-          ? computeBriefIntent({
-              riskClass: effectiveRiskClass,
-              posture: promptWorkContext.posture,
-              maintenanceDegraded,
-              sourceFiles: promptSourceFiles,
-              worktreeRoot: promptWorkContext.worktreeRoot,
-              branch: promptWorkContext.branch,
-              ...(promptFocusFilePath !== undefined
-                ? {
-                    focusFilePath: promptFocusFilePath,
-                  }
-                : {}),
-            })
-          : null;
-        const autoBriefResult = intentResult
-          ? autoBriefResults.get(intentResult.fingerprint)
-          : undefined;
-        const isAutoBriefRisk =
-          effectiveRiskClass === "behavior_candidate" ||
-          effectiveRiskClass === "traceability_candidate";
-        if (!autoBriefResult && isAutoBriefRisk && intentResult) {
-          queueBriefingFetch(intentResult, {
-            skipIfCachedResultExists: true,
-            workspaceCtx: buildBriefingWorkspaceContext(promptWorkContext),
-            postureState: promptWorkContext.posture,
-          });
-        }
-
-        // Replay latest unread idle brief if available // implements REQ-opencode-kibi-briefing-v4
-        if (input.worktree && currentBranch && input.client) {
-          const unreadBrief = selectLatestUnreadBrief(
-            input.worktree,
-            currentBranch,
-          );
-          if (
-            unreadBrief &&
-            !replayedBriefContentHashes.has(unreadBrief.envelope.contentHash) &&
-            !hasTuiSeenBrief(
-              input.worktree,
-              currentBranch,
-              unreadBrief.envelope.contentHash,
-            )
-          ) {
-            const sharedPolicy = { briefs: loadBriefConfig(input.worktree) };
-            const client = input.client;
-            try {
-              const announcementResult = await announceBriefTui(
-                makeToastClient(client),
-                unreadBrief.envelope,
-                sharedPolicy,
-              );
-              if (
-                announcementResult.toastDelivered ||
-                announcementResult.commandPublished
-              ) {
-                replayedBriefContentHashes.add(
-                  unreadBrief.envelope.contentHash,
-                );
-              }
-            } catch (err) {
-              logger.error("idle-brief.replay-failed", {
-                event: "idle_brief_replay_failed",
-                error: err instanceof Error ? err.message : String(err),
-              });
-            }
-          }
-        }
 
         // Steps 3-4: File-operation reminder selection with suppression // implements REQ-opencode-file-context-guidance-v1
         let fileOperationReminder:
@@ -1626,8 +1179,12 @@ const scope: KbFreshnessScope = {
                 focusPathKind,
                 effectiveRiskClass ?? "safe_docs_only",
               ]);
-              if (effectiveMode === "hard" && promptWorkContext.isAuthoritative) {
-                checkpointRunner = getCheckpointRunnerForContext(promptWorkContext);
+              if (
+                effectiveMode === "hard" &&
+                promptWorkContext.isAuthoritative
+              ) {
+                checkpointRunner =
+                  getCheckpointRunnerForContext(promptWorkContext);
                 checkpointContext = {
                   workContext: promptWorkContext,
                   config: cfg,
@@ -1664,14 +1221,19 @@ const scope: KbFreshnessScope = {
                 const policyResult = reminderResult.policyResult;
                 hardGateBlock = {
                   shownPaths:
-                    "shownPaths" in policyResult ? policyResult.shownPaths : [normalizedFocusPath],
+                    "shownPaths" in policyResult
+                      ? policyResult.shownPaths
+                      : [normalizedFocusPath],
                   remainingCount:
-                    "remainingCount" in policyResult ? policyResult.remainingCount : 0,
+                    "remainingCount" in policyResult
+                      ? policyResult.remainingCount
+                      : 0,
                   reason: "checkpoint_required",
                 };
                 hardGateConsumedPath = normalizedFocusPath;
                 hardGateFingerprint = checkpointFingerprint;
-                hardGateReminderKindsToMark = reminderResult.reminderKindsToMark;
+                hardGateReminderKindsToMark =
+                  reminderResult.reminderKindsToMark;
                 if (checkpointRunner && checkpointContext) {
                   const checkpointContextWithGuidance = {
                     ...checkpointContext,
@@ -1724,25 +1286,30 @@ const scope: KbFreshnessScope = {
           }
         }
 
-
         // Build freshness evidence for the current dirty fingerprint
         let freshnessEval: ReturnType<typeof evaluateKbFreshness> | undefined;
         const freshnessFingerprint = `${promptWorkContext.sessionId ?? ""}-${promptWorkContext.branch}`;
-const freshnessScope: KbFreshnessScope = {
-  ...(promptWorkContext.sessionId !== undefined ? { sessionId: promptWorkContext.sessionId } : {}),
-  agentIdentity: promptWorkContext.agentIdentity,
-  worktree: promptWorkContext.worktreeRoot,
-  branch: promptWorkContext.branch,
-  fingerprint: freshnessFingerprint,
-};
+        const freshnessScope: KbFreshnessScope = {
+          ...(promptWorkContext.sessionId !== undefined
+            ? { sessionId: promptWorkContext.sessionId }
+            : {}),
+          agentIdentity: promptWorkContext.agentIdentity,
+          worktree: promptWorkContext.worktreeRoot,
+          branch: promptWorkContext.branch,
+          fingerprint: freshnessFingerprint,
+        };
         if (transformFocusFilePath) {
           const normalizedFocusPathForFreshness =
             promptFileOperationState.normalizePath(transformFocusFilePath);
           const focusPathKindForFreshness =
-            promptPathKindCache.get(normalizedFocusPathForFreshness) ?? "unknown";
+            promptPathKindCache.get(normalizedFocusPathForFreshness) ??
+            "unknown";
           const pendingLifecycleForFreshness =
-            promptFileOperationState.peekPending(normalizedFocusPathForFreshness);
-          const effectiveRiskClassForFreshness = effectiveRiskClass ?? "safe_docs_only";
+            promptFileOperationState.peekPending(
+              normalizedFocusPathForFreshness,
+            );
+          const effectiveRiskClassForFreshness =
+            effectiveRiskClass ?? "safe_docs_only";
           const meaningfulChange = classifyMeaningfulChange({
             normalizedPath: normalizedFocusPathForFreshness,
             pathKind: focusPathKindForFreshness,
@@ -1771,7 +1338,6 @@ const freshnessScope: KbFreshnessScope = {
           maintenanceDegraded,
           degradedMode: cfg.guidance.smartEnforcement.degradedMode,
           showDegradedAdvisory,
-          ...(autoBriefResult !== undefined ? { autoBriefResult } : {}),
           ...(effectiveRiskClass != null
             ? { riskClass: effectiveRiskClass }
             : {}),
@@ -1781,7 +1347,11 @@ const freshnessScope: KbFreshnessScope = {
           ...(hardGateBlock !== undefined ? { hardGateBlock } : {}),
           ...(freshnessEval ? { kbFreshness: freshnessEval } : {}),
           ...(freshnessEval && transformSessionEdits.length > 0
-            ? { freshnessChangedPaths: [...new Set(transformSessionEdits.map(e => e.filePath))].slice(0, 5) }
+            ? {
+                freshnessChangedPaths: [
+                  ...new Set(transformSessionEdits.map((e) => e.filePath)),
+                ].slice(0, 5),
+              }
             : {}),
         });
         logger.info("smart-enforcement.guidance", {
@@ -1802,7 +1372,8 @@ const freshnessScope: KbFreshnessScope = {
         });
 
         // Emit completion-reminder log only when prompt-visible reminder text is present
-        const REMINDER_TEXT = "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
+        const REMINDER_TEXT =
+          "Kibi impact evidence is required before completion/commit: run `kb_check` before completing this task.";
         if (
           cfg.guidance.smartEnforcement.completionReminder &&
           !maintenanceDegraded &&
@@ -1839,8 +1410,7 @@ const freshnessScope: KbFreshnessScope = {
           if (lifecycleEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
               promptFileOperationState.peekPending(focusPathForConsume)
-                ?.lifecycle ===
-              "deleted"
+                ?.lifecycle === "deleted"
                 ? "kibi_delete"
                 : "kibi_write";
             promptFileOperationState.markShown(focusPathForConsume, kind);
@@ -1858,8 +1428,7 @@ const freshnessScope: KbFreshnessScope = {
           if (e2eEmitted) {
             const kind: import("./file-operation-state.js").ReminderKind =
               promptFileOperationState.peekPending(focusPathForConsume)
-                ?.lifecycle ===
-              "deleted"
+                ?.lifecycle === "deleted"
                 ? "e2e_delete"
                 : "e2e_write";
             promptFileOperationState.markShown(focusPathForConsume, kind);

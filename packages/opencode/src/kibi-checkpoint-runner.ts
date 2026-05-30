@@ -1,20 +1,20 @@
 // implements REQ-opencode-worktree-hard-enforcement-v1
 
 import { DEFAULTS, type KibiConfig } from "./config.js";
-import { buildEnforcementScopeKey } from "./enforcement-scope.js";
+import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
 import {
-  computeEnforcementPolicy,
   type EnforcementLifecycleEvent,
   type PolicyLinkedEntityResult,
+  computeEnforcementPolicy,
 } from "./enforcement-policy.js";
-import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
+import { buildEnforcementScopeKey } from "./enforcement-scope.js";
 import type { PathKind } from "./path-kind.js";
 import {
   type CheckRunner,
-  createSyncScheduler,
   type SyncRunMetadata,
   type SyncRunner,
   type TimeoutHandle,
+  createSyncScheduler,
 } from "./scheduler.js";
 import type { WorkContext } from "./work-context-resolver.js";
 
@@ -92,7 +92,10 @@ export class KibiCheckpointRunner {
   private readonly clearTimeoutFn: (handle: TimeoutHandle) => void;
   private readonly requested = new Map<string, RequestedCheckpoint>();
   private readonly passed = new Map<string, KibiCheckpointMetadata>();
-  private readonly passedScopeKeysByFingerprint = new Map<string, Set<string>>();
+  private readonly passedScopeKeysByFingerprint = new Map<
+    string,
+    Set<string>
+  >();
 
   constructor(options: KibiCheckpointRunnerOptions = {}) {
     this.config = options.config;
@@ -154,8 +157,9 @@ export class KibiCheckpointRunner {
       return this.passed.has(this.scopeKey(context, normalizedFingerprint));
     }
     return (
-      this.passedScopeKeysByFingerprint.get(normalizedFingerprint)?.size ?? 0
-    ) > 0;
+      (this.passedScopeKeysByFingerprint.get(normalizedFingerprint)?.size ??
+        0) > 0
+    );
   }
 
   // implements REQ-opencode-worktree-hard-enforcement-v1
@@ -242,7 +246,10 @@ export class KibiCheckpointRunner {
         };
       }
 
-      const failureReason = checkpointFailureReason(sync, normalizedCheckRules(context));
+      const failureReason = checkpointFailureReason(
+        sync,
+        normalizedCheckRules(context),
+      );
       if (failureReason) {
         return {
           kind: "hard_block",
@@ -284,7 +291,10 @@ export class KibiCheckpointRunner {
     };
   }
 
-  private scopeKey(context: KibiCheckpointContext, fingerprint: string): string {
+  private scopeKey(
+    context: KibiCheckpointContext,
+    fingerprint: string,
+  ): string {
     return buildEnforcementScopeKey({
       sessionId: context.workContext.sessionId,
       agentIdentity: context.workContext.agentIdentity,
@@ -303,7 +313,9 @@ export class KibiCheckpointRunner {
     const policy = computeEnforcementPolicy({
       resolvedContext: context.workContext,
       effectiveMode: "hard",
-      lifecycleEvents: context.lifecycleEvents ?? [defaultLifecycleEvent(context)],
+      lifecycleEvents: context.lifecycleEvents ?? [
+        defaultLifecycleEvent(context),
+      ],
       pathKinds: context.pathKinds ?? ["code"],
       linkedEntityResults: context.linkedEntityResults ?? [
         { ids: [], source: "none" },
@@ -316,10 +328,15 @@ export class KibiCheckpointRunner {
     return policy.kind === "hard_block" ? policy.text : null;
   }
 
-  private async withTimeout(promise: Promise<void>): Promise<"done" | "timeout"> {
+  private async withTimeout(
+    promise: Promise<void>,
+  ): Promise<"done" | "timeout"> {
     let timeoutHandle: TimeoutHandle | undefined;
     const timeout = new Promise<"timeout">((resolve) => {
-      timeoutHandle = this.setTimeoutFn(() => resolve("timeout"), this.timeoutMs);
+      timeoutHandle = this.setTimeoutFn(
+        () => resolve("timeout"),
+        this.timeoutMs,
+      );
     });
 
     const result = await Promise.race([
@@ -336,7 +353,9 @@ export class KibiCheckpointRunner {
 
   private recordPassed(metadata: KibiCheckpointMetadata): void {
     this.passed.set(metadata.scopeKey, metadata);
-    const existing = this.passedScopeKeysByFingerprint.get(metadata.fingerprint);
+    const existing = this.passedScopeKeysByFingerprint.get(
+      metadata.fingerprint,
+    );
     if (existing) {
       existing.add(metadata.scopeKey);
       return;
@@ -353,7 +372,9 @@ function normalizeFingerprint(fingerprint: string): string {
   return trimmed.length > 0 ? trimmed : "clean";
 }
 
-function normalizedCheckRules(context: KibiCheckpointContext): string[] | undefined {
+function normalizedCheckRules(
+  context: KibiCheckpointContext,
+): string[] | undefined {
   return context.checkRules && context.checkRules.length > 0
     ? [...context.checkRules]
     : undefined;

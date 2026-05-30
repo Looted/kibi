@@ -2,26 +2,17 @@
   "name": "kibi-vscode",
   "displayName": "Kibi Knowledge Base",
   "description": "VS Code extension for Kibi knowledge base with TreeView and MCP integration",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "publisher": "kibi",
   "engines": {
     "vscode": "^1.74.0"
   },
-  "categories": [
-    "Other"
-  ],
-  "keywords": [
-    "knowledge base",
-    "requirements",
-    "adr",
-    "scenarios",
-    "mcp"
-  ],
+  "categories": ["Other"],
+  "keywords": ["knowledge base", "requirements", "adr", "scenarios", "mcp"],
   "activationEvents": [
     "onStartupFinished",
     "onView:kibi-knowledge-base",
-    "onCommand:kibi.focusKnowledgeBase",
-    "onCommand:kibi.showLatestBrief"
+    "onCommand:kibi.focusKnowledgeBase"
   ],
   "main": "./dist/extension.js",
   "icon": "icon.png",
@@ -85,11 +76,6 @@
       {
         "command": "kibi.focusKnowledgeBase",
         "title": "Kibi: Focus Knowledge Base"
-      },
-      {
-        "command": "kibi.showLatestBrief",
-        "title": "Show Latest Kibi Brief",
-        "category": "Kibi"
       }
     ],
     "menus": {
@@ -120,9 +106,7 @@
       "servers": {
         "kibi": {
           "command": "bun",
-          "args": [
-            "${config:kibi.mcp.serverPath}"
-          ],
+          "args": ["${config:kibi.mcp.serverPath}"],
           "env": {}
         }
       }
@@ -147,7 +131,7 @@
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "kibi-cli": "^0.11.0"
+    "kibi-cli": "^0.11.3"
   },
   "repository": {
     "type": "git",

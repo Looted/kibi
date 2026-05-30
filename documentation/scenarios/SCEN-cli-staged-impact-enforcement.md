@@ -2,6 +2,9 @@
 id: SCEN-cli-staged-impact-enforcement
 title: CLI staged check blocks behavior edits without Kibi impact evidence
 status: active
+links:
+  - type: verified_by
+    target: TEST-cli-staged-impact-enforcement
 ---
 
 # CLI Staged Impact Enforcement

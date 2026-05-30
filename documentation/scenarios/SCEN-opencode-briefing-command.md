@@ -2,7 +2,7 @@
 id: SCEN-opencode-briefing-command
 title: OpenCode Briefing Command Cue
 type: scenario
-status: active
+status: closed
 created_at: 2026-05-13T00:00:00Z
 source: documentation/scenarios/SCEN-opencode-briefing-command.md
 priority: must

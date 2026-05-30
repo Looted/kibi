@@ -63,7 +63,8 @@ export function buildIndex(
   }
 
   const coordinateOverlay = loadCoordinatesOverlay(
-    coordinatesPath ?? path.join(path.dirname(manifestPath), "symbol-coordinates.yaml"),
+    coordinatesPath ??
+      path.join(path.dirname(manifestPath), "symbol-coordinates.yaml"),
   );
 
   for (const sym of rawSymbols) {
@@ -72,7 +73,9 @@ export function buildIndex(
     if (!id || !title) continue;
 
     const overlay = coordinateOverlay.get(id);
-    const rawSource = String(overlay?.sourceFile ?? sym.sourceFile ?? sym.source ?? "");
+    const rawSource = String(
+      overlay?.sourceFile ?? sym.sourceFile ?? sym.source ?? "",
+    );
     let sourceFile: string | undefined;
     if (rawSource && !rawSource.startsWith("http")) {
       sourceFile = path.isAbsolute(rawSource)
@@ -113,23 +116,34 @@ export function buildIndex(
 function loadCoordinatesOverlay(
   coordinatesPath: string,
 ): Map<string, { sourceFile?: string; sourceLine?: number; links?: string[] }> {
-  const overlay = new Map<string, { sourceFile?: string; sourceLine?: number; links?: string[] }>();
+  const overlay = new Map<
+    string,
+    { sourceFile?: string; sourceLine?: number; links?: string[] }
+  >();
   if (!fs.existsSync(coordinatesPath)) return overlay;
 
   try {
     const parsed = loadYaml(fs.readFileSync(coordinatesPath, "utf8")) as
       | { coordinates?: Record<string, unknown> }
       | undefined;
-    const coordinates = parsed && typeof parsed === "object" ? parsed.coordinates : undefined;
+    const coordinates =
+      parsed && typeof parsed === "object" ? parsed.coordinates : undefined;
     if (!coordinates || typeof coordinates !== "object") return overlay;
 
     for (const [id, raw] of Object.entries(coordinates)) {
       if (!raw || typeof raw !== "object") continue;
       const entry = raw as Record<string, unknown>;
-      const item: { sourceFile?: string; sourceLine?: number; links?: string[] } = {};
-      if (typeof entry.sourceFile === "string") item.sourceFile = entry.sourceFile;
-      if (typeof entry.sourceLine === "number") item.sourceLine = entry.sourceLine;
-      if (Array.isArray(entry.links)) item.links = entry.links.map((l) => String(l));
+      const item: {
+        sourceFile?: string;
+        sourceLine?: number;
+        links?: string[];
+      } = {};
+      if (typeof entry.sourceFile === "string")
+        item.sourceFile = entry.sourceFile;
+      if (typeof entry.sourceLine === "number")
+        item.sourceLine = entry.sourceLine;
+      if (Array.isArray(entry.links))
+        item.links = entry.links.map((l) => String(l));
       overlay.set(id, item);
     }
   } catch {

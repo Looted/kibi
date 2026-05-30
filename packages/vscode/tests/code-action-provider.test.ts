@@ -2,7 +2,15 @@
  * Unit tests for KibiCodeActionProvider, browseLinkedEntities, and openFileAtLine.
  * Uses the same top-level import + mock.module pattern as codeLens.test.ts.
  */
-import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -14,16 +22,17 @@ mock.module("vscode", () => getVscodeMockModule());
 const vscode = getVscodeMockModule();
 
 // Import source modules AFTER mock is registered
-const { KibiCodeActionProvider, browseLinkedEntities, openFileAtLine } = await import(
-  "../src/codeActionProvider"
-);
+const { KibiCodeActionProvider, browseLinkedEntities, openFileAtLine } =
+  await import("../src/codeActionProvider");
 
 let tmpDir: string;
 
-function configureVscodeMock(options: {
-  window?: Record<string, unknown>;
-  workspace?: Record<string, unknown>;
-} = {}) {
+function configureVscodeMock(
+  options: {
+    window?: Record<string, unknown>;
+    workspace?: Record<string, unknown>;
+  } = {},
+) {
   Object.assign(vscode.window as Record<string, unknown>, {
     showInformationMessage: mock(async (_message: string) => undefined),
     showWarningMessage: mock(async (_message: string) => undefined),
@@ -48,7 +57,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  if (fs.existsSync(tmpDir)) fs.rmSync(tmpDir, { recursive: true, force: true });
+  if (fs.existsSync(tmpDir))
+    fs.rmSync(tmpDir, { recursive: true, force: true });
 });
 
 afterAll(() => {
@@ -90,7 +100,9 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
       dispose() {},
     };
     configureVscodeMock({
-      workspace: { createFileSystemWatcher: mock((_pattern: unknown) => watcher) },
+      workspace: {
+        createFileSystemWatcher: mock((_pattern: unknown) => watcher),
+      },
     });
 
     const provider = new KibiCodeActionProvider(tmpDir);
@@ -106,7 +118,9 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
       getText: () => "myFunc",
     };
     const range = { start: { line: 0, character: 0 } };
-    expect(provider.provideCodeActions(document as never, range as never)).toHaveLength(1);
+    expect(
+      provider.provideCodeActions(document as never, range as never),
+    ).toHaveLength(1);
 
     writeManifest(`symbols:
   - id: SYM-002
@@ -117,7 +131,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
       - REQ-002
 `);
     (watcher as { changeListener?: () => void }).changeListener?.();
-    const changedActions = provider.provideCodeActions(document as never, range as never);
+    const changedActions = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(changedActions).toHaveLength(1);
     expect(changedActions[0]?.title).toContain("otherFunc");
 
@@ -136,7 +153,9 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
     expect(createdActions).toHaveLength(1);
 
     (watcher as { deleteListener?: () => void }).deleteListener?.();
-    expect(provider.provideCodeActions(document as never, range as never)).toEqual([]);
+    expect(
+      provider.provideCodeActions(document as never, range as never),
+    ).toEqual([]);
     expect(context.subscriptions).toEqual([watcher]);
   });
 
@@ -148,7 +167,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
       getText: () => "",
     };
     const range = { start: { line: 0, character: 0 } };
-    const result = provider.provideCodeActions(document as never, range as never);
+    const result = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(result).toEqual([]);
   });
 
@@ -178,7 +200,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
     };
     const range = { start: { line: 0, character: 0 } };
 
-    const actions = provider.provideCodeActions(document as never, range as never);
+    const actions = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(actions.length).toBeGreaterThanOrEqual(1);
     expect(actions[0]?.title).toContain("myFunc");
     expect(actions[0]?.command?.command).toBe("kibi.browseLinkedEntities");
@@ -210,7 +235,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
     };
     const range = { start: { line: 0, character: 0 } };
 
-    const actions = provider.provideCodeActions(document as never, range as never);
+    const actions = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(actions.length).toBe(1);
     expect(actions[0]?.title).toContain("myFunc");
   });
@@ -241,7 +269,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
     };
     const range = { start: { line: 0, character: 0 } };
 
-    const actions = provider.provideCodeActions(document as never, range as never);
+    const actions = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(actions.length).toBe(1);
   });
 
@@ -267,7 +298,10 @@ describe("KibiCodeActionProvider — provideCodeActions", () => {
     };
     const range = { start: { line: 0, character: 0 } };
 
-    const actions = provider.provideCodeActions(document as never, range as never);
+    const actions = provider.provideCodeActions(
+      document as never,
+      range as never,
+    );
     expect(actions).toEqual([]);
   });
 });
@@ -281,7 +315,9 @@ describe("browseLinkedEntities", () => {
 
     const mockGetNav = mock((_id: string) => undefined);
     await browseLinkedEntities("SYM-001", [], "/root", mockGetNav);
-    expect(showInfoMsg).toHaveBeenCalledWith(expect.stringContaining("No linked entities"));
+    expect(showInfoMsg).toHaveBeenCalledWith(
+      expect.stringContaining("No linked entities"),
+    );
   });
 
   test("shows quick pick when entities exist", async () => {
@@ -299,14 +335,19 @@ describe("browseLinkedEntities", () => {
     await browseLinkedEntities("SYM-001", relationships, "/root", mockGetNav);
 
     expect(showQuickPick).toHaveBeenCalled();
-    const items = (showQuickPick.mock.calls[0] as unknown[])[0] as Array<{ label: string }>;
+    const items = (showQuickPick.mock.calls[0] as unknown[])[0] as Array<{
+      label: string;
+    }>;
     const labels = items.map((i: { label: string }) => i.label);
     expect(labels).toContain("REQ-001");
     expect(labels).toContain("FLAG-001");
   });
 
   test("opens file when user selects entity with local path", async () => {
-    const openTextDoc = mock(async (_uri: unknown) => ({ uri: _uri, lineCount: 20 }));
+    const openTextDoc = mock(async (_uri: unknown) => ({
+      uri: _uri,
+      lineCount: 20,
+    }));
     const textEditor = { selection: undefined, revealRange: mock(() => {}) };
     const showTextDoc = mock(async () => textEditor);
     const showQuickPick = mock(async (items: Array<{ label: string }>) =>
@@ -332,7 +373,9 @@ describe("browseLinkedEntities", () => {
   });
 
   test("shows info message when selected entity has no local file", async () => {
-    const showQuickPick = mock(async (items: Array<{ label: string }>) => items[0]);
+    const showQuickPick = mock(
+      async (items: Array<{ label: string }>) => items[0],
+    );
     const showInfoMsg = mock(async (_msg: string) => undefined);
 
     configureVscodeMock({
@@ -346,7 +389,9 @@ describe("browseLinkedEntities", () => {
 
     await browseLinkedEntities("SYM-001", relationships, "/root", mockGetNav);
 
-    expect(showInfoMsg).toHaveBeenCalledWith(expect.stringContaining("no local source file"));
+    expect(showInfoMsg).toHaveBeenCalledWith(
+      expect.stringContaining("no local source file"),
+    );
   });
 
   test("does nothing when user dismisses quick pick", async () => {

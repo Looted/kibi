@@ -51,7 +51,9 @@ function renderToolsDoc(): string {
     const required = Array.isArray(tool.inputSchema?.required)
       ? tool.inputSchema.required.join(", ")
       : "none";
-    lines.push(`| \`${tool.name}\` | ${tool.description} | ${required || "none"} |`);
+    lines.push(
+      `| \`${tool.name}\` | ${tool.description} | ${required || "none"} |`,
+    );
   }
   lines.push("");
   lines.push(
@@ -67,7 +69,8 @@ export const PROMPTS = [
   // implements REQ-002, REQ-013, REQ-mcp-search-discovery
   {
     name: "init-kibi",
-    description: "Activation workflow to populate a new or empty Kibi KB from an existing repository.",
+    description:
+      "Activation workflow to populate a new or empty Kibi KB from an existing repository.",
     text: [
       "# Kibi Interactive Activation Workflow",
       "",
@@ -86,7 +89,7 @@ export const PROMPTS = [
       "Call `kb_autopilot_generate` with the gathered context to synthesize candidate entities.",
       "",
       "This tool is **read-only**. It returns additive `structuredContent` with:",
-      "- `promptBlock`: review text that can be surfaced in optional human-facing briefs",
+      "- `promptBlock`: review text that can be surfaced for optional human review",
       "- `recommendedActions`: agent-facing next steps, including any REQ/SCEN/TEST authoring routed for manual handling",
       "- `declaredContext`: the user-provided bootstrap context",
       "- `confidence`: confidence summary for the generated output",
@@ -96,7 +99,7 @@ export const PROMPTS = [
       "",
       "## Step 3: Optional Human Review",
       "",
-      "Surface the `promptBlock` and a summary of `candidates` when optional human review is useful. Human review is post-hoc/optional via VS Code briefs and must not block writes.",
+      "Surface the `promptBlock` and a summary of `candidates` when optional human review is useful. Human review is post-hoc/optional and must not block writes.",
       "",
       "## Step 4: Apply Candidates",
       "",
@@ -106,35 +109,9 @@ export const PROMPTS = [
       "3. Run `kb_check` after the batch to verify KB integrity.",
       "",
       "## Rules",
-      "- Human review is optional and post-hoc via VS Code briefs; do not gate writes on synchronous sign-off.",
+      "- Human review is optional and post-hoc; do not gate writes on synchronous sign-off.",
       "- `kb_autopilot_generate` is strictly read-only; synthesis is the backend, not the actor.",
       "- Guidance must stay MCP-only; do not suggest `kibi` CLI commands.",
-    ].join("\n"),
-  },
-  {
-    name: "brief-kibi",
-    description: "Start-task workflow for generating a citation-backed Kibi briefing before risky work.",
-    text: [
-      "# Kibi Briefing Workflow",
-      "",
-      "Use this workflow at the start of a task when you need a deterministic, citation-backed Kibi briefing.",
-      "",
-      "## Step 1: Generate the briefing",
-      "",
-      "Call `kb_briefing_generate` with any relevant `taskText`, `sourceFiles`, and `seedIds`.",
-      "",
-      "This tool is read-only. It returns `briefingState`, `activationState`, `activationReason`, `freshness`, `confidence`, `tldr`, `promptBlock`, `entities`, `constraints`, `regressionRisks`, `missingEvidence`, and `citations`.",
-      "",
-      "## Step 2: Inspect readiness",
-      "",
-      "Inspect `briefingState` before acting.",
-      "- If `briefingState` is `ready`, continue using only cited output from the briefing.",
-      "- If `briefingState` is `no_briefing`, stop and proceed without inventing briefing claims.",
-      "",
-      "## Step 3: Use the cited output",
-      "",
-      "Use `constraints`, `regressionRisks`, `missingEvidence`, and `promptBlock` only when their claims are backed by the returned `citations` and cited `entities`.",
-      "Do not add uncited assertions, and do not treat omitted topics as verified.",
     ].join("\n"),
   },
   {

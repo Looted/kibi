@@ -1,13 +1,13 @@
 // implements REQ-opencode-worktree-hard-enforcement-v1
 import type { E2eCoverageSignal } from "./e2e-coverage-signals.js";
 import type { FileLifecycle, ReminderKind } from "./file-operation-state.js";
+import type { KbFreshnessEvidence } from "./kb-freshness-state.js";
+import { evaluateKbFreshness } from "./kb-freshness-state.js";
 import type { PathKind } from "./path-kind.js";
 import type { RepoPosture } from "./repo-posture.js";
 import type { RiskClass } from "./risk-classifier.js";
 import type { EffectiveMode } from "./smart-enforcement.js";
 import type { WorkContext } from "./work-context-resolver.js";
-import type { KbFreshnessEvidence } from "./kb-freshness-state.js";
-import { evaluateKbFreshness } from "./kb-freshness-state.js";
 
 export interface PolicyLinkedEntityResult {
   ids: string[];
@@ -121,7 +121,9 @@ const ADVISORY_EDIT_KINDS: ReadonlySet<PathKind> = new Set([
   "kb",
 ]);
 
-function normalizeCheckpointEvidence(evidence: CheckpointEvidence | undefined): boolean {
+function normalizeCheckpointEvidence(
+  evidence: CheckpointEvidence | undefined,
+): boolean {
   if (typeof evidence === "boolean") {
     return evidence;
   }
@@ -153,12 +155,17 @@ function isAuthoritative(input: EnforcementPolicyInput): boolean {
   return input.posture ? AUTHORITATIVE_POSTURES.has(input.posture) : true;
 }
 
-function normalizeEvents(input: EnforcementPolicyInput): NormalizedPolicyEvent[] {
+function normalizeEvents(
+  input: EnforcementPolicyInput,
+): NormalizedPolicyEvent[] {
   return input.lifecycleEvents.map((event, index) => {
     const linkedEntityResult =
       input.linkedEntityResults?.[index] ??
       (input.linkedEntityIds?.[index]
-        ? { ids: input.linkedEntityIds[index] ?? [], source: "symbols" as const }
+        ? {
+            ids: input.linkedEntityIds[index] ?? [],
+            source: "symbols" as const,
+          }
         : DEFAULT_LINKED_ENTITY_RESULT);
 
     return {
@@ -212,7 +219,10 @@ function uniqueReminderKinds(events: NormalizedPolicyEvent[]): ReminderKind[] {
       add("kibi_write");
     }
 
-    if (event.e2eSignal.level !== "none" && event.e2eSignal.reminderText !== null) {
+    if (
+      event.e2eSignal.level !== "none" &&
+      event.e2eSignal.reminderText !== null
+    ) {
       add(event.lifecycle === "deleted" ? "e2e_delete" : "e2e_write");
     }
   }
@@ -272,7 +282,9 @@ function collectUnique(values: string[]): string[] {
 }
 
 function linkedIdsText(events: NormalizedPolicyEvent[]): string | null {
-  const ids = collectUnique(events.flatMap((event) => event.linkedEntityResult.ids));
+  const ids = collectUnique(
+    events.flatMap((event) => event.linkedEntityResult.ids),
+  );
   if (ids.length === 0) {
     return null;
   }
@@ -309,7 +321,8 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
 
   const deletedWithoutLinks = events.some(
     (event) =>
-      event.lifecycle === "deleted" && event.linkedEntityResult.ids.length === 0,
+      event.lifecycle === "deleted" &&
+      event.linkedEntityResult.ids.length === 0,
   );
   const representativePath = events[0]?.normalizedPath ?? "<changed-file>";
   const evidenceNotes = [linkedIdsText(events), e2eEvidenceText(events)].filter(
@@ -334,7 +347,7 @@ function hardBlockText(events: NormalizedPolicyEvent[]): {
       "KB freshness resolution:",
       "- **KB updated**: run `kb_search` for discovery, then `kb_upsert`/`kb_delete` for mutations, then `kb_check`.",
       "- **No KB impact**: provide a no-impact rationale in your final report after source-linked discovery via `kb_search` or `kb_query(sourceFile=...)` and `kb_check`.",
-      "- **Deferred/failed**: do not claim task completion."
+      "- **Deferred/failed**: do not claim task completion.",
     ].join("\n"),
     shownPaths,
     remainingCount,

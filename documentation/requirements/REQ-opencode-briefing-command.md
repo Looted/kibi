@@ -1,7 +1,7 @@
 ---
 id: REQ-opencode-briefing-command
 title: "OpenCode Briefing Command"
-status: open
+status: superseded
 created_at: 2026-05-13T00:00:00Z
 source: packages/opencode/src/brief-intent.ts
 priority: must

@@ -316,7 +316,6 @@ describe("symbol-extract (real integration)", () => {
     expect(symbols[2]?.id).toHaveLength(16);
     expect(symbols[2]?.id).not.toBe("SYM-DISK-VAR");
   });
-
 });
 
 describe("symbol-extract (cache and failure branches)", () => {

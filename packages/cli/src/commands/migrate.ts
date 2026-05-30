@@ -68,7 +68,9 @@ function toRelativePath(cwd: string, filePath: string): string {
   return relativePath.length > 0 ? relativePath : path.basename(filePath);
 }
 
-function resolveMigrationBranch(cwd: string): ResolvedBranch | { error: string } {
+function resolveMigrationBranch(
+  cwd: string,
+): ResolvedBranch | { error: string } {
   const result = resolveActiveBranch(cwd);
 
   if ("error" in result) {
@@ -117,7 +119,11 @@ function loadRawConfigDocument(
   try {
     const parsed = JSON.parse(readFileSync(configPath, "utf8")) as unknown;
 
-    if (parsed === null || Array.isArray(parsed) || typeof parsed !== "object") {
+    if (
+      parsed === null ||
+      Array.isArray(parsed) ||
+      typeof parsed !== "object"
+    ) {
       return {
         error:
           ".kb/config.json must contain a JSON object. Fix the file and retry 'kibi migrate'.",
@@ -144,7 +150,10 @@ function writeJsonAtomically(filePath: string, value: unknown): void {
   renameSync(tempPath, filePath);
 }
 
-function formatSchemaVersion(rawSchemaVersion: unknown, normalized: number | null): string {
+function formatSchemaVersion(
+  rawSchemaVersion: unknown,
+  normalized: number | null,
+): string {
   if (normalized === null) {
     if (rawSchemaVersion === undefined) {
       return "missing";
@@ -206,7 +215,10 @@ export async function migrateCommand(
   const migrationWarning = needsCanonicalSchemaWrite
     ? "KB config schemaVersion should be normalized to the latest numeric version."
     : configStatus.warning;
-  const warnings = [...branchWarnings, ...(migrationWarning ? [migrationWarning] : [])];
+  const warnings = [
+    ...branchWarnings,
+    ...(migrationWarning ? [migrationWarning] : []),
+  ];
   const auditPath = path.join(cwd, ".kb", "migrations", `${branch}.json`);
   const configPathRelative = toRelativePath(cwd, configPath);
   const auditPathRelative = toRelativePath(cwd, auditPath);
@@ -237,7 +249,10 @@ export async function migrateCommand(
     return { exitCode: 0 };
   }
 
-  const fromVersionLabel = formatSchemaVersion(rawSchemaVersion, normalizedVersion);
+  const fromVersionLabel = formatSchemaVersion(
+    rawSchemaVersion,
+    normalizedVersion,
+  );
 
   if (options.dryRun) {
     console.log(
@@ -279,7 +294,9 @@ export async function migrateCommand(
     `Migrated ${configPathRelative} schemaVersion from ${fromVersionLabel} to ${LATEST_KB_SCHEMA_VERSION}.`,
   );
   console.log(`Wrote migration audit metadata to ${auditPathRelative}.`);
-  console.log("Migration complete. Future 'kibi migrate' runs will be a no-op.");
+  console.log(
+    "Migration complete. Future 'kibi migrate' runs will be a no-op.",
+  );
 
   return { exitCode: 0 };
 }

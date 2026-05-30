@@ -25,7 +25,6 @@ import {
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { isMcpDebugEnabled } from "../env.js";
-import { writeBriefPendingMarker } from "../utils/brief-marker.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
@@ -193,7 +192,12 @@ export async function handleKbUpsert(
         throw new Error(formattedError);
       }
 
-      await recordEntityAudit(prolog, isUpdate ? "updated" : "created", type, entity);
+      await recordEntityAudit(
+        prolog,
+        isUpdate ? "updated" : "created",
+        type,
+        entity,
+      );
       for (const rel of relationships) {
         await recordRelationshipAudit(prolog, rel);
       }
@@ -216,17 +220,6 @@ export async function handleKbUpsert(
         `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
       );
     }
-
-    writeBriefPendingMarker({
-      ...(args._requestId ? { sessionId: args._requestId } : {}),
-      operation: "upsert",
-      entityIds: [id],
-      relationships: relationships.map((rel) => ({
-        from: String(rel.from),
-        to: String(rel.to),
-        type: String(rel.type),
-      })),
-    });
 
     if (type === "symbol") {
       try {

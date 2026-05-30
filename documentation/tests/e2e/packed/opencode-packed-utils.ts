@@ -97,6 +97,41 @@ function log(message: string): void {
   }
 }
 
+function packKibiPackageTarball(
+  pkg: KibiPackage,
+  repoRoot: string = REPO_ROOT,
+): string {
+  const pkgDir = join(repoRoot, "packages", pkg);
+
+  let packOutput: string;
+  try {
+    packOutput = execFileSync("npm", ["pack", "--json"], {
+      cwd: pkgDir,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch (error) {
+    const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
+    throw new Error(
+      `npm pack failed in ${pkgDir}: ${err.message}${
+        err.stderr ? `\nstderr: ${err.stderr.toString()}` : ""
+      }${err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""}`,
+    );
+  }
+
+  const packResults = parseNpmPackJsonOutput(packOutput);
+  if (!packResults?.[0]?.filename) {
+    throw new Error(`npm pack did not return a filename for kibi-${pkg}`);
+  }
+
+  const tarballPath = join(pkgDir, packResults[0].filename);
+  if (!existsSync(tarballPath)) {
+    throw new Error(`Tarball not found: ${tarballPath}`);
+  }
+
+  return tarballPath;
+}
+
 export function parseNpmPackJsonOutput(output: string): NpmPackResult[] {
   // implements REQ-opencode-kibi-plugin-v1
   for (let i = 0; i < output.length; i += 1) {
@@ -219,8 +254,8 @@ export function installOpencodeTarball(
   const installArgs = ["install", "--legacy-peer-deps", "--no-audit"];
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
-  if (tarballEnv) {
-    for (const dep of ["core", "cli", "mcp"] as const) {
+  for (const dep of ["core", "cli"] as const) {
+    if (tarballEnv) {
       const depTarball = findTarballFromEnv(tarballEnv, dep);
       if (depTarball) {
         installArgs.push(depTarball);
@@ -230,6 +265,8 @@ export function installOpencodeTarball(
             `Ensure the tarball is present in ${tarballEnv}/${dep}/ or ${tarballEnv}/ before running packed tests.`,
         );
       }
+    } else {
+      installArgs.push(packKibiPackageTarball(dep));
     }
   }
 

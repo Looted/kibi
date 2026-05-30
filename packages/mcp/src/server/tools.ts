@@ -27,14 +27,21 @@ import {
 } from "../diagnostics.js";
 import { isMcpDebugEnabled } from "../env.js";
 import { TOOLS } from "../tools-config.js";
+import {
+  type AutopilotGenerateArgs,
+  handleKbAutopilotGenerate,
+} from "../tools/autopilot-generate.js";
 import { type CheckArgs, handleKbCheck } from "../tools/check.js";
 import { type CoverageArgs, handleKbCoverage } from "../tools/coverage.js";
 import { type DeleteArgs, handleKbDelete } from "../tools/delete.js";
 import { type FindGapsArgs, handleKbFindGaps } from "../tools/find-gaps.js";
 import { type GraphArgs, handleKbGraph } from "../tools/graph.js";
+import {
+  type ModelRequirementArgs,
+  handleKbModelRequirement,
+} from "../tools/model-requirement.js";
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
 import { type SearchArgs, handleKbSearch } from "../tools/search.js";
-import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import {
   type SkillsListArgs,
   type SkillsLoadArgs,
@@ -43,19 +50,8 @@ import {
   handleKbSkillsLoad,
   handleKbSkillsRead,
 } from "../tools/skills.js";
+import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
-import {
-  type ModelRequirementArgs,
-  handleKbModelRequirement,
-} from "../tools/model-requirement.js";
-import {
-  type AutopilotGenerateArgs,
-  handleKbAutopilotGenerate,
-} from "../tools/autopilot-generate.js";
-import {
-  type BriefingGenerateArgs,
-  handleKbBriefingGenerate,
-} from "../tools/briefing-generate.js";
 
 export interface ToolConfig {
   name: string;
@@ -135,8 +131,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     prolog: TProlog,
     args: ModelRequirementArgs,
   ) => Promise<unknown>;
-  handleKbAutopilotGenerate: (prolog: TProlog, args: AutopilotGenerateArgs) => Promise<unknown>;
-  handleKbBriefingGenerate: (prolog: TProlog, args: BriefingGenerateArgs) => Promise<unknown>;
+  handleKbAutopilotGenerate: (
+    prolog: TProlog,
+    args: AutopilotGenerateArgs,
+  ) => Promise<unknown>;
 }
 
 const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
@@ -167,7 +165,6 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbUpsert,
   handleKbModelRequirement,
   handleKbAutopilotGenerate,
-  handleKbBriefingGenerate,
 };
 
 // implements REQ-008
@@ -510,7 +507,8 @@ export function registerAllTools<TProlog>(
     "kb_skills_load",
     toolDef("kb_skills_load").description,
     toolDef("kb_skills_load").inputSchema,
-    async (args) => runtime.handleKbSkillsLoad(args as unknown as SkillsLoadArgs),
+    async (args) =>
+      runtime.handleKbSkillsLoad(args as unknown as SkillsLoadArgs),
     runtime,
   );
 
@@ -519,7 +517,8 @@ export function registerAllTools<TProlog>(
     "kb_skills_read",
     toolDef("kb_skills_read").description,
     toolDef("kb_skills_read").inputSchema,
-    async (args) => runtime.handleKbSkillsRead(args as unknown as SkillsReadArgs),
+    async (args) =>
+      runtime.handleKbSkillsRead(args as unknown as SkillsReadArgs),
     runtime,
   );
 
@@ -620,21 +619,6 @@ export function registerAllTools<TProlog>(
       return runtime.handleKbAutopilotGenerate(
         prolog,
         args as unknown as AutopilotGenerateArgs,
-      );
-    },
-    runtime,
-  );
-
-  addTool(
-    server,
-    "kb_briefing_generate",
-    toolDef("kb_briefing_generate").description,
-    toolDef("kb_briefing_generate").inputSchema,
-    async (args) => {
-      const prolog = await runtime.ensureProlog();
-      return runtime.handleKbBriefingGenerate(
-        prolog,
-        args as unknown as BriefingGenerateArgs,
       );
     },
     runtime,

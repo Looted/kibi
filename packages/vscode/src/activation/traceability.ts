@@ -111,7 +111,8 @@ export function registerTraceability(
     );
   }
 
-  const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(workspaceRoot);
+  const { symbolsPath, coordinatesPath } =
+    resolveSymbolsManifestPaths(workspaceRoot);
   const symbolIndex: SymbolIndex | null = buildIndex(
     symbolsPath,
     workspaceRoot,

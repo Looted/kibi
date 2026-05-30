@@ -1,11 +1,11 @@
 import {
   KIBI_ENTITY_SCHEMA_DOC,
-  KIBI_SYMBOL_COORDINATES_PATH,
   KIBI_SYMBOLS_MANIFEST_PATH,
+  KIBI_SYMBOL_COORDINATES_PATH,
+  type KibiImpactEvidence,
   getBehaviorSourcePaths,
   getMissingBehaviorSourcePaths,
   hasOverrideRationale,
-  type KibiImpactEvidence,
 } from "./evidence-model.js";
 
 export type KibiImpactDiagnosticId =
@@ -41,8 +41,7 @@ function createMissingEvidenceDiagnostic(
     files: [...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `Behavior-changing staged files are missing Kibi impact evidence (see ${KIBI_ENTITY_SCHEMA_DOC}): ${formatFileList(paths)}`,
-    suggestion:
-      `Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging the evidence.`,
+    suggestion: `Query Kibi via MCP before deciding, then stage requirement/scenario/test/fact/symbol markdown evidence, staged authored ${KIBI_SYMBOLS_MANIFEST_PATH} metadata, or refreshed ${KIBI_SYMBOL_COORDINATES_PATH}. Re-run kibi check --staged after staging the evidence.`,
   };
 }
 
@@ -55,8 +54,7 @@ function createSymbolsManifestStaleDiagnostic(
     files: [KIBI_SYMBOL_COORDINATES_PATH, ...paths],
     docs: [KIBI_ENTITY_SCHEMA_DOC],
     message: `${KIBI_SYMBOL_COORDINATES_PATH} is stale or missing for staged source files: ${formatFileList(paths)}`,
-    suggestion:
-      `Run kibi sync --refresh-symbol-coordinates && git add ${KIBI_SYMBOL_COORDINATES_PATH} ${KIBI_SYMBOLS_MANIFEST_PATH}, then re-run kibi check --staged.`,
+    suggestion: `Run kibi sync --refresh-symbol-coordinates && git add ${KIBI_SYMBOL_COORDINATES_PATH} ${KIBI_SYMBOLS_MANIFEST_PATH}, then re-run kibi check --staged.`,
   };
 }
 
@@ -64,7 +62,9 @@ function createMissingOverrideRationaleDiagnostic(
   evidence: KibiImpactEvidence,
 ): KibiImpactDiagnostic {
   if (evidence.mode.kind !== "no_impact_override") {
-    throw new Error("Override rationale diagnostic requires a no-impact override");
+    throw new Error(
+      "Override rationale diagnostic requires a no-impact override",
+    );
   }
 
   const paths = [...evidence.mode.override.sourcePaths].sort();

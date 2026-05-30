@@ -1,6 +1,12 @@
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import fs from "node:fs";
 import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "bun:test";
+import type { PrologProcess } from "kibi-cli/prolog";
+import {
+  classifyActivationState,
+  discoverSources,
+  resolveActivationPolicy,
+} from "../../src/tools/autopilot-discovery";
 import {
   createColdStartRepo,
   createMultiRootRepo,
@@ -11,12 +17,6 @@ import {
   createVendoredTree,
   setupWorkspace,
 } from "./autopilot-workspace-fixture";
-import {
-  classifyActivationState,
-  discoverSources,
-  resolveActivationPolicy,
-} from "../../src/tools/autopilot-discovery";
-import type { PrologProcess } from "kibi-cli/prolog";
 
 describe("autopilot discovery", () => {
   let fixture: ReturnType<typeof setupWorkspace> | null = null;
@@ -82,7 +82,10 @@ describe("autopilot discovery", () => {
     fs.mkdirSync(path.join(fixture.root, "packages", "app", "docs"), {
       recursive: true,
     });
-    fs.writeFileSync(path.join(fixture.root, "README.md"), "# ADR: Bootstrap\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "README.md"),
+      "# ADR: Bootstrap\n",
+    );
     fs.writeFileSync(
       path.join(fixture.root, "packages", "app", "docs", "overview.md"),
       "# Requirements\n",
@@ -192,7 +195,9 @@ describe("autopilot discovery", () => {
     // The fixture helpers expose ensureDocs via import file; call createThinRepo to populate docs
     // createThinRepo writes documentation and root config; we prefer minimal docs without root .kb
     // Use ensureDir + write files directly
-    fs.mkdirSync(path.join(fixture.root, "documentation", "requirements"), { recursive: true });
+    fs.mkdirSync(path.join(fixture.root, "documentation", "requirements"), {
+      recursive: true,
+    });
     fs.writeFileSync(
       path.join(fixture.root, "documentation", "requirements", "REQ-KEEP.md"),
       [
@@ -207,18 +212,33 @@ describe("autopilot discovery", () => {
     );
 
     // create a gitignored private doc
-    fs.mkdirSync(path.join(fixture.root, "documentation", "private"), { recursive: true });
-    fs.writeFileSync(path.join(fixture.root, "documentation", "private", "SECRET.md"), "# secret\n");
+    fs.mkdirSync(path.join(fixture.root, "documentation", "private"), {
+      recursive: true,
+    });
+    fs.writeFileSync(
+      path.join(fixture.root, "documentation", "private", "SECRET.md"),
+      "# secret\n",
+    );
 
     // create a .sisyphus draft which should be hard-denied
-    fs.mkdirSync(path.join(fixture.root, ".sisyphus", "drafts"), { recursive: true });
+    fs.mkdirSync(path.join(fixture.root, ".sisyphus", "drafts"), {
+      recursive: true,
+    });
     fs.writeFileSync(
-      path.join(fixture.root, ".sisyphus", "drafts", "kibi-kb-quality-audit.md"),
+      path.join(
+        fixture.root,
+        ".sisyphus",
+        "drafts",
+        "kibi-kb-quality-audit.md",
+      ),
       "# draft\n",
     );
 
     // write .gitignore to ignore private docs
-    fs.writeFileSync(path.join(fixture.root, ".gitignore"), "documentation/private/*.md\n");
+    fs.writeFileSync(
+      path.join(fixture.root, ".gitignore"),
+      "documentation/private/*.md\n",
+    );
 
     const fakeProlog = createEmptyPrologStub();
     const state = await classifyActivationState(fixture.root, fakeProlog);
@@ -229,11 +249,17 @@ describe("autopilot discovery", () => {
 
     const discovered = discoverSources(fixture.root, activation);
     // Keep doc should be discovered
-    expect(discovered.candidates).toContain("documentation/requirements/REQ-KEEP.md");
+    expect(discovered.candidates).toContain(
+      "documentation/requirements/REQ-KEEP.md",
+    );
     // Gitignored private doc should NOT be discovered
-    expect(discovered.candidates).not.toContain("documentation/private/SECRET.md");
+    expect(discovered.candidates).not.toContain(
+      "documentation/private/SECRET.md",
+    );
     // .sisyphus drafts should be excluded by hard denylist
-    expect(discovered.candidates).not.toContain(".sisyphus/drafts/kibi-kb-quality-audit.md");
+    expect(discovered.candidates).not.toContain(
+      ".sisyphus/drafts/kibi-kb-quality-audit.md",
+    );
   });
 
   it("respects nested .gitignore files when discovering markdown", async () => {
@@ -241,10 +267,19 @@ describe("autopilot discovery", () => {
 
     // create a docs tree with a nested .gitignore that ignores a file
     fs.mkdirSync(path.join(fixture.root, "docs"), { recursive: true });
-    fs.writeFileSync(path.join(fixture.root, "docs", "public.md"), "# Public\n");
-    fs.writeFileSync(path.join(fixture.root, "docs", "private-secret.md"), "# Secret\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "docs", "public.md"),
+      "# Public\n",
+    );
+    fs.writeFileSync(
+      path.join(fixture.root, "docs", "private-secret.md"),
+      "# Secret\n",
+    );
     // nested .gitignore in docs should ignore private-secret.md
-    fs.writeFileSync(path.join(fixture.root, "docs", ".gitignore"), "private-secret.md\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "docs", ".gitignore"),
+      "private-secret.md\n",
+    );
 
     const fakeProlog = createEmptyPrologStub();
     const state = await classifyActivationState(fixture.root, fakeProlog);

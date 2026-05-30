@@ -22,8 +22,8 @@ import { tmpdir } from "node:os";
 import * as path from "node:path";
 import * as symbolsTsExports from "../../src/extractors/symbols-ts.js";
 import {
-  enrichSymbolCoordinatesWithTsMorph,
   type ManifestSymbolEntry,
+  enrichSymbolCoordinatesWithTsMorph,
 } from "../../src/extractors/symbols-ts.js";
 
 function writeFixture(

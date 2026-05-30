@@ -11,7 +11,11 @@
 // Types
 // ---------------------------------------------------------------------------
 
-export type KbFreshnessDecision = "updated" | "no-impact" | "deferred" | "failed";
+export type KbFreshnessDecision =
+  | "updated"
+  | "no-impact"
+  | "deferred"
+  | "failed";
 
 export type KbFreshnessStateKind =
   | "clean"
@@ -260,10 +264,7 @@ export function createKbFreshnessEvidenceStore(): KbFreshnessEvidenceStore {
   }
 
   return {
-    recordToolEvidence(
-      scope: KbFreshnessScope,
-      toolName: string,
-    ): void {
+    recordToolEvidence(scope: KbFreshnessScope, toolName: string): void {
       const record = getOrCreate(scope);
       const effects = TOOL_EFFECTS[toolName];
 
@@ -305,8 +306,12 @@ export function createKbFreshnessEvidenceStore(): KbFreshnessEvidenceStore {
         kbMutation: record.kbMutation,
         kbCheck: record.kbCheck,
         ...(record.decision !== undefined ? { decision: record.decision } : {}),
-        ...(record.rationale !== undefined ? { rationale: record.rationale } : {}),
-        ...(record.checkRules !== undefined ? { checkRules: record.checkRules } : {}),
+        ...(record.rationale !== undefined
+          ? { rationale: record.rationale }
+          : {}),
+        ...(record.checkRules !== undefined
+          ? { checkRules: record.checkRules }
+          : {}),
       };
     },
 

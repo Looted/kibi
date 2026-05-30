@@ -20,11 +20,15 @@ afterEach(() => {
 
 describe("manifest path resolver", () => {
   test("resolves default manifest and coordinate paths", async () => {
-    const manifestPathExports = await import(manifestPathsModulePath).catch(() => {
-      return {} as Record<string, unknown>;
-    });
+    const manifestPathExports = await import(manifestPathsModulePath).catch(
+      () => {
+        return {} as Record<string, unknown>;
+      },
+    );
 
-    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe("function");
+    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe(
+      "function",
+    );
     if (typeof manifestPathExports.resolveSymbolsManifestPaths !== "function") {
       return;
     }
@@ -54,11 +58,15 @@ describe("manifest path resolver", () => {
   });
 
   test("uses config override for symbols path and derives coordinates path beside it", async () => {
-    const manifestPathExports = await import(manifestPathsModulePath).catch(() => {
-      return {} as Record<string, unknown>;
-    });
+    const manifestPathExports = await import(manifestPathsModulePath).catch(
+      () => {
+        return {} as Record<string, unknown>;
+      },
+    );
 
-    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe("function");
+    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe(
+      "function",
+    );
     if (typeof manifestPathExports.resolveSymbolsManifestPaths !== "function") {
       return;
     }
@@ -86,11 +94,15 @@ describe("manifest path resolver", () => {
   });
 
   test("preserves legacy symbolsManifest resolution", async () => {
-    const manifestPathExports = await import(manifestPathsModulePath).catch(() => {
-      return {} as Record<string, unknown>;
-    });
+    const manifestPathExports = await import(manifestPathsModulePath).catch(
+      () => {
+        return {} as Record<string, unknown>;
+      },
+    );
 
-    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe("function");
+    expect(typeof manifestPathExports.resolveSymbolsManifestPaths).toBe(
+      "function",
+    );
     if (typeof manifestPathExports.resolveSymbolsManifestPaths !== "function") {
       return;
     }
@@ -118,11 +130,15 @@ describe("manifest path resolver", () => {
   });
 
   test("backward compatible wrapper returns only the symbols path", async () => {
-    const manifestPathExports = await import(manifestPathsModulePath).catch(() => {
-      return {} as Record<string, unknown>;
-    });
+    const manifestPathExports = await import(manifestPathsModulePath).catch(
+      () => {
+        return {} as Record<string, unknown>;
+      },
+    );
 
-    expect(typeof manifestPathExports.resolveSymbolsManifestPath).toBe("function");
+    expect(typeof manifestPathExports.resolveSymbolsManifestPath).toBe(
+      "function",
+    );
     if (typeof manifestPathExports.resolveSymbolsManifestPath !== "function") {
       return;
     }

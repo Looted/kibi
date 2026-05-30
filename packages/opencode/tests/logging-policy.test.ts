@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import type { createSyncScheduler as createSyncSchedulerFactory } from "../src/scheduler";
+
+type CreateSyncScheduler = typeof createSyncSchedulerFactory;
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -9,6 +12,12 @@ describe("logging policy", () => {
   let originalConsoleLog: typeof console.log;
   let originalConsoleWarn: typeof console.warn;
   let originalConsoleError: typeof console.error;
+
+  interface MutableConsole {
+    log: (...args: readonly unknown[]) => void;
+    warn: (...args: readonly unknown[]) => void;
+    error: (...args: readonly unknown[]) => void;
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const logger = require("../src/logger") as typeof import("../src/logger");
@@ -22,21 +31,21 @@ describe("logging policy", () => {
 
     // Spy on console methods to ensure they are NOT called (info/warn)
     // or called exactly once (error)
-    (console as any).log = (...args: unknown[]) => {
+    (console as MutableConsole).log = (...args: readonly unknown[]) => {
       logCalls.push({
         service: "console.log",
         level: "unexpected",
         message: args.map(String).join(" "),
       });
     };
-    (console as any).warn = (...args: unknown[]) => {
+    (console as MutableConsole).warn = (...args: readonly unknown[]) => {
       logCalls.push({
         service: "console.warn",
         level: "unexpected",
         message: args.map(String).join(" "),
       });
     };
-    (console as any).error = (...args: unknown[]) => {
+    (console as MutableConsole).error = (...args: readonly unknown[]) => {
       errorCalls.push(args.map(String).join(" "));
     };
   });
@@ -234,8 +243,8 @@ describe("logging policy", () => {
   // implements REQ-opencode-kibi-plugin-v1
   describe("scheduler silence policy", () => {
     test("scheduler sync produces zero console.log/warn output", async () => {
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -245,7 +254,7 @@ describe("logging policy", () => {
         },
       });
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -277,8 +286,8 @@ describe("logging policy", () => {
     });
 
     test("scheduler check failure produces zero console.log/warn output", async () => {
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -288,7 +297,7 @@ describe("logging policy", () => {
         },
       });
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -329,7 +338,7 @@ describe("logging policy", () => {
   describe("session-summary silence policy", () => {
     test("logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -365,7 +374,7 @@ describe("logging policy", () => {
 
     test("recordWarning produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -400,7 +409,7 @@ describe("logging policy", () => {
 
     test("empty logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -523,14 +532,14 @@ describe("logging policy", () => {
         path.join(srcDir, "models.py"),
         [
           `"""`,
-          `User accounts must have unique email addresses.`,
-          `Each user can have at most 5 active sessions.`,
-          `Sessions expire after 30 minutes of inactivity.`,
+          "User accounts must have unique email addresses.",
+          "Each user can have at most 5 active sessions.",
+          "Sessions expire after 30 minutes of inactivity.",
           `"""`,
-          ``,
-          `class User:`,
-          `    pass`,
-          ``,
+          "",
+          "class User:",
+          "    pass",
+          "",
         ].join("\n"),
       );
 
@@ -668,14 +677,14 @@ describe("logging policy", () => {
         path.join(srcDir, "models.py"),
         [
           `"""`,
-          `User accounts must have unique email addresses.`,
-          `Each user can have at most 5 active sessions.`,
-          `Sessions expire after 30 minutes of inactivity.`,
+          "User accounts must have unique email addresses.",
+          "Each user can have at most 5 active sessions.",
+          "Sessions expire after 30 minutes of inactivity.",
           `"""`,
-          ``,
-          `class User:`,
-          `    pass`,
-          ``,
+          "",
+          "class User:",
+          "    pass",
+          "",
         ].join("\n"),
       );
 
@@ -829,8 +838,7 @@ describe("logging policy", () => {
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      // Create default KB directories so targets resolve and posture becomes root_active
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -838,9 +846,9 @@ describe("logging policy", () => {
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) =>
-        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }),
-      );
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
       fs.writeFileSync(
         path.join(tmpDir, "documentation", "symbols.yaml"),
         "\n",
@@ -1070,7 +1078,7 @@ describe("logging policy", () => {
         },
       });
 
-      logger.error("sync.failed {\"exitCode\":1}", {
+      logger.error('sync.failed {"exitCode":1}', {
         event: "sync.failed",
         exitCode: 1,
       });
@@ -1118,12 +1126,12 @@ describe("logging policy", () => {
       };
 
       // No client set — errorStructuredOnly is intentionally silent (no console.error fallback)
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -1178,12 +1186,12 @@ describe("logging policy", () => {
         }
       };
 
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -1240,12 +1248,12 @@ describe("logging policy", () => {
         }
       };
 
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -1267,7 +1275,10 @@ describe("logging policy", () => {
         errorCalls.length >= 1,
         "operational sync.failed must still produce console.error",
       );
-      assert.equal(errorCalls.filter((entry) => entry.includes("sync.failed")).length, 1);
+      assert.equal(
+        errorCalls.filter((entry) => entry.includes("sync.failed")).length,
+        1,
+      );
     });
   });
   // implements REQ-opencode-file-context-guidance-v1

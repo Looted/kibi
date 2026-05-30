@@ -2,6 +2,9 @@
 id: TEST-cli-staged-impact-enforcement
 title: CLI staged impact enforcement blocks behavior edits without evidence
 status: passing
+links:
+  - type: validates
+    target: SCEN-cli-staged-impact-enforcement
 ---
 
 # CLI Staged Impact Enforcement Tests

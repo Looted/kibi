@@ -84,14 +84,17 @@ export class SkillOversizeError extends Error {
   readonly actualBytes: number;
 
   constructor(pathLike: string, maxBytes: number, actualBytes: number) {
-    super(`Skill file exceeds ${maxBytes} bytes: ${pathLike} (${actualBytes} bytes)`);
+    super(
+      `Skill file exceeds ${maxBytes} bytes: ${pathLike} (${actualBytes} bytes)`,
+    );
     this.name = "SkillOversizeError";
     this.maxBytes = maxBytes;
     this.actualBytes = actualBytes;
   }
 }
 
-export function listBundledSkills(): SkillManifest[] { // implements REQ-001
+export function listBundledSkills(): SkillManifest[] {
+  // implements REQ-001
   if (!existsSync(bundledSkillsDir)) {
     return [];
   }
@@ -104,7 +107,8 @@ export function listBundledSkills(): SkillManifest[] { // implements REQ-001
     .sort((left, right) => left.id.localeCompare(right.id));
 }
 
-export function loadBundledSkill(id: string): SkillBundle { // implements REQ-001
+export function loadBundledSkill(id: string): SkillBundle {
+  // implements REQ-001
   const rootDir = findBundledSkillRoot(id);
   if (!rootDir) {
     throw new SkillNotFoundError(id);
@@ -116,7 +120,8 @@ export function loadBundledSkill(id: string): SkillBundle { // implements REQ-00
 export function readBundledSkillResource(
   id: string,
   resourcePath: string,
-): string { // implements REQ-001
+): string {
+  // implements REQ-001
   const bundle = loadBundledSkill(id);
   const declaredResource = normalizeResourcePath(resourcePath);
 
@@ -146,14 +151,18 @@ export function readBundledSkillResource(
   return readFileSync(candidatePath, "utf8");
 }
 
-export function validateSkillBundle(
-  pathLike: string,
-): { valid: boolean; errors: SkillValidationError[] } { // implements REQ-001
+export function validateSkillBundle(pathLike: string): {
+  valid: boolean;
+  errors: SkillValidationError[];
+} {
+  // implements REQ-001
   const skillFilePath = resolveSkillFilePath(pathLike);
   const errors: SkillValidationError[] = [];
 
   if (!existsSync(skillFilePath)) {
-    errors.push(new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`));
+    errors.push(
+      new SkillValidationError("SKILL.md", `Missing ${SKILL_FILE_NAME}`),
+    );
     return { valid: false, errors };
   }
 
@@ -175,7 +184,12 @@ function validateBundleContents(
   try {
     assertMaxBytes(skillFilePath, SKILL_MARKDOWN_MAX_BYTES);
   } catch (error) {
-    errors.push(new SkillValidationError("SKILL.md", error instanceof Error ? error.message : String(error)));
+    errors.push(
+      new SkillValidationError(
+        "SKILL.md",
+        error instanceof Error ? error.message : String(error),
+      ),
+    );
   }
 
   const rootDir = dirname(skillFilePath);
@@ -183,7 +197,12 @@ function validateBundleContents(
   try {
     realRootDir = realpathSync(rootDir);
   } catch (error) {
-    errors.push(new SkillValidationError("SKILL.md", error instanceof Error ? error.message : String(error)));
+    errors.push(
+      new SkillValidationError(
+        "SKILL.md",
+        error instanceof Error ? error.message : String(error),
+      ),
+    );
     return;
   }
 
@@ -191,19 +210,34 @@ function validateBundleContents(
     const resourcePath = resolve(rootDir, resource);
     try {
       if (!existsSync(resourcePath)) {
-        errors.push(new SkillValidationError("resources", `Missing skill resource: ${resource}`));
+        errors.push(
+          new SkillValidationError(
+            "resources",
+            `Missing skill resource: ${resource}`,
+          ),
+        );
         continue;
       }
 
       const realResourcePath = realpathSync(resourcePath);
       if (!isWithinRoot(realRootDir, realResourcePath)) {
-        errors.push(new SkillValidationError("resources", `Skill resource escapes bundle root: ${resource}`));
+        errors.push(
+          new SkillValidationError(
+            "resources",
+            `Skill resource escapes bundle root: ${resource}`,
+          ),
+        );
         continue;
       }
 
       assertMaxBytes(resourcePath, RESOURCE_MAX_BYTES);
     } catch (error) {
-      errors.push(new SkillValidationError("resources", error instanceof Error ? error.message : String(error)));
+      errors.push(
+        new SkillValidationError(
+          "resources",
+          error instanceof Error ? error.message : String(error),
+        ),
+      );
     }
   }
 }
@@ -250,7 +284,9 @@ function parseSkillBundle(rootDir: string): SkillBundle {
   };
 }
 
-function validateManifestData(data: Record<string, unknown>): SkillValidationError[] {
+function validateManifestData(
+  data: Record<string, unknown>,
+): SkillValidationError[] {
   const errors: SkillValidationError[] = [];
   const requiredFields = [
     "id",
@@ -262,12 +298,25 @@ function validateManifestData(data: Record<string, unknown>): SkillValidationErr
 
   for (const field of requiredFields) {
     if (typeof data[field] !== "string" || data[field].trim() === "") {
-      errors.push(new SkillValidationError(field, `Missing required skill field: ${field}`));
+      errors.push(
+        new SkillValidationError(
+          field,
+          `Missing required skill field: ${field}`,
+        ),
+      );
     }
   }
 
-  if (typeof data.version === "string" && !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(data.version)) {
-    errors.push(new SkillValidationError("version", `Invalid skill version: ${data.version}`));
+  if (
+    typeof data.version === "string" &&
+    !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(data.version)
+  ) {
+    errors.push(
+      new SkillValidationError(
+        "version",
+        `Invalid skill version: ${data.version}`,
+      ),
+    );
   }
 
   if (data.tags !== undefined && !isStringArray(data.tags)) {
@@ -276,13 +325,21 @@ function validateManifestData(data: Record<string, unknown>): SkillValidationErr
 
   if (data.resources !== undefined) {
     if (!isStringArray(data.resources)) {
-      errors.push(new SkillValidationError("resources", "Skill resources must be strings"));
+      errors.push(
+        new SkillValidationError(
+          "resources",
+          "Skill resources must be strings",
+        ),
+      );
     } else {
       for (const resource of data.resources) {
         const normalized = normalizeResourcePath(resource);
         if (!normalized || isPathOutOfBounds(resource)) {
           errors.push(
-            new SkillValidationError("resources", `Invalid skill resource: ${resource}`),
+            new SkillValidationError(
+              "resources",
+              `Invalid skill resource: ${resource}`,
+            ),
           );
         }
       }
@@ -306,14 +363,18 @@ function coerceManifest(data: Record<string, unknown>): SkillManifest {
   }
 
   if (isStringArray(data.resources)) {
-    manifest.resources = data.resources.map((resource) => normalizeResourcePath(resource));
+    manifest.resources = data.resources.map((resource) =>
+      normalizeResourcePath(resource),
+    );
   }
 
   return manifest;
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((item) => typeof item === "string");
+  return (
+    Array.isArray(value) && value.every((item) => typeof item === "string")
+  );
 }
 
 function normalizeResourcePath(pathLike: string): string {
@@ -330,7 +391,10 @@ function isPathOutOfBounds(pathLike: string): boolean {
   );
 }
 
-function isDeclaredResource(manifest: SkillManifest, resourcePath: string): boolean {
+function isDeclaredResource(
+  manifest: SkillManifest,
+  resourcePath: string,
+): boolean {
   return (manifest.resources ?? []).some(
     (declared) => normalizeResourcePath(declared) === resourcePath,
   );
@@ -338,7 +402,10 @@ function isDeclaredResource(manifest: SkillManifest, resourcePath: string): bool
 
 function isWithinRoot(rootDir: string, candidatePath: string): boolean {
   const relativePath = relative(rootDir, candidatePath);
-  return relativePath === "" || (!relativePath.startsWith("..") && !isAbsolute(relativePath));
+  return (
+    relativePath === "" ||
+    (!relativePath.startsWith("..") && !isAbsolute(relativePath))
+  );
 }
 
 function assertMaxBytes(pathLike: string, maxBytes: number): void {
@@ -354,6 +421,7 @@ function resolveSkillFilePath(pathLike: string): string {
     return join(resolved, SKILL_FILE_NAME);
   }
 
-  return resolved.endsWith(SKILL_FILE_NAME) ? resolved : join(resolved, SKILL_FILE_NAME);
+  return resolved.endsWith(SKILL_FILE_NAME)
+    ? resolved
+    : join(resolved, SKILL_FILE_NAME);
 }
-

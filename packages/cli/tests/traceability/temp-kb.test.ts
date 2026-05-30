@@ -1,5 +1,6 @@
 import {
-  afterAll, afterEach,
+  afterAll,
+  afterEach,
   beforeEach,
   describe,
   expect,
@@ -1252,6 +1253,6 @@ describe("temp-kb", () => {
     });
   });
 });
-  afterAll(() => {
-    mock.restore();
-  });
+afterAll(() => {
+  mock.restore();
+});

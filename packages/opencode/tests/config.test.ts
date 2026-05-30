@@ -142,7 +142,6 @@ describe("config loader", () => {
       toastFailures: false,
       toastSuccesses: true,
       toastCooldownMs: 2500,
-      briefs: { autoSubmit: true },
     });
   });
 
@@ -247,28 +246,5 @@ describe("config loader", () => {
     expect(c.guidance.smartEnforcement.requireRootKbForStrict).toBe(false);
     expect(c.guidance.smartEnforcement.completionReminder).toBe(false);
     expect(c.logLevel).toBe("debug");
-  });
-
-  test("ux.briefs config validation merges briefs block", () => {
-    fs.writeFileSync(
-      path.join(home, ".config", "opencode", "kibi.json"),
-      JSON.stringify({
-        ux: {
-          briefs: {
-            autoSubmit: false,
-          },
-        },
-      }),
-    );
-
-    const c = loadConfig(projDir);
-
-    expect(c.ux.briefs).toEqual({
-      autoSubmit: false,
-    });
-    expect(c.ux.toastStartup).toBe(DEFAULTS.ux.toastStartup);
-    expect(c.ux.toastFailures).toBe(DEFAULTS.ux.toastFailures);
-    expect(c.ux.toastSuccesses).toBe(DEFAULTS.ux.toastSuccesses);
-    expect(c.ux.toastCooldownMs).toBe(DEFAULTS.ux.toastCooldownMs);
   });
 });

@@ -10,5 +10,10 @@
     "jsxFactory": "h",
     "jsxFragmentFactory": "Fragment"
   },
-  "include": ["**/*.test.ts", "**/*.test.tsx", "globals.d.ts", "../src/**/*.d.ts"]
+  "include": [
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "globals.d.ts",
+    "../src/**/*.d.ts"
+  ]
 }

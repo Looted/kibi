@@ -10,8 +10,8 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { PathLike } from "node:fs";
-import type fg from "fast-glob";
 import * as path from "node:path";
+import type fg from "fast-glob";
 import {
   atomicPublish,
   cleanupAbandonedStagingDirectories,
@@ -142,10 +142,13 @@ describe("cleanupAbandonedStagingDirectories", () => {
   });
 
   test("is a no-op for legacy fixed staging paths", async () => {
-    await cleanupAbandonedStagingDirectories("/repo/.kb/branches/main.staging", {
-      ...stagingDeps(),
-      fg: mockFg as unknown as typeof fg,
-    });
+    await cleanupAbandonedStagingDirectories(
+      "/repo/.kb/branches/main.staging",
+      {
+        ...stagingDeps(),
+        fg: mockFg as unknown as typeof fg,
+      },
+    );
 
     expect(mockFg).not.toHaveBeenCalled();
     expect(mockRmSync).not.toHaveBeenCalled();

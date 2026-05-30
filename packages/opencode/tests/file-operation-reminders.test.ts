@@ -131,8 +131,12 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("hard_block");
-      expect(result.lifecycleReminder).toContain("Hard Kibi checkpoint required");
-      expect(result.lifecycleReminder).toContain("packages/opencode/src/existing.ts");
+      expect(result.lifecycleReminder).toContain(
+        "Hard Kibi checkpoint required",
+      );
+      expect(result.lifecycleReminder).toContain(
+        "packages/opencode/src/existing.ts",
+      );
       expect(result.lifecycleReminder).toContain("kb_check");
       expect(result.reminderKindsToMark).toContain("kibi_write");
     });
@@ -152,7 +156,9 @@ describe("deriveFileOperationReminder", () => {
       expect(result.lifecycleReminder).toContain("kb_search");
       expect(result.lifecycleReminder).toContain("kb_query");
       expect(result.lifecycleReminder).toContain("sourceFile");
-      expect(result.lifecycleReminder).toContain("packages/opencode/src/no-links.ts");
+      expect(result.lifecycleReminder).toContain(
+        "packages/opencode/src/no-links.ts",
+      );
       expect(result.lifecycleReminder).toContain("kb_upsert");
       expect(result.reminderKindsToMark).toContain("kibi_delete");
     });
@@ -169,7 +175,9 @@ describe("deriveFileOperationReminder", () => {
       });
 
       expect(result.policyDecision).toBe("hard_block");
-      expect(result.lifecycleReminder).toContain("packages/opencode/tests/new-policy.test.ts");
+      expect(result.lifecycleReminder).toContain(
+        "packages/opencode/tests/new-policy.test.ts",
+      );
       expect(result.reminderKindsToMark).toContain("kibi_write");
     });
 
@@ -196,7 +204,9 @@ describe("deriveFileOperationReminder", () => {
       expect(configResult.policyDecision).toBe("hard_block");
       expect(configResult.lifecycleReminder).toContain("bunfig.toml");
       expect(symbolManifestResult.policyDecision).toBe("hard_block");
-      expect(symbolManifestResult.lifecycleReminder).toContain("documentation/symbols.yaml");
+      expect(symbolManifestResult.lifecycleReminder).toContain(
+        "documentation/symbols.yaml",
+      );
     });
 
     test("non-authoritative vendored root in hard mode skips lifecycle enforcement", () => {
@@ -230,7 +240,9 @@ describe("deriveFileOperationReminder", () => {
 
       expect(result.policyDecision).toBe("advisory_guidance");
       expect(result.lifecycleReminder).toContain("Edited file detected");
-      expect(result.lifecycleReminder).not.toContain("Hard Kibi checkpoint required");
+      expect(result.lifecycleReminder).not.toContain(
+        "Hard Kibi checkpoint required",
+      );
     });
 
     test("multiple dirty files aggregate into one hard block with five shown paths and remaining count", () => {
@@ -244,7 +256,15 @@ describe("deriveFileOperationReminder", () => {
           { normalizedPath: "src/six.ts", lifecycle: "deleted" },
           { normalizedPath: "src/seven.ts", lifecycle: "edited" },
         ],
-        pathKinds: ["code", "code", "test", "unknown", "symbol", "code", "code"],
+        pathKinds: [
+          "code",
+          "code",
+          "test",
+          "unknown",
+          "symbol",
+          "code",
+          "code",
+        ],
         linkedEntityResults: [
           { ids: ["REQ-1"], source: "symbols" },
           { ids: [], source: "none" },

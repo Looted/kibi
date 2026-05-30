@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
-import * as path from "node:path";
 import * as os from "node:os";
+import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
 import {
   refreshCoordinatesForSymbolId,
@@ -27,7 +27,9 @@ function emptyDirSync(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
-function readCoordinatesArtifact(filePath: string): Record<string, Record<string, unknown>> {
+function readCoordinatesArtifact(
+  filePath: string,
+): Record<string, Record<string, unknown>> {
   const parsed = parseYAML(fs.readFileSync(filePath, "utf-8")) as
     | { coordinates?: Record<string, Record<string, unknown>> }
     | undefined;
@@ -355,7 +357,9 @@ symbols:
     );
 
     expect(result).toEqual({ refreshed: false, found: true });
-    expect(fs.readFileSync(refreshManifestPath, "utf-8")).toBe(yamlWithCoordinates);
+    expect(fs.readFileSync(refreshManifestPath, "utf-8")).toBe(
+      yamlWithCoordinates,
+    );
     expect(fs.existsSync(refreshCoordinatesPath)).toBe(true);
 
     const coordinates = readCoordinatesArtifact(refreshCoordinatesPath);
@@ -442,7 +446,11 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).not.toContain("sourceLine:");
     expect(updated).not.toContain("coordinatesGeneratedAt:");
-    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-start-server"]).toEqual(
+    expect(
+      readCoordinatesArtifact(
+        internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"),
+      )["SYM-start-server"],
+    ).toEqual(
       expect.objectContaining({
         sourceFile: "src/server.ts",
         sourceLine: expect.any(Number),
@@ -460,7 +468,11 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).not.toContain("sourceLine:");
     expect(updated).not.toContain("coordinatesGeneratedAt:");
-    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-parse-manifest"]).toEqual(
+    expect(
+      readCoordinatesArtifact(
+        internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"),
+      )["SYM-parse-manifest"],
+    ).toEqual(
       expect.objectContaining({
         sourceFile: "src/server.ts",
         sourceLine: expect.any(Number),
@@ -478,7 +490,11 @@ describe("refreshCoordinatesForSymbolId — internal declaration shapes (regress
     const updated = fs.readFileSync(internalManifestPath, "utf-8");
     expect(updated).not.toContain("sourceLine:");
     expect(updated).not.toContain("coordinatesGeneratedAt:");
-    expect(readCoordinatesArtifact(internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"))["SYM-merge-static-links"]).toEqual(
+    expect(
+      readCoordinatesArtifact(
+        internalManifestPath.replace("symbols.yaml", "symbol-coordinates.yaml"),
+      )["SYM-merge-static-links"],
+    ).toEqual(
       expect.objectContaining({
         sourceFile: "src/server.ts",
         sourceLine: expect.any(Number),

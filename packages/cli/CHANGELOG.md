@@ -1,5 +1,16 @@
 # kibi-cli
 
+## 0.11.3
+
+### Patch Changes
+
+- Kibi CLI users no longer get configuration or init output for the removed briefs feature. Existing project setup stays focused on the core knowledge base files and hooks, with no new `.kb/briefs/` ignore entry created by `kibi init`. Stale brief-specific config should now be treated as removed product surface rather than as a supported no-op.
+
+  Technical summary:
+
+  - Remove CLI brief config support and the public `brief-config` export from built artifacts.
+  - Regenerate CLI dist after removing brief schema/init behavior.
+
 ## 0.11.2
 
 ### Patch Changes

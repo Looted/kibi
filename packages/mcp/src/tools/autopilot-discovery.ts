@@ -7,9 +7,9 @@
 import fs from "node:fs";
 import path from "node:path";
 import fg from "fast-glob";
+import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
 import { createRepoIgnorePolicy } from "kibi-cli/ignore-policy";
 import type { PrologProcess } from "kibi-cli/prolog";
-import * as cliSymbolCoordinator from "kibi-cli/extractors/symbols-coordinator";
 import { runJsonModuleQuery } from "./core-module.js";
 
 export type ActivationState =
@@ -27,7 +27,8 @@ export type ActivationMode =
   | "vendored_blocked";
 
 // implements REQ-001
-export const AUTOPILOT_PROVIDER_ORDER = [ // implements REQ-001
+export const AUTOPILOT_PROVIDER_ORDER = [
+  // implements REQ-001
   "typed_kibi_docs",
   "generic_repo_docs",
   "repo_metadata",
@@ -224,7 +225,10 @@ function rootKbConfigExists(cwd: string): boolean {
   return fs.existsSync(path.join(cwd, ".kb", "config.json"));
 }
 
-function hasWorkspaceProjectSignals(cwd: string, vendoredRoots: string[]): boolean {
+function hasWorkspaceProjectSignals(
+  cwd: string,
+  vendoredRoots: string[],
+): boolean {
   const vendoredTopLevel = new Set(
     vendoredRoots
       .map((item) => item.split("/")[0])
@@ -280,7 +284,12 @@ function buildSourceSummary(
   vendored: string[],
 ): Pick<
   DiscoverySummary,
-  "activationState" | "activationMode" | "applyBlocked" | "reason" | "handoffMessage" | "vendored"
+  | "activationState"
+  | "activationMode"
+  | "applyBlocked"
+  | "reason"
+  | "handoffMessage"
+  | "vendored"
 > {
   return {
     activationState: activation.activationState,
@@ -304,13 +313,14 @@ function sortUnique(values: Iterable<string>): string[] {
   return Array.from(new Set(values)).filter(Boolean).sort();
 }
 
-function toRelativePosixPath(workspaceRoot: string, targetPath: string): string {
+function toRelativePosixPath(
+  workspaceRoot: string,
+  targetPath: string,
+): string {
   return path.relative(workspaceRoot, targetPath).split(path.sep).join("/");
 }
 
-function normalizeDiscoveryPaths(
-  cwd: string,
-): DiscoveryPaths {
+function normalizeDiscoveryPaths(cwd: string): DiscoveryPaths {
   const config = readRootConfig(cwd) || {};
   const configured = (config.paths as Record<string, string> | undefined) ?? {};
   const readPath = (key: keyof DiscoveryPaths): string => {
@@ -335,7 +345,10 @@ function normalizeDiscoveryPaths(
   };
 }
 
-function buildIgnoredGlobs(vendoredRoots: string[], workspaceRoot: string): string[] {
+function buildIgnoredGlobs(
+  vendoredRoots: string[],
+  workspaceRoot: string,
+): string[] {
   const ignored = new Set<string>();
 
   for (const dirName of IGNORED_DIRECTORY_NAMES) {
@@ -370,7 +383,8 @@ function detectLanguagesFromPaths(paths: string[]): string[] {
   const detected = new Set<string>();
 
   for (const filePath of paths) {
-    const language = SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()];
+    const language =
+      SOURCE_LANGUAGE_EXTENSIONS[path.extname(filePath).toLowerCase()];
     if (language) {
       detected.add(language);
     }
@@ -397,7 +411,9 @@ function createFileEvidence(
   };
 }
 
-function runTypedKibiDocsProvider(workspaceRoot: string): EvidenceProviderResult {
+function runTypedKibiDocsProvider(
+  workspaceRoot: string,
+): EvidenceProviderResult {
   const discoveryPaths = normalizeDiscoveryPaths(workspaceRoot);
   const markdownPatterns = [
     normalizePattern(discoveryPaths.requirements),
@@ -484,14 +500,19 @@ function runGenericRepoDocsProvider(
   };
 }
 
-function detectLanguagesFromPackageJson(packageJson: Record<string, unknown>): string[] {
+function detectLanguagesFromPackageJson(
+  packageJson: Record<string, unknown>,
+): string[] {
   const detected = new Set<string>();
   const scripts = packageJson.scripts;
   const bin = packageJson.bin;
 
   if (typeof scripts === "object" && scripts) {
     for (const value of Object.values(scripts)) {
-      if (typeof value === "string" && /\.(cts|mts|ts|tsx)\b|\b(tsx|ts-node)\b/i.test(value)) {
+      if (
+        typeof value === "string" &&
+        /\.(cts|mts|ts|tsx)\b|\b(tsx|ts-node)\b/i.test(value)
+      ) {
         detected.add("typescript");
       }
       if (typeof value === "string" && /\.(cjs|mjs|js|jsx)\b/i.test(value)) {
@@ -515,7 +536,9 @@ function detectLanguagesFromPackageJson(packageJson: Record<string, unknown>): s
   return Array.from(detected);
 }
 
-function runRepoMetadataProvider(workspaceRoot: string): EvidenceProviderResult {
+function runRepoMetadataProvider(
+  workspaceRoot: string,
+): EvidenceProviderResult {
   const patterns = [
     "package.json",
     "opencode.json",
@@ -570,10 +593,9 @@ function runRepoMetadataProvider(workspaceRoot: string): EvidenceProviderResult 
 
     if (basename === "package.json") {
       try {
-        const parsed = JSON.parse(fs.readFileSync(absolutePath, "utf8")) as Record<
-          string,
-          unknown
-        >;
+        const parsed = JSON.parse(
+          fs.readFileSync(absolutePath, "utf8"),
+        ) as Record<string, unknown>;
         for (const language of detectLanguagesFromPackageJson(parsed)) {
           detectedLanguages.add(language);
         }
@@ -608,12 +630,24 @@ function runRepoLayoutProvider(
   workspaceRoot: string,
   vendoredRoots: string[],
 ): EvidenceProviderResult {
-  const layoutRoots = ["src", "app", "apps", "packages", "tests", "test", "docs", "scripts"];
+  const layoutRoots = [
+    "src",
+    "app",
+    "apps",
+    "packages",
+    "tests",
+    "test",
+    "docs",
+    "scripts",
+  ];
   const evidence: AutopilotEvidence[] = [];
 
   for (const relativePath of layoutRoots) {
     const absolutePath = path.join(workspaceRoot, relativePath);
-    if (!fs.existsSync(absolutePath) || !fs.statSync(absolutePath).isDirectory()) {
+    if (
+      !fs.existsSync(absolutePath) ||
+      !fs.statSync(absolutePath).isDirectory()
+    ) {
       continue;
     }
 
@@ -699,7 +733,9 @@ function runTestTopologyProvider(
     const relativePath = toRelativePosixPath(workspaceRoot, absolutePath);
     const frameworks = (() => {
       try {
-        return detectTestFrameworksFromContent(fs.readFileSync(absolutePath, "utf8"));
+        return detectTestFrameworksFromContent(
+          fs.readFileSync(absolutePath, "utf8"),
+        );
       } catch (error) {
         scanWarnings.push(`test_topology:failed_to_read:${relativePath}`);
         return [];
@@ -751,7 +787,10 @@ function runSourceSymbolsProvider(
 ): EvidenceProviderResult {
   const analyzeSourceText = (
     cliSymbolCoordinator as {
-      analyzeSourceText?: (filePath: string, content: string) => {
+      analyzeSourceText?: (
+        filePath: string,
+        content: string,
+      ) => {
         sourceFile: string;
         language: string;
         providerId: string | null;
@@ -789,7 +828,8 @@ function runSourceSymbolsProvider(
   for (const absolutePath of sortUnique(sourceFiles)) {
     const relativePath = toRelativePosixPath(workspaceRoot, absolutePath);
     const language =
-      SOURCE_LANGUAGE_EXTENSIONS[path.extname(absolutePath).toLowerCase()] ?? "unknown";
+      SOURCE_LANGUAGE_EXTENSIONS[path.extname(absolutePath).toLowerCase()] ??
+      "unknown";
     detectedLanguages.add(language);
 
     try {
@@ -801,7 +841,9 @@ function runSourceSymbolsProvider(
             language,
             providerId: null,
             module: {
-              title: path.basename(relativePath, path.extname(relativePath)) || relativePath,
+              title:
+                path.basename(relativePath, path.extname(relativePath)) ||
+                relativePath,
               analysisMode: "fallback",
               fallbackReason: "provider_unavailable",
             },
@@ -951,7 +993,8 @@ export function discoverProviderEvidence(
   const evidence = providerResults.flatMap((result) => result.evidence);
 
   evidence.sort((left, right) => {
-    const providerCompare = AUTOPILOT_PROVIDER_ORDER.indexOf(left.provider) -
+    const providerCompare =
+      AUTOPILOT_PROVIDER_ORDER.indexOf(left.provider) -
       AUTOPILOT_PROVIDER_ORDER.indexOf(right.provider);
     if (providerCompare !== 0) return providerCompare;
 
@@ -967,7 +1010,9 @@ export function discoverProviderEvidence(
   };
 }
 
-function toActivationPolicy(activationState: ActivationState): ActivationPolicy {
+function toActivationPolicy(
+  activationState: ActivationState,
+): ActivationPolicy {
   switch (activationState) {
     case "root_partial":
       return {
@@ -1028,7 +1073,9 @@ export async function resolveActivationPolicy(
   workspaceRoot: string,
   prolog: PrologProcess,
 ): Promise<ActivationPolicy> {
-  return toActivationPolicy(await classifyActivationState(workspaceRoot, prolog));
+  return toActivationPolicy(
+    await classifyActivationState(workspaceRoot, prolog),
+  );
 }
 
 function rootTargetsAllResolve(cwd: string): boolean {
@@ -1116,7 +1163,8 @@ export async function classifyActivationState(
       (s, t) => s + (counts[t] ?? 0),
       0,
     );
-    const scenarioTestAdrFact = (counts.scenario ?? 0) +
+    const scenarioTestAdrFact =
+      (counts.scenario ?? 0) +
       (counts.test ?? 0) +
       (counts.adr ?? 0) +
       (counts.fact ?? 0);
@@ -1152,7 +1200,8 @@ function collectMarkdownFiles(
 
     // Skip vendored roots
     const rel = path.relative(workspaceRoot, full).split(path.sep).join("/");
-    if (vendoredRoots.some((v) => rel === v || rel.startsWith(`${v}/`))) continue;
+    if (vendoredRoots.some((v) => rel === v || rel.startsWith(`${v}/`)))
+      continue;
 
     const st = fs.statSync(full);
     if (st.isDirectory()) {
@@ -1160,7 +1209,9 @@ function collectMarkdownFiles(
       continue;
     }
     if (st.isFile() && entry.endsWith(".md")) {
-      results.push(path.relative(workspaceRoot, full).split(path.sep).join("/"));
+      results.push(
+        path.relative(workspaceRoot, full).split(path.sep).join("/"),
+      );
     }
   }
 

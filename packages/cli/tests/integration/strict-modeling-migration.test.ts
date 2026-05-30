@@ -5,10 +5,10 @@
  * Self-contained (no Prolog binary, no real .kb/ directory beyond tmp).
  */
 
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 
 import {
   LATEST_KB_SCHEMA_VERSION,
@@ -16,11 +16,11 @@ import {
 } from "../../src/utils/schema-version.js";
 
 import {
-  buildStrictWriteSet,
-  buildStableRequirementIds,
-  modelRequirementClaims,
   type SemanticClaim,
   type StrictModelInput,
+  buildStableRequirementIds,
+  buildStrictWriteSet,
+  modelRequirementClaims,
 } from "../../src/utils/strict-modeling.js";
 
 import { migrateCommand } from "../../src/commands/migrate.js";
@@ -46,7 +46,9 @@ describe("Integration: schema version warning before migration", () => {
   });
 
   test("config with current schemaVersion returns current status with no warning", () => {
-    const status = getSchemaVersionStatus({ schemaVersion: LATEST_KB_SCHEMA_VERSION });
+    const status = getSchemaVersionStatus({
+      schemaVersion: LATEST_KB_SCHEMA_VERSION,
+    });
     expect(status.status).toBe("current");
     expect(status.needsMigration).toBe(false);
     expect(status.warning).toBeNull();
@@ -98,14 +100,20 @@ describe("Integration: kibi migrate idempotency", () => {
   test("after migration, config.json contains schemaVersion", async () => {
     await migrateCommand({ yes: true, dryRun: false });
     const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<string, unknown>;
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
     expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
   });
 
   test("dry-run does not write schemaVersion to config.json", async () => {
     await migrateCommand({ yes: false, dryRun: true });
     const configPath = path.join(tmpDir, ".kb", "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<string, unknown>;
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as Record<
+      string,
+      unknown
+    >;
     expect(config.schemaVersion).toBeUndefined();
   });
 });
@@ -190,7 +198,10 @@ describe("Integration: stable IDs on re-run", () => {
 
   test("different source produces different IDs", () => {
     const ids1 = buildStableRequirementIds(CLAIM);
-    const ids2 = buildStableRequirementIds({ ...CLAIM, source: "docs/other.md" });
+    const ids2 = buildStableRequirementIds({
+      ...CLAIM,
+      source: "docs/other.md",
+    });
     expect(ids1.reqId).not.toBe(ids2.reqId);
   });
 
@@ -226,7 +237,12 @@ describe("Integration: stable IDs on re-run", () => {
 
 describe("Integration: VS Code brief parser automationReview logic (inline)", () => {
   interface AutomationReview {
-    generatedEntities: Array<{ id: string; type: string; title: string; confidence: number }>;
+    generatedEntities: Array<{
+      id: string;
+      type: string;
+      title: string;
+      confidence: number;
+    }>;
     strictReadinessScore: number;
     confidence: number;
     migrationWarnings: string[];
@@ -247,7 +263,9 @@ describe("Integration: VS Code brief parser automationReview logic (inline)", ()
     );
   }
 
-  function getAutomationReviewFromBrief(brief: Record<string, unknown>): AutomationReview | null {
+  function getAutomationReviewFromBrief(
+    brief: Record<string, unknown>,
+  ): AutomationReview | null {
     const sc = brief.structuredContent;
     if (typeof sc !== "object" || sc === null) return null;
     const ar = (sc as Record<string, unknown>).automationReview;
@@ -256,7 +274,14 @@ describe("Integration: VS Code brief parser automationReview logic (inline)", ()
   }
 
   const MOCK: AutomationReview = {
-    generatedEntities: [{ id: "REQ-AUTO-001", type: "req", title: "Data retention", confidence: 0.9 }],
+    generatedEntities: [
+      {
+        id: "REQ-AUTO-001",
+        type: "req",
+        title: "Data retention",
+        confidence: 0.9,
+      },
+    ],
     strictReadinessScore: 0.85,
     confidence: 0.9,
     migrationWarnings: [],
@@ -265,14 +290,20 @@ describe("Integration: VS Code brief parser automationReview logic (inline)", ()
   };
 
   test("brief with valid automationReview returns non-null", () => {
-    const result = getAutomationReviewFromBrief({ structuredContent: { automationReview: MOCK } });
+    const result = getAutomationReviewFromBrief({
+      structuredContent: { automationReview: MOCK },
+    });
     expect(result).not.toBeNull();
     expect(result?.strictReadinessScore).toBe(0.85);
     expect(result?.generatedEntities.length).toBe(1);
   });
 
   test("brief with null automationReview returns null", () => {
-    expect(getAutomationReviewFromBrief({ structuredContent: { automationReview: null } })).toBeNull();
+    expect(
+      getAutomationReviewFromBrief({
+        structuredContent: { automationReview: null },
+      }),
+    ).toBeNull();
   });
 
   test("brief with missing structuredContent returns null", () => {
@@ -281,14 +312,21 @@ describe("Integration: VS Code brief parser automationReview logic (inline)", ()
 
   test("brief with unknown shape degrades gracefully (returns null)", () => {
     expect(
-      getAutomationReviewFromBrief({ structuredContent: { automationReview: { unknownField: "x" } } }),
+      getAutomationReviewFromBrief({
+        structuredContent: { automationReview: { unknownField: "x" } },
+      }),
     ).toBeNull();
   });
 
   test("brief with migrationWarnings returns them", () => {
     const result = getAutomationReviewFromBrief({
       structuredContent: {
-        automationReview: { ...MOCK, migrationWarnings: ["Schema version is outdated. Run `kibi migrate` to upgrade."] },
+        automationReview: {
+          ...MOCK,
+          migrationWarnings: [
+            "Schema version is outdated. Run `kibi migrate` to upgrade.",
+          ],
+        },
       },
     });
     expect(result?.migrationWarnings.length).toBe(1);
@@ -297,10 +335,15 @@ describe("Integration: VS Code brief parser automationReview logic (inline)", ()
 
   test("toast appends migration required when migrationWarnings non-empty", () => {
     // Inline the VS Code activation/briefs.ts toast logic
-    function buildToastMessage(title: string, hasMigrationWarnings: boolean): string {
+    function buildToastMessage(
+      title: string,
+      hasMigrationWarnings: boolean,
+    ): string {
       return hasMigrationWarnings ? `${title} — migration required` : title;
     }
-    expect(buildToastMessage("Brief ready", true)).toBe("Brief ready — migration required");
+    expect(buildToastMessage("Brief ready", true)).toBe(
+      "Brief ready — migration required",
+    );
     expect(buildToastMessage("Brief ready", false)).toBe("Brief ready");
   });
 });
