@@ -100,7 +100,7 @@ jobs:
           cd ../mcp && npm pack
           cd ../opencode && npm pack
       - name: Upload package tarballs
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: package-tarballs
           path: |
@@ -110,7 +110,7 @@ jobs:
             packages/opencode/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: vscode-vsix
           path: packages/vscode/*.vsix
@@ -151,7 +151,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download package tarballs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: package-tarballs
           path: packages
@@ -209,7 +209,7 @@ jobs:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
       - name: Download package tarballs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: package-tarballs
           path: packages
@@ -250,7 +250,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Download VS Code extension VSIX
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: vscode-vsix
           path: packages/vscode
