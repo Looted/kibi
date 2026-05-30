@@ -39,6 +39,15 @@
     "links": { "type": "array", "items": { "type": "string" } },
     "text_ref": { "type": "string" },
     "sourceFile": { "type": "string" },
+    "granularity_reason": {
+      "type": "string",
+      "enum": [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link"
+      ]
+    },
     "verification_scope": {
       "type": "string",
       "enum": ["unit", "integration", "end_to_end"]

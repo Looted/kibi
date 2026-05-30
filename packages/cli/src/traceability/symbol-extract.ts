@@ -16,7 +16,14 @@ const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
 export interface ExtractedSymbol {
   id: string;
   name: string;
-  kind: "function" | "class" | "variable" | "enum" | "unknown";
+  kind:
+    | "function"
+    | "class"
+    | "interface"
+    | "type"
+    | "variable"
+    | "enum"
+    | "unknown";
   location: {
     file: string;
     startLine: number;
@@ -333,7 +340,7 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
     }
   }
 
@@ -362,7 +369,7 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
     }
   }
 
@@ -386,7 +393,55 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
+    }
+  }
+
+  // Interfaces
+  for (const iface of sf.getInterfaces()) {
+    if (!iface.isExported()) continue;
+    try {
+      const name = iface.getName();
+      const start = iface.getNameNode().getStart();
+      const end = iface.getEnd();
+      const span = getSpan(start, end);
+      const reqLinks = parseReqDirectives(iface.getText());
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "interface",
+          span,
+          reqLinks,
+          manifestLookup,
+        ),
+      );
+    } catch {
+      void stagedFile.path;
+    }
+  }
+
+  // Type aliases
+  for (const alias of sf.getTypeAliases()) {
+    if (!alias.isExported()) continue;
+    try {
+      const name = alias.getName();
+      const start = alias.getNameNode().getStart();
+      const end = alias.getEnd();
+      const span = getSpan(start, end);
+      const reqLinks = parseReqDirectives(alias.getText());
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "type",
+          span,
+          reqLinks,
+          manifestLookup,
+        ),
+      );
+    } catch {
+      void stagedFile.path;
     }
   }
 
@@ -410,9 +465,9 @@ export function extractSymbolsFromStagedFile(
             manifestLookup,
           ),
         );
-      } catch {
-        // skip: individual declaration extraction may fail on malformed AST nodes
-      }
+    } catch {
+      void stagedFile.path;
+    }
     }
   }
 

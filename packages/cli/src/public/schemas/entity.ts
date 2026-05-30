@@ -118,6 +118,15 @@ const entitySchema: Record<string, unknown> = {
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
     sourceFile: { type: "string" },
+    granularity_reason: {
+      type: "string",
+      enum: [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+      ],
+    },
     type: {
       type: "string",
       enum: [
