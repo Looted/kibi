@@ -1,5 +1,12 @@
 # kibi-opencode
 
+## 0.15.2
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-cli@0.12.0
+
 ## 0.15.1
 
 ### Patch Changes
