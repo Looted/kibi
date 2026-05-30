@@ -33,7 +33,7 @@ required_fields([id, title, status, created_at, updated_at, source]).
 % Relationship types to check for dangling references
 all_relationship_types([
     depends_on, verified_by, validates, specified_by,
-    constrains, requires_property, supersedes, relates_to
+    constrains, requires_property, requires_predicate, supersedes, relates_to
 ]).
 
 %% check_all(-ViolationsDict)
@@ -387,9 +387,25 @@ strict_fact_shape_violation(violation(
     ->  fail  % Observation facts have no required fields beyond fact_kind
     ;   Kind = meta
     ->  fail  % Meta facts have no required fields beyond fact_kind
+    ;   Kind = predicate_schema
+    ->  findall(Msg, predicate_schema_shape_error(Props, Msg), Errors),
+        (   Errors = []
+        ->  fail
+        ;   Errors = [First|_],
+            Description = First,
+            Suggestion = "Ensure predicate_schema facts have predicate_name, predicate_arity, argument_names, and argument_types with matching arity"
+        )
+    ;   Kind = predicate
+    ->  findall(Msg, predicate_shape_error(Props, Msg), Errors),
+        (   Errors = []
+        ->  fail
+        ;   Errors = [First|_],
+            Description = First,
+            Suggestion = "Ensure predicate facts have predicate_name, non-empty predicate_args, canonical_key, and assert/deny polarity when present"
+        )
     ;   % Unknown fact_kind - report as malformed
         format(string(Description), "Unknown fact_kind: ~w", [Kind]),
-        Suggestion = "Use one of: subject, property_value, observation, meta"
+        Suggestion = "Use one of: subject, property_value, observation, meta, predicate_schema, predicate"
     ),
     
     (   memberchk(source=Source0, Props)
@@ -434,6 +450,68 @@ value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
 value_type_matches_field(int, Props) :- memberchk(value_int=_, Props), !.
 value_type_matches_field(number, Props) :- memberchk(value_number=_, Props), !.
 value_type_matches_field(bool, Props) :- memberchk(value_bool=_, Props), !.
+
+predicate_schema_shape_error(Props, "Predicate schema fact missing required field: predicate_name") :-
+    \+ memberchk(predicate_name=_, Props).
+predicate_schema_shape_error(Props, "Predicate schema fact missing required field: predicate_arity") :-
+    memberchk(predicate_name=_, Props),
+    \+ memberchk(predicate_arity=_, Props).
+predicate_schema_shape_error(Props, "Predicate schema fact missing required field: argument_names") :-
+    memberchk(predicate_arity=_, Props),
+    \+ memberchk(argument_names=_, Props).
+predicate_schema_shape_error(Props, "Predicate schema fact missing required field: argument_types") :-
+    memberchk(argument_names=_, Props),
+    \+ memberchk(argument_types=_, Props).
+predicate_schema_shape_error(Props, "Predicate schema fact argument_names length must match predicate_arity") :-
+    memberchk(predicate_arity=RawArity, Props),
+    checks_normalize_integer(RawArity, Arity),
+    memberchk(argument_names=RawNames, Props),
+    checks_normalize_atom_list(RawNames, Names),
+    length(Names, Count),
+    Count =\= Arity.
+predicate_schema_shape_error(Props, "Predicate schema fact argument_types length must match predicate_arity") :-
+    memberchk(predicate_arity=RawArity, Props),
+    checks_normalize_integer(RawArity, Arity),
+    memberchk(argument_types=RawTypes, Props),
+    checks_normalize_atom_list(RawTypes, Types),
+    length(Types, Count),
+    Count =\= Arity.
+
+predicate_shape_error(Props, "Predicate fact missing required field: predicate_name") :-
+    \+ memberchk(predicate_name=_, Props).
+predicate_shape_error(Props, "Predicate fact missing required field: predicate_args") :-
+    memberchk(predicate_name=_, Props),
+    \+ memberchk(predicate_args=_, Props).
+predicate_shape_error(Props, "Predicate fact predicate_args must be non-empty") :-
+    memberchk(predicate_args=RawArgs, Props),
+    checks_normalize_atom_list(RawArgs, Args),
+    Args = [].
+predicate_shape_error(Props, "Predicate fact missing required field: canonical_key") :-
+    memberchk(predicate_args=_, Props),
+    \+ memberchk(canonical_key=_, Props).
+predicate_shape_error(Props, "Predicate fact polarity must be assert or deny") :-
+    memberchk(polarity=RawPolarity, Props),
+    normalize_term_atom(RawPolarity, Polarity),
+    \+ memberchk(Polarity, [assert, deny]).
+
+checks_normalize_integer(Raw, Integer) :-
+    (   Raw = ^^(Value, _Type)
+    ->  checks_normalize_integer(Value, Integer)
+    ;   integer(Raw)
+    ->  Integer = Raw
+    ;   atom(Raw)
+    ->  atom_number(Raw, Integer)
+    ;   string(Raw)
+    ->  number_string(Integer, Raw)
+    ).
+
+checks_normalize_atom_list(Raw, Atoms) :-
+    (   Raw = ^^(Value, _Type)
+    ->  checks_normalize_atom_list(Value, Atoms)
+    ;   is_list(Raw)
+    ->  maplist(normalize_term_atom, Raw, Atoms)
+    ;   Atoms = []
+    ).
 
 %% check_domain_contradictions(-Violations)
 % Finds all pairs of requirements with contradicting required properties.
