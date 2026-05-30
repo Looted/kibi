@@ -47,6 +47,15 @@ entity_property(fact, closed_world, boolean).
 entity_property(fact, valid_from, datetime).
 entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
+entity_property(fact, predicate_name, string).
+entity_property(fact, predicate_namespace, string).
+entity_property(fact, predicate_arity, integer).
+entity_property(fact, argument_names, list).
+entity_property(fact, argument_types, list).
+entity_property(fact, argument_descriptions, list).
+entity_property(fact, aliases, list).
+entity_property(fact, examples, list).
+entity_property(fact, predicate_args, list).
 
 % Typed test verification fields - only valid for test entities
 entity_property(test, verification_scope, atom).

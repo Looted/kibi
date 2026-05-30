@@ -88,6 +88,15 @@ is_fact_only_field(closed_world).
 is_fact_only_field(valid_from).
 is_fact_only_field(valid_to).
 is_fact_only_field(canonical_key).
+is_fact_only_field(predicate_name).
+is_fact_only_field(predicate_namespace).
+is_fact_only_field(predicate_arity).
+is_fact_only_field(argument_names).
+is_fact_only_field(argument_types).
+is_fact_only_field(argument_descriptions).
+is_fact_only_field(aliases).
+is_fact_only_field(examples).
+is_fact_only_field(predicate_args).
 
 % is_test_only_field(+Key) - true if Key is a test-specific field
 is_test_only_field(verification_scope).
@@ -97,7 +106,7 @@ is_test_only_field(verification_perspective).
 validate_fact_shape(subject, Props) :-
     memberchk(subject_key=_Val, Props),
     valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props).
+    valid_strict_polarity_in_props(Props).
 validate_fact_shape(property_value, Props) :-
     memberchk(subject_key=_Subject, Props),
     memberchk(property_key=_Property, Props),
@@ -108,7 +117,7 @@ validate_fact_shape(property_value, Props) :-
     exactly_one_value_field(Props),
     value_type_matches_field(VT, Props),
     valid_optional_fact_enums(Props),
-    valid_polarity_in_props(Props).
+    valid_strict_polarity_in_props(Props).
 validate_fact_shape(observation, Props) :-
     valid_optional_fact_enums(Props),
     valid_polarity_in_props(Props).
@@ -116,9 +125,26 @@ validate_fact_shape(meta, Props) :-
     % Meta facts are allowed but don't require full strict property tuple yet
     valid_optional_fact_enums(Props),
     valid_polarity_in_props(Props).
+validate_fact_shape(predicate_schema, Props) :-
+    memberchk(predicate_name=_Name, Props),
+    memberchk(predicate_arity=Arity, Props),
+    Arity >= 1,
+    memberchk(argument_names=ArgumentNames, Props),
+    memberchk(argument_types=ArgumentTypes, Props),
+    same_length(ArgumentNames, ArgumentTypes),
+    length(ArgumentNames, Arity),
+    valid_optional_fact_enums(Props),
+    valid_polarity_in_props(Props).
+validate_fact_shape(predicate, Props) :-
+    memberchk(predicate_name=_Name, Props),
+    memberchk(predicate_args=Args, Props),
+    Args \= [],
+    memberchk(canonical_key=_CanonicalKey, Props),
+    valid_optional_fact_enums(Props),
+    valid_predicate_polarity_in_props(Props).
 validate_fact_shape(Kind, _Props) :-
     % Unknown fact_kind values fail validation
-    \+ memberchk(Kind, [subject, property_value, observation, meta]),
+    \+ memberchk(Kind, [subject, property_value, observation, meta, predicate_schema, predicate]),
     fail.
 
 % valid_operator(+Op)
@@ -140,6 +166,12 @@ valid_value_type(bool).
 valid_polarity_in_props(Props) :-
     ( memberchk(polarity=P, Props) -> valid_polarity(P) ; true ).
 
+valid_strict_polarity_in_props(Props) :-
+    ( memberchk(polarity=P, Props) -> valid_strict_polarity(P) ; true ).
+
+valid_predicate_polarity_in_props(Props) :-
+    ( memberchk(polarity=P, Props) -> valid_predicate_polarity(P) ; true ).
+
 % valid_optional_fact_enums(+Props)
 % Validates enum-typed fact fields whenever they are present
 valid_optional_fact_enums(Props) :-
@@ -155,6 +187,14 @@ valid_optional_test_enums(Props) :-
 % valid_polarity(+P)
 valid_polarity(require).
 valid_polarity(forbid).
+valid_polarity(assert).
+valid_polarity(deny).
+
+valid_strict_polarity(require).
+valid_strict_polarity(forbid).
+
+valid_predicate_polarity(assert).
+valid_predicate_polarity(deny).
 
 % valid_verification_scope(+Scope)
 valid_verification_scope(unit).
