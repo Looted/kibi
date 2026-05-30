@@ -246,7 +246,72 @@ test(typed_literal_value_type_no_false_positive, [setup(setup_kb), cleanup(clean
     check_strict_fact_shape(Violations),
     \+ member(violation('strict-fact-shape', 'fact-typed-vt-test', _, _, _), Violations).
 
+test(predicate_facts_have_no_strict_shape_false_positive, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-SCHEMA-CAN', "Predicate schema: auth.can/3", active, [
+        fact_kind=predicate_schema,
+        predicate_name="can",
+        predicate_namespace="auth",
+        predicate_arity=3,
+        argument_names=["actor", "action", "resource"],
+        argument_types=["role", "action", "resource"]
+    ]),
+    assert_fixture_entity(fact, 'FACT-CAN-USER-DELETE-POST', "User can delete post", active, [
+        fact_kind=predicate,
+        predicate_name="can",
+        predicate_namespace="auth",
+        predicate_args=["user", "delete", "post"],
+        polarity=assert,
+        canonical_key="auth.can.role:user.action:delete.resource:post.assert"
+    ]),
+    check_strict_fact_shape(Violations),
+    \+ member(violation('strict-fact-shape', 'FACT-SCHEMA-CAN', _, _, _), Violations),
+    \+ member(violation('strict-fact-shape', 'FACT-CAN-USER-DELETE-POST', _, _, _), Violations).
+
+test(malformed_predicate_fact_reports_strict_shape_violation, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_raw_entity(fact, 'FACT-PREDICATE-MALFORMED', [
+        id='FACT-PREDICATE-MALFORMED',
+        title="Malformed predicate",
+        status=active,
+        created_at="2026-05-30T00:00:00Z",
+        updated_at="2026-05-30T00:00:00Z",
+        source="test://kb.plt",
+        fact_kind=predicate,
+        predicate_name="can"
+    ]),
+    check_strict_fact_shape(Violations),
+    member(violation('strict-fact-shape', 'FACT-PREDICATE-MALFORMED', Description, _, _), Violations),
+    sub_string(Description, _, _, _, "Predicate fact missing required field: predicate_args").
+
 :- end_tests(kb_strict_facts).
+
+:- begin_tests(kb_predicate_ontology).
+
+test(predicate_schema_helper_reads_schema_fact, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-SCHEMA-CAN', "Predicate schema: auth.can/3", active, [
+        fact_kind=predicate_schema,
+        predicate_name="can",
+        predicate_namespace="auth",
+        predicate_arity=3,
+        argument_names=["actor", "action", "resource"],
+        argument_types=["role", "action", "resource"],
+        aliases=["may", "is allowed to"],
+        examples=["auth.can(user, delete, post)"]
+    ]),
+    predicate_schema('FACT-SCHEMA-CAN', auth, can, 3, [actor, action, resource], [role, action, resource]).
+
+test(predicate_fact_helper_reads_ground_predicate_fact, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    assert_fixture_entity(fact, 'FACT-CAN-USER-DELETE-POST', "User can delete post", active, [
+        fact_kind=predicate,
+        predicate_name="can",
+        predicate_namespace="auth",
+        predicate_args=["user", "delete", "post"],
+        argument_types=["role", "action", "resource"],
+        polarity=assert,
+        canonical_key="auth.can.role:user.action:delete.resource:post.assert"
+    ]),
+    predicate_fact('FACT-CAN-USER-DELETE-POST', auth, can, [user, delete, post], assert).
+
+:- end_tests(kb_predicate_ontology).
 
 :- begin_tests(kb_mutex).
 
