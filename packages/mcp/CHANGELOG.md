@@ -1,5 +1,19 @@
 # kibi-mcp
 
+## 0.15.0
+
+### Minor Changes
+
+- Kibi can now start representing project-local ontology claims as structured predicate facts instead of prose-only notes. This is the first compatibility slice toward richer domain modeling: teams can define predicate schemas and store ground predicate claims while existing strict property facts continue to work unchanged.
+
+  Add predicate ontology fact fields to the CLI entity schema, public schema export, TypeScript fact types, and Prolog schema validation. The new supported fact lanes are `predicate_schema` and `predicate`, with fields for predicate names, namespaces, arity, arguments, aliases, examples, and predicate polarity.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-core@0.6.0
+  - kibi-cli@0.12.0
+
 ## 0.14.3
 
 ### Patch Changes

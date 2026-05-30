@@ -1,5 +1,12 @@
 # kibi-vscode
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-cli@0.12.0
+
 ## 0.4.4
 
 ### Patch Changes
