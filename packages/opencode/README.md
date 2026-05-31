@@ -127,12 +127,16 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap using only public MCP tools.
 
+OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_autopilot_generate`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_autopilot_generate`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
+
 ### Discovery-first MCP guidance
 
 Agent-visible guidance is intentionally limited to the curated public MCP surface:
 
 - Discovery/reporting: `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`
 - Mutation/validation: `kb_upsert`, `kb_delete`, `kb_check`
+
+In OpenCode tool pickers or logs, these may be displayed with the `kibi_` server prefix, for example `kibi_kb_search` or `kibi_kb_upsert`.
 
 The plugin guidance prefers `kb_search` for broad discovery, then `kb_query` for exact/source-linked follow-up.
 

@@ -199,9 +199,13 @@ describe("init-kibi native command support", () => {
     const alias = buildInitKibiAlias();
     expect(alias).toContain("at most 4 bounded questions");
     expect(alias).toContain("kb_autopilot_generate");
+    expect(alias).toContain("kibi_kb_autopilot_generate");
+    expect(alias).toContain("OpenCode prefixes Kibi MCP tools with `kibi_`");
     expect(alias).toContain("approval");
     expect(alias).toContain("kb_upsert");
+    expect(alias).toContain("kibi_kb_upsert");
     expect(alias).toContain("kb_check");
+    expect(alias).toContain("kibi_kb_check");
   });
 
   test("rejects drift from MCP init-kibi semantics", () => {

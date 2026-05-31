@@ -24,6 +24,10 @@ Consult this skill before any Kibi knowledge base operation, on first interactio
 
 Interact with the knowledge base exclusively through MCP tools. Do not read or edit files inside `.kb/` directly. Do not run any `kibi` CLI commands from the agent session. The MCP surface is the only sanctioned interface for agents.
 
+### Tool Name Prefixes
+
+Kibi's canonical MCP names are `kb_search`, `kb_query`, `kb_upsert`, `kb_check`, and related `kb_*` tools. Some hosts add a server prefix when exposing tools to agents. In OpenCode, use the visible `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, and `kibi_kb_check` names when exact tool identifiers are required; they map to the same canonical MCP names.
+
 ## Discovery-First Workflow
 
 Always discover before you mutate. Start with `kb_search` for exploratory discovery across metadata and markdown body text. Split broad queries into 1-3 focused probes. Review top hits for relevance before concluding the KB lacks knowledge.
