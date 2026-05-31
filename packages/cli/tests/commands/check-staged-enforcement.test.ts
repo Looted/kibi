@@ -328,11 +328,16 @@ export function greet() {
   };
 }
 
-function writeCoarseSymbolsManifest(root: string, options?: { reason?: string; interfaceSource?: boolean }): void {
+function writeCoarseSymbolsManifest(
+  root: string,
+  options?: { reason?: string; interfaceSource?: boolean },
+): void {
   const reasonLine = options?.reason
     ? `    granularity_reason: ${options.reason}\n`
     : "";
-  const sourceFile = options?.interfaceSource ? "src/config.ts" : "src/greet.ts";
+  const sourceFile = options?.interfaceSource
+    ? "src/config.ts"
+    : "src/greet.ts";
   const title = options?.interfaceSource ? "config.ts" : "greet.ts";
   writeFiles(root, {
     "documentation/symbols.yaml": `symbols:

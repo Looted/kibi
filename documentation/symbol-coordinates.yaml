@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 601
+    sourceEndLine: 633
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 79
   SYM-003:
@@ -107,9 +107,9 @@ coordinates:
   SYM-AutopilotGenerateResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 115
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 106
+    sourceLine: 107
   SYM-AutopilotRecommendedAction:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -164,12 +164,24 @@ coordinates:
     sourceEndLine: 94
     sourceFile: packages/cli/src/utils/config.ts
     sourceLine: 84
+  SYM-DIAGNOSTIC_MODE_ENABLED:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 30
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 29
+  SYM-DIAGNOSTIC_TELEMETRY_SCHEMA:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 77
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 289
+    sourceEndLine: 290
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 289
+    sourceLine: 290
   SYM-DeleteArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -194,6 +206,12 @@ coordinates:
     sourceEndLine: 47
     sourceFile: packages/opencode/src/file-operation-reminders.ts
     sourceLine: 41
+  SYM-DiagnosticErrorFields:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 118
   SYM-DiscoverySummary:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -707,7 +725,7 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 192
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PendingLifecycleEvent:
@@ -1121,9 +1139,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 668
+    sourceEndLine: 754
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 666
+    sourceLine: 752
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1148,18 +1166,24 @@ coordinates:
     sourceEndLine: 6
     sourceFile: packages/opencode/src/toast.ts
     sourceLine: 1
+  SYM-ToolCallPayload:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 113
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 56
+    sourceLine: 57
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 138
+    sourceEndLine: 144
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 107
+    sourceLine: 111
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1193,15 +1217,21 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 443
+    sourceEndLine: 511
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 310
+    sourceLine: 363
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 160
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     sourceLine: 130
+  SYM-appendUsageLogLine:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 63
   SYM-assessStagedSymbolsManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1247,7 +1277,7 @@ coordinates:
   SYM-buildInitKibiAlias:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 40
     sourceFile: packages/opencode/src/init-kibi-alias.ts
     sourceLine: 14
   SYM-buildNormativeRequirementCandidates:
@@ -1295,9 +1325,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 888
+    sourceEndLine: 890
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 540
+    sourceLine: 542
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1310,6 +1340,12 @@ coordinates:
     sourceEndLine: 1180
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
     sourceLine: 1114
+  SYM-classifyDiagnosticError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 245
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 127
   SYM-classifyKnowledge:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1343,9 +1379,9 @@ coordinates:
   SYM-cleanupTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 349
+    sourceEndLine: 340
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 322
+    sourceLine: 313
   SYM-collectSourceOnlyAuthoringSignals:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1415,9 +1451,9 @@ coordinates:
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 320
+    sourceEndLine: 311
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 302
+    sourceLine: 293
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1439,9 +1475,9 @@ coordinates:
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 299
+    sourceEndLine: 290
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 254
+    sourceLine: 245
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1460,6 +1496,12 @@ coordinates:
     sourceEndLine: 138
     sourceFile: packages/vscode/src/extension.ts
     sourceLine: 138
+  SYM-deriveDiagnosticFields:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 306
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 263
   SYM-deriveFileOperationReminder:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1559,9 +1601,15 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 484
+    sourceEndLine: 486
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     sourceLine: 273
+  SYM-extractToolCallPayload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 320
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 311
   SYM-findSdkPackageJsonForPluginRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1661,9 +1709,9 @@ coordinates:
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1003
+    sourceEndLine: 1024
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 646
+    sourceLine: 660
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1724,6 +1772,12 @@ coordinates:
     sourceEndLine: 58
     sourceFile: packages/opencode/src/logger.ts
     sourceLine: 46
+  SYM-initializeDiagnosticMode:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 43
   SYM-injectPrompt:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1763,9 +1817,9 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 307
+    sourceEndLine: 360
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 178
+    sourceLine: 231
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1808,6 +1862,84 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-mcp-session-activeBranchName:
+    sourceColumn: 11
+    sourceEndColumn: 39
+    sourceEndLine: 60
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 60
+  SYM-mcp-session-ensureBranchKbExists:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 100
+  SYM-mcp-session-ensureProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 395
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 382
+  SYM-mcp-session-inFlightRequests:
+    sourceColumn: 13
+    sourceEndColumn: 67
+    sourceEndLine: 65
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 65
+  SYM-mcp-session-initiateGracefulShutdown:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 188
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 139
+  SYM-mcp-session-isShuttingDown:
+    sourceColumn: 11
+    sourceEndColumn: 33
+    sourceEndLine: 63
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 63
+  SYM-mcp-session-prologProcess:
+    sourceColumn: 11
+    sourceEndColumn: 53
+    sourceEndLine: 58
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 58
+  SYM-mcp-session-resetSessionDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 89
+  SYM-mcp-session-resetSessionStateForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 68
+  SYM-mcp-session-setSessionDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 82
+  SYM-mcp-tools-createToolTimeoutError:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 199
+  SYM-mcp-tools-getToolTimeoutMs:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 186
+  SYM-mcp-tools-withToolTimeout:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 228
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 204
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1817,9 +1949,9 @@ coordinates:
   SYM-migrateCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 518
+    sourceEndLine: 524
     sourceFile: packages/cli/src/commands/migrate.ts
-    sourceLine: 388
+    sourceLine: 394
   SYM-modelRequirementClaims:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1883,7 +2015,7 @@ coordinates:
   SYM-projectStagedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 252
+    sourceEndLine: 243
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 216
   SYM-queryRelationshipsViaCli:
@@ -1937,9 +2069,9 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 626
+    sourceEndLine: 694
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 446
+    sourceLine: 514
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1976,12 +2108,18 @@ coordinates:
     sourceEndLine: 39
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 30
+  SYM-resetProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 191
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 101
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 95
+    sourceLine: 99
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2093,9 +2231,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 92
+    sourceEndLine: 96
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 83
+    sourceLine: 87
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2105,9 +2243,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 319
+    sourceEndLine: 320
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 291
+    sourceLine: 292
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2147,9 +2285,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 390
+    sourceEndLine: 396
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 383
+    sourceLine: 389
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2159,9 +2297,9 @@ coordinates:
   SYM-usage-metrics-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 107
     sourceFile: packages/cli/src/commands/usage-metrics.ts
-    sourceLine: 75
+    sourceLine: 82
   SYM-validateAndMerge:
     sourceColumn: 16
     sourceEndColumn: 1

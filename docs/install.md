@@ -41,26 +41,53 @@ You should see output like `SWI-Prolog version 10.x.x`.
 
 ### Recommended: Project-local install
 
-For a reproducible, CI-friendly workflow, install kibi as project-level dev dependencies:
+For a reproducible, CI-friendly workflow, install kibi as project-level dev
+dependencies. Use your project's package manager; npm is shown as the Node
+baseline:
 
 ```bash
-npm install --save-dev kibi-cli kibi-mcp
+npm install --save-dev kibi-cli kibi-mcp kibi-core
 ```
 
-After installation, verify the tools from the local project using `npx`:
+Equivalent project-local installs:
 
 ```bash
-npx kibi --version
-npx kibi-mcp --help
+pnpm add -D kibi-cli kibi-mcp kibi-core
+yarn add -D kibi-cli kibi-mcp kibi-core
+bun add -d kibi-cli kibi-mcp kibi-core
 ```
 
-Common environment check: `npx kibi doctor`.
+`kibi-mcp` depends on compatible `kibi-cli` and `kibi-core` versions, but
+installing all three explicitly makes version pinning and lockfile review clear.
 
-Validation command: `npx kibi check`.
+After installation, verify the tools from the local project using your package
+manager's local binary runner:
+
+```bash
+npm exec -- kibi --version
+npx --no-install kibi-mcp --help
+```
+
+For other package managers, use the same local-runner pattern:
+
+| Package manager | CLI example | MCP example |
+| --- | --- | --- |
+| npm | `npm exec -- kibi status` | `npx --no-install kibi-mcp --diagnostic-mode` |
+| pnpm | `pnpm exec kibi status` | `pnpm exec kibi-mcp --diagnostic-mode` |
+| Yarn | `yarn exec kibi status` | `yarn exec kibi-mcp --diagnostic-mode` |
+| Bun | `bunx --no-install kibi status` | `bunx --no-install kibi-mcp --diagnostic-mode` |
+
+Common environment check: `npm exec -- kibi doctor`.
+
+Validation command: `npm exec -- kibi check`.
+
+Avoid auto-install or hot-load commands for MCP startup (`npx -y`, `pnpm dlx` /
+`pnx`, `yarn dlx`, or `bunx` without `--no-install`) unless you intentionally
+want the client to fetch a package outside the project lockfile.
 
 ### OpenCode MCP
 
-For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-array `command` field:
+For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-array `command` field. This npm example is local-only and does not download packages at startup:
 
 ```json
 {
@@ -68,14 +95,15 @@ For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-a
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["npx", "--no-install", "kibi-mcp"],
+      "command": ["npx", "--no-install", "kibi-mcp", "--diagnostic-mode"],
       "enabled": true
     }
   }
 }
 ```
 
-If you use pnpm, prefer `pnpm exec` for deterministic project-local resolution:
+If your project uses another package manager, keep the same MCP shape and use
+that manager's local binary runner. For example, pnpm projects can use:
 
 ```json
 {
@@ -83,7 +111,7 @@ If you use pnpm, prefer `pnpm exec` for deterministic project-local resolution:
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["pnpm", "exec", "kibi-mcp"],
+      "command": ["pnpm", "exec", "kibi-mcp", "--diagnostic-mode"],
       "enabled": true
     }
   }
@@ -100,7 +128,7 @@ For VS Code, create `.vscode/mcp.json`. VS Code uses a `command` string with a s
     "kibi": {
       "type": "stdio",
       "command": "npx",
-      "args": ["--no-install", "kibi-mcp"]
+      "args": ["--no-install", "kibi-mcp", "--diagnostic-mode"]
     }
   }
 }
@@ -114,24 +142,46 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
     "kibi": {
       "type": "stdio",
       "command": "pnpm",
-      "args": ["exec", "kibi-mcp"]
+      "args": ["exec", "kibi-mcp", "--diagnostic-mode"]
     }
   }
 }
 ```
+
+### Optional: OpenCode plugin
+
+`kibi-opencode` is an optional OpenCode plugin. It injects Kibi guidance,
+provides the `/init-kibi` convenience command when the host supports it, and runs
+background sync/check maintenance. It does **not** ship a replacement `kibi` or
+`kibi-mcp` binary, so keep the base `kibi-cli`, `kibi-mcp`, and `kibi-core`
+packages installed and keep the `mcp.kibi` server configured separately.
+
+```bash
+npm install --save-dev kibi-opencode
+```
+
+```json
+{
+  "plugin": ["kibi-opencode"]
+}
+```
+
+The plugin's internal maintenance expects a `kibi` CLI command to be available
+from the project context or `PATH`; the canonical setup above satisfies that by
+installing `kibi-cli` project-locally.
 
 ### Optional: Global install
 
 Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.
 
 ```bash
-npm install -g kibi-cli kibi-mcp
+npm install -g kibi-cli kibi-mcp kibi-core
 ```
 
 Optional Bun alternative:
 
 ```bash
-bun add -g kibi-cli kibi-mcp
+bun add -g kibi-cli kibi-mcp kibi-core
 ```
 
 #### Command Not Found
@@ -158,11 +208,14 @@ If you see "command not found" after installing kibi globally, you may need to a
    source ~/.bashrc  # or source ~/.zshrc
    ```
 
-## Development / dogfood workflow for this repository
+## Local checkout workflow
 
-For contributors to this repository only:
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts in its OpenCode setup. After changing package versions or local package wiring, rebuild before testing or using OpenCode here:
+When a workspace is intentionally configured to run Kibi from a local checkout,
+invoke that checkout's wrapper or binary directly. Do not use `pnpm exec
+kibi-mcp` in an application repository unless you intend to run that
+repository's installed `node_modules` version. After changing package versions
+or local package wiring in a checkout used by another workspace, rebuild before
+testing or using OpenCode with those local artifacts:
 
 ```bash
 bun run build
@@ -182,23 +235,23 @@ If you encounter problems with SWI-Prolog:
 
 After installing kibi and verifying SWI-Prolog:
 
-1. Verify your environment: `npx kibi doctor`
-2. Initialize your project: `npx kibi init` (installs hooks by default and adds `.kb/` to `.gitignore`)
-3. Import documentation: `npx kibi sync`
-4. Explore the KB: `npx kibi search <query>`
-5. Inspect branch freshness: `npx kibi status`
-6. Validate integrity: `npx kibi check`
+1. Verify your environment: `npm exec -- kibi doctor`
+2. Initialize your project: `npm exec -- kibi init` (installs hooks by default and adds `.kb/` to `.gitignore`)
+3. Import documentation: `npm exec -- kibi sync`
+4. Explore the KB: `npm exec -- kibi search <query>`
+5. Inspect branch freshness: `npm exec -- kibi status`
+6. Validate integrity: `npm exec -- kibi check`
 
 See [Entity Schema](entity-schema.md) for details on entity types and when to use each.
 Example:
 
 ```bash
-npx kibi doctor
-npx kibi init
-npx kibi sync
-npx kibi search auth
-npx kibi status
-npx kibi check
+npm exec -- kibi doctor
+npm exec -- kibi init
+npm exec -- kibi sync
+npm exec -- kibi search auth
+npm exec -- kibi status
+npm exec -- kibi check
 ```
 
 For more details, see:

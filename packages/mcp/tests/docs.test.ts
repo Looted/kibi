@@ -138,10 +138,16 @@ describe("MCP runtime docs: canonical modeling wording", () => {
 
     test("must instruct agents to execute candidate applyPlan steps sequentially", () => {
       const prompt = findPrompt("init-kibi");
-      expect(prompt.text).toMatch(
-        /candidate's `applyPlan`|candidate\.applyPlan/i,
-      );
+      expect(prompt.text).toContain("structuredContent.applyPlan");
       expect(prompt.text).toMatch(/sequentially/i);
+    });
+
+    test("must require preview and explicit approval before bootstrap writes", () => {
+      const prompt = findPrompt("init-kibi");
+      expect(prompt.text).toContain("Preview and Approval");
+      expect(prompt.text).toMatch(/explicit user approval/i);
+      expect(prompt.text).not.toMatch(/optional human review/i);
+      expect(prompt.text).not.toMatch(/must not block writes/i);
     });
   });
 

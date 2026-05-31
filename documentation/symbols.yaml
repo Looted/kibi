@@ -20,7 +20,7 @@ symbols:
         target: TEST-001
     sourceLine: 79
     sourceColumn: 13
-    sourceEndLine: 601
+    sourceEndLine: 633
     sourceEndColumn: 1
   - id: SYM-PrologOptions
     title: PrologOptions
@@ -286,9 +286,9 @@ symbols:
         target: REQ-cli-usage-metrics-v1
       - type: covered_by
         target: TEST-cli-usage-metrics-v1
-    sourceLine: 75
+    sourceLine: 82
     sourceColumn: 22
-    sourceEndLine: 100
+    sourceEndLine: 107
     sourceEndColumn: 1
   - id: SYM-registerIndexCoverageTests
     title: registerIndexCoverageTests
@@ -1431,6 +1431,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-008
       - type: covered_by
         target: TEST-005
   - id: SYM-DocResource
@@ -1439,6 +1441,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-008
       - type: covered_by
         target: TEST-005
   - id: SYM-PROMPTS
@@ -1473,6 +1477,172 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-mcp-session-prologProcess
+    title: prologProcess
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-activeBranchName
+    title: activeBranchName
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-isShuttingDown
+    title: isShuttingDown
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-inFlightRequests
+    title: inFlightRequests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-resetSessionStateForTests
+    title: resetSessionStateForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-setSessionDepsForTests
+    title: _setSessionDepsForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-resetSessionDepsForTests
+    title: _resetSessionDepsForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-ensureBranchKbExists
+    title: ensureBranchKbExists
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-initiateGracefulShutdown
+    title: initiateGracefulShutdown
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-resetProlog
+    title: resetProlog
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 191
+    sourceColumn: 22
+    sourceEndLine: 205
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-ensureProlog
+    title: ensureProlog
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DIAGNOSTIC_MODE_ENABLED
+    title: DIAGNOSTIC_MODE_ENABLED
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-initializeDiagnosticMode
+    title: initializeDiagnosticMode
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-appendUsageLogLine
+    title: appendUsageLogLine
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    title: DIAGNOSTIC_TELEMETRY_SCHEMA
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolCallPayload
+    title: ToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DiagnosticErrorFields
+    title: DiagnosticErrorFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-classifyDiagnosticError
+    title: classifyDiagnosticError
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-deriveDiagnosticFields
+    title: deriveDiagnosticFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-extractToolCallPayload
+    title: extractToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-jsonSchemaToZod
     title: jsonSchemaToZod
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1481,6 +1651,45 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-mcp-tools-getToolTimeoutMs
+    title: getToolTimeoutMs
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 186
+    sourceColumn: 9
+    sourceEndLine: 196
+    sourceEndColumn: 1
+  - id: SYM-mcp-tools-createToolTimeoutError
+    title: createToolTimeoutError
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 199
+    sourceColumn: 9
+    sourceEndLine: 201
+    sourceEndColumn: 1
+  - id: SYM-mcp-tools-withToolTimeout
+    title: withToolTimeout
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 204
+    sourceColumn: 15
+    sourceEndLine: 228
+    sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts

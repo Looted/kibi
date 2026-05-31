@@ -22,6 +22,7 @@ import { z } from "zod";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
@@ -71,6 +72,9 @@ type Awaitable<T> = T | Promise<T>;
 type DefaultRuntimeProlog = PrologProcess;
 type SessionModule = typeof import("./session.js");
 
+const DEFAULT_TOOL_TIMEOUT_MS = 90_000;
+const TOOL_TIMEOUT_ENV = "KIBI_MCP_TOOL_TIMEOUT_MS";
+
 interface ToolsServerDeps {
   getSessionModule: () => Promise<SessionModule>;
 }
@@ -107,11 +111,13 @@ async function getSessionModule(): Promise<SessionModule> {
 export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   diagnosticModeEnabled: () => boolean;
   appendUsageLogLine: typeof appendUsageLogLine;
+  classifyDiagnosticError: typeof classifyDiagnosticError;
   deriveDiagnosticFields: typeof deriveDiagnosticFields;
   extractToolCallPayload: typeof extractToolCallPayload;
   tools: ToolConfig[];
   activeBranchName: () => Awaitable<string>;
   ensureProlog: () => Promise<TProlog>;
+  resetProlog: (reason: string) => Promise<void>;
   inFlightRequests: () => Awaitable<Map<string, Promise<unknown>>>;
   isShuttingDown: () => Awaitable<boolean>;
   prologProcess: () => Awaitable<{ getPid: () => number } | null>;
@@ -140,6 +146,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
 const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   diagnosticModeEnabled: () => DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
   // INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the
@@ -148,6 +155,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   tools: TOOLS as unknown as ToolConfig[],
   activeBranchName: async () => (await getSessionModule()).activeBranchName,
   ensureProlog: async () => (await getSessionModule()).ensureProlog(),
+  resetProlog: async (reason) => (await getSessionModule()).resetProlog(reason),
   inFlightRequests: async () => (await getSessionModule()).inFlightRequests,
   isShuttingDown: async () => (await getSessionModule()).isShuttingDown,
   prologProcess: async () => (await getSessionModule()).prologProcess,
@@ -171,6 +179,51 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
 function debugLog(...args: Parameters<typeof console.error>): void {
   if (isMcpDebugEnabled()) {
     console.error(...args);
+  }
+}
+
+// implements REQ-002
+function getToolTimeoutMs(): number {
+  const raw = process.env[TOOL_TIMEOUT_ENV]?.trim();
+  if (!raw) {
+    return DEFAULT_TOOL_TIMEOUT_MS;
+  }
+
+  const parsed = Number(raw);
+  return Number.isSafeInteger(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_TOOL_TIMEOUT_MS;
+}
+
+// implements REQ-002
+function createToolTimeoutError(toolName: string, timeoutMs: number): Error {
+  return new Error(`Tool ${toolName} timed out after ${timeoutMs}ms`);
+}
+
+// implements REQ-002
+async function withToolTimeout<T>(
+  toolName: string,
+  operation: Promise<T>,
+  onTimeout: (error: Error, timeoutMs: number) => Promise<void>,
+): Promise<T> {
+  const timeoutMs = getToolTimeoutMs();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      operation,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          const error = createToolTimeoutError(toolName, timeoutMs);
+          reject(error);
+          void onTimeout(error, timeoutMs);
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
   }
 }
 
@@ -357,10 +410,21 @@ export function addTool<TProlog>(
       const trackedRequests = await runtime.inFlightRequests();
       const handlerPromise = handler(businessArgs);
       trackedRequests.set(requestId, handlerPromise);
+      let resetAttempted = false;
+      let resetSucceeded = false;
+      let resetError: string | null = null;
 
       try {
         // Execute handler
-        const result = await handlerPromise;
+        const result = await withToolTimeout(name, handlerPromise, async () => {
+          resetAttempted = true;
+          try {
+            await runtime.resetProlog(`tool timeout: ${name}`);
+            resetSucceeded = true;
+          } catch (error) {
+            resetError = error instanceof Error ? error.message : String(error);
+          }
+        });
 
         // Log usage in diagnostic mode
         if (diagnosticModeEnabled) {
@@ -395,6 +459,7 @@ export function addTool<TProlog>(
         if (diagnosticModeEnabled) {
           const finishedAt = new Date();
           const err = error instanceof Error ? error : new Error(String(error));
+          const diagnosticErrorFields = runtime.classifyDiagnosticError(err);
           const processHandle = await runtime.prologProcess();
           const branchName = await runtime.activeBranchName();
           runtime.appendUsageLogLine({
@@ -409,7 +474,10 @@ export function addTool<TProlog>(
             duration_ms: finishedAt.getTime() - startedAt.getTime(),
             prolog_pid: processHandle?.getPid() ?? null,
             active_branch: branchName,
-            error_message: err.message,
+            reset_attempted: resetAttempted,
+            reset_succeeded: resetSucceeded,
+            reset_error: resetError,
+            ...diagnosticErrorFields,
           });
         }
         throw error;

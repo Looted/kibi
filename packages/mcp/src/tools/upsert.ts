@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 /*
  Kibi — repo-local, per-branch, queryable long-term memory for software projects
  Copyright (C) 2026 Piotr Franczyk
@@ -16,10 +18,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import Ajv from "ajv";
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { Project, ScriptKind } from "ts-morph";
 import {
   escapeAtom,
   toPrologAtom,
@@ -27,6 +26,7 @@ import {
 } from "kibi-cli/prolog/codec";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
+import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
@@ -296,7 +296,11 @@ export async function handleKbUpsert(
 function chooseScriptKind(filePath: string): ScriptKind {
   const lower = filePath.toLowerCase();
   if (lower.endsWith(".tsx")) return ScriptKind.TSX;
-  if (lower.endsWith(".ts") || lower.endsWith(".mts") || lower.endsWith(".cts")) {
+  if (
+    lower.endsWith(".ts") ||
+    lower.endsWith(".mts") ||
+    lower.endsWith(".cts")
+  ) {
     return ScriptKind.TS;
   }
   if (lower.endsWith(".jsx")) return ScriptKind.JSX;
@@ -315,17 +319,19 @@ function hasTraceabilityRelationship(
 
 function hasAllowedGranularityReason(entity: Record<string, unknown>): boolean {
   const reason = entity.granularity_reason;
-  return (
-    typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason)
-  );
+  return typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason);
 }
 
 function collectNarrowExportNames(filePath: string, content: string): string[] {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
-  const sourceFile = project.createSourceFile(`${filePath}::granularity`, content, {
-    overwrite: true,
-    scriptKind: chooseScriptKind(filePath),
-  });
+  const sourceFile = project.createSourceFile(
+    `${filePath}::granularity`,
+    content,
+    {
+      overwrite: true,
+      scriptKind: chooseScriptKind(filePath),
+    },
+  );
   const names = new Set<string>();
 
   for (const fn of sourceFile.getFunctions()) {

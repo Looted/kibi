@@ -15,10 +15,93 @@ import path from "node:path";
 import process from "node:process";
 import {
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
   initializeDiagnosticMode,
 } from "../src/diagnostics.js";
+
+describe("classifyDiagnosticError", () => {
+  test("classifies stale snapshot save failures", () => {
+    const result = classifyDiagnosticError(
+      new Error(
+        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot",
+      ),
+    );
+
+    expect(result).toEqual({
+      error_name: "Error",
+      error_message:
+        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot",
+      error_category: "stale_snapshot",
+      error_stage: "persistence",
+      error_summary:
+        "KB snapshot is stale; refresh/retry after the latest KB state is attached.",
+    });
+  });
+
+  test("classifies Prolog option and lifecycle failures", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Status execution failed: Status execution module load failed: Unknown option (h for help)",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_unknown_option",
+      error_stage: "prolog_runtime",
+    });
+
+    expect(
+      classifyDiagnosticError(new Error("Prolog process not started")),
+    ).toMatchObject({
+      error_category: "prolog_process_not_started",
+      error_stage: "prolog_lifecycle",
+    });
+  });
+
+  test("classifies tool timeout and Prolog worker reset events", () => {
+    expect(
+      classifyDiagnosticError(new Error("Tool kb_upsert timed out after 25ms")),
+    ).toMatchObject({
+      error_category: "tool_timeout",
+      error_stage: "tool_timeout",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error("prolog worker reset: tool timeout: kb_upsert"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_worker_reset",
+      error_stage: "prolog_lifecycle",
+    });
+  });
+
+  test("classifies validation failures separately from runtime failures", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Symbol SYM-VIDEO-TOOL-STATE links src/app/utils/video-tool-state.ts coarsely while granular symbols are available: deriveVideoToolState",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "coarse_symbol_linkage",
+      error_stage: "validation",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Entity validation failed: root: must have required property 'title'",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "entity_validation_failed",
+      error_stage: "validation",
+    });
+  });
+});
 
 describe("deriveDiagnosticFields", () => {
   test("returns telemetry status field", () => {

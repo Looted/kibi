@@ -2,6 +2,12 @@
 
 OpenCode plugin for Kibi - repo-local, per-branch, queryable knowledge base.
 
+`kibi-opencode` is optional. It provides OpenCode-specific guidance, startup UX,
+and background sync/check maintenance, but it does not ship a replacement `kibi`
+CLI or `kibi-mcp` server binary. Install and configure the base `kibi-cli`,
+`kibi-mcp`, and `kibi-core` packages in the project first; add this plugin only
+when you want OpenCode-specific behavior.
+
 ## Installation
 
 ```bash
@@ -15,6 +21,11 @@ Or via OpenCode's plugin system in `opencode.json`:
   "plugin": ["kibi-opencode"]
 }
 ```
+
+Configure the MCP server separately with the project-local `kibi-mcp` binary.
+The plugin may run internal maintenance commands such as `kibi sync` and
+`kibi check`, so the project-local `kibi` CLI should resolve from the OpenCode
+process environment.
 
 ## Features
 
@@ -127,12 +138,16 @@ The plugin injects guidance into OpenCode sessions to improve agent grounding. U
 
 OpenCode exposes Kibi MCP prompts as slash commands. The \`/init-kibi\` command triggers the \`kb_autopilot_generate\` workflow to assist in retroactive bootstrap using only public MCP tools.
 
+OpenCode may show Kibi MCP tools with the configured server prefix. For example, canonical MCP names such as `kb_autopilot_generate`, `kb_upsert`, and `kb_check` can appear to agents as `kibi_kb_autopilot_generate`, `kibi_kb_upsert`, and `kibi_kb_check`. Use the visible `kibi_kb_*` identifier when OpenCode requires an exact tool name; it maps to the same MCP operation.
+
 ### Discovery-first MCP guidance
 
 Agent-visible guidance is intentionally limited to the curated public MCP surface:
 
 - Discovery/reporting: `kb_search`, `kb_query`, `kb_status`, `kb_find_gaps`, `kb_coverage`, `kb_graph`
 - Mutation/validation: `kb_upsert`, `kb_delete`, `kb_check`
+
+In OpenCode tool pickers or logs, these may be displayed with the `kibi_` server prefix, for example `kibi_kb_search` or `kibi_kb_upsert`.
 
 The plugin guidance prefers `kb_search` for broad discovery, then `kb_query` for exact/source-linked follow-up.
 
@@ -264,10 +279,6 @@ Disable specific features while keeping others:
   }
 }
 ```
-
-## Dogfooding
-
-This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
 
 ## Troubleshooting
 

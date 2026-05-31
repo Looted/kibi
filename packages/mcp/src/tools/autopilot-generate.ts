@@ -99,6 +99,7 @@ interface AutopilotStructuredContent {
   declaredContext: AutopilotDeclaredContext;
   discoverySummary: DiscoverySummary;
   candidates: Array<Record<string, unknown>>;
+  applyPlan: Array<Record<string, unknown>>;
   suppressedCandidates: Array<Record<string, unknown>>;
   payoffSummary: PayoffSummary;
 }
@@ -108,6 +109,7 @@ export interface AutopilotGenerateResult {
   structuredContent: AutopilotStructuredContent;
   migrationWarning: string | null;
   candidates: Array<Record<string, unknown>>;
+  applyPlan: Array<Record<string, unknown>>;
   suppressedCandidates: Array<Record<string, unknown>>;
   payoffSummary: PayoffSummary;
 }
@@ -204,6 +206,18 @@ function countCandidatesByType(
     counts[entityType] = (counts[entityType] ?? 0) + 1;
   }
   return counts;
+}
+
+function buildApplyPlan(
+  candidateRecords: CandidateRecord[],
+): Array<Record<string, unknown>> {
+  return candidateRecords.flatMap((candidate) => {
+    if (!Array.isArray(candidate.applyPlan)) return [];
+    return candidate.applyPlan.filter(
+      (entry): entry is Record<string, unknown> =>
+        entry !== null && typeof entry === "object" && !Array.isArray(entry),
+    );
+  });
 }
 
 function formatCandidateTypeCounts(
@@ -919,6 +933,7 @@ export async function handleKbAutopilotGenerate(
   }
 
   const candidateRecords: CandidateRecord[] = Array.from(seenByKey.values());
+  const applyPlan = buildApplyPlan(candidateRecords);
   const payoffSummary = buildPayoffSummary(candidateRecords);
   const promptBlock = buildPromptBlock(
     workspaceRoot,
@@ -966,6 +981,10 @@ export async function handleKbAutopilotGenerate(
     confidence.level === "low" && !activation.applyBlocked
       ? `Low-confidence bootstrap (${confidence.score}): review diagnostics before proceeding. ${tldr}`
       : tldr;
+  const effectiveText =
+    applyPlan.length > 0
+      ? `${effectiveTldr} Review structuredContent.applyPlan for exact sequential kb_upsert payloads before requesting approval.`
+      : effectiveTldr;
   const structuredContent: AutopilotStructuredContent = {
     activationState,
     activationMode: activation.activationMode,
@@ -983,6 +1002,7 @@ export async function handleKbAutopilotGenerate(
     declaredContext,
     discoverySummary: activationDiscovery.summary,
     candidates: candidateRecords,
+    applyPlan,
     suppressedCandidates: suppressed,
     payoffSummary,
   };
@@ -991,12 +1011,13 @@ export async function handleKbAutopilotGenerate(
     content: [
       {
         type: "text",
-        text: effectiveTldr,
+        text: effectiveText,
       },
     ],
     structuredContent,
     migrationWarning,
     candidates: candidateRecords,
+    applyPlan,
     suppressedCandidates: suppressed,
     payoffSummary,
   };

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
 import {
   type ToolConfig,
   type ToolsRuntime,
@@ -10,6 +11,7 @@ import {
   addTool,
   registerAllTools,
 } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
@@ -59,6 +61,32 @@ const TOOL_NAMES = [
   "kb_autopilot_generate",
 ] as const;
 
+function objectRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+test("kb_upsert schema advertises typed fact fields", () => {
+  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
+  expect(upsert).toBeDefined();
+  const inputSchema = objectRecord(upsert?.inputSchema);
+  const rootProperties = objectRecord(inputSchema.properties);
+  const propertiesSchema = objectRecord(rootProperties.properties);
+  const entityProperties = objectRecord(propertiesSchema.properties);
+
+  expect(entityProperties.fact_kind).toBeDefined();
+  expect(entityProperties.subject_key).toBeDefined();
+  expect(entityProperties.property_key).toBeDefined();
+  expect(entityProperties.operator).toBeDefined();
+  expect(entityProperties.value_type).toBeDefined();
+  expect(entityProperties.value_string).toBeDefined();
+  expect(entityProperties.value_int).toBeDefined();
+  expect(entityProperties.value_number).toBeDefined();
+  expect(entityProperties.value_bool).toBeDefined();
+});
+
 function createDeferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
   let reject!: (reason?: unknown) => void;
@@ -95,6 +123,7 @@ function createSessionModuleMock(
     inFlightRequests: trackedRequests,
     initiateGracefulShutdown: async (): Promise<void> => {},
     isShuttingDown: false,
+    resetProlog: async (): Promise<void> => {},
     _setSessionDepsForTests: (): void => {},
     _resetSessionDepsForTests: (): void => {},
     prologProcess: null,
@@ -198,6 +227,18 @@ function createRuntime() {
       _result: unknown,
     ): Record<string, unknown> => ({ result_summary: "mock summary" }),
   );
+  const classifyDiagnosticError = mock(
+    (error: unknown): DiagnosticErrorFields => {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return {
+        error_name: err.name,
+        error_message: err.message,
+        error_category: "handler_error",
+        error_stage: "handler",
+        error_summary: "Unhandled MCP handler error.",
+      };
+    },
+  );
   const extractToolCallPayload = mock(
     (
       args: Record<string, unknown>,
@@ -218,6 +259,7 @@ function createRuntime() {
   const prologProcess = mock(
     async (): Promise<{ getPid: () => number } | null> => prologHandle,
   );
+  const resetProlog = mock(async (_reason: string): Promise<void> => {});
 
   const handleKbCheck: ToolsRuntime<MockProlog>["handleKbCheck"] = mock(
     async (_prolog: MockProlog, args: CheckArgs): Promise<unknown> => ({
@@ -317,6 +359,7 @@ function createRuntime() {
   const runtime = {
     diagnosticModeEnabled,
     appendUsageLogLine,
+    classifyDiagnosticError,
     deriveDiagnosticFields,
     extractToolCallPayload,
     tools: createToolConfigs(),
@@ -324,6 +367,7 @@ function createRuntime() {
     ensureProlog,
     inFlightRequests,
     isShuttingDown,
+    resetProlog,
     prologProcess,
     handleKbCheck,
     handleKbCoverage,
@@ -348,12 +392,14 @@ function createRuntime() {
     spies: {
       diagnosticModeEnabled,
       appendUsageLogLine,
+      classifyDiagnosticError,
       deriveDiagnosticFields,
       extractToolCallPayload,
       activeBranchName,
       ensureProlog,
       inFlightRequests,
       isShuttingDown,
+      resetProlog,
       prologProcess,
       handleKbCheck,
       handleKbCoverage,
@@ -647,6 +693,9 @@ describe.serial("server tools coverage", () => {
         prolog_pid: null,
         active_branch: "feature/error",
         error_message: "boom",
+        error_category: "handler_error",
+        error_stage: "handler",
+        error_summary: "Unhandled MCP handler error.",
       }),
     );
     expect(
@@ -655,6 +704,74 @@ describe.serial("server tools coverage", () => {
     expect(
       consoleCallsContain(consoleErrorSpy, "Tool failing_tool stack:"),
     ).toBe(true);
+  });
+
+  test("addTool times out hung handlers, resets Prolog, logs diagnostics, and cleans in-flight requests", async () => {
+    const originalTimeout = process.env.KIBI_MCP_TOOL_TIMEOUT_MS;
+    process.env.KIBI_MCP_TOOL_TIMEOUT_MS = "5";
+    const { runtime, spies, trackedRequests } = createRuntime();
+    const { server, registered } = createCapturingServer();
+    const deferred = createDeferred<never>();
+    const rawArgs = {
+      marker: "timeout",
+      _requestId: "req-timeout",
+      _diagnostic_telemetry: { is_autonomous: true },
+    };
+    const businessArgs = { marker: "timeout", _requestId: "req-timeout" };
+    const telemetry = { is_autonomous: true };
+    const handler = mock(
+      (_args: Record<string, unknown>): Promise<never> => deferred.promise,
+    );
+
+    spies.diagnosticModeEnabled.mockImplementation(() => true);
+    spies.extractToolCallPayload.mockImplementation(() => ({
+      businessArgs,
+      telemetry,
+    }));
+    spies.classifyDiagnosticError.mockImplementation((error: unknown) => {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return {
+        error_name: err.name,
+        error_message: err.message,
+        error_category: "tool_timeout",
+        error_stage: "tool_timeout",
+        error_summary: "MCP tool execution exceeded its bounded timeout.",
+      };
+    });
+    spies.activeBranchName.mockImplementation(async () => "feature/timeout");
+    spies.prologProcess.mockImplementation(async () => null);
+
+    addTool(server, "timeout_tool", "timeout tool", {}, handler, runtime);
+
+    const tool = getRegisteredTool(registered, "timeout_tool");
+    const callPromise = invokeTool(tool, rawArgs);
+
+    await flushWrappedHandlerSetup();
+
+    expect(handler).toHaveBeenCalledWith(businessArgs);
+    expect(trackedRequests.size).toBe(1);
+
+    const error = await getRejectedError(callPromise);
+
+    expect(error.message).toBe(
+      "Tool timeout_tool failed: Tool timeout_tool timed out after 5ms",
+    );
+    expect(trackedRequests.size).toBe(0);
+    expect(spies.resetProlog).toHaveBeenCalledWith(
+      "tool timeout: timeout_tool",
+    );
+    expect(spies.appendUsageLogLine).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request_id: "req-timeout",
+        tool: "timeout_tool",
+        status: "error",
+        error_category: "tool_timeout",
+        reset_attempted: true,
+        reset_succeeded: true,
+        reset_error: null,
+      }),
+    );
+    restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);
   });
 
   test("registerAllTools registers all configured tools and delegates to the matching runtime handlers", async () => {

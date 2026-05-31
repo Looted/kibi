@@ -41,6 +41,14 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("kb_check");
   });
 
+  test("body explains OpenCode tool prefix convention", () => {
+    expect(bundle.body).toContain("OpenCode");
+    expect(bundle.body).toContain("kibi_kb_search");
+    expect(bundle.body).toContain("kibi_kb_query");
+    expect(bundle.body).toContain("kibi_kb_upsert");
+    expect(bundle.body).toContain("canonical MCP names");
+  });
+
   test("body contains relationship terms", () => {
     expect(bundle.body).toContain("implements");
     expect(bundle.body).toContain("specified_by");

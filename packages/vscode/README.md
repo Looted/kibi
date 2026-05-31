@@ -63,8 +63,6 @@ Absolute path to the kibi-mcp executable. Examples:
 
 If left empty, the extension will attempt to auto-detect `kibi-mcp` in your system PATH.
 
-In this repository's dogfood workflow you may prefer pointing VS Code at the locally built artifact instead of a global install. After changing local package wiring or package versions here, rebuild first with `bun run build`.
-
 #### Finding the correct path
 
 **Option 1: Check your PATH**
