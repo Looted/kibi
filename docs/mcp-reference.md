@@ -69,6 +69,38 @@ Also returns `migrationWarning` (non-null when the workspace KB schema is outdat
 Human approval is not required. The write-set is deterministic and idempotent — the same claim always produces the same stable entity IDs (SHA-256 of normalized source/subject/property/operator/value). Apply via sequential `kb_upsert` calls at any time.
 
 
+### `kb_suggest_predicates`
+
+Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate` or record the returned `review:ontology-gap` observation when no predicate fits.
+
+The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state transitions, guards, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, and events.
+
+**Parameters:**
+- `text` (required): Prose requirement or claim to classify into ontology predicates.
+- `requirementId` (optional): Existing requirement ID. When present, the response includes a `relationshipPlan` describing the `requires_predicate` link to attach after preserving existing requirement metadata.
+- `source` (optional): Provenance/text reference for generated predicate facts or ontology-gap observations.
+- `subjectHint` (optional): Canonical subject key to use as the first predicate argument.
+- `maxCandidates` (optional): Maximum ranked predicate candidates to return.
+- `minScore` (optional): Minimum candidate score; higher values make ontology-gap fallback more likely.
+- `includeExistingSchemas` (optional): Include project-local predicate schema facts alongside built-ins.
+
+**Returns:**
+- `candidates`: Ranked predicate suggestions with schema signature, ordered `predicate_args`, `canonical_key`, score, and rationale.
+- `recommendedAction`: `apply_requires_predicate` when a candidate fits, otherwise `record_ontology_gap`.
+- `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for the top predicate fact, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`.
+- `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link to attach after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
+
+**Example:**
+```json
+{
+  "text": "When the user navigates away with unsaved annotation edits, the editor must auto-save the draft and return to idle mode.",
+  "requirementId": "REQ-EDITOR-004",
+  "source": "requirements/editor.md#L12",
+  "subjectHint": "editor.annotation"
+}
+```
+
+
 ### `kb_query`
 
 Retrieve entities by `type`, `id`, `tags`, or `sourceFile`. Supports limit and offset pagination.

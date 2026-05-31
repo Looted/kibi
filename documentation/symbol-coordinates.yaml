@@ -179,9 +179,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 290
+    sourceEndLine: 294
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 290
+    sourceLine: 294
   SYM-DeleteArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -725,9 +725,9 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 196
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 68
+    sourceLine: 71
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1151,9 +1151,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 754
+    sourceEndLine: 809
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 752
+    sourceLine: 807
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1187,15 +1187,15 @@ coordinates:
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 65
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 57
+    sourceLine: 61
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 152
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 111
+    sourceLine: 115
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1229,9 +1229,9 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 511
+    sourceEndLine: 520
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 363
+    sourceLine: 372
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1835,9 +1835,9 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 360
+    sourceEndLine: 369
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 231
+    sourceLine: 240
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1940,24 +1940,6 @@ coordinates:
     sourceEndLine: 87
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 82
-  SYM-mcp-tools-createToolTimeoutError:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 201
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 199
-  SYM-mcp-tools-getToolTimeoutMs:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 196
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 186
-  SYM-mcp-tools-withToolTimeout:
-    sourceColumn: 15
-    sourceEndColumn: 1
-    sourceEndLine: 228
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 204
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2087,9 +2069,9 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 694
+    sourceEndLine: 718
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 514
+    sourceLine: 523
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2135,9 +2117,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 105
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 99
+    sourceLine: 103
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2249,9 +2231,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 100
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 87
+    sourceLine: 91
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2261,9 +2243,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 320
+    sourceEndLine: 324
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 292
+    sourceLine: 296
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2336,6 +2318,12 @@ coordinates:
     sourceEndLine: 73
     sourceFile: packages/opencode/src/logger.ts
     sourceLine: 61
+  SYM-withDiagnosticTelemetrySchema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 801
+    sourceFile: packages/mcp/src/tools-config.ts
+    sourceLine: 781
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1

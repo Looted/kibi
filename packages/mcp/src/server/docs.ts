@@ -62,6 +62,9 @@ function renderToolsDoc(): string {
   lines.push(
     "Only strict domain facts (`fact_kind: subject` + `property_value`) participate in contradiction inference; use `flag` for runtime/config gates and `fact_kind: observation` or `meta` for bug/workaround notes.",
   );
+  lines.push(
+    "Predicate flow: before writing ontology prose, call `kb_suggest_predicates`; apply a suggested `fact_kind: predicate` via `requires_predicate`, or record the returned `review:ontology-gap` observation when no predicate fits.",
+  );
   return lines.join("\n");
 }
 
@@ -162,8 +165,9 @@ export const PROMPTS = [
       "3. **Create-before-link**: Create endpoint entities with `kb_upsert` before linking them.",
       "4. **Validate intent**: If creating links, call `kb_query` for both endpoint IDs first to ensure they exist.",
       "5. **Model requirements as facts**: For new/updated reqs, create/reuse fact entities first, then express req semantics with `constrains` + `requires_property` (automated via `kb_model_requirement`).",
-      "5. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
-      "6. **Targeted checks**: Run `kb_check` after meaningful mutations; specify only the rules you need.",
+      "6. **Suggest predicates before prose**: For ontology-lane requirements, spell out the prose claim and call `kb_suggest_predicates` before writing `fact_kind: observation`. Apply the selected `fact_kind: predicate` applyPlan, then attach the returned `relationshipPlan` as `requires_predicate` while preserving existing req metadata; use the returned `review:ontology-gap` observation when no predicate fits.",
+      "7. **Mutate**: Call `kb_upsert` for create/update, or `kb_delete` for explicit removals.",
+      "8. **Targeted checks**: Run `kb_check` after meaningful mutations; specify only the rules you need.",
       "",
       "If a tool returns empty results, do not assume failure. Re-check filters (type, id, tags, sourceFile, limit, or offset).",
     ].join("\n"),
@@ -233,13 +237,13 @@ function registerDocResources(): DocResource[] {
     "4. Reuse the same constrained fact ID across related requirements; vary property facts only when semantics differ",
     '5. `kb_check` with `{ "rules": ["required-fields","no-dangling-refs"] }` for targeted validation',
     "",
+    "## Model requirements as ontology predicates",
+    '1. Spell out the requirement prose and call `kb_suggest_predicates` with `{ "text": "...", "requirementId": "REQ-..." }`',
+    "2. If candidates are returned, apply the top or user-selected `structuredContent.applyPlan` to create `fact_kind: predicate`, then attach `structuredContent.relationshipPlan` with `requires_predicate` while preserving existing req metadata",
+    "3. If no candidate fits, apply or review the returned `review:ontology-gap` observation instead of silently writing prose",
+    "",
     "Note: Kibi has eight core entity types. Create or reuse `fact` entities first, then create `req` entities and link with `constrains` and `requires_property` (create-before-link).",
     "Only strict domain facts are contradiction-safe. Use `flag` for runtime/config gates; use `fact` with `fact_kind: observation` or `meta` for bug/workaround notes.",
-    "",
-    "## Find missing coverage",
-    '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',
-    "",
-    "## Find missing coverage",
     "",
     "## Find missing coverage",
     '1. `kb_find_gaps` with `{ "type": "req", "missingRelationships": ["specified_by", "verified_by"] }` to find under-linked requirements',
