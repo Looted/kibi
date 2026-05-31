@@ -267,17 +267,19 @@ Upgrades the branch knowledge base to the latest schema version.
 
 **Behavior:**
 - Upgrades entity schemas and internal storage formats
+- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols are already available
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
 - Updates `.kb/config.json` with the latest `schemaVersion`
 - Idempotent: safe to run if already on the latest version
 
 **Flags:**
 - `--dry-run` - Show what would be migrated without making changes
-- `--kb-path <path>` - Path to KB directory (optional)
+- `--yes` - Apply migration changes without prompting
 
 **Notes:**
 - Use `kibi status` to check if a migration is pending for your branch.
 - Migration is recommended when upgrading `kibi-cli` or `kibi-mcp` packages.
+- After migration, run `kibi sync --refresh-symbol-coordinates` if symbol coordinate diagnostics remain.
 
 ## `kibi gc`
 

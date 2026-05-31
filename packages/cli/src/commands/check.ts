@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
@@ -104,9 +104,13 @@ function getMatchGroup(
 function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   manifestLookup: ManifestLookup;
   manifestResults: ExtractionResult[];
+  authoredSymbolResults: ExtractionResult[];
+  stagedAuthoredSymbolResults: ExtractionResult[];
 } {
   const manifestLookup: ManifestLookup = new Map();
   const manifestResults: ExtractionResult[] = [];
+  const authoredSymbolResults: ExtractionResult[] = [];
+  const stagedAuthoredSymbolResults: ExtractionResult[] = [];
 
   // Pre-populate lookup from working-tree manifests so that code-only changes
   // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
@@ -119,6 +123,7 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
       try {
         const entries = extractFromManifest(absSymbolsPath);
         for (const entry of entries) {
+          authoredSymbolResults.push(entry);
           const sourceFile =
             entry.sourceFile || entry.entity.source || absSymbolsPath;
           const key = `${sourceFile}:${entry.entity.title}`;
@@ -174,6 +179,13 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
           entity: entry.entity,
           relationships: entry.relationships,
         });
+        const authoredSymbolResult = {
+          entity: entry.entity,
+          relationships: entry.relationships,
+          ...(entry.sourceFile !== undefined ? { sourceFile: entry.sourceFile } : {}),
+        };
+        authoredSymbolResults.push(authoredSymbolResult);
+        stagedAuthoredSymbolResults.push(authoredSymbolResult);
 
         const sourceFile =
           entry.sourceFile || entry.entity.source || manifestFile.path;
@@ -198,7 +210,104 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
     }
   }
 
-  return { manifestLookup, manifestResults };
+  return {
+    manifestLookup,
+    manifestResults,
+    authoredSymbolResults,
+    stagedAuthoredSymbolResults,
+  };
+}
+
+const GRANULARITY_RELATIONSHIP_TYPES = new Set([
+  "implements",
+  "covered_by",
+  "executable_for",
+]);
+
+const ALLOWED_GRANULARITY_REASONS = new Set([
+  "config-artifact",
+  "module-level-behavior",
+  "extractor-miss",
+  "legacy-link",
+]);
+
+function hasTraceabilityRelationship(result: ExtractionResult): boolean {
+  return result.relationships.some((relationship) =>
+    GRANULARITY_RELATIONSHIP_TYPES.has(relationship.type),
+  );
+}
+
+function hasValidGranularityReason(result: ExtractionResult): boolean {
+  const reason = result.entity.granularity_reason;
+  return (
+    typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason)
+  );
+}
+
+function createSymbolGranularityDiagnostics(options: {
+  manifestResults: ExtractionResult[];
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  sourceContentByFile: Map<string, string>;
+}): KibiImpactDiagnostic[] {
+  const diagnostics: KibiImpactDiagnostic[] = [];
+
+  for (const result of options.manifestResults) {
+    if (!result.sourceFile) continue;
+    if (!hasTraceabilityRelationship(result)) continue;
+    if (hasValidGranularityReason(result)) continue;
+
+    const granularSymbols = getGranularSymbolsForSourceFile(
+      result.sourceFile,
+      options.symbolsByFile,
+      options.sourceContentByFile,
+    );
+    if (granularSymbols.length === 0) continue;
+
+    const granularNames = [...new Set(granularSymbols.map((s) => s.name))].sort();
+    if (granularNames.includes(result.entity.title)) continue;
+
+    diagnostics.push({
+      id: "symbol_granularity_violation",
+      severity: "error",
+      files: [result.entity.source, result.sourceFile],
+      docs: ["docs/symbol-traceability-taxonomy.md"],
+      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available: ${granularNames.join(", ")}`,
+      suggestion:
+        "Move ownership/coverage/test relationships to the narrow function/class/type symbol, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.",
+    });
+  }
+
+  return diagnostics;
+}
+
+function getGranularSymbolsForSourceFile(
+  sourceFile: string,
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>,
+  sourceContentByFile: Map<string, string>,
+): ReturnType<typeof extractSymbolsFromStagedFile> {
+  const stagedContent = sourceContentByFile.get(sourceFile);
+  if (stagedContent !== undefined) {
+    return extractSymbolsFromStagedFile({
+      path: sourceFile,
+      status: "M",
+      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+      content: stagedContent,
+    });
+  }
+
+  const absolutePath = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(process.cwd(), sourceFile);
+  if (!existsSync(absolutePath)) {
+    return [];
+  }
+
+  return extractSymbolsFromStagedFile({
+    path: sourceFile,
+    status: "M",
+    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+    content: readFileSync(absolutePath, "utf8"),
+  });
 }
 
 const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
@@ -471,8 +580,12 @@ export async function checkCommand(
           return { exitCode: 0 };
         }
 
-        const { manifestLookup, manifestResults } =
-          buildManifestLookup(stagedFiles);
+        const {
+          manifestLookup,
+          manifestResults,
+          authoredSymbolResults,
+          stagedAuthoredSymbolResults,
+        } = buildManifestLookup(stagedFiles);
         const symbolsManifestPath =
           loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
 
@@ -508,8 +621,12 @@ export async function checkCommand(
           string,
           ReturnType<typeof extractSymbolsFromStagedFile>
         >();
+        const sourceContentByFile = new Map<string, string>();
         for (const f of sourceFiles) {
           try {
+            if (f.content !== undefined) {
+              sourceContentByFile.set(f.path, f.content);
+            }
             const symbols = extractSymbolsFromStagedFile(f, manifestLookup);
             symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {
@@ -541,6 +658,21 @@ export async function checkCommand(
         });
         const stagedKibiDiagnostics =
           collectStagedKibiDiagnostics(stagedKibiEvidence);
+        const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
+        const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
+        const activeGranularityResults = authoredSymbolResults.filter(
+          (result) =>
+            stagedAuthoredSymbolSet.has(result) ||
+            (result.sourceFile !== undefined &&
+              stagedSourcePaths.has(result.sourceFile)),
+        );
+        stagedKibiDiagnostics.push(
+          ...createSymbolGranularityDiagnostics({
+            manifestResults: activeGranularityResults,
+            symbolsByFile,
+            sourceContentByFile,
+          }),
+        );
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(

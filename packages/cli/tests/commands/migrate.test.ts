@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   rmSync,
@@ -63,6 +64,31 @@ function removeSchemaVersion(configPath: string): string {
 
 function readJson(filePath: string): Record<string, unknown> {
   return JSON.parse(readFileSync(filePath, "utf8")) as Record<string, unknown>;
+}
+
+function writeLegacyGranularityFixture(root: string): void {
+  mkdirSync(path.join(root, "src"), { recursive: true });
+  mkdirSync(path.join(root, "documentation"), { recursive: true });
+  writeFileSync(
+    path.join(root, "src", "greet.ts"),
+    `export function greet() {
+  return "hello";
+}
+`,
+    "utf8",
+  );
+  writeFileSync(
+    path.join(root, "documentation", "symbols.yaml"),
+    `symbols:
+  - id: SYM-GREET-FILE
+    title: greet.ts
+    sourceFile: src/greet.ts
+    links:
+      - REQ-GREET
+    status: active
+`,
+    "utf8",
+  );
 }
 
 describe("kibi migrate", () => {
@@ -137,6 +163,49 @@ describe("kibi migrate", () => {
     expect(audit.branch).toBe("main");
     expect(audit.migratedAt).toEqual(expect.any(String));
     expect(audit.warning).toEqual(expect.any(String));
+  });
+
+  test("dry-run reports legacy coarse symbol migration without writing files", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
+      "utf8",
+    );
+    writeLegacyGranularityFixture(tmpDir);
+    const beforeSymbols = readFileSync(symbolsPath, "utf8");
+
+    const result = runKibi(["migrate", "--dry-run"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("schemaVersion from 1");
+    expect(result.stdout).toContain("would mark 1 legacy coarse symbol");
+    expect(readFileSync(symbolsPath, "utf8")).toBe(beforeSymbols);
+  });
+
+  test("--yes marks existing coarse symbols as legacy links", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify({ ...config, schemaVersion: 1 }, null, 2)}\n`,
+      "utf8",
+    );
+    writeLegacyGranularityFixture(tmpDir);
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("Marked 1 existing coarse symbol");
+    expect(readFileSync(symbolsPath, "utf8")).toContain(
+      "granularity_reason: legacy-link",
+    );
+    const audit = readJson(auditPath);
+    expect(audit.symbolGranularityLegacyLinks).toBe(1);
   });
 
   test("second --yes run is a no-op", () => {

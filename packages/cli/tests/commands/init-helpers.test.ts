@@ -40,6 +40,7 @@ import {
   installHook,
   updateGitIgnore,
 } from "../../src/commands/init-helpers.js";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("init-helpers", () => {
   let tmpDir: string;
@@ -110,7 +111,7 @@ describe("init-helpers", () => {
 
     const config = JSON.parse(readFileSync(configPath, "utf8"));
     expect(config.paths).toBeDefined();
-    expect(config.schemaVersion).toBe(1);
+    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
     expect(config.paths.requirements).toBe("documentation/requirements");
   });
 

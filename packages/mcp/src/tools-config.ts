@@ -372,6 +372,22 @@ const BASE_TOOLS = [
               description:
                 "Optional text anchor/reference. Example: 'requirements.md#L40'.",
             },
+            sourceFile: {
+              type: "string",
+              description:
+                "Optional code source file for symbol entities. Example: 'src/auth/login.ts'.",
+            },
+            granularity_reason: {
+              type: "string",
+              enum: [
+                "config-artifact",
+                "module-level-behavior",
+                "extractor-miss",
+                "legacy-link",
+              ],
+              description:
+                "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
+            },
           },
           required: ["title", "status"],
         },

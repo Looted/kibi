@@ -383,7 +383,7 @@ describe("config", () => {
 
       const status = getSchemaVersionStatus(config);
       expect(status.currentVersion).toBeNull();
-      expect(status.latestVersion).toBe(1);
+      expect(status.latestVersion).toBe(LATEST_KB_SCHEMA_VERSION);
       expect(status.needsMigration).toBe(true);
       expect(status.warning).toEqual(expect.any(String));
     });
@@ -781,7 +781,7 @@ describe("config", () => {
         schemaVersion: 99,
       });
       expect(status.currentVersion).toBe(99);
-      expect(status.latestVersion).toBe(1);
+      expect(status.latestVersion).toBe(LATEST_KB_SCHEMA_VERSION);
       expect(status.needsMigration).toBe(false);
       expect(status.warning).toEqual(expect.any(String));
     });

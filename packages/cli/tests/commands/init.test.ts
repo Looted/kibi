@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("kibi init", () => {
   let tmpDir: string;
@@ -74,7 +75,7 @@ describe("kibi init", () => {
     expect(config.$schema).toBe(
       "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
     );
-    expect(config.schemaVersion).toBe(1);
+    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
     expect(config.paths).toBeDefined();
     expect(config.paths.requirements).toBe("documentation/requirements");
     expect(config.paths.scenarios).toBe("documentation/scenarios");

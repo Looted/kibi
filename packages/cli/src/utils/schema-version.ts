@@ -1,7 +1,7 @@
 import type { KbConfig } from "./config.js";
 
 // implements REQ-003
-export const LATEST_KB_SCHEMA_VERSION = 1;
+export const LATEST_KB_SCHEMA_VERSION = 2;
 
 export interface SchemaVersionStatus {
   status: "missing" | "invalid" | "older" | "current" | "newer";

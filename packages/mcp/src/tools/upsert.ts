@@ -16,7 +16,10 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import Ajv from "ajv";
+import { existsSync, readFileSync } from "node:fs";
+import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { Project, ScriptKind } from "ts-morph";
 import {
   escapeAtom,
   toPrologAtom,
@@ -54,8 +57,43 @@ export interface UpsertResult {
 }
 
 const ajv = new Ajv({ strict: false });
-const validateEntity = ajv.compile(entitySchema);
+const entitySchemaRecord = entitySchema as Record<string, unknown>;
+const entitySchemaProperties = entitySchemaRecord.properties;
+const normalizedEntitySchemaProperties =
+  entitySchemaProperties !== null &&
+  typeof entitySchemaProperties === "object" &&
+  !Array.isArray(entitySchemaProperties)
+    ? (entitySchemaProperties as Record<string, unknown>)
+    : {};
+const validateEntity = ajv.compile({
+  ...entitySchemaRecord,
+  properties: {
+    ...normalizedEntitySchemaProperties,
+    granularity_reason: {
+      type: "string",
+      enum: [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+      ],
+    },
+  },
+});
 const validateRelationship = ajv.compile(relationshipSchema);
+
+const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
+  "implements",
+  "covered_by",
+  "executable_for",
+]);
+
+const ALLOWED_GRANULARITY_REASONS = new Set([
+  "config-artifact",
+  "module-level-behavior",
+  "extractor-miss",
+  "legacy-link",
+]);
 
 /**
  * Handle kb.upsert tool calls
@@ -121,6 +159,8 @@ export async function handleKbUpsert(
   }
 
   validateRelationshipSources(id, relationships);
+
+  validateSymbolGranularity(entity, relationships);
 
   // Validate strict-lane fact_kind pairing for constrains/requires_property
   // implements REQ-011
@@ -251,6 +291,93 @@ export async function handleKbUpsert(
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(`Upsert execution failed: ${message}`);
   }
+}
+
+function chooseScriptKind(filePath: string): ScriptKind {
+  const lower = filePath.toLowerCase();
+  if (lower.endsWith(".tsx")) return ScriptKind.TSX;
+  if (lower.endsWith(".ts") || lower.endsWith(".mts") || lower.endsWith(".cts")) {
+    return ScriptKind.TS;
+  }
+  if (lower.endsWith(".jsx")) return ScriptKind.JSX;
+  return ScriptKind.JS;
+}
+
+function hasTraceabilityRelationship(
+  relationships: Array<Record<string, unknown>>,
+): boolean {
+  return relationships.some(
+    (relationship) =>
+      typeof relationship.type === "string" &&
+      TRACEABILITY_RELATIONSHIP_TYPES.has(relationship.type),
+  );
+}
+
+function hasAllowedGranularityReason(entity: Record<string, unknown>): boolean {
+  const reason = entity.granularity_reason;
+  return (
+    typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason)
+  );
+}
+
+function collectNarrowExportNames(filePath: string, content: string): string[] {
+  const project = new Project({ skipAddingFilesFromTsConfig: true });
+  const sourceFile = project.createSourceFile(`${filePath}::granularity`, content, {
+    overwrite: true,
+    scriptKind: chooseScriptKind(filePath),
+  });
+  const names = new Set<string>();
+
+  for (const fn of sourceFile.getFunctions()) {
+    if (fn.isExported()) {
+      const name = fn.getName();
+      if (name) names.add(name);
+    }
+  }
+  for (const cls of sourceFile.getClasses()) {
+    if (cls.isExported()) {
+      const name = cls.getName();
+      if (name) names.add(name);
+    }
+  }
+  for (const iface of sourceFile.getInterfaces()) {
+    if (iface.isExported()) names.add(iface.getName());
+  }
+  for (const alias of sourceFile.getTypeAliases()) {
+    if (alias.isExported()) names.add(alias.getName());
+  }
+  for (const en of sourceFile.getEnums()) {
+    if (en.isExported()) names.add(en.getName());
+  }
+
+  return [...names].sort();
+}
+
+function validateSymbolGranularity(
+  entity: Record<string, unknown>,
+  relationships: Array<Record<string, unknown>>,
+): void {
+  if (entity.type !== "symbol") return;
+  if (!hasTraceabilityRelationship(relationships)) return;
+  if (hasAllowedGranularityReason(entity)) return;
+  if (typeof entity.sourceFile !== "string") return;
+  if (typeof entity.title !== "string") return;
+
+  const sourcePath = path.isAbsolute(entity.sourceFile)
+    ? entity.sourceFile
+    : path.resolve(process.cwd(), entity.sourceFile);
+  if (!existsSync(sourcePath)) return;
+
+  const narrowNames = collectNarrowExportNames(
+    entity.sourceFile,
+    readFileSync(sourcePath, "utf8"),
+  );
+  if (narrowNames.length === 0) return;
+  if (narrowNames.includes(entity.title)) return;
+
+  throw new Error(
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available: ${narrowNames.join(", ")}. Move relationships to the narrow symbol or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.`,
+  );
 }
 
 export const __test__ = {
