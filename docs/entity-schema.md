@@ -242,7 +242,7 @@ kibi status
 kibi migrate --yes
 ```
 
-Schema version 2 introduces strict symbol granularity. During migration, existing coarse file/module links that can be explained by older ontology data are marked with `granularity_reason: legacy-link`; new or updated symbol traceability should target the narrow function, class, interface, type, or enum symbol whenever one exists.
+Schema version 2 introduces strict symbol granularity. During migration, existing coarse file/module links that can be explained by older ontology data are marked with `granularity_reason: legacy-link`; new or updated symbol traceability should target the narrow function, class method (`ClassName.methodName`), class, interface, type, or enum symbol whenever one exists.
 
 **Invalid Example (Prohibited):**
 
