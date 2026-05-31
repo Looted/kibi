@@ -19,6 +19,7 @@ export interface ExtractedSymbol {
   kind:
     | "function"
     | "class"
+    | "method"
     | "interface"
     | "type"
     | "variable"
@@ -352,12 +353,7 @@ export function extractSymbolsFromStagedFile(
       const start = cls.getNameNode()?.getStart() ?? cls.getStart();
       const end = cls.getEnd();
       const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(
-        `${cls.getText()}\n${cls
-          .getJsDocs()
-          .map((d) => d.getFullText())
-          .join("\n")}`,
-      );
+      const reqLinks = parseReqDirectives(getJsDocText(cls.getJsDocs()));
       results.push(
         buildSymbolResult(
           stagedFile,
@@ -370,6 +366,35 @@ export function extractSymbolsFromStagedFile(
       );
     } catch {
       void stagedFile.path;
+    }
+
+    for (const method of typeof cls.getMethods === "function"
+      ? cls.getMethods()
+      : []) {
+      try {
+        const name = formatMethodSymbolName(cls.getName(), method.getName());
+        const start = method.getNameNode()?.getStart() ?? method.getStart();
+        const end = method.getEnd();
+        const span = getSpan(start, end);
+        const reqLinks = parseReqDirectives(
+          `${method.getFullText()}\n${method
+            .getJsDocs()
+            .map((d) => d.getFullText())
+            .join("\n")}`,
+        );
+        results.push(
+          buildSymbolResult(
+            stagedFile,
+            name,
+            "method",
+            span,
+            reqLinks,
+            manifestLookup,
+          ),
+        );
+      } catch {
+        void stagedFile.path;
+      }
     }
   }
 
@@ -483,6 +508,17 @@ export function extractSymbolsFromStagedFile(
   }
 
   return results;
+}
+
+function formatMethodSymbolName(
+  className: string | undefined,
+  methodName: string,
+): string {
+  return className ? `${className}.${methodName}` : methodName;
+}
+
+function getJsDocText(jsDocs: Array<{ getFullText(): string }>): string {
+  return jsDocs.map((d) => d.getFullText()).join("\n");
 }
 
 function intersectingHunks(

@@ -120,7 +120,7 @@ describe("symbol-extract (real integration)", () => {
       content: [
         "// implements: REQ-INLINE, REQ-INLINE, REQ_2",
         "export function featureFn() {}",
-        "export class FeatureClass {}",
+        "export class FeatureClass { methodSymbol() {} }",
         "export enum FeatureState { On }",
         "export const FEATURE_VALUE = 1;",
         "",
@@ -133,6 +133,7 @@ describe("symbol-extract (real integration)", () => {
     expect(tsSymbols.map((symbol: { name: string }) => symbol.name)).toEqual([
       "featureFn",
       "FeatureClass",
+      "FeatureClass.methodSymbol",
       "FeatureState",
     ]);
     expect(tsSymbols[0]).toMatchObject({
@@ -146,6 +147,10 @@ describe("symbol-extract (real integration)", () => {
       reqLinks: ["REQ-MANIFEST-CLASS"],
     });
     expect(tsSymbols[2]).toMatchObject({
+      kind: "method",
+      name: "FeatureClass.methodSymbol",
+    });
+    expect(tsSymbols[3]).toMatchObject({
       id: "SYM-ENUM",
       kind: "enum",
       reqLinks: ["REQ-MANIFEST-ENUM"],
@@ -315,6 +320,48 @@ describe("symbol-extract (real integration)", () => {
     });
     expect(symbols[2]?.id).toHaveLength(16);
     expect(symbols[2]?.id).not.toBe("SYM-DISK-VAR");
+  });
+
+  it("qualifies duplicate class method symbols and keeps method directives off the class", async () => {
+    const { extractSymbolsFromStagedFile } =
+      await loadSymbolExtractModule("qualified-methods");
+
+    const symbols = extractSymbolsFromStagedFile(
+      makeStagedFile(
+        "src/workers.ts",
+        [
+          "export class Alpha {",
+          "  // implements: REQ-ALPHA-RUN",
+          "  run() { return 'alpha'; }",
+          "}",
+          "export class Beta {",
+          "  // implements: REQ-BETA-RUN",
+          "  run() { return 'beta'; }",
+          "}",
+        ].join("\n"),
+        "A",
+      ),
+    );
+
+    expect(symbols.map((symbol: { name: string }) => symbol.name)).toEqual([
+      "Alpha",
+      "Alpha.run",
+      "Beta",
+      "Beta.run",
+    ]);
+    expect(symbols[0]).toMatchObject({ name: "Alpha", reqLinks: [] });
+    expect(symbols[1]).toMatchObject({
+      name: "Alpha.run",
+      kind: "method",
+      reqLinks: ["REQ-ALPHA-RUN"],
+    });
+    expect(symbols[2]).toMatchObject({ name: "Beta", reqLinks: [] });
+    expect(symbols[3]).toMatchObject({
+      name: "Beta.run",
+      kind: "method",
+      reqLinks: ["REQ-BETA-RUN"],
+    });
+    expect(symbols[1]?.id).not.toBe(symbols[3]?.id);
   });
 });
 
