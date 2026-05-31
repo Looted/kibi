@@ -149,6 +149,25 @@ test("interactive mode terminates the Prolog child after a query timeout", async
   }
 });
 
+test("interactive mode terminate is idempotent after timeout", async () => {
+  const prolog = createInteractiveProlog({ timeout: 100 });
+  try {
+    await prolog.start();
+
+    await assert.rejects(
+      () => prolog.query("repeat, fail"),
+      /Query timeout after/,
+    );
+
+    await prolog.terminate();
+    await prolog.terminate();
+
+    assert.strictEqual(prolog.isRunning(), false);
+  } finally {
+    await prolog.terminate().catch(() => undefined);
+  }
+});
+
 test("interactive mode rejects queued queries immediately after timeout termination", async () => {
   const prolog = createInteractiveProlog({ timeout: 100 });
   try {
