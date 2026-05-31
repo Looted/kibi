@@ -59,6 +59,7 @@ export let prologProcess: PrologProcess | null = null;
 let isInitialized = false;
 export let activeBranchName = "develop";
 let ensurePrologTail: Promise<void> = Promise.resolve();
+let prologResetGeneration = 0;
 export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
@@ -69,6 +70,7 @@ export function resetSessionStateForTests(): void {
   isInitialized = false;
   activeBranchName = "develop";
   ensurePrologTail = Promise.resolve();
+  prologResetGeneration = 0;
   isShuttingDown = false;
   inFlightRequests.clear();
   if (shutdownTimeout) {
@@ -186,8 +188,45 @@ export async function initiateGracefulShutdown(exitCode = 0): Promise<void> {
 }
 
 // implements REQ-008
+export async function resetProlog(reason: string): Promise<void> {
+  debugLog(`[KIBI-MCP] Resetting Prolog worker: ${reason}`);
+  prologResetGeneration += 1;
+  const current = prologProcess;
+  prologProcess = null;
+  isInitialized = false;
+
+  if (current) {
+    try {
+      await current.terminate();
+    } catch (error) {
+      console.error("[KIBI-MCP] Error resetting Prolog worker:", error);
+    }
+  }
+}
+
+// implements REQ-008
 async function ensurePrologUnsafe(): Promise<PrologProcess> {
+  const generationAtStart = prologResetGeneration;
   const workspaceRoot = sessionDeps.resolveWorkspaceRoot();
+
+  const assertGeneration = async (): Promise<void> => {
+    if (generationAtStart !== prologResetGeneration) {
+      const current = prologProcess;
+      prologProcess = null;
+      isInitialized = false;
+      if (current) {
+        await current.terminate().catch((error) => {
+          console.error(
+            "[KIBI-MCP] Error terminating stale Prolog after reset generation change:",
+            error,
+          );
+        });
+      }
+      throw new Error(
+        "Prolog worker reset while initialization was in progress",
+      );
+    }
+  };
 
   // Determine target branch: respect KIBI_BRANCH override or resolve from git
   const envBranch = getBranchOverride();
@@ -229,6 +268,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
     // Persist and detach from old KB
     const saveResult = await prologProcess.query("kb_save");
+    await assertGeneration();
     if (!saveResult.success) {
       throw new Error(
         `Failed to save old KB before detach: ${saveResult.error || "Unknown error"}`,
@@ -236,6 +276,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
 
     const detachResult = await prologProcess.query("kb_detach");
+    await assertGeneration();
     if (!detachResult.success) {
       debugLog(
         `[KIBI-MCP] Warning: failed to detach from old KB: ${detachResult.error || "Unknown error"}`,
@@ -249,6 +290,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
     // Attach to new branch KB
     const attachResult = await prologProcess.query(`kb_attach('${newKbPath}')`);
+    await assertGeneration();
     if (!attachResult.success) {
       throw new Error(
         `Failed to attach to new branch KB: ${attachResult.error || "Unknown error"}`,
@@ -267,6 +309,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   prologProcess = new sessionDeps.PrologProcess({ timeout: 120000 });
   await prologProcess.start();
+  await assertGeneration();
 
   // Startup debug: resolve which kibi-cli is being used and its version (best-effort).
   // Gate all output under KIBI_MCP_DEBUG and write only to stderr via debugLog.
@@ -320,6 +363,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
   ensureBranchKbExists(workspaceRoot, targetBranch);
   const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
   const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
+  await assertGeneration();
 
   if (!attachResult.success) {
     throw new Error(

@@ -1862,6 +1862,84 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-mcp-session-activeBranchName:
+    sourceColumn: 11
+    sourceEndColumn: 39
+    sourceEndLine: 60
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 60
+  SYM-mcp-session-ensureBranchKbExists:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 100
+  SYM-mcp-session-ensureProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 395
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 382
+  SYM-mcp-session-inFlightRequests:
+    sourceColumn: 13
+    sourceEndColumn: 67
+    sourceEndLine: 65
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 65
+  SYM-mcp-session-initiateGracefulShutdown:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 188
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 139
+  SYM-mcp-session-isShuttingDown:
+    sourceColumn: 11
+    sourceEndColumn: 33
+    sourceEndLine: 63
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 63
+  SYM-mcp-session-prologProcess:
+    sourceColumn: 11
+    sourceEndColumn: 53
+    sourceEndLine: 58
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 58
+  SYM-mcp-session-resetSessionDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 92
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 89
+  SYM-mcp-session-resetSessionStateForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 80
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 68
+  SYM-mcp-session-setSessionDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 87
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 82
+  SYM-mcp-tools-createToolTimeoutError:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 201
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 199
+  SYM-mcp-tools-getToolTimeoutMs:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 186
+  SYM-mcp-tools-withToolTimeout:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 228
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 204
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2030,6 +2108,12 @@ coordinates:
     sourceEndLine: 39
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 30
+  SYM-resetProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 191
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1

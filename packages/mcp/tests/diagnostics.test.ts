@@ -60,6 +60,24 @@ describe("classifyDiagnosticError", () => {
     });
   });
 
+  test("classifies tool timeout and Prolog worker reset events", () => {
+    expect(
+      classifyDiagnosticError(new Error("Tool kb_upsert timed out after 25ms")),
+    ).toMatchObject({
+      error_category: "tool_timeout",
+      error_stage: "tool_timeout",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error("prolog worker reset: tool timeout: kb_upsert"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_worker_reset",
+      error_stage: "prolog_lifecycle",
+    });
+  });
+
   test("classifies validation failures separately from runtime failures", () => {
     expect(
       classifyDiagnosticError(
