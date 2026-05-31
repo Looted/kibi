@@ -2213,9 +2213,9 @@ coordinates:
   SYM-usage-metrics-command:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 107
     sourceFile: packages/cli/src/commands/usage-metrics.ts
-    sourceLine: 75
+    sourceLine: 82
   SYM-validateAndMerge:
     sourceColumn: 16
     sourceEndColumn: 1

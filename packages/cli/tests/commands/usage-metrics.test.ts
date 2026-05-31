@@ -122,6 +122,18 @@ describe("kibi usage-metrics", () => {
           active_branch: "main",
           error_message: "Some failure: detailed reason",
         }),
+        JSON.stringify({
+          timestamp: "2026-05-01T10:09:00.000Z",
+          request_id: "kb_status-1",
+          tool: "kb_status",
+          telemetry: null,
+          telemetry_status: "missing",
+          business_args: {},
+          status: "error",
+          active_branch: "main",
+          error_message:
+            "Status execution failed: Status execution module load failed: Unknown option (h for help)",
+        }),
         "",
       ].join("\n"),
       "utf8",
@@ -166,29 +178,35 @@ describe("kibi usage-metrics", () => {
       upsertErrors: {
         categories: Record<string, number>;
       };
+      errors: {
+        categories: Record<string, number>;
+        stages: Record<string, number>;
+        byTool: Record<string, number>;
+      };
     };
 
-    expect(result.rowCount).toBe(9);
+    expect(result.rowCount).toBe(10);
     expect(result.dateRange).toEqual({
       first: "2026-05-01T10:00:00.000Z",
-      last: "2026-05-01T10:08:00.000Z",
+      last: "2026-05-01T10:09:00.000Z",
     });
     expect(result.toolCounts).toEqual({
       kb_query: 3,
       kb_search: 1,
       kb_check: 2,
       kb_upsert: 3,
+      kb_status: 1,
     });
     expect(result.branchCounts).toEqual({
-      main: 7,
+      main: 8,
       "feature/reporting": 2,
     });
-    expect(result.outcomeCounts).toEqual({ success: 6, error: 3 });
+    expect(result.outcomeCounts).toEqual({ success: 6, error: 4 });
     expect(result.telemetry.completeCount).toBe(4);
-    expect(result.telemetry.missingCount).toBe(5);
-    expect(result.telemetry.completenessRate).toBeCloseTo(4 / 9);
+    expect(result.telemetry.missingCount).toBe(6);
+    expect(result.telemetry.completenessRate).toBeCloseTo(4 / 10);
     expect(result.zeroResults.count).toBe(3);
-    expect(result.zeroResults.rate).toBeCloseTo(1 / 3);
+    expect(result.zeroResults.rate).toBeCloseTo(3 / 10);
     expect(result.zeroResults.byTool).toEqual({ kb_query: 3 });
     expect(result.zeroResults.topSourceFiles).toEqual([
       { sourceFile: "src/a.ts", count: 2 },
@@ -209,6 +227,21 @@ describe("kibi usage-metrics", () => {
       "Relationship source must match the upserted entity": 1,
       "Some failure": 1,
     });
+    expect(result.errors.categories).toEqual({
+      "Entity validation failed": 1,
+      "Relationship source must match the upserted entity": 1,
+      "Some failure": 1,
+      prolog_unknown_option: 1,
+    });
+    expect(result.errors.stages).toEqual({
+      prolog_runtime: 1,
+      validation: 2,
+      unknown: 1,
+    });
+    expect(result.errors.byTool).toEqual({
+      kb_upsert: 3,
+      kb_status: 1,
+    });
   });
 
   test("renders table output and applies the zero-result file limit", () => {
@@ -221,6 +254,8 @@ describe("kibi usage-metrics", () => {
     expect(output).toContain("Tool Counts");
     expect(output).toContain("Telemetry");
     expect(output).toContain("Zero-Result Source Files");
+    expect(output).toContain("Error Categories");
+    expect(output).toContain("Error Stages");
     expect(output).toContain("kb_query");
     expect(output).toContain("src/a.ts");
     expect(output).not.toContain("src/b.ts");
