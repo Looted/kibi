@@ -72,27 +72,39 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 
 Kibi is designed to run from your project, so each MCP client starts the same local `kibi-mcp` binary for that workspace.
 
-Install the CLI and MCP server as development dependencies:
+Install the CLI, MCP server, and core package as project dependencies. Use your
+project's package manager; npm is shown only as the Node baseline:
 
 ```bash
-npm install --save-dev kibi-cli kibi-mcp
+npm install --save-dev kibi-cli kibi-mcp kibi-core
 ```
 
-Prefer npm unless your project already uses another package manager. Equivalent installs are:
+Equivalent project-local installs are:
 
 ```bash
-pnpm add -D kibi-cli kibi-mcp
-yarn add -D kibi-cli kibi-mcp
-bun add -d kibi-cli kibi-mcp
+pnpm add -D kibi-cli kibi-mcp kibi-core
+yarn add -D kibi-cli kibi-mcp kibi-core
+bun add -d kibi-cli kibi-mcp kibi-core
 ```
 
-The recommended MCP command is:
+Run the CLI through the same project-local package context:
 
 ```bash
-npx --no-install kibi-mcp
+npm exec -- kibi status
 ```
 
-`--no-install` makes the MCP client use the version already installed in your project instead of downloading a package at startup. Run the client from the project root, or configure the client to use that workspace as its current working directory.
+For pnpm, Yarn, or Bun projects, use that manager's local binary runner instead
+(`pnpm exec kibi`, `yarn exec kibi`, or `bunx --no-install kibi`). Avoid global
+Kibi binaries for project automation unless you intentionally want a global tool.
+
+The MCP server should also run from the project-local install. For npm-based
+projects, use `npx --no-install kibi-mcp` or the equivalent `npm exec --no -- kibi-mcp`; for other package managers, use the local runner for that project
+(`pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`).
+These commands control package resolution only: each MCP client still starts and
+owns its own stdio server subprocess.
+
+`kibi-opencode` is optional. It adds OpenCode guidance/background maintenance,
+but it does not replace the base `kibi-cli` and `kibi-mcp` installation.
 
 For detailed setup, global install alternatives, and troubleshooting, see [the installation guide](docs/install.md).
 
@@ -109,7 +121,7 @@ Add Kibi to your `opencode.json`:
     "kibi": {
       "type": "local",
       "enabled": true,
-      "command": ["npx", "--no-install", "kibi-mcp"]
+      "command": ["npx", "--no-install", "kibi-mcp", "--diagnostic-mode"]
     }
   }
 }
@@ -171,17 +183,19 @@ If your client supports a working-directory setting, point it at the project whe
 
 </details>
 
-If your project uses a different package manager, keep the same MCP shape and swap the command/args for your runner, for example `pnpm exec kibi-mcp`, `yarn kibi-mcp`, or `bun kibi-mcp`.
+If your project uses a different package manager, keep the same MCP shape and swap the command/args for your local runner, for example `pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`.
 
-### Repo-local dogfood workflow (this repo)
+Optional OpenCode plugin usage is separate from the MCP server command:
 
-For contributors to this repository only:
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
-
-```bash
-bun run build
+```json
+{
+  "plugin": ["kibi-opencode"]
+}
 ```
+
+Use the plugin when you want OpenCode prompt guidance and background sync/check
+maintenance. Keep the `mcp.kibi` entry configured against the project-local
+`kibi-mcp` binary either way.
 
 ## Quick Start
 
@@ -189,22 +203,22 @@ Initialize kibi in your repository:
 
 ```bash
 # Verify environment prerequisites
-npx kibi doctor
+npm exec -- kibi doctor
 
 # Initialize .kb/ and install git hooks
-npx kibi init
+npm exec -- kibi init
 
 # Parse markdown docs and symbols into branch KB
-npx kibi sync
+npm exec -- kibi sync
 
 # Discover relevant knowledge before exact lookups
-npx kibi search auth
+npm exec -- kibi search auth
 
 # Inspect current branch snapshot and freshness
-npx kibi status
+npm exec -- kibi status
 
 # Run integrity checks
-npx kibi check
+npm exec -- kibi check
 ```
 
 > **Note:** `kibi init` installs git hooks by default and writes `.kb/` ignore entries to `.gitignore`. Hooks automatically sync your KB on branch checkout and merge.
@@ -213,17 +227,17 @@ npx kibi check
 
 ```bash
 # Explore the KB first
-npx kibi search login
+npm exec -- kibi search login
 
 # Then follow up with exact/source-linked queries
-npx kibi query req --source src/auth/login.ts --format table
+npm exec -- kibi query req --source src/auth/login.ts --format table
 
 # Check branch attachment and freshness when needed
-npx kibi status
+npm exec -- kibi status
 
 # Ask focused reporting questions
-npx kibi gaps req --missing-rel specified_by,verified_by --format table
-npx kibi coverage --by req --format table
+npm exec -- kibi gaps req --missing-rel specified_by,verified_by --format table
+npm exec -- kibi coverage --by req --format table
 ```
 
 ## Documentation

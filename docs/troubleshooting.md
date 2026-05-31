@@ -272,7 +272,9 @@ MCP startup fails with a path resolution error pointing to an old `kibi-mcp` ver
 
 ### Root Cause
 
-The MCP configuration or a package manager cache still references a stale path. `npx -y` can mix local dependency resolution, registry fetches, and npm cache behavior in ways that produce ambiguous or outdated paths. Project-local execution (`npx --no-install` or `pnpm exec`) avoids this by resolving only what is already installed in the project.
+The MCP configuration or a package manager cache still references a stale path. `npx -y`, `pnpm dlx`/`pnx`, `yarn dlx`, and `bunx` without `--no-install` can mix local dependency resolution, registry fetches, and package-manager cache behavior in ways that produce ambiguous or outdated paths. Project-local execution avoids this by resolving only what is already installed in the project (`npx --no-install` / `npm exec --no -- ...` for npm, `pnpm exec` for pnpm, `yarn exec` for Yarn, or `bunx --no-install` for Bun).
+
+These commands only control package resolution. They do not make parallel agents share or isolate an MCP process; the MCP client starts and owns the stdio server subprocess according to its own lifecycle.
 
 ### Evidence-First Recovery
 
@@ -289,7 +291,9 @@ Do NOT delete all caches or `node_modules` as a first step. Capture evidence, in
    grep "kibi-mcp" pnpm-lock.yaml
    cat .vscode/mcp.json   # or opencode.json
    ```
-   Confirm the lockfile lists the expected version and that the MCP config uses `--no-install` (for npm) or `pnpm exec` (for pnpm), not `-y`.
+   Confirm the lockfile lists the expected version and that the MCP config uses the local runner for your package manager, not an auto-install/hot-load command such as `npx -y` or `pnpm dlx`.
+
+   For workspaces that intentionally run Kibi from a local checkout, also confirm the MCP config points at the checkout wrapper or binary directly. A command such as `pnpm exec kibi-mcp` resolves the application repository's installed `node_modules` package, not an external Kibi checkout.
 
 3. **Targeted cleanup (only if evidence confirms a stale cache):**
    ```bash
