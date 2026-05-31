@@ -46,7 +46,7 @@ export function initializeDiagnosticMode(
   diagnosticUsageLogPath = null;
 
   if (!enabled) {
-    Reflect.deleteProperty(process.env, "KIBI_MCP_DIAGNOSTIC_MODE");
+    process.env.KIBI_MCP_DIAGNOSTIC_MODE = "0";
     return;
   }
 

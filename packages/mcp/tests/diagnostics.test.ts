@@ -378,7 +378,7 @@ describe.serial("diagnostic mode lifecycle", () => {
     initializeDiagnosticMode(false);
     appendUsageLogLine({ tool: "kb_status" });
 
-    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBeUndefined();
+    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBe("0");
     expect(existsSync(path.join(workspaceRoot, ".kb", "usage.log"))).toBe(
       false,
     );

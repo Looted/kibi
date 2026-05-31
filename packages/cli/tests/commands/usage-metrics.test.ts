@@ -260,4 +260,159 @@ describe("kibi usage-metrics", () => {
     expect(output).toContain("src/a.ts");
     expect(output).not.toContain("src/b.ts");
   });
+
+  test("rejects --limit 0 with exit code 1", () => {
+    expect(() =>
+      execSync(`bun ${kibiCli} usage-metrics --limit 0`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ).toThrow(/--limit must be a positive integer/);
+  });
+
+  test("rejects negative --limit with exit code 1", () => {
+    expect(() =>
+      execSync(`bun ${kibiCli} usage-metrics --limit -5`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ).toThrow(/--limit must be a positive integer/);
+  });
+
+  test("reports error when usage.log is missing", () => {
+    const noLogFileDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-no-log-"),
+    );
+    mkdirSync(path.join(noLogFileDir, ".kb"), { recursive: true });
+    try {
+      expect(() =>
+        execSync(`bun ${kibiCli} usage-metrics --format json`, {
+          cwd: noLogFileDir,
+          encoding: "utf8",
+        }),
+      ).toThrow(/usage log not found/);
+    } finally {
+      rmSync(noLogFileDir, { recursive: true, force: true });
+    }
+  });
+
+  test("returns valid empty JSON when usage.log is empty", () => {
+    const emptyDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-empty-"),
+    );
+    mkdirSync(path.join(emptyDir, ".kb"), { recursive: true });
+    writeFileSync(path.join(emptyDir, ".kb", "usage.log"), "", "utf8");
+    try {
+      const output = execSync(
+        `bun ${kibiCli} usage-metrics --format json --limit 10`,
+        { cwd: emptyDir, encoding: "utf8" },
+      );
+      const result = JSON.parse(output);
+      expect(result.rowCount).toBe(0);
+      expect(result.dateRange).toEqual({ first: null, last: null });
+      expect(result.telemetry.completenessRate).toBe(0);
+      expect(result.zeroResults.rate).toBe(0);
+    } finally {
+      rmSync(emptyDir, { recursive: true, force: true });
+    }
+  });
+
+  test("reports error for malformed JSON in usage.log", () => {
+    const badJsonDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-bad-json-"),
+    );
+    mkdirSync(path.join(badJsonDir, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(badJsonDir, ".kb", "usage.log"),
+      "this is not json\n",
+      "utf8",
+    );
+    try {
+      expect(() =>
+        execSync(`bun ${kibiCli} usage-metrics --format json`, {
+          cwd: badJsonDir,
+          encoding: "utf8",
+        }),
+      ).toThrow(/Failed to parse .kb\/usage.log line 1/);
+    } finally {
+      rmSync(badJsonDir, { recursive: true, force: true });
+    }
+  });
+
+  test("reports error for non-object JSON in usage.log", () => {
+    const nonObjDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-non-obj-"),
+    );
+    mkdirSync(path.join(nonObjDir, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(nonObjDir, ".kb", "usage.log"),
+      '"hello"\n',
+      "utf8",
+    );
+    try {
+      expect(() =>
+        execSync(`bun ${kibiCli} usage-metrics --format json`, {
+          cwd: nonObjDir,
+          encoding: "utf8",
+        }),
+      ).toThrow(/expected object/);
+    } finally {
+      rmSync(nonObjDir, { recursive: true, force: true });
+    }
+  });
+
+  test("reports error for non-numeric --limit value", () => {
+    expect(() =>
+      execSync(`bun ${kibiCli} usage-metrics --limit abc`, {
+        cwd: tmpDir,
+        encoding: "utf8",
+      }),
+    ).toThrow(/--limit must be a positive integer/);
+  });
+
+  test("reports error for JSON number in usage.log", () => {
+    const numDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-num-"),
+    );
+    mkdirSync(path.join(numDir, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(numDir, ".kb", "usage.log"),
+      "42\n",
+      "utf8",
+    );
+    try {
+      expect(() =>
+        execSync(`bun ${kibiCli} usage-metrics --format json`, {
+          cwd: numDir,
+          encoding: "utf8",
+        }),
+      ).toThrow(/expected object/);
+    } finally {
+      rmSync(numDir, { recursive: true, force: true });
+    }
+  });
+
+  test("reports 0 rows for usage.log with only blank lines", () => {
+    const blankDir = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-test-usage-metrics-blank-"),
+    );
+    mkdirSync(path.join(blankDir, ".kb"), { recursive: true });
+    writeFileSync(
+      path.join(blankDir, ".kb", "usage.log"),
+      "\n  \n\n",
+      "utf8",
+    );
+    try {
+      const output = execSync(
+        `bun ${kibiCli} usage-metrics --format json --limit 10`,
+        { cwd: blankDir, encoding: "utf8" },
+      );
+      const result = JSON.parse(output);
+      expect(result.rowCount).toBe(0);
+      expect(result.dateRange).toEqual({ first: null, last: null });
+      expect(result.telemetry.completenessRate).toBe(0);
+    } finally {
+      rmSync(blankDir, { recursive: true, force: true });
+    }
+  });
 });

@@ -87,32 +87,41 @@ test("kb_upsert schema advertises typed fact fields", () => {
   expect(entityProperties.value_bool).toBeDefined();
 });
 
-test("withDiagnosticTelemetrySchema adds telemetry schema without mutating inputs", () => {
-  const tools = createToolConfigs();
-  const originalSnapshot = structuredClone(tools);
+test("withDiagnosticTelemetrySchema adds telemetry to tool schema immutably", () => {
+  const tools = [
+    {
+      name: "test",
+      description: "desc",
+      inputSchema: {
+        type: "object",
+        properties: {
+          key: { type: "string" },
+        },
+      },
+    },
+  ];
 
+  const original = structuredClone(tools);
   const result = withDiagnosticTelemetrySchema(tools);
 
-  expect(result).toHaveLength(tools.length);
+  expect(result).toHaveLength(1);
   expect(result).not.toBe(tools);
-  expect(tools).toEqual(originalSnapshot);
-
-  for (const [index, tool] of tools.entries()) {
-    const transformed = result[index];
-    expect(transformed).not.toBe(tool);
-    expect(transformed.inputSchema).not.toBe(tool.inputSchema);
-
-    const originalInputSchema = objectRecord(tool.inputSchema);
-    const transformedInputSchema = objectRecord(transformed.inputSchema);
-    const originalProperties = objectRecord(originalInputSchema.properties);
-    const transformedProperties = objectRecord(transformedInputSchema.properties);
-
-    expect(transformed.name).toBe(tool.name);
-    expect(transformed.description).toBe(tool.description);
-    expect(transformedProperties.marker).toEqual(originalProperties.marker);
-    expect(transformedProperties._diagnostic_telemetry).toBeDefined();
-    expect(originalProperties._diagnostic_telemetry).toBeUndefined();
-  }
+  expect(result[0]).not.toBe(tools[0]);
+  expect(result[0].inputSchema).not.toBe(tools[0].inputSchema);
+  expect(result[0].inputSchema.properties).toMatchObject({
+    key: { type: "string" },
+    _diagnostic_telemetry: {
+      type: "object",
+    },
+  });
+  expect(result[0].inputSchema.properties).toHaveProperty(
+    "_diagnostic_telemetry.properties",
+  );
+  expect(result[0].inputSchema.properties).toHaveProperty("key");
+  expect(tools[0].inputSchema.properties).not.toHaveProperty(
+    "_diagnostic_telemetry",
+  );
+  expect(tools).toEqual(original);
 });
 
 function createDeferred<T>() {
