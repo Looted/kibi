@@ -32,6 +32,8 @@ interface UsageLogRow {
   violation_count?: number;
   error?: string;
   error_message?: string;
+  error_category?: string;
+  error_stage?: string;
 }
 
 interface UsageMetricsReport {
@@ -68,6 +70,11 @@ interface UsageMetricsReport {
   };
   upsertErrors: {
     categories: Record<string, number>;
+  };
+  errors: {
+    categories: Record<string, number>;
+    stages: Record<string, number>;
+    byTool: Record<string, number>;
   };
 }
 
@@ -144,6 +151,9 @@ function buildUsageMetricsReport(
   const zeroResultToolCounts = new Map<string, number>();
   const zeroResultSourceFileCounts = new Map<string, number>();
   const upsertErrorCategories = new Map<string, number>();
+  const errorCategories = new Map<string, number>();
+  const errorStages = new Map<string, number>();
+  const errorsByTool = new Map<string, number>();
   const violationTrend: Array<{ timestamp: string; violationCount: number }> =
     [];
 
@@ -166,6 +176,14 @@ function buildUsageMetricsReport(
     }
     if (outcome === "error") {
       errorCount += 1;
+      const category =
+        row.error_category ?? categorizeError(row.error_message ?? row.error);
+      increment(errorCategories, category);
+      increment(
+        errorStages,
+        row.error_stage ?? inferErrorStage(row.error_message ?? row.error),
+      );
+      increment(errorsByTool, normalizeKey(row.tool, "unknown"));
     }
 
     if (hasCompleteTelemetry(row)) {
@@ -239,6 +257,11 @@ function buildUsageMetricsReport(
     upsertErrors: {
       categories: mapToSortedObject(upsertErrorCategories),
     },
+    errors: {
+      categories: mapToSortedObject(errorCategories),
+      stages: mapToSortedObject(errorStages),
+      byTool: mapToSortedObject(errorsByTool),
+    },
   };
 }
 
@@ -300,8 +323,38 @@ function getSourceFile(row: UsageLogRow): string | null {
 }
 
 function categorizeUpsertError(errorMessage: string | undefined): string {
+  return categorizeError(errorMessage);
+}
+
+function categorizeError(errorMessage: string | undefined): string {
   if (!errorMessage) {
     return "Unknown error";
+  }
+
+  const lower = errorMessage.toLowerCase();
+
+  if (lower.includes("stale_snapshot")) {
+    return "stale_snapshot";
+  }
+
+  if (lower.includes("unknown option") && lower.includes("h for help")) {
+    return "prolog_unknown_option";
+  }
+
+  if (lower.includes("prolog process not started")) {
+    return "prolog_process_not_started";
+  }
+
+  if (lower.includes("coarsely while granular symbols are available")) {
+    return "coarse_symbol_linkage";
+  }
+
+  if (lower.includes("module load failed")) {
+    return "prolog_module_load_failed";
+  }
+
+  if (lower.includes("query failed")) {
+    return "prolog_query_failed";
   }
 
   if (errorMessage.startsWith("Entity validation failed:")) {
@@ -326,6 +379,40 @@ function categorizeUpsertError(errorMessage: string | undefined): string {
     return errorMessage.slice(0, colonIndex).trim();
   }
   return errorMessage.trim() || "Unknown error";
+}
+
+function inferErrorStage(errorMessage: string | undefined): string {
+  if (!errorMessage) {
+    return "unknown";
+  }
+
+  const lower = errorMessage.toLowerCase();
+
+  if (lower.includes("stale_snapshot")) {
+    return "persistence";
+  }
+
+  if (
+    lower.includes("unknown option") ||
+    lower.includes("module load failed") ||
+    lower.includes("query failed")
+  ) {
+    return "prolog_runtime";
+  }
+
+  if (lower.includes("prolog process not started")) {
+    return "prolog_lifecycle";
+  }
+
+  if (
+    lower.includes("validation failed") ||
+    lower.includes("relationship source must match") ||
+    lower.includes("coarsely while granular symbols are available")
+  ) {
+    return "validation";
+  }
+
+  return "unknown";
 }
 
 function increment(counts: Map<string, number>, key: string): void {
@@ -365,6 +452,9 @@ function renderUsageMetricsReport(report: UsageMetricsReport): string {
       "Category",
       report.upsertErrors.categories,
     ),
+    renderCountsTable("Error Categories", "Category", report.errors.categories),
+    renderCountsTable("Error Stages", "Stage", report.errors.stages),
+    renderCountsTable("Errors By Tool", "Tool", report.errors.byTool),
   ].filter(Boolean);
 
   return sections.join("\n\n");
