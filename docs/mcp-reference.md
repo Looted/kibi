@@ -45,7 +45,7 @@ Notes and migration limitations:
 
 - Global Git excludes (for example `~/.config/git/ignore`) are not read or honored.
 - When MCP tools return a non-null migration warning, run `kibi migrate --dry-run`, then `kibi migrate --yes` before relying on strict checks or automated writes.
-- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow symbol or provide an explicit `granularity_reason`.
+- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow function, class method (`ClassName.methodName`), class, interface, type, or enum symbol, or provide an explicit `granularity_reason`.
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
 
