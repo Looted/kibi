@@ -1613,7 +1613,7 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 484
+    sourceEndLine: 486
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     sourceLine: 273
   SYM-findSdkPackageJsonForPluginRoot:
