@@ -84,6 +84,7 @@ export class PrologProcess {
   private errorBuffer = "";
   private cache: Map<string, QueryResult> = new Map();
   private interactiveQueryTail: Promise<void> = Promise.resolve();
+  private terminationPromise: Promise<void> | null = null;
   private useOneShotMode =
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
   private attachedKbPath: string | null = null;
@@ -107,6 +108,7 @@ export class PrologProcess {
       `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
       "--quiet",
     ]);
+    this.clearQueryBuffers();
 
     if (!this.process.stdout || !this.process.stderr || !this.process.stdin) {
       throw new Error("Failed to spawn Prolog process");
@@ -202,13 +204,12 @@ export class PrologProcess {
       return this.query(batchGoal);
     }
 
-    if (!this.process || !this.process.stdin) {
+    if (!this.isProcessUsable()) {
       throw new Error("Prolog process not started");
     }
 
     const runInteractiveQuery = async (): Promise<QueryResult> => {
-      this.outputBuffer = "";
-      this.errorBuffer = "";
+      this.clearQueryBuffers();
 
       const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
@@ -329,7 +330,7 @@ export class PrologProcess {
 
     await previousQuery;
     try {
-      if (!this.process || !this.process.stdin) {
+      if (!this.isProcessUsable()) {
         throw new Error("Prolog process not started");
       }
       return await runInteractiveQuery();
@@ -517,6 +518,20 @@ export class PrologProcess {
     return goal.trim().replace(/\.+\s*$/, "");
   }
 
+  private clearQueryBuffers(): void {
+    this.outputBuffer = "";
+    this.errorBuffer = "";
+  }
+
+  // implements REQ-009
+  private isProcessUsable(): boolean {
+    return Boolean(
+      this.process?.stdin &&
+        !this.process?.killed &&
+        this.process?.exitCode === null,
+    );
+  }
+
   private extractBindings(output: string): Record<string, string> {
     const bindings: Record<string, string> = {};
     const lines = output.split("\n");
@@ -566,7 +581,9 @@ export class PrologProcess {
   }
 
   isRunning(): boolean {
-    return this.process !== null && !this.process.killed;
+    return Boolean(
+      this.process && !this.process.killed && this.process?.exitCode === null,
+    );
   }
 
   getPid(): number {
@@ -574,28 +591,43 @@ export class PrologProcess {
   }
 
   async terminate(): Promise<void> {
+    if (this.terminationPromise) {
+      await this.terminationPromise;
+      return;
+    }
+
     if (this.onProcessExit) {
       process.off("exit", this.onProcessExit);
       this.onProcessExit = null;
     }
 
-    if (this.process) {
-      this.process.stdin?.end();
-      this.process.kill("SIGTERM");
+    const current = this.process;
+    this.process = null;
+    this.clearQueryBuffers();
 
-      await new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-          this.process?.kill("SIGKILL");
-          resolve(undefined);
-        }, 1000);
+    if (current) {
+      this.terminationPromise = (async () => {
+        current.stdin?.end();
+        current.kill("SIGTERM");
 
-        this.process?.on("exit", () => {
-          clearTimeout(timeout);
-          resolve(undefined);
+        await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            current.kill("SIGKILL");
+            resolve(undefined);
+          }, 1000);
+
+          current.on("exit", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
         });
-      });
+      })();
 
-      this.process = null;
+      try {
+        await this.terminationPromise;
+      } finally {
+        this.terminationPromise = null;
+      }
     }
   }
 }
