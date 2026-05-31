@@ -22,6 +22,7 @@ import { z } from "zod";
 import {
   DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
 } from "../diagnostics.js";
@@ -107,6 +108,7 @@ async function getSessionModule(): Promise<SessionModule> {
 export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   diagnosticModeEnabled: () => boolean;
   appendUsageLogLine: typeof appendUsageLogLine;
+  classifyDiagnosticError: typeof classifyDiagnosticError;
   deriveDiagnosticFields: typeof deriveDiagnosticFields;
   extractToolCallPayload: typeof extractToolCallPayload;
   tools: ToolConfig[];
@@ -140,6 +142,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
 const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   diagnosticModeEnabled: () => DIAGNOSTIC_MODE_ENABLED,
   appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
   // INTENTIONAL: TOOLS is imported as a Zod-inferred schema type; ToolConfig is the
@@ -395,6 +398,7 @@ export function addTool<TProlog>(
         if (diagnosticModeEnabled) {
           const finishedAt = new Date();
           const err = error instanceof Error ? error : new Error(String(error));
+          const diagnosticErrorFields = runtime.classifyDiagnosticError(err);
           const processHandle = await runtime.prologProcess();
           const branchName = await runtime.activeBranchName();
           runtime.appendUsageLogLine({
@@ -409,7 +413,7 @@ export function addTool<TProlog>(
             duration_ms: finishedAt.getTime() - startedAt.getTime(),
             prolog_pid: processHandle?.getPid() ?? null,
             active_branch: branchName,
-            error_message: err.message,
+            ...diagnosticErrorFields,
           });
         }
         throw error;

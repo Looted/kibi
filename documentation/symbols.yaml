@@ -1473,6 +1473,78 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-DIAGNOSTIC_MODE_ENABLED
+    title: DIAGNOSTIC_MODE_ENABLED
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-initializeDiagnosticMode
+    title: initializeDiagnosticMode
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-appendUsageLogLine
+    title: appendUsageLogLine
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    title: DIAGNOSTIC_TELEMETRY_SCHEMA
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolCallPayload
+    title: ToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DiagnosticErrorFields
+    title: DiagnosticErrorFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-classifyDiagnosticError
+    title: classifyDiagnosticError
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-deriveDiagnosticFields
+    title: deriveDiagnosticFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-extractToolCallPayload
+    title: extractToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-jsonSchemaToZod
     title: jsonSchemaToZod
     sourceFile: packages/mcp/src/server/tools.ts

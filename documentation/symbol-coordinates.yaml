@@ -1151,15 +1151,45 @@ coordinates:
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 61
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 56
+    sourceLine: 57
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 138
+    sourceEndLine: 140
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 107
+    sourceLine: 108
+  SYM-DIAGNOSTIC_MODE_ENABLED:
+    sourceColumn: 13
+    sourceEndColumn: 45
+    sourceEndLine: 30
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 29
+  SYM-initializeDiagnosticMode:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 43
+  SYM-appendUsageLogLine:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 72
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 63
+  SYM-DIAGNOSTIC_TELEMETRY_SCHEMA:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 108
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 77
+  SYM-ToolCallPayload:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 116
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 113
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1193,9 +1223,33 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 443
+    sourceEndLine: 447
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 310
+    sourceLine: 313
+  SYM-classifyDiagnosticError:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 221
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 127
+  SYM-DiagnosticErrorFields:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 124
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 118
+  SYM-deriveDiagnosticFields:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 282
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 239
+  SYM-extractToolCallPayload:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 296
+    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceLine: 287
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1763,9 +1817,9 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 307
+    sourceEndLine: 310
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 178
+    sourceLine: 181
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1937,9 +1991,9 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 626
+    sourceEndLine: 630
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 446
+    sourceLine: 450
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1979,9 +2033,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 98
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 95
+    sourceLine: 96
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2093,9 +2147,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 92
+    sourceEndLine: 93
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 83
+    sourceLine: 84
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1

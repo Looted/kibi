@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
+import type { DiagnosticErrorFields } from "../../src/diagnostics.js";
 import {
   type ToolConfig,
   type ToolsRuntime,
@@ -198,6 +199,18 @@ function createRuntime() {
       _result: unknown,
     ): Record<string, unknown> => ({ result_summary: "mock summary" }),
   );
+  const classifyDiagnosticError = mock(
+    (error: unknown): DiagnosticErrorFields => {
+      const err = error instanceof Error ? error : new Error(String(error));
+      return {
+        error_name: err.name,
+        error_message: err.message,
+        error_category: "handler_error",
+        error_stage: "handler",
+        error_summary: "Unhandled MCP handler error.",
+      };
+    },
+  );
   const extractToolCallPayload = mock(
     (
       args: Record<string, unknown>,
@@ -317,6 +330,7 @@ function createRuntime() {
   const runtime = {
     diagnosticModeEnabled,
     appendUsageLogLine,
+    classifyDiagnosticError,
     deriveDiagnosticFields,
     extractToolCallPayload,
     tools: createToolConfigs(),
@@ -348,6 +362,7 @@ function createRuntime() {
     spies: {
       diagnosticModeEnabled,
       appendUsageLogLine,
+      classifyDiagnosticError,
       deriveDiagnosticFields,
       extractToolCallPayload,
       activeBranchName,
@@ -647,6 +662,9 @@ describe.serial("server tools coverage", () => {
         prolog_pid: null,
         active_branch: "feature/error",
         error_message: "boom",
+        error_category: "handler_error",
+        error_stage: "handler",
+        error_summary: "Unhandled MCP handler error.",
       }),
     );
     expect(
