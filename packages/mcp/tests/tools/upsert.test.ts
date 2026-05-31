@@ -171,6 +171,91 @@ export function greet() {
     expect(query).not.toHaveBeenCalled();
   });
 
+  test("accepts method symbol traceability when a class method exists", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "worker.ts"),
+      `export class Worker {
+  run() {
+    return "ok";
+  }
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-WORKER-RUN",
+      properties: {
+        title: "Worker.run",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/worker.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-WORKER-RUN",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
+  test("rejects ambiguous bare method symbol traceability when duplicate class methods exist", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "workers.ts"),
+      `export class Alpha {
+  run() {
+    return "alpha";
+  }
+}
+
+export class Beta {
+  run() {
+    return "beta";
+  }
+}
+`,
+    );
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-WORKER-RUN",
+        properties: {
+          title: "run",
+          status: "active",
+          source: "documentation/symbols.yaml",
+          sourceFile: "src/workers.ts",
+        },
+        relationships: [
+          {
+            type: "implements",
+            from: "SYM-WORKER-RUN",
+            to: "REQ-GRANULAR-001",
+          },
+        ],
+      }),
+    ).rejects.toThrow(/Alpha\.run.*Beta\.run/i);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
   test("accepts justified coarse symbol traceability", async () => {
     const root = createTempWorkspace();
     mkdirSync(path.join(root, "src"), { recursive: true });
