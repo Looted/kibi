@@ -1301,7 +1301,7 @@ coordinates:
   SYM-buildInitKibiAlias:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 40
     sourceFile: packages/opencode/src/init-kibi-alias.ts
     sourceLine: 14
   SYM-buildNormativeRequirementCandidates:
