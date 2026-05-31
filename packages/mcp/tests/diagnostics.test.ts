@@ -101,6 +101,71 @@ describe("classifyDiagnosticError", () => {
       error_stage: "validation",
     });
   });
+
+  test("classifies validation failures: relationship validation and source mismatch", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Relationship validation failed: invalid field 'unknown'",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "relationship_validation_failed",
+      error_stage: "validation",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Relationship source must match the upserted entity TEST-1; received from=REQ-1",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "relationship_source_mismatch",
+      error_stage: "validation",
+    });
+  });
+
+  test("classifies Prolog failures: module load and query", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error("Status execution module load failed: plunit"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_module_load_failed",
+      error_stage: "prolog_runtime",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error("Prolog query failed: timeout"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_query_failed",
+      error_stage: "prolog_runtime",
+    });
+  });
+
+  test("classifies unhandled handler errors for unknown messages", () => {
+    const result = classifyDiagnosticError(
+      new Error("Unexpected internal failure"),
+    );
+    expect(result).toMatchObject({
+      error_category: "handler_error",
+      error_stage: "handler",
+      error_summary: "Unhandled MCP handler error.",
+    });
+  });
+
+  test("classifies non-Error thrown values", () => {
+    const result = classifyDiagnosticError("plain string error");
+    expect(result).toMatchObject({
+      error_name: "Error",
+      error_category: "handler_error",
+      error_stage: "handler",
+      error_summary: "Unhandled MCP handler error.",
+    });
+  });
 });
 
 describe("deriveDiagnosticFields", () => {

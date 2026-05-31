@@ -11,7 +11,7 @@ import {
   addTool,
   registerAllTools,
 } from "../../src/server/tools.js";
-import { TOOLS } from "../../src/tools-config.js";
+import { TOOLS, withDiagnosticTelemetrySchema } from "../../src/tools-config.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
@@ -85,6 +85,34 @@ test("kb_upsert schema advertises typed fact fields", () => {
   expect(entityProperties.value_int).toBeDefined();
   expect(entityProperties.value_number).toBeDefined();
   expect(entityProperties.value_bool).toBeDefined();
+});
+
+test("withDiagnosticTelemetrySchema adds telemetry schema without mutating inputs", () => {
+  const tools = createToolConfigs();
+  const originalSnapshot = structuredClone(tools);
+
+  const result = withDiagnosticTelemetrySchema(tools);
+
+  expect(result).toHaveLength(tools.length);
+  expect(result).not.toBe(tools);
+  expect(tools).toEqual(originalSnapshot);
+
+  for (const [index, tool] of tools.entries()) {
+    const transformed = result[index];
+    expect(transformed).not.toBe(tool);
+    expect(transformed.inputSchema).not.toBe(tool.inputSchema);
+
+    const originalInputSchema = objectRecord(tool.inputSchema);
+    const transformedInputSchema = objectRecord(transformed.inputSchema);
+    const originalProperties = objectRecord(originalInputSchema.properties);
+    const transformedProperties = objectRecord(transformedInputSchema.properties);
+
+    expect(transformed.name).toBe(tool.name);
+    expect(transformed.description).toBe(tool.description);
+    expect(transformedProperties.marker).toEqual(originalProperties.marker);
+    expect(transformedProperties._diagnostic_telemetry).toBeDefined();
+    expect(originalProperties._diagnostic_telemetry).toBeUndefined();
+  }
 });
 
 function createDeferred<T>() {
