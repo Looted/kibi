@@ -215,6 +215,11 @@ describe.serial("session module", () => {
       const session = await importSession();
       expect(typeof session.ensureProlog).toBe("function");
     });
+
+    test("should export resetProlog function", async () => {
+      const session = await importSession();
+      expect(typeof session.resetProlog).toBe("function");
+    });
   });
 
   // ==========================================================================
@@ -612,6 +617,43 @@ describe.serial("session module", () => {
 
       expect(result).toBeDefined();
       expect(mockPrologProcessInstance.start).toHaveBeenCalledTimes(1);
+    });
+
+    test("resetProlog terminates the current worker and lets ensureProlog create a fresh one", async () => {
+      process.env.KIBI_BRANCH = "reset-branch";
+      const instances: (typeof mockPrologProcessInstance)[] = [];
+      const session = await importSession();
+      session._setSessionDepsForTests({
+        PrologProcess: function (this: Record<string, unknown>) {
+          const instance = {
+            query: mock(defaults.prologQuery),
+            terminate: mock(defaults.prologTerminate),
+            isRunning: mock(defaults.prologIsRunning),
+            getPid: mock(defaults.prologGetPid),
+            start: mock(defaults.prologStart),
+          };
+          instances.push(instance);
+          Object.assign(this, instance);
+          return this;
+        } as unknown as typeof import("kibi-cli/prolog").PrologProcess,
+      });
+
+      const first = await session.ensureProlog();
+
+      await session.resetProlog("test reason");
+
+      expect(instances).toHaveLength(1);
+      expect(instances[0]?.terminate).toHaveBeenCalledTimes(1);
+      expect(session.prologProcess).toBeNull();
+
+      const second = await session.ensureProlog();
+
+      expect(instances).toHaveLength(2);
+      expect(second).not.toBe(first);
+      expect(instances[1]?.start).toHaveBeenCalledTimes(1);
+      expect(instances[1]?.query).toHaveBeenCalledWith(
+        "kb_attach('/mock/kb/path')",
+      );
     });
   });
 

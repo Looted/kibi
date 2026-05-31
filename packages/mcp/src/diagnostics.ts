@@ -156,6 +156,30 @@ export function classifyDiagnosticError(error: unknown): DiagnosticErrorFields {
     );
   }
 
+  if (
+    lower.includes("resetting prolog worker") ||
+    lower.includes("prolog worker reset")
+  ) {
+    return buildErrorFields(
+      err,
+      "prolog_worker_reset",
+      "prolog_lifecycle",
+      "Prolog worker was reset so the next MCP call can start from a fresh worker.",
+    );
+  }
+
+  if (
+    /timed out after \d+ms/i.test(message) ||
+    lower.includes("tool timeout")
+  ) {
+    return buildErrorFields(
+      err,
+      "tool_timeout",
+      "tool_timeout",
+      "MCP tool execution exceeded its bounded timeout.",
+    );
+  }
+
   if (lower.includes("coarsely while granular symbols are available")) {
     return buildErrorFields(
       err,
