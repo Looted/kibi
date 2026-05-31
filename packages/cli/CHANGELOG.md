@@ -1,5 +1,17 @@
 # kibi-cli
 
+## 0.12.3
+
+### Patch Changes
+
+- Timed-out MCP tool calls now recover cleanly instead of leaving stale Prolog workers behind. Follow-up Kibi tool calls should be able to continue with a fresh worker after a timeout, reducing the need for users to manually find and terminate wedged `swipl` processes.
+
+  Technical summary:
+
+  - Add MCP tool execution timeout handling with owned Prolog worker reset.
+  - Classify timeout and Prolog worker reset diagnostics in usage metrics.
+  - Harden interactive Prolog timeout termination and repeated termination cleanup.
+
 ## 0.12.2
 
 ### Patch Changes
