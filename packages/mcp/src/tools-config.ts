@@ -388,6 +388,92 @@ const BASE_TOOLS = [
               description:
                 "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
             },
+            fact_kind: {
+              type: "string",
+              enum: [
+                "subject",
+                "property_value",
+                "observation",
+                "meta",
+                "predicate_schema",
+                "predicate",
+              ],
+              description:
+                "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'.",
+            },
+            subject_key: {
+              type: "string",
+              description:
+                "Optional canonical subject key for strict fact entities. Example: 'user.session'.",
+            },
+            property_key: {
+              type: "string",
+              description:
+                "Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'.",
+            },
+            operator: {
+              type: "string",
+              enum: ["eq", "neq", "lt", "lte", "gt", "gte"],
+              description:
+                "Optional comparison operator for property_value facts. Example: 'eq'.",
+            },
+            value_type: {
+              type: "string",
+              enum: ["string", "int", "number", "bool"],
+              description:
+                "Optional typed value discriminator for property_value facts.",
+            },
+            value_string: {
+              type: "string",
+              description: "Optional string value for property_value facts.",
+            },
+            value_int: {
+              type: "integer",
+              description: "Optional integer value for property_value facts.",
+            },
+            value_number: {
+              type: "number",
+              description: "Optional number value for property_value facts.",
+            },
+            value_bool: {
+              type: "boolean",
+              description: "Optional boolean value for property_value facts.",
+            },
+            unit: {
+              type: "string",
+              description: "Optional unit for numeric property_value facts.",
+            },
+            scope: {
+              type: "string",
+              description: "Optional scope qualifier for fact entities.",
+            },
+            polarity: {
+              type: "string",
+              enum: ["require", "forbid", "assert", "deny"],
+              description:
+                "Optional polarity for property_value or predicate facts.",
+            },
+            closed_world: {
+              type: "boolean",
+              description:
+                "Optional closed-world marker for strict fact interpretation.",
+            },
+            canonical_key: {
+              type: "string",
+              description:
+                "Optional canonical identity key for predicate or strict fact claims.",
+            },
+            predicate_name: {
+              type: "string",
+              description:
+                "Optional predicate name for ontology predicate facts.",
+            },
+            predicate_args: {
+              type: "array",
+              items: { type: "string" },
+              description:
+                "Optional ordered predicate arguments for ontology predicate facts.",
+            },
           },
           required: ["title", "status"],
         },
