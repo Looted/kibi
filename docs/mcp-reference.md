@@ -6,16 +6,23 @@ The Kibi Model Context Protocol (MCP) server is the primary interface for LLM ag
 
 The public MCP surface is intentionally curated. Agents can call exact lookup, discovery/reporting, mutation, and validation tools through MCP.
 
+### Host-visible tool names
+
+The canonical MCP names in this reference use the `kb_*` form. Some hosts display tools with the configured MCP server name prefixed. In OpenCode, the same tools commonly appear as `kibi_kb_search`, `kibi_kb_query`, `kibi_kb_upsert`, `kibi_kb_check`, and `kibi_kb_autopilot_generate`. Use the host-visible prefixed name when an agent must reference an exact tool identifier; the semantics are identical to the canonical `kb_*` names documented here.
+
 ### `kb_autopilot_generate`
 
 Discover existing repository entities and bootstrap the KB via read-only candidate synthesis. Use this as the backend for the interactive `/init-kibi` onboarding workflow.
 
 **Parameters:**
-- `limit` (optional): Max results per entity type
-- `include` (optional): Filter by file pattern
+- `includeGenericMarkdown` (optional): Include generic Markdown content as candidate evidence.
+- `minConfidence` (optional): Minimum confidence threshold for generated candidates.
+- `maxCandidates` (optional): Maximum number of candidates to return.
+- `entityTypes` (optional): Limit generation to selected entity types.
+- `bootstrapContext` (optional): Declared project summary, source-of-truth paths/notes, priority roots, and verification anchors.
 
 **Returns:**
-Grouped candidate entities synthesized from declared context and codebase evidence. Candidates must be explicitly applied via `kb_upsert` after user preview and approval.
+Grouped candidate entities synthesized from declared context and codebase evidence, plus `structuredContent.applyPlan`: the exact sequential `kb_upsert` payloads for those candidates. Candidates must be explicitly previewed and approved by the user before applying the plan.
 
 ## Repository Ignore Policy
 
@@ -252,7 +259,7 @@ Create or update a single entity and optional relationships in one call.
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
-- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility)
+- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
 
 **Returns:**
