@@ -11,6 +11,7 @@ import {
   addTool,
   registerAllTools,
 } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
@@ -59,6 +60,32 @@ const TOOL_NAMES = [
   "kb_model_requirement",
   "kb_autopilot_generate",
 ] as const;
+
+function objectRecord(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  return {};
+}
+
+test("kb_upsert schema advertises typed fact fields", () => {
+  const upsert = TOOLS.find((tool) => tool.name === "kb_upsert");
+  expect(upsert).toBeDefined();
+  const inputSchema = objectRecord(upsert?.inputSchema);
+  const rootProperties = objectRecord(inputSchema.properties);
+  const propertiesSchema = objectRecord(rootProperties.properties);
+  const entityProperties = objectRecord(propertiesSchema.properties);
+
+  expect(entityProperties.fact_kind).toBeDefined();
+  expect(entityProperties.subject_key).toBeDefined();
+  expect(entityProperties.property_key).toBeDefined();
+  expect(entityProperties.operator).toBeDefined();
+  expect(entityProperties.value_type).toBeDefined();
+  expect(entityProperties.value_string).toBeDefined();
+  expect(entityProperties.value_int).toBeDefined();
+  expect(entityProperties.value_number).toBeDefined();
+  expect(entityProperties.value_bool).toBeDefined();
+});
 
 function createDeferred<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;
