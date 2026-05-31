@@ -107,9 +107,9 @@ coordinates:
   SYM-AutopilotGenerateResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 115
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 106
+    sourceLine: 107
   SYM-AutopilotRecommendedAction:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -167,9 +167,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 289
+    sourceEndLine: 290
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 289
+    sourceLine: 290
   SYM-DeleteArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -707,7 +707,7 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 191
+    sourceEndLine: 192
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 68
   SYM-PendingLifecycleEvent:
@@ -1715,9 +1715,9 @@ coordinates:
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1003
+    sourceEndLine: 1024
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 646
+    sourceLine: 660
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2159,9 +2159,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 319
+    sourceEndLine: 320
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 291
+    sourceLine: 292
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1

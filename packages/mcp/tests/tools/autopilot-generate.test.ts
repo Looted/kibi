@@ -29,6 +29,13 @@ interface CandidateWithPlan {
   }>;
 }
 
+interface ApplyPlanEntry extends Record<string, unknown> {
+  type?: string;
+  id?: string;
+  properties?: Record<string, unknown>;
+  relationships?: Array<Record<string, unknown>>;
+}
+
 interface DiscoverySummaryRecord extends Record<string, unknown> {
   providersRun?: string[];
   providerCounts?: Record<string, number>;
@@ -173,6 +180,12 @@ describe("autopilot generate", () => {
     const candidates = res.structuredContent
       .candidates as Array<CandidateWithPlan>;
     expect(candidates.length).toBeGreaterThan(0);
+    const applyPlan = res.structuredContent.applyPlan as Array<ApplyPlanEntry>;
+    expect(applyPlan.length).toBeGreaterThan(0);
+    expect(applyPlan[0]?.type).toBeDefined();
+    expect(applyPlan[0]?.id).toBeDefined();
+    expect(applyPlan[0]?.properties?.title).toBeDefined();
+    expect(res.applyPlan).toEqual(applyPlan);
 
     const adrCandidate = candidates.find(
       (candidate) => candidate.entityType === "adr",
@@ -583,6 +596,9 @@ describe("autopilot generate", () => {
     ]);
     expect(summary.providerCounts?.typed_kibi_docs).toBeGreaterThanOrEqual(1);
     expect(res.structuredContent.candidates.length).toBeGreaterThanOrEqual(1);
+    const applyPlan = res.structuredContent.applyPlan as Array<ApplyPlanEntry>;
+    expect(applyPlan.length).toBeGreaterThanOrEqual(1);
+    expect(res.content[0]?.text).toContain("applyPlan");
   });
 
   test("cold-start repos add source symbol evidence from parser-backed JS/TS analysis", async () => {
