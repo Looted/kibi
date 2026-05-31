@@ -340,7 +340,7 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       "fixtures/analyze.ts",
       [
         "export function parsedFunction() { return 1; }",
-        "export class ParsedClass {}",
+        "export class ParsedClass { parsedMethod() { return 2; } }",
         "export interface ParsedShape { ok: boolean }",
         "export type ParsedAlias = string;",
         "export enum ParsedMode { On }",
@@ -362,6 +362,7 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
     ).toEqual([
       ["parsedFunction", "function"],
       ["ParsedClass", "class"],
+      ["ParsedClass.parsedMethod", "method"],
       ["ParsedShape", "interface"],
       ["ParsedAlias", "type"],
       ["ParsedMode", "enum"],

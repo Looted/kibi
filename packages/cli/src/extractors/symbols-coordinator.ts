@@ -42,6 +42,7 @@ export type SourceAnalysisMode = "parser" | "fallback";
 export type SourceSymbolKind =
   | "function"
   | "class"
+  | "method"
   | "interface"
   | "type"
   | "enum"

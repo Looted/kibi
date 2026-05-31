@@ -280,12 +280,28 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         "class",
         decl.getNameNode() ?? decl,
         decl,
-        `${decl.getText()}\n${decl
+        decl
           .getJsDocs()
           .map((doc) => doc.getFullText())
-          .join("\n")}`,
+          .join("\n"),
       ),
     );
+
+    for (const method of decl.getMethods()) {
+      symbols.push(
+        toSourceSymbolAnalysis(
+          sourceFile,
+          formatMethodSymbolName(decl.getName(), method.getName()),
+          "method",
+          method.getNameNode() ?? method,
+          method,
+          `${method.getFullText()}\n${method
+            .getJsDocs()
+            .map((doc) => doc.getFullText())
+            .join("\n")}`,
+        ),
+      );
+    }
   }
 
   for (const decl of sourceFile.getInterfaces()) {
@@ -372,6 +388,13 @@ function toSourceSymbolAnalysis(
   };
 }
 
+function formatMethodSymbolName(
+  className: string | undefined,
+  methodName: string,
+): string {
+  return className ? `${className}.${methodName}` : methodName;
+}
+
 function chooseScriptKind(filePath: string): ScriptKind {
   const lower = filePath.toLowerCase();
   if (lower.endsWith(".tsx")) return ScriptKind.TSX;
@@ -406,6 +429,21 @@ function findNamedDeclaration(
   sourceFile: SourceFile,
   title: string,
 ): { node: NamedDeclarationCandidate; getNameNode: () => Node } | null {
+  const qualifiedMethod = parseQualifiedMethodTitle(title);
+  if (qualifiedMethod) {
+    for (const cls of sourceFile.getClasses()) {
+      if (cls.getName() !== qualifiedMethod.className) continue;
+      for (const method of cls.getMethods()) {
+        if (method.getName() !== qualifiedMethod.methodName) continue;
+        const nameNode = method.getNameNode();
+        if (!nameNode) continue;
+        return { node: method, getNameNode: () => nameNode };
+      }
+    }
+
+    return null;
+  }
+
   const candidates: Array<{
     node: NamedDeclarationCandidate;
     getNameNode: () => Node;
@@ -513,4 +551,15 @@ function findNamedDeclaration(
     (a, b) => a.getNameNode().getStart() - b.getNameNode().getStart(),
   );
   return candidates[0] ?? null;
+}
+
+function parseQualifiedMethodTitle(
+  title: string,
+): { className: string; methodName: string } | null {
+  const separatorIndex = title.lastIndexOf(".");
+  if (separatorIndex <= 0 || separatorIndex === title.length - 1) return null;
+  return {
+    className: title.slice(0, separatorIndex),
+    methodName: title.slice(separatorIndex + 1),
+  };
 }
