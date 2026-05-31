@@ -2,6 +2,12 @@
 
 OpenCode plugin for Kibi - repo-local, per-branch, queryable knowledge base.
 
+`kibi-opencode` is optional. It provides OpenCode-specific guidance, startup UX,
+and background sync/check maintenance, but it does not ship a replacement `kibi`
+CLI or `kibi-mcp` server binary. Install and configure the base `kibi-cli`,
+`kibi-mcp`, and `kibi-core` packages in the project first; add this plugin only
+when you want OpenCode-specific behavior.
+
 ## Installation
 
 ```bash
@@ -15,6 +21,11 @@ Or via OpenCode's plugin system in `opencode.json`:
   "plugin": ["kibi-opencode"]
 }
 ```
+
+Configure the MCP server separately with the project-local `kibi-mcp` binary.
+The plugin may run internal maintenance commands such as `kibi sync` and
+`kibi check`, so the project-local `kibi` CLI should resolve from the OpenCode
+process environment.
 
 ## Features
 
@@ -268,10 +279,6 @@ Disable specific features while keeping others:
   }
 }
 ```
-
-## Dogfooding
-
-This repository's OpenCode setup dogfoods local built artifacts. `opencode.json` starts the local `kibi-mcp` server, `.opencode/plugins/kibi.ts` re-exports `packages/opencode/dist/index.js`, and the published npm package (`kibi-opencode`) remains the distribution artifact for external consumers. See [DEV.md](DEV.md) for the repo-local workflow and rebuild rule.
 
 ## Troubleshooting
 
