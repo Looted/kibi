@@ -52,6 +52,10 @@ import {
   handleKbSkillsRead,
 } from "../tools/skills.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
+import {
+  type SuggestPredicatesArgs,
+  handleKbSuggestPredicates,
+} from "../tools/suggest-predicates.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
 
 export interface ToolConfig {
@@ -137,6 +141,10 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
     prolog: TProlog,
     args: ModelRequirementArgs,
   ) => Promise<unknown>;
+  handleKbSuggestPredicates: (
+    prolog: TProlog,
+    args: SuggestPredicatesArgs,
+  ) => Promise<unknown>;
   handleKbAutopilotGenerate: (
     prolog: TProlog,
     args: AutopilotGenerateArgs,
@@ -172,6 +180,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbSkillsRead,
   handleKbUpsert,
   handleKbModelRequirement,
+  handleKbSuggestPredicates,
   handleKbAutopilotGenerate,
 };
 
@@ -672,6 +681,21 @@ export function registerAllTools<TProlog>(
       return runtime.handleKbModelRequirement(
         prolog,
         args as unknown as ModelRequirementArgs,
+      );
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_suggest_predicates",
+    toolDef("kb_suggest_predicates").description,
+    toolDef("kb_suggest_predicates").inputSchema,
+    async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleKbSuggestPredicates(
+        prolog,
+        args as unknown as SuggestPredicatesArgs,
       );
     },
     runtime,
