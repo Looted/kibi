@@ -234,7 +234,9 @@ function hasTraceabilityRelationship(symbol: SymbolRecord): boolean {
     }
 
     const type = (relationship as { type?: unknown }).type;
-    return typeof type === "string" && TRACEABILITY_RELATIONSHIP_TYPES.has(type);
+    return (
+      typeof type === "string" && TRACEABILITY_RELATIONSHIP_TYPES.has(type)
+    );
   });
 }
 
@@ -346,7 +348,11 @@ function migrateSymbolGranularity(options: {
   const granularNamesByFile = new Map<string, Set<string>>();
 
   for (const symbol of manifest.symbols) {
-    if (symbol === null || typeof symbol !== "object" || Array.isArray(symbol)) {
+    if (
+      symbol === null ||
+      typeof symbol !== "object" ||
+      Array.isArray(symbol)
+    ) {
       continue;
     }
 

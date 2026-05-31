@@ -616,11 +616,14 @@ describe("symbol-extract (cache and failure branches)", () => {
         status: "R",
       });
       expect(
-        renamed.some((symbol: { name: string }) => symbol.name === "HashOnlyVar"),
+        renamed.some(
+          (symbol: { name: string }) => symbol.name === "HashOnlyVar",
+        ),
       ).toBe(true);
       expect(
         renamed.find(
-          (symbol: { name: string; id: string }) => symbol.name === "HashOnlyVar",
+          (symbol: { name: string; id: string }) =>
+            symbol.name === "HashOnlyVar",
         )?.id,
       ).toHaveLength(16);
     } finally {

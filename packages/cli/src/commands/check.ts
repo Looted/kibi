@@ -182,7 +182,9 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         const authoredSymbolResult = {
           entity: entry.entity,
           relationships: entry.relationships,
-          ...(entry.sourceFile !== undefined ? { sourceFile: entry.sourceFile } : {}),
+          ...(entry.sourceFile !== undefined
+            ? { sourceFile: entry.sourceFile }
+            : {}),
         };
         authoredSymbolResults.push(authoredSymbolResult);
         stagedAuthoredSymbolResults.push(authoredSymbolResult);
@@ -239,9 +241,7 @@ function hasTraceabilityRelationship(result: ExtractionResult): boolean {
 
 function hasValidGranularityReason(result: ExtractionResult): boolean {
   const reason = result.entity.granularity_reason;
-  return (
-    typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason)
-  );
+  return typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason);
 }
 
 function createSymbolGranularityDiagnostics(options: {
@@ -263,7 +263,9 @@ function createSymbolGranularityDiagnostics(options: {
     );
     if (granularSymbols.length === 0) continue;
 
-    const granularNames = [...new Set(granularSymbols.map((s) => s.name))].sort();
+    const granularNames = [
+      ...new Set(granularSymbols.map((s) => s.name)),
+    ].sort();
     if (granularNames.includes(result.entity.title)) continue;
 
     diagnostics.push({
