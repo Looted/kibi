@@ -115,6 +115,126 @@ export interface ToolCallPayload {
   telemetry: Record<string, unknown> | null;
 }
 
+export interface DiagnosticErrorFields {
+  error_name: string;
+  error_message: string;
+  error_category: string;
+  error_stage: string;
+  error_summary: string;
+}
+
+// implements REQ-002
+export function classifyDiagnosticError(error: unknown): DiagnosticErrorFields {
+  const err = error instanceof Error ? error : new Error(String(error));
+  const message = err.message;
+  const lower = message.toLowerCase();
+
+  if (lower.includes("stale_snapshot")) {
+    return buildErrorFields(
+      err,
+      "stale_snapshot",
+      "persistence",
+      "KB snapshot is stale; refresh/retry after the latest KB state is attached.",
+    );
+  }
+
+  if (lower.includes("unknown option") && lower.includes("h for help")) {
+    return buildErrorFields(
+      err,
+      "prolog_unknown_option",
+      "prolog_runtime",
+      "Prolog rejected startup/module/query options; inspect MCP package wiring and Prolog invocation.",
+    );
+  }
+
+  if (lower.includes("prolog process not started")) {
+    return buildErrorFields(
+      err,
+      "prolog_process_not_started",
+      "prolog_lifecycle",
+      "Prolog process is unavailable; restart the MCP server before retrying.",
+    );
+  }
+
+  if (lower.includes("coarsely while granular symbols are available")) {
+    return buildErrorFields(
+      err,
+      "coarse_symbol_linkage",
+      "validation",
+      "Symbol traceability targeted a coarse file/module while narrower exported symbols exist.",
+    );
+  }
+
+  if (message.startsWith("Entity validation failed:")) {
+    return buildErrorFields(
+      err,
+      "entity_validation_failed",
+      "validation",
+      "Entity payload failed schema validation.",
+    );
+  }
+
+  if (message.startsWith("Relationship validation failed")) {
+    return buildErrorFields(
+      err,
+      "relationship_validation_failed",
+      "validation",
+      "Relationship payload failed schema validation.",
+    );
+  }
+
+  if (
+    message.startsWith("Relationship source must match the upserted entity")
+  ) {
+    return buildErrorFields(
+      err,
+      "relationship_source_mismatch",
+      "validation",
+      "Relationship source did not match the entity being upserted.",
+    );
+  }
+
+  if (lower.includes("module load failed")) {
+    return buildErrorFields(
+      err,
+      "prolog_module_load_failed",
+      "prolog_runtime",
+      "Prolog failed to load an execution module.",
+    );
+  }
+
+  if (lower.includes("query failed")) {
+    return buildErrorFields(
+      err,
+      "prolog_query_failed",
+      "prolog_runtime",
+      "Prolog query execution failed.",
+    );
+  }
+
+  return buildErrorFields(
+    err,
+    "handler_error",
+    "handler",
+    "Unhandled MCP handler error.",
+  );
+}
+
+function buildErrorFields(
+  error: Error,
+  category: string,
+  stage: string,
+  summary: string,
+): DiagnosticErrorFields {
+  return {
+    error_name: error.name,
+    error_message: error.message,
+    error_category: category,
+    error_stage: stage,
+    error_summary: summary,
+  };
+}
+
 // implements REQ-002
 export function deriveDiagnosticFields(
   toolName: string,
