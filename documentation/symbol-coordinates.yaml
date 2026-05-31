@@ -692,6 +692,18 @@ coordinates:
     sourceEndLine: 51
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 33
+  SYM-SuggestPredicatesArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 21
+  SYM-SuggestPredicatesResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 43
   SYM-NpmFixtureLive:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1724,6 +1736,12 @@ coordinates:
     sourceEndLine: 482
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 438
+  SYM-handleKbSuggestPredicates:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 673
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 610
   SYM-handleKbSkillsList:
     sourceColumn: 22
     sourceEndColumn: 1

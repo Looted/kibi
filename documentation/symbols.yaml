@@ -2042,6 +2042,20 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-handleKbSuggestPredicates
+    title: handleKbSuggestPredicates
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 610
+    sourceColumn: 22
+    sourceEndLine: 673
+    sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -2066,6 +2080,34 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-SuggestPredicatesArgs
+    title: SuggestPredicatesArgs
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 21
+    sourceColumn: 17
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-SuggestPredicatesResult
+    title: SuggestPredicatesResult
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 57
+    sourceEndColumn: 1
   - id: SYM-handleKbSkillsList
     title: handleKbSkillsList
     sourceFile: packages/mcp/src/tools/skills.ts
