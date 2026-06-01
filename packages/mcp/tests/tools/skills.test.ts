@@ -62,4 +62,26 @@ describe("MCP skills tool handlers", () => {
       "Skills read failed: Skill resource not found: kibi-usage/resources/missing.md",
     );
   });
+
+  test("wraps empty id error for load", async () => {
+    await expect(handleKbSkillsLoad({ id: "" })).rejects.toThrow(
+      "Skills load failed: id must be a non-empty string",
+    );
+  });
+
+  test("wraps empty id error for read", async () => {
+    await expect(
+      handleKbSkillsRead({ id: "", resource: "resources/workflows.md" }),
+    ).rejects.toThrow(
+      "Skills read failed: id must be a non-empty string",
+    );
+  });
+
+  test("wraps empty resource error for read", async () => {
+    await expect(
+      handleKbSkillsRead({ id: "kibi-usage", resource: "" }),
+    ).rejects.toThrow(
+      "Skills read failed: resource must be a non-empty string",
+    );
+  });
 });
