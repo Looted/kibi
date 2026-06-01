@@ -11,7 +11,10 @@ import {
   addTool,
   registerAllTools,
 } from "../../src/server/tools.js";
-import { TOOLS } from "../../src/tools-config.js";
+import {
+  TOOLS,
+  withDiagnosticTelemetrySchema,
+} from "../../src/tools-config.js";
 import type { AutopilotGenerateArgs } from "../../src/tools/autopilot-generate.js";
 import type { CheckArgs } from "../../src/tools/check.js";
 import type { CoverageArgs } from "../../src/tools/coverage.js";
@@ -27,6 +30,7 @@ import type {
   SkillsReadArgs,
 } from "../../src/tools/skills.js";
 import type { StatusArgs } from "../../src/tools/status.js";
+import type { SuggestPredicatesArgs } from "../../src/tools/suggest-predicates.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
 
 type MockProlog = { kind: "mock-prolog" };
@@ -58,6 +62,7 @@ const TOOL_NAMES = [
   "kb_delete",
   "kb_check",
   "kb_model_requirement",
+  "kb_suggest_predicates",
   "kb_autopilot_generate",
 ] as const;
 
@@ -85,6 +90,43 @@ test("kb_upsert schema advertises typed fact fields", () => {
   expect(entityProperties.value_int).toBeDefined();
   expect(entityProperties.value_number).toBeDefined();
   expect(entityProperties.value_bool).toBeDefined();
+});
+
+test("withDiagnosticTelemetrySchema adds telemetry to tool schema immutably", () => {
+  const tools = [
+    {
+      name: "test",
+      description: "desc",
+      inputSchema: {
+        type: "object",
+        properties: {
+          key: { type: "string" },
+        },
+      },
+    },
+  ];
+
+  const original = structuredClone(tools);
+  const result = withDiagnosticTelemetrySchema(tools);
+
+  expect(result).toHaveLength(1);
+  expect(result).not.toBe(tools);
+  expect(result[0]).not.toBe(tools[0]);
+  expect(result[0].inputSchema).not.toBe(tools[0].inputSchema);
+  expect(result[0].inputSchema.properties).toMatchObject({
+    key: { type: "string" },
+    _diagnostic_telemetry: {
+      type: "object",
+    },
+  });
+  expect(result[0].inputSchema.properties).toHaveProperty(
+    "_diagnostic_telemetry.properties",
+  );
+  expect(result[0].inputSchema.properties).toHaveProperty("key");
+  expect(tools[0].inputSchema.properties).not.toHaveProperty(
+    "_diagnostic_telemetry",
+  );
+  expect(tools).toEqual(original);
 });
 
 function createDeferred<T>() {
@@ -346,6 +388,16 @@ function createRuntime() {
         args,
       }),
     );
+  const handleKbSuggestPredicates: ToolsRuntime<MockProlog>["handleKbSuggestPredicates"] =
+    mock(
+      async (
+        _prolog: MockProlog,
+        args: SuggestPredicatesArgs,
+      ): Promise<unknown> => ({
+        tool: "kb_suggest_predicates",
+        args,
+      }),
+    );
   const handleKbAutopilotGenerate: ToolsRuntime<MockProlog>["handleKbAutopilotGenerate"] =
     mock(
       async (
@@ -382,6 +434,7 @@ function createRuntime() {
     handleKbSkillsRead,
     handleKbUpsert,
     handleKbModelRequirement,
+    handleKbSuggestPredicates,
     handleKbAutopilotGenerate,
   } satisfies ToolsRuntime<MockProlog>;
 
@@ -414,6 +467,7 @@ function createRuntime() {
       handleKbSkillsRead,
       handleKbUpsert,
       handleKbModelRequirement,
+      handleKbSuggestPredicates,
       handleKbAutopilotGenerate,
     },
   };
@@ -855,6 +909,10 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbModelRequirement).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_model_requirement"),
+    );
+    expect(spies.handleKbSuggestPredicates).toHaveBeenCalledWith(
+      mockProlog,
+      argsByTool.get("kb_suggest_predicates"),
     );
     expect(spies.handleKbAutopilotGenerate).toHaveBeenCalledWith(
       mockProlog,

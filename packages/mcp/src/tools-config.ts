@@ -632,6 +632,59 @@ const BASE_TOOLS = [
     },
   },
   {
+    name: "kb_suggest_predicates",
+    description:
+      "Suggest ontology predicate schemas for prose requirements before agents write facts. Read-only guidance returns ranked candidates, a safe predicate-fact applyPlan, a separate requires_predicate relationshipPlan when a requirement ID is supplied, or an explicit ontology-gap observation when no predicate fits.",
+    inputSchema: {
+      type: "object",
+      required: ["text"],
+      properties: {
+        text: {
+          type: "string",
+          description:
+            "Required prose requirement or claim to classify into ontology predicates. Example: 'When users navigate away, draft edits must auto-save.'.",
+        },
+        requirementId: {
+          type: "string",
+          description:
+            "Optional existing requirement ID. When provided, the response includes a relationshipPlan describing the req -> fact requires_predicate link to attach after preserving existing requirement metadata.",
+        },
+        source: {
+          type: "string",
+          description:
+            "Optional provenance or text reference for generated predicate facts or ontology-gap observations.",
+        },
+        subjectHint: {
+          type: "string",
+          description:
+            "Optional canonical subject key to use as the first predicate argument. Example: 'editor.annotation'.",
+        },
+        maxCandidates: {
+          type: "integer",
+          default: 5,
+          minimum: 1,
+          maximum: 20,
+          description:
+            "Maximum ranked predicate candidates to return. Default: 5.",
+        },
+        minScore: {
+          type: "number",
+          default: 0.35,
+          minimum: 0,
+          maximum: 1,
+          description:
+            "Minimum candidate score. Higher values make ontology-gap fallback more likely. Default: 0.35.",
+        },
+        includeExistingSchemas: {
+          type: "boolean",
+          default: true,
+          description:
+            "Whether to include existing KB fact_kind=predicate_schema facts alongside Kibi's built-in predicate catalog. Default: true.",
+        },
+      },
+    },
+  },
+  {
     name: "kb_autopilot_generate",
     description:
       "Generate agent-centric bootstrap output for KB population. Read-only analysis that returns activation state, bootstrap guidance, candidate entities with evidence, payoff summary, and exact applyPlan payloads for later kb_upsert calls. No mutation side effects.",
@@ -721,11 +774,12 @@ interface ToolConfig {
 
 /**
  * Inject _diagnostic_telemetry schema into tool inputs when diagnostic mode is enabled.
- * TODO: This function is compile-time guarded by DIAGNOSTIC_MODE_ENABLED and only
- * executes when the server starts with the --diagnostic-mode flag. It cannot be
- * covered without a CLI integration test.
+ * Exported for unit coverage; TOOLS still applies it only when the server starts
+ * with the --diagnostic-mode flag.
  */
-function withDiagnosticTelemetrySchema(tools: ToolConfig[]): ToolConfig[] {
+export function withDiagnosticTelemetrySchema(
+  tools: ToolConfig[],
+): ToolConfig[] {
   return tools.map((tool) => {
     const schema = tool.inputSchema;
     const properties =

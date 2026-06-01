@@ -699,11 +699,18 @@ symbols:
   - id: SYM-SourceSymbolKind
     title: SourceSymbolKind
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    links:
+      - REQ-core-extractors
+      - REQ-symbol-granularity
     relationships:
       - type: implements
         target: REQ-core-extractors
+      - type: implements
+        target: REQ-symbol-granularity
       - type: covered_by
         target: TEST-007
+      - type: covered_by
+        target: TEST-cli-extractors-symbols-ts
   - id: SYM-createTsMorphSourceAnalysisProvider
     title: createTsMorphSourceAnalysisProvider
     sourceFile: packages/cli/src/extractors/symbols-ts.ts
@@ -1131,19 +1138,33 @@ symbols:
   - id: SYM-extractSymbolsFromStagedFile
     title: extractSymbolsFromStagedFile
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    links:
+      - REQ-cli-staged-impact-enforcement
+      - REQ-symbol-granularity
     relationships:
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-granularity
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-extract-methods
   - id: SYM-ExtractedSymbol
     title: ExtractedSymbol
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    links:
+      - REQ-cli-staged-impact-enforcement
+      - REQ-symbol-granularity
     relationships:
       - type: implements
         target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-granularity
       - type: covered_by
         target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-extract-methods
   - id: SYM-ManifestLookupEntry
     title: ManifestLookupEntry
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
@@ -1428,13 +1449,21 @@ symbols:
   - id: SYM-setupDocsAndPrompts
     title: setupDocsAndPrompts
     sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-008
+      - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-008
+      - type: implements
+        target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
   - id: SYM-DocResource
     title: DocResource
     sourceFile: packages/mcp/src/server/docs.ts
@@ -1448,19 +1477,33 @@ symbols:
   - id: SYM-PROMPTS
     title: PROMPTS
     sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
   - id: SYM-DOC-RESOURCES
     title: DOC_RESOURCES
     sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
   - id: SYM-setToolsServerDepsForTests
     title: _setToolsServerDepsForTests
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1660,10 +1703,6 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 186
-    sourceColumn: 9
-    sourceEndLine: 196
-    sourceEndColumn: 1
   - id: SYM-mcp-tools-createToolTimeoutError
     title: createToolTimeoutError
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1673,10 +1712,6 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 199
-    sourceColumn: 9
-    sourceEndLine: 201
-    sourceEndColumn: 1
   - id: SYM-mcp-tools-withToolTimeout
     title: withToolTimeout
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1686,10 +1721,6 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 204
-    sourceColumn: 15
-    sourceEndLine: 228
-    sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1701,11 +1732,18 @@ symbols:
   - id: SYM-registerAllTools
     title: registerAllTools
     sourceFile: packages/mcp/src/server/tools.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
   - id: SYM-ToolConfig
     title: ToolConfig
     sourceFile: packages/mcp/src/server/tools.ts
@@ -1725,6 +1763,23 @@ symbols:
   - id: SYM-TOOLS
     title: TOOLS
     sourceFile: packages/mcp/src/tools-config.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+  - id: SYM-withDiagnosticTelemetrySchema
+    title: withDiagnosticTelemetrySchema
+    sourceFile: packages/mcp/src/tools-config.ts
+    links:
+      - REQ-002
     relationships:
       - type: implements
         target: REQ-002
@@ -2042,6 +2097,20 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-handleKbSuggestPredicates
+    title: handleKbSuggestPredicates
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 610
+    sourceColumn: 22
+    sourceEndLine: 673
+    sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
     sourceFile: packages/mcp/src/tools/model-requirement.ts
@@ -2066,6 +2135,34 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-SuggestPredicatesArgs
+    title: SuggestPredicatesArgs
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 21
+    sourceColumn: 17
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-SuggestPredicatesResult
+    title: SuggestPredicatesResult
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 57
+    sourceEndColumn: 1
   - id: SYM-handleKbSkillsList
     title: handleKbSkillsList
     sourceFile: packages/mcp/src/tools/skills.ts

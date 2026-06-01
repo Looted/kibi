@@ -53,9 +53,9 @@ coordinates:
   SYM-AnalyzeSourceTextOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 84
+    sourceEndLine: 85
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 82
+    sourceLine: 83
   SYM-AuditEntityPayload:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -179,9 +179,9 @@ coordinates:
   SYM-DOC-RESOURCES:
     sourceColumn: 13
     sourceEndColumn: 51
-    sourceEndLine: 290
+    sourceEndLine: 294
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 290
+    sourceLine: 294
   SYM-DeleteArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -305,7 +305,7 @@ coordinates:
   SYM-ExtractedSymbol:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 35
+    sourceEndLine: 36
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
     sourceLine: 16
   SYM-ExtractionResult:
@@ -653,15 +653,15 @@ coordinates:
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 42
+    sourceEndLine: 43
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 42
+    sourceLine: 43
   SYM-ManifestLookupEntry:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 40
+    sourceEndLine: 41
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 37
+    sourceLine: 38
   SYM-ManifestSymbolEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -725,9 +725,9 @@ coordinates:
   SYM-PROMPTS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 192
+    sourceEndLine: 196
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 68
+    sourceLine: 71
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -965,15 +965,15 @@ coordinates:
   SYM-SourceAnalysisProvider:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 80
+    sourceEndLine: 81
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 76
+    sourceLine: 77
   SYM-SourceAnalysisResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 74
+    sourceEndLine: 75
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 68
+    sourceLine: 69
   SYM-SourceChangeKind:
     sourceColumn: 12
     sourceEndColumn: 31
@@ -989,9 +989,9 @@ coordinates:
   SYM-SourceModuleAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 61
+    sourceLine: 62
   SYM-SourceOnlyAuthoringSignal:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1001,13 +1001,13 @@ coordinates:
   SYM-SourceSymbolAnalysis:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 59
+    sourceEndLine: 60
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 51
+    sourceLine: 52
   SYM-SourceSymbolKind:
     sourceColumn: 12
     sourceEndColumn: 14
-    sourceEndLine: 49
+    sourceEndLine: 50
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
     sourceLine: 42
   SYM-StableRequirementIds:
@@ -1052,6 +1052,18 @@ coordinates:
     sourceEndLine: 94
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 94
+  SYM-SuggestPredicatesArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 21
+  SYM-SuggestPredicatesResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 43
   SYM-SymbolCoordinates:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1139,9 +1151,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 754
+    sourceEndLine: 809
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 752
+    sourceLine: 807
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1175,15 +1187,15 @@ coordinates:
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 61
+    sourceEndLine: 65
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 57
+    sourceLine: 61
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 144
+    sourceEndLine: 152
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 111
+    sourceLine: 115
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1217,15 +1229,15 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 511
+    sourceEndLine: 520
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 363
+    sourceLine: 372
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 160
+    sourceEndLine: 161
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 130
+    sourceLine: 131
   SYM-appendUsageLogLine:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1445,9 +1457,9 @@ coordinates:
   SYM-createManifestLookupSentinelKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 48
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 44
+    sourceLine: 45
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1535,9 +1547,9 @@ coordinates:
   SYM-enrichSymbolCoordinates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 203
+    sourceEndLine: 204
     sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
-    sourceLine: 162
+    sourceLine: 163
   SYM-enrichSymbolCoordinatesWithTsMorph:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1601,9 +1613,9 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 486
+    sourceEndLine: 511
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 273
+    sourceLine: 274
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1742,6 +1754,12 @@ coordinates:
     sourceEndLine: 118
     sourceFile: packages/mcp/src/tools/skills.ts
     sourceLine: 98
+  SYM-handleKbSuggestPredicates:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 673
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    sourceLine: 610
   SYM-handleKbSymbolsRefresh:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1817,9 +1835,27 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 360
+    sourceEndLine: 369
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 231
+    sourceLine: 240
+  SYM-mcp-tools-createToolTimeoutError:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 208
+  SYM-mcp-tools-getToolTimeoutMs:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 195
+  SYM-mcp-tools-withToolTimeout:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 237
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 213
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1922,24 +1958,6 @@ coordinates:
     sourceEndLine: 87
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 82
-  SYM-mcp-tools-createToolTimeoutError:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 201
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 199
-  SYM-mcp-tools-getToolTimeoutMs:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 196
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 186
-  SYM-mcp-tools-withToolTimeout:
-    sourceColumn: 15
-    sourceEndColumn: 1
-    sourceEndLine: 228
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 204
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2069,9 +2087,9 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 694
+    sourceEndLine: 718
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 514
+    sourceLine: 523
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2117,9 +2135,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 105
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 99
+    sourceLine: 103
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2231,9 +2249,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 96
+    sourceEndLine: 100
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 87
+    sourceLine: 91
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2243,9 +2261,9 @@ coordinates:
   SYM-setupDocsAndPrompts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 320
+    sourceEndLine: 324
     sourceFile: packages/mcp/src/server/docs.ts
-    sourceLine: 292
+    sourceLine: 296
   SYM-skillsListCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2285,9 +2303,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 396
+    sourceEndLine: 409
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 389
+    sourceLine: 402
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2318,6 +2336,12 @@ coordinates:
     sourceEndLine: 73
     sourceFile: packages/opencode/src/logger.ts
     sourceLine: 61
+  SYM-withDiagnosticTelemetrySchema:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 801
+    sourceFile: packages/mcp/src/tools-config.ts
+    sourceLine: 781
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1

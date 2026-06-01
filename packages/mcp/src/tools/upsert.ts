@@ -333,6 +333,7 @@ function collectNarrowExportNames(filePath: string, content: string): string[] {
     },
   );
   const names = new Set<string>();
+  const methodNameCounts = new Map<string, number>();
 
   for (const fn of sourceFile.getFunctions()) {
     if (fn.isExported()) {
@@ -344,7 +345,19 @@ function collectNarrowExportNames(filePath: string, content: string): string[] {
     if (cls.isExported()) {
       const name = cls.getName();
       if (name) names.add(name);
+
+      for (const method of cls.getMethods()) {
+        const methodName = method.getName();
+        if (name) names.add(`${name}.${methodName}`);
+        methodNameCounts.set(
+          methodName,
+          (methodNameCounts.get(methodName) ?? 0) + 1,
+        );
+      }
     }
+  }
+  for (const [methodName, count] of methodNameCounts) {
+    if (count === 1) names.add(methodName);
   }
   for (const iface of sourceFile.getInterfaces()) {
     if (iface.isExported()) names.add(iface.getName());

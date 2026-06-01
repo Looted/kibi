@@ -267,7 +267,7 @@ Upgrades the branch knowledge base to the latest schema version.
 
 **Behavior:**
 - Upgrades entity schemas and internal storage formats
-- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols are already available
+- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols or class methods (`ClassName.methodName`) are already available
 - Fixes legacy requirement modeling to follow strict fact-pairing rules
 - Updates `.kb/config.json` with the latest `schemaVersion`
 - Idempotent: safe to run if already on the latest version
