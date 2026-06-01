@@ -105,9 +105,7 @@ describe("classifyDiagnosticError", () => {
   test("classifies validation failures: relationship validation and source mismatch", () => {
     expect(
       classifyDiagnosticError(
-        new Error(
-          "Relationship validation failed: invalid field 'unknown'",
-        ),
+        new Error("Relationship validation failed: invalid field 'unknown'"),
       ),
     ).toMatchObject({
       error_category: "relationship_validation_failed",
@@ -137,9 +135,7 @@ describe("classifyDiagnosticError", () => {
     });
 
     expect(
-      classifyDiagnosticError(
-        new Error("Prolog query failed: timeout"),
-      ),
+      classifyDiagnosticError(new Error("Prolog query failed: timeout")),
     ).toMatchObject({
       error_category: "prolog_query_failed",
       error_stage: "prolog_runtime",
