@@ -41,16 +41,23 @@ const analyzeSourceTextCurrent:
   | ((filePath: string, content: string) => SymbolAnalysis)
   | undefined = analyzeSourceTextForTest;
 const symbolCoordinatorMock: {
-  readonly analyzeSourceText?: (filePath: string, content: string) => SymbolAnalysis;
+  readonly analyzeSourceText?: (
+    filePath: string,
+    content: string,
+  ) => SymbolAnalysis;
 } = {};
 Object.defineProperty(symbolCoordinatorMock, "analyzeSourceText", {
   enumerable: true,
   get: () => analyzeSourceTextCurrent,
 });
 
-mock.module("kibi-cli/extractors/symbols-coordinator", () => symbolCoordinatorMock);
+mock.module(
+  "kibi-cli/extractors/symbols-coordinator",
+  () => symbolCoordinatorMock,
+);
 const {
   classifyActivationState,
+  collectMarkdownFiles,
   discoverProviderEvidence,
   discoverSources,
   resolveActivationPolicy,
@@ -113,74 +120,6 @@ describe("autopilot discovery", () => {
     };
   }
 
-  function loadMarkdownCollectorForCoverage(): (
-    dir: string,
-    workspaceRoot: string,
-    vendoredRoots: string[],
-  ) => string[] {
-    const alignedSource = `${"\n".repeat(1182)}function collectMarkdownFiles(dir, workspaceRoot, vendoredRoots) {
-  const results = [];
-  if (!fs.existsSync(dir)) return results;
-
-  const stat = fs.statSync(dir);
-  if (!stat.isDirectory()) return results;
-
-  const entries = fs.readdirSync(dir).sort();
-  for (const entry of entries) {
-    const full = path.join(dir, entry);
-
-    // Skip ignores
-    if (IGNORED_DIRECTORY_NAMES.has(entry.toLowerCase())) continue;
-
-    // Skip vendored roots
-    const rel = path.relative(workspaceRoot, full).split(path.sep).join("/");
-    if (vendoredRoots.some((v) => rel === v || rel.startsWith(v + "/")))
-      continue;
-
-    const st = fs.statSync(full);
-    if (st.isDirectory()) {
-      results.push(...collectMarkdownFiles(full, workspaceRoot, vendoredRoots));
-      continue;
-    }
-    if (st.isFile() && entry.endsWith(".md")) {
-      results.push(
-        path.relative(workspaceRoot, full).split(path.sep).join("/"),
-      );
-    }
-  }
-
-  return results;
-}
-return collectMarkdownFiles;
-`;
-    const ignoredDirectoryNames = new Set([
-      ".git",
-      ".kb",
-      ".venv",
-      "build",
-      "coverage",
-      "dist",
-      "node_modules",
-      "target",
-      "third-party",
-      "third_party",
-      "vendor",
-      "vendors",
-      "venv",
-    ]);
-    const factory = new Function(
-      "fs",
-      "path",
-      "IGNORED_DIRECTORY_NAMES",
-      alignedSource,
-    ) as (
-      fsModule: typeof fs,
-      pathModule: typeof path,
-      ignored: Set<string>,
-    ) => (dir: string, workspaceRoot: string, vendoredRoots: string[]) => string[];
-    return factory(fs, path, ignoredDirectoryNames);
-  }
-
   beforeEach(() => {
     fixture = setupWorkspace();
   });
@@ -195,9 +134,15 @@ return collectMarkdownFiles;
   it("formats source module analysis when source files have no symbols", () => {
     if (!fixture) throw new Error("missing fixture");
     fs.mkdirSync(path.join(fixture.root, "src"), { recursive: true });
-    fs.writeFileSync(path.join(fixture.root, "src", "plain.ts"), "export {};\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "src", "plain.ts"),
+      "export {};\n",
+    );
 
-    const discovery = discoverProviderEvidence(fixture.root, coldStartActivation());
+    const discovery = discoverProviderEvidence(
+      fixture.root,
+      coldStartActivation(),
+    );
     const sourceEvidence = discovery.evidence.find(
       (item) => item.relativePath === "src/plain.ts",
     );
@@ -516,7 +461,10 @@ return collectMarkdownFiles;
       ),
     );
     fs.writeFileSync(path.join(fixture.root, "Cargo.toml"), "[package]\n");
-    fs.writeFileSync(path.join(fixture.root, "go.mod"), "module example.com/app\n");
+    fs.writeFileSync(
+      path.join(fixture.root, "go.mod"),
+      "module example.com/app\n",
+    );
     fs.writeFileSync(path.join(fixture.root, "pyproject.toml"), "[project]\n");
 
     const discovery = discoverProviderEvidence(
@@ -592,7 +540,9 @@ return collectMarkdownFiles;
 
   it("collects markdown recursively while skipping ignored and vendored directories", () => {
     if (!fixture) throw new Error("missing fixture");
-    fs.mkdirSync(path.join(fixture.root, "docs", "nested"), { recursive: true });
+    fs.mkdirSync(path.join(fixture.root, "docs", "nested"), {
+      recursive: true,
+    });
     fs.mkdirSync(path.join(fixture.root, "docs", "node_modules"), {
       recursive: true,
     });
@@ -616,8 +566,6 @@ return collectMarkdownFiles;
       path.join(fixture.root, "vendored", "docs", "ignored.md"),
       "# Vendored\n",
     );
-    const collectMarkdownFiles = loadMarkdownCollectorForCoverage();
-
     expect(
       collectMarkdownFiles(fixture.root, fixture.root, ["vendored"]),
     ).toEqual(["docs/nested/child.md", "docs/root.md"]);
@@ -629,7 +577,11 @@ return collectMarkdownFiles;
       ),
     ).toEqual([]);
     expect(
-      collectMarkdownFiles(path.join(fixture.root, "missing"), fixture.root, []),
+      collectMarkdownFiles(
+        path.join(fixture.root, "missing"),
+        fixture.root,
+        [],
+      ),
     ).toEqual([]);
   });
 });

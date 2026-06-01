@@ -1180,7 +1180,7 @@ export async function classifyActivationState(
 }
 
 // Recursively collect markdown files under `dir`, excluding known ignore dirs.
-function collectMarkdownFiles(
+export function collectMarkdownFiles(
   dir: string,
   workspaceRoot: string,
   vendoredRoots: string[],
