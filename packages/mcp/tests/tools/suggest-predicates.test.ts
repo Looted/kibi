@@ -279,7 +279,7 @@ describe("kb_suggest_predicates", () => {
         expectedArgs: [
           "requirement.subject",
           "timeout",
-          "neq",
+          "lte",
           "30",
           "seconds",
         ],
@@ -319,14 +319,18 @@ describe("kb_suggest_predicates", () => {
 
   test("uses project-local predicate schemas when Prolog returns predicate_schema facts", async () => {
     const { handleKbSuggestPredicates } = await loadModule();
+    let capturedGoal = "";
     const prolog = {
-      query: async () => ({
-        success: true,
-        bindings: {
-          Results:
-            '[[FACT-SCHEMA-CUSTOM,fact,[fact_kind=predicate_schema,predicate_name=custom_policy,title="Custom policy",description="Project-local custom policy.",argument_names=[subject,mode],argument_types=[entity,mode],aliases=[custom],examples=[custom_policy(subject,mode)],tags=[custom,policy]]]]',
-        },
-      }),
+      query: async (goal: string) => {
+        capturedGoal = goal;
+        return {
+          success: true,
+          bindings: {
+            Results:
+              '[[FACT-SCHEMA-CUSTOM,fact,[fact_kind=predicate_schema,predicate_name=custom_policy,title="Custom policy",description="Project-local custom policy.",argument_names=[subject,mode],argument_types=[entity,mode],aliases=[custom],examples=[custom_policy(subject,mode)],tags=[custom,policy]]]]',
+          },
+        };
+      },
     };
 
     const result = await handleKbSuggestPredicates(prolog, {
@@ -348,6 +352,7 @@ describe("kb_suggest_predicates", () => {
         tags: ["custom", "policy"],
       }),
     });
+    expect(capturedGoal).toContain("fact_kind=predicate_schema");
   });
 
   test("reports warnings when existing predicate schemas cannot be loaded", async () => {
