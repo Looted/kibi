@@ -276,6 +276,102 @@ symbols:
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-KibiOpencodePluginEntry
+    title: KibiOpencodePluginEntry
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-AutoUpdateStatus
+    title: AutoUpdateStatus
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-AutoUpdateResult
+    title: AutoUpdateResult
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-AutoUpdateInput
+    title: AutoUpdateInput
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-AutoUpdateRunnerDeps
+    title: AutoUpdateRunnerDeps
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-findKibiOpencodePluginEntry
+    title: findKibiOpencodePluginEntry
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-getCachedPluginVersion
+    title: getCachedPluginVersion
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-getLatestPluginVersion
+    title: getLatestPluginVersion
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-invalidateKibiOpencodePackage
+    title: invalidateKibiOpencodePackage
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-runBunInstallForOpenCodePlugin
+    title: runBunInstallForOpenCodePlugin
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-createAutoUpdateRunner
+    title: createAutoUpdateRunner
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-runKibiOpencodeAutoUpdate
+    title: runKibiOpencodeAutoUpdate
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
   - id: SYM-usage-metrics-command
     title: usageMetricsCommand
     sourceFile: packages/cli/src/commands/usage-metrics.ts
@@ -1881,6 +1977,14 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-collectMarkdownFiles
+    title: collectMarkdownFiles
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-AutopilotEvidence
     title: AutopilotEvidence
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
@@ -2009,6 +2113,22 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-setAutopilotGenerateDepsForTests
+    title: _setAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-resetAutopilotGenerateDepsForTests
+    title: _resetAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
   - id: SYM-AutopilotGenerateArgs
     title: AutopilotGenerateArgs
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
@@ -2107,9 +2227,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 610
+    sourceLine: 627
     sourceColumn: 22
-    sourceEndLine: 673
+    sourceEndLine: 690
     sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
@@ -2145,9 +2265,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 21
+    sourceLine: 20
     sourceColumn: 17
-    sourceEndLine: 29
+    sourceEndLine: 28
     sourceEndColumn: 1
   - id: SYM-SuggestPredicatesResult
     title: SuggestPredicatesResult
@@ -2159,9 +2279,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 43
+    sourceLine: 42
     sourceColumn: 17
-    sourceEndLine: 57
+    sourceEndLine: 56
     sourceEndColumn: 1
   - id: SYM-handleKbSkillsList
     title: handleKbSkillsList

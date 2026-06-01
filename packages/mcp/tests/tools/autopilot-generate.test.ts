@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -7,7 +7,11 @@ import {
   buildGenericMarkdownCandidates,
   buildTypedMarkdownCandidates,
 } from "../../src/tools/autopilot-candidates.js";
-import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
+import {
+  _resetAutopilotGenerateDepsForTests,
+  _setAutopilotGenerateDepsForTests,
+  handleKbAutopilotGenerate,
+} from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
   createNoisyRepo,
@@ -68,13 +72,127 @@ interface DeclaredContextRecord extends Record<string, unknown> {
   verificationAnchors?: string[];
 }
 
+interface MockActivationPolicy {
+  activationState:
+    | "root_uninitialized"
+    | "root_partial"
+    | "vendored_only"
+    | "root_active_thin"
+    | "root_active_seeded";
+  activationMode:
+    | "cold_start_bootstrap"
+    | "repair_bootstrap"
+    | "attached_thin_handoff"
+    | "attached_seeded_handoff"
+    | "vendored_blocked";
+  applyBlocked: boolean;
+  allowCandidateGeneration: boolean;
+  reason: string;
+  handoffMessage?: string;
+}
+
+interface MockCandidateRecord extends Record<string, unknown> {
+  candidateId: string;
+  entityType: string;
+  title: string;
+  sourceKind: string;
+  sourcePath: string;
+  confidence: number;
+  confidenceBand: string;
+  evidence: string[];
+  relationships: Array<{ type: string; from: string; to: string }>;
+  applyPlan: Array<Record<string, unknown>>;
+}
+
+interface MockSourceOnlySignal {
+  kind: "req" | "scenario" | "test";
+  title: string;
+  sourcePath: string;
+  confidence: number;
+  evidence: string[];
+}
+
+const mockedAutopilotState: {
+  activation: MockActivationPolicy;
+  providerCandidates: MockCandidateRecord[];
+  sourceOnlySignals: MockSourceOnlySignal[];
+  existingEntities: Array<Record<string, unknown>>;
+} = {
+  activation: {
+    activationState: "root_uninitialized",
+    activationMode: "cold_start_bootstrap",
+    applyBlocked: false,
+    allowCandidateGeneration: true,
+    reason: "mock cold start",
+  },
+  providerCandidates: [],
+  sourceOnlySignals: [],
+  existingEntities: [],
+};
+
+function installMockedAutopilotGenerateDeps(): void {
+  _setAutopilotGenerateDepsForTests({
+    resolveActivationPolicy: async () => mockedAutopilotState.activation,
+    discoverProviderEvidence: () => ({
+      evidence: [],
+      providerResults: [],
+      summary: {
+        activationState: mockedAutopilotState.activation.activationState,
+        activationMode: mockedAutopilotState.activation.activationMode,
+        applyBlocked: mockedAutopilotState.activation.applyBlocked,
+        reason: mockedAutopilotState.activation.reason,
+        providersRun: [],
+        providerCounts: {},
+        detectedLanguages: [],
+        detectedTestFrameworks: [],
+        excludedRoots: [],
+        truncated: false,
+        scanWarnings: [],
+      },
+    }),
+    buildTypedMarkdownCandidates: () => [],
+    buildSymbolManifestCandidates: () => [],
+    buildGenericMarkdownCandidates: () => [],
+    buildNormativeRequirementCandidates: () => [],
+    buildProviderEvidenceCandidates: () =>
+      mockedAutopilotState.providerCandidates as unknown as ReturnType<
+        typeof buildGenericMarkdownCandidates
+      >,
+    collectSourceOnlyAuthoringSignals: () =>
+      mockedAutopilotState.sourceOnlySignals,
+    loadEntities: async () => mockedAutopilotState.existingEntities,
+    getWorkspaceMigrationWarning: async () => null,
+  });
+}
+
+function makeMockCandidate(
+  candidateId: string,
+  title: string,
+  confidence: number,
+  sourcePath: string,
+  applyPlan: Array<Record<string, unknown>>,
+): MockCandidateRecord {
+  return {
+    candidateId,
+    entityType: "fact",
+    title,
+    sourceKind: "repo_metadata",
+    sourcePath,
+    confidence,
+    confidenceBand: confidence >= 0.9 ? "high" : "medium",
+    evidence: [`mock:${sourcePath}`],
+    relationships: [],
+    applyPlan,
+  };
+}
+
 function getCandidateStatus(
   candidate: CandidateWithPlan | undefined,
 ): string | undefined {
   return candidate?.applyPlan?.[0]?.properties?.status;
 }
 
-describe("autopilot generate", () => {
+describe.serial("autopilot generate", () => {
   let tmp: string;
 
   beforeEach(async () => {
@@ -85,6 +203,7 @@ describe("autopilot generate", () => {
   afterEach(async () => {
     await fs.rm(tmp, { recursive: true, force: true });
     process.env.KIBI_WORKSPACE = undefined;
+    _resetAutopilotGenerateDepsForTests();
   });
 
   function createPrologStub(
@@ -1049,5 +1168,521 @@ describe("autopilot generate", () => {
     expect(lowConf.policy).toBe("handoff_only");
     expect(lowConf.score).toBeLessThan(0.4);
     expect(lowRes.structuredContent.applyBlocked).toBe(true);
+  });
+
+  test("declared context is normalized and long prompt blocks are truncated", async () => {
+    createColdStartRepo(tmp);
+    const prolog = createPrologStub(async () => emptyQueryResult());
+    const longSummary = Array.from(
+      { length: 150 },
+      (_, index) => `summary${index}`,
+    ).join(" ");
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+      bootstrapContext: {
+        projectSummary: `  ${longSummary}  `,
+        sourceOfTruthPaths: [" README.md ", "README.md", ""],
+        sourceOfTruthNotes: [" note ", "note"],
+        priorityRoots: [" src ", "src"],
+        verificationAnchors: [" bun test ", "bun test"],
+      },
+    });
+
+    const declaredContext = res.structuredContent
+      .declaredContext as DeclaredContextRecord;
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+
+    expect(declaredContext.projectSummary).toBe(longSummary);
+    expect(declaredContext.sourceOfTruthPaths).toEqual(["README.md"]);
+    expect(declaredContext.sourceOfTruthNotes).toEqual(["note"]);
+    expect(declaredContext.priorityRoots).toEqual(["src"]);
+    expect(declaredContext.verificationAnchors).toEqual(["bun test"]);
+    expect(promptBlock.split(/\s+/).filter(Boolean).length).toBeLessThanOrEqual(
+      120,
+    );
+    expect(promptBlock).toContain("…");
+  });
+
+  test("verification anchors are used in prompt and check action when no source-only guidance exists", async () => {
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+      bootstrapContext: {
+        verificationAnchors: ["bun test", "bun run build"],
+      },
+    });
+
+    const promptBlock = String(res.structuredContent.promptBlock ?? "");
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+    const checkAction = actions.find((action) => action.kind === "check");
+
+    expect(promptBlock).toContain("Verify after kb_check with bun test");
+    expect(checkAction?.description).toContain("bun test, bun run build");
+  });
+
+  test("entityTypes filters source-only authoring signals and safe candidates", async () => {
+    createColdStartRepo(tmp);
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nCustomer data must be retained for 7 years.\n\n# ADR: Keep Bun\n",
+    );
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.6,
+      entityTypes: ["adr"],
+    });
+
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+    const actions = res.structuredContent
+      .recommendedActions as Array<RecommendedActionRecord>;
+
+    expect(candidates.length).toBeGreaterThan(0);
+    expect(
+      candidates.every((candidate) => candidate.entityType === "adr"),
+    ).toBe(true);
+    expect(
+      actions.some((action) =>
+        String(action.description ?? "").includes("Author REQ"),
+      ),
+    ).toBe(false);
+  });
+
+  test("symbol manifests are split from discovered sources and emitted as manifest candidates", async () => {
+    createColdStartRepo(tmp);
+    await fs.mkdir(path.join(tmp, "documentation"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "documentation", "symbols.yaml"),
+      [
+        "symbols:",
+        "  - id: symbol-autopilot-entry",
+        "    title: Autopilot entry",
+        "    source: src/cli.ts",
+        "    status: active",
+        "  - id: symbol-autopilot-second",
+        "    title: Autopilot second",
+        "    source: src/server.ts",
+        "    status: active",
+        "",
+      ].join("\n"),
+    );
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+      minConfidence: 0.6,
+      entityTypes: ["symbol"],
+    });
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+
+    expect(
+      candidates.some(
+        (candidate) =>
+          candidate.entityType === "symbol" &&
+          candidate.sourceKind === "symbol_manifest" &&
+          candidate.title === "Autopilot entry",
+      ),
+    ).toBe(true);
+  });
+
+  test("lower-confidence duplicates are suppressed after typed evidence wins", async () => {
+    createColdStartRepo(tmp);
+    await fs.mkdir(path.join(tmp, "documentation", "facts"), {
+      recursive: true,
+    });
+    await fs.writeFile(
+      path.join(tmp, "documentation", "facts", "FACT-PACKAGE.md"),
+      [
+        "---",
+        "id: FACT-PACKAGE",
+        'title: "Repository metadata: package.json"',
+        "status: active",
+        "---",
+        "# Repository metadata: package.json",
+        "",
+      ].join("\n"),
+    );
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+      minConfidence: 0.6,
+      entityTypes: ["fact"],
+    });
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
+
+    expect(
+      suppressed.some(
+        (candidate) =>
+          candidate.reason === "duplicate_title" &&
+          candidate.entityType === "fact" &&
+          String(candidate.sourcePath).endsWith("package.json"),
+      ),
+    ).toBe(true);
+  });
+
+  test("duplicate equal-confidence titles keep deterministic earlier source", async () => {
+    await fs.mkdir(path.join(tmp, "docs", "a"), { recursive: true });
+    await fs.mkdir(path.join(tmp, "docs", "z"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "docs", "a", "decision.md"),
+      "# ADR: Tie\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "docs", "z", "decision.md"),
+      "# ADR: Tie\n",
+    );
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.6,
+      entityTypes: ["adr"],
+    });
+
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
+    const kept = candidates.find((candidate) => candidate.title === "ADR: Tie");
+    const duplicate = suppressed.find(
+      (candidate) =>
+        candidate.reason === "duplicate_title" &&
+        String(candidate.sourcePath).endsWith("docs/z/decision.md"),
+    );
+
+    expect(String(kept?.sourcePath)).toEndWith("docs/a/decision.md");
+    expect(String(duplicate?.sourcePath)).toEndWith("docs/z/decision.md");
+  });
+
+  test("existing KB ids are loaded and suppress matching discovered entities before output", async () => {
+    createColdStartRepo(tmp);
+    await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
+    await fs.writeFile(
+      path.join(tmp, "docs", "decision.md"),
+      "# ADR: Existing\n",
+    );
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.startsWith("findall([Id,Type,Props]")) {
+        return {
+          success: true,
+          bindings: { Result: "['ADR-GEN-ADR-EXISTING','adr',[]]" },
+        };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.6,
+    });
+
+    const candidates = res.structuredContent.candidates as Array<
+      Record<string, unknown>
+    >;
+    expect(
+      candidates.some((candidate) => candidate.title === "ADR: Existing"),
+    ).toBe(false);
+  });
+
+  test("medium-confidence empty bootstrap reports review-required policy and no safe candidates", async () => {
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+    });
+    const confidence = res.structuredContent.confidence as ConfidenceRecord;
+
+    expect(res.structuredContent.candidates).toEqual([]);
+    expect(confidence.level).toBe("medium");
+    expect(confidence.policy).toBe("review_required");
+    expect(confidence.reasons).toContain(
+      "Medium confidence: review recommended before applying.",
+    );
+    expect(res.structuredContent.tldr).toBe(
+      "Bootstrap output found no safe candidates; follow the recommended actions to continue.",
+    );
+  });
+
+  test("existing strict fact ids suppress normative requirement candidates during final de-duplication", async () => {
+    await fs.writeFile(
+      path.join(tmp, "README.md"),
+      "# Requirements\n\nCustomer data must be retained for 7 years.\n",
+    );
+    const prolog = createPrologStub(async (goal) => {
+      const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
+      if (queryText.startsWith("findall([Id,Type,Props]")) {
+        return {
+          success: true,
+          bindings: {
+            Result: "['FACT-SUBJECT-A260D52D5821482A','fact',[]]",
+          },
+        };
+      }
+      return emptyQueryResult();
+    });
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: true,
+      minConfidence: 0.6,
+    });
+    const suppressed = res.structuredContent.suppressedCandidates as Array<
+      Record<string, unknown>
+    >;
+
+    expect(
+      suppressed.some(
+        (candidate) =>
+          candidate.reason === "entity_exists" &&
+          candidate.entityType === "req",
+      ),
+    ).toBe(true);
+  });
+
+  test("scan warning diagnostics are surfaced in prompt block", async () => {
+    await fs.writeFile(path.join(tmp, "package.json"), "{not json");
+    const prolog = createPrologStub(async () => emptyQueryResult());
+
+    const res = await handleKbAutopilotGenerate(prolog, {
+      includeGenericMarkdown: false,
+      minConfidence: 0.8,
+    });
+
+    expect(String(res.structuredContent.promptBlock ?? "")).toContain(
+      "Scan diagnostics:",
+    );
+  });
+
+  test("defensive prompt handling preserves external source-only paths", async () => {
+    const originalPush = Array.prototype.push;
+    const externalSourcePath = path.join(
+      os.tmpdir(),
+      "external-autopilot-requirements.md",
+    );
+    mockedAutopilotState.activation = {
+      activationState: "root_uninitialized",
+      activationMode: "cold_start_bootstrap",
+      applyBlocked: false,
+      allowCandidateGeneration: true,
+      reason: "mock cold start",
+    };
+    mockedAutopilotState.providerCandidates = [];
+    mockedAutopilotState.sourceOnlySignals = [
+      {
+        kind: "req",
+        title: "Author requirements from external source",
+        sourcePath: externalSourcePath,
+        confidence: 0.84,
+        evidence: [`generic_heading:${externalSourcePath}#L1`],
+      },
+    ];
+    mockedAutopilotState.existingEntities = [];
+
+    try {
+      Array.prototype.push = function patchedPush<T>(
+        this: T[],
+        ...items: T[]
+      ): number {
+        if (
+          items.every(
+            (item) => typeof item === "string" && item.startsWith("- "),
+          )
+        ) {
+          return this.length;
+        }
+        return originalPush.apply(this, items);
+      };
+
+      installMockedAutopilotGenerateDeps();
+      const mockedHandle = handleKbAutopilotGenerate;
+      const prolog = createPrologStub(async () => emptyQueryResult());
+      const res = await mockedHandle(prolog, { includeGenericMarkdown: true });
+      const actions = res.structuredContent
+        .recommendedActions as Array<RecommendedActionRecord>;
+      const confidence = res.structuredContent.confidence as ConfidenceRecord;
+
+      expect(res.structuredContent.promptBlock).toBe("");
+      expect(confidence.reasons).toContain(
+        "Prompt block could not be assembled within the handoff budget.",
+      );
+      expect(
+        actions.some((action) =>
+          String(action.description ?? "").includes(externalSourcePath),
+        ),
+      ).toBe(true);
+    } finally {
+      Array.prototype.push = originalPush;
+    }
+  });
+
+  test("blocked activation messages use activation-specific fallback text", async () => {
+    mockedAutopilotState.activation = {
+      activationState: "vendored_only",
+      activationMode: "vendored_blocked",
+      applyBlocked: true,
+      allowCandidateGeneration: false,
+      reason: "vendored tree detected",
+    };
+    mockedAutopilotState.providerCandidates = [];
+    mockedAutopilotState.sourceOnlySignals = [];
+    mockedAutopilotState.existingEntities = [];
+
+    installMockedAutopilotGenerateDeps();
+    const vendoredHandle = handleKbAutopilotGenerate;
+    const prolog = createPrologStub(async () => emptyQueryResult());
+    const vendoredRes = await vendoredHandle(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    expect(vendoredRes.structuredContent.tldr).toBe(
+      "Autopilot bootstrap blocked: vendored tree detected",
+    );
+
+    mockedAutopilotState.activation = {
+      activationState: "root_active_thin",
+      activationMode: "attached_thin_handoff",
+      applyBlocked: true,
+      allowCandidateGeneration: false,
+      reason: "thin attached KB detected",
+    };
+
+    installMockedAutopilotGenerateDeps();
+    const handoffHandle = handleKbAutopilotGenerate;
+    const handoffRes = await handoffHandle(prolog, {
+      includeGenericMarkdown: true,
+    });
+
+    expect(handoffRes.structuredContent.tldr).toBe(
+      "Autopilot handoff: thin attached KB detected",
+    );
+  });
+
+  test("final de-duplication handles nested ids and defensive duplicate replacement branches", async () => {
+    const originalSort = Array.prototype.sort;
+    mockedAutopilotState.activation = {
+      activationState: "root_uninitialized",
+      activationMode: "cold_start_bootstrap",
+      applyBlocked: false,
+      allowCandidateGeneration: true,
+      reason: "mock cold start",
+    };
+    mockedAutopilotState.providerCandidates = [
+      makeMockCandidate("nested-id", "Nested ID", 0.9, "nested.md", [
+        {
+          type: "fact",
+          properties: { id: "FACT-NESTED-ID", title: "Nested ID" },
+          relationships: [],
+        },
+      ]),
+      makeMockCandidate("low-duplicate", "Duplicate Confidence", 0.8, "b.md", [
+        {
+          type: "fact",
+          id: "FACT-LOW-DUPLICATE",
+          properties: { title: "Duplicate Confidence", text_ref: "b.md#L1" },
+          relationships: [],
+        },
+      ]),
+      makeMockCandidate("high-duplicate", "Duplicate Confidence", 0.9, "c.md", [
+        {
+          type: "fact",
+          id: "FACT-HIGH-DUPLICATE",
+          properties: { title: "Duplicate Confidence", text_ref: "c.md#L1" },
+          relationships: [],
+        },
+      ]),
+      makeMockCandidate("tie-late-ref", "Duplicate Tie", 0.9, "z.md", [
+        {
+          type: "fact",
+          id: "FACT-TIE-LATE",
+          properties: { title: "Duplicate Tie", text_ref: "z.md#L2" },
+          relationships: [],
+        },
+      ]),
+      makeMockCandidate("tie-early-ref", "Duplicate Tie", 0.9, "a.md", [
+        {
+          type: "fact",
+          id: "FACT-TIE-EARLY",
+          properties: { title: "Duplicate Tie", text_ref: "a.md#L1" },
+          relationships: [],
+        },
+      ]),
+    ];
+    mockedAutopilotState.sourceOnlySignals = [];
+    mockedAutopilotState.existingEntities = [{ id: "FACT-NESTED-ID" }];
+
+    try {
+      Array.prototype.sort = function patchedSort<T>(
+        this: T[],
+        compareFn?: (left: T, right: T) => number,
+      ): T[] {
+        if (
+          this.length === mockedAutopilotState.providerCandidates.length &&
+          this.every(
+            (item) =>
+              typeof item === "object" &&
+              item !== null &&
+              "candidateId" in item,
+          )
+        ) {
+          return this;
+        }
+        return originalSort.call(this, compareFn);
+      };
+
+      installMockedAutopilotGenerateDeps();
+      const mockedHandle = handleKbAutopilotGenerate;
+      const prolog = createPrologStub(async () => emptyQueryResult());
+      const res = await mockedHandle(prolog, {
+        includeGenericMarkdown: true,
+        minConfidence: 0.8,
+      });
+      const candidates = res.structuredContent.candidates as Array<
+        Record<string, unknown>
+      >;
+      const suppressed = res.structuredContent.suppressedCandidates as Array<
+        Record<string, unknown>
+      >;
+
+      expect(candidates.map((candidate) => candidate.candidateId)).toEqual([
+        "high-duplicate",
+        "tie-early-ref",
+      ]);
+      expect(
+        suppressed.some(
+          (candidate) =>
+            candidate.reason === "entity_exists" &&
+            candidate.candidateId === "nested-id",
+        ),
+      ).toBe(true);
+      expect(
+        suppressed.some(
+          (candidate) =>
+            candidate.reason === "duplicate_title" &&
+            candidate.candidateId === "low-duplicate",
+        ),
+      ).toBe(true);
+      expect(
+        suppressed.some(
+          (candidate) =>
+            candidate.reason === "duplicate_title" &&
+            candidate.candidateId === "tie-late-ref",
+        ),
+      ).toBe(true);
+    } finally {
+      Array.prototype.sort = originalSort;
+    }
   });
 });

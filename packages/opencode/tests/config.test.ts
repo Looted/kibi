@@ -145,6 +145,16 @@ describe("config loader", () => {
     });
   });
 
+  test("autoUpdate defaults to true and can be disabled", () => {
+    expect(validateAndMerge({}).autoUpdate).toBe(true);
+
+    const disabled = validateAndMerge({ autoUpdate: false });
+    expect(disabled.autoUpdate).toBe(false);
+
+    const invalid = validateAndMerge({ autoUpdate: "no" });
+    expect(invalid.autoUpdate).toBe(true);
+  });
+
   test("ux toastStartup defaults to true and project config overrides global", () => {
     fs.writeFileSync(
       path.join(home, ".config", "opencode", "kibi.json"),

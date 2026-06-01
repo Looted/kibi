@@ -18,6 +18,7 @@
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import process from "node:process";
+import * as coveredSession from "../../src/server/session.js";
 
 // ============================================================================
 // MOCKED DEPENDENCIES
@@ -654,6 +655,404 @@ describe.serial("session module", () => {
       expect(instances[1]?.query).toHaveBeenCalledWith(
         "kb_attach('/mock/kb/path')",
       );
+    });
+  });
+
+  describe("additional session.ts line coverage", () => {
+    async function importCoveredSession() {
+      const session = coveredSession;
+      session._resetSessionDepsForTests();
+      session._setSessionDepsForTests(
+        createMockSessionDeps() as unknown as Parameters<
+          typeof session._setSessionDepsForTests
+        >[0],
+      );
+      session.resetSessionStateForTests();
+      return session;
+    }
+
+    function containsConsoleArg(
+      calls: Array<readonly unknown[]>,
+      expected: string,
+    ): boolean {
+      return calls.some((call) =>
+        call.some((arg) => String(arg).includes(expected)),
+      );
+    }
+
+    test("ensureBranchKbExists creates an empty KB when the previous branch is develop", async () => {
+      const session = await importCoveredSession();
+      mockResolveKbPath.mockImplementation(
+        (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
+      );
+      mockExistsSync.mockImplementation(() => false);
+
+      session.ensureBranchKbExists("/workspace", "brand-new");
+
+      expect(mockMkdirSync).toHaveBeenCalledWith(
+        "/workspace/.kb/branches/brand-new",
+        { recursive: true },
+      );
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+    });
+
+    test("ensureBranchKbExists rejects invalid branch names before path resolution", async () => {
+      const session = await importCoveredSession();
+      mockIsValidBranchName.mockImplementation(() => false);
+
+      expect(() => session.ensureBranchKbExists("/workspace", "bad/name"))
+        .toThrow("Invalid branch name: bad/name");
+      expect(mockResolveKbPath).not.toHaveBeenCalled();
+    });
+
+    test("ensureBranchKbExists returns without copying or creating when branch KB exists", async () => {
+      const session = await importCoveredSession();
+      mockResolveKbPath.mockImplementation(
+        (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
+      );
+      mockExistsSync.mockImplementation(
+        (path) => path === "/workspace/.kb/branches/existing-branch",
+      );
+
+      session.ensureBranchKbExists("/workspace", "existing-branch");
+
+      expect(mockCopyCleanSnapshot).not.toHaveBeenCalled();
+      expect(mockMkdirSync).not.toHaveBeenCalled();
+    });
+
+    test("ensureBranchKbExists copies the previous non-develop branch when available", async () => {
+      process.env.KIBI_BRANCH = "previous-copy-branch";
+      const session = await importCoveredSession();
+      mockResolveKbPath.mockImplementation(
+        (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
+      );
+      mockExistsSync.mockImplementation(
+        (path) => path === "/workspace/.kb/branches/previous-copy-branch",
+      );
+      await session.ensureProlog();
+      mockCopyCleanSnapshot.mockClear();
+      mockMkdirSync.mockClear();
+
+      session.ensureBranchKbExists("/workspace", "copied-branch");
+
+      expect(mockCopyCleanSnapshot).toHaveBeenCalledWith(
+        "/workspace/.kb/branches/previous-copy-branch",
+        "/workspace/.kb/branches/copied-branch",
+      );
+      expect(mockMkdirSync).not.toHaveBeenCalled();
+    });
+
+    test("initiateGracefulShutdown returns early when already shutting down", async () => {
+      const session = await importCoveredSession();
+      const originalExit = process.exit;
+      const exitMock = mock(
+        (_code?: number | string | null | undefined) => undefined,
+      );
+      process.exit = exitMock as unknown as typeof process.exit;
+
+      try {
+        await session.initiateGracefulShutdown(0);
+        exitMock.mockClear();
+
+        await session.initiateGracefulShutdown(3);
+
+        expect(exitMock).not.toHaveBeenCalled();
+      } finally {
+        process.exit = originalExit;
+      }
+    });
+
+    test("initiateGracefulShutdown waits for in-flight requests and terminates Prolog", async () => {
+      process.env.KIBI_BRANCH = "covered-shutdown-branch";
+      const session = await importCoveredSession();
+      const originalExit = process.exit;
+      const exitMock = mock(
+        (_code?: number | string | null | undefined) => undefined,
+      );
+      process.exit = exitMock as unknown as typeof process.exit;
+
+      try {
+        await session.ensureProlog();
+        const deferred = createDeferred<void>();
+        session.inFlightRequests.set("covered-request", deferred.promise);
+
+        const shutdownPromise = session.initiateGracefulShutdown(6);
+        await Promise.resolve();
+        expect(exitMock).not.toHaveBeenCalled();
+
+        deferred.resolve();
+        await shutdownPromise;
+
+        expect(mockPrologProcessInstance.terminate).toHaveBeenCalledTimes(1);
+        expect(exitMock).toHaveBeenCalledWith(6);
+      } finally {
+        process.exit = originalExit;
+        session.inFlightRequests.clear();
+      }
+    });
+
+    test("initiateGracefulShutdown logs timeout and termination failures", async () => {
+      process.env.KIBI_BRANCH = "covered-timeout-branch";
+      const session = await importCoveredSession();
+      const originalExit = process.exit;
+      const originalSetTimeout = globalThis.setTimeout;
+      const originalClearTimeout = globalThis.clearTimeout;
+      const originalConsoleError = console.error;
+      const exitMock = mock(
+        (_code?: number | string | null | undefined) => undefined,
+      );
+      const timerHandle = {} as NodeJS.Timeout;
+      const clearTimeoutMock = mock(
+        (_timer?: number | string | NodeJS.Timeout | undefined) => {},
+      );
+      const consoleErrorMock = mock((_message?: unknown, _error?: unknown) => {});
+      const terminateError = new Error("shutdown terminate failure");
+
+      process.exit = exitMock as unknown as typeof process.exit;
+      console.error = consoleErrorMock as typeof console.error;
+      globalThis.setTimeout = ((handler: TimerHandler, _timeout?: number) => {
+        queueMicrotask(() => {
+          if (typeof handler === "function") {
+            handler();
+          }
+        });
+        return timerHandle;
+      }) as unknown as typeof setTimeout;
+      globalThis.clearTimeout = clearTimeoutMock as typeof clearTimeout;
+
+      try {
+        await session.ensureProlog();
+        mockPrologProcessInstance.terminate.mockImplementation(() =>
+          Promise.reject(terminateError),
+        );
+        session.inFlightRequests.set("covered-timeout", new Promise(() => {}));
+
+        await session.initiateGracefulShutdown(8);
+
+        expect(consoleErrorMock).toHaveBeenCalledWith(
+          "[KIBI-MCP] Shutdown timeout reached, forcing exit",
+        );
+        expect(consoleErrorMock).toHaveBeenCalledWith(
+          "[KIBI-MCP] Error terminating Prolog:",
+          terminateError,
+        );
+        expect(clearTimeoutMock).toHaveBeenCalledWith(timerHandle);
+        expect(exitMock).toHaveBeenCalledWith(8);
+      } finally {
+        process.exit = originalExit;
+        console.error = originalConsoleError;
+        globalThis.setTimeout = originalSetTimeout;
+        globalThis.clearTimeout = originalClearTimeout;
+        session.inFlightRequests.clear();
+      }
+    });
+
+    test("resetProlog logs and clears state when terminating the current worker fails", async () => {
+      process.env.KIBI_BRANCH = "reset-error-branch";
+      const session = await importCoveredSession();
+      const originalConsoleError = console.error;
+      const terminateError = new Error("terminate exploded");
+      const consoleErrorMock = mock((_message?: unknown, _error?: unknown) => {});
+
+      console.error = consoleErrorMock as typeof console.error;
+
+      try {
+        await session.ensureProlog();
+        mockPrologProcessInstance.terminate.mockImplementation(() =>
+          Promise.reject(terminateError),
+        );
+
+        await session.resetProlog("cover terminate failure");
+
+        expect(session.prologProcess).toBeNull();
+        expect(consoleErrorMock).toHaveBeenCalledWith(
+          "[KIBI-MCP] Error resetting Prolog worker:",
+          terminateError,
+        );
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("ensureProlog uses KIBI_BRANCH without resolving git branch", async () => {
+      process.env.KIBI_BRANCH = "override-only";
+      const session = await importCoveredSession();
+
+      await session.ensureProlog();
+
+      expect(mockIsValidBranchName).toHaveBeenCalledWith("override-only");
+      expect(mockResolveActiveBranch).not.toHaveBeenCalled();
+      expect(session.activeBranchName).toBe("override-only");
+    });
+
+    test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
+      process.env = { ...process.env, KIBI_BRANCH: undefined };
+      mockResolveActiveBranch.mockImplementation(
+        (() => ({
+          error: "detached HEAD",
+        })) as unknown as typeof defaults.resolveActiveBranch,
+      );
+      mockGetBranchDiagnostic.mockImplementation(
+        (_cwd?: string, error?: string) => `diagnostic: ${error}`,
+      );
+      const originalConsoleError = console.error;
+      const consoleErrorMock = mock((_message?: unknown) => {});
+      console.error = consoleErrorMock as typeof console.error;
+
+      try {
+        const session = await importCoveredSession();
+
+        await expect(session.ensureProlog()).rejects.toThrow(
+          "Failed to resolve active branch: detached HEAD",
+        );
+        expect(consoleErrorMock).toHaveBeenCalledWith(
+          "[KIBI-MCP] diagnostic: detached HEAD",
+        );
+        expect(mockPrologProcessInstance.start).not.toHaveBeenCalled();
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("ensureProlog returns the existing worker when the branch has not changed", async () => {
+      process.env.KIBI_BRANCH = "stable-branch";
+      const session = await importCoveredSession();
+
+      const first = await session.ensureProlog();
+      mockPrologProcessInstance.query.mockClear();
+
+      const second = await session.ensureProlog();
+
+      expect(second).toBe(first);
+      expect(mockPrologProcessInstance.query).not.toHaveBeenCalled();
+    });
+
+    test("ensureProlog fails branch switching when saving the previous branch fails", async () => {
+      process.env.KIBI_BRANCH = "save-fail-a";
+      const session = await importCoveredSession();
+      await session.ensureProlog();
+      mockPrologProcessInstance.query.mockClear();
+      mockPrologProcessInstance.query.mockImplementation((async (
+        command: string,
+      ) => {
+        if (command === "kb_save") {
+          return { success: false, error: "save denied" };
+        }
+        return { success: true };
+      }) as unknown as typeof defaults.prologQuery);
+
+      process.env.KIBI_BRANCH = "save-fail-b";
+
+      await expect(session.ensureProlog()).rejects.toThrow(
+        "Failed to save old KB before detach: save denied",
+      );
+      expect(mockPrologProcessInstance.query).toHaveBeenCalledTimes(1);
+      expect(mockPrologProcessInstance.query).toHaveBeenCalledWith("kb_save");
+    });
+
+    test("ensureProlog logs detach failures in debug mode and still attaches the new branch", async () => {
+      process.env.KIBI_BRANCH = "detach-warning-a";
+      process.env.KIBI_MCP_DEBUG = "1";
+      const originalConsoleError = console.error;
+      const consoleErrorMock = mock((..._args: unknown[]) => {});
+      console.error = consoleErrorMock as typeof console.error;
+
+      try {
+        const session = await importCoveredSession();
+        await session.ensureProlog();
+        mockPrologProcessInstance.query.mockClear();
+        consoleErrorMock.mockClear();
+        mockPrologProcessInstance.query.mockImplementation((async (
+          command: string,
+        ) => {
+          if (command === "kb_detach") {
+            return { success: false, error: "detach refused" };
+          }
+          return { success: true };
+        }) as unknown as typeof defaults.prologQuery);
+
+        process.env.KIBI_BRANCH = "detach-warning-b";
+
+        await session.ensureProlog();
+
+        expect(containsConsoleArg(consoleErrorMock.mock.calls, "detach refused"))
+          .toBe(true);
+        expect(mockPrologProcessInstance.query).toHaveBeenCalledWith(
+          "kb_attach('/mock/kb/path')",
+        );
+        expect(session.activeBranchName).toBe("detach-warning-b");
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("ensureProlog fails branch switching when attaching the new branch fails", async () => {
+      process.env.KIBI_BRANCH = "attach-fail-a";
+      const session = await importCoveredSession();
+      await session.ensureProlog();
+      mockPrologProcessInstance.query.mockClear();
+      mockPrologProcessInstance.query.mockImplementation((async (
+        command: string,
+      ) => {
+        if (command.startsWith("kb_attach(")) {
+          return { success: false, error: "attach denied" };
+        }
+        return { success: true };
+      }) as unknown as typeof defaults.prologQuery);
+
+      process.env.KIBI_BRANCH = "attach-fail-b";
+
+      await expect(session.ensureProlog()).rejects.toThrow(
+        "Failed to attach to new branch KB: attach denied",
+      );
+    });
+
+    test("ensureProlog debug initialization logs createRequire success details", async () => {
+      process.env.KIBI_BRANCH = "debug-success-branch";
+      process.env.KIBI_MCP_DEBUG = "1";
+      const originalConsoleError = console.error;
+      const consoleErrorMock = mock((..._args: unknown[]) => {});
+      console.error = consoleErrorMock as typeof console.error;
+
+      try {
+        const session = await importCoveredSession();
+
+        await session.ensureProlog();
+
+        expect(mockCreateRequire).toHaveBeenCalled();
+        expect(
+          containsConsoleArg(
+            consoleErrorMock.mock.calls,
+            "require.resolve('kibi-cli/prolog') -> /path/to/kibi-cli",
+          ),
+        ).toBe(true);
+        expect(containsConsoleArg(consoleErrorMock.mock.calls, "kibi-cli version: 1.0.0"))
+          .toBe(true);
+        expect(containsConsoleArg(consoleErrorMock.mock.calls, "PID: 12345"))
+          .toBe(true);
+      } finally {
+        console.error = originalConsoleError;
+      }
+    });
+
+    test("ensureProlog releases the sequencing tail after a rejected call", async () => {
+      process.env.KIBI_BRANCH = "tail-invalid/branch";
+      mockIsValidBranchName.mockImplementation(
+        (branch) => branch !== "tail-invalid/branch",
+      );
+      const session = await importCoveredSession();
+
+      await expect(session.ensureProlog()).rejects.toThrow(
+        "Invalid branch name from KIBI_BRANCH: 'tail-invalid/branch'",
+      );
+
+      process.env.KIBI_BRANCH = "tail-valid-branch";
+      mockIsValidBranchName.mockImplementation(() => true);
+
+      const result = await session.ensureProlog();
+
+      expect(result).toBeDefined();
+      expect(mockPrologProcessInstance.start).toHaveBeenCalledTimes(1);
     });
   });
 
