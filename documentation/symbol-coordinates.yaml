@@ -1838,6 +1838,24 @@ coordinates:
     sourceEndLine: 369
     sourceFile: packages/mcp/src/server/tools.ts
     sourceLine: 240
+  SYM-mcp-tools-createToolTimeoutError:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 208
+  SYM-mcp-tools-getToolTimeoutMs:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 195
+  SYM-mcp-tools-withToolTimeout:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 237
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 213
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
