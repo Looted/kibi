@@ -68,6 +68,30 @@ coordinates:
     sourceEndLine: 16
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 11
+  SYM-AutoUpdateInput:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 37
+  SYM-AutoUpdateResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 35
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 31
+  SYM-AutoUpdateRunnerDeps:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 42
+  SYM-AutoUpdateStatus:
+    sourceColumn: 12
+    sourceEndColumn: 21
+    sourceEndLine: 29
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 21
   SYM-AutopilotBootstrapContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -341,9 +365,9 @@ coordinates:
   SYM-Hooks:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 139
+    sourceEndLine: 150
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 131
+    sourceLine: 142
   SYM-INIT-KIBI-COMMAND-DESCRIPTION:
     sourceColumn: 13
     sourceEndColumn: 49
@@ -527,7 +551,7 @@ coordinates:
   SYM-KibiConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 52
     sourceFile: packages/opencode/src/config.ts
     sourceLine: 7
   SYM-KibiEntityType:
@@ -608,6 +632,12 @@ coordinates:
     sourceEndLine: 94
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 92
+  SYM-KibiOpencodePluginEntry:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 14
   SYM-KibiTreeDataProvider:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -743,9 +773,9 @@ coordinates:
   SYM-Plugin:
     sourceColumn: 12
     sourceEndColumn: 68
-    sourceEndLine: 141
+    sourceEndLine: 152
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 141
+    sourceLine: 152
   SYM-PluginClient:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -755,9 +785,9 @@ coordinates:
   SYM-PluginInput:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 105
+    sourceEndLine: 116
     sourceFile: packages/opencode/src/plugin.ts
-    sourceLine: 74
+    sourceLine: 85
   SYM-PluginStartupContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1055,15 +1085,15 @@ coordinates:
   SYM-SuggestPredicatesArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 29
+    sourceEndLine: 28
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 21
+    sourceLine: 20
   SYM-SuggestPredicatesResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 56
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 43
+    sourceLine: 42
   SYM-SymbolCoordinates:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1151,9 +1181,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 809
+    sourceEndLine: 808
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 807
+    sourceLine: 806
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1430,6 +1460,12 @@ coordinates:
     sourceEndLine: 187
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 172
+  SYM-createAutoUpdateRunner:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 473
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 406
   SYM-createConfigFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1622,6 +1658,12 @@ coordinates:
     sourceEndLine: 320
     sourceFile: packages/mcp/src/diagnostics.ts
     sourceLine: 311
+  SYM-findKibiOpencodePluginEntry:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 145
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 94
   SYM-findSdkPackageJsonForPluginRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1634,6 +1676,12 @@ coordinates:
     sourceEndLine: 167
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 162
+  SYM-getCachedPluginVersion:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 273
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 240
   SYM-getCurrentBranch:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1688,6 +1736,12 @@ coordinates:
     sourceEndLine: 103
     sourceFile: packages/opencode/src/file-filter.ts
     sourceLine: 73
+  SYM-getLatestPluginVersion:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 299
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 275
   SYM-getMissingBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1757,9 +1811,9 @@ coordinates:
   SYM-handleKbSuggestPredicates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 673
+    sourceEndLine: 690
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
-    sourceLine: 610
+    sourceLine: 627
   SYM-handleKbSymbolsRefresh:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1814,6 +1868,12 @@ coordinates:
     sourceEndLine: 230
     sourceFile: packages/cli/src/commands/init-helpers.ts
     sourceLine: 196
+  SYM-invalidateKibiOpencodePackage:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 366
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 346
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1829,33 +1889,15 @@ coordinates:
   SYM-isPluginEnabled:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 247
+    sourceEndLine: 250
     sourceFile: packages/opencode/src/config.ts
-    sourceLine: 244
+    sourceLine: 247
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 369
     sourceFile: packages/mcp/src/server/tools.ts
     sourceLine: 240
-  SYM-mcp-tools-createToolTimeoutError:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 210
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 208
-  SYM-mcp-tools-getToolTimeoutMs:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 205
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 195
-  SYM-mcp-tools-withToolTimeout:
-    sourceColumn: 15
-    sourceEndColumn: 1
-    sourceEndLine: 237
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 213
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1877,9 +1919,9 @@ coordinates:
   SYM-loadConfig-2:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 241
+    sourceEndLine: 244
     sourceFile: packages/opencode/src/config.ts
-    sourceLine: 223
+    sourceLine: 226
   SYM-loadMarkdownBody:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1958,6 +2000,24 @@ coordinates:
     sourceEndLine: 87
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 82
+  SYM-mcp-tools-createToolTimeoutError:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 210
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 208
+  SYM-mcp-tools-getToolTimeoutMs:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 205
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 195
+  SYM-mcp-tools-withToolTimeout:
+    sourceColumn: 15
+    sourceEndColumn: 1
+    sourceEndLine: 237
+    sourceFile: packages/mcp/src/server/tools.ts
+    sourceLine: 213
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2210,6 +2270,18 @@ coordinates:
     sourceEndLine: 56
     sourceFile: packages/vscode/src/activation/workspace.ts
     sourceLine: 24
+  SYM-runBunInstallForOpenCodePlugin:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 397
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 389
+  SYM-runKibiOpencodeAutoUpdate:
+    sourceColumn: 13
+    sourceEndColumn: 2
+    sourceEndLine: 484
+    sourceFile: packages/opencode/src/auto-update.ts
+    sourceLine: 475
   SYM-runPluginStartup:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2321,9 +2393,9 @@ coordinates:
   SYM-validateAndMerge:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 220
+    sourceEndLine: 223
     sourceFile: packages/opencode/src/config.ts
-    sourceLine: 107
+    sourceLine: 109
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2339,9 +2411,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 801
+    sourceEndLine: 800
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 781
+    sourceLine: 780
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1

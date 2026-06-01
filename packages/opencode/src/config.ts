@@ -6,6 +6,7 @@ import * as logger from "./logger.js";
 // implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export interface KibiConfig {
   enabled: boolean;
+  autoUpdate: boolean;
   prompt: {
     enabled: boolean;
     hookMode: "auto" | "chat-params" | "system-transform" | "compat";
@@ -52,6 +53,7 @@ export interface KibiConfig {
 
 const DEFAULTS: KibiConfig = {
   enabled: true,
+  autoUpdate: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: {
@@ -114,6 +116,7 @@ export function validateAndMerge(obj: unknown): KibiConfig {
   const out: KibiConfig = { ...DEFAULTS };
 
   if (typeof src.enabled === "boolean") out.enabled = src.enabled;
+  if (typeof src.autoUpdate === "boolean") out.autoUpdate = src.autoUpdate;
 
   if (src.prompt && typeof src.prompt === "object") {
     const p = src.prompt as Record<string, unknown>;
