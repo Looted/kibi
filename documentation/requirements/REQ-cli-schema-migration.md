@@ -10,6 +10,11 @@ tags:
   - cli
   - migration
   - schema
+links:
+  - type: specified_by
+    target: SCEN-cli-migrate
+  - type: verified_by
+    target: TEST-cli-migrate
 ---
 
 The CLI must provide an idempotent migration path for branch KB schema changes, including dry-run preview, explicit application, audit metadata, and compatibility remediation for legacy ontology data.
