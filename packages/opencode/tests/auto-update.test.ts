@@ -156,6 +156,36 @@ describe("kibi-opencode auto updater", () => {
     }
   });
 
+  test("updates from a prerelease to the matching stable version", async () => {
+    const projectDir = makeProjectWithPlugins(["kibi-opencode"]);
+    const invalidatePackage = mock<() => boolean>(() => true);
+    const runInstall = mock<() => Promise<boolean>>(() =>
+      Promise.resolve(true),
+    );
+
+    try {
+      const runner = createAutoUpdateRunner({
+        getCurrentVersion: () => "0.16.0-beta.1",
+        getLatestVersion: () => Promise.resolve("0.16.0"),
+        invalidatePackage,
+        runInstall,
+        notify: () => Promise.resolve(),
+        log: () => {},
+      });
+
+      const result = await runner({
+        directory: projectDir,
+        enabled: true,
+      });
+
+      expect(result.status).toBe("updated");
+      expect(invalidatePackage).toHaveBeenCalledTimes(1);
+      expect(runInstall).toHaveBeenCalledTimes(1);
+    } finally {
+      fs.rmSync(projectDir, { recursive: true, force: true });
+    }
+  });
+
   test("invalidates documented root cache and packages cache layouts", () => {
     const cacheHome = fs.mkdtempSync(
       path.join(os.tmpdir(), "kibi-cache-home-"),
