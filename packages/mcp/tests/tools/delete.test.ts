@@ -517,6 +517,64 @@ describe("handleKbDelete", () => {
     expect(invalidateCache).not.toHaveBeenCalled();
   });
 
+  test("reports metadata lookup query failure", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-001', _, _))") {
+        return { success: true };
+      }
+
+      if (
+        goal ===
+        "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+      ) {
+        return { success: false, error: "query engine crash" };
+      }
+
+      if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
+        return { success: true, bindings: { Dependents: "[]" } };
+      }
+
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await expect(handleKbDelete(prolog, { ids: ["REQ-001"] })).rejects.toThrow(
+      "Delete execution failed: Failed to load metadata for entity REQ-001: query engine crash",
+    );
+  });
+
+  test("reports empty metadata rows", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-001', _, _))") {
+        return { success: true };
+      }
+
+      if (
+        goal ===
+        "findall(['REQ-001',Type,Props], kb_entity('REQ-001', Type, Props), Results)"
+      ) {
+        return { success: true, bindings: { Results: "[]" } };
+      }
+
+      if (goal.includes("kb_relationship") && goal.includes("'REQ-001'")) {
+        return { success: true, bindings: { Dependents: "[]" } };
+      }
+
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await expect(handleKbDelete(prolog, { ids: ["REQ-001"] })).rejects.toThrow(
+      "Delete execution failed: Failed to load metadata for entity REQ-001: Entity not found",
+    );
+  });
+
   test("wraps thrown non-Error values from the query layer", async () => {
     const { prolog } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-001', _, _))") {
