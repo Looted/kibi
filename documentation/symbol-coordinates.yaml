@@ -95,21 +95,21 @@ coordinates:
   SYM-AutopilotBootstrapContext:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 87
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 43
+    sourceLine: 81
   SYM-AutopilotConfidence:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 56
+    sourceEndLine: 94
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 51
+    sourceLine: 89
   SYM-AutopilotDeclaredContext:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 109
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 65
+    sourceLine: 103
   SYM-AutopilotEvidence:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -125,21 +125,21 @@ coordinates:
   SYM-AutopilotGenerateArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 79
+    sourceEndLine: 117
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 73
+    sourceLine: 111
   SYM-AutopilotGenerateResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 115
+    sourceEndLine: 153
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 107
+    sourceLine: 145
   SYM-AutopilotRecommendedAction:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 63
+    sourceEndLine: 101
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 58
+    sourceLine: 96
   SYM-Candidate:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1775,9 +1775,9 @@ coordinates:
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 1024
+    sourceEndLine: 1073
     sourceFile: packages/mcp/src/tools/autopilot-generate.ts
-    sourceLine: 660
+    sourceLine: 698
   SYM-handleKbDelete:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2168,6 +2168,12 @@ coordinates:
     sourceEndLine: 145
     sourceFile: packages/vscode/src/activation/traceability.ts
     sourceLine: 28
+  SYM-resetAutopilotGenerateDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    sourceLine: 77
   SYM-resetBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2294,6 +2300,12 @@ coordinates:
     sourceEndLine: 74
     sourceFile: packages/opencode/src/toast.ts
     sourceLine: 32
+  SYM-setAutopilotGenerateDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 75
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    sourceLine: 71
   SYM-setBundledSkillsDir:
     sourceColumn: 16
     sourceEndColumn: 1
