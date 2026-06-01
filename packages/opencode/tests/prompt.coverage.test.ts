@@ -1,8 +1,13 @@
 import { describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import { GuidanceCache } from "../src/guidance-cache";
-import { SENTINEL, buildPrompt, injectPrompt, postureGuidance } from "../src/prompt";
 import type { KibiConfig } from "../src/config";
+import { GuidanceCache } from "../src/guidance-cache";
+import {
+  SENTINEL,
+  buildPrompt,
+  injectPrompt,
+  postureGuidance,
+} from "../src/prompt";
 import type { PromptContext } from "../src/prompt";
 import type { RepoPosture } from "../src/repo-posture";
 
@@ -13,6 +18,7 @@ const supportedCapability = {
 
 const baseConfig: KibiConfig = {
   enabled: true,
+  autoUpdate: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: {
@@ -102,11 +108,16 @@ describe("prompt coverage", () => {
   test("hard gate context takes prompt priority over advisory guidance", () => {
     const prompt = buildPrompt(
       {
-        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
         posture: "root_active",
         riskClass: "behavior_candidate",
         hardGateBlock: {
-          shownPaths: ["packages/opencode/src/prompt.ts", "documentation/symbols.yaml"],
+          shownPaths: [
+            "packages/opencode/src/prompt.ts",
+            "documentation/symbols.yaml",
+          ],
           remainingCount: 2,
           reason: "preflight checkpoint failed",
         },
@@ -126,7 +137,10 @@ describe("prompt coverage", () => {
 
   test("vendored-only posture emits only the sentinel", () => {
     assert.equal(
-      buildPrompt({ recentEdits: [], posture: "vendored_only" }, supportedCapability),
+      buildPrompt(
+        { recentEdits: [], posture: "vendored_only" },
+        supportedCapability,
+      ),
       SENTINEL,
     );
   });
@@ -199,7 +213,8 @@ describe("prompt coverage", () => {
       branch: "coverage-test-file-op-cache",
       fileOperationReminder: {
         path: "packages/opencode/src/prompt.ts",
-        lifecycleReminder: "- Verify lifecycle impact before editing this source file.",
+        lifecycleReminder:
+          "- Verify lifecycle impact before editing this source file.",
         e2eReminder: null,
       },
     };
@@ -246,7 +261,9 @@ describe("prompt coverage", () => {
   test("file-operation reminder omits duplicate lifecycle entity IDs", () => {
     const prompt = buildPrompt(
       {
-        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
         focusEdit: { path: "packages/opencode/src/prompt.ts", kind: "code" },
         posture: "root_active",
         riskClass: "behavior_candidate",
@@ -256,7 +273,8 @@ describe("prompt coverage", () => {
           path: "packages/opencode/src/prompt.ts",
           lifecycleReminder:
             "- Kibi entities: REQ-opencode-kibi-plugin-v1. Duplicate lifecycle reminder should be suppressed.",
-          e2eReminder: "- Keep e2e reminder visible for prompt source coverage.",
+          e2eReminder:
+            "- Keep e2e reminder visible for prompt source coverage.",
         },
       },
       supportedCapability,
@@ -264,7 +282,9 @@ describe("prompt coverage", () => {
 
     assert.match(prompt, /Existing Kibi links: REQ-opencode-kibi-plugin-v1/);
     assert.match(prompt, /Keep e2e reminder visible/);
-    assert.ok(!prompt.includes("Duplicate lifecycle reminder should be suppressed"));
+    assert.ok(
+      !prompt.includes("Duplicate lifecycle reminder should be suppressed"),
+    );
   });
 
   test("over-budget file-operation-only guidance is truncated", () => {
@@ -276,7 +296,8 @@ describe("prompt coverage", () => {
         fileOperationReminder: {
           path: "packages/opencode/src/prompt.ts",
           lifecycleReminder: longReminder,
-          e2eReminder: "- This second bullet should be dropped by budget enforcement.",
+          e2eReminder:
+            "- This second bullet should be dropped by budget enforcement.",
         },
       },
       supportedCapability,
@@ -290,7 +311,9 @@ describe("prompt coverage", () => {
   test("completion reminder is appended for risky buildPrompt contexts", () => {
     const prompt = buildPrompt(
       {
-        recentEdits: [{ path: "packages/opencode/src/prompt.ts", kind: "code" }],
+        recentEdits: [
+          { path: "packages/opencode/src/prompt.ts", kind: "code" },
+        ],
         posture: "root_active",
         riskClass: "behavior_candidate",
         completionReminder: true,
@@ -298,7 +321,10 @@ describe("prompt coverage", () => {
       supportedCapability,
     );
 
-    assert.match(prompt, /Kibi impact evidence is required before completion\/commit: run `kb_check`/);
+    assert.match(
+      prompt,
+      /Kibi impact evidence is required before completion\/commit: run `kb_check`/,
+    );
   });
 
   test("injectPrompt forwards contextual guidance", () => {
@@ -306,7 +332,9 @@ describe("prompt coverage", () => {
       "system prompt",
       baseConfig,
       {
-        recentEdits: [{ path: "documentation/requirements/REQ-1.md", kind: "requirement" }],
+        recentEdits: [
+          { path: "documentation/requirements/REQ-1.md", kind: "requirement" },
+        ],
         posture: "root_active",
         riskClass: "req_policy_candidate",
       },
