@@ -375,11 +375,7 @@ describe("kibi usage-metrics", () => {
       path.join(os.tmpdir(), "kibi-test-usage-metrics-num-"),
     );
     mkdirSync(path.join(numDir, ".kb"), { recursive: true });
-    writeFileSync(
-      path.join(numDir, ".kb", "usage.log"),
-      "42\n",
-      "utf8",
-    );
+    writeFileSync(path.join(numDir, ".kb", "usage.log"), "42\n", "utf8");
     try {
       expect(() =>
         execSync(`bun ${kibiCli} usage-metrics --format json`, {
@@ -397,11 +393,7 @@ describe("kibi usage-metrics", () => {
       path.join(os.tmpdir(), "kibi-test-usage-metrics-blank-"),
     );
     mkdirSync(path.join(blankDir, ".kb"), { recursive: true });
-    writeFileSync(
-      path.join(blankDir, ".kb", "usage.log"),
-      "\n  \n\n",
-      "utf8",
-    );
+    writeFileSync(path.join(blankDir, ".kb", "usage.log"), "\n  \n\n", "utf8");
     try {
       const output = execSync(
         `bun ${kibiCli} usage-metrics --format json --limit 10`,
