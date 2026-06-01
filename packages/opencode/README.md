@@ -22,6 +22,23 @@ Or via OpenCode's plugin system in `opencode.json`:
 }
 ```
 
+By default, the plugin checks npm on OpenCode startup and refreshes only the
+cached `kibi-opencode` plugin package when a newer version is available. The
+base `kibi-cli`, `kibi-mcp`, and `kibi-core` project dependencies are never
+updated by this plugin updater.
+
+Use an exact semver entry when you want a fixed plugin version:
+
+```json
+{
+  "plugin": ["kibi-opencode@0.15.0"]
+}
+```
+
+Exact semver pins are respected: the updater will notify that a newer plugin is
+available, but it will not replace the pinned version until you change the
+plugin array. Dist-tags such as `kibi-opencode@latest` remain auto-updatable.
+
 Configure the MCP server separately with the project-local `kibi-mcp` binary.
 The plugin may run internal maintenance commands such as `kibi sync` and
 `kibi check`, so the project-local `kibi` CLI should resolve from the OpenCode
@@ -177,6 +194,7 @@ Config files (project overrides global):
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | `enabled` | boolean | `true` | Enable/disable all plugin features |
+| `autoUpdate` | boolean | `true` | Automatically refresh the cached `kibi-opencode` plugin package on OpenCode startup unless the plugin array uses an exact semver pin |
 | `prompt.enabled` | boolean | `true` | Enable prompt guidance injection |
 | `prompt.hookMode` | string | `"auto"` | Hook mode: `auto`, `chat-params`, `system-transform`, `compat` |
 | `sync.enabled` | boolean | `true` | Enable automatic sync |
@@ -187,7 +205,6 @@ Config files (project overrides global):
 | `ux.toastFailures` | boolean | `true` | Show failure toasts for sync/check issues |
 | `ux.toastSuccesses` | boolean | `false` | Show success toasts for sync/check completion |
 | `ux.toastCooldownMs` | number | `10000` | Cooldown between repeated UX toasts |
-PP|| `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.dynamic` | boolean | `true` | Enable dynamic contextual guidance |
 | `guidance.warnOnKbEdits` | boolean | `true` | Enable loud warnings for .kb/** edits |
 | `guidance.factFirstDomainRouting` | boolean | `true` | Enable FACT-first domain routing suggestions |

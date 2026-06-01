@@ -197,6 +197,11 @@ Use the plugin when you want OpenCode prompt guidance and background sync/check
 maintenance. Keep the `mcp.kibi` entry configured against the project-local
 `kibi-mcp` binary either way.
 
+`kibi-opencode` auto-updates its cached OpenCode plugin package by default on
+startup. To keep the plugin fixed, pin an exact version in the plugin array,
+for example `"kibi-opencode@0.15.0"`; MCP/CLI/core project dependencies remain
+under your package manager's control.
+
 ## Quick Start
 
 Initialize kibi in your repository:
