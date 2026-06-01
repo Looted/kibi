@@ -1424,6 +1424,12 @@ coordinates:
     sourceEndLine: 340
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 313
+  SYM-collectMarkdownFiles:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 1219
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    sourceLine: 1183
   SYM-collectSourceOnlyAuthoringSignals:
     sourceColumn: 16
     sourceEndColumn: 1

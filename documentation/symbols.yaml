@@ -1977,6 +1977,14 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-collectMarkdownFiles
+    title: collectMarkdownFiles
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-AutopilotEvidence
     title: AutopilotEvidence
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
