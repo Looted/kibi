@@ -166,6 +166,20 @@ npm install --save-dev kibi-opencode
 }
 ```
 
+The OpenCode plugin auto-updates itself by default on OpenCode startup. This
+only refreshes OpenCode's cached `kibi-opencode` package; it does not update
+your project-local `kibi-cli`, `kibi-mcp`, or `kibi-core` dependencies. To lock
+the plugin, use an exact semver entry in the plugin array:
+
+```json
+{
+  "plugin": ["kibi-opencode@0.15.0"]
+}
+```
+
+Set `autoUpdate: false` in `.opencode/kibi.json` or
+`~/.config/opencode/kibi.json` to disable the startup updater entirely.
+
 The plugin's internal maintenance expects a `kibi` CLI command to be available
 from the project context or `PATH`; the canonical setup above satisfies that by
 installing `kibi-cli` project-locally.
