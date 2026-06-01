@@ -6,6 +6,7 @@ import { SENTINEL, buildPrompt, injectPrompt } from "../src/prompt";
 
 const baseConfig: KibiConfig = {
   enabled: true,
+  autoUpdate: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
   ux: {
