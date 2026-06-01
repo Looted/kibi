@@ -1694,6 +1694,33 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-mcp-tools-getToolTimeoutMs
+    title: getToolTimeoutMs
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-tools-createToolTimeoutError
+    title: createToolTimeoutError
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-tools-withToolTimeout
+    title: withToolTimeout
+    sourceFile: packages/mcp/src/server/tools.ts
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts
