@@ -50,6 +50,11 @@ export interface AutoUpdateRunnerDeps {
 
 type SemverCore = [major: number, minor: number, patch: number];
 
+interface ParsedSemver {
+  core: SemverCore;
+  prerelease: string[];
+}
+
 interface PackageJsonLike {
   name?: unknown;
   version?: unknown;
@@ -172,8 +177,10 @@ function getOpenCodePackagesCacheDir(): string {
   return path.join(getOpenCodeCacheRoot(), "packages");
 }
 
-function parseSemverCore(version: string): SemverCore | null {
-  const match = version.match(/^(\d+)\.(\d+)\.(\d+)(?:[-+].*)?$/);
+function parseSemver(version: string): ParsedSemver | null {
+  const match = version.match(
+    /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/,
+  );
   if (!match) {
     return null;
   }
@@ -187,24 +194,77 @@ function parseSemverCore(version: string): SemverCore | null {
   ) {
     return null;
   }
-  return [major, minor, patch];
+  return {
+    core: [major, minor, patch],
+    prerelease: match[4]?.split(".") ?? [],
+  };
+}
+
+function isNumericPrereleaseIdentifier(value: string): boolean {
+  return /^(0|[1-9]\d*)$/.test(value);
+}
+
+function comparePrereleaseIdentifiers(left: string, right: string): number {
+  const leftIsNumeric = isNumericPrereleaseIdentifier(left);
+  const rightIsNumeric = isNumericPrereleaseIdentifier(right);
+  if (leftIsNumeric && rightIsNumeric) {
+    return Number(left) - Number(right);
+  }
+  if (leftIsNumeric) {
+    return -1;
+  }
+  if (rightIsNumeric) {
+    return 1;
+  }
+  return left.localeCompare(right, "en", { sensitivity: "variant" });
+}
+
+function comparePrerelease(left: string[], right: string[]): number {
+  if (left.length === 0 && right.length === 0) {
+    return 0;
+  }
+  if (left.length === 0) {
+    return 1;
+  }
+  if (right.length === 0) {
+    return -1;
+  }
+  const maxLength = Math.max(left.length, right.length);
+  for (let index = 0; index < maxLength; index += 1) {
+    const leftPart = left[index];
+    const rightPart = right[index];
+    if (leftPart === undefined) {
+      return -1;
+    }
+    if (rightPart === undefined) {
+      return 1;
+    }
+    const comparison = comparePrereleaseIdentifiers(leftPart, rightPart);
+    if (comparison !== 0) {
+      return comparison;
+    }
+  }
+  return 0;
 }
 
 function isSemverGreaterThan(candidate: string, current: string): boolean {
-  const candidateCore = parseSemverCore(candidate);
-  const currentCore = parseSemverCore(current);
-  if (!candidateCore || !currentCore) {
+  const candidateVersion = parseSemver(candidate);
+  const currentVersion = parseSemver(current);
+  if (!candidateVersion || !currentVersion) {
     return false;
   }
   for (const index of [0, 1, 2] as const) {
-    if (candidateCore[index] > currentCore[index]) {
+    if (candidateVersion.core[index] > currentVersion.core[index]) {
       return true;
     }
-    if (candidateCore[index] < currentCore[index]) {
+    if (candidateVersion.core[index] < currentVersion.core[index]) {
       return false;
     }
   }
-  return false;
+  return (
+    comparePrerelease(candidateVersion.prerelease, currentVersion.prerelease) >
+    0
+  );
 }
 
 function readVersionFromPackageJson(packageJsonPath: string): string | null {
