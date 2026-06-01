@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import type { PrologProcess } from "kibi-cli/prolog";
-
-import { loadEntities } from "./entity-query.js";
+import { parseEntityFromList, parseListOfLists } from "kibi-cli/prolog/codec";
 
 type PredicatePolarity = "assert" | "deny";
 
@@ -389,6 +388,15 @@ function inferResource(text: string): string {
 function inferOperator(text: string): string {
   const lower = text.toLowerCase();
   if (lower.includes("minimum") || lower.includes("at least")) return "gte";
+  if (
+    lower.includes("not exceed") ||
+    lower.includes("not be more than") ||
+    lower.includes("no more than") ||
+    lower.includes("at most") ||
+    lower.includes("maximum")
+  ) {
+    return "lte";
+  }
   if (lower.includes("not")) return "neq";
   return "lte";
 }
@@ -453,7 +461,16 @@ async function loadExistingPredicateSchemas(
   }
 
   try {
-    const facts = await loadEntities(prolog, { type: "fact" });
+    const queryResult = await prolog.query(
+      "findall([Id,'fact',Props], (kb_entity(Id, 'fact', Props), member(fact_kind=predicate_schema, Props)), Results)",
+    );
+    if (!queryResult.success) {
+      throw new Error(queryResult.error || "Query failed with unknown error");
+    }
+
+    const facts = queryResult.bindings.Results
+      ? parseListOfLists(queryResult.bindings.Results).map(parseEntityFromList)
+      : [];
     return facts.flatMap((fact) => predicateSchemaFromEntity(fact));
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
