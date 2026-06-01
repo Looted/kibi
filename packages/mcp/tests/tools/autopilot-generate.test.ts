@@ -7,7 +7,11 @@ import {
   buildGenericMarkdownCandidates,
   buildTypedMarkdownCandidates,
 } from "../../src/tools/autopilot-candidates.js";
-import { handleKbAutopilotGenerate } from "../../src/tools/autopilot-generate.js";
+import {
+  _resetAutopilotGenerateDepsForTests,
+  _setAutopilotGenerateDepsForTests,
+  handleKbAutopilotGenerate,
+} from "../../src/tools/autopilot-generate.js";
 import {
   createColdStartRepo,
   createNoisyRepo,
@@ -96,7 +100,7 @@ interface MockCandidateRecord extends Record<string, unknown> {
   confidence: number;
   confidenceBand: string;
   evidence: string[];
-  relationships: Array<Record<string, unknown>>;
+  relationships: Array<{ type: string; from: string; to: string }>;
   applyPlan: Array<Record<string, unknown>>;
 }
 
@@ -106,10 +110,6 @@ interface MockSourceOnlySignal {
   sourcePath: string;
   confidence: number;
   evidence: string[];
-}
-
-interface AutopilotGenerateModule {
-  handleKbAutopilotGenerate: typeof handleKbAutopilotGenerate;
 }
 
 const mockedAutopilotState: {
@@ -130,10 +130,8 @@ const mockedAutopilotState: {
   existingEntities: [],
 };
 
-async function importMockedAutopilotGenerate(
-  testCase: string,
-): Promise<AutopilotGenerateModule> {
-  mock.module("../../src/tools/autopilot-discovery.js", () => ({
+function installMockedAutopilotGenerateDeps(): void {
+  _setAutopilotGenerateDepsForTests({
     resolveActivationPolicy: async () => mockedAutopilotState.activation,
     discoverProviderEvidence: () => ({
       evidence: [],
@@ -152,29 +150,19 @@ async function importMockedAutopilotGenerate(
         scanWarnings: [],
       },
     }),
-  }));
-  mock.module("../../src/tools/autopilot-candidates.js", () => ({
     buildTypedMarkdownCandidates: () => [],
     buildSymbolManifestCandidates: () => [],
     buildGenericMarkdownCandidates: () => [],
     buildNormativeRequirementCandidates: () => [],
     buildProviderEvidenceCandidates: () =>
-      mockedAutopilotState.providerCandidates,
+      mockedAutopilotState.providerCandidates as unknown as ReturnType<
+        typeof buildGenericMarkdownCandidates
+      >,
     collectSourceOnlyAuthoringSignals: () =>
       mockedAutopilotState.sourceOnlySignals,
-  }));
-  mock.module("../../src/tools/entity-query.js", () => ({
     loadEntities: async () => mockedAutopilotState.existingEntities,
-  }));
-  mock.module("../../src/tools/model-requirement.js", () => ({
     getWorkspaceMigrationWarning: async () => null,
-  }));
-
-  const moduleUrl = new URL(
-    `../../src/tools/autopilot-generate.js?mocked=${testCase}`,
-    import.meta.url,
-  ).href;
-  return (await import(moduleUrl)) as AutopilotGenerateModule;
+  });
 }
 
 function makeMockCandidate(
@@ -215,6 +203,7 @@ describe.serial("autopilot generate", () => {
   afterEach(async () => {
     await fs.rm(tmp, { recursive: true, force: true });
     process.env.KIBI_WORKSPACE = undefined;
+    _resetAutopilotGenerateDepsForTests();
   });
 
   function createPrologStub(
@@ -1255,9 +1244,9 @@ describe.serial("autopilot generate", () => {
       .recommendedActions as Array<RecommendedActionRecord>;
 
     expect(candidates.length).toBeGreaterThan(0);
-    expect(candidates.every((candidate) => candidate.entityType === "adr")).toBe(
-      true,
-    );
+    expect(
+      candidates.every((candidate) => candidate.entityType === "adr"),
+    ).toBe(true);
     expect(
       actions.some((action) =>
         String(action.description ?? "").includes("Author REQ"),
@@ -1306,7 +1295,9 @@ describe.serial("autopilot generate", () => {
 
   test("lower-confidence duplicates are suppressed after typed evidence wins", async () => {
     createColdStartRepo(tmp);
-    await fs.mkdir(path.join(tmp, "documentation", "facts"), { recursive: true });
+    await fs.mkdir(path.join(tmp, "documentation", "facts"), {
+      recursive: true,
+    });
     await fs.writeFile(
       path.join(tmp, "documentation", "facts", "FACT-PACKAGE.md"),
       [
@@ -1343,8 +1334,14 @@ describe.serial("autopilot generate", () => {
   test("duplicate equal-confidence titles keep deterministic earlier source", async () => {
     await fs.mkdir(path.join(tmp, "docs", "a"), { recursive: true });
     await fs.mkdir(path.join(tmp, "docs", "z"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "a", "decision.md"), "# ADR: Tie\n");
-    await fs.writeFile(path.join(tmp, "docs", "z", "decision.md"), "# ADR: Tie\n");
+    await fs.writeFile(
+      path.join(tmp, "docs", "a", "decision.md"),
+      "# ADR: Tie\n",
+    );
+    await fs.writeFile(
+      path.join(tmp, "docs", "z", "decision.md"),
+      "# ADR: Tie\n",
+    );
     const prolog = createPrologStub(async () => emptyQueryResult());
 
     const res = await handleKbAutopilotGenerate(prolog, {
@@ -1373,7 +1370,10 @@ describe.serial("autopilot generate", () => {
   test("existing KB ids are loaded and suppress matching discovered entities before output", async () => {
     createColdStartRepo(tmp);
     await fs.mkdir(path.join(tmp, "docs"), { recursive: true });
-    await fs.writeFile(path.join(tmp, "docs", "decision.md"), "# ADR: Existing\n");
+    await fs.writeFile(
+      path.join(tmp, "docs", "decision.md"),
+      "# ADR: Existing\n",
+    );
     const prolog = createPrologStub(async (goal) => {
       const queryText = Array.isArray(goal) ? goal.join(" ") : goal;
       if (queryText.startsWith("findall([Id,Type,Props]")) {
@@ -1393,8 +1393,9 @@ describe.serial("autopilot generate", () => {
     const candidates = res.structuredContent.candidates as Array<
       Record<string, unknown>
     >;
-    expect(candidates.some((candidate) => candidate.title === "ADR: Existing"))
-      .toBe(false);
+    expect(
+      candidates.some((candidate) => candidate.title === "ADR: Existing"),
+    ).toBe(false);
   });
 
   test("medium-confidence empty bootstrap reports review-required policy and no safe candidates", async () => {
@@ -1445,7 +1446,8 @@ describe.serial("autopilot generate", () => {
     expect(
       suppressed.some(
         (candidate) =>
-          candidate.reason === "entity_exists" && candidate.entityType === "req",
+          candidate.reason === "entity_exists" &&
+          candidate.entityType === "req",
       ),
     ).toBe(true);
   });
@@ -1504,8 +1506,8 @@ describe.serial("autopilot generate", () => {
         return originalPush.apply(this, items);
       };
 
-      const { handleKbAutopilotGenerate: mockedHandle } =
-        await importMockedAutopilotGenerate("empty-prompt-external-source");
+      installMockedAutopilotGenerateDeps();
+      const mockedHandle = handleKbAutopilotGenerate;
       const prolog = createPrologStub(async () => emptyQueryResult());
       const res = await mockedHandle(prolog, { includeGenericMarkdown: true });
       const actions = res.structuredContent
@@ -1538,8 +1540,8 @@ describe.serial("autopilot generate", () => {
     mockedAutopilotState.sourceOnlySignals = [];
     mockedAutopilotState.existingEntities = [];
 
-    const { handleKbAutopilotGenerate: vendoredHandle } =
-      await importMockedAutopilotGenerate("vendored-blocked-fallback");
+    installMockedAutopilotGenerateDeps();
+    const vendoredHandle = handleKbAutopilotGenerate;
     const prolog = createPrologStub(async () => emptyQueryResult());
     const vendoredRes = await vendoredHandle(prolog, {
       includeGenericMarkdown: true,
@@ -1557,8 +1559,8 @@ describe.serial("autopilot generate", () => {
       reason: "thin attached KB detected",
     };
 
-    const { handleKbAutopilotGenerate: handoffHandle } =
-      await importMockedAutopilotGenerate("attached-handoff-fallback");
+    installMockedAutopilotGenerateDeps();
+    const handoffHandle = handleKbAutopilotGenerate;
     const handoffRes = await handoffHandle(prolog, {
       includeGenericMarkdown: true,
     });
@@ -1640,8 +1642,8 @@ describe.serial("autopilot generate", () => {
         return originalSort.call(this, compareFn);
       };
 
-      const { handleKbAutopilotGenerate: mockedHandle } =
-        await importMockedAutopilotGenerate("nested-id-and-duplicates");
+      installMockedAutopilotGenerateDeps();
+      const mockedHandle = handleKbAutopilotGenerate;
       const prolog = createPrologStub(async () => emptyQueryResult());
       const res = await mockedHandle(prolog, {
         includeGenericMarkdown: true,

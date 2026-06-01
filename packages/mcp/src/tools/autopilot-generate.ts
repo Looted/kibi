@@ -40,6 +40,44 @@ import {
 import { loadEntities } from "./entity-query.js";
 import { getWorkspaceMigrationWarning } from "./model-requirement.js";
 
+interface AutopilotGenerateDeps {
+  buildGenericMarkdownCandidates: typeof buildGenericMarkdownCandidates;
+  buildNormativeRequirementCandidates: typeof buildNormativeRequirementCandidates;
+  buildProviderEvidenceCandidates: typeof buildProviderEvidenceCandidates;
+  buildSymbolManifestCandidates: typeof buildSymbolManifestCandidates;
+  buildTypedMarkdownCandidates: typeof buildTypedMarkdownCandidates;
+  collectSourceOnlyAuthoringSignals: typeof collectSourceOnlyAuthoringSignals;
+  discoverProviderEvidence: typeof discoverProviderEvidence;
+  getWorkspaceMigrationWarning: typeof getWorkspaceMigrationWarning;
+  loadEntities: typeof loadEntities;
+  resolveActivationPolicy: typeof resolveActivationPolicy;
+}
+
+const defaultAutopilotGenerateDeps: AutopilotGenerateDeps = {
+  buildGenericMarkdownCandidates,
+  buildNormativeRequirementCandidates,
+  buildProviderEvidenceCandidates,
+  buildSymbolManifestCandidates,
+  buildTypedMarkdownCandidates,
+  collectSourceOnlyAuthoringSignals,
+  discoverProviderEvidence,
+  getWorkspaceMigrationWarning,
+  loadEntities,
+  resolveActivationPolicy,
+};
+
+let autopilotGenerateDeps: AutopilotGenerateDeps = defaultAutopilotGenerateDeps;
+
+export function _setAutopilotGenerateDepsForTests(
+  deps: Partial<AutopilotGenerateDeps>,
+): void {
+  autopilotGenerateDeps = { ...defaultAutopilotGenerateDeps, ...deps };
+}
+
+export function _resetAutopilotGenerateDepsForTests(): void {
+  autopilotGenerateDeps = defaultAutopilotGenerateDeps;
+}
+
 export interface AutopilotBootstrapContext {
   projectSummary?: string;
   sourceOfTruthPaths?: string[];
@@ -676,7 +714,7 @@ export async function handleKbAutopilotGenerate(
   // Gather existing entity ids to suppress duplicates
   let existingIds = new Set<string>();
   try {
-    const entities = await loadEntities(prolog, {});
+    const entities = await autopilotGenerateDeps.loadEntities(prolog, {});
     for (const e of entities) {
       const id = String(e.id ?? "");
       if (id) existingIds.add(id);
@@ -687,13 +725,17 @@ export async function handleKbAutopilotGenerate(
   }
 
   const workspaceRoot = resolveWorkspaceRoot();
-  const activation = await resolveActivationPolicy(workspaceRoot, prolog);
+  const activation = await autopilotGenerateDeps.resolveActivationPolicy(
+    workspaceRoot,
+    prolog,
+  );
   const activationState = activation.activationState;
-  const activationDiscovery = discoverProviderEvidence(
+  const activationDiscovery = autopilotGenerateDeps.discoverProviderEvidence(
     workspaceRoot,
     activation,
   );
-  const migrationWarning = await getWorkspaceMigrationWarning(workspaceRoot);
+  const migrationWarning =
+    await autopilotGenerateDeps.getWorkspaceMigrationWarning(workspaceRoot);
   const declaredContext = normalizeBootstrapContext(bootstrapContext);
   const discoveredCandidatePaths = activationDiscovery.evidence.reduce<
     string[]
@@ -725,14 +767,15 @@ export async function handleKbAutopilotGenerate(
           (item) => item.kind !== "generic_markdown",
         ),
       };
-  let sourceOnlySignals = collectSourceOnlyAuthoringSignals(
-    guidanceDiscovery,
-    {
-      ids: existingIds,
-      workspaceRoot,
-    },
-    normalizedMinConfidence,
-  );
+  let sourceOnlySignals =
+    autopilotGenerateDeps.collectSourceOnlyAuthoringSignals(
+      guidanceDiscovery,
+      {
+        ids: existingIds,
+        workspaceRoot,
+      },
+      normalizedMinConfidence,
+    );
   if (entityTypes && entityTypes.length > 0) {
     const allowedSignals = new Set(entityTypes as string[]);
     sourceOnlySignals = sourceOnlySignals.filter((signal) =>
@@ -754,40 +797,46 @@ export async function handleKbAutopilotGenerate(
   }
 
   if (activation.allowCandidateGeneration) {
-    typedMarkdownCandidates = buildTypedMarkdownCandidates(candidateDiscovery, {
-      ids: existingIds,
-      workspaceRoot,
-    });
-    manifestCandidates = buildSymbolManifestCandidates(candidateDiscovery, {
-      ids: existingIds,
-      workspaceRoot,
-    });
-    if (includeGenericMarkdown) {
-      genericCandidates = buildGenericMarkdownCandidates(
-        candidateDiscovery,
-        {
-          ids: existingIds,
-          workspaceRoot,
-        },
-        normalizedMinConfidence,
-      );
-      normativeRequirementCandidates = buildNormativeRequirementCandidates(
-        candidateDiscovery,
-        {
-          ids: existingIds,
-          workspaceRoot,
-        },
-        normalizedMinConfidence,
-      );
-    }
-    providerEvidenceCandidates = buildProviderEvidenceCandidates(
+    typedMarkdownCandidates =
+      autopilotGenerateDeps.buildTypedMarkdownCandidates(candidateDiscovery, {
+        ids: existingIds,
+        workspaceRoot,
+      });
+    manifestCandidates = autopilotGenerateDeps.buildSymbolManifestCandidates(
       candidateDiscovery,
       {
         ids: existingIds,
         workspaceRoot,
       },
-      normalizedMinConfidence,
     );
+    if (includeGenericMarkdown) {
+      genericCandidates = autopilotGenerateDeps.buildGenericMarkdownCandidates(
+        candidateDiscovery,
+        {
+          ids: existingIds,
+          workspaceRoot,
+        },
+        normalizedMinConfidence,
+      );
+      normativeRequirementCandidates =
+        autopilotGenerateDeps.buildNormativeRequirementCandidates(
+          candidateDiscovery,
+          {
+            ids: existingIds,
+            workspaceRoot,
+          },
+          normalizedMinConfidence,
+        );
+    }
+    providerEvidenceCandidates =
+      autopilotGenerateDeps.buildProviderEvidenceCandidates(
+        candidateDiscovery,
+        {
+          ids: existingIds,
+          workspaceRoot,
+        },
+        normalizedMinConfidence,
+      );
 
     allCandidates = [
       ...typedMarkdownCandidates,
