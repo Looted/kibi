@@ -15,7 +15,9 @@ describe("autopilot candidates", () => {
   let tmp: string;
 
   beforeEach(async () => {
-    tmp = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-autopilot-candidates-"));
+    tmp = await fs.mkdtemp(
+      path.join(os.tmpdir(), "kibi-autopilot-candidates-"),
+    );
   });
 
   afterEach(async () => {
@@ -74,8 +76,18 @@ describe("autopilot candidates", () => {
   });
 
   test("typed markdown candidates prefer evidence-scoped files and skip existing entities", async () => {
-    const requirementPath = path.join(tmp, "documentation", "requirements", "REQ-NEW.md");
-    const skippedPath = path.join(tmp, "documentation", "requirements", "REQ-OLD.md");
+    const requirementPath = path.join(
+      tmp,
+      "documentation",
+      "requirements",
+      "REQ-NEW.md",
+    );
+    const skippedPath = path.join(
+      tmp,
+      "documentation",
+      "requirements",
+      "REQ-OLD.md",
+    );
     await fs.mkdir(path.dirname(requirementPath), { recursive: true });
     await fs.writeFile(
       requirementPath,
@@ -144,7 +156,12 @@ describe("autopilot candidates", () => {
   });
 
   test("typed markdown candidates fall back to markdownFiles without provider evidence", async () => {
-    const requirementPath = path.join(tmp, "documentation", "requirements", "REQ-FALLBACK.md");
+    const requirementPath = path.join(
+      tmp,
+      "documentation",
+      "requirements",
+      "REQ-FALLBACK.md",
+    );
     await fs.mkdir(path.dirname(requirementPath), { recursive: true });
     await fs.writeFile(
       requirementPath,
@@ -175,9 +192,14 @@ describe("autopilot candidates", () => {
     await fs.mkdir(path.dirname(notesPath), { recursive: true });
     await fs.writeFile(
       notesPath,
-      ["# ADR: Runtime Choice", "", "# Observations", "", "# Plain Heading", ""].join(
-        "\n",
-      ),
+      [
+        "# ADR: Runtime Choice",
+        "",
+        "# Observations",
+        "",
+        "# Plain Heading",
+        "",
+      ].join("\n"),
     );
 
     const candidates = buildGenericMarkdownCandidates(
@@ -420,7 +442,10 @@ describe("autopilot candidates", () => {
     const scenarioPath = path.join(tmp, "docs", "planning", "beta.md");
     const testPath = path.join(tmp, "docs", "planning", "alpha.md");
     await fs.mkdir(path.dirname(scenarioPath), { recursive: true });
-    await fs.writeFile(scenarioPath, ["# Scenarios", "", "# Tests", ""].join("\n"));
+    await fs.writeFile(
+      scenarioPath,
+      ["# Scenarios", "", "# Tests", ""].join("\n"),
+    );
     await fs.writeFile(testPath, ["# Tests", ""].join("\n"));
 
     const signals = collectSourceOnlyAuthoringSignals(
@@ -629,7 +654,7 @@ describe("autopilot candidates", () => {
     });
   });
 
-  test("provider evidence defaults non-metadata facts to observations", () => {
+  test("provider evidence defaults source module facts to observations", () => {
     const candidates = buildProviderEvidenceCandidates(
       {
         evidence: [
@@ -667,7 +692,7 @@ describe("autopilot candidates", () => {
     });
   });
 
-  test("provider evidence defaults non-metadata facts to observations", () => {
+  test("provider evidence defaults source symbol facts to observations", () => {
     const candidates = buildProviderEvidenceCandidates(
       {
         evidence: [
@@ -693,7 +718,10 @@ describe("autopilot candidates", () => {
       sourcePath: path.join(tmp, "src/service.ts#Service"),
       confidence: 0.91,
       confidenceBand: "high",
-      evidence: ["provider:source_symbols", "source_symbols:src/service.ts#Service"],
+      evidence: [
+        "provider:source_symbols",
+        "source_symbols:src/service.ts#Service",
+      ],
       applyPlan: [
         {
           type: "fact",
@@ -738,7 +766,10 @@ describe("autopilot candidates", () => {
       sourcePath: path.join(tmp, "src/index.ts#exports"),
       confidence: 0.79,
       confidenceBand: "low",
-      evidence: ["provider:source_symbols", "source_symbols:src/index.ts#exports"],
+      evidence: [
+        "provider:source_symbols",
+        "source_symbols:src/index.ts#exports",
+      ],
       applyPlan: [
         {
           type: "fact",
