@@ -42,9 +42,9 @@ type SessionTrackerStub = {
 };
 
 declare global {
-  var __kibi_test_scheduler_factory: ((
-    options: SchedulerOptions,
-  ) => SyncScheduler) | undefined;
+  var __kibi_test_scheduler_factory:
+    | ((options: SchedulerOptions) => SyncScheduler)
+    | undefined;
   var __kibi_test_scheduler_factory_by_worktree:
     | Map<string, (options: SchedulerOptions) => SyncScheduler>
     | undefined;
@@ -53,19 +53,10 @@ declare global {
 const execSyncMock = spyOn(childProcess, "execSync");
 const readFileSyncMock = spyOn(fs, "readFileSync");
 const loadConfigMock = spyOn(configModule, "loadConfig");
-const getGuidanceCacheMock = spyOn(
-  guidanceCacheModule,
-  "getGuidanceCache",
-);
+const getGuidanceCacheMock = spyOn(guidanceCacheModule, "getGuidanceCache");
 const detectPostureMock = spyOn(repoPostureModule, "detectPosture");
-const createSyncSchedulerMock = spyOn(
-  schedulerModule,
-  "createSyncScheduler",
-);
-const getSessionTrackerMock = spyOn(
-  sessionTrackerModule,
-  "getSessionTracker",
-);
+const createSyncSchedulerMock = spyOn(schedulerModule, "createSyncScheduler");
+const getSessionTrackerMock = spyOn(sessionTrackerModule, "getSessionTracker");
 const checkWorkspaceHealthMock = spyOn(
   workspaceHealthModule,
   "checkWorkspaceHealth",
@@ -124,10 +115,13 @@ function baseConfig(overrides: Partial<KibiConfig> = {}): KibiConfig {
     },
     logLevel: "info",
     ...overrides,
+    autoUpdate: overrides.autoUpdate ?? true,
   };
 }
 
-function rootActivePosture(overrides: Partial<PostureResult> = {}): PostureResult {
+function rootActivePosture(
+  overrides: Partial<PostureResult> = {},
+): PostureResult {
   return {
     state: "root_active",
     needsBootstrap: false,
@@ -149,9 +143,8 @@ function createTrackerStub(expired = false): SessionTrackerStub {
     isSessionExpired: mock<(intervalMs: number) => boolean>(() => expired),
     logSummary: mock<() => void>(),
     reset: mock<() => void>(),
-    recordWarning: mock<
-      (category: string, filePath: string, message: string) => void
-    >(),
+    recordWarning:
+      mock<(category: string, filePath: string, message: string) => void>(),
   };
 }
 
@@ -475,5 +468,4 @@ describe("plugin-startup runtime behavior", () => {
     expect(context?.scheduler).toBeNull();
     expect(context?.runtimeOverlay.primaryCause).toBe("scheduler_unavailable");
   });
-
 });

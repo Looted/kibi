@@ -3,11 +3,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-import kibiOpencodePlugin from "../src/plugin.js";
+import type { AutoUpdateResult } from "../src/auto-update.js";
 import { _setConsoleError } from "../src/logger.js";
-import { resetSessionTracker, getSessionTracker } from "../src/session-tracker.js";
+import kibiOpencodePlugin from "../src/plugin.js";
 import type { PluginInput } from "../src/plugin.js";
 import type { SchedulerOptions, SyncScheduler } from "../src/scheduler.js";
+import {
+  getSessionTracker,
+  resetSessionTracker,
+} from "../src/session-tracker.js";
 
 declare global {
   var __kibi_test_scheduler_factory:
@@ -15,6 +19,12 @@ declare global {
     | undefined;
   var __kibi_test_schedule_startup_notify:
     | ((callback: () => void, delayMs: number) => void)
+    | undefined;
+  var __kibi_test_auto_update_runner:
+    | ((input: {
+        directory: string;
+        enabled: boolean;
+      }) => Promise<AutoUpdateResult>)
     | undefined;
 }
 
@@ -43,6 +53,10 @@ const globals = globalThis as typeof globalThis & {
     callback: () => void,
     delayMs: number,
   ) => void;
+  __kibi_test_auto_update_runner?: (input: {
+    directory: string;
+    enabled: boolean;
+  }) => Promise<AutoUpdateResult>;
 };
 
 function makeTempWorkspace(prefix: string): string {
@@ -66,7 +80,10 @@ function makeTempWorkspace(prefix: string): string {
   return tmpDir;
 }
 
-function writePluginConfig(tmpDir: string, config: Record<string, unknown>): void {
+function writePluginConfig(
+  tmpDir: string,
+  config: Record<string, unknown>,
+): void {
   fs.writeFileSync(
     path.join(tmpDir, ".opencode", "kibi.json"),
     `${JSON.stringify(config)}\n`,
@@ -133,6 +150,7 @@ beforeAll(() => {
 afterAll(() => {
   globals.__kibi_test_scheduler_factory = undefined;
   globals.__kibi_test_schedule_startup_notify = undefined;
+  globals.__kibi_test_auto_update_runner = undefined;
   _setConsoleError(null);
 });
 
@@ -179,6 +197,75 @@ describe("kibiOpencodePlugin core hooks", () => {
     }
   });
 
+  test("startup auto-update runs by default and respects config disablement", async () => {
+    const enabledDir = makeTempWorkspace("kibi-opencode-auto-update-enabled-");
+    const disabledDir = makeTempWorkspace(
+      "kibi-opencode-auto-update-disabled-",
+    );
+    const captured = makeClient();
+    const scheduled: ScheduledSync[] = [];
+    const autoUpdateInputs: Array<{ directory: string; enabled: boolean }> = [];
+    installSchedulerStub(scheduled);
+    globals.__kibi_test_auto_update_runner = async (input) => {
+      autoUpdateInputs.push(input);
+      return { status: input.enabled ? "up-to-date" : "disabled" };
+    };
+
+    try {
+      writePluginConfig(disabledDir, { autoUpdate: false });
+
+      await kibiOpencodePlugin({
+        directory: enabledDir,
+        worktree: enabledDir,
+        client: captured.client,
+      });
+      await flushPromises();
+
+      await kibiOpencodePlugin({
+        directory: disabledDir,
+        worktree: disabledDir,
+        client: captured.client,
+      });
+      await flushPromises();
+
+      expect(autoUpdateInputs).toEqual([
+        { directory: enabledDir, enabled: true },
+        { directory: disabledDir, enabled: false },
+      ]);
+    } finally {
+      globals.__kibi_test_auto_update_runner = undefined;
+      globals.__kibi_test_scheduler_factory = undefined;
+      fs.rmSync(enabledDir, { recursive: true, force: true });
+      fs.rmSync(disabledDir, { recursive: true, force: true });
+    }
+  });
+
+  test("startup auto-update still runs when workspace maintenance is degraded", async () => {
+    const tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-opencode-auto-update-degraded-"),
+    );
+    const captured = makeClient();
+    const autoUpdateInputs: Array<{ directory: string; enabled: boolean }> = [];
+    globals.__kibi_test_auto_update_runner = async (input) => {
+      autoUpdateInputs.push(input);
+      return { status: "up-to-date" };
+    };
+
+    try {
+      await kibiOpencodePlugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: captured.client,
+      });
+      await flushPromises();
+
+      expect(autoUpdateInputs).toEqual([{ directory: tmpDir, enabled: true }]);
+    } finally {
+      globals.__kibi_test_auto_update_runner = undefined;
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
   test("system transform injects Kibi guidance for initialized and uninitialized workspaces", async () => {
     const activeDir = makeTempWorkspace("kibi-opencode-transform-active-");
     const uninitializedDir = fs.mkdtempSync(
@@ -212,7 +299,9 @@ describe("kibiOpencodePlugin core hooks", () => {
       expect(activeRendered).toContain("<!-- kibi-opencode -->");
       expect(activeRendered).toContain("Requirement changes detected");
       expect(uninitializedRendered).toContain("<!-- kibi-opencode -->");
-      expect(uninitializedRendered).toContain("does not appear to have Kibi initialized");
+      expect(uninitializedRendered).toContain(
+        "does not appear to have Kibi initialized",
+      );
       expect(uninitializedRendered).toContain("kb_autopilot_generate");
     } finally {
       fs.rmSync(activeDir, { recursive: true, force: true });
@@ -225,8 +314,14 @@ describe("kibiOpencodePlugin core hooks", () => {
     const scheduled: ScheduledSync[] = [];
     installSchedulerStub(scheduled);
     try {
-      fs.writeFileSync(path.join(tmpDir, "src", "created.ts"), "export function created() {}\n");
-      fs.writeFileSync(path.join(tmpDir, "src", "changed.ts"), "export function changed() {}\n");
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "created.ts"),
+        "export function created() {}\n",
+      );
+      fs.writeFileSync(
+        path.join(tmpDir, "src", "changed.ts"),
+        "export function changed() {}\n",
+      );
       const hooks = await kibiOpencodePlugin({
         directory: tmpDir,
         worktree: tmpDir,
@@ -250,8 +345,12 @@ describe("kibiOpencodePlugin core hooks", () => {
       expect(scheduled.map((entry) => entry.reason)).toContain(
         "smart-enforcement.traceability",
       );
-      expect(scheduled.map((entry) => entry.filePath)).toContain("src/created.ts");
-      expect(scheduled.map((entry) => entry.filePath)).toContain("src/changed.ts");
+      expect(scheduled.map((entry) => entry.filePath)).toContain(
+        "src/created.ts",
+      );
+      expect(scheduled.map((entry) => entry.filePath)).toContain(
+        "src/changed.ts",
+      );
       expect(output.system.join("\n")).toContain("<!-- kibi-opencode -->");
     } finally {
       globals.__kibi_test_scheduler_factory = undefined;
@@ -298,7 +397,9 @@ describe("kibiOpencodePlugin requirement lint integration", () => {
       expect(summary.warningsByCategory["embedded-scenario-in-req"]).toBe(1);
       expect(summary.warningsByCategory["embedded-test-in-req"]).toBe(1);
       expect(summary.warningsByCategory["missing-traceability"]).toBe(1);
-      expect(scheduled.some((entry) => entry.reason === "file.edited")).toBe(true);
+      expect(scheduled.some((entry) => entry.reason === "file.edited")).toBe(
+        true,
+      );
     } finally {
       globals.__kibi_test_scheduler_factory = undefined;
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -309,7 +410,9 @@ describe("kibiOpencodePlugin requirement lint integration", () => {
 
 describe("kibiOpencodePlugin error and toast paths", () => {
   test("uninitialized workspaces log an operational bootstrap error", async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-opencode-error-"));
+    const tmpDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), "kibi-opencode-error-"),
+    );
     const capturedErrors: string[] = [];
     _setConsoleError((...args) => {
       capturedErrors.push(args.map(String).join(" "));
@@ -318,7 +421,9 @@ describe("kibiOpencodePlugin error and toast paths", () => {
       await kibiOpencodePlugin({ directory: tmpDir, worktree: tmpDir });
 
       expect(capturedErrors.join("\n")).toContain("[kibi-opencode]");
-      expect(capturedErrors.join("\n")).toContain("workspace needs Kibi bootstrap");
+      expect(capturedErrors.join("\n")).toContain(
+        "workspace needs Kibi bootstrap",
+      );
     } finally {
       _setConsoleError(null);
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -344,9 +449,9 @@ describe("kibiOpencodePlugin error and toast paths", () => {
       });
       await flushPromises();
 
-      expect(toastClient.toasts.map((toast) => toast.message).join("\n")).toContain(
-        "kibi-opencode started",
-      );
+      expect(
+        toastClient.toasts.map((toast) => toast.message).join("\n"),
+      ).toContain("kibi-opencode started");
       expect(mutedClient.toasts).toEqual([]);
       expect(toastClient.logs.map(bodyMessage).join("\n")).toContain(
         "startup toast delivered",

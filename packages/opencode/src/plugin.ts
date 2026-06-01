@@ -1,5 +1,13 @@
 import * as path from "node:path";
 import {
+  type AutoUpdateInput,
+  type AutoUpdateResult,
+  createAutoUpdateRunner,
+  getLatestPluginVersion,
+  invalidateKibiOpencodePackage,
+  runBunInstallForOpenCodePlugin,
+} from "./auto-update.js";
+import {
   type CommentAnalysisResult,
   analyzeCodeFile,
 } from "./comment-analysis.js";
@@ -50,7 +58,10 @@ import {
   type StartupNotifierClient,
   notifyStartup,
 } from "./startup-notifier.js";
-import type { ToastCapableClient as SendToastClient } from "./toast.js";
+import {
+  type ToastCapableClient as SendToastClient,
+  sendToast,
+} from "./toast.js";
 import { readKibiPackageVersions } from "./version-metadata.js";
 import {
   type WorkContext,
@@ -144,6 +155,9 @@ type StartupNotifyScheduler = (callback: () => void, delayMs: number) => void;
 
 const startupNotifyGlobals = globalThis as typeof globalThis & {
   __kibi_test_schedule_startup_notify?: StartupNotifyScheduler;
+  __kibi_test_auto_update_runner?: (
+    input: AutoUpdateInput,
+  ) => Promise<AutoUpdateResult>;
 };
 
 /**
@@ -1503,7 +1517,7 @@ const kibiOpencodePlugin: Plugin = async (
   }
 
   logger.info("kibi-opencode: setup complete");
-  if (input.client && !maintenanceDegraded) {
+  if (input.client) {
     const client = input.client;
     const scheduleStartupNotify: StartupNotifyScheduler =
       startupNotifyGlobals.__kibi_test_schedule_startup_notify ??
@@ -1517,11 +1531,44 @@ const kibiOpencodePlugin: Plugin = async (
       for (const key of ["opencode", "mcp", "cli", "core"] as const) {
         if (meta[key] !== "unknown") versions[key] = meta[key];
       }
-      notifyStartup(makeStartupClient(client), {
-        suppressToast: cfg.ux.toastStartup === false,
+      if (!maintenanceDegraded) {
+        notifyStartup(makeStartupClient(client), {
+          suppressToast: cfg.ux.toastStartup === false,
+          directory: input.directory,
+          ...(Object.keys(versions).length > 0 ? { versions } : {}),
+          versionMetadataSource: meta.source,
+        });
+      }
+
+      const autoUpdateRunner = createAutoUpdateRunner({
+        getCurrentVersion: () =>
+          meta.opencode === "unknown" ? null : meta.opencode,
+        getLatestVersion: getLatestPluginVersion,
+        invalidatePackage: invalidateKibiOpencodePackage,
+        runInstall: runBunInstallForOpenCodePlugin,
+        notify: async (message) => {
+          if (cfg.ux.toastStartup !== false) {
+            await sendToast(makeToastClient(client), {
+              variant: "info",
+              title: "Kibi OpenCode",
+              message,
+              duration: 8000,
+            });
+          }
+          logger.info("auto-update.notification", { message });
+        },
+        log: (message, metadata) => logger.info(message, metadata),
+      });
+      const runAutoUpdate =
+        startupNotifyGlobals.__kibi_test_auto_update_runner ?? autoUpdateRunner;
+
+      void runAutoUpdate({
         directory: input.directory,
-        ...(Object.keys(versions).length > 0 ? { versions } : {}),
-        versionMetadataSource: meta.source,
+        enabled: cfg.autoUpdate,
+      }).catch((err: unknown) => {
+        logger.info("auto-update: background update check failed", {
+          error: err instanceof Error ? err.message : String(err),
+        });
       });
     }, 2000);
   }
