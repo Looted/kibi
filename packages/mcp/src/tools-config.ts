@@ -295,6 +295,31 @@ const BASE_TOOLS = [
     },
   },
   {
+    name: "kb_sparql_remote",
+    description:
+      "Opt-in remote SPARQL query tool for external HTTP(S) RDF endpoints. This does not query Kibi's local RDF store directly, stores no credentials, and depends on network availability.",
+    inputSchema: {
+      type: "object",
+      required: ["endpoint", "query"],
+      properties: {
+        endpoint: {
+          type: "string",
+          description:
+            "Remote SPARQL endpoint URL. Must start with http:// or https://.",
+        },
+        query: {
+          type: "string",
+          description: "SPARQL SELECT query to send to the remote endpoint.",
+        },
+        timeoutMs: {
+          type: "number",
+          description:
+            "Optional positive timeout in milliseconds for the remote query.",
+        },
+      },
+    },
+  },
+  {
     name: "kb_upsert",
     description:
       "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",

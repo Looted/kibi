@@ -51,6 +51,7 @@ import {
   handleKbSkillsLoad,
   handleKbSkillsRead,
 } from "../tools/skills.js";
+import { type SparqlArgs, handleSparql } from "../tools/sparql.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import {
   type SuggestPredicatesArgs,
@@ -130,6 +131,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
   handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
   handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
+  handleSparql: (prolog: TProlog, args: SparqlArgs) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
@@ -172,6 +174,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbDelete,
   handleKbFindGaps,
   handleKbGraph,
+  handleSparql,
   handleKbQuery,
   handleKbSearch,
   handleKbStatus,
@@ -631,6 +634,18 @@ export function registerAllTools<TProlog>(
     async (args) => {
       const prolog = await runtime.ensureProlog();
       return runtime.handleKbGraph(prolog, args as unknown as GraphArgs);
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_sparql_remote",
+    toolDef("kb_sparql_remote").description,
+    toolDef("kb_sparql_remote").inputSchema,
+    async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleSparql(prolog, args as unknown as SparqlArgs);
     },
     runtime,
   );

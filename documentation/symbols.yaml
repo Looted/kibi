@@ -2444,45 +2444,6 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 372
     sourceEndColumn: 1
-  - id: SYM-mcp-tools-getToolTimeoutMs
-    title: getToolTimeoutMs
-    sourceFile: packages/mcp/src/server/tools.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-    sourceLine: 198
-    sourceColumn: 9
-    sourceEndLine: 208
-    sourceEndColumn: 1
-  - id: SYM-mcp-tools-createToolTimeoutError
-    title: createToolTimeoutError
-    sourceFile: packages/mcp/src/server/tools.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-    sourceLine: 211
-    sourceColumn: 9
-    sourceEndLine: 213
-    sourceEndColumn: 1
-  - id: SYM-mcp-tools-withToolTimeout
-    title: withToolTimeout
-    sourceFile: packages/mcp/src/server/tools.ts
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-002
-      - type: covered_by
-        target: TEST-005
-    sourceLine: 216
-    sourceColumn: 15
-    sourceEndLine: 240
-    sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
     sourceFile: packages/mcp/src/server/tools.ts
@@ -5296,6 +5257,7 @@ symbols:
   - id: SYM-SparqlArgs
     title: SparqlArgs
     sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
     links:
       - REQ-prolog-library-adoption
       - REQ-002
@@ -5309,6 +5271,7 @@ symbols:
   - id: SYM-SparqlResult
     title: SparqlResult
     sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
     links:
       - REQ-prolog-library-adoption
       - REQ-002
@@ -5322,6 +5285,7 @@ symbols:
   - id: SYM-handleSparql
     title: handleSparql
     sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
     links:
       - REQ-prolog-library-adoption
       - REQ-002
