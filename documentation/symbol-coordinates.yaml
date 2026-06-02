@@ -758,6 +758,18 @@ coordinates:
     sourceEndLine: 196
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 71
+  SYM-PUBLISHABLE-DIRS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 74
+    sourceFile: scripts/release-state.ts
+    sourceLine: 68
+  SYM-PackageInfo:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: scripts/release-state.ts
+    sourceLine: 35
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -830,6 +842,24 @@ coordinates:
     sourceEndLine: 31
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 26
+  SYM-ReleaseAction:
+    sourceColumn: 12
+    sourceEndColumn: 29
+    sourceEndLine: 33
+    sourceFile: scripts/release-state.ts
+    sourceLine: 29
+  SYM-ReleaseContext:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/release-state.ts
+    sourceLine: 50
+  SYM-ReleaseDecision:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/release-state.ts
+    sourceLine: 42
   SYM-RelationshipSpec:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2546,6 +2576,12 @@ coordinates:
     sourceEndLine: 177
     sourceFile: packages/cli/src/public/skills.ts
     sourceLine: 154
+  SYM-determineReleaseAction:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: scripts/release-state.ts
+    sourceLine: 87
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1

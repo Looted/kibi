@@ -5195,3 +5195,91 @@ symbols:
         target: REQ-codex-kibi-plugin-v1
       - type: covered_by
         target: TEST-codex-kibi-plugin-v1
+    sourceLine: 123
+    sourceColumn: 13
+    sourceEndLine: 123
+    sourceEndColumn: 60
+  - id: SYM-PUBLISHABLE-DIRS
+    title: PUBLISHABLE_DIRS
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 68
+    sourceColumn: 13
+    sourceEndLine: 74
+    sourceEndColumn: 10
+  - id: SYM-ReleaseAction
+    title: ReleaseAction
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 29
+    sourceColumn: 12
+    sourceEndLine: 33
+    sourceEndColumn: 29
+  - id: SYM-PackageInfo
+    title: PackageInfo
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-ReleaseDecision
+    title: ReleaseDecision
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 42
+    sourceColumn: 17
+    sourceEndLine: 48
+    sourceEndColumn: 1
+  - id: SYM-ReleaseContext
+    title: ReleaseContext
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 50
+    sourceColumn: 17
+    sourceEndLine: 63
+    sourceEndColumn: 1
+  - id: SYM-determineReleaseAction
+    title: determineReleaseAction
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 87
+    sourceColumn: 16
+    sourceEndLine: 154
+    sourceEndColumn: 1

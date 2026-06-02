@@ -37,6 +37,7 @@ function makeTempRepo(): string {
     "packages/cli",
     "packages/mcp",
     "packages/opencode",
+    "packages/codex",
   ]) {
     mkdirSync(join(root, dir), { recursive: true });
   }
@@ -57,6 +58,7 @@ function makePackageTarballs(root: string): void {
   touchFile(join(root, "packages/core/kibi-core-0.5.3.tgz"));
   touchFile(join(root, "packages/cli/kibi-cli-0.11.0.tgz"));
   touchFile(join(root, "packages/mcp/kibi-mcp-0.14.0.tgz"));
+  touchFile(join(root, "packages/codex/kibi-codex-0.15.0.tgz"));
 }
 
 function makeFixtureTarball(root: string): void {
@@ -96,7 +98,7 @@ describe("clean-package-tarballs", () => {
     makeFixtureTarball(root);
 
     const tarballs = findTarballs(root);
-    expect(tarballs.length).toBe(3); // three package tarballs
+    expect(tarballs.length).toBe(4); // four package tarballs
     expect(tarballs.some((t) => t.includes("fixtures"))).toBe(false); // fixture excluded
 
     // Simulate deletion
@@ -112,6 +114,9 @@ describe("clean-package-tarballs", () => {
       false,
     );
     expect(existsSync(join(root, "packages/mcp/kibi-mcp-0.14.0.tgz"))).toBe(
+      false,
+    );
+    expect(existsSync(join(root, "packages/codex/kibi-codex-0.15.0.tgz"))).toBe(
       false,
     );
 
