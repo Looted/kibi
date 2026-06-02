@@ -5158,6 +5158,8 @@ symbols:
   - id: SYM-codex-HookResult
     title: HookResult
     sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5166,6 +5168,8 @@ symbols:
   - id: SYM-codex-HookEnvironment
     title: HookEnvironment
     sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5174,6 +5178,8 @@ symbols:
   - id: SYM-codex-runHook
     title: runHook
     sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5182,6 +5188,8 @@ symbols:
   - id: SYM-codex-hookRunnerPath
     title: hookRunnerPath
     sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
