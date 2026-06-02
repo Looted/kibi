@@ -8,6 +8,7 @@
 ]).
 
 :- use_module(library(http/json)).
+:- use_module(library(aggregate)).
 :- use_module('kb.pl').
 :- use_module('status.pl', [status_meta_dict/1]).
 :- use_module('../schema/relationships.pl', [relationship_type/1]).
@@ -90,10 +91,9 @@ relationship_counts(Id, CountsDict) :-
     dict_pairs(CountsDict, relationship_counts, Pairs).
 
 relationship_count(Id, Relationship, Count) :-
-    findall(1,
+    aggregate_all(count,
         (kb_relationship(Relationship, Id, _); kb_relationship(Relationship, _, Id)),
-        Matches),
-    length(Matches, Count).
+        Count).
 
 coverage_rows(req, Tags, IncludePassing, IncludeTransitive, Rows, Summary) :-
     !,
