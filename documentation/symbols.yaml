@@ -2178,9 +2178,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 91
+    sourceLine: 92
     sourceColumn: 16
-    sourceEndLine: 100
+    sourceEndLine: 101
     sourceEndColumn: 1
   - id: SYM-resetSessionModulePromise
     title: _resetSessionModulePromise
@@ -2190,9 +2190,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 103
+    sourceLine: 104
     sourceColumn: 16
-    sourceEndLine: 105
+    sourceEndLine: 106
     sourceEndColumn: 1
   - id: SYM-mcp-session-prologProcess
     title: prologProcess
@@ -2440,9 +2440,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 240
+    sourceLine: 243
     sourceColumn: 16
-    sourceEndLine: 369
+    sourceEndLine: 372
     sourceEndColumn: 1
   - id: SYM-mcp-tools-getToolTimeoutMs
     title: getToolTimeoutMs
@@ -2453,9 +2453,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 195
+    sourceLine: 198
     sourceColumn: 9
-    sourceEndLine: 205
+    sourceEndLine: 208
     sourceEndColumn: 1
   - id: SYM-mcp-tools-createToolTimeoutError
     title: createToolTimeoutError
@@ -2466,9 +2466,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 208
+    sourceLine: 211
     sourceColumn: 9
-    sourceEndLine: 210
+    sourceEndLine: 213
     sourceEndColumn: 1
   - id: SYM-mcp-tools-withToolTimeout
     title: withToolTimeout
@@ -2479,9 +2479,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 213
+    sourceLine: 216
     sourceColumn: 15
-    sourceEndLine: 237
+    sourceEndLine: 240
     sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
@@ -2491,9 +2491,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 372
+    sourceLine: 375
     sourceColumn: 16
-    sourceEndLine: 520
+    sourceEndLine: 523
     sourceEndColumn: 1
   - id: SYM-registerAllTools
     title: registerAllTools
@@ -2510,9 +2510,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 523
+    sourceLine: 526
     sourceColumn: 16
-    sourceEndLine: 718
+    sourceEndLine: 733
     sourceEndColumn: 1
   - id: SYM-ToolConfig
     title: ToolConfig
@@ -2522,9 +2522,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 61
+    sourceLine: 62
     sourceColumn: 17
-    sourceEndLine: 65
+    sourceEndLine: 66
     sourceEndColumn: 1
   - id: SYM-ToolsRuntime
     title: ToolsRuntime
@@ -2534,9 +2534,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 115
+    sourceLine: 116
     sourceColumn: 17
-    sourceEndLine: 152
+    sourceEndLine: 154
     sourceEndColumn: 1
   - id: SYM-TOOLS
     title: TOOLS
@@ -2553,9 +2553,9 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 806
+    sourceLine: 831
     sourceColumn: 13
-    sourceEndLine: 808
+    sourceEndLine: 833
     sourceEndColumn: 32
   - id: SYM-withDiagnosticTelemetrySchema
     title: withDiagnosticTelemetrySchema
@@ -2567,9 +2567,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 780
+    sourceLine: 805
     sourceColumn: 16
-    sourceEndLine: 800
+    sourceEndLine: 825
     sourceEndColumn: 1
   - id: SYM-buildTypedMarkdownCandidates
     title: buildTypedMarkdownCandidates
@@ -5293,3 +5293,42 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 154
     sourceEndColumn: 1
+  - id: SYM-SparqlArgs
+    title: SparqlArgs
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-SparqlResult
+    title: SparqlResult
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-handleSparql
+    title: handleSparql
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
