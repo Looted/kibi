@@ -33,6 +33,7 @@ const PACKAGE_DIRS = [
   "packages/cli",
   "packages/mcp",
   "packages/opencode",
+  "packages/codex",
 ];
 
 /** Globally ignored paths (repo-relative prefixes). */

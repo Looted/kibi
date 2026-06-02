@@ -158,7 +158,7 @@ describe("release invariants: develop-to-master model", () => {
       const decision = determineReleaseAction(ctx);
 
       const dirs = decision.packages.map((p) => p.dir).sort();
-      expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
+      expect(dirs).toEqual(["cli", "codex", "core", "mcp", "opencode"]);
     });
 
     test("captures the release-source SHA", () => {
@@ -219,7 +219,7 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(unpublishedDirs).toEqual(["mcp", "opencode"]);
+      expect(unpublishedDirs).toEqual(["codex", "mcp", "opencode"]);
     });
 
     test("marks already-published packages correctly", () => {
@@ -258,7 +258,7 @@ describe("release invariants: develop-to-master model", () => {
   // -------------------------------------------------------------------------
   describe("partial rerun (some packages published, some not)", () => {
     test("returns PUBLISH_ONLY_RERUN for partially published packages on source commit", () => {
-      // Simulate: CI ran and published core+cli but mcp+opencode failed.
+      // Simulate: CI ran and published core+cli but codex+mcp+opencode failed.
       // Re-running the same source commit detects partial state.
       const published = new Set([
         `${ALL_PACKAGES.core.name}@${ALL_PACKAGES.core.version}`,
@@ -277,7 +277,7 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(toPublish).toEqual(["mcp", "opencode"]);
+      expect(toPublish).toEqual(["codex", "mcp", "opencode"]);
     });
 
     test("returns PUBLISH_ONLY_RERUN when all published → ALREADY_PUBLISHED_NOOP", () => {
@@ -310,7 +310,7 @@ describe("release invariants: develop-to-master model", () => {
         .filter((p) => !p.alreadyPublished)
         .map((p) => p.dir)
         .sort();
-      expect(toPublish).toEqual(["cli", "mcp", "opencode"]);
+      expect(toPublish).toEqual(["cli", "codex", "mcp", "opencode"]);
     });
   });
 
@@ -330,7 +330,7 @@ describe("release invariants: develop-to-master model", () => {
     test("all four publishable package dirs are represented", () => {
       const ctx = makeContext({});
       const dirs = Object.keys(ctx.packages).sort();
-      expect(dirs).toEqual(["cli", "core", "mcp", "opencode"]);
+      expect(dirs).toEqual(["cli", "codex", "core", "mcp", "opencode"]);
     });
 
     test("changeset fixtures are valid .md filenames", () => {
