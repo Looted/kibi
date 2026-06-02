@@ -842,6 +842,12 @@ coordinates:
     sourceEndLine: 31
     sourceFile: packages/opencode/src/reconcile-engine.ts
     sourceLine: 26
+  SYM-RelationshipSpec:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 64
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    sourceLine: 61
   SYM-ReleaseAction:
     sourceColumn: 12
     sourceEndColumn: 29
@@ -860,12 +866,6 @@ coordinates:
     sourceEndLine: 48
     sourceFile: scripts/release-state.ts
     sourceLine: 42
-  SYM-RelationshipSpec:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 64
-    sourceFile: packages/cli/src/utils/strict-modeling.ts
-    sourceLine: 61
   SYM-ReminderKind:
     sourceColumn: 12
     sourceEndColumn: 17
@@ -1502,6 +1502,12 @@ coordinates:
     sourceEndLine: 3
     sourceFile: packages/codex/src/messages.ts
     sourceLine: 2
+  SYM-codex-clearDirtyPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 188
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 166
   SYM-codex-directKbEditWarning:
     sourceColumn: 13
     sourceEndColumn: 112
@@ -1523,9 +1529,9 @@ coordinates:
   SYM-codex-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 123
+    sourceEndLine: 124
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 123
+    sourceLine: 124
   SYM-codex-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1571,7 +1577,7 @@ coordinates:
   SYM-codex-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 102
+    sourceEndLine: 103
     sourceFile: packages/codex/src/hook-runner.ts
     sourceLine: 49
   SYM-codex-saveHookState:
@@ -1730,6 +1736,12 @@ coordinates:
     sourceEndLine: 241
     sourceFile: packages/opencode/src/repo-posture.ts
     sourceLine: 162
+  SYM-determineReleaseAction:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: scripts/release-state.ts
+    sourceLine: 87
   SYM-discoverProviderEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2576,12 +2588,6 @@ coordinates:
     sourceEndLine: 177
     sourceFile: packages/cli/src/public/skills.ts
     sourceLine: 154
-  SYM-determineReleaseAction:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 154
-    sourceFile: scripts/release-state.ts
-    sourceLine: 87
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1
