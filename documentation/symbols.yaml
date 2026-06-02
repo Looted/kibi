@@ -3515,3 +3515,255 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-codex-packageName
+    title: packageName
+    sourceFile: packages/codex/src/index.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 1
+    sourceColumn: 13
+    sourceEndLine: 1
+    sourceEndColumn: 39
+  - id: SYM-codex-adapterKind
+    title: adapterKind
+    sourceFile: packages/codex/src/index.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 2
+    sourceColumn: 13
+    sourceEndLine: 2
+    sourceEndColumn: 41
+  - id: SYM-codex-HookEvent
+    title: HookEvent
+    sourceFile: packages/codex/src/hook-input.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 1
+    sourceColumn: 12
+    sourceEndLine: 1
+    sourceEndColumn: 79
+  - id: SYM-codex-HookInput
+    title: HookInput
+    sourceFile: packages/codex/src/hook-input.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 3
+    sourceColumn: 12
+    sourceEndLine: 8
+    sourceEndColumn: 2
+  - id: SYM-codex-parseHookInput
+    title: parseHookInput
+    sourceFile: packages/codex/src/hook-input.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 28
+    sourceColumn: 16
+    sourceEndLine: 57
+    sourceEndColumn: 1
+  - id: SYM-codex-readStdin
+    title: readStdin
+    sourceFile: packages/codex/src/hook-input.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 59
+    sourceColumn: 22
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-codex-parseStdinJson
+    title: parseStdinJson
+    sourceFile: packages/codex/src/hook-input.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 69
+    sourceColumn: 16
+    sourceEndLine: 76
+    sourceEndColumn: 1
+  - id: SYM-codex-bootstrapReminder
+    title: BOOTSTRAP_REMINDER
+    sourceFile: packages/codex/src/messages.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 1
+    sourceColumn: 13
+    sourceEndLine: 2
+    sourceEndColumn: 164
+  - id: SYM-codex-directKbEditWarning
+    title: DIRECT_KB_EDIT_WARNING
+    sourceFile: packages/codex/src/messages.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 5
+    sourceEndColumn: 112
+  - id: SYM-codex-freshnessReminder
+    title: freshnessReminder
+    sourceFile: packages/codex/src/messages.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 16
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-codex-extractExplicitPathFields
+    title: extractExplicitPathFields
+    sourceFile: packages/codex/src/path-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 96
+    sourceColumn: 16
+    sourceEndLine: 100
+    sourceEndColumn: 1
+  - id: SYM-codex-isDirectKbPath
+    title: isDirectKbPath
+    sourceFile: packages/codex/src/path-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 102
+    sourceColumn: 16
+    sourceEndLine: 104
+    sourceEndColumn: 1
+  - id: SYM-codex-isMeaningfulTrackedPath
+    title: isMeaningfulTrackedPath
+    sourceFile: packages/codex/src/path-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 106
+    sourceColumn: 16
+    sourceEndLine: 138
+    sourceEndColumn: 1
+  - id: SYM-codex-HookState
+    title: HookState
+    sourceFile: packages/codex/src/hook-state.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 11
+    sourceColumn: 12
+    sourceEndLine: 13
+    sourceEndColumn: 2
+  - id: SYM-codex-loadHookState
+    title: loadHookState
+    sourceFile: packages/codex/src/hook-state.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 105
+    sourceColumn: 16
+    sourceEndLine: 117
+    sourceEndColumn: 1
+  - id: SYM-codex-saveHookState
+    title: saveHookState
+    sourceFile: packages/codex/src/hook-state.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 119
+    sourceColumn: 16
+    sourceEndLine: 132
+    sourceEndColumn: 1
+  - id: SYM-codex-addDirtyPaths
+    title: addDirtyPaths
+    sourceFile: packages/codex/src/hook-state.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 134
+    sourceColumn: 16
+    sourceEndLine: 162
+    sourceEndColumn: 1
+  - id: SYM-codex-HookResult
+    title: HookResult
+    sourceFile: packages/codex/src/hook-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 19
+    sourceColumn: 12
+    sourceEndLine: 24
+    sourceEndColumn: 2
+  - id: SYM-codex-HookEnvironment
+    title: HookEnvironment
+    sourceFile: packages/codex/src/hook-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 26
+    sourceColumn: 12
+    sourceEndLine: 28
+    sourceEndColumn: 2
+  - id: SYM-codex-runHook
+    title: runHook
+    sourceFile: packages/codex/src/hook-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 48
+    sourceColumn: 22
+    sourceEndLine: 101
+    sourceEndColumn: 1
+  - id: SYM-codex-hookRunnerPath
+    title: hookRunnerPath
+    sourceFile: packages/codex/src/hook-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 122
+    sourceColumn: 13
+    sourceEndLine: 122
+    sourceEndColumn: 60
