@@ -29,6 +29,7 @@ import type {
   SkillsLoadArgs,
   SkillsReadArgs,
 } from "../../src/tools/skills.js";
+import type { SparqlArgs } from "../../src/tools/sparql.js";
 import type { StatusArgs } from "../../src/tools/status.js";
 import type { SuggestPredicatesArgs } from "../../src/tools/suggest-predicates.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
@@ -58,6 +59,7 @@ const TOOL_NAMES = [
   "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
+  "kb_sparql_remote",
   "kb_upsert",
   "kb_delete",
   "kb_check",
@@ -333,6 +335,12 @@ function createRuntime() {
       args,
     }),
   );
+  const handleSparql: ToolsRuntime<MockProlog>["handleSparql"] = mock(
+    async (_prolog: MockProlog, args: SparqlArgs): Promise<unknown> => ({
+      tool: "kb_sparql_remote",
+      args,
+    }),
+  );
   const handleKbQuery: ToolsRuntime<MockProlog>["handleKbQuery"] = mock(
     async (_prolog: MockProlog, args: QueryArgs): Promise<unknown> => ({
       tool: "kb_query",
@@ -426,6 +434,7 @@ function createRuntime() {
     handleKbDelete,
     handleKbFindGaps,
     handleKbGraph,
+    handleSparql,
     handleKbQuery,
     handleKbSearch,
     handleKbStatus,
@@ -459,6 +468,7 @@ function createRuntime() {
       handleKbDelete,
       handleKbFindGaps,
       handleKbGraph,
+      handleSparql,
       handleKbQuery,
       handleKbSearch,
       handleKbStatus,

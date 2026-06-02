@@ -1,6 +1,7 @@
 # symbol-coordinates.yaml
 # GENERATED coordinate artifact — do not edit manually.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh.
+# Refreshed for the kb_sparql_remote MCP tool registration.
 coordinates:
   SYM-001:
     sourceColumn: 13
@@ -2192,24 +2193,6 @@ coordinates:
     sourceEndLine: 87
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 82
-  SYM-mcp-tools-createToolTimeoutError:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 213
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 211
-  SYM-mcp-tools-getToolTimeoutMs:
-    sourceColumn: 9
-    sourceEndColumn: 1
-    sourceEndLine: 208
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 198
-  SYM-mcp-tools-withToolTimeout:
-    sourceColumn: 15
-    sourceEndColumn: 1
-    sourceEndLine: 240
-    sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 216
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
