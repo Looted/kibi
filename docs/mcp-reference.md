@@ -284,6 +284,31 @@ Nodes, edges, truncation flag, and status metadata.
 }
 ```
 
+### `kb_sparql_remote`
+
+Run an opt-in SPARQL `SELECT` query against an external HTTP(S) SPARQL endpoint. This tool is remote-only: it does not query Kibi's local RDF store directly, does not start a local SPARQL endpoint, and does not store credentials.
+
+**Parameters:**
+- `endpoint` (required): Remote SPARQL endpoint URL. Must start with `http://` or `https://`; local file paths are rejected.
+- `query` (required): SPARQL `SELECT` query text.
+- `timeoutMs` (optional): Positive timeout in milliseconds for the remote request.
+
+**Returns:**
+Rows returned by the remote endpoint, serialized as structured MCP content. Network availability, endpoint rate limits, and remote endpoint authentication requirements are outside Kibi's control.
+
+**Example:**
+```json
+{
+  "endpoint": "https://query.wikidata.org/sparql",
+  "query": "SELECT ?item WHERE { ?item wdt:P31 wd:Q146 . } LIMIT 5",
+  "timeoutMs": 15000
+}
+```
+
+## Internal Prolog Implementation Notes
+
+Kibi's Prolog core may use maintained SWI-Prolog libraries such as `library(aggregate)` for count/reporting helpers and `library(chr)` for isolated derived-fact pilots. These are internal implementation details and do not change public KB semantics, MCP response shapes, or the canonical validation rules unless a future release explicitly documents such a change.
+
 ### `kb_upsert`
 
 Create or update a single entity and optional relationships in one call.
