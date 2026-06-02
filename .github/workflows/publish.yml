@@ -89,6 +89,8 @@ jobs:
         run: bun run build:cli
       - name: Build MCP package
         run: bun run build:mcp
+      - name: Build Codex plugin package
+        run: bun run build:codex
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Clean stale tarballs
@@ -99,6 +101,7 @@ jobs:
           cd ../cli && npm pack
           cd ../mcp && npm pack
           cd ../opencode && npm pack
+          cd ../codex && npm pack
       - name: Upload package tarballs
         uses: actions/upload-artifact@v6
         with:
@@ -108,6 +111,7 @@ jobs:
             packages/cli/*.tgz
             packages/mcp/*.tgz
             packages/opencode/*.tgz
+            packages/codex/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
         uses: actions/upload-artifact@v6
@@ -179,6 +183,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
+          npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
           ./node_modules/.bin/kibi --version
           ./node_modules/.bin/kibi init --no-hooks
           ./node_modules/.bin/kibi query req
