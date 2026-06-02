@@ -72,10 +72,10 @@ For other package managers, use the same local-runner pattern:
 
 | Package manager | CLI example | MCP example |
 | --- | --- | --- |
-| npm | `npm exec -- kibi status` | `npx --no-install kibi-mcp --diagnostic-mode` |
-| pnpm | `pnpm exec kibi status` | `pnpm exec kibi-mcp --diagnostic-mode` |
-| Yarn | `yarn exec kibi status` | `yarn exec kibi-mcp --diagnostic-mode` |
-| Bun | `bunx --no-install kibi status` | `bunx --no-install kibi-mcp --diagnostic-mode` |
+| npm | `npm exec -- kibi status` | `npx --no-install kibi-mcp` |
+| pnpm | `pnpm exec kibi status` | `pnpm exec kibi-mcp` |
+| Yarn | `yarn exec kibi status` | `yarn exec kibi-mcp` |
+| Bun | `bunx --no-install kibi status` | `bunx --no-install kibi-mcp` |
 
 Common environment check: `npm exec -- kibi doctor`.
 
@@ -95,7 +95,7 @@ For OpenCode, add a local MCP server in `opencode.json`. OpenCode uses a token-a
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["npx", "--no-install", "kibi-mcp", "--diagnostic-mode"],
+      "command": ["npx", "--no-install", "kibi-mcp"],
       "enabled": true
     }
   }
@@ -111,7 +111,7 @@ that manager's local binary runner. For example, pnpm projects can use:
   "mcp": {
     "kibi": {
       "type": "local",
-      "command": ["pnpm", "exec", "kibi-mcp", "--diagnostic-mode"],
+      "command": ["pnpm", "exec", "kibi-mcp"],
       "enabled": true
     }
   }
@@ -128,7 +128,7 @@ For VS Code, create `.vscode/mcp.json`. VS Code uses a `command` string with a s
     "kibi": {
       "type": "stdio",
       "command": "npx",
-      "args": ["--no-install", "kibi-mcp", "--diagnostic-mode"]
+      "args": ["--no-install", "kibi-mcp"]
     }
   }
 }
@@ -142,7 +142,7 @@ If you use pnpm, replace `"command": "npx"` and `"args"` with:
     "kibi": {
       "type": "stdio",
       "command": "pnpm",
-      "args": ["exec", "kibi-mcp", "--diagnostic-mode"]
+      "args": ["exec", "kibi-mcp"]
     }
   }
 }
@@ -183,6 +183,59 @@ Set `autoUpdate: false` in `.opencode/kibi.json` or
 The plugin's internal maintenance expects a `kibi` CLI command to be available
 from the project context or `PATH`; the canonical setup above satisfies that by
 installing `kibi-cli` project-locally.
+
+### Optional: Codex plugin
+
+`kibi-codex` is an optional adapter that gives Codex users prepackaged Kibi skills,
+hooks, and MCP configuration. It builds on `kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them.
+
+Install through the repo-scoped Kibi marketplace:
+
+```bash
+codex plugin marketplace add Looted/kibi
+codex
+```
+
+Then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`.
+
+The marketplace lives at `.agents/plugins/marketplace.json` and points Codex at
+`./packages/codex`, where the plugin manifest, skills, hooks, and MCP config are
+stored. Codex resolves that path relative to the marketplace root.
+
+For local development or npm package smoke testing, you can also install the
+adapter package with your project-local dependencies:
+
+```bash
+npm install --save-dev kibi-codex
+```
+
+The official OpenAI Plugin Directory does not currently provide self-serve public
+plugin publishing. Use the repo marketplace or a local plugin fixture while
+developing/testing.
+
+The installed plugin package contributes:
+
+- `.codex-plugin/plugin.json` manifest
+- `.mcp.json` MCP config pointing to your local `kibi-mcp`
+- `hooks/hooks.json` lifecycle hooks
+- `skills/*/SKILL.md` Kibi workflow guidance
+
+Review hook trust policy before enabling automatic trust:
+
+- confirm the plugin source and hook paths are expected in your environment
+- review local trust settings if your Codex host requires explicit plugin trust
+- prefer warning-only behavior and disable automatic trust for unvetted sources
+
+Manual MCP fallback (no plugin install required): keep base dependencies and configure
+your Codex MCP client directly:
+
+```toml
+[mcp_servers.kibi]
+command = "npx"
+args = ["--no-install", "kibi-mcp"]
+```
+
+This fallback is supported for teams that do not use the adapter package.
 
 ### Optional: Global install
 

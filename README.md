@@ -58,6 +58,7 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 - **kibi-cli** — Command-line interface for automation and hooks
 - **kibi-mcp** — Model Context Protocol server for LLM integration
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
+- **kibi-codex** — Optional Codex adapter that brings Kibi MCP skills and hooks into Codex workflows
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
 - **Skill subsystem** — Reusable Markdown skills for agent guidance (bundled skills, CLI + MCP progressive disclosure)
 
@@ -121,7 +122,7 @@ Add Kibi to your `opencode.json`:
     "kibi": {
       "type": "local",
       "enabled": true,
-      "command": ["npx", "--no-install", "kibi-mcp", "--diagnostic-mode"]
+      "command": ["npx", "--no-install", "kibi-mcp"]
     }
   }
 }
@@ -165,6 +166,33 @@ Or add it with the Codex CLI:
 ```bash
 codex mcp add kibi -- npx --no-install kibi-mcp
 ```
+
+`kibi-codex` is optional and can be installed through a Codex plugin source or a
+local plugin fixture when you want bundled Kibi skills, MCP config, and
+warning-only lifecycle hooks. It is not required for base Kibi operations, and it
+does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`.
+
+To install it from the Kibi repo marketplace, add the marketplace source and then
+open the Codex plugin browser:
+
+```bash
+codex plugin marketplace add Looted/kibi
+codex
+```
+
+Then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`.
+
+You can also install the npm package directly when you are developing or testing
+the plugin locally:
+
+```bash
+npm install --save-dev kibi-codex
+```
+
+For pinned environments, install an exact `kibi-codex` version and expose that
+version through your chosen Codex plugin source. This repo marketplace is not the
+official OpenAI Plugin Directory; self-serve plugin publishing is not available
+yet, so keep the manual MCP configuration above as the supported fallback.
 
 </details>
 
@@ -280,4 +308,4 @@ bun run version-packages
 
 ---
 
-⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, and `kibi-opencode` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
+⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, `kibi-opencode`, and `kibi-codex` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.

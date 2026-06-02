@@ -11,6 +11,7 @@ graph TD
     E -->|Entities/Relationships| KB[Prolog KB (per branch)]
     KB -->|Query| CLI[CLI]
     KB -->|Query| MCP[MCP Server]
+    CC[kibi-codex (optional plugin)] -->|calls| MCP
     MCP -->|Tooling| VSCode[VS Code Extension]
     CLI -->|Git Hooks| GH[Git Hooks]
     GH -->|post-checkout/post-merge| KB
@@ -44,6 +45,12 @@ graph TD
 - Tools: query, upsert, delete, check, branch.ensure, branch.gc
 - Branch-aware: all tools accept branch parameter
 - Keeps Prolog process alive for stateful operations
+
+### Codex Adapter Plugin
+- Located at `packages/codex/`
+- Optional package that provides a Codex plugin manifest, skill bundle, and lifecycle hooks
+- Points Codex MCP wiring to the local `kibi-mcp` server
+- Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
 > **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is a default-off migration check.
 ### VS Code Extension
