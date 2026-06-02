@@ -161,3 +161,28 @@ export function addDirtyPaths(
     releaseLock(pluginData, lockFileDescriptor);
   }
 }
+
+
+export function clearDirtyPaths(pluginData: string | undefined): HookState {
+  const clearedState: HookState = { dirtyPaths: [] };
+
+  if (!pluginData) {
+    return clearedState;
+  }
+
+  fs.mkdirSync(pluginData, { recursive: true });
+  const lockFileDescriptor = acquireLock(pluginData);
+
+  if (lockFileDescriptor === undefined) {
+    return clearedState;
+  }
+
+  try {
+    saveHookState(pluginData, clearedState);
+    return clearedState;
+  } catch {
+    return clearedState;
+  } finally {
+    releaseLock(pluginData, lockFileDescriptor);
+  }
+}

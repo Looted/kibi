@@ -112,7 +112,7 @@ describe("Codex hook runner", () => {
     ]);
   });
 
-  test("Stop returns freshness reminder when tracked paths exist", async () => {
+  test("Stop returns freshness reminder once and clears tracked paths", async () => {
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(pluginData);
     await runHook(
@@ -129,6 +129,10 @@ describe("Codex hook runner", () => {
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain("Kibi freshness reminder");
     expect(result.systemMessage).toContain("docs/codex.md");
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+    expect(await runHook({ event: "Stop" }, { pluginData })).toEqual({
+      continue: true,
+    });
   });
 
   test("unknown hook events continue without messages", async () => {

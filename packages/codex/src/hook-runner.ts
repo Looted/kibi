@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import { addDirtyPaths, loadHookState } from "./hook-state.js";
+import { addDirtyPaths, clearDirtyPaths, loadHookState } from "./hook-state.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
@@ -87,6 +87,7 @@ export async function runHook(
     case "Stop": {
       const state = loadHookState(pluginData);
       if (state.dirtyPaths.length > 0) {
+        clearDirtyPaths(pluginData);
         return {
           continue: true,
           systemMessage: freshnessReminder(state.dirtyPaths),
