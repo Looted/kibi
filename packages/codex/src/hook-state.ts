@@ -8,6 +8,7 @@ const lockFileName = "hook-state.lock";
 const maxDirtyPaths = 50;
 const lockRetryCount = 100;
 const lockRetryDelayMs = 5;
+const staleLockAgeMs = 30_000;
 
 export type HookState = {
   dirtyPaths: string[];
@@ -65,6 +66,10 @@ function acquireLock(pluginData: string): number | undefined {
         "code" in error &&
         error.code === "EEXIST"
       ) {
+        if (removeStaleLock(targetLockPath)) {
+          continue;
+        }
+
         sleepSync(lockRetryDelayMs);
         continue;
       }
@@ -74,6 +79,27 @@ function acquireLock(pluginData: string): number | undefined {
   }
 
   return undefined;
+}
+
+function removeStaleLock(targetLockPath: string): boolean {
+  let stats: fs.Stats;
+
+  try {
+    stats = fs.statSync(targetLockPath);
+  } catch {
+    return false;
+  }
+
+  if (Date.now() - stats.mtimeMs < staleLockAgeMs) {
+    return false;
+  }
+
+  try {
+    fs.unlinkSync(targetLockPath);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function releaseLock(pluginData: string, fileDescriptor: number): void {
