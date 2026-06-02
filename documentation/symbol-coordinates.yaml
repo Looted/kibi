@@ -758,6 +758,18 @@ coordinates:
     sourceEndLine: 196
     sourceFile: packages/mcp/src/server/docs.ts
     sourceLine: 71
+  SYM-PUBLISHABLE-DIRS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 74
+    sourceFile: scripts/release-state.ts
+    sourceLine: 68
+  SYM-PackageInfo:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 40
+    sourceFile: scripts/release-state.ts
+    sourceLine: 35
   SYM-PendingLifecycleEvent:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -836,6 +848,24 @@ coordinates:
     sourceEndLine: 64
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 61
+  SYM-ReleaseAction:
+    sourceColumn: 12
+    sourceEndColumn: 29
+    sourceEndLine: 33
+    sourceFile: scripts/release-state.ts
+    sourceLine: 29
+  SYM-ReleaseContext:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 63
+    sourceFile: scripts/release-state.ts
+    sourceLine: 50
+  SYM-ReleaseDecision:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 48
+    sourceFile: scripts/release-state.ts
+    sourceLine: 42
   SYM-ReminderKind:
     sourceColumn: 12
     sourceEndColumn: 17
@@ -1424,6 +1454,138 @@ coordinates:
     sourceEndLine: 340
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 313
+  SYM-codex-HookEnvironment:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 29
+    sourceFile: packages/codex/src/hook-runner.ts
+    sourceLine: 27
+  SYM-codex-HookEvent:
+    sourceColumn: 12
+    sourceEndColumn: 79
+    sourceEndLine: 2
+    sourceFile: packages/codex/src/hook-input.ts
+    sourceLine: 2
+  SYM-codex-HookInput:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 9
+    sourceFile: packages/codex/src/hook-input.ts
+    sourceLine: 4
+  SYM-codex-HookResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 25
+    sourceFile: packages/codex/src/hook-runner.ts
+    sourceLine: 20
+  SYM-codex-HookState:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 15
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 13
+  SYM-codex-adapterKind:
+    sourceColumn: 13
+    sourceEndColumn: 41
+    sourceEndLine: 3
+    sourceFile: packages/codex/src/index.ts
+    sourceLine: 3
+  SYM-codex-addDirtyPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 189
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 161
+  SYM-codex-bootstrapReminder:
+    sourceColumn: 13
+    sourceEndColumn: 164
+    sourceEndLine: 3
+    sourceFile: packages/codex/src/messages.ts
+    sourceLine: 2
+  SYM-codex-clearDirtyPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 214
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 192
+  SYM-codex-directKbEditWarning:
+    sourceColumn: 13
+    sourceEndColumn: 112
+    sourceEndLine: 6
+    sourceFile: packages/codex/src/messages.ts
+    sourceLine: 5
+  SYM-codex-extractExplicitPathFields:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/codex/src/path-policy.ts
+    sourceLine: 97
+  SYM-codex-freshnessReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/codex/src/messages.ts
+    sourceLine: 8
+  SYM-codex-hookRunnerPath:
+    sourceColumn: 13
+    sourceEndColumn: 60
+    sourceEndLine: 124
+    sourceFile: packages/codex/src/hook-runner.ts
+    sourceLine: 124
+  SYM-codex-isDirectKbPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/codex/src/path-policy.ts
+    sourceLine: 103
+  SYM-codex-isMeaningfulTrackedPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: packages/codex/src/path-policy.ts
+    sourceLine: 107
+  SYM-codex-loadHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 144
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 132
+  SYM-codex-packageName:
+    sourceColumn: 13
+    sourceEndColumn: 39
+    sourceEndLine: 2
+    sourceFile: packages/codex/src/index.ts
+    sourceLine: 2
+  SYM-codex-parseHookInput:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 58
+    sourceFile: packages/codex/src/hook-input.ts
+    sourceLine: 29
+  SYM-codex-parseStdinJson:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/codex/src/hook-input.ts
+    sourceLine: 70
+  SYM-codex-readStdin:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: packages/codex/src/hook-input.ts
+    sourceLine: 60
+  SYM-codex-runHook:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/codex/src/hook-runner.ts
+    sourceLine: 49
+  SYM-codex-saveHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 159
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 146
   SYM-collectMarkdownFiles:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1469,9 +1631,9 @@ coordinates:
   SYM-createAutoUpdateRunner:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 473
+    sourceEndLine: 533
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 406
+    sourceLine: 466
   SYM-createConfigFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1574,6 +1736,12 @@ coordinates:
     sourceEndLine: 241
     sourceFile: packages/opencode/src/repo-posture.ts
     sourceLine: 162
+  SYM-determineReleaseAction:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: scripts/release-state.ts
+    sourceLine: 87
   SYM-discoverProviderEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1667,9 +1835,9 @@ coordinates:
   SYM-findKibiOpencodePluginEntry:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 145
+    sourceEndLine: 150
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 94
+    sourceLine: 99
   SYM-findSdkPackageJsonForPluginRoot:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1685,9 +1853,9 @@ coordinates:
   SYM-getCachedPluginVersion:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 273
+    sourceEndLine: 333
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 240
+    sourceLine: 300
   SYM-getCurrentBranch:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1745,9 +1913,9 @@ coordinates:
   SYM-getLatestPluginVersion:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 299
+    sourceEndLine: 359
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 275
+    sourceLine: 335
   SYM-getMissingBehaviorSourcePaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1877,9 +2045,9 @@ coordinates:
   SYM-invalidateKibiOpencodePackage:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 366
+    sourceEndLine: 426
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 346
+    sourceLine: 406
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2285,15 +2453,15 @@ coordinates:
   SYM-runBunInstallForOpenCodePlugin:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 397
+    sourceEndLine: 457
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 389
+    sourceLine: 449
   SYM-runKibiOpencodeAutoUpdate:
     sourceColumn: 13
     sourceEndColumn: 2
-    sourceEndLine: 484
+    sourceEndLine: 544
     sourceFile: packages/opencode/src/auto-update.ts
-    sourceLine: 475
+    sourceLine: 535
   SYM-runPluginStartup:
     sourceColumn: 22
     sourceEndColumn: 1
