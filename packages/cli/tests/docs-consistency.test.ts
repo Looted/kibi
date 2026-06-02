@@ -136,17 +136,24 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
       }
     });
 
-    test("Docs do not advertise remote install, marketplace, or script execution as v1 behavior", () => {
+    test("CLI/MCP skill docs do not advertise remote install, marketplace, or script execution as v1 behavior", () => {
       const docs = [
         "docs/cli-reference.md",
         "docs/mcp-reference.md",
         "docs/prompts/llm-rules.md",
-        "README.md",
       ];
       for (const file of docs) {
         const content = getFileContent(file).toLowerCase();
         const lines = content.split("\n");
         for (const line of lines) {
+          const isCodexPluginMarketplaceLine =
+            line.includes("codex") ||
+            line.includes("kibi repo marketplace") ||
+            line.includes("kibi-codex") ||
+            line.includes("plugin directory");
+          if (isCodexPluginMarketplaceLine) {
+            continue;
+          }
           if (
             line.includes("marketplace") ||
             line.includes("script execution") ||
@@ -155,6 +162,21 @@ describe("Docs Consistency: Fact Model & Contradictions", () => {
             expect(line).toMatch(/not (supported|available)/);
           }
         }
+      }
+    });
+
+    test("Codex plugin docs describe repo marketplace distribution with official directory caveat", () => {
+      const docs = ["README.md", "docs/install.md"];
+
+      for (const file of docs) {
+        const content = getFileContent(file).toLowerCase();
+
+        expect(content).toContain("codex plugin marketplace add looted/kibi");
+        expect(content).toContain("kibi plugins");
+        expect(content).toContain("official openai plugin directory");
+        expect(content).toMatch(
+          /does not currently provide self-serve|self-serve plugin publishing is not available/,
+        );
       }
     });
   });
