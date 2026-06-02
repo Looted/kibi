@@ -1427,129 +1427,129 @@ coordinates:
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 28
+    sourceEndLine: 29
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 26
+    sourceLine: 27
   SYM-codex-HookEvent:
     sourceColumn: 12
     sourceEndColumn: 79
-    sourceEndLine: 1
+    sourceEndLine: 2
     sourceFile: packages/codex/src/hook-input.ts
-    sourceLine: 1
+    sourceLine: 2
   SYM-codex-HookInput:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 8
+    sourceEndLine: 9
     sourceFile: packages/codex/src/hook-input.ts
-    sourceLine: 3
+    sourceLine: 4
   SYM-codex-HookResult:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 24
+    sourceEndLine: 25
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 19
+    sourceLine: 20
   SYM-codex-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 13
+    sourceEndLine: 14
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 11
+    sourceLine: 12
   SYM-codex-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 41
-    sourceEndLine: 2
+    sourceEndLine: 3
     sourceFile: packages/codex/src/index.ts
-    sourceLine: 2
+    sourceLine: 3
   SYM-codex-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 163
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 134
+    sourceLine: 135
   SYM-codex-bootstrapReminder:
     sourceColumn: 13
     sourceEndColumn: 164
-    sourceEndLine: 2
+    sourceEndLine: 3
     sourceFile: packages/codex/src/messages.ts
-    sourceLine: 1
+    sourceLine: 2
   SYM-codex-directKbEditWarning:
     sourceColumn: 13
     sourceEndColumn: 112
-    sourceEndLine: 5
+    sourceEndLine: 6
     sourceFile: packages/codex/src/messages.ts
-    sourceLine: 4
+    sourceLine: 5
   SYM-codex-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 100
+    sourceEndLine: 101
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 96
+    sourceLine: 97
   SYM-codex-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 18
+    sourceEndLine: 19
     sourceFile: packages/codex/src/messages.ts
-    sourceLine: 7
+    sourceLine: 8
   SYM-codex-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 122
+    sourceEndLine: 123
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 122
+    sourceLine: 123
   SYM-codex-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 105
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 102
+    sourceLine: 103
   SYM-codex-isMeaningfulTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 138
+    sourceEndLine: 139
     sourceFile: packages/codex/src/path-policy.ts
-    sourceLine: 106
+    sourceLine: 107
   SYM-codex-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 117
+    sourceEndLine: 118
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 105
+    sourceLine: 106
   SYM-codex-packageName:
     sourceColumn: 13
     sourceEndColumn: 39
-    sourceEndLine: 1
+    sourceEndLine: 2
     sourceFile: packages/codex/src/index.ts
-    sourceLine: 1
+    sourceLine: 2
   SYM-codex-parseHookInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 58
     sourceFile: packages/codex/src/hook-input.ts
-    sourceLine: 28
+    sourceLine: 29
   SYM-codex-parseStdinJson:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 77
     sourceFile: packages/codex/src/hook-input.ts
-    sourceLine: 69
+    sourceLine: 70
   SYM-codex-readStdin:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 68
     sourceFile: packages/codex/src/hook-input.ts
-    sourceLine: 59
+    sourceLine: 60
   SYM-codex-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: packages/codex/src/hook-runner.ts
-    sourceLine: 48
+    sourceLine: 49
   SYM-codex-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 132
+    sourceEndLine: 133
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 119
+    sourceLine: 120
   SYM-collectMarkdownFiles:
     sourceColumn: 16
     sourceEndColumn: 1

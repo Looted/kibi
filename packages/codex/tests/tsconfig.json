@@ -1,0 +1,16 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false,
+    "rootDir": "..",
+    "types": ["bun-types"],
+    "jsx": "react",
+    "jsxImportSource": "",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
+  },
+  "include": ["./**/*.ts", "../src/**/*.ts", "../package.json"]
+}
