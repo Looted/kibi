@@ -1,0 +1,31 @@
+---
+id: REQ-codex-kibi-plugin-v1
+title: "Codex Kibi Plugin v1: Optional MCP adapter package"
+status: open
+created_at: 2026-06-02T00:00:00Z
+updated_at: 2026-06-02T00:00:00Z
+source: packages/codex/
+priority: must
+owner: codex-team
+tags:
+  - kibi
+  - codex
+  - plugin
+  - mcp
+links:
+  - type: specified_by
+    target: SCEN-codex-kibi-plugin-v1
+  - type: verified_by
+    target: TEST-codex-kibi-plugin-v1
+---
+
+The `kibi-codex` package is an optional Codex adapter for teams who want Kibi in Codex workflows without changing core Kibi runtime components.
+
+When installed and enabled, it should:
+
+1. Keep `kibi-core`, `kibi-cli`, and `kibi-mcp` as the required foundation for project-local Kibi operations.
+2. Bundle and expose a Codex plugin manifest, skills, hooks, and MCP server config that points to the local project `kibi-mcp` binary.
+3. Run hook-driven reminders and warnings only, so it does not replace MCP tooling behavior or write directly to `.kb`.
+4. Remain clearly documented as optional, with a supported manual MCP configuration path when teams do not use the plugin installer path.
+
+This requirement is now scoped to plugin documentation and operational guidance.
