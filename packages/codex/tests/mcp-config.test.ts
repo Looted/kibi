@@ -95,12 +95,14 @@ describe("kibi-codex MCP config", () => {
 
     expect(kibiServer).toMatchObject({
       command: "npx",
-      args: ["--no-install", "kibi-mcp", "--diagnostic-mode"],
+      args: ["--no-install", "kibi-mcp"],
       enabled: true,
       startup_timeout_sec: 10,
       tool_timeout_sec: 60,
       default_tools_approval_mode: "prompt",
     } as const);
+
+    expect(kibiServer?.args).not.toContain("--diagnostic-mode");
 
     expect(Object.keys(kibiServer ?? {}).sort()).toEqual([
       "args",

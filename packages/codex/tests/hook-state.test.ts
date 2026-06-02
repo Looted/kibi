@@ -45,6 +45,21 @@ describe("Codex hook state", () => {
     expect(state.dirtyPaths.at(-1)).toBe("src/generated-79.ts");
   });
 
+  test("recovers from stale lock files", () => {
+    const pluginData = createPluginData();
+    pluginDataRoots.push(pluginData);
+    const staleLockPath = path.join(pluginData, "hook-state.lock");
+
+    fs.writeFileSync(staleLockPath, "crashed-process");
+    const staleDate = new Date(Date.now() - 60_000);
+    fs.utimesSync(staleLockPath, staleDate, staleDate);
+
+    addDirtyPaths(pluginData, ["src/recovered.ts"]);
+
+    expect(loadHookState(pluginData).dirtyPaths).toEqual(["src/recovered.ts"]);
+    expect(fs.existsSync(staleLockPath)).toBe(false);
+  });
+
   test("preserves dirty paths from concurrent process writes", async () => {
     const pluginData = createPluginData();
     pluginDataRoots.push(pluginData);
