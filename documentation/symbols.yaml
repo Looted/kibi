@@ -5008,6 +5008,8 @@ symbols:
   - id: SYM-codex-HookEvent
     title: HookEvent
     sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5016,6 +5018,8 @@ symbols:
   - id: SYM-codex-HookInput
     title: HookInput
     sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5024,6 +5028,8 @@ symbols:
   - id: SYM-codex-parseHookInput
     title: parseHookInput
     sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5032,6 +5038,8 @@ symbols:
   - id: SYM-codex-readStdin
     title: readStdin
     sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5040,6 +5048,8 @@ symbols:
   - id: SYM-codex-parseStdinJson
     title: parseStdinJson
     sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5048,6 +5058,8 @@ symbols:
   - id: SYM-codex-bootstrapReminder
     title: BOOTSTRAP_REMINDER
     sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5056,6 +5068,8 @@ symbols:
   - id: SYM-codex-directKbEditWarning
     title: DIRECT_KB_EDIT_WARNING
     sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5064,6 +5078,8 @@ symbols:
   - id: SYM-codex-freshnessReminder
     title: freshnessReminder
     sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
