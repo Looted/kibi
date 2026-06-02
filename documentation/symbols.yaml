@@ -5088,6 +5088,8 @@ symbols:
   - id: SYM-codex-extractExplicitPathFields
     title: extractExplicitPathFields
     sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5096,6 +5098,8 @@ symbols:
   - id: SYM-codex-isDirectKbPath
     title: isDirectKbPath
     sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
@@ -5104,6 +5108,8 @@ symbols:
   - id: SYM-codex-isMeaningfulTrackedPath
     title: isMeaningfulTrackedPath
     sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
     relationships:
       - type: implements
         target: REQ-codex-kibi-plugin-v1
