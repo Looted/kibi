@@ -1,0 +1,12 @@
+{
+  "mcp_servers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp", "--diagnostic-mode"],
+      "enabled": true,
+      "startup_timeout_sec": 10,
+      "tool_timeout_sec": 60,
+      "default_tools_approval_mode": "prompt"
+    }
+  }
+}
