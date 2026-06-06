@@ -9,6 +9,20 @@
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
 
+:- multifile user:term_expansion/2.
+
+% Many KB predicates are graph queries that intentionally remain nondeterministic
+% for callers that want all matching entities, relationships, or violations. These
+% tests assert specific observable results and do not depend on exhausting every
+% alternative, so PLUnit should not warn about the intentionally open choicepoints.
+user:term_expansion((test(Name) :- Body), (test(Name, [nondet]) :- Body)).
+user:term_expansion((test(Name, Options0) :- Body), (test(Name, Options) :- Body)) :-
+    is_list(Options0),
+    (   memberchk(nondet, Options0)
+    ->  Options = Options0
+    ;   Options = [nondet|Options0]
+    ).
+
 % Test KB directory
 test_kb_dir('/tmp/kibi-test-kb').
 

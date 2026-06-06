@@ -107,6 +107,67 @@ describe("handleKbUpsert", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  test("accepts valid symbol_role values on symbol upserts", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('SYM-ROLE-VALID', _, _))") {
+        return { success: false };
+      }
+      if (
+        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(symbol,")
+      ) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-ROLE-VALID",
+      properties: {
+        title: "RoleAwareSymbol",
+        status: "active",
+        source: "test://upsert",
+        symbol_role: "behavioral",
+      },
+    });
+
+    const transactionGoal = query.mock.calls.find(([goal]) =>
+      String(goal).startsWith("rdf_transaction"),
+    )?.[0] as string | undefined;
+    expect(transactionGoal).toContain("symbol_role=behavioral");
+    expect(result.structuredContent?.created).toBe(1);
+  });
+
+  test("rejects invalid symbol_role values before querying Prolog", async () => {
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-ROLE-INVALID",
+        properties: {
+          title: "Invalid role symbol",
+          status: "active",
+          source: "test://upsert",
+          symbol_role: "controller",
+        },
+      }),
+    ).rejects.toThrow(/Entity validation failed/);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
   test("rejects relationships whose source does not match the upserted entity", async () => {
     const { prolog, query } = createMockProlog(async () => ({ success: true }));
 
@@ -132,6 +193,52 @@ describe("handleKbUpsert", () => {
     );
 
     expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts coarse symbol traceability when only type-shape symbols are available", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "video-player.store.ts"),
+      `export interface DraftSceneSnapshot { id: string }
+export type VideoPlayerMode = "idle" | "playing";
+export enum VideoPlayerState { Idle = "idle" }
+
+const videoPlayerStore = createStore(withMethods({
+  connectVideoElement() {
+    return true;
+  },
+}));
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-VIDEO-PLAYER-STORE",
+      properties: {
+        title: "VideoPlayerStore",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/video-player.store.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-VIDEO-PLAYER-STORE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
   });
 
   test("rejects coarse symbol traceability when granular source symbols exist", async () => {

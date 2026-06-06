@@ -24,6 +24,16 @@ import {
   toPrologAtom,
   toPrologString,
 } from "kibi-cli/prolog/codec";
+import {
+  type GranularSymbolCandidate,
+  SYMBOL_ROLES,
+  type SymbolKind,
+  getBehavioralSymbolNames,
+  getNonBehavioralSymbolNames,
+  inferSymbolRole,
+  isAllowedGranularityReason,
+  isTraceabilityRelationshipType,
+} from "kibi-cli/public/symbol-granularity";
 import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { Project, ScriptKind } from "ts-morph";
@@ -83,22 +93,13 @@ const validateEntity = ajv.compile({
         "legacy-link",
       ],
     },
+    symbol_role: {
+      type: "string",
+      enum: [...SYMBOL_ROLES],
+    },
   },
 });
 const validateRelationship = ajv.compile(relationshipSchema);
-
-const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
-  "implements",
-  "covered_by",
-  "executable_for",
-]);
-
-const ALLOWED_GRANULARITY_REASONS = new Set([
-  "config-artifact",
-  "module-level-behavior",
-  "extractor-miss",
-  "legacy-link",
-]);
 
 const PROPERTY_ALIAS_HINTS = new Map([
   ["subjectKey", "subject_key"],
@@ -460,19 +461,30 @@ function chooseScriptKind(filePath: string): ScriptKind {
 function hasTraceabilityRelationship(
   relationships: Array<Record<string, unknown>>,
 ): boolean {
-  return relationships.some(
-    (relationship) =>
-      typeof relationship.type === "string" &&
-      TRACEABILITY_RELATIONSHIP_TYPES.has(relationship.type),
+  return relationships.some((relationship) =>
+    isTraceabilityRelationshipType(relationship.type),
   );
 }
 
 function hasAllowedGranularityReason(entity: Record<string, unknown>): boolean {
-  const reason = entity.granularity_reason;
-  return typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason);
+  return isAllowedGranularityReason(entity.granularity_reason);
 }
 
-function collectNarrowExportNames(filePath: string, content: string): string[] {
+function createSymbolCandidate(
+  name: string,
+  kind: SymbolKind,
+): GranularSymbolCandidate {
+  return {
+    name,
+    kind,
+    role: inferSymbolRole(kind),
+  };
+}
+
+function collectGranularSymbolCandidates(
+  filePath: string,
+  content: string,
+): GranularSymbolCandidate[] {
   const project = new Project({ skipAddingFilesFromTsConfig: true });
   const sourceFile = project.createSourceFile(
     `${filePath}::granularity`,
@@ -482,23 +494,32 @@ function collectNarrowExportNames(filePath: string, content: string): string[] {
       scriptKind: chooseScriptKind(filePath),
     },
   );
-  const names = new Set<string>();
+  const candidates: GranularSymbolCandidate[] = [];
   const methodNameCounts = new Map<string, number>();
+  const bareMethodCandidates = new Map<string, GranularSymbolCandidate>();
 
   for (const fn of sourceFile.getFunctions()) {
     if (fn.isExported()) {
       const name = fn.getName();
-      if (name) names.add(name);
+      if (name) candidates.push(createSymbolCandidate(name, "function"));
     }
   }
   for (const cls of sourceFile.getClasses()) {
     if (cls.isExported()) {
       const name = cls.getName();
-      if (name) names.add(name);
+      if (name) candidates.push(createSymbolCandidate(name, "class"));
 
       for (const method of cls.getMethods()) {
         const methodName = method.getName();
-        if (name) names.add(`${name}.${methodName}`);
+        if (name) {
+          candidates.push(
+            createSymbolCandidate(`${name}.${methodName}`, "method"),
+          );
+        }
+        bareMethodCandidates.set(
+          methodName,
+          createSymbolCandidate(methodName, "method"),
+        );
         methodNameCounts.set(
           methodName,
           (methodNameCounts.get(methodName) ?? 0) + 1,
@@ -507,19 +528,25 @@ function collectNarrowExportNames(filePath: string, content: string): string[] {
     }
   }
   for (const [methodName, count] of methodNameCounts) {
-    if (count === 1) names.add(methodName);
+    const candidate = bareMethodCandidates.get(methodName);
+    if (count === 1 && candidate) candidates.push(candidate);
   }
   for (const iface of sourceFile.getInterfaces()) {
-    if (iface.isExported()) names.add(iface.getName());
+    if (iface.isExported()) {
+      candidates.push(createSymbolCandidate(iface.getName(), "interface"));
+    }
   }
   for (const alias of sourceFile.getTypeAliases()) {
-    if (alias.isExported()) names.add(alias.getName());
+    if (alias.isExported()) {
+      candidates.push(createSymbolCandidate(alias.getName(), "type"));
+    }
   }
   for (const en of sourceFile.getEnums()) {
-    if (en.isExported()) names.add(en.getName());
+    if (en.isExported())
+      candidates.push(createSymbolCandidate(en.getName(), "enum"));
   }
 
-  return [...names].sort();
+  return candidates.sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function validateSymbolGranularity(
@@ -537,15 +564,28 @@ function validateSymbolGranularity(
     : path.resolve(process.cwd(), entity.sourceFile);
   if (!existsSync(sourcePath)) return;
 
-  const narrowNames = collectNarrowExportNames(
+  const candidates = collectGranularSymbolCandidates(
     entity.sourceFile,
     readFileSync(sourcePath, "utf8"),
   );
-  if (narrowNames.length === 0) return;
-  if (narrowNames.includes(entity.title)) return;
+  const candidateNames = [
+    ...new Set(candidates.map((candidate) => candidate.name)),
+  ];
+  if (candidateNames.includes(entity.title)) return;
+
+  const behavioralNames = getBehavioralSymbolNames(candidates);
+  if (behavioralNames.length === 0) return;
+
+  const nonBehavioralNames = getNonBehavioralSymbolNames(candidates);
+  const ignoredSymbolsMessage =
+    nonBehavioralNames.length > 0
+      ? ` Non-behavioral symbols in the file were ignored for this decision: ${nonBehavioralNames.join(
+          ", ",
+        )}.`
+      : "";
 
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available: ${narrowNames.join(", ")}. Move relationships to the narrow symbol or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignoredSymbolsMessage}`,
   );
 }
 
@@ -575,6 +615,7 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     "owner",
     "priority",
     "severity",
+    "symbol_role",
     // Typed fact enum fields must be atoms for Prolog validation
     "fact_kind",
     "operator",
