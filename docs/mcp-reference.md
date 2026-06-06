@@ -45,7 +45,7 @@ Notes and migration limitations:
 
 - Global Git excludes (for example `~/.config/git/ignore`) are not read or honored.
 - When MCP tools return a non-null migration warning, run `kibi migrate --dry-run`, then `kibi migrate --yes` before relying on strict checks or automated writes.
-- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow function, class method (`ClassName.methodName`), class, interface, type, or enum symbol, or provide an explicit `granularity_reason`.
+- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow behavioral symbol when one exists, or provide an explicit `granularity_reason`. Interfaces, type aliases, and enums are `type-shape` symbols and do not by themselves block a coarse behavioral link.
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
 
@@ -316,8 +316,10 @@ Create or update a single entity and optional relationships in one call.
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
-- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
+- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
+
+`symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
 **Returns:**
 Confirmation of entity creation/update and relationship creation counts.
