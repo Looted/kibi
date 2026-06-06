@@ -34,6 +34,12 @@ import {
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
+  getBehavioralSymbolNames,
+  getNonBehavioralSymbolNames,
+  isAllowedGranularityReason,
+  isTraceabilityRelationshipType,
+} from "../public/symbol-granularity.js";
+import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
   KIBI_SYMBOL_COORDINATES_PATH,
@@ -220,28 +226,14 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   };
 }
 
-const GRANULARITY_RELATIONSHIP_TYPES = new Set([
-  "implements",
-  "covered_by",
-  "executable_for",
-]);
-
-const ALLOWED_GRANULARITY_REASONS = new Set([
-  "config-artifact",
-  "module-level-behavior",
-  "extractor-miss",
-  "legacy-link",
-]);
-
 function hasTraceabilityRelationship(result: ExtractionResult): boolean {
   return result.relationships.some((relationship) =>
-    GRANULARITY_RELATIONSHIP_TYPES.has(relationship.type),
+    isTraceabilityRelationshipType(relationship.type),
   );
 }
 
 function hasValidGranularityReason(result: ExtractionResult): boolean {
-  const reason = result.entity.granularity_reason;
-  return typeof reason === "string" && ALLOWED_GRANULARITY_REASONS.has(reason);
+  return isAllowedGranularityReason(result.entity.granularity_reason);
 }
 
 function createSymbolGranularityDiagnostics(options: {
@@ -263,19 +255,25 @@ function createSymbolGranularityDiagnostics(options: {
     );
     if (granularSymbols.length === 0) continue;
 
-    const granularNames = [
-      ...new Set(granularSymbols.map((s) => s.name)),
-    ].sort();
-    if (granularNames.includes(result.entity.title)) continue;
+    const behavioralNames = getBehavioralSymbolNames(granularSymbols);
+    if (behavioralNames.length === 0) continue;
+    if (behavioralNames.includes(result.entity.title)) continue;
+
+    const nonBehavioralNames = getNonBehavioralSymbolNames(granularSymbols);
+    const ignoredSymbolsSuggestion =
+      nonBehavioralNames.length > 0
+        ? ` Non-behavioral symbols ignored for this decision: ${nonBehavioralNames.join(
+            ", ",
+          )}.`
+        : "";
 
     diagnostics.push({
       id: "symbol_granularity_violation",
       severity: "error",
       files: [result.entity.source, result.sourceFile],
       docs: ["docs/symbol-traceability-taxonomy.md"],
-      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available: ${granularNames.join(", ")}`,
-      suggestion:
-        "Move ownership/coverage/test relationships to the narrow function/class/type symbol, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.",
+      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
+      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
     });
   }
 
