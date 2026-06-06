@@ -11,6 +11,14 @@
 :- use_module(library(plunit)).
 :- use_module(library(prolog_coverage)).
 
+:- multifile user:message_hook/3.
+
+% SWI-Prolog's coverage annotator can miss source call-site offsets for expanded
+% PLUnit bodies, dynamic predicate wrappers, and CHR-generated helper clauses.
+% Clause-level coverage is computed separately below from instrumented clauses,
+% so suppress only this annotation warning while preserving all other warnings.
+user:message_hook(coverage(unreported_call_sites(_, _)), warning, _Lines).
+
 main(Argv) :-
     catch(run(Argv, ExitCode), Error, handle_fatal_error(Error)),
     halt(ExitCode).
