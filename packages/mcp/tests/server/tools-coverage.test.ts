@@ -61,6 +61,7 @@ const TOOL_NAMES = [
   "kb_graph",
   "kb_sparql_remote",
   "kb_upsert",
+  "kb_validate_upsert",
   "kb_delete",
   "kb_check",
   "kb_model_requirement",
@@ -386,6 +387,13 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbValidateUpsert: ToolsRuntime<MockProlog>["handleKbValidateUpsert"] =
+    mock(
+      async (args: UpsertArgs): Promise<unknown> => ({
+        tool: "kb_validate_upsert",
+        args,
+      }),
+    );
   const handleKbModelRequirement: ToolsRuntime<MockProlog>["handleKbModelRequirement"] =
     mock(
       async (
@@ -442,6 +450,7 @@ function createRuntime() {
     handleKbSkillsLoad,
     handleKbSkillsRead,
     handleKbUpsert,
+    handleKbValidateUpsert,
     handleKbModelRequirement,
     handleKbSuggestPredicates,
     handleKbAutopilotGenerate,
@@ -476,6 +485,7 @@ function createRuntime() {
       handleKbSkillsLoad,
       handleKbSkillsRead,
       handleKbUpsert,
+      handleKbValidateUpsert,
       handleKbModelRequirement,
       handleKbSuggestPredicates,
       handleKbAutopilotGenerate,
@@ -870,7 +880,7 @@ describe.serial("server tools coverage", () => {
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 3);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),

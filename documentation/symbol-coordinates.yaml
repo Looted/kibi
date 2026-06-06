@@ -1286,6 +1286,12 @@ coordinates:
     sourceEndLine: 57
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 50
+  SYM-ValidateUpsertResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 12
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    sourceLine: 4
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -2018,6 +2024,12 @@ coordinates:
     sourceEndLine: 395
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 257
+  SYM-handleKbValidateUpsert:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 50
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    sourceLine: 14
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1

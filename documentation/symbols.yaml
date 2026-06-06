@@ -1574,15 +1574,20 @@ symbols:
     links:
       - REQ-002
       - REQ-mcp-suggest-predicates
+      - REQ-mcp-tool-upsert
     relationships:
       - type: implements
         target: REQ-002
       - type: implements
         target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
   - id: SYM-DOC-RESOURCES
     title: DOC_RESOURCES
     sourceFile: packages/mcp/src/server/docs.ts
@@ -1825,8 +1830,12 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
+      - type: implements
+        target: REQ-mcp-tool-upsert
       - type: covered_by
         target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
   - id: SYM-TOOLS
     title: TOOLS
     sourceFile: packages/mcp/src/tools-config.ts
@@ -2422,6 +2431,22 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
+  - id: SYM-ValidateUpsertResult
+    title: ValidateUpsertResult
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+  - id: SYM-handleKbValidateUpsert
+    title: handleKbValidateUpsert
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
   - id: SYM-validateAndMerge
     title: validateAndMerge
     sourceFile: packages/opencode/src/config.ts
