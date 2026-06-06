@@ -25,6 +25,8 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 - New requirement semantics should evolve append-only: create a new req and link it with `supersedes`.
 - Reject-on-write contradiction checks use this strict lane and treat `supersedes` as the supported escape hatch.
 - Legacy prose facts may remain during migration, but `strict-fact-shape` should be treated as an explicit, **default-off** migration rule, not an always-on requirement for old repos. `domain-contradictions` applies only to strict-lane facts.
+- Use `docs/modeling-cheatsheet.md` when choosing an entity type, fact lane, or relationship. For `kb_upsert.properties`, typed fact fields are snake_case only: `subject_key`, `property_key`, `predicate_name`, `predicate_args`, `canonical_key`, `closed_world`, `value_type`, and one typed `value_*` field.
+- If a validation error mentions additional properties, fix the payload using `docs/error-reference.md` instead of falling back to prose-only `links` or `text_ref`.
 
 ### Canonical Authoring Pattern: Separate REQ, SCEN, TEST Entities
 
