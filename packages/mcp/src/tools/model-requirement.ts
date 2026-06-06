@@ -43,6 +43,11 @@ export interface ModelRequirementResult {
     confidence: number;
     extractionMode: "provided" | "heuristic" | "fallback";
     extractionWarnings: string[];
+    warnings: Array<{
+      kind: string;
+      message: string;
+      nextAction: string;
+    }>;
     migrationWarning: string | null;
   };
   applyPlan: Array<Record<string, unknown>>;
@@ -446,6 +451,16 @@ export async function handleKbModelRequirement(
   });
   const applyPlan = strictWriteSetToApplyPlan(writeSet);
   const migrationWarning = await getWorkspaceMigrationWarning();
+  const warnings = writeSet.isStrict
+    ? []
+    : [
+        {
+          kind: "low_confidence_observation_downgrade",
+          message: `Claim confidence ${writeSet.confidence.toFixed(2)} is below the strict threshold 0.70, so Kibi emitted an observation fact instead of strict subject/property facts.`,
+          nextAction:
+            "If this is normative, provide subjectKey, propertyKey, operator, and value explicitly, then apply the returned strict write-set sequentially.",
+        },
+      ];
 
   const strictSummary = writeSet.isStrict
     ? `Modeled strict requirement into ${applyPlan.length} sequential applyPlan step(s).`
@@ -462,6 +477,7 @@ export async function handleKbModelRequirement(
     confidence: writeSet.confidence,
     extractionMode: extracted.extractionMode,
     extractionWarnings: extracted.extractionWarnings,
+    warnings,
     migrationWarning,
   };
 

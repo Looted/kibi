@@ -2192,6 +2192,8 @@ symbols:
   - id: SYM-handleKbModelRequirement
     title: handleKbModelRequirement
     sourceFile: packages/mcp/src/tools/model-requirement.ts
+    links:
+      - REQ-002
     relationships:
       - type: implements
         target: REQ-002
@@ -2230,6 +2232,8 @@ symbols:
   - id: SYM-ModelRequirementResult
     title: ModelRequirementResult
     sourceFile: packages/mcp/src/tools/model-requirement.ts
+    links:
+      - REQ-002
     relationships:
       - type: implements
         target: REQ-002

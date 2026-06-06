@@ -26,7 +26,9 @@ interface ModelRequirementModule {
     writeSet: Record<string, unknown>,
   ) => Array<Record<string, unknown>>;
   writeSetPrimaryEntityId: (writeSet: Record<string, unknown>) => string;
-  getWorkspaceMigrationWarning: (workspaceRoot?: string) => Promise<string | null>;
+  getWorkspaceMigrationWarning: (
+    workspaceRoot?: string,
+  ) => Promise<string | null>;
 }
 
 describe("kb_model_requirement", () => {
@@ -133,6 +135,14 @@ describe("kb_model_requirement", () => {
     expect(writeSet.req).toBeUndefined();
     expect(writeSet.subjectFact).toBeUndefined();
     expect(writeSet.propertyFact).toBeUndefined();
+    expect(structured.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "low_confidence_observation_downgrade",
+          nextAction: expect.stringContaining("subjectKey"),
+        }),
+      ]),
+    );
   });
 
   test("extractRequirementClaim rejects empty text and missing source", async () => {
@@ -330,9 +340,9 @@ describe("kb_model_requirement", () => {
     const { estimateNormativeSignalConfidence } = await loadModule();
 
     expect(estimateNormativeSignalConfidence("Users may export data.")).toBe(0);
-    expect(
-      estimateNormativeSignalConfidence("Users should export data."),
-    ).toBe(0.78);
+    expect(estimateNormativeSignalConfidence("Users should export data.")).toBe(
+      0.78,
+    );
     expect(
       estimateNormativeSignalConfidence("Users should export data.", "Policy"),
     ).toBe(0.86);
@@ -406,7 +416,9 @@ describe("kb_model_requirement", () => {
     await fs.mkdir(path.join(tmp, ".kb"), { recursive: true });
     await fs.writeFile(path.join(tmp, ".kb", "config.json"), "{invalid json");
 
-    expect(await getWorkspaceMigrationWarning(tmp)).toMatch(/could not be read/);
+    expect(await getWorkspaceMigrationWarning(tmp)).toMatch(
+      /could not be read/,
+    );
   });
 
   test("handleKbModelRequirement returns fallback observation for low-confidence non-matching input", async () => {
