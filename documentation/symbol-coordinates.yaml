@@ -1,7 +1,6 @@
 # symbol-coordinates.yaml
 # GENERATED coordinate artifact — do not edit manually.
 # Run `kibi sync --refresh-symbol-coordinates` to refresh.
-# Refreshed for the kb_sparql_remote MCP tool registration.
 coordinates:
   SYM-001:
     sourceColumn: 13
@@ -720,7 +719,7 @@ coordinates:
   SYM-ModelRequirementResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 51
+    sourceEndLine: 56
     sourceFile: packages/mcp/src/tools/model-requirement.ts
     sourceLine: 33
   SYM-NpmFixtureLive:
@@ -1224,9 +1223,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 833
+    sourceEndLine: 867
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 831
+    sourceLine: 865
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1260,15 +1259,15 @@ coordinates:
   SYM-ToolConfig:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 62
+    sourceLine: 63
   SYM-ToolsRuntime:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 156
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 116
+    sourceLine: 117
   SYM-TraceabilityRegistrationResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1287,6 +1286,12 @@ coordinates:
     sourceEndLine: 57
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 50
+  SYM-ValidatedUpsertArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 62
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    sourceLine: 59
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1302,9 +1307,9 @@ coordinates:
   SYM-addTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 523
+    sourceEndLine: 526
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 375
+    sourceLine: 378
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1518,9 +1523,9 @@ coordinates:
   SYM-codex-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 214
+    sourceEndLine: 213
     sourceFile: packages/codex/src/hook-state.ts
-    sourceLine: 192
+    sourceLine: 191
   SYM-codex-directKbEditWarning:
     sourceColumn: 13
     sourceEndColumn: 112
@@ -1800,9 +1805,9 @@ coordinates:
   SYM-estimateNormativeSignalConfidence:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 291
+    sourceEndLine: 296
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 271
+    sourceLine: 276
   SYM-evaluateKbFreshness:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1830,9 +1835,9 @@ coordinates:
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 363
+    sourceEndLine: 368
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 293
+    sourceLine: 298
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1956,9 +1961,9 @@ coordinates:
   SYM-getWorkspaceMigrationWarning:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 436
+    sourceEndLine: 441
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 415
+    sourceLine: 420
   SYM-handleKbAutopilotGenerate:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1974,9 +1979,9 @@ coordinates:
   SYM-handleKbModelRequirement:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 482
+    sourceEndLine: 498
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 438
+    sourceLine: 443
   SYM-handleKbSkillsList:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -1998,7 +2003,7 @@ coordinates:
   SYM-handleKbSuggestPredicates:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 690
+    sourceEndLine: 695
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
     sourceLine: 627
   SYM-handleKbSymbolsRefresh:
@@ -2010,9 +2015,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 294
+    sourceEndLine: 395
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 104
+    sourceLine: 257
   SYM-handleSparql:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2088,9 +2093,9 @@ coordinates:
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 372
+    sourceEndLine: 375
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 243
+    sourceLine: 246
   SYM-listBundledSkills:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2322,9 +2327,9 @@ coordinates:
   SYM-registerAllTools:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 733
+    sourceEndLine: 747
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 526
+    sourceLine: 529
   SYM-registerIndexCoverageTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2376,9 +2381,9 @@ coordinates:
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 106
+    sourceEndLine: 107
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 104
+    sourceLine: 105
   SYM-resetWorkspaceFeaturesForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2508,9 +2513,9 @@ coordinates:
   SYM-setToolsServerDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 101
+    sourceEndLine: 102
     sourceFile: packages/mcp/src/server/tools.ts
-    sourceLine: 92
+    sourceLine: 93
   SYM-setWorkspaceFsDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2550,9 +2555,9 @@ coordinates:
   SYM-strictWriteSetToApplyPlan:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 409
+    sourceEndLine: 414
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 375
+    sourceLine: 380
   SYM-syncCommand:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2562,9 +2567,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 409
+    sourceEndLine: 559
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 402
+    sourceLine: 552
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2583,6 +2588,12 @@ coordinates:
     sourceEndLine: 223
     sourceFile: packages/opencode/src/config.ts
     sourceLine: 109
+  SYM-validateKbUpsertArgs:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 444
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    sourceLine: 397
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2598,9 +2609,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 825
+    sourceEndLine: 859
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 805
+    sourceLine: 839
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2610,6 +2621,6 @@ coordinates:
   SYM-writeSetPrimaryEntityId:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 413
+    sourceEndLine: 418
     sourceFile: packages/mcp/src/tools/model-requirement.ts
-    sourceLine: 411
+    sourceLine: 416
