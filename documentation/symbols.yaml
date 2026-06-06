@@ -3893,6 +3893,43 @@ symbols:
         target: REQ-020
       - type: covered_by
         target: TEST-014
+  - id: SYM-core-derived-chr
+    title: derived_chr Prolog module derives bounded validation facts
+    sourceFile: packages/core/src/derived_chr.pl
+    owner: core-team
+    links:
+      - REQ-prolog-library-adoption
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: covered_by
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-core-sparql-client
+    title: kibi_sparql_client Prolog module runs validated remote SELECT queries
+    sourceFile: packages/core/src/sparql_client.pl
+    owner: core-team
+    links:
+      - REQ-prolog-library-adoption
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: covered_by
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-mcp-handle-sparql
+    title: handleSparql validates and dispatches remote SPARQL MCP calls
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
+    granularity_reason: extractor-miss
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
   - id: SYM-SparqlArgs
     title: SparqlArgs
     sourceFile: packages/mcp/src/tools/sparql.ts
