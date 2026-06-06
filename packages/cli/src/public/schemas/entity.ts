@@ -17,6 +17,8 @@
  */
 
 // Typed fact field enums per proposal
+import { SYMBOL_ROLES, type SymbolRole } from "../symbol-granularity.js";
+
 type FactKind =
   | "subject"
   | "property_value"
@@ -126,6 +128,10 @@ const entitySchema: Record<string, unknown> = {
         "extractor-miss",
         "legacy-link",
       ],
+    },
+    symbol_role: {
+      type: "string",
+      enum: [...SYMBOL_ROLES] satisfies SymbolRole[],
     },
     type: {
       type: "string",

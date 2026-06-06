@@ -69,6 +69,10 @@
       "types": "./dist/public/check-types.d.ts",
       "default": "./dist/public/check-types.js"
     },
+    "./public/symbol-granularity": {
+      "types": "./dist/public/symbol-granularity.d.ts",
+      "default": "./dist/public/symbol-granularity.js"
+    },
     "./schema-version": {
       "types": "./dist/public/schema-version.d.ts",
       "default": "./dist/public/schema-version.js"
