@@ -48,6 +48,17 @@
         "legacy-link"
       ]
     },
+    "symbol_role": {
+      "type": "string",
+      "enum": [
+        "behavioral",
+        "structural",
+        "type-shape",
+        "config",
+        "module",
+        "unknown"
+      ]
+    },
     "verification_scope": {
       "type": "string",
       "enum": ["unit", "integration", "end_to_end"]

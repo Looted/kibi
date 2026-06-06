@@ -413,6 +413,19 @@ const BASE_TOOLS = [
               description:
                 "Optional justification for a coarse file/module-level symbol traceability relationship when narrower function/class/type symbols exist.",
             },
+            symbol_role: {
+              type: "string",
+              enum: [
+                "behavioral",
+                "structural",
+                "type-shape",
+                "config",
+                "module",
+                "unknown",
+              ],
+              description:
+                "Optional role classification for symbol entities. Example: 'behavioral'.",
+            },
             fact_kind: {
               type: "string",
               enum: [

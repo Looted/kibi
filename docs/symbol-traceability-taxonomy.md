@@ -19,6 +19,26 @@ Current engine alignment:
 
 ## Symbol classes
 
+### Behavioral anchors
+
+Traceability relationships (`implements`, `covered_by`, `executable_for`) should target behavioral symbols when available. Behavioral symbols include runtime functions, classes, methods, executable test helpers, and manual anchors for behavior composed through factory or expression constructs.
+
+Interfaces, type aliases, and enums are `type-shape` symbols. They describe data or API shape and should not by themselves block a module/file-level behavioral link. When behavior is composed through factory expressions, generated code, framework conventions, or language constructs the extractor cannot model, declare a manual symbol in `documentation/symbols.yaml` with `symbol_role: behavioral`.
+
+If no precise behavioral anchor exists yet, use `granularity_reason: extractor-miss` or `granularity_reason: module-level-behavior` on the coarse symbol and treat it as an audited fallback.
+
+```yaml
+symbols:
+  - id: SYM-video-player-store-connect
+    title: VideoPlayerStore.connectVideoElement
+    status: active
+    sourceFile: src/video-player.store.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-video-player-connects-element
+```
+
 ### Production runtime symbols
 
 Shipped code that executes product behavior: handlers, services, commands, UI actions, adapters, event publishers/consumers, and other runtime code.

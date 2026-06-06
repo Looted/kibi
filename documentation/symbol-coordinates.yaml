@@ -26,6 +26,12 @@ coordinates:
     sourceEndLine: 57
     sourceFile: packages/mcp/src/server.ts
     sourceLine: 37
+  SYM-ALLOWED_GRANULARITY_REASONS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 21
   SYM-AUTOPILOT-PROVIDER-ORDER:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -149,9 +155,9 @@ coordinates:
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 94
+    sourceEndLine: 100
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 87
+    sourceLine: 93
   SYM-CheckRunner:
     sourceColumn: 12
     sourceEndColumn: 35
@@ -329,9 +335,9 @@ coordinates:
   SYM-ExtractedSymbol:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 36
+    sourceEndLine: 34
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 16
+    sourceLine: 21
   SYM-ExtractionResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -356,6 +362,18 @@ coordinates:
     sourceEndLine: 41
     sourceFile: packages/opencode/src/file-operation-state.ts
     sourceLine: 24
+  SYM-GranularSymbolCandidate:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 42
+  SYM-GranularityReason:
+    sourceColumn: 12
+    sourceEndColumn: 77
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 28
   SYM-GuidanceCache:
     sourceColumn: 13
     sourceEndColumn: 1
@@ -683,15 +701,15 @@ coordinates:
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
-    sourceEndLine: 43
+    sourceEndLine: 41
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 43
+    sourceLine: 41
   SYM-ManifestLookupEntry:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 41
+    sourceEndLine: 39
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 38
+    sourceLine: 36
   SYM-ManifestSymbolEntry:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -890,6 +908,12 @@ coordinates:
     sourceEndLine: 63
     sourceFile: packages/cli/src/commands/sync/manifest.ts
     sourceLine: 57
+  SYM-SYMBOL_ROLES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 8
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 1
   SYM-SchedulerOptions:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1160,12 +1184,30 @@ coordinates:
     sourceEndLine: 35
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 23
+  SYM-SymbolGranularitySourceSymbolKind:
+    sourceColumn: 12
+    sourceEndColumn: 42
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 40
   SYM-SymbolIndex:
     sourceColumn: 17
     sourceEndColumn: 1
     sourceEndLine: 44
     sourceFile: packages/vscode/src/symbolIndex.ts
     sourceLine: 37
+  SYM-SymbolKind:
+    sourceColumn: 12
+    sourceEndColumn: 14
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 30
+  SYM-SymbolRole:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 10
   SYM-SymbolsManifestRow:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1223,9 +1265,15 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 867
+    sourceEndLine: 880
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 865
+    sourceLine: 878
+  SYM-TRACEABILITY_RELATIONSHIP_TYPES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 16
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 12
   SYM-TempKbContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1274,18 +1322,24 @@ coordinates:
     sourceEndLine: 23
     sourceFile: packages/vscode/src/activation/traceability.ts
     sourceLine: 16
+  SYM-TraceabilityRelationshipType:
+    sourceColumn: 12
+    sourceEndColumn: 51
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 18
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 58
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 35
+    sourceLine: 45
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 57
+    sourceEndLine: 67
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 50
+    sourceLine: 60
   SYM-ValidateUpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1295,9 +1349,9 @@ coordinates:
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 62
+    sourceEndLine: 72
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 59
+    sourceLine: 69
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1421,9 +1475,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 890
+    sourceEndLine: 889
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 542
+    sourceLine: 541
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1685,9 +1739,9 @@ coordinates:
   SYM-createManifestLookupSentinelKey:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 48
+    sourceEndLine: 46
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 45
+    sourceLine: 43
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1706,6 +1760,12 @@ coordinates:
     sourceEndLine: 263
     sourceFile: packages/opencode/src/session-edit-state.ts
     sourceLine: 46
+  SYM-createSymbolGranularityDiagnostics:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 282
+    sourceFile: packages/cli/src/commands/check.ts
+    sourceLine: 239
   SYM-createSyncScheduler:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1847,9 +1907,9 @@ coordinates:
   SYM-extractSymbolsFromStagedFile:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 511
+    sourceEndLine: 510
     sourceFile: packages/cli/src/traceability/symbol-extract.ts
-    sourceLine: 274
+    sourceLine: 273
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1874,6 +1934,12 @@ coordinates:
     sourceEndLine: 167
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 162
+  SYM-getBehavioralSymbolNames:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 105
   SYM-getCachedPluginVersion:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1946,6 +2012,12 @@ coordinates:
     sourceEndLine: 233
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 223
+  SYM-getNonBehavioralSymbolNames:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 125
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 115
   SYM-getSchemaVersionStatus:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1958,6 +2030,12 @@ coordinates:
     sourceEndLine: 22
     sourceFile: packages/opencode/src/source-linked-guidance.ts
     sourceLine: 13
+  SYM-getSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 93
   SYM-getWorkspaceFolderUri:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2021,9 +2099,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 395
+    sourceEndLine: 396
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 257
+    sourceLine: 258
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2048,6 +2126,18 @@ coordinates:
     sourceEndLine: 217
     sourceFile: packages/cli/src/traceability/evidence-model.ts
     sourceLine: 212
+  SYM-inferSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 55
+  SYM-inferSymbolRoleFromKind:
+    sourceColumn: 13
+    sourceEndColumn: 54
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 71
   SYM-info:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2084,6 +2174,18 @@ coordinates:
     sourceEndLine: 426
     sourceFile: packages/opencode/src/auto-update.ts
     sourceLine: 406
+  SYM-isAllowedGranularityReason:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 87
+  SYM-isBehavioralSymbol:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 99
   SYM-isEligibleForCoordinateRefresh:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2102,6 +2204,18 @@ coordinates:
     sourceEndLine: 250
     sourceFile: packages/opencode/src/config.ts
     sourceLine: 247
+  SYM-isSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 73
+  SYM-isTraceabilityRelationshipType:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 79
   SYM-jsonSchemaToZod:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2579,9 +2693,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 559
+    sourceEndLine: 597
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 552
+    sourceLine: 590
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2603,15 +2717,21 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 444
+    sourceEndLine: 445
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 397
+    sourceLine: 398
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 177
     sourceFile: packages/cli/src/public/skills.ts
     sourceLine: 154
+  SYM-validateSymbolGranularity:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 588
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    sourceLine: 552
   SYM-warn:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2621,9 +2741,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 859
+    sourceEndLine: 872
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 839
+    sourceLine: 852
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1
