@@ -225,6 +225,24 @@ describe("modeling guidance: canonical entity-choice rule", () => {
     });
   });
 
+  describe("docs/modeling-cheatsheet.md", () => {
+    test("must teach strict and predicate modeling field names", () => {
+      const content = readDoc("docs/modeling-cheatsheet.md");
+      for (const term of [
+        "subject_key",
+        "property_key",
+        "requires_property",
+        "predicate_name",
+        "predicate_args",
+        "requires_predicate",
+        "observation",
+        "meta",
+      ]) {
+        expect(content).toContain(term);
+      }
+    });
+  });
+
   // ─── docs/cli-reference.md ──────────────────────────────────────────────────
 
   describe("docs/cli-reference.md", () => {
