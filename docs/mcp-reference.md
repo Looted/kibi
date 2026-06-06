@@ -49,11 +49,19 @@ Notes and migration limitations:
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
 
+## Semantic Modeling Quick Path
+
+When prose contains a machine-checkable rule, do not store it only in `text_ref` or freeform `links`. Use the concise decision tree in `docs/modeling-cheatsheet.md`.
+
+1. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
+2. For ontology claims, call `kb_suggest_predicates` before writing prose. Apply the returned `fact_kind: predicate` plan and link with `requires_predicate`, or record the returned `review:ontology-gap` observation.
+3. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
+
 ### `kb_model_requirement`
 
 Model a normative requirement claim into a deterministic strict write-set for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or falls back to heuristic extraction from a plain statement) and returns a ready-to-apply plan of `req` + `fact` entities with typed `constrains`/`requires_property` relationships.
 
-High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane.
+High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
 
 **Parameters:**
 - `statement` (required): Plain-language normative statement to model
@@ -322,6 +330,10 @@ Create or update a single entity and optional relationships in one call.
 **Returns:**
 Confirmation of entity creation/update and relationship creation counts.
 
+### `kb_validate_upsert`
+
+Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, and `normalizedPreview` so agents can fix strict fact and predicate payloads before calling `kb_upsert`.
+
 ### `kb_delete`
 
 Delete one or more entities by ID. Deletion is blocked when dependents still reference the target.
@@ -383,7 +395,7 @@ The MCP server returns structured errors for:
 - Branch KB startup/attach failures
 - Validation failures
 
-Always check error responses before proceeding with more mutations.
+Always check error responses before proceeding with more mutations. For common validation failures and recovery payloads, see `docs/error-reference.md`. In particular, strict fact writes must use `subject_key`, `property_key`, `value_type`, and exactly one typed `value_*` field; do not use `subjectKey`, `propertyKey`, or generic `value` in `kb_upsert.properties`.
 
 ## Determinism Guarantees
 

@@ -77,6 +77,7 @@ Graph coverage is useful for discovery, but it is **not semantic proof**. High l
 For normative requirements that should participate in contradiction checks:
 - Link requirement -> `fact_kind: subject` via `constrains`
 - Link requirement -> `fact_kind: property_value` via `requires_property`
+- Use `docs/modeling-cheatsheet.md` and `docs/error-reference.md` for agent-facing field examples and recovery guidance. `kb_upsert.properties` typed fact fields are snake_case only; do not use camelCase aliases such as `subjectKey`.
 
 ### Predicate ontology lane (alpha)
 
