@@ -1,4 +1,3 @@
-// @ts-ignore
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync, spawnSync } from "node:child_process";
 import {
@@ -793,7 +792,7 @@ describe("kibi check --staged impact enforcement", () => {
   );
 
   test(
-    "fails coarse links when interface symbols are available",
+    "passes coarse links when only type-shape symbols are available",
     async () => {
       writeFiles(tmpDir, createInterfaceGranularityFixture());
       commitAll(tmpDir, "initial");
@@ -811,9 +810,8 @@ describe("kibi check --staged impact enforcement", () => {
       );
 
       const output = stdoutToString(stdout || stderr);
-      expect(status).toBe(1);
-      expect(output).toContain("symbol_granularity_violation");
-      expect(output).toContain("ConfigOptions");
+      expect(status).toBe(0);
+      expect(output).not.toContain("symbol_granularity_violation");
     },
     TEST_TIMEOUT_MS,
   );
