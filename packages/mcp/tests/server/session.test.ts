@@ -700,8 +700,9 @@ describe.serial("session module", () => {
       const session = await importCoveredSession();
       mockIsValidBranchName.mockImplementation(() => false);
 
-      expect(() => session.ensureBranchKbExists("/workspace", "bad/name"))
-        .toThrow("Invalid branch name: bad/name");
+      expect(() =>
+        session.ensureBranchKbExists("/workspace", "bad/name"),
+      ).toThrow("Invalid branch name: bad/name");
       expect(mockResolveKbPath).not.toHaveBeenCalled();
     });
 
@@ -805,7 +806,9 @@ describe.serial("session module", () => {
       const clearTimeoutMock = mock(
         (_timer?: number | string | NodeJS.Timeout | undefined) => {},
       );
-      const consoleErrorMock = mock((_message?: unknown, _error?: unknown) => {});
+      const consoleErrorMock = mock(
+        (_message?: unknown, _error?: unknown) => {},
+      );
       const terminateError = new Error("shutdown terminate failure");
 
       process.exit = exitMock as unknown as typeof process.exit;
@@ -852,7 +855,9 @@ describe.serial("session module", () => {
       const session = await importCoveredSession();
       const originalConsoleError = console.error;
       const terminateError = new Error("terminate exploded");
-      const consoleErrorMock = mock((_message?: unknown, _error?: unknown) => {});
+      const consoleErrorMock = mock(
+        (_message?: unknown, _error?: unknown) => {},
+      );
 
       console.error = consoleErrorMock as typeof console.error;
 
@@ -887,11 +892,9 @@ describe.serial("session module", () => {
 
     test("ensureProlog reports branch resolution diagnostics when active branch lookup fails", async () => {
       process.env = { ...process.env, KIBI_BRANCH: undefined };
-      mockResolveActiveBranch.mockImplementation(
-        (() => ({
-          error: "detached HEAD",
-        })) as unknown as typeof defaults.resolveActiveBranch,
-      );
+      mockResolveActiveBranch.mockImplementation((() => ({
+        error: "detached HEAD",
+      })) as unknown as typeof defaults.resolveActiveBranch);
       mockGetBranchDiagnostic.mockImplementation(
         (_cwd?: string, error?: string) => `diagnostic: ${error}`,
       );
@@ -975,8 +978,9 @@ describe.serial("session module", () => {
 
         await session.ensureProlog();
 
-        expect(containsConsoleArg(consoleErrorMock.mock.calls, "detach refused"))
-          .toBe(true);
+        expect(
+          containsConsoleArg(consoleErrorMock.mock.calls, "detach refused"),
+        ).toBe(true);
         expect(mockPrologProcessInstance.query).toHaveBeenCalledWith(
           "kb_attach('/mock/kb/path')",
         );
@@ -1026,10 +1030,15 @@ describe.serial("session module", () => {
             "require.resolve('kibi-cli/prolog') -> /path/to/kibi-cli",
           ),
         ).toBe(true);
-        expect(containsConsoleArg(consoleErrorMock.mock.calls, "kibi-cli version: 1.0.0"))
-          .toBe(true);
-        expect(containsConsoleArg(consoleErrorMock.mock.calls, "PID: 12345"))
-          .toBe(true);
+        expect(
+          containsConsoleArg(
+            consoleErrorMock.mock.calls,
+            "kibi-cli version: 1.0.0",
+          ),
+        ).toBe(true);
+        expect(
+          containsConsoleArg(consoleErrorMock.mock.calls, "PID: 12345"),
+        ).toBe(true);
       } finally {
         console.error = originalConsoleError;
       }

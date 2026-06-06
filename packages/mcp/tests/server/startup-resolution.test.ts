@@ -48,7 +48,11 @@ function makePackage(root: string, version: string): string {
   return entrypoint;
 }
 
-function makePackageWithName(root: string, name: string, version: string): string {
+function makePackageWithName(
+  root: string,
+  name: string,
+  version: string,
+): string {
   const packageRoot = path.join(root, "node_modules", name);
   const distRoot = path.join(packageRoot, "dist");
   mkdirSync(distRoot, { recursive: true });
@@ -119,7 +123,9 @@ describe("MCP startup resolution diagnostics", () => {
     try {
       const entrypoint = makePackageWithName(cwd, "not-kibi-mcp", "0.14.0");
 
-      expect(() => readRunningPackageInfo(pathToFileURL(entrypoint).href)).toThrow(
+      expect(() =>
+        readRunningPackageInfo(pathToFileURL(entrypoint).href),
+      ).toThrow(
         `Resolved package not-kibi-mcp for ${entrypoint}; expected kibi-mcp`,
       );
     } finally {
