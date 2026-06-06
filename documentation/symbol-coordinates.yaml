@@ -2601,6 +2601,114 @@ coordinates:
     sourceEndLine: 825
     sourceFile: packages/mcp/src/tools-config.ts
     sourceLine: 805
+  SYM-SYMBOL_ROLES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 8
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 1
+  SYM-SymbolRole:
+    sourceColumn: 12
+    sourceEndColumn: 55
+    sourceEndLine: 10
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 10
+  SYM-TRACEABILITY_RELATIONSHIP_TYPES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 16
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 12
+  SYM-TraceabilityRelationshipType:
+    sourceColumn: 12
+    sourceEndColumn: 51
+    sourceEndLine: 19
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 18
+  SYM-ALLOWED_GRANULARITY_REASONS:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 26
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 21
+  SYM-GranularityReason:
+    sourceColumn: 12
+    sourceEndColumn: 77
+    sourceEndLine: 28
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 28
+  SYM-SymbolKind:
+    sourceColumn: 12
+    sourceEndColumn: 14
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 30
+  SYM-SymbolGranularitySourceSymbolKind:
+    sourceColumn: 12
+    sourceEndColumn: 42
+    sourceEndLine: 40
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 40
+  SYM-GranularSymbolCandidate:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 46
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 42
+  SYM-inferSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 69
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 55
+  SYM-inferSymbolRoleFromKind:
+    sourceColumn: 13
+    sourceEndColumn: 54
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 71
+  SYM-isSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 77
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 73
+  SYM-isTraceabilityRelationshipType:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 85
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 79
+  SYM-isAllowedGranularityReason:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 91
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 87
+  SYM-getSymbolRole:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 93
+  SYM-isBehavioralSymbol:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 99
+  SYM-getBehavioralSymbolNames:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 105
+  SYM-getNonBehavioralSymbolNames:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 125
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    sourceLine: 115
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1
