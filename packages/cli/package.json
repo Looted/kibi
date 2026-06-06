@@ -1,6 +1,6 @@
 {
   "name": "kibi-cli",
-  "version": "0.12.4",
+  "version": "0.12.5",
   "type": "module",
   "description": "Kibi CLI for knowledge base management",
   "engines": {
@@ -99,7 +99,7 @@
     "fast-glob": "^3.2.12",
     "gray-matter": "^4.0.3",
     "js-yaml": "^4.1.0",
-    "kibi-core": "^0.6.0",
+    "kibi-core": "^0.6.1",
     "ts-morph": "^23.0.0",
     "ignore": "^5.3.0"
   },
