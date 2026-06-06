@@ -5296,3 +5296,203 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-prolog-library-adoption-mcp
+  - id: SYM-SYMBOL-ROLES
+    title: SYMBOL_ROLES
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-TRACEABILITY-RELATIONSHIP-TYPES
+    title: TRACEABILITY_RELATIONSHIP_TYPES
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-ALLOWED-GRANULARITY-REASONS
+    title: ALLOWED_GRANULARITY_REASONS
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-SymbolRole
+    title: SymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-TraceabilityRelationshipType
+    title: TraceabilityRelationshipType
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-GranularityReason
+    title: GranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-SymbolKind
+    title: SymbolKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-symbol-granularity-SourceSymbolKind
+    title: SourceSymbolKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-GranularSymbolCandidate
+    title: GranularSymbolCandidate
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-inferSymbolRole
+    title: inferSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-inferSymbolRoleFromKind
+    title: inferSymbolRoleFromKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-isSymbolRole
+    title: isSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-isTraceabilityRelationshipType
+    title: isTraceabilityRelationshipType
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-isAllowedGranularityReason
+    title: isAllowedGranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-getSymbolRole
+    title: getSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-isBehavioralSymbol
+    title: isBehavioralSymbol
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-getBehavioralSymbolNames
+    title: getBehavioralSymbolNames
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-getNonBehavioralSymbolNames
+    title: getNonBehavioralSymbolNames
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-validateSymbolGranularity
+    title: validateSymbolGranularity
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+  - id: SYM-createSymbolGranularityDiagnostics
+    title: createSymbolGranularityDiagnostics
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
