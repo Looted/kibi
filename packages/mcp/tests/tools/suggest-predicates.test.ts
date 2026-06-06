@@ -94,6 +94,9 @@ describe("kb_suggest_predicates", () => {
 
     expect(candidates).toHaveLength(0);
     expect(structured.recommendedAction).toBe("record_ontology_gap");
+    expect(structured.warnings).toEqual(
+      expect.arrayContaining([expect.stringContaining("predicate_schema")]),
+    );
     expect(applyPlan[0]).toMatchObject({
       type: "fact",
       properties: {

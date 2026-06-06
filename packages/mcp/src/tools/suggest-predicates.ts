@@ -657,6 +657,11 @@ export async function handleKbSuggestPredicates(
     .map((scored) =>
       buildSuggestion(scored.schema, text, subject, scored.score),
     );
+  if (candidates.length === 0) {
+    warnings.push(
+      "No predicate candidate met minScore. If this is recurring domain language, create a fact_kind=predicate_schema fact; otherwise keep the generated review:ontology-gap observation. Do not invent unsupported predicate names without a predicate_schema.",
+    );
+  }
 
   const recommendedAction =
     candidates.length > 0 ? "apply_requires_predicate" : "record_ontology_gap";

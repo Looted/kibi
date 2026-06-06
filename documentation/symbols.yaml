@@ -2203,6 +2203,7 @@ symbols:
     title: handleKbSuggestPredicates
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
     links:
+      - REQ-002
       - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
@@ -2243,6 +2244,7 @@ symbols:
     title: SuggestPredicatesArgs
     sourceFile: packages/mcp/src/tools/suggest-predicates.ts
     links:
+      - REQ-002
       - REQ-mcp-suggest-predicates
     relationships:
       - type: implements
