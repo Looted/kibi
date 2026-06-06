@@ -99,7 +99,9 @@ describe("smart enforcement policy", () => {
     for (const checkpointEvidence of legacyEvidenceCases) {
       const result = computeEnforcementPolicy({
         effectiveMode: "hard",
-        lifecycleEvents: [{ normalizedPath: "src/app.ts", lifecycle: "edited" }],
+        lifecycleEvents: [
+          { normalizedPath: "src/app.ts", lifecycle: "edited" },
+        ],
         pathKinds: ["code"],
         checkpointEvidence,
         posture: "root_active",
@@ -211,7 +213,9 @@ describe("smart enforcement policy", () => {
   test("advisory mode passes checkpoint when no lifecycle events are relevant", () => {
     const result = computeEnforcementPolicy({
       effectiveMode: "advisory",
-      lifecycleEvents: [{ normalizedPath: "tests/unit/app.test.ts", lifecycle: "created" }],
+      lifecycleEvents: [
+        { normalizedPath: "tests/unit/app.test.ts", lifecycle: "created" },
+      ],
       pathKinds: ["test"],
       posture: "root_active",
     });
@@ -239,7 +243,9 @@ describe("smart enforcement policy", () => {
   test("advisory text describes edited files", () => {
     const result = computeEnforcementPolicy({
       effectiveMode: "advisory",
-      lifecycleEvents: [{ normalizedPath: "src/existing.ts", lifecycle: "edited" }],
+      lifecycleEvents: [
+        { normalizedPath: "src/existing.ts", lifecycle: "edited" },
+      ],
       pathKinds: ["code"],
       posture: "root_active",
     });
@@ -259,16 +265,22 @@ describe("smart enforcement policy", () => {
     });
     const withLinks = computeEnforcementPolicy({
       effectiveMode: "advisory",
-      lifecycleEvents: [{ normalizedPath: "src/linked.ts", lifecycle: "deleted" }],
+      lifecycleEvents: [
+        { normalizedPath: "src/linked.ts", lifecycle: "deleted" },
+      ],
       pathKinds: ["code"],
       linkedEntityResults: [{ ids: ["REQ-123"], source: "symbols" }],
       posture: "root_active",
     });
 
     expect(withoutLinks.kind).toBe("advisory_guidance");
-    expect(withoutLinks.text).toContain("Deleted file had no linked Kibi entities");
+    expect(withoutLinks.text).toContain(
+      "Deleted file had no linked Kibi entities",
+    );
     expect(withLinks.kind).toBe("advisory_guidance");
-    expect(withLinks.text).toContain("Deleted file had linked Kibi entities: REQ-123");
+    expect(withLinks.text).toContain(
+      "Deleted file had linked Kibi entities: REQ-123",
+    );
   });
 
   test("uses resolved context authoritativeness instead of posture fallback", () => {
