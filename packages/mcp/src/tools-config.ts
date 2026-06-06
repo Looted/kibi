@@ -322,7 +322,7 @@ const BASE_TOOLS = [
   {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -424,17 +424,17 @@ const BASE_TOOLS = [
                 "predicate",
               ],
               description:
-                "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'.",
+                "Optional fact lane kind for fact entities. Strict lane uses 'subject' and 'property_value'; context lane uses 'observation' or 'meta'; ontology lane uses 'predicate_schema' or 'predicate'. Use kb_model_requirement or kb_suggest_predicates when starting from prose.",
             },
             subject_key: {
               type: "string",
               description:
-                "Optional canonical subject key for strict fact entities. Example: 'user.session'.",
+                "Snake_case only. Optional canonical subject key for strict fact entities. Example: 'user.session'. Do not use subjectKey in kb_upsert.properties.",
             },
             property_key: {
               type: "string",
               description:
-                "Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'.",
+                "Snake_case only. Optional canonical property key for property_value facts. Example: 'session.timeout_minutes'. Do not use propertyKey in kb_upsert.properties.",
             },
             operator: {
               type: "string",
@@ -446,7 +446,7 @@ const BASE_TOOLS = [
               type: "string",
               enum: ["string", "int", "number", "bool"],
               description:
-                "Optional typed value discriminator for property_value facts.",
+                "Optional typed value discriminator for property_value facts. Pair with exactly one value_string, value_int, value_number, or value_bool; do not use generic value.",
             },
             value_string: {
               type: "string",
@@ -491,13 +491,13 @@ const BASE_TOOLS = [
             predicate_name: {
               type: "string",
               description:
-                "Optional predicate name for ontology predicate facts.",
+                "Optional predicate name for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_name.",
             },
             predicate_args: {
               type: "array",
               items: { type: "string" },
               description:
-                "Optional ordered predicate arguments for ontology predicate facts.",
+                "Optional ordered predicate arguments for ontology predicate facts. Prefer kb_suggest_predicates before hand-writing predicate_args.",
             },
           },
           required: ["title", "status"],
@@ -545,6 +545,40 @@ const BASE_TOOLS = [
               },
             },
           },
+        },
+      },
+    },
+  },
+  {
+    name: "kb_validate_upsert",
+    description:
+      "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight when modeling strict facts or predicates and you want actionable schema/modeling errors before calling kb_upsert.",
+    inputSchema: {
+      type: "object",
+      required: ["type", "id", "properties"],
+      properties: {
+        type: {
+          type: "string",
+          enum: [
+            "req",
+            "scenario",
+            "test",
+            "adr",
+            "flag",
+            "event",
+            "symbol",
+            "fact",
+          ],
+        },
+        id: { type: "string" },
+        properties: {
+          type: "object",
+          description:
+            "Entity properties to validate using the same snake_case field names accepted by kb_upsert.",
+        },
+        relationships: {
+          type: "array",
+          items: { type: "object" },
         },
       },
     },
