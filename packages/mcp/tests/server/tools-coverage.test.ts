@@ -29,6 +29,7 @@ import type {
   SkillsLoadArgs,
   SkillsReadArgs,
 } from "../../src/tools/skills.js";
+import type { SparqlArgs } from "../../src/tools/sparql.js";
 import type { StatusArgs } from "../../src/tools/status.js";
 import type { SuggestPredicatesArgs } from "../../src/tools/suggest-predicates.js";
 import type { UpsertArgs } from "../../src/tools/upsert.js";
@@ -58,7 +59,9 @@ const TOOL_NAMES = [
   "kb_find_gaps",
   "kb_coverage",
   "kb_graph",
+  "kb_sparql_remote",
   "kb_upsert",
+  "kb_validate_upsert",
   "kb_delete",
   "kb_check",
   "kb_model_requirement",
@@ -333,6 +336,12 @@ function createRuntime() {
       args,
     }),
   );
+  const handleSparql: ToolsRuntime<MockProlog>["handleSparql"] = mock(
+    async (_prolog: MockProlog, args: SparqlArgs): Promise<unknown> => ({
+      tool: "kb_sparql_remote",
+      args,
+    }),
+  );
   const handleKbQuery: ToolsRuntime<MockProlog>["handleKbQuery"] = mock(
     async (_prolog: MockProlog, args: QueryArgs): Promise<unknown> => ({
       tool: "kb_query",
@@ -378,6 +387,13 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbValidateUpsert: ToolsRuntime<MockProlog>["handleKbValidateUpsert"] =
+    mock(
+      async (args: UpsertArgs): Promise<unknown> => ({
+        tool: "kb_validate_upsert",
+        args,
+      }),
+    );
   const handleKbModelRequirement: ToolsRuntime<MockProlog>["handleKbModelRequirement"] =
     mock(
       async (
@@ -426,6 +442,7 @@ function createRuntime() {
     handleKbDelete,
     handleKbFindGaps,
     handleKbGraph,
+    handleSparql,
     handleKbQuery,
     handleKbSearch,
     handleKbStatus,
@@ -433,6 +450,7 @@ function createRuntime() {
     handleKbSkillsLoad,
     handleKbSkillsRead,
     handleKbUpsert,
+    handleKbValidateUpsert,
     handleKbModelRequirement,
     handleKbSuggestPredicates,
     handleKbAutopilotGenerate,
@@ -459,6 +477,7 @@ function createRuntime() {
       handleKbDelete,
       handleKbFindGaps,
       handleKbGraph,
+      handleSparql,
       handleKbQuery,
       handleKbSearch,
       handleKbStatus,
@@ -466,6 +485,7 @@ function createRuntime() {
       handleKbSkillsLoad,
       handleKbSkillsRead,
       handleKbUpsert,
+      handleKbValidateUpsert,
       handleKbModelRequirement,
       handleKbSuggestPredicates,
       handleKbAutopilotGenerate,
@@ -860,7 +880,7 @@ describe.serial("server tools coverage", () => {
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 3);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),

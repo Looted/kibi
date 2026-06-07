@@ -1,10 +1,27 @@
 % PLUnit test suite for kb.pl
 :- use_module('../src/kb.pl').
 :- use_module('../src/checks.pl').
+:- use_module('../src/discovery.pl').
+:- use_module('../src/derived_chr.pl').
+:- use_module('../src/sparql_client.pl').
 :- use_module(library(http/json)).
 :- use_module(library(plunit)).
 :- use_module(library(semweb/rdf11)).
 :- use_module(library(filesex)).
+
+:- multifile user:term_expansion/2.
+
+% Many KB predicates are graph queries that intentionally remain nondeterministic
+% for callers that want all matching entities, relationships, or violations. These
+% tests assert specific observable results and do not depend on exhausting every
+% alternative, so PLUnit should not warn about the intentionally open choicepoints.
+user:term_expansion((test(Name) :- Body), (test(Name, [nondet]) :- Body)).
+user:term_expansion((test(Name, Options0) :- Body), (test(Name, Options) :- Body)) :-
+    is_list(Options0),
+    (   memberchk(nondet, Options0)
+    ->  Options = Options0
+    ;   Options = [nondet|Options0]
+    ).
 
 % Test KB directory
 test_kb_dir('/tmp/kibi-test-kb').
@@ -1941,6 +1958,22 @@ test(prolog_literal_type_unwrap) :-
 
 :- end_tests(violation_id_text_regression).
 
+:- begin_tests(discovery_aggregate_counts).
+
+test(relationship_count_counts_both_directions, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    assert_fixture_entity(req, 'REQ-AGG-A', "Aggregate req A", open, []),
+    assert_fixture_entity(test, 'TEST-AGG-A', "Aggregate test A", passing, []),
+    assert_fixture_entity(test, 'TEST-AGG-B', "Aggregate test B", passing, []),
+    kb_assert_relationship(verified_by, 'REQ-AGG-A', 'TEST-AGG-A', []),
+    assert_raw_relationship(verified_by, 'TEST-AGG-B', 'REQ-AGG-A'),
+    discovery:find_gaps_json(req, [], [], [], none, 100, 0, JsonString),
+    atom_json_dict(JsonString, Json, []),
+    member(Row, Json.rows),
+    assertion(Row.get(id) == "REQ-AGG-A"),
+    assertion(Row.get(relationshipCounts).get(verified_by) == 2).
+
+:- end_tests(discovery_aggregate_counts).
+
 :- begin_tests(checks_coverage_gaps).
 
 test(check_all_aggregates_empty_kb, [setup(setup_kb), cleanup(cleanup_kb)]) :-
@@ -2179,6 +2212,46 @@ test(check_req_contradiction_allows_direct_supersession, [setup(setup_kb), clean
     check_req_contradiction('REQ-SUPERSEDES-A').
 
 :- end_tests(kb_wrapper_coverage_gaps).
+
+:- begin_tests(derived_chr_pilot).
+
+test(derived_coverage_gap_matches_existing_missing_scenario_and_test, [setup(setup_kb), cleanup((derived_chr:clear_chr_facts, cleanup_kb)), nondet]) :-
+    assert_fixture_entity(req, 'REQ-CHR-GAP', "CHR gap req", active, [priority=must]),
+    coverage_gap('REQ-CHR-GAP', ExistingReason),
+    derived_chr:derive_chr_facts,
+    derived_chr:derived_coverage_gap('REQ-CHR-GAP', DerivedReason),
+    assertion(DerivedReason == ExistingReason).
+
+test(derived_symbol_gap_matches_existing_no_qualifying_coverage, [setup(setup_kb), cleanup((derived_chr:clear_chr_facts, cleanup_kb)), nondet]) :-
+    assert_fixture_entity(symbol, 'SYM-CHR-GAP', "CHR uncovered symbol", active, []),
+    symbol_no_req_coverage('SYM-CHR-GAP', ExistingReason),
+    derived_chr:derive_chr_facts,
+    derived_chr:derived_symbol_gap('SYM-CHR-GAP', DerivedReason),
+    assertion(DerivedReason == ExistingReason).
+
+:- end_tests(derived_chr_pilot).
+
+:- begin_tests(sparql_client_wrapper).
+
+test(remote_sparql_rejects_empty_endpoint, [throws(error(domain_error(non_empty_atom, endpoint), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('', 'SELECT * WHERE { ?s ?p ?o }', [], _Json).
+
+test(remote_sparql_rejects_empty_query, [throws(error(domain_error(non_empty_atom, query), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('https://example.org/sparql', '', [], _Json).
+
+test(remote_sparql_rejects_non_select_query, [throws(error(domain_error(sparql_select_query, 'CONSTRUCT WHERE { ?s ?p ?o }'), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('https://example.org/sparql', 'CONSTRUCT WHERE { ?s ?p ?o }', [], _Json).
+
+test(remote_sparql_rejects_unsupported_result_format, [throws(error(domain_error(sparql_client_option, result_format(xml)), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('https://example.org/sparql', 'SELECT * WHERE { ?s ?p ?o }', [result_format(xml)], _Json).
+
+test(remote_sparql_rejects_local_file_endpoint, [throws(error(domain_error(remote_http_endpoint, 'file:///tmp/kibi.ttl'), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('file:///tmp/kibi.ttl', 'SELECT * WHERE { ?s ?p ?o }', [], _Json).
+
+test(remote_sparql_rejects_localhost_endpoint, [throws(error(domain_error(public_remote_endpoint, 'http://localhost:3030/sparql'), _))]) :-
+    kibi_sparql_client:remote_sparql_select_json('http://localhost:3030/sparql', 'SELECT * WHERE { ?s ?p ?o }', [], _Json).
+
+:- end_tests(sparql_client_wrapper).
 
 :- begin_tests(kb_internal_coverage_gaps).
 

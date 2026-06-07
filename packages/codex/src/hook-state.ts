@@ -188,7 +188,6 @@ export function addDirtyPaths(
   }
 }
 
-
 export function clearDirtyPaths(pluginData: string | undefined): HookState {
   const clearedState: HookState = { dirtyPaths: [] };
 

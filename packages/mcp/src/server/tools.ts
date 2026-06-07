@@ -51,12 +51,14 @@ import {
   handleKbSkillsLoad,
   handleKbSkillsRead,
 } from "../tools/skills.js";
+import { type SparqlArgs, handleSparql } from "../tools/sparql.js";
 import { type StatusArgs, handleKbStatus } from "../tools/status.js";
 import {
   type SuggestPredicatesArgs,
   handleKbSuggestPredicates,
 } from "../tools/suggest-predicates.js";
 import { type UpsertArgs, handleKbUpsert } from "../tools/upsert.js";
+import { handleKbValidateUpsert } from "../tools/validate-upsert.js";
 
 export interface ToolConfig {
   name: string;
@@ -130,6 +132,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbDelete: (prolog: TProlog, args: DeleteArgs) => Promise<unknown>;
   handleKbFindGaps: (prolog: TProlog, args: FindGapsArgs) => Promise<unknown>;
   handleKbGraph: (prolog: TProlog, args: GraphArgs) => Promise<unknown>;
+  handleSparql: (prolog: TProlog, args: SparqlArgs) => Promise<unknown>;
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
@@ -137,6 +140,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;
   handleKbSkillsRead: (args: SkillsReadArgs) => Promise<unknown>;
   handleKbUpsert: (prolog: TProlog, args: UpsertArgs) => Promise<unknown>;
+  handleKbValidateUpsert: (args: UpsertArgs) => Promise<unknown>;
   handleKbModelRequirement: (
     prolog: TProlog,
     args: ModelRequirementArgs,
@@ -172,6 +176,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbDelete,
   handleKbFindGaps,
   handleKbGraph,
+  handleSparql,
   handleKbQuery,
   handleKbSearch,
   handleKbStatus,
@@ -179,6 +184,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbSkillsLoad,
   handleKbSkillsRead,
   handleKbUpsert,
+  handleKbValidateUpsert,
   handleKbModelRequirement,
   handleKbSuggestPredicates,
   handleKbAutopilotGenerate,
@@ -637,12 +643,35 @@ export function registerAllTools<TProlog>(
 
   addTool(
     server,
+    "kb_sparql_remote",
+    toolDef("kb_sparql_remote").description,
+    toolDef("kb_sparql_remote").inputSchema,
+    async (args) => {
+      const prolog = await runtime.ensureProlog();
+      return runtime.handleSparql(prolog, args as unknown as SparqlArgs);
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
     "kb_upsert",
     toolDef("kb_upsert").description,
     toolDef("kb_upsert").inputSchema,
     async (args) => {
       const prolog = await runtime.ensureProlog();
       return runtime.handleKbUpsert(prolog, args as unknown as UpsertArgs);
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_validate_upsert",
+    toolDef("kb_validate_upsert").description,
+    toolDef("kb_validate_upsert").inputSchema,
+    async (args) => {
+      return runtime.handleKbValidateUpsert(args as unknown as UpsertArgs);
     },
     runtime,
   );

@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import { Project, ScriptKind, type SourceFile } from "ts-morph";
 import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
+import {
+  type SymbolKind,
+  type SymbolRole,
+  inferSymbolRole,
+} from "../public/symbol-granularity.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type TraceabilityRelationship = { type: string; to: string };
@@ -16,15 +21,8 @@ const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
 export interface ExtractedSymbol {
   id: string;
   name: string;
-  kind:
-    | "function"
-    | "class"
-    | "method"
-    | "interface"
-    | "type"
-    | "variable"
-    | "enum"
-    | "unknown";
+  kind: SymbolKind;
+  role: SymbolRole;
   location: {
     file: string;
     startLine: number;
@@ -196,6 +194,7 @@ function buildSymbolResult(
     id,
     name,
     kind,
+    role: inferSymbolRole(kind),
     location: {
       file: stagedFile.path,
       startLine: span.startLine,

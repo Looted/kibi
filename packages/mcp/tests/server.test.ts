@@ -242,7 +242,7 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(15);
+    expect(tools.length).toBe(17);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
@@ -253,7 +253,9 @@ describe("MCP Server", () => {
       "kb_find_gaps",
       "kb_coverage",
       "kb_graph",
+      "kb_sparql_remote",
       "kb_upsert",
+      "kb_validate_upsert",
       "kb_delete",
       "kb_check",
       "kb_model_requirement",
@@ -415,77 +417,100 @@ describe("MCP Server", () => {
   test(
     "should handle tools/call for kb_autopilot_generate",
     async () => {
-      const proc = startServer();
+      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-auto-"));
+      const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
 
-      await sendRequest(proc, {
-        jsonrpc: "2.0",
-        id: 1,
-        method: "initialize",
-        params: {
-          protocolVersion: "2024-11-05",
-          capabilities: {},
-          clientInfo: { name: "test", version: "1.0" },
-        },
+      execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      execSync('git config user.name "Kibi Test"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      execSync(`bun ${kibiBin} init --no-hooks`, {
+        cwd: tempRoot,
+        stdio: "ignore",
       });
 
-      const response = await sendRequest(
-        proc,
-        {
+      const proc = startServer({
+        cwd: tempRoot,
+        env: { KIBI_WORKSPACE: tempRoot },
+      });
+
+      try {
+        await sendRequest(proc, {
           jsonrpc: "2.0",
-          id: 2,
-          method: "tools/call",
+          id: 1,
+          method: "initialize",
           params: {
-            name: "kb_autopilot_generate",
-            arguments: {},
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
           },
-        },
-        HEAVY_TOOL_TIMEOUT_MS,
-      );
+        });
 
-      const result = response.result as Record<string, unknown>;
-      expect(result).toBeDefined();
-      expect(result.isError).toBeFalsy();
+        const response = await sendRequest(
+          proc,
+          {
+            jsonrpc: "2.0",
+            id: 2,
+            method: "tools/call",
+            params: {
+              name: "kb_autopilot_generate",
+              arguments: {},
+            },
+          },
+          HEAVY_TOOL_TIMEOUT_MS,
+        );
 
-      const content = result.content as Array<{ type: string; text: string }>;
-      expect(content).toBeDefined();
-      expect(content.length).toBeGreaterThan(0);
-      expect(content[0].type).toBe("text");
+        const result = response.result as Record<string, unknown>;
+        expect(result).toBeDefined();
+        expect(result.isError).toBeFalsy();
 
-      const structured = result.structuredContent as Record<string, unknown>;
-      expect(structured).toBeDefined();
-      expect([
-        "root_uninitialized",
-        "root_partial",
-        "vendored_only",
-        "root_active_thin",
-        "root_active_seeded",
-      ]).toContain(structured.activationState as string);
-      expect(typeof structured.activationReason).toBe("string");
-      expect(typeof structured.applyBlocked).toBe("boolean");
-      expect([
-        "cold_start_bootstrap",
-        "repair_bootstrap",
-        "attached_thin_handoff",
-        "attached_seeded_handoff",
-        "vendored_blocked",
-      ]).toContain(structured.bootstrapMode as string);
-      expect(typeof structured.tldr).toBe("string");
-      expect(typeof structured.promptBlock).toBe("string");
-      expect(typeof structured.confidence).toBe("object");
-      expect(typeof structured.declaredContext).toBe("object");
-      expect(Array.isArray(structured.recommendedActions)).toBe(true);
-      expect(Array.isArray(structured.candidates)).toBe(true);
-      expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
-      expect(typeof structured.discoverySummary).toBe("object");
-      expect(typeof structured.payoffSummary).toBe("object");
+        const content = result.content as Array<{ type: string; text: string }>;
+        expect(content).toBeDefined();
+        expect(content.length).toBeGreaterThan(0);
+        expect(content[0].type).toBe("text");
 
-      expect(result.candidates).toEqual(structured.candidates);
-      expect(result.suppressedCandidates).toEqual(
-        structured.suppressedCandidates,
-      );
-      expect(result.payoffSummary).toEqual(structured.payoffSummary);
+        const structured = result.structuredContent as Record<string, unknown>;
+        expect(structured).toBeDefined();
+        expect([
+          "root_uninitialized",
+          "root_partial",
+          "vendored_only",
+          "root_active_thin",
+          "root_active_seeded",
+        ]).toContain(structured.activationState as string);
+        expect(typeof structured.activationReason).toBe("string");
+        expect(typeof structured.applyBlocked).toBe("boolean");
+        expect([
+          "cold_start_bootstrap",
+          "repair_bootstrap",
+          "attached_thin_handoff",
+          "attached_seeded_handoff",
+          "vendored_blocked",
+        ]).toContain(structured.bootstrapMode as string);
+        expect(typeof structured.tldr).toBe("string");
+        expect(typeof structured.promptBlock).toBe("string");
+        expect(typeof structured.confidence).toBe("object");
+        expect(typeof structured.declaredContext).toBe("object");
+        expect(Array.isArray(structured.recommendedActions)).toBe(true);
+        expect(Array.isArray(structured.candidates)).toBe(true);
+        expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
+        expect(typeof structured.discoverySummary).toBe("object");
+        expect(typeof structured.payoffSummary).toBe("object");
 
-      await killServer(proc);
+        expect(result.candidates).toEqual(structured.candidates);
+        expect(result.suppressedCandidates).toEqual(
+          structured.suppressedCandidates,
+        );
+        expect(result.payoffSummary).toEqual(structured.payoffSummary);
+      } finally {
+        await killServer(proc);
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
     },
     HEAVY_TOOL_TIMEOUT_MS,
   );

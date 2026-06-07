@@ -1,5 +1,29 @@
 # kibi-cli
 
+## 0.12.5
+
+### Patch Changes
+
+- 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
+
+  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across projects such as Align.
+
+  - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
+  - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
+  - Add modeling cheatsheet, MCP error reference, and Align KB improvement prompt.
+
+- c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
+
+  Technical summary:
+
+  - Added `symbol_role` metadata for symbol entities.
+  - Added shared role-aware symbol granularity helpers.
+  - Updated MCP upsert and CLI staged checks to reject coarse links only when narrower behavioral symbols are available.
+  - Documented manual behavioral anchors for extractor-miss cases.
+
+- Updated dependencies [7f4d51e]
+  - kibi-core@0.6.1
+
 ## 0.12.4
 
 ### Patch Changes

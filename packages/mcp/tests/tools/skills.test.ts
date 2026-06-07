@@ -72,9 +72,7 @@ describe("MCP skills tool handlers", () => {
   test("wraps empty id error for read", async () => {
     await expect(
       handleKbSkillsRead({ id: "", resource: "resources/workflows.md" }),
-    ).rejects.toThrow(
-      "Skills read failed: id must be a non-empty string",
-    );
+    ).rejects.toThrow("Skills read failed: id must be a non-empty string");
   });
 
   test("wraps empty resource error for read", async () => {

@@ -45,15 +45,23 @@ Notes and migration limitations:
 
 - Global Git excludes (for example `~/.config/git/ignore`) are not read or honored.
 - When MCP tools return a non-null migration warning, run `kibi migrate --dry-run`, then `kibi migrate --yes` before relying on strict checks or automated writes.
-- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow function, class method (`ClassName.methodName`), class, interface, type, or enum symbol, or provide an explicit `granularity_reason`.
+- Symbol granularity migration marks existing coarse file/module links as `legacy-link`; new MCP `kb_upsert` calls must target the narrow behavioral symbol when one exists, or provide an explicit `granularity_reason`. Interfaces, type aliases, and enums are `type-shape` symbols and do not by themselves block a coarse behavioral link.
 
 When using discovery tools, agents and operators should assume that ignored paths are not considered as evidence for candidate entities and that any candidates requiring approval will come from non-ignored sources only.
+
+## Semantic Modeling Quick Path
+
+When prose contains a machine-checkable rule, do not store it only in `text_ref` or freeform `links`. Use the concise decision tree in `docs/modeling-cheatsheet.md`.
+
+1. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
+2. For ontology claims, call `kb_suggest_predicates` before writing prose. Apply the returned `fact_kind: predicate` plan and link with `requires_predicate`, or record the returned `review:ontology-gap` observation.
+3. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
 
 ### `kb_model_requirement`
 
 Model a normative requirement claim into a deterministic strict write-set for contradiction-ready KB persistence. Accepts an LLM-supplied semantic claim (or falls back to heuristic extraction from a plain statement) and returns a ready-to-apply plan of `req` + `fact` entities with typed `constrains`/`requires_property` relationships.
 
-High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane.
+High-confidence claims (≥ 0.7) produce a strict write-set: one `req`, one `fact_kind: subject`, one `fact_kind: property_value`, and two typed relationships. Low-confidence claims (< 0.7) produce a single `fact_kind: observation` artifact that does not enter the contradiction lane, plus a warning explaining how to retry with explicit claim fields.
 
 **Parameters:**
 - `statement` (required): Plain-language normative statement to model
@@ -284,6 +292,31 @@ Nodes, edges, truncation flag, and status metadata.
 }
 ```
 
+### `kb_sparql_remote`
+
+Run an opt-in SPARQL `SELECT` query against an external HTTP(S) SPARQL endpoint. This tool is remote-only: it does not query Kibi's local RDF store directly, does not start a local SPARQL endpoint, and does not store credentials.
+
+**Parameters:**
+- `endpoint` (required): Remote SPARQL endpoint URL. Must start with `http://` or `https://`; local file paths are rejected.
+- `query` (required): SPARQL `SELECT` query text.
+- `timeoutMs` (optional): Positive timeout in milliseconds for the remote request.
+
+**Returns:**
+Rows returned by the remote endpoint, serialized as structured MCP content. Network availability, endpoint rate limits, and remote endpoint authentication requirements are outside Kibi's control.
+
+**Example:**
+```json
+{
+  "endpoint": "https://query.wikidata.org/sparql",
+  "query": "SELECT ?item WHERE { ?item wdt:P31 wd:Q146 . } LIMIT 5",
+  "timeoutMs": 15000
+}
+```
+
+## Internal Prolog Implementation Notes
+
+Kibi's Prolog core may use maintained SWI-Prolog libraries such as `library(aggregate)` for count/reporting helpers and `library(chr)` for isolated derived-fact pilots. These are internal implementation details and do not change public KB semantics, MCP response shapes, or the canonical validation rules unless a future release explicitly documents such a change.
+
 ### `kb_upsert`
 
 Create or update a single entity and optional relationships in one call.
@@ -291,11 +324,17 @@ Create or update a single entity and optional relationships in one call.
 **Parameters:**
 - `type`: Entity type enum
 - `id`: Entity ID
-- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
+- `properties`: Entity fields, including required `title` and `status` (status values depend on entity type; legacy values may still be accepted for compatibility). For `symbol` entities this may include `sourceFile`, `symbol_role`, and `granularity_reason`; for `fact` entities this includes typed fact fields such as `fact_kind`, `subject_key`, `property_key`, `operator`, `value_type`, and one matching `value_*` field.
 - `relationships` (optional): Relationship rows with enum-backed `type`, `from`, and `to`
+
+`symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
 **Returns:**
 Confirmation of entity creation/update and relationship creation counts.
+
+### `kb_validate_upsert`
+
+Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, and `normalizedPreview` so agents can fix strict fact and predicate payloads before calling `kb_upsert`.
 
 ### `kb_delete`
 
@@ -358,7 +397,7 @@ The MCP server returns structured errors for:
 - Branch KB startup/attach failures
 - Validation failures
 
-Always check error responses before proceeding with more mutations.
+Always check error responses before proceeding with more mutations. For common validation failures and recovery payloads, see `docs/error-reference.md`. In particular, strict fact writes must use `subject_key`, `property_key`, `value_type`, and exactly one typed `value_*` field; do not use `subjectKey`, `propertyKey`, or generic `value` in `kb_upsert.properties`.
 
 ## Determinism Guarantees
 
