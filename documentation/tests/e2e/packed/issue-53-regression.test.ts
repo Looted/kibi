@@ -257,9 +257,11 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_skills_list",
                 "kb_skills_load",
                 "kb_skills_read",
+                "kb_sparql_remote",
                 "kb_status",
                 "kb_suggest_predicates",
                 "kb_upsert",
+                "kb_validate_upsert",
               ];
 
               assert.deepStrictEqual(
