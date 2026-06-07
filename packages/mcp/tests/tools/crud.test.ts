@@ -191,6 +191,20 @@ describe("MCP CRUD Tool Handlers", () => {
       expect(adrResult.structuredContent?.created).toBe(1);
     });
 
+    test("should accept sourceFile when upserting a symbol entity (issue #114)", async () => {
+      const result = await handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-SF-114",
+        properties: {
+          title: "Badge Service",
+          status: "active",
+          sourceFile: "src/app/services/badge.service.ts",
+        },
+      });
+
+      expect(result.structuredContent?.created).toBe(1);
+    });
+
     test("should create a new entity", async () => {
       const result = await handleKbUpsert(prolog, {
         type: "req",

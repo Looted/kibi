@@ -31,6 +31,7 @@ import {
   resolveActiveBranch,
 } from "../utils/branch-resolver.js";
 import { DEFAULT_CONFIG } from "../utils/config.js";
+import { SYMBOLS_MANIFEST_COMMENT_BLOCK } from "./sync/manifest.js";
 
 const POST_CHECKOUT_HOOK = `#!/bin/sh
 # post-checkout hook for kibi
@@ -38,6 +39,8 @@ const POST_CHECKOUT_HOOK = `#!/bin/sh
 # branch_flag is 1 for branch checkout, 0 for file checkout
 # Refresh branch/worktree assumptions after checkout so advisory plugin state
 # starts from synced KB data instead of stale in-memory cache assumptions.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 old_ref=$1
 new_ref=$2
@@ -60,6 +63,8 @@ const POST_MERGE_HOOK = `#!/bin/sh
 # post-merge hook for kibi
 # Parameter: squash_flag (not used)
 # Refresh KB state after merge so branch-level assumptions remain current.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 kibi sync
 `;
@@ -68,6 +73,8 @@ const POST_REWRITE_HOOK = `#!/bin/sh
 # post-rewrite hook for kibi
 # Triggered after git rebase, git commit --amend, etc.
 # Parameter: rewrite_type (rebase or amend)
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 rewrite_type=$1
 
@@ -80,8 +87,14 @@ const PRE_COMMIT_HOOK = `#!/bin/sh
 # pre-commit hook for kibi
 # Hard enforcement boundary: commits are blocked only here via kibi check.
 # The OpenCode plugin remains advisory and must not replace this gate.
+# Behavior-changing source edits require staged Kibi impact evidence
+# (KB entity docs, authored symbols metadata, or refreshed symbol
+# coordinates). Test-only and docs-only edits are exempt.
+# Refresh with:
+#   kibi sync --refresh-symbol-coordinates && git add documentation/symbol-coordinates.yaml documentation/symbols.yaml
 
 set -e
+
 kibi check --staged
 `;
 
@@ -120,18 +133,40 @@ export function createConfigFile(kbDir: string): void {
 }
 
 export function updateGitIgnore(cwd: string): void {
+  // implements REQ-001
   const gitignorePath = path.join(cwd, ".gitignore");
   const gitignoreContent = existsSync(gitignorePath)
     ? readFileSync(gitignorePath, "utf8")
     : "";
 
-  if (!gitignoreContent.includes(".kb/")) {
-    const newContent = gitignoreContent
-      ? `${gitignoreContent.trimEnd()}\n.kb/\n`
-      : ".kb/\n";
-    writeFileSync(gitignorePath, newContent);
+  const ensureEntry = (current: string, entry: string): string => {
+    if (current.includes(entry)) {
+      return current;
+    }
+
+    return current ? `${current.trimEnd()}\n${entry}\n` : `${entry}\n`;
+  };
+
+  const updatedContent = ensureEntry(gitignoreContent, ".kb/");
+
+  if (updatedContent !== gitignoreContent) {
+    writeFileSync(gitignorePath, updatedContent);
     console.log("✓ Added .kb/ to .gitignore");
   }
+}
+
+// implements REQ-003
+export function ensureSymbolsManifestFile(cwd: string): void {
+  const symbolsRelPath =
+    DEFAULT_CONFIG.paths.symbols ?? "documentation/symbols.yaml";
+  const symbolsPath = path.join(cwd, symbolsRelPath);
+  if (existsSync(symbolsPath)) {
+    return;
+  }
+
+  mkdirSync(path.dirname(symbolsPath), { recursive: true });
+  writeFileSync(symbolsPath, `${SYMBOLS_MANIFEST_COMMENT_BLOCK}symbols: []\n`);
+  console.log(`✓ Created ${symbolsRelPath}`);
 }
 
 export async function copySchemaFiles(
@@ -159,6 +194,7 @@ function escapeRegex(s: string): string {
 }
 
 export function installHook(hookPath: string, content: string): void {
+  // implements REQ-008
   const kibiSection = `${KIBI_HOOK_BEGIN}\n${content}\n${KIBI_HOOK_END}`;
 
   if (existsSync(hookPath)) {
@@ -176,11 +212,9 @@ export function installHook(hookPath: string, content: string): void {
         kibiSection,
       );
       writeFileSync(hookPath, updated, { mode: 0o755 });
-    } else if (existing.includes("kibi branch ensure")) {
-      // Legacy format: already has the complete kibi logic, skip
+    } else if (existing.trim().length > 0) {
       return;
     } else {
-      // Hook exists with user content (no kibi section) - append kibi section
       const shebang = existing.startsWith("#!/") ? "" : "#!/bin/sh\n";
       writeFileSync(
         hookPath,

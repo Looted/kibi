@@ -15,9 +15,22 @@ export interface SyncRunMetadata {
   exitCode: number;
   checkExitCode?: number;
   checkRules?: string[];
+  /** Operational sync.failed observability only. */
+  syncCommand?: string;
+  syncStdout?: string;
+  syncStderr?: string;
+  syncErrorMessage?: string;
 }
 
-export type SyncRunner = (worktree: string) => Promise<{ exitCode: number }>;
+export type SyncRunnerResult = {
+  exitCode: number;
+  syncCommand?: string;
+  syncStdout?: string;
+  syncStderr?: string;
+  syncErrorMessage?: string;
+};
+
+export type SyncRunner = (worktree: string) => Promise<SyncRunnerResult>;
 
 export type CheckRunner = (
   worktree: string,
@@ -46,6 +59,7 @@ export interface SyncScheduler {
   scheduleSync(reason: string, filePath?: string, checkRules?: string[]): void;
   onFileEdited(filePath: string): void;
   onToolExecuteAfter(reason?: string): void;
+  flush(): Promise<void>;
   dispose(): void;
 }
 
@@ -57,7 +71,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
   private readonly runSync: SyncRunner;
   private readonly runCheck: CheckRunner;
   private config: KibiConfig;
-  private readonly onRunComplete?: (meta: SyncRunMetadata) => void;
+  private readonly onRunComplete: ((meta: SyncRunMetadata) => void) | undefined;
   private readonly explicitToolAfterHint: boolean;
 
   private timer: TimeoutHandle | null = null;
@@ -66,6 +80,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
   private pending: PendingTrigger | null = null;
   private trailing: PendingTrigger | null = null;
   private lastFileEditedAt = 0;
+  private flushWaiters: Array<() => void> = [];
 
   constructor(opts: SchedulerOptions) {
     this.worktree = path.resolve(opts.worktree);
@@ -82,13 +97,22 @@ class WorktreeSyncScheduler implements SyncScheduler {
   scheduleSync(reason: string, filePath?: string, checkRules?: string[]): void {
     if (!this.config.sync.enabled) return;
 
-    if (reason === "file.edited") {
+    // Treat file.created, file.edited, and file.deleted same relevance-wise
+    const isFileLifecycle =
+      reason === "file.edited" ||
+      reason === "file.created" ||
+      reason === "file.deleted";
+    if (isFileLifecycle) {
       if (!filePath) return;
       if (!shouldHandleFile(filePath, this.worktree)) return;
       this.lastFileEditedAt = this.now();
     }
 
-    this.pending = { reason, filePath, checkRules };
+    this.pending = {
+      reason,
+      ...(filePath !== undefined ? { filePath } : {}),
+      ...(checkRules !== undefined ? { checkRules } : {}),
+    };
     if (this.timer) this.clearTimeoutFn(this.timer);
     this.timer = this.setTimeoutFn(() => {
       this.timer = null;
@@ -120,10 +144,33 @@ class WorktreeSyncScheduler implements SyncScheduler {
     }
   }
 
+  async flush(): Promise<void> {
+    if (!this.config.sync.enabled) return;
+
+    if (this.timer) {
+      this.clearTimeoutFn(this.timer);
+      this.timer = null;
+    }
+
+    this.flushPending();
+
+    if (this.isIdle()) {
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      this.flushWaiters.push(resolve);
+    });
+  }
+
   dispose(): void {
     if (this.timer) {
       this.clearTimeoutFn(this.timer);
       this.timer = null;
+    }
+    const waiters = this.flushWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter();
     }
   }
 
@@ -162,10 +209,18 @@ class WorktreeSyncScheduler implements SyncScheduler {
     let syncExitCode = 0;
     let checkExitCode: number | undefined;
     let checkRules: string[] | undefined;
+    let syncCommand: string | undefined;
+    let syncStdout: string | undefined;
+    let syncStderr: string | undefined;
+    let syncErrorMessage: string | undefined;
 
     try {
       const syncResult = await this.runSync(this.worktree);
       syncExitCode = syncResult.exitCode;
+      syncCommand = syncResult.syncCommand;
+      syncStdout = syncResult.syncStdout;
+      syncStderr = syncResult.syncStderr;
+      syncErrorMessage = syncResult.syncErrorMessage;
 
       // Run targeted checks if sync succeeded and rules specified
       if (
@@ -178,7 +233,7 @@ class WorktreeSyncScheduler implements SyncScheduler {
         const checkResult = await this.runCheck(this.worktree, checkRules);
         checkExitCode = checkResult.exitCode;
         if (checkExitCode !== 0) {
-          logger.error(
+          logger.errorStructuredOnly(
             `check.failed ${JSON.stringify({ rules: checkRules, exitCode: checkExitCode })}`,
           );
         } else {
@@ -189,8 +244,8 @@ class WorktreeSyncScheduler implements SyncScheduler {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error(`sync.failed ${message}`);
       syncExitCode = 1;
+      syncErrorMessage = message;
     } finally {
       this.emitCompletion(
         trigger,
@@ -198,6 +253,10 @@ class WorktreeSyncScheduler implements SyncScheduler {
         syncExitCode,
         checkExitCode,
         checkRules,
+        truncateSyncOutput(syncStdout),
+        truncateSyncOutput(syncStderr),
+        syncErrorMessage,
+        syncCommand,
       );
       this.inFlight = false;
 
@@ -207,10 +266,35 @@ class WorktreeSyncScheduler implements SyncScheduler {
         this.trailing = null;
         void this.startRun({
           reason: `${trailing.reason}.trailing`,
-          filePath: trailing.filePath,
-          checkRules: trailing.checkRules,
+          ...(trailing.filePath !== undefined
+            ? { filePath: trailing.filePath }
+            : {}),
+          ...(trailing.checkRules !== undefined
+            ? { checkRules: trailing.checkRules }
+            : {}),
         });
       }
+
+      this.resolveFlushWaitersIfIdle();
+    }
+  }
+
+  private isIdle(): boolean {
+    return (
+      !this.inFlight &&
+      !this.timer &&
+      !this.pending &&
+      !this.dirty &&
+      !this.trailing
+    );
+  }
+
+  private resolveFlushWaitersIfIdle(): void {
+    if (!this.isIdle()) return;
+    if (this.flushWaiters.length === 0) return;
+    const waiters = this.flushWaiters.splice(0);
+    for (const waiter of waiters) {
+      waiter();
     }
   }
 
@@ -220,21 +304,36 @@ class WorktreeSyncScheduler implements SyncScheduler {
     exitCode: number,
     checkExitCode?: number,
     checkRules?: string[],
+    syncStdout?: string,
+    syncStderr?: string,
+    syncErrorMessage?: string,
+    syncCommand?: string,
   ): void {
     const durationMs = Math.max(0, this.now() - startedAt);
+    const normalizedReason = trigger.reason.endsWith(".trailing")
+      ? trigger.reason.slice(0, -".trailing".length)
+      : trigger.reason;
+    const isSmartEnforcementSync =
+      normalizedReason.startsWith("smart-enforcement.");
     const meta: SyncRunMetadata = {
       reason: trigger.reason,
       worktree: this.worktree,
-      filePath: trigger.filePath,
       debounceWindowMs: this.config.sync.debounceMs,
       durationMs,
       exitCode,
-      checkExitCode,
-      checkRules,
+      ...(trigger.filePath !== undefined ? { filePath: trigger.filePath } : {}),
+      ...(checkExitCode !== undefined ? { checkExitCode } : {}),
+      ...(checkRules !== undefined ? { checkRules } : {}),
+      ...(syncStdout !== undefined ? { syncStdout } : {}),
+      ...(syncStderr !== undefined ? { syncStderr } : {}),
+      ...(syncErrorMessage !== undefined ? { syncErrorMessage } : {}),
+      ...(syncCommand !== undefined ? { syncCommand } : {}),
     };
 
     if (exitCode === 0) {
       logger.info(`sync.succeeded ${JSON.stringify(meta)}`);
+    } else if (isSmartEnforcementSync) {
+      logger.errorStructuredOnly(`sync.failed ${JSON.stringify(meta)}`);
     } else {
       logger.error(`sync.failed ${JSON.stringify(meta)}`);
     }
@@ -243,11 +342,49 @@ class WorktreeSyncScheduler implements SyncScheduler {
   }
 }
 
-async function runKibiSync(worktree: string): Promise<{ exitCode: number }> {
+const TRUNCATE_LIMIT = 4000;
+const TRUNCATE_SUFFIX = "\n...[truncated]";
+
+function truncateSyncOutput(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  if (value.length > TRUNCATE_LIMIT) {
+    return value.slice(0, TRUNCATE_LIMIT) + TRUNCATE_SUFFIX;
+  }
+  return value;
+}
+
+// Background sync runner: uses default sync (no --refresh-symbol-coordinates)
+// to avoid writing committed coordinate artifacts during automatic background execution.
+async function runKibiSync(worktree: string): Promise<SyncRunnerResult> {
   return new Promise((resolve) => {
-    exec("kibi sync", { cwd: worktree }, (error) => {
-      resolve({ exitCode: error ? (error.code ?? 1) : 0 });
-    });
+    try {
+      exec("kibi sync", { cwd: worktree }, (error, stdout, stderr) => {
+        if (error) {
+          const truncatedOut = truncateSyncOutput(stdout || undefined);
+          const truncatedErr = truncateSyncOutput(stderr || undefined);
+          const signal = error.signal ? ` (signal: ${error.signal})` : "";
+          const errorMessage = error.message
+            ? `${error.message}${signal}`
+            : signal || undefined;
+          resolve({
+            exitCode: error.code ?? 1,
+            syncCommand: "kibi sync",
+            ...(truncatedOut !== undefined ? { syncStdout: truncatedOut } : {}),
+            ...(truncatedErr !== undefined ? { syncStderr: truncatedErr } : {}),
+            ...(errorMessage ? { syncErrorMessage: errorMessage } : {}),
+          });
+        } else {
+          resolve({ exitCode: 0, syncCommand: "kibi sync" });
+        }
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      resolve({
+        exitCode: 1,
+        syncCommand: "kibi sync",
+        syncErrorMessage: message,
+      });
+    }
   });
 }
 

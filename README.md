@@ -5,6 +5,22 @@
 
 Kibi is a repo-local, per-git-branch, queryable knowledge base for software projects. It stores requirements, scenarios, tests, architecture decisions, and more as linked entities, ensuring end-to-end traceability between code and documentation.
 
+## Entity Taxonomy
+
+Kibi intentionally supports **eight core entity types**, organized into two logical groups:
+
+### Common Authoring Entities
+- **req** — Software requirements specifying functionality or constraints.
+- **scenario** — BDD scenarios describing user behavior (Given/When/Then).
+- **test** — Executable unit, integration, or e2e test cases.
+- **fact** — Atomic domain facts and invariants. Supports a **strict lane** for contradiction-sensitive modeling and a **context lane** (`observation`, `meta`) for bugs and workarounds.
+
+### Supporting & System Entities
+- **adr** — Architecture Decision Records documenting technical choices.
+- **flag** — Runtime or config gates (feature flags, kill-switches).
+- **event** — Domain or system events published/consumed by components.
+- **symbol** — Abstract code symbols (functions, classes, modules).
+
 
 ## Why Kibi
 
@@ -14,6 +30,7 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Enforces traceability** — Links code symbols to requirements, preventing orphan features and technical debt
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
 - **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
+- **Guides semantic modeling** — The MCP server can inspect prose requirements and suggest strict facts or reusable predicate facts before agents treat text as machine-checkable knowledge
 
 ### What You Get
 
@@ -31,7 +48,9 @@ Kibi provides concrete, day-to-day benefits for developers and teams:
 
 - **Branch-Local Memory** — Every git branch keeps its own KB snapshot. Switch contexts without losing traceability or polluting other branches.
 
-For OpenCode users, bootstrap an existing repo with `/init-kibi`.
+- **Semantic Advisor** — Get reviewable modeling suggestions for requirement prose, including scalar constraints, permissions, workflow rules, operational policies, privacy rules, and consistency requirements.
+
+For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopilot_generate\`).
 
 
 > **Entity Modeling Note:** Use `flag` for runtime/config gates only. Document bugs and workarounds as `fact` entities with `fact_kind: observation` or `meta`. See [Entity Schema](docs/entity-schema.md) and [AGENTS.md](AGENTS.md) for the canonical guidance.
@@ -42,7 +61,9 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 - **kibi-cli** — Command-line interface for automation and hooks
 - **kibi-mcp** — Model Context Protocol server for LLM integration
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
+- **kibi-codex** — Optional Codex adapter that brings Kibi MCP skills and hooks into Codex workflows
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
+- **Skill subsystem** — Reusable Markdown skills for agent guidance (bundled skills, CLI + MCP progressive disclosure)
 
 ## Prerequisites
 
@@ -53,75 +74,164 @@ For OpenCode users, bootstrap an existing repo with `/init-kibi`.
 
 ## Installation
 
-Kibi supports two common setups:
+Kibi is designed to run from your project, so each MCP client starts the same local `kibi-mcp` binary for that workspace.
 
-- **Global install** for normal use across repositories
-- **Repo-local dogfood workflow** in this repository, where OpenCode and MCP use locally built artifacts
-
-```bash
-# Using npm (recommended)
-npm install -g kibi-cli kibi-mcp
-
-# Using bun
-bun add -g kibi-cli kibi-mcp
-```
-
-After installation, verify that kibi is available:
+Install the CLI, MCP server, and core package as project dependencies. Use your
+project's package manager; npm is shown only as the Node baseline:
 
 ```bash
-kibi --version
+npm install --save-dev kibi-cli kibi-mcp kibi-core
 ```
 
-### OpenCode Plugin
+Equivalent project-local installs are:
 
-Add `kibi-opencode` to your project `opencode.json`:
+```bash
+pnpm add -D kibi-cli kibi-mcp kibi-core
+yarn add -D kibi-cli kibi-mcp kibi-core
+bun add -d kibi-cli kibi-mcp kibi-core
+```
+
+Run the CLI through the same project-local package context:
+
+```bash
+npm exec -- kibi status
+```
+
+For pnpm, Yarn, or Bun projects, use that manager's local binary runner instead
+(`pnpm exec kibi`, `yarn exec kibi`, or `bunx --no-install kibi`). Avoid global
+Kibi binaries for project automation unless you intentionally want a global tool.
+
+The MCP server should also run from the project-local install. For npm-based
+projects, use `npx --no-install kibi-mcp` or the equivalent `npm exec --no -- kibi-mcp`; for other package managers, use the local runner for that project
+(`pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`).
+These commands control package resolution only: each MCP client still starts and
+owns its own stdio server subprocess.
+
+`kibi-opencode` is optional. It adds OpenCode guidance/background maintenance,
+but it does not replace the base `kibi-cli` and `kibi-mcp` installation.
+
+For detailed setup, global install alternatives, and troubleshooting, see [the installation guide](docs/install.md).
+
+### MCP client examples
+
+<details>
+<summary>OpenCode</summary>
+
+Add Kibi to your `opencode.json`:
 
 ```json
 {
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["kibi-opencode"]
+  "mcp": {
+    "kibi": {
+      "type": "local",
+      "enabled": true,
+      "command": ["npx", "--no-install", "kibi-mcp"]
+    }
+  }
 }
 ```
 
-OpenCode installs npm plugins declared in `plugin` automatically at startup.
+</details>
 
-### VS Code Extension
+<details>
+<summary>VS Code</summary>
 
-The Kibi VS Code extension provides a TreeView explorer for your knowledge base and built-in MCP integration.
-
-Download the latest `.vsix` from [GitHub Releases](https://github.com/Looted/kibi/releases), then install it:
-
-- **Command Palette**: `Ctrl+Shift+P` → `Extensions: Install from VSIX...` → select the file
-- **CLI**: `code --install-extension kibi-vscode-x.x.x.vsix`
-
-Every GitHub release includes the latest VS Code extension build as a `.vsix` artifact.
-
-### Repo-local dogfood workflow (this repo)
-
-This repository uses local built `kibi-mcp` and `kibi-opencode` artifacts during development. If you change package versions or local package wiring used by the OpenCode setup here, rebuild before testing:
-
-```bash
-bun run build
-```
-
-### VS Code MCP
-
-Create `.vscode/mcp.json`:
+Add Kibi to `.vscode/mcp.json`:
 
 ```json
 {
   "servers": {
     "kibi": {
       "type": "stdio",
-      "command": "kibi-mcp"
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
     }
   }
 }
 ```
 
-If `kibi-mcp` is not on your `PATH`, replace `command` with the full executable path.
+</details>
 
-For complete installation steps and SWI-Prolog setup, see [detailed installation guide](docs/install.md).
+<details>
+<summary>Codex</summary>
+
+Add Kibi to `~/.codex/config.toml` or `$CODEX_HOME/config.toml`:
+
+```toml
+[mcp_servers.kibi]
+command = "npx"
+args = ["--no-install", "kibi-mcp"]
+enabled = true
+```
+
+Or add it with the Codex CLI:
+
+```bash
+codex mcp add kibi -- npx --no-install kibi-mcp
+```
+
+`kibi-codex` is optional and can be installed through a Codex plugin source or a
+local plugin fixture when you want bundled Kibi skills, MCP config, and
+warning-only lifecycle hooks. It is not required for base Kibi operations, and it
+does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`.
+
+To install it from the Kibi repo marketplace, add the marketplace source and then
+open the Codex plugin browser:
+
+```bash
+codex plugin marketplace add Looted/kibi
+codex
+```
+
+Then run `/plugins`, choose **Kibi Plugins**, and install `kibi-codex`.
+
+You can also install the npm package directly when you are developing or testing
+the plugin locally:
+
+```bash
+npm install --save-dev kibi-codex
+```
+
+For pinned environments, install an exact `kibi-codex` version and expose that
+version through your chosen Codex plugin source. This repo marketplace is not the
+official OpenAI Plugin Directory; self-serve plugin publishing is not available
+yet, so keep the manual MCP configuration above as the supported fallback.
+
+</details>
+
+<details>
+<summary>Generic MCP clients</summary>
+
+Most stdio MCP clients need the same command and arguments:
+
+```text
+command: npx
+args: --no-install kibi-mcp
+transport: stdio
+```
+
+If your client supports a working-directory setting, point it at the project where `kibi-mcp` is installed.
+
+</details>
+
+If your project uses a different package manager, keep the same MCP shape and swap the command/args for your local runner, for example `pnpm exec kibi-mcp`, `yarn exec kibi-mcp`, or `bunx --no-install kibi-mcp`.
+
+Optional OpenCode plugin usage is separate from the MCP server command:
+
+```json
+{
+  "plugin": ["kibi-opencode"]
+}
+```
+
+Use the plugin when you want OpenCode prompt guidance and background sync/check
+maintenance. Keep the `mcp.kibi` entry configured against the project-local
+`kibi-mcp` binary either way.
+
+`kibi-opencode` auto-updates its cached OpenCode plugin package by default on
+startup. To keep the plugin fixed, pin an exact version in the plugin array,
+for example `"kibi-opencode@0.15.0"`; MCP/CLI/core project dependencies remain
+under your package manager's control.
 
 ## Quick Start
 
@@ -129,41 +239,41 @@ Initialize kibi in your repository:
 
 ```bash
 # Verify environment prerequisites
-kibi doctor
+npm exec -- kibi doctor
 
 # Initialize .kb/ and install git hooks
-kibi init
+npm exec -- kibi init
 
 # Parse markdown docs and symbols into branch KB
-kibi sync
+npm exec -- kibi sync
 
 # Discover relevant knowledge before exact lookups
-kibi search auth
+npm exec -- kibi search auth
 
 # Inspect current branch snapshot and freshness
-kibi status
+npm exec -- kibi status
 
 # Run integrity checks
-kibi check
+npm exec -- kibi check
 ```
 
-> **Note:** `kibi init` installs git hooks by default. Hooks automatically sync your KB on branch checkout and merge.
+> **Note:** `kibi init` installs git hooks by default and writes `.kb/` ignore entries to `.gitignore`. Hooks automatically sync your KB on branch checkout and merge.
 
 ### Typical discovery workflow
 
 ```bash
 # Explore the KB first
-kibi search login
+npm exec -- kibi search login
 
 # Then follow up with exact/source-linked queries
-kibi query req --source src/auth/login.ts --format table
+npm exec -- kibi query req --source src/auth/login.ts --format table
 
 # Check branch attachment and freshness when needed
-kibi status
+npm exec -- kibi status
 
 # Ask focused reporting questions
-kibi gaps req --missing-rel specified_by,verified_by --format table
-kibi coverage --by req --format table
+npm exec -- kibi gaps req --missing-rel specified_by,verified_by --format table
+npm exec -- kibi coverage --by req --format table
 ```
 
 ## Documentation
@@ -181,19 +291,24 @@ kibi coverage --by req --format table
 
 ## Release and Versioning
 
-All publishable npm packages in this repo (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`) follow the same Changesets workflow for versioning and changelog generation.
+Kibi uses a two-branch release model with [Changesets](https://github.com/changesets/changesets). Work happens on `develop`, where version bumps are applied. The `master` branch is publish-only.
+
+### Release Flow
+1. **Development**: Create changesets on `develop` as you work.
+2. **Versioning**: Run `bun run version-packages` on `develop` to apply bumps.
+3. **Merge**: Merge `develop` into `master`.
+4. **Publish**: `master` CI builds and publishes new versions to npm.
+
+There is no `master → develop` back-merge.
 
 ```bash
-# Add release metadata for changed package(s)
+# Add release metadata (run on develop)
 bun run changeset
 
-# Preview pending releases
-bunx changeset status
-
-# Apply version bumps and update package changelogs
+# Apply version bumps (run on develop)
 bun run version-packages
 ```
 
 ---
 
-⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, and `kibi-opencode` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
+⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, `kibi-opencode`, and `kibi-codex` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.

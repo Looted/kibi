@@ -4,6 +4,8 @@
 # branch_flag is 1 for branch checkout, 0 for file checkout
 # Refresh branch/worktree assumptions after checkout so advisory plugin state
 # starts from synced KB data instead of stale in-memory cache assumptions.
+# Uses default non-coordinate-writing sync to avoid writing
+# committed symbol artifacts during automatic hook execution.
 
 old_ref=$1
 new_ref=$2
@@ -11,7 +13,7 @@ branch_flag=$3
 
 if [ "$branch_flag" = "1" ]; then
   # Try to resolve the branch we just left (strip decorations like ^ and ~)
-  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/\^.*//')
+  old_branch=$(git name-rev --name-only "$old_ref" 2>/dev/null | sed 's/[\^~].*//')
 
   # Basic validation: non-empty and does not contain ~ or ^
   if [ -n "$old_branch" ] && echo "$old_branch" | grep -qv '[~^]'; then

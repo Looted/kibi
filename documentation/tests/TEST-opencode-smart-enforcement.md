@@ -4,7 +4,7 @@ title: Smart Enforcement Verification and Surface Policy
 type: test
 status: passing
 created_at: 2026-04-03T00:00:00Z
-updated_at: 2026-04-05T01:00:00Z
+updated_at: 2026-04-20T00:00:00Z
 source: documentation/tests/TEST-opencode-smart-enforcement.md
 priority: must
 tags:
@@ -12,6 +12,9 @@ tags:
   - opencode
   - kibi
   - test
+links:
+  - type: validates
+    target: SCEN-opencode-smart-enforcement
 ---
 
 ## Test Coverage
@@ -39,6 +42,7 @@ tags:
   - 1 guidance block per session injection.
   - 5 bullet points per block.
   - 120 words per block.
+  - Briefing discovery cues (`/brief-kibi`, `kb_briefing_generate`) stay within the same budgeted block.
 
 ### Cache Invalidation Triggers
 
@@ -76,13 +80,13 @@ tags:
   - 5 bullet points or 120 words total for the combined sentinel + block output.
   - Degraded advisory and completion-reminder text are folded into the single block rather than appended as separate blocks.
 - **Policy Test** (`packages/opencode/tests/smart-enforcement-policy.test.ts`): Centralized contract matrix verifying the interaction of effective mode, single-block guidance outcome, completion-reminder visibility, and runtime overlay behavior.
+- **Policy Test** (`packages/opencode/tests/agent-surface-policy.test.ts`): Confirms risky-edit briefing cues still preserve the MCP-only surface and sanctioned `/brief-kibi` wording.
 - **Logging Test** (`packages/opencode/tests/logging-policy.test.ts`): Confirms the completion reminder emits exactly one matching structured `smart_enforcement_completion_reminder` log per risky context and is suppressed when `maintenanceDegraded` is active.
 ### Source-Linked Micro-Brief Verification
 
 - **Unit Test** (`packages/opencode/tests/source-linked-guidance.test.ts`): Verifies synchronization with `documentation/symbols.yaml` and ID resolution:
   - Extracts up to 3 deduped REQ IDs.
-  - Prioritizes `implements` relationships.
-  - Falls back to static `links`.
+  - Prioritizes `implements` relationships only (no static `links` fallback).
   - Handles both YAML formats (array and `{ symbols: [...] }`).
 - **Unit Test** (`packages/opencode/tests/prompt.test.ts`): Asserts that the micro-brief is prepended to `behavior_candidate` and `traceability_candidate` guidance.
 - **Integration Test** (`packages/opencode/tests/index.test.ts`): Confirms that micro-briefs are only shown for concrete hits and suppressed on cache hits.
@@ -92,4 +96,11 @@ tags:
 - **Integration Test** (`packages/opencode/tests/index.test.ts`): Verifies specific rule scheduling:
   - `traceability_candidate` triggers `symbol-traceability` with reason `smart-enforcement.traceability`.
   - Fact KB document edits trigger `strict-fact-shape` along with structural checks.
+  - Requirement KB document edits trigger `strict-req-fact-pairing` to surface unpaired requirements.
 - **Unit Test** (`packages/opencode/tests/scheduler.test.ts`): Ensures the scheduler correctly receives and executes the targeted rules.
+
+### File-Context and E2E Verification
+
+
+- **Unit Test** (`packages/opencode/tests/file-operation-state.test.ts`, `packages/opencode/tests/file-operation-reminders.test.ts`): Verifies guidance triggers for `file.created`, `file.edited`, and `file.deleted`.
+- **Unit Test** (`packages/opencode/tests/e2e-coverage-signals.test.ts`): Verifies authoritative vs heuristic E2E detection logic.

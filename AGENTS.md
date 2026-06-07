@@ -1,351 +1,142 @@
 # Agent Guidelines for Kibi Project
 
-This document provides guidelines for AI agents working on the kibi codebase.
+This file is intentionally terse. It captures repo-specific operating rules for agents and avoids duplicating MCP tool schemas or long-form docs.
 
-## Project Overview
+## Source of Truth Hierarchy
 
-**Kibi** is a repo-local, per-branch, queryable long-term memory for software projects. It stores requirements, BDD scenarios, tests, architecture decisions (ADRs), feature flags, events, code symbols, and facts—along with typed relationships between them.
+1. MCP tool `inputSchema` enums/required fields (authoritative for tool contracts)
+2. `docs/mcp-reference.md` and `docs/entity-schema.md`
+3. This file (workflow and policy guardrails)
 
-The KB is accessible via:
-- **CLI**: `kibi` command-line tool for humans/operators and automation
-- **MCP Server**: For LLM agent integration via stdio (JSON-RPC)
+If this file and MCP schema details diverge, follow MCP schema and update this file.
 
----
+## Non-Negotiables
 
-## Entity Types
+- Use Kibi via MCP tools only.
+- Do **not** manually read or edit `.kb/` files.
+- Do **not** run `kibi` CLI from agent sessions unless explicitly required by the user/operator workflow.
+- If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
 
-Kibi supports 8 entity types:
+## Required Kibi Workflow (Current Standard)
 
-| Type | Description | ID Prefix | Status Values |
-|------|-------------|-----------|---------------|
-| `req` | Requirement | REQ-XXX | open, in_progress, closed, deprecated |
-| `scenario` | BDD behavior | SCEN-XXX | draft, active, deprecated |
-| `test` | Unit/integration/e2e test | TEST-XXX | passing, failing, skipped, pending |
-| `adr` | Architecture Decision Record | ADR-XXX | proposed, accepted, deprecated, superseded |
-| `flag` | Feature flag / runtime config gate | FLAG-XXX | active, inactive, deprecated |
-| `event` | Domain event | EVT-XXX | active, deprecated |
-| `symbol` | Code symbol (function, class, module) | SYM-XXX | active, deprecated |
-| `fact` | Atomic domain fact; use observation/meta for bug and workaround notes | FACT-XXX | active, deprecated |
+1. **Bootstrap day-0 with `/init-kibi`**
+   - Ask at most 4 bounded context questions.
+   - Use `kb_autopilot_generate` for read-only synthesis.
+   - Show preview and get explicit approval before writes.
+   - Apply approved writes via sequential `kb_upsert`.
+   - Run `kb_check` after applying.
 
----
 
-## Relationship Types
+2. **Discovery before exact lookup**
+   - Start with `kb_search`.
+   - Follow with `kb_query` for exact entities/filters (`id`, `type`, `sourceFile`, `tags`).
+   - Use `kb_status` when branch/snapshot freshness confidence matters.
+   - Use `kb_find_gaps`, `kb_coverage`, `kb_graph` for curated analysis.
 
-| Relationship | Source → Target | Description |
-|--------------|-----------------|-------------|
-| `depends_on` | req → req | Requirement depends on another |
-| `specified_by` | req → scenario | Requirement specified by scenario |
-| `verified_by` | req → test | Requirement verified by test |
-| `validates` | test → req | Test validates requirement |
-| `implements` | symbol → req | Symbol implements requirement |
-| `covered_by` | symbol → test | Symbol covered by test |
-| `constrained_by` | symbol → adr | Symbol constrained by ADR |
-| `constrains` | req → fact | Requirement constrains domain fact |
-| `requires_property` | req → fact | Requirement requires property/value fact |
-| `guards` | flag → symbol/event/req | Flag guards entity |
-| `publishes` | symbol → event | Symbol publishes event |
-| `consumes` | symbol → event | Symbol consumes event |
-| `supersedes` | adr → adr, req → req | ADR or requirement supersedes prior one |
-| `relates_to` | any → any | Generic relationship |
+3. **Mutation discipline**
+   - Query before mutate.
+   - Create relationship endpoints before linking.
+   - Run `kb_upsert` sequentially (never parallel).
+   - Use small, reviewable batches.
+   - Use `kb_delete` only for intentional removals with dependency awareness.
 
----
+4. **Validation discipline**
+   - Run targeted `kb_check` rules during iteration.
+   - Run a final `kb_check` before completion.
+   - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed.
 
-## Querying Kibi
+## Knowledge Quality Metrics
 
-### MCP Tool Queries (Preferred)
+Agents should monitor usage and quality signals, not just raw graph size:
 
-Agents should use MCP tools for all KB interactions. For initial repository setup, use the `/init-kibi` slash command in OpenCode.
+- **Source-file hit rate**: how often source-linked lookups (`sourceFile`, `--source`) return relevant linked entities.
+- **Symbol coverage**: how many new or modified symbols remain traceable to at least one requirement.
+- **Telemetry completeness**: how often usage events include the telemetry needed for later audit and diagnosis.
+- **Zero-result rate**: how often search/query/reporting flows return no useful entities, especially for source-linked lookups.
+- **Validation recovery**: whether `kb_check` violations trend down after fixes instead of repeatedly reappearing.
+- **Semantic sample audit**: periodic spot checks that retrieved entities and facts actually answer the operator question.
 
-Available MCP tools:
-- `kb_query` - Query entities by type, ID, tags, and source file
-- `kb_upsert` - Insert or update entities
-- `kb_delete` - Delete entities by ID
-- `kb_check` - Validate KB integrity
+Graph coverage is useful for discovery, but it is **not semantic proof**. High link counts or broad traversal reach do not by themselves prove requirement correctness, contradiction safety, or operator usefulness.
 
-If the KB needs setup or repair beyond what `/init-kibi` provides, ask the user/operator to handle it outside the agent session.
+## Modeling Rules (Current Standard)
 
-### OpenCode Smart-Enforcement Expectations
+- Canonical entity types (all eight): `req`, `scenario`, `test`, `adr`, `flag`, `event`, `symbol`, `fact`.
+- Canonical traceability chain: `REQ-* -> SCEN-* -> TEST-*`.
+- Prefer typed relationships (`specified_by`, `verified_by`, `validates`, `implements`, `covered_by`, `executable_for`, etc.).
+- Plain string `links` import as generic `relates_to` only.
 
-- OpenCode guidance is **posture-aware** and **low-token**. In `vendored_only` or safe docs/test edits, you may see little or no Kibi guidance.
-- The absence of a prompt does **not** mean Kibi rules are disabled. Git hooks and `kb_check`-backed validation remain the hard enforcement layer.
-- Agent-visible guidance stays **MCP-only**: use `kb_search`, `kb_query`, `kb_upsert`, `kb_delete`, `kb_check`, `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
-- Treat prompt guidance as advisory workflow help; treat hooks/checks as the authoritative boundary.
+### Canonical entity-choice rule
 
----
+- `flag` = runtime/config gate.
+- `fact` = issue evidence lane (bug, workaround, incident notes), especially `fact_kind: observation` and `fact_kind: meta`.
+- Do not use `flag` for bug/workaround records without an actual gate.
+- When both a gate and issue note exist, use a paired model: `flag` for the gate + `fact` for the bug/workaround evidence.
 
-## Rules for Agents
+### Strict fact lane (contradiction-safe requirements)
 
-### Rule 1: Kibi-First Documentation (VERY IMPORTANT)
+For normative requirements that should participate in contradiction checks:
+- Link requirement -> `fact_kind: subject` via `constrains`
+- Link requirement -> `fact_kind: property_value` via `requires_property`
+- Use `docs/modeling-cheatsheet.md` and `docs/error-reference.md` for agent-facing field examples and recovery guidance. `kb_upsert.properties` typed fact fields are snake_case only; do not use camelCase aliases such as `subjectKey`.
 
-**All work must be documented using kibi.**
+### Predicate ontology lane (alpha)
 
-When you encounter code that is not obvious about its intent on first sight:
+For project-local domain ontology claims:
+- Before writing ontology prose, spell out the requirement claim and call `kb_suggest_predicates` to get ranked predicate candidates.
+- Prefer applying the returned `fact_kind: predicate` plan and `requires_predicate` relationship when a candidate fits.
+- Use `fact_kind: predicate_schema` to define allowed predicate signatures.
+- Use `fact_kind: predicate` to encode ground predicate claims with `predicate_name`, `predicate_args`, `canonical_key`, and optional `polarity: assert|deny`.
+- Link requirement -> `fact_kind: predicate` via `requires_predicate`.
+- Do not replace predicate facts with prose when a suitable predicate schema exists; use `observation` with `review:ontology-gap` when no predicate fits.
 
-1. **Query Kibi first** with `kb_query` instead of grepping the project
-2. If `kb_query` returns nothing:
-   - **a)** Do the research yourself (read code, understand context)
-   - **Update kibi** with your findings (create/update entities, relationships)
-   - **b)** If the query mechanism itself is lacking, **report it to the user** so kibi can be improved
+For bugs/workarounds/governance notes:
+- Use `fact` with `fact_kind: observation` or `meta` (non-blocking lane)
+- For each bug/workaround note, prefer `observation` or `meta` fact kinds
+- Do **not** model bug records as `flag` unless there is an actual runtime/config gate
 
-This ensures the knowledge base grows with each investigation, making future work easier for both humans and agents.
+Requirement semantic evolution is append-only:
+- Create a new requirement and link old -> new with `supersedes` semantics as appropriate.
 
-### Rule 2: Git Workflow Rules
+## Symbol Traceability Standard
 
-**Commit your work whenever a deliverable is ready, using industry-standard conventions.**
+- New/modified symbols must be traceable to at least one requirement.
+- Preferred for test/e2e code: symbol manifest + `executable_for` relation.
+- Inline `// implements REQ-xxx` remains optional/backward-compatible for quick code-only changes.
+- When code edits change symbol extraction output, include updated `documentation/symbol-coordinates.yaml` in the same commit as the related code/documentation changes. If new logical symbols are added, update `documentation/symbols.yaml` accordingly.
 
-- **Conventional Commits**: Always use the [Conventional Commits](https://www.conventionalcommits.org/) format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `chore:`).
-- **Commit on Ready**: Create a commit as soon as a feature, fix, or documentation update is complete.
-- **Local Only**: Do **not** push your commits. Just perform the local commit.
-- **Kibi Integration**: Commits trigger Kibi's git hooks to automatically sync and validate the knowledge base.
+## Release & Versioning Rules (npm packages)
 
----
+Applies when changing publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`).
 
-### Rule 3: Release Metadata and Publishing (npm Packages)
+- Add a changeset as part of the same work.
+- Use Conventional Commits.
+- Do not publish manually (`npm publish` forbidden).
+- Run `bun run version-packages` on `develop` (or pre-merge flow targeting develop).
+- Do not merge `master` back into `develop`.
+- After version/wiring changes used by local dogfooding, run `bun run build`.
 
-- **Release Metadata Required:** If you make changes to any package intended for npm publication (e.g., `kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`), you MUST create or update release metadata using [changesets](https://github.com/changesets/changesets). This ensures changelogs and versioning are tracked for all publishable packages.
-- **Do NOT Publish Directly:** Agents and contributors must NOT publish npm packages directly. Actual publishing is performed by GitHub Actions after PR review and merge. Local/PR workflows should only prepare changesets and version bumps.
-- **Release Workflow:** See the README for the full release workflow, including required commands and changelog policy.
-- **Changelog Parity:** Maintain package changelogs consistently across all npm packages, including `packages/opencode/CHANGELOG.md` for `kibi-opencode`.
-- **Commit Messages:** All release-related commits must follow Conventional Commits and clearly describe the scope and reason for the release metadata or version change.
-- **defaultBranch Precedence:** When preparing releases, the default branch is resolved in this order: `.kb/config.json` `defaultBranch` → `origin/HEAD` → `main`.
-- **Dogfood Rebuild Rule:** This repo's OpenCode setup uses local built `kibi-mcp` and `kibi-opencode` artifacts via `opencode.json` and `.opencode/plugins/kibi.ts`. After changing any Kibi package version or local package wiring used by that setup, run `bun run build` before testing or using OpenCode here.
+### Changeset writing rule: human-readable first
 
----
+Every changeset must start with a short human-facing summary before technical bullets:
 
-## Kibi MCP Best Practices
+1. **User impact prose first** (2-4 sentences): what changed from a human user's perspective, why it matters, and what behavior/outcome is different.
+2. **Dry technical summary second**: concise commit-style/package-level details.
 
-### Query First
-Always call kb_query before mutations to confirm current state.
+Do not start a changeset with internal-only jargon or dry commit bullets.
 
-*Rationale:* Prevents duplicate entities and ensures you're updating existing records rather than creating conflicts.
+## Test Hygiene (Environmental Pollution)
 
-### Create Before Link
-Relationship endpoints must exist before creating the relationship.
+Before declaring tests passing:
 
-*Rationale:* Referential integrity requires target entities to be defined; otherwise, the relationship will fail validation.
+- Restore mocks in `afterEach`.
+- Isolate filesystem side effects and clean up temp artifacts.
+- Reset mutable module/global state between tests.
+- Verify both isolated test runs and full-suite runs.
 
-### Prefer Targeted Checks
-Use kb_check with explicit rules during iteration, not the full check.
+## Quick References
 
-*Rationale:* Targeted checks are faster and provide focused feedback, speeding up the iteration cycle.
-
-### Sequential Writes
-Issue kb_upsert calls sequentially, never in parallel (avoid mutex contention).
-
-*Rationale:* Kibi uses file-based storage with mutex locks; parallel writes can cause contention errors and data corruption.
-
-### Tags Are Not IDs
-The tags parameter filters by metadata tags, not entity IDs.
-
-*Rationale:* Tags are categorization labels, not identifiers; filtering by ID requires the id parameter, not tags.
-
-### Small Batches
-Upsert in small reviewable batches, validate after each.
-
-*Rationale:* Smaller batches make errors easier to isolate and recover from, and ensure each batch is correct before moving on.
-
-### Gap Reports
-Record uncertainty in gap reports, not speculative entities.
-
-*Rationale:* The KB should contain verified knowledge, not guesses; speculative entries introduce noise and reduce trust in the system.
-
-### Strict Fact Modeling for Normative Requirements
-Use the strict fact lane when a requirement should participate in contradiction blocking: link the req to a `fact_kind=subject` fact via `constrains` and to a `fact_kind=property_value` fact via `requires_property`. Use `observation` and `meta` for non-blocking evidence and governance notes.
-
-### Prefer Append-Only Requirement Evolution
-When requirement semantics change, create a new requirement and link the old one with `supersedes` rather than assuming a plain upsert replaces earlier strict-fact semantics.
-
-### Entity Choice for Bug and Workaround Documentation
-
-When documenting bugs, incidents, or workarounds:
-  - Create a `fact` entity with `fact_kind: observation` or `fact_kind: meta`
-  - Do NOT create a `flag` entity unless there is an actual runtime/config gate
-  - Use `relates_to` to link the fact to related requirements, tests, or ADRs
-
-When a bug is temporarily mitigated by a feature gate:
-  - Create TWO records: `fact` (describes the issue/workaround) + `flag` (the gate)
-  - Link them with `relates_to` since no typed relationship exists for this case
-
-**Canonical mapping:**
-  - `flag` = runtime/config gate (includes kill-switches, deferred capabilities)
-  - `fact` (observation/meta) = bug records, incident notes, workarounds
-  - `req` = intended/corrected behavior
-  - `test` = executable verification/reproduction
-  - `adr` = durable design rationale
-
----
-
-## Documentation Workflow
-
-### Creating a New Entity
-
-1. Create a Markdown file in the appropriate directory (canonical location under documentation/):
-   - Requirements: `documentation/requirements/REQ-XXX.md`
-   - Scenarios: `documentation/scenarios/SCEN-XXX.md`
-   - Tests: `documentation/tests/TEST-XXX.md`
-   - ADRs: `documentation/adr/ADR-XXX.md`
-   - Flags: `documentation/flags/FLAG-XXX.md`
-   - Events: `documentation/events/EVT-XXX.md`
-   - Facts: `documentation/facts/FACT-XXX.md`
-
-> **Entity Choice Decision**: Use `flag` only for actual runtime gates. For bug/workaround documentation, use `fact` with `fact_kind: observation` or `meta` instead.
-
-2. Include frontmatter with required fields:
-   ```yaml
-   ---
-   id: REQ-XXX
-   title: Short summary
-   status: open
-   created_at: 2026-02-20T10:00:00Z
-   updated_at: 2026-02-20T10:00:00Z
-   source: path/to/source
-   tags:
-     - relevant-tag
-   ---
-   ```
-
-3. The entity will be synced to the KB by git hooks or operator-initiated sync.
-
-### Updating an Entity
-
-1. Edit the Markdown file
-2. Update `updated_at` timestamp
-3. The changes will be synced by git hooks or operator-initiated sync.
-
-### Linking Entities
-
-Use the `links` field in frontmatter to declare relationships:
-```yaml
-links:
-  - REQ-001  # This entity relates to REQ-001
-  - ADR-005  # This entity relates to ADR-005
-```
-
-Plain string `links` import as generic `relates_to` edges only. When contradiction-safe semantics matter, prefer typed links such as:
-
-```yaml
-links:
-  - type: constrains
-    target: FACT-SESSION
-  - type: requires_property
-    target: FACT-SESSION-MAX-AGE-30-MINUTES
-```
-
----
-
-## Quick Reference for Agents
-
-### MCP Tools
-
-```text
-kb_query(type, id, tags, sourceFile, limit, offset)
-kb_upsert(type, id, properties, relationships)
-kb_delete(ids)
-kb_check(rules)
-```
-
-### Slash Commands (OpenCode)
-
-- `/init-kibi` - Bootstrap Kibi in the current repository
-
-### Setup/Repair Escalation
-
-If the KB needs initialization, repair, or configuration beyond `/init-kibi`:
-1. Ask the user/operator to run the appropriate CLI commands
-2. Do not attempt to run `kibi` CLI commands yourself
-
-### Entity Choice Quick Reference
-
-- `flag` — Runtime/config gate (NOT for bug records)
-- `fact` — Domain facts; use `observation`/`meta` for bugs/workarounds
-- `req` — Intended behavior
-- `test` — Executable verification
-- `adr` — Durable design decisions
-
-**Rule**: Bug mitigated by a gate? Create both: `fact` (issue) + `flag` (gate).
-
----
-
-## Notes
-
-- `.kb/` is repo-local and per-branch
-- KBs are copied from `main` on new branch creation
-- Git hooks automate KB sync on branch checkout/merge
-- If you encounter KB setup issues, ask the user/operator to run the appropriate Kibi diagnostics outside the agent session
-
-
-## Staged Symbol Traceability (Agent Workflow)
-
-Staged Symbol Traceability ensures that every new or modified code symbol (function, class, or module) is explicitly linked to at least one requirement before it can be committed. This is a powerful feature for agents to enforce traceability.
-
-### Purpose
-
-This feature enforces a discipline where every code change must reference a requirement (REQ-xxx). It prevents "orphan" code from being merged, ensuring that all new features, bug fixes, and refactors are traceable to a documented need. This is especially valuable for regulated projects, safety-critical systems, or any team that wants to avoid technical debt and improve auditability.
-
-### Agent Workflow
-
-When implementing code changes, an agent should:
-
-1. **Prefer relationship-based traceability for test and e2e code:**
-   Instead of inline comments, model the code as a symbol (e.g., in `documentation/symbols.yaml`), link it to a `TEST-*` entity with `covered_by`, and link the test to the requirement with `validates` or `verified_by`. This is the preferred workflow for test and e2e symbols.
-
-2. **Add the `implements REQ-xxx` directive (Optional/Backward-Compatible):**
-   Inline comments remain supported and are useful for quick code-only changes:
-   ```typescript
-   export function myFunc() { } // implements REQ-001
-   ```
-
-   You can link to multiple requirements:
-   ```typescript
-   export class MyClass() { } // implements REQ-001, REQ-002
-   ```
-
-3. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links (either via inline comments or explicit KB relationships). This happens automatically on commit.
-
-4. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or create the missing relationship in the KB (e.g., via `kb_upsert`)
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
-**Scope Note**: This workflow applies to explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported; test() callbacks are out of scope for the staged check.
-
-### Configuration
-
-   ```typescript
-   export function myFunc() { } // implements REQ-001
-   ```
-
-   You can link to multiple requirements:
-   ```typescript
-   export class MyClass() { } // implements REQ-001, REQ-002
-   ```
-
-2. **Git hooks enforce traceability automatically:**
-   When Kibi is initialized with hooks, a pre-commit hook automatically validates that staged code symbols have requirement links. This happens automatically on commit - you do not need to run validation manually.
-
-3. **Handle violations:**
-   If commit is blocked due to missing requirement links:
-   - Add appropriate `implements REQ-xxx` directives to your code
-   - Or ask the user/operator to review if the traceability rules need adjustment
-
-
-
-### Configuration
-
-> **Note:** The `.kibi/traceability.json` configuration file is not yet implemented. Traceability enforcement is handled automatically by git hooks.
-
-The following schema is planned for a future release:
-
-```json
-{
-  "minLinks": 1,
-  "langs": ["ts", "tsx", "js", "jsx"]
-}
-```
-
----
-
-*For user-facing CLI syntax and quick reference, see [CLI Reference](docs/cli-reference.md#staged-symbol-traceability)*
-*For troubleshooting staged check issues, see [Troubleshooting](docs/troubleshooting.md)*
+- `docs/mcp-reference.md`
+- `docs/entity-schema.md`
+- `docs/inference-rules.md`
+- `docs/prompts/llm-rules.md`
+- `docs/cli-reference.md`

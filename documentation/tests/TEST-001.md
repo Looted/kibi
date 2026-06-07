@@ -10,8 +10,8 @@ tags:
   - init
   - unit
 links:
-  - REQ-003
-  - SCEN-002
+  - type: validates
+    target: SCEN-001
 ---
 
 Validates that `kibi init` creates `.kb/config.json`, `.kb/schema/`, and

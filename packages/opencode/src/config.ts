@@ -3,9 +3,10 @@ import os from "node:os";
 import path from "node:path";
 import * as logger from "./logger.js";
 
-// implements REQ-opencode-kibi-plugin-v1
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
 export interface KibiConfig {
   enabled: boolean;
+  autoUpdate: boolean;
   prompt: {
     enabled: boolean;
     hookMode: "auto" | "chat-params" | "system-transform" | "compat";
@@ -17,6 +18,7 @@ export interface KibiConfig {
     relevant: string[];
   };
   ux: {
+    toastStartup: boolean;
     toastFailures: boolean;
     toastSuccesses: boolean;
     toastCooldownMs: number;
@@ -38,7 +40,7 @@ export interface KibiConfig {
     };
     smartEnforcement: {
       enabled: boolean;
-      mode: "advisory" | "strict";
+      mode: "advisory" | "strict" | "hard";
       preflightTtlMs: number;
       idleResetMs: number;
       degradedMode: "warn-once" | "structured-only";
@@ -51,9 +53,15 @@ export interface KibiConfig {
 
 const DEFAULTS: KibiConfig = {
   enabled: true,
+  autoUpdate: true,
   prompt: { enabled: true, hookMode: "auto" },
   sync: { enabled: true, debounceMs: 2000, ignore: [], relevant: [] },
-  ux: { toastFailures: true, toastSuccesses: false, toastCooldownMs: 10000 },
+  ux: {
+    toastStartup: true,
+    toastFailures: true,
+    toastSuccesses: false,
+    toastCooldownMs: 10000,
+  },
   guidance: {
     dynamic: true,
     warnOnKbEdits: true,
@@ -97,7 +105,8 @@ function readJsonIfExists(filePath: string): unknown | null {
   }
 }
 
-function validateAndMerge(obj: unknown): KibiConfig {
+// implements REQ-opencode-kibi-plugin-v1, REQ-opencode-worktree-hard-enforcement-v1
+export function validateAndMerge(obj: unknown): KibiConfig {
   if (!obj || typeof obj !== "object") {
     logger.warn("Config is not an object, using defaults");
     return DEFAULTS;
@@ -107,6 +116,7 @@ function validateAndMerge(obj: unknown): KibiConfig {
   const out: KibiConfig = { ...DEFAULTS };
 
   if (typeof src.enabled === "boolean") out.enabled = src.enabled;
+  if (typeof src.autoUpdate === "boolean") out.autoUpdate = src.autoUpdate;
 
   if (src.prompt && typeof src.prompt === "object") {
     const p = src.prompt as Record<string, unknown>;
@@ -137,6 +147,8 @@ function validateAndMerge(obj: unknown): KibiConfig {
   if (src.ux && typeof src.ux === "object") {
     const u = src.ux as Record<string, unknown>;
     out.ux = { ...DEFAULTS.ux };
+    if (typeof u.toastStartup === "boolean")
+      out.ux.toastStartup = u.toastStartup;
     if (typeof u.toastFailures === "boolean")
       out.ux.toastFailures = u.toastFailures;
     if (typeof u.toastSuccesses === "boolean")
@@ -144,7 +156,6 @@ function validateAndMerge(obj: unknown): KibiConfig {
     if (typeof u.toastCooldownMs === "number")
       out.ux.toastCooldownMs = u.toastCooldownMs;
   }
-
   if (typeof src.logLevel === "string") out.logLevel = src.logLevel;
 
   if (src.guidance && typeof src.guidance === "object") {
@@ -188,13 +199,16 @@ function validateAndMerge(obj: unknown): KibiConfig {
       };
       if (typeof se.enabled === "boolean")
         out.guidance.smartEnforcement.enabled = se.enabled;
-      if (se.mode === "advisory" || se.mode === "strict")
+      if (se.mode === "advisory" || se.mode === "strict" || se.mode === "hard")
         out.guidance.smartEnforcement.mode = se.mode;
       if (typeof se.preflightTtlMs === "number")
         out.guidance.smartEnforcement.preflightTtlMs = se.preflightTtlMs;
       if (typeof se.idleResetMs === "number")
         out.guidance.smartEnforcement.idleResetMs = se.idleResetMs;
-      if (se.degradedMode === "warn-once" || se.degradedMode === "structured-only")
+      if (
+        se.degradedMode === "warn-once" ||
+        se.degradedMode === "structured-only"
+      )
         out.guidance.smartEnforcement.degradedMode = se.degradedMode;
       if (typeof se.requireRootKbForStrict === "boolean")
         out.guidance.smartEnforcement.requireRootKbForStrict =
@@ -209,7 +223,7 @@ function validateAndMerge(obj: unknown): KibiConfig {
 }
 
 // implements REQ-opencode-kibi-plugin-v1
-export function loadConfig(projectDir = process.cwd()): KibiConfig {
+export function loadConfig(projectDir: string = process.cwd()): KibiConfig {
   const homeConfig = path.join(
     os.homedir(),
     ".config",

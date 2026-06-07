@@ -1,10 +1,11 @@
 /// <reference types="bun-types" />
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
-import { getSourceLinkedRequirementIds } from "../src/source-linked-guidance";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { deriveFileOperationReminder } from "../src/file-operation-reminders";
+import { getSourceLinkedRequirementIds } from "../src/source-linked-guidance";
 
 describe("getSourceLinkedRequirementIds", () => {
   let tmpDir: string;
@@ -36,13 +37,13 @@ describe("getSourceLinkedRequirementIds", () => {
       .map((e) => {
         let entry = `  - id: ${e.id}\n    sourceFile: ${e.sourceFile}\n`;
         if (e.links && e.links.length > 0) {
-          entry += `    links:\n`;
+          entry += "    links:\n";
           for (const link of e.links) {
             entry += `      - ${link}\n`;
           }
         }
         if (e.relationships && e.relationships.length > 0) {
-          entry += `    relationships:\n`;
+          entry += "    relationships:\n";
           for (const rel of e.relationships) {
             entry += `      - type: ${rel.type}\n        target: ${rel.target}\n`;
           }
@@ -79,13 +80,16 @@ describe("getSourceLinkedRequirementIds", () => {
     assert.deepEqual(ids, ["REQ-001", "REQ-002", "REQ-003"]);
   });
 
-  test("prioritizes implements relationships over static links", () => {
+  test("prioritizes implements relationships", () => {
     writeSymbolsYaml([
       {
         id: "SYM-bar",
         sourceFile: "src/bar.ts",
         links: ["REQ-static-1", "REQ-static-2"],
-        relationships: [{ type: "implements", target: "REQ-impl-1" }],
+        relationships: [
+          { type: "implements", target: "REQ-impl-1" },
+          { type: "implements", target: "REQ-impl-2" },
+        ],
       },
     ]);
 
@@ -93,15 +97,17 @@ describe("getSourceLinkedRequirementIds", () => {
       tmpDir,
       path.join(tmpDir, "src/bar.ts"),
     );
-    assert.deepEqual(ids, ["REQ-impl-1", "REQ-static-1", "REQ-static-2"]);
+    // Only implements relationships are returned (static links not included)
+    assert.deepEqual(ids, ["REQ-impl-1", "REQ-impl-2"]);
   });
 
-  test("falls back to static links when no implements relationships", () => {
+  test("returns empty when no implements relationships", () => {
     writeSymbolsYaml([
       {
         id: "SYM-baz",
         sourceFile: "src/baz.ts",
         links: ["REQ-A", "REQ-B"],
+        // No relationships field — static links only
       },
     ]);
 
@@ -109,7 +115,8 @@ describe("getSourceLinkedRequirementIds", () => {
       tmpDir,
       path.join(tmpDir, "src/baz.ts"),
     );
-    assert.deepEqual(ids, ["REQ-A", "REQ-B"]);
+    // Static links are not returned when no implements relationships exist
+    assert.deepEqual(ids, []);
   });
 
   test("handles bare array YAML format", () => {
@@ -118,7 +125,7 @@ describe("getSourceLinkedRequirementIds", () => {
         {
           id: "SYM-bare",
           sourceFile: "src/bare.ts",
-          links: ["REQ-bare-1"],
+          relationships: [{ type: "implements", target: "REQ-bare-1" }],
         },
       ],
       false, // bare array, no `symbols:` wrapper
@@ -137,7 +144,7 @@ describe("getSourceLinkedRequirementIds", () => {
         {
           id: "SYM-wrapped",
           sourceFile: "src/wrapped.ts",
-          links: ["REQ-wrapped-1"],
+          relationships: [{ type: "implements", target: "REQ-wrapped-1" }],
         },
       ],
       true, // wrapped in `symbols:` key
@@ -202,5 +209,30 @@ describe("getSourceLinkedRequirementIds", () => {
     );
     // REQ-B appears in both rows but should be deduped, preserving first occurrence
     assert.deepEqual(ids, ["REQ-A", "REQ-B", "REQ-C"]);
+  });
+
+  test("hard policy deletion guidance uses sourceFile MCP cleanup instructions when source links are missing", () => {
+    const result = deriveFileOperationReminder({
+      normalizedPath: "src/removed.ts",
+      lifecycle: "deleted",
+      pathKind: "code",
+      linkedEntityResult: { ids: [], source: "none" },
+      e2eSignal: { level: "none", evidence: [], reminderText: null },
+      currentSemanticRisk: "safe_docs_only",
+      posture: "root_active",
+      effectiveMode: "hard",
+      checkpointEvidence: false,
+    } as Parameters<typeof deriveFileOperationReminder>[0]);
+
+    assert.equal(result.policyDecision, "hard_block");
+    assert.match(result.lifecycleReminder ?? "", /kb_search/);
+    assert.match(result.lifecycleReminder ?? "", /kb_query/);
+    assert.match(result.lifecycleReminder ?? "", /sourceFile/);
+    assert.match(result.lifecycleReminder ?? "", /src\/removed\.ts/);
+    assert.match(result.lifecycleReminder ?? "", /kb_upsert/);
+    assert.doesNotMatch(
+      result.lifecycleReminder ?? "",
+      /kibi\s+sync|kibi\s+query/i,
+    );
   });
 });

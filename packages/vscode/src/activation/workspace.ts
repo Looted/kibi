@@ -5,11 +5,24 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
+let workspaceExistsSync: typeof fs.existsSync = fs.existsSync;
+
+export function _setWorkspaceFsDepsForTests(overrides: {
+  existsSync?: typeof fs.existsSync;
+}): void {
+  workspaceExistsSync = overrides.existsSync ?? fs.existsSync;
+}
+
+export function _resetWorkspaceFsDepsForTests(): void {
+  workspaceExistsSync = fs.existsSync;
+}
+
 /**
  * Resolves the workspace root using VS Code workspace folders or KIBI_WORKSPACE_ROOT env var.
  * Returns the workspace root path or undefined if not found.
  */
 export function resolveWorkspaceRoot(
+  // implements REQ-vscode-traceability
   output: vscode.OutputChannel,
 ): string | undefined {
   let workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
@@ -20,7 +33,7 @@ export function resolveWorkspaceRoot(
     if (envWorkspaceRoot) {
       const resolved = path.resolve(envWorkspaceRoot);
       const kbConfigPath = path.join(resolved, ".kb", "config.json");
-      if (fs.existsSync(kbConfigPath)) {
+      if (workspaceExistsSync(kbConfigPath)) {
         workspaceRoot = resolved;
         output.appendLine(
           `No workspace folder attached; using KIBI_WORKSPACE_ROOT fallback: ${workspaceRoot}`,

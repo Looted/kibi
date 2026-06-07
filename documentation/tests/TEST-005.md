@@ -10,8 +10,8 @@ tags:
   - server
   - unit
 links:
-  - REQ-002
-  - SCEN-001
+  - type: validates
+    target: SCEN-001
 ---
 
 Starts `kibi-mcp` in a test environment. Sends `tools/list` and asserts:

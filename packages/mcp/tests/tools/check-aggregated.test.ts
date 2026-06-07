@@ -105,8 +105,6 @@ describe("MCP check aggregated path", () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-default-"),
     );
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = workspaceRoot;
 
     try {
       const query = mock(async (goal: string) => {
@@ -135,17 +133,12 @@ describe("MCP check aggregated path", () => {
 
       const prolog = { query } as unknown as PrologProcess;
 
-      const result = await handleKbCheck(prolog, {});
+      const result = await handleKbCheck(prolog, { workspaceRoot });
 
       expect(result.structuredContent?.count).toBe(0);
       expect(result.structuredContent?.violations).toEqual([]);
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
-      }
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });
@@ -154,8 +147,6 @@ describe("MCP check aggregated path", () => {
     const workspaceRoot = mkdtempSync(
       path.join(os.tmpdir(), "kibi-mcp-check-optin-"),
     );
-    const originalWorkspace = process.env.KIBI_WORKSPACE;
-    process.env.KIBI_WORKSPACE = workspaceRoot;
 
     try {
       mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
@@ -202,6 +193,7 @@ describe("MCP check aggregated path", () => {
 
       const result = await handleKbCheck(prolog, {
         rules: ["strict-fact-shape"],
+        workspaceRoot,
       });
 
       expect(result.structuredContent?.count).toBe(1);
@@ -210,11 +202,194 @@ describe("MCP check aggregated path", () => {
       );
       expect(query).toHaveBeenCalledTimes(1);
     } finally {
-      if (originalWorkspace === undefined) {
-        process.env.KIBI_WORKSPACE = "";
-      } else {
-        process.env.KIBI_WORKSPACE = originalWorkspace;
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("should include strict-req-fact-pairing violations when returned from aggregated checks", async () => {
+    const query = mock(async (goal: string) => {
+      if (goal.includes("check_all_json_with_options")) {
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify({
+              "strict-req-fact-pairing": [
+                {
+                  rule: "strict-req-fact-pairing",
+                  entityId: "REQ-PAIRING-001",
+                  description:
+                    "Requirement constrains FACT-SUBJECT-001 but has no matching strict requires_property fact",
+                  suggestion:
+                    "Add a property_value fact via requires_property for the same subject_key",
+                  source: "requirements/REQ-PAIRING-001.md",
+                },
+              ],
+            }),
+          },
+        };
       }
+
+      throw new Error(`Unexpected query: ${goal}`);
+    });
+
+    const prolog = { query } as unknown as PrologProcess;
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["strict-req-fact-pairing"],
+    });
+
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.violations[0]?.rule).toBe(
+      "strict-req-fact-pairing",
+    );
+    expect(result.content[0]?.text).toContain("strict-req-fact-pairing");
+    expect(result.content[0]?.text).toContain("REQ-PAIRING-001");
+  });
+
+  test("should include domain-contradictions violations from aggregated checks", async () => {
+    const query = mock(async (goal: string) => {
+      if (goal.includes("check_all_json_with_options")) {
+        return {
+          success: true,
+          bindings: {
+            JsonString: JSON.stringify({
+              "domain-contradictions": [
+                {
+                  rule: "domain-contradictions",
+                  entityId: "REQ-DOMAIN-CLOSED-001/REQ-DOMAIN-OPEN-001",
+                  description:
+                    "Value conflict on session.closed.timeout_minutes: eq 30 vs eq 60",
+                  suggestion:
+                    "Supersede one requirement or align both to the same required property",
+                  source: "",
+                },
+              ],
+            }),
+          },
+        };
+      }
+
+      throw new Error(`Unexpected query: ${goal}`);
+    });
+
+    const prolog = { query } as unknown as PrologProcess;
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["domain-contradictions"],
+    });
+
+    expect(result.structuredContent?.count).toBe(1);
+    expect(result.structuredContent?.violations[0]?.rule).toBe(
+      "domain-contradictions",
+    );
+    expect(result.content[0]?.text).toContain("domain-contradictions");
+    expect(result.content[0]?.text).toContain("REQ-DOMAIN-CLOSED-001");
+    expect(result.content[0]?.text).toContain("timeout_minutes");
+  });
+
+  test("should keep strict-req-fact-pairing disabled by default when no rules are requested", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-check-pairing-default-"),
+    );
+
+    try {
+      const query = mock(async (goal: string) => {
+        if (goal.includes("check_all_json_with_options")) {
+          return {
+            success: true,
+            bindings: {
+              JsonString: JSON.stringify({
+                "strict-req-fact-pairing": [
+                  {
+                    rule: "strict-req-fact-pairing",
+                    entityId: "REQ-PAIRING-DEFAULT-001",
+                    description:
+                      "Requirement constrains FACT-SUBJECT-001 but has no matching strict requires_property fact",
+                    suggestion:
+                      "Add a property_value fact via requires_property for the same subject_key",
+                    source: "requirements/REQ-PAIRING-DEFAULT-001.md",
+                  },
+                ],
+              }),
+            },
+          };
+        }
+
+        throw new Error(`Unexpected query: ${goal}`);
+      });
+
+      const prolog = { query } as unknown as PrologProcess;
+
+      const result = await handleKbCheck(prolog, { workspaceRoot });
+
+      expect(result.structuredContent?.count).toBe(0);
+      expect(result.structuredContent?.violations).toEqual([]);
+      expect(query).toHaveBeenCalledTimes(1);
+    } finally {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("should allow explicit strict-req-fact-pairing opt-in even when config disables it", async () => {
+    const workspaceRoot = mkdtempSync(
+      path.join(os.tmpdir(), "kibi-mcp-check-pairing-optin-"),
+    );
+
+    try {
+      mkdirSync(path.join(workspaceRoot, ".kb"), { recursive: true });
+      writeFileSync(
+        path.join(workspaceRoot, ".kb", "config.json"),
+        JSON.stringify(
+          {
+            checks: {
+              rules: {
+                "strict-req-fact-pairing": false,
+              },
+            },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const query = mock(async (goal: string) => {
+        if (goal.includes("check_all_json_with_options")) {
+          return {
+            success: true,
+            bindings: {
+              JsonString: JSON.stringify({
+                "strict-req-fact-pairing": [
+                  {
+                    rule: "strict-req-fact-pairing",
+                    entityId: "REQ-PAIRING-OPTIN-001",
+                    description:
+                      "Requirement constrains FACT-SUBJECT-001 but has no matching strict requires_property fact",
+                    suggestion:
+                      "Add a property_value fact via requires_property for the same subject_key",
+                    source: "requirements/REQ-PAIRING-OPTIN-001.md",
+                  },
+                ],
+              }),
+            },
+          };
+        }
+
+        throw new Error(`Unexpected query: ${goal}`);
+      });
+
+      const prolog = { query } as unknown as PrologProcess;
+
+      const result = await handleKbCheck(prolog, {
+        rules: ["strict-req-fact-pairing"],
+        workspaceRoot,
+      });
+
+      expect(result.structuredContent?.count).toBe(1);
+      expect(result.structuredContent?.violations[0]?.rule).toBe(
+        "strict-req-fact-pairing",
+      );
+      expect(query).toHaveBeenCalledTimes(1);
+    } finally {
       rmSync(workspaceRoot, { recursive: true, force: true });
     }
   });

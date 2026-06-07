@@ -26,17 +26,37 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
         env:
@@ -48,6 +68,10 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
+
+      - name: Typecheck matrix
+        run: bun run typecheck
+
       - name: Build CLI package
         run: bun run build:cli
 
@@ -55,16 +79,12 @@ jobs:
         run: bun run build:mcp
 
       - name: Run unit tests with coverage
-        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        if: ${{ !inputs.skip_tests }}
         run: bun run test:coverage:unit
 
-      - name: Run unit tests
-        if: ${{ !inputs.skip_tests && !(github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
-        run: bun run test:unit
-
       - name: Upload unit coverage artifact
-        if: ${{ !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
-        uses: actions/upload-artifact@v4
+        if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests && github.event_name == 'push' && github.ref == 'refs/heads/develop' }}
+        uses: actions/upload-artifact@v5
         with:
           name: unit-coverage
           path: coverage/unit/lcov.info
@@ -86,6 +106,9 @@ jobs:
         if: ${{ !inputs.skip_tests }}
         run: bash ./scripts/run-integration-tests.sh
 
+      - name: Clean stale tarballs
+        run: bun run clean:tarballs
+
       - name: Pack tarballs
         run: |
           cd packages/core && npm pack
@@ -93,19 +116,22 @@ jobs:
           cd ../mcp && npm pack
 
       - name: Upload tarball artifacts
-        uses: actions/upload-artifact@v4
+        if: ${{ github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@v5
         with:
           name: kibi-tarballs
           path: packages/*/*.tgz
           retention-days: 1
 
-      - name: Compile e2e tests
+      - name: Typecheck and compile e2e tests
         run: |
+          bun run typecheck:e2e:packed
           rm -rf /tmp/kibi-e2e-packed-compiled
-          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          npx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
 
       - name: Upload compiled e2e tests
-        uses: actions/upload-artifact@v4
+        if: ${{ github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
@@ -113,28 +139,44 @@ jobs:
 
   packed-e2e-cli-regression:
     runs-on: ubuntu-latest
-    needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    needs: [build-and-test, prolog-unit-coverage]
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Download tarball artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-tarballs
           path: packages
       - name: Download compiled e2e tests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
@@ -149,34 +191,59 @@ jobs:
 
   packed-e2e-mcp-regression:
     runs-on: ubuntu-latest
-    needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    needs: [build-and-test, prolog-unit-coverage]
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Download tarball artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-tarballs
           path: packages
       - name: Download compiled e2e tests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
-      - name: Run MCP protocol regression tests
+      - name: Setup pnpm
         run: |
-          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js
+          corepack enable
+          corepack prepare pnpm@10.24.0 --activate
+      - name: Run MCP packed regression tests
+        run: |
+          NODE_OPTIONS='--enable-source-maps' node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/mcp-protocol-regression.test.js /tmp/kibi-e2e-packed-compiled/mcp-pnpm-upgrade-stale-path.test.js
         env:
           KIBI_E2E_ALLOW_PATCHED_INSTALL: "0"
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -184,26 +251,29 @@ jobs:
 
   packed-e2e-tarball-verify:
     runs-on: ubuntu-latest
-    needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    needs: [build-and-test, prolog-unit-coverage]
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Download tarball artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-tarballs
           path: packages
       - name: Download compiled e2e tests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
@@ -213,31 +283,53 @@ jobs:
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
+      - name: Verify tarball path hygiene
+        run: |
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 packed-path-hygiene.test.ts
+        env:
+          KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
+        timeout-minutes: 5
 
   packed-e2e-branch-workflow:
     runs-on: ubuntu-latest
-    needs: build-and-test
-    if: ${{ !inputs.skip_tests }}
+    needs: [build-and-test, prolog-unit-coverage]
+    if: ${{ github.actor != 'nektos/act' && !inputs.skip_tests }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Download tarball artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-tarballs
           path: packages
       - name: Download compiled e2e tests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: kibi-e2e-tests-compiled
           path: /tmp/kibi-e2e-packed-compiled
@@ -251,18 +343,20 @@ jobs:
 
   publish-dry-run:
     runs-on: ubuntu-latest
-    needs: build-and-test
+    needs: [build-and-test, prolog-unit-coverage]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
 
@@ -284,3 +378,65 @@ jobs:
 
       - name: Verify tarballs exist and are non-empty
         run: ls -lh packages/*/*.tgz
+
+  prolog-unit-coverage:
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip_tests }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install SWI-Prolog
+        run: |
+          retry() {
+            local attempts="$1"
+            shift
+            local attempt=1
+            until "$@"; do
+              if [ "$attempt" -ge "$attempts" ]; then
+                return 1
+              fi
+              attempt=$((attempt + 1))
+              sleep 10
+            done
+          }
+          sudo apt-get install -y software-properties-common
+          if [ "${{ github.actor }}" != "nektos/act" ]; then
+            retry 3 sudo apt-add-repository -y ppa:swi-prolog/stable
+          fi
+          retry 3 sudo apt-get update
+          retry 3 sudo apt-get install -y swi-prolog
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: '1.3.10'
+
+      - name: Run Prolog unit coverage
+        run: |
+          for attempt in 1 2 3; do
+            echo "Prolog coverage attempt $attempt/3..."
+            rm -rf coverage/prolog
+            if bun run test:coverage:prolog; then
+              echo "Prolog coverage passed on attempt $attempt"
+              exit 0
+            fi
+            echo "Prolog coverage failed on attempt $attempt"
+            if [ "$attempt" -lt 3 ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          done
+          echo "Prolog coverage failed after 3 attempts"
+          exit 1
+
+      - name: Upload Prolog coverage artifact
+        if: ${{ always() && github.actor != 'nektos/act' }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: prolog-coverage
+          path: coverage/prolog
+          if-no-files-found: error
+          retention-days: 7

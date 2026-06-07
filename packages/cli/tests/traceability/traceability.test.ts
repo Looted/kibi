@@ -62,6 +62,7 @@ describe("git-staged utilities", () => {
     };
     const files = getStagedFiles(mockExec);
     expect(files.length).toBe(1);
+    expect(files[0]?.diffText).toContain("@@ -0,0 +1,3 @@");
   });
 
   it("getStagedFiles handles null-delimited git status output", () => {
@@ -78,6 +79,7 @@ describe("git-staged utilities", () => {
     expect(files).toHaveLength(1);
     expect(files[0]?.path).toBe("new.js");
     expect(files[0]?.status).toBe("A");
+    expect(files[0]?.diffText).toContain("@@ -0,0 +1,2 @@");
   });
 });
 
@@ -180,7 +182,13 @@ describe("symbol-extract", () => {
     const manifestLookup: ManifestLookup = new Map([
       [
         "src/app/version.ts:APP_VERSION",
-        { id: "SYMBOL-056", links: ["REQ-001", "REQ-022"] },
+        {
+          id: "SYMBOL-056",
+          relationships: [
+            { type: "implements", to: "REQ-001" },
+            { type: "implements", to: "REQ-022" },
+          ],
+        },
       ],
     ]);
     const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
@@ -198,8 +206,14 @@ describe("symbol-extract", () => {
 
   it("manifest lookup distinguishes symbols by sourceFile not just title", () => {
     const manifestLookup: ManifestLookup = new Map([
-      ["src/a/helper.ts:helper", { id: "SYM-A", links: ["REQ-A"] }],
-      ["src/b/helper.ts:helper", { id: "SYM-B", links: ["REQ-B"] }],
+      [
+        "src/a/helper.ts:helper",
+        { id: "SYM-A", relationships: [{ type: "implements", to: "REQ-A" }] },
+      ],
+      [
+        "src/b/helper.ts:helper",
+        { id: "SYM-B", relationships: [{ type: "implements", to: "REQ-B" }] },
+      ],
     ]);
     const stagedA: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "src/a/helper.ts",
@@ -224,7 +238,13 @@ describe("symbol-extract", () => {
 
   it("inline directive links take precedence over manifest links", () => {
     const manifestLookup: ManifestLookup = new Map([
-      ["file.ts:foo", { id: "SYM-001", links: ["REQ-MANIFEST"] }],
+      [
+        "file.ts:foo",
+        {
+          id: "SYM-001",
+          relationships: [{ type: "implements", to: "REQ-MANIFEST" }],
+        },
+      ],
     ]);
     const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
       path: "file.ts",
@@ -251,6 +271,63 @@ describe("symbol-extract", () => {
     expect(syms[0]?.id.length).toBe(16); // SHA256 hex slice
     expect(syms[0]?.reqLinks.length).toBe(0);
   });
+
+  it("manifest with executable_for preserves relationship but does not add to reqLinks", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      [
+        "src/test.ts:testHelper",
+        {
+          id: "SYM-TEST-001",
+          relationships: [{ type: "executable_for", to: "TEST-001" }],
+        },
+      ],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/test.ts",
+      content: "export function testHelper() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms.length).toBe(1);
+    expect(syms[0]?.id).toBe("SYM-TEST-001");
+    // executable_for should NOT contribute to reqLinks
+    expect(syms[0]?.reqLinks).toEqual([]);
+    // But the relationship should be preserved in the relationships field
+    expect(syms[0]?.relationships).toEqual([
+      { type: "executable_for", to: "TEST-001" },
+    ]);
+  });
+
+  it("manifest with mixed implements and executable_for preserves both relationships", () => {
+    const manifestLookup: ManifestLookup = new Map([
+      [
+        "src/mixed.ts:mixedFunc",
+        {
+          id: "SYM-MIXED",
+          relationships: [
+            { type: "implements", to: "REQ-001" },
+            { type: "executable_for", to: "TEST-001" },
+          ],
+        },
+      ],
+    ]);
+    const staged: Parameters<typeof extractSymbolsFromStagedFile>[0] = {
+      path: "src/mixed.ts",
+      content: "export function mixedFunc() {}",
+      hunkRanges: [{ start: 1, end: 1 }],
+      status: "M",
+    };
+    const syms = extractSymbolsFromStagedFile(staged, manifestLookup);
+    expect(syms.length).toBe(1);
+    // implements contributes to reqLinks
+    expect(syms[0]?.reqLinks).toContain("REQ-001");
+    // Both relationships are preserved
+    expect(syms[0]?.relationships).toEqual([
+      { type: "implements", to: "REQ-001" },
+      { type: "executable_for", to: "TEST-001" },
+    ]);
+  });
 });
 
 describe("temp-kb and validate", () => {
@@ -261,6 +338,7 @@ describe("temp-kb and validate", () => {
         id: "s1",
         name: "n",
         kind: "function",
+        role: "behavioral",
         location: { file: "f", startLine: 1, endLine: 1 },
         hunkRanges: [],
         reqLinks: [],
@@ -278,6 +356,7 @@ describe("temp-kb and validate", () => {
         id: "s2",
         name: "fn",
         kind: "function",
+        role: "behavioral",
         location: { file: "f", startLine: 1, endLine: 1 },
         hunkRanges: [],
         reqLinks: ["REQ-001"],

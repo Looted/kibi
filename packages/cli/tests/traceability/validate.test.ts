@@ -155,8 +155,8 @@ describe("traceability/validate", () => {
     ).toBe(
       [
         "Traceability failed: 2/2 staged symbols unlinked (minLinks=2)",
-        "src/alpha.ts:12  alpha()  -> Add one or more requirement links, for example: implements: REQ-001",
-        "src/beta.ts:3  beta()  -> Add one or more requirement links, for example: implements: REQ-001",
+        "src/alpha.ts:12  alpha()  -> Add ownership: implements: REQ-001 (production code), use covered_by for production coverage, or executable_for for executable test code",
+        "src/beta.ts:3  beta()  -> Add ownership: implements: REQ-001 (production code), use covered_by for production coverage, or executable_for for executable test code",
       ].join("\n"),
     );
   });

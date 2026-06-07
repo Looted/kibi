@@ -11,7 +11,9 @@ tags:
   - extractors
   - relationships
 links:
-  - REQ-007
+  - REQ-cli-sync
+  - type: verified_by
+    target: TEST-015
 ---
 
 ## Scenario

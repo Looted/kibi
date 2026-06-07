@@ -10,8 +10,10 @@ tags:
   - test
 links:
   - REQ-vscode-traceability
-  - SCEN-vscode-open-entity
-  - SCEN-vscode-code-action
+  - type: validates
+    target: SCEN-vscode-open-entity
+  - type: validates
+    target: SCEN-vscode-code-action
 ---
 
 6 unit tests in `packages/vscode/tests/traceability.test.ts`:

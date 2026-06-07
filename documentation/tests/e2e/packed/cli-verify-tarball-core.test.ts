@@ -76,6 +76,21 @@ if (RUN_NODE_TEST_SUITE) {
           }
         }
 
+        // Verify bundled skill assets are present in dist
+        const requiredSkillFiles = [
+          "dist/public/skills/kibi-usage/SKILL.md",
+          "dist/public/skills/kibi-usage/resources/fact-lanes.md",
+          "dist/public/skills/kibi-usage/resources/relationship-directions.md",
+          "dist/public/skills/kibi-usage/resources/workflows.md",
+        ];
+        for (const sf of requiredSkillFiles) {
+          if (!entries.includes(sf)) {
+            throw new Error(
+              `Missing skill asset '${sf}' in kibi-cli tarball (${tgz})`,
+            );
+          }
+        }
+
         // Inspect package.json inside the tarball to ensure it lists kibi-core as dependency
         const pkgJsonRaw = execFileSync(
           "tar",

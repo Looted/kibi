@@ -67,4 +67,145 @@ describe("non-blocking UX", () => {
       "compat mode should not trigger sync via tool.execute.after",
     );
   });
+
+  // Task 1 TDD: Use fake clock to guarantee synchronous console.error capture
+  test("advisory check failure with fake clock does not emit console.error", async () => {
+    const errorSpy: string[] = [];
+    const origError = console.error;
+    console.error = (...args: unknown[]) => {
+      errorSpy.push(args.map(String).join(" "));
+    };
+
+    try {
+      // Use fake clock like scheduler.test.ts for deterministic timing
+      let nowMs = 0;
+      const tasks = new Map<
+        ReturnType<typeof setTimeout>,
+        { at: number; fn: () => void }
+      >();
+      const fakeNow = () => nowMs;
+      const fakeSetTimeout = (fn: () => void, ms: number) => {
+        const handle = setTimeout(() => {}, 0);
+        clearTimeout(handle);
+        tasks.set(handle, { at: nowMs + ms, fn });
+        return handle;
+      };
+      const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
+        tasks.delete(handle);
+      };
+      const advance = (ms: number) => {
+        nowMs += ms;
+        while (true) {
+          const due = [...tasks.entries()]
+            .filter(([, task]) => task.at <= nowMs)
+            .sort((a, b) => a[1].at - b[1].at);
+          if (!due.length) break;
+          for (const [id, task] of due) {
+            tasks.delete(id);
+            task.fn();
+          }
+        }
+      };
+
+      const scheduler = createSyncScheduler({
+        worktree: process.cwd(),
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+        },
+        now: fakeNow,
+        setTimeoutFn: fakeSetTimeout,
+        clearTimeoutFn: fakeClearTimeout,
+        runSync: async () => ({ exitCode: 0 }),
+        runCheck: async () => ({ exitCode: 1 }),
+      });
+
+      scheduler.scheduleSync(
+        "smart-enforcement.traceability",
+        "src/feature.ts",
+        ["symbol-traceability"],
+      );
+      advance(100);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // BUG: Advisory check failure currently emits console.error via logger.error.
+      assert.equal(
+        errorSpy.length,
+        0,
+        `Advisory check failure must not emit console.error, got: ${JSON.stringify(errorSpy)}`,
+      );
+    } finally {
+      console.error = origError;
+    }
+  });
+
+  test("advisory multi-rule check failure with fake clock does not emit console.error", async () => {
+    const errorSpy: string[] = [];
+    const origError = console.error;
+    console.error = (...args: unknown[]) => {
+      errorSpy.push(args.map(String).join(" "));
+    };
+
+    try {
+      let nowMs = 0;
+      const tasks = new Map<
+        ReturnType<typeof setTimeout>,
+        { at: number; fn: () => void }
+      >();
+      const fakeNow = () => nowMs;
+      const fakeSetTimeout = (fn: () => void, ms: number) => {
+        const handle = setTimeout(() => {}, 0);
+        clearTimeout(handle);
+        tasks.set(handle, { at: nowMs + ms, fn });
+        return handle;
+      };
+      const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
+        tasks.delete(handle);
+      };
+      const advance = (ms: number) => {
+        nowMs += ms;
+        while (true) {
+          const due = [...tasks.entries()]
+            .filter(([, task]) => task.at <= nowMs)
+            .sort((a, b) => a[1].at - b[1].at);
+          if (!due.length) break;
+          for (const [id, task] of due) {
+            tasks.delete(id);
+            task.fn();
+          }
+        }
+      };
+
+      const scheduler = createSyncScheduler({
+        worktree: process.cwd(),
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+        },
+        now: fakeNow,
+        setTimeoutFn: fakeSetTimeout,
+        clearTimeoutFn: fakeClearTimeout,
+        runSync: async () => ({ exitCode: 0 }),
+        runCheck: async () => ({ exitCode: 1 }),
+      });
+
+      scheduler.scheduleSync(
+        "smart-enforcement.kb-doc",
+        "documentation/facts/FACT-001.md",
+        ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+      );
+      advance(100);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      assert.equal(
+        errorSpy.length,
+        0,
+        `Advisory multi-rule check failure must not emit console.error, got: ${JSON.stringify(errorSpy)}`,
+      );
+    } finally {
+      console.error = origError;
+    }
+  });
 });

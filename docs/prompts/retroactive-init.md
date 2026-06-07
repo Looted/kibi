@@ -6,7 +6,7 @@ You are an expert Kibi bootstrapper. Your goal is to backfill a repo-local, per-
 
 This bootstrap process establishes:
 
-1. **Requirement traceability chains** - Build complete req → scenario → test → symbol links so every requirement is specified by scenarios, verified by tests, and implemented by code symbols
+1. **Requirement traceability chains** - Build complete `req` → `scenario` → `test` links so every requirement is specified by scenarios and verified by tests. Link production symbols to requirements with `implements` and test symbols to test entities with `executable_for`.
 2. **Evidence-based entity creation** - Capture ADRs, flags, and events only when concrete documentation or code evidence exists; never create speculative entities
 3. **Durable, branch-local project memory** - Create a persistent knowledge store that serves future agents working on this branch, enabling faster context retrieval and better decision-making
 
@@ -42,7 +42,7 @@ kibi_kb_query({ "type": "symbol", "sourceFile": "src/auth/login.ts" })
 ### kb_upsert - Create or update entities with relationships
 
 ```json
-// Create a requirement with scenario and test links
+// Create a requirement linked to a scenario (canonical: REQ→SCEN→TEST)
 kibi_kb_upsert({
   "type": "req",
   "id": "REQ-001",
@@ -53,13 +53,26 @@ kibi_kb_upsert({
   },
   "relationships": [
     { "type": "specified_by", "from": "REQ-001", "to": "SCEN-001" },
-    { "type": "verified_by", "from": "REQ-001", "to": "TEST-001" },
     { "type": "constrains", "from": "REQ-001", "to": "FACT-001" },
     { "type": "requires_property", "from": "REQ-001", "to": "FACT-002" }
   ]
 })
 
-// Create a symbol with requirement and test links
+// Create the scenario→test verification link separately
+kibi_kb_upsert({
+  "type": "scenario",
+  "id": "SCEN-001",
+  "properties": {
+    "title": "Authenticated account settings access",
+    "status": "active",
+    "source": "docs/scenarios/account-security.md"
+  },
+  "relationships": [
+    { "type": "verified_by", "from": "SCEN-001", "to": "TEST-001" }
+  ]
+})
+
+// Create a production symbol with requirement and test coverage links
 kibi_kb_upsert({
   "type": "symbol",
   "id": "auth-login-handler",
@@ -71,6 +84,20 @@ kibi_kb_upsert({
   "relationships": [
     { "type": "implements", "from": "auth-login-handler", "to": "REQ-001" },
     { "type": "covered_by", "from": "auth-login-handler", "to": "TEST-001" }
+  ]
+})
+
+// Create a test symbol with test identity link
+kibi_kb_upsert({
+  "type": "symbol",
+  "id": "auth-login-test",
+  "properties": {
+    "title": "Login handler test code",
+    "status": "active",
+    "sourceFile": "tests/auth/login.test.ts"
+  },
+  "relationships": [
+    { "type": "executable_for", "from": "auth-login-test", "to": "TEST-001" }
   ]
 })
 ```
@@ -89,7 +116,7 @@ kibi_kb_check({ "rules": ["required-fields", "no-dangling-refs"] })
 // - no-dangling-refs: Checks that relationship targets exist
 // - no-cycles: Detects circular dependencies
 // - must-priority-coverage: Ensures high-priority requirements have verification
-// - symbol-coverage: Validates symbol entity completeness
+// - symbol-coverage: Checks that production symbols have qualifying test coverage
 ```
 
 ### kb_delete - Remove entities after dependency checks
@@ -118,15 +145,16 @@ Follow this tightened bootstrap sequencing:
    ```
    This prevents duplicate entity creation in partially-bootstrapped repos.
 
-3. **Create shared facts first** - Extract atomic, contradiction-safe domain facts and create fact entities. Facts represent invariants like "User must have unique email" or "Session expires after 30 minutes". Use `constrains` and `requires_property` relationships to express how requirements interact with facts.
+3. **Create shared facts first** - Extract atomic, contradiction-safe domain facts and create fact entities. Facts represent invariants like "User must have unique email" or "Session expires after 30 minutes". Use `constrains` and `requires_property` relationships to express how requirements interact with facts. **Strict facts** (subject, property_value) drive contradiction checks.
    - Use `fact_kind: subject` + `fact_kind: property_value` for rules that should block contradictions.
-   - Use `observation` or `meta` for runtime evidence, historical notes, and governance commentary that should not block contradictions.
+   - Use `observation` or `meta` for runtime evidence, historical notes, and governance commentary that should not block contradictions (**non-blocking lane**).
 
 4. **Create req/scenario/test/symbol entities in small batches** - Process 5-10 entities at a time:
    - Create requirements first with fact relationships
    - Create scenarios for each requirement with `specified_by`
    - Create tests for each requirement with `verified_by`
-   - Create symbols with `implements` and `covered_by` links
+   - Create production symbols with `implements` (ownership) and `covered_by` (coverage) links
+   - Create test symbols with `executable_for` (identity) links
 
 5. **Validate each batch with `kb_check`** - Run targeted validation after each batch:
    ```json
@@ -151,7 +179,7 @@ Follow this tightened bootstrap sequencing:
 - **Separate req, scenario, and test entities** - Never embed scenarios or tests inside requirements. Each must be its own entity with proper typed relationships.
 - **Use contradiction-safe modeling** - Represent shared domain invariants as fact entities and express constraints via `constrains` and `requires_property` so contradictions are structural and queryable.
 - **Prefer append-only requirement evolution** - When a rule changes, create a new requirement and connect it with `supersedes` instead of silently rewriting the old requirement in place.
-- **Prefer explicit typed relationships** - Use `specified_by`, `verified_by`, `implements`, `covered_by`, `constrains`, `requires_property`, `constrained_by`, `guards`, `publishes`, `consumes`. Use `relates_to` only as an escape hatch when no other relationship type fits.
+- **Prefer explicit typed relationships** - Use `specified_by`, `verified_by`, `validates`, `implements`, `covered_by`, `executable_for`, `constrains`, `requires_property`, `constrained_by`, `guards`, `publishes`, `consumes`. Use `relates_to` only as an escape hatch when no other relationship type fits.
 - **Avoid exhaustive symbol extraction** - Focus symbol coverage on stable, behavior-bearing symbols (commands, handlers, services, public modules, entry points, adapters). Helper-level functions rarely need explicit symbol entities.
 
 ## Anti-Patterns
@@ -210,4 +238,4 @@ Then propose the candidate fact entities you intend to create, followed by one s
 
 **Do NOT create a `flag` for bugs or workarounds without an actual gate:** The `flag` entity is for runtime/config gates only (feature flags, kill-switches, deferred capabilities). Never create a flag entity just to document a bug or workaround.
 
-**Use `fact` with observation/meta for bug/workaround notes:** When documenting bugs, incidents, or workarounds, create a `fact` entity with `fact_kind: observation` or `meta`. This keeps non-blocking evidence separate from contradiction-sensitive facts.
+**Use `fact` with observation/meta for bug/workaround notes:** When documenting bugs, incidents, or workarounds, create a `fact` entity with `fact_kind: observation` or `meta`. This keeps non-blocking evidence separate from contradiction-sensitive **strict facts**. `domain-contradictions` check applies only to strict lane. `strict-fact-shape` is a default-off migration check.

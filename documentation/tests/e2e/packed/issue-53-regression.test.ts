@@ -245,15 +245,23 @@ if (RUN_NODE_TEST_SUITE) {
 
               const toolNames = toolsList.map((t) => t.name).sort();
               const expectedTools = [
+                "kb_autopilot_generate",
                 "kb_check",
                 "kb_coverage",
                 "kb_delete",
                 "kb_find_gaps",
                 "kb_graph",
+                "kb_model_requirement",
                 "kb_query",
                 "kb_search",
+                "kb_skills_list",
+                "kb_skills_load",
+                "kb_skills_read",
+                "kb_sparql_remote",
                 "kb_status",
+                "kb_suggest_predicates",
                 "kb_upsert",
+                "kb_validate_upsert",
               ];
 
               assert.deepStrictEqual(

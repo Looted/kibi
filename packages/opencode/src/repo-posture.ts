@@ -1,6 +1,6 @@
 // implements REQ-opencode-smart-enforcement-v1, REQ-opencode-kibi-plugin-v1
 import { existsSync, readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 /**
  * Classification of the repository's Kibi posture — how Kibi is (or isn't)
@@ -103,11 +103,12 @@ function rootTargetsAllResolve(cwd: string): boolean {
 
   for (const key of defaultKeys) {
     const raw = paths?.[key] ?? DEFAULT_SYNC_PATHS[key];
+    if (!raw) return false;
     // Normalize: strip trailing slashes and glob patterns to get the root dir/file path
     const normalized = raw.replace(/\/+$/, "");
     const isFile = normalized.endsWith(".yaml") || normalized.endsWith(".yml");
     if (isFile) {
-      if (!existsSync(join(cwd, normalized))) return false;
+      if (!existsSync(resolve(cwd, normalized))) return false;
     } else {
       // Strip first glob segment
       const segments = normalized.split("/");
@@ -117,7 +118,7 @@ function rootTargetsAllResolve(cwd: string): boolean {
         rootSegments.push(seg);
       }
       const dirPath = rootSegments.join("/") || ".";
-      if (!existsSync(join(cwd, dirPath))) return false;
+      if (!existsSync(resolve(cwd, dirPath))) return false;
     }
   }
 

@@ -21,6 +21,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -32,6 +33,11 @@ import {
   loadConfig,
   loadSyncConfig,
 } from "../../src/utils/config.js"; // implements TEST-001
+import {
+  LATEST_KB_SCHEMA_VERSION,
+  getSchemaVersionStatus,
+  normalizeSchemaVersion,
+} from "../../src/utils/schema-version.js";
 
 describe("config", () => {
   let tmpDir: string;
@@ -53,6 +59,7 @@ describe("config", () => {
       const config = loadConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_CONFIG.paths);
+      expect("briefs" in config).toBe(false);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -117,6 +124,25 @@ describe("config", () => {
       expect(config.paths.scenarios).toBe(DEFAULT_CONFIG.paths.scenarios);
       expect(config.paths.tests).toBe(DEFAULT_CONFIG.paths.tests);
       expect(config.paths.adr).toBe(DEFAULT_CONFIG.paths.adr);
+    });
+
+    test("does not expose legacy briefs config", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "custom/req",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadConfig(tmpDir);
+
+      expect("briefs" in config).toBe(false);
     });
 
     test("merges all user paths with defaults", () => {
@@ -334,6 +360,58 @@ describe("config", () => {
       expect(config.checks?.rules["must-priority-coverage"]).toBe(false);
       expect(config.checks?.symbolTraceability.requireAdr).toBe(true);
     });
+
+    test("keeps legacy config without schemaVersion readable without injecting a version", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "legacy/requirements",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadConfig(tmpDir);
+
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBeUndefined();
+
+      const status = getSchemaVersionStatus(config);
+      expect(status.currentVersion).toBeNull();
+      expect(status.latestVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+      expect(status.needsMigration).toBe(true);
+      expect(status.warning).toEqual(expect.any(String));
+    });
+
+    test("preserves an explicit schemaVersion value from config without normal load mutation", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          schemaVersion: "1",
+          paths: {
+            requirements: "custom/req",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadConfig(tmpDir);
+
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBe("1");
+      expect(JSON.parse(readFileSync(configPath, "utf8")).schemaVersion).toBe(
+        "1",
+      );
+    });
   });
 
   describe("loadSyncConfig", () => {
@@ -341,6 +419,7 @@ describe("config", () => {
       const config = loadSyncConfig(tmpDir);
 
       expect(config.paths).toEqual(DEFAULT_SYNC_PATHS);
+      expect("briefs" in config).toBe(false);
       expect(config.checks).toBeDefined();
       expect(config.checks?.rules).toBeDefined();
       expect(config.checks?.symbolTraceability).toBeDefined();
@@ -404,6 +483,25 @@ describe("config", () => {
       expect(config.paths.scenarios).toBe(DEFAULT_SYNC_PATHS.scenarios);
       expect(config.paths.tests).toBe(DEFAULT_SYNC_PATHS.tests);
       expect(config.paths.adr).toBe(DEFAULT_SYNC_PATHS.adr);
+    });
+
+    test("does not expose legacy briefs config", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "custom/**/*.md",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadSyncConfig(tmpDir);
+
+      expect("briefs" in config).toBe(false);
     });
 
     test("merges all user paths with DEFAULT_SYNC_PATHS", () => {
@@ -621,6 +719,28 @@ describe("config", () => {
       expect(config.checks?.rules["no-dangling-refs"]).toBe(false);
       expect(config.checks?.symbolTraceability.requireAdr).toBe(true);
     });
+
+    test("keeps legacy sync config without schemaVersion readable without injecting a version", () => {
+      const kbDir = path.join(tmpDir, ".kb");
+      mkdirSync(kbDir, { recursive: true });
+      const configPath = path.join(kbDir, "config.json");
+      writeFileSync(
+        configPath,
+        JSON.stringify({
+          paths: {
+            requirements: "legacy/**/*.md",
+          },
+        }),
+        "utf8",
+      );
+
+      const config = loadSyncConfig(tmpDir);
+
+      expect(
+        (config as unknown as { schemaVersion?: unknown }).schemaVersion,
+      ).toBeUndefined();
+      expect(config.paths.requirements).toBe("legacy/**/*.md");
+    });
   });
 
   describe("config constants", () => {
@@ -636,10 +756,34 @@ describe("config", () => {
       expect(DEFAULT_CONFIG.paths.symbols).toBeDefined();
     });
 
+    test("DEFAULT_CONFIG has no briefs config", () => {
+      expect("briefs" in DEFAULT_CONFIG).toBe(false);
+    });
+
     test("DEFAULT_CONFIG has checks config", () => {
       expect(DEFAULT_CONFIG.checks).toBeDefined();
       expect(DEFAULT_CONFIG.checks?.rules).toBeDefined();
       expect(DEFAULT_CONFIG.checks?.symbolTraceability).toBeDefined();
+    });
+
+    test("DEFAULT_CONFIG pins the latest KB schema version", () => {
+      expect(
+        (DEFAULT_CONFIG as unknown as { schemaVersion?: unknown })
+          .schemaVersion,
+      ).toBe(LATEST_KB_SCHEMA_VERSION);
+    });
+
+    test("schema version utilities normalize versions and flag future configs with a warning", () => {
+      expect(normalizeSchemaVersion("1")).toBe(1);
+      expect(normalizeSchemaVersion("not-a-number")).toBeNull();
+
+      const status = getSchemaVersionStatus({
+        schemaVersion: 99,
+      });
+      expect(status.currentVersion).toBe(99);
+      expect(status.latestVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+      expect(status.needsMigration).toBe(false);
+      expect(status.warning).toEqual(expect.any(String));
     });
 
     test("DEFAULT_SYNC_PATHS uses glob patterns", () => {

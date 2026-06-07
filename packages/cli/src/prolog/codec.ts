@@ -18,6 +18,7 @@
  * Doubles single-quote characters per ISO Prolog standard.
  */
 export function escapeAtom(value: string): string {
+  // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
@@ -26,6 +27,7 @@ export function escapeAtom(value: string): string {
  * Simple atoms (lowercase start, alphanumeric + underscore) pass through.
  */
 export function toPrologAtom(value: string): string {
+  // implements REQ-009
   const simplePrologAtom = /^[a-z][a-zA-Z0-9_]*$/;
   return simplePrologAtom.test(value)
     ? value
@@ -53,15 +55,12 @@ export function toPrologString(value: string): string {
  * Alias for escapeAtom for semantic clarity.
  */
 export function escapeAtomContent(value: string): string {
+  // implements REQ-009
   return value.replace(/'/g, "''");
 }
 
-/**
- * Parse a Prolog list of lists into a JavaScript array.
- * Input: "[[a,b,c],[d,e,f]]"
- * Output: [["a", "b", "c"], ["d", "e", "f"]]
- */
 export function parseListOfLists(listStr: string): string[][] {
+  // implements REQ-009
   const cleaned = listStr.trim().replace(/^\[/, "").replace(/\]$/, "");
 
   if (cleaned === "") {
@@ -108,11 +107,8 @@ export function parseListOfLists(listStr: string): string[][] {
   return results;
 }
 
-/**
- * Parse a single entity from Prolog binding format.
- * Input: "[abc123, req, [id=abc123, title=\"Test\", ...]]"
- */
 export function parseEntityFromBinding(
+  // implements REQ-009
   bindingStr: string,
 ): Record<string, unknown> {
   const cleaned = bindingStr.trim().replace(/^\[/, "").replace(/\]$/, "");
@@ -122,36 +118,45 @@ export function parseEntityFromBinding(
     return {};
   }
 
-  const id = parts[0].trim();
-  const type = parts[1].trim();
+  const idPart = parts[0];
+  const typePart = parts[1];
+  if (idPart === undefined || typePart === undefined) {
+    return {};
+  }
+
+  const id = idPart.trim();
+  const type = typePart.trim();
   const propsStr = parts.slice(2).join(",").trim();
 
   const props = parsePropertyList(propsStr);
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-/**
- * Parse entity from array returned by parseListOfLists.
- * Input: ["abc123", "req", "[id=abc123, title=\"Test\", ...]"]
- */
 export function parseEntityFromList(data: string[]): Record<string, unknown> {
+  // implements REQ-009
   if (data.length < 3) {
     return {};
   }
 
-  const id = data[0].trim();
-  const type = data[1].trim();
-  const propsStr = data[2].trim();
+  const [idPart, typePart, propsPart] = data;
+  if (
+    idPart === undefined ||
+    typePart === undefined ||
+    propsPart === undefined
+  ) {
+    return {};
+  }
+
+  const id = idPart.trim();
+  const type = typePart.trim();
+  const propsStr = propsPart.trim();
 
   const props = parsePropertyList(propsStr);
   return { ...props, id: normalizeEntityId(stripOuterQuotes(id)), type };
 }
 
-/**
- * Parse Prolog property list into JavaScript object.
- * Input: "[id=abc123, title=\"Test\"]"
- */
 export function parsePropertyList(propsStr: string): Record<string, unknown> {
+  // implements REQ-009
   const props: Record<string, unknown> = {};
 
   let cleaned = propsStr.trim();
@@ -182,9 +187,6 @@ export function parsePropertyList(propsStr: string): Record<string, unknown> {
   return props;
 }
 
-/**
- * Parse a single Prolog value, handling typed literals and URIs.
- */
 export function parsePrologValue(valueInput: string): unknown {
   // implements REQ-009
   const value = valueInput.trim();
@@ -208,8 +210,14 @@ export function parsePrologValue(valueInput: string): unknown {
 
     const parts = splitTopLevelGeneral(innerContent, ",");
     if (parts.length >= 2) {
-      let literalValue = parts[0].trim();
-      const datatype = parts[1].trim();
+      const literalPart = parts[0];
+      const datatypePart = parts[1];
+      if (literalPart === undefined || datatypePart === undefined) {
+        return value;
+      }
+
+      let literalValue = literalPart.trim();
+      const datatype = datatypePart.trim();
 
       if (literalValue.startsWith('"') && literalValue.endsWith('"')) {
         literalValue = literalValue.substring(1, literalValue.length - 1);
@@ -275,10 +283,6 @@ export function parsePrologValue(valueInput: string): unknown {
   return value;
 }
 
-/**
- * General-purpose split at top level (not inside brackets or quotes).
- * More robust version used by property parsing.
- */
 export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   // implements REQ-009
   const results: string[] = [];
@@ -333,18 +337,11 @@ export function splitTopLevelGeneral(str: string, delimiter: string): string[] {
   return results;
 }
 
-/**
- * Split a string by delimiter at the top level (not inside brackets or quotes).
- * @see splitTopLevelGeneral
- */
 export function splitTopLevel(str: string, delimiter: string): string[] {
   // implements REQ-009
   return splitTopLevelGeneral(str, delimiter);
 }
 
-/**
- * Strip outer quotes from a string value.
- */
 function stripOuterQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
     return value.slice(1, -1);
@@ -355,9 +352,6 @@ function stripOuterQuotes(value: string): string {
   return value;
 }
 
-/**
- * Normalize entity ID by extracting filename from file:// URI.
- */
 function normalizeEntityId(value: string): string {
   if (!value.startsWith("file:///")) {
     return value;
@@ -367,11 +361,8 @@ function normalizeEntityId(value: string): string {
   return idx === -1 ? value : value.slice(idx + 1);
 }
 
-/**
- * Parse an atom list from Prolog response.
- * Input: "[a, b, c]" or atom string
- */
 export function parseAtomList(raw: string): string[] {
+  // implements REQ-009
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
     return [];
@@ -387,10 +378,8 @@ export function parseAtomList(raw: string): string[] {
     .filter((token) => token.length > 0);
 }
 
-/**
- * Parse a list of pairs from Prolog response.
- */
 export function parsePairList(raw: string): Array<[string, string]> {
+  // implements REQ-009
   const rows = parseListRows(raw);
   const pairs: Array<[string, string]> = [];
 
@@ -399,17 +388,19 @@ export function parsePairList(raw: string): Array<[string, string]> {
       stripQuotes(part.trim()),
     );
     if (parts.length >= 2) {
-      pairs.push([parts[0], parts[1]]);
+      const first = parts[0];
+      const second = parts[1];
+      if (first !== undefined && second !== undefined) {
+        pairs.push([first, second]);
+      }
     }
   }
 
   return pairs;
 }
 
-/**
- * Parse a list of triples from Prolog response.
- */
 export function parseTriples(raw: string): Array<[string, string, string]> {
+  // implements REQ-009
   const rows = parseListRows(raw);
   const triples: Array<[string, string, string]> = [];
 
@@ -418,16 +409,18 @@ export function parseTriples(raw: string): Array<[string, string, string]> {
       stripQuotes(part.trim()),
     );
     if (parts.length >= 3) {
-      triples.push([parts[0], parts[1], parts[2]]);
+      const first = parts[0];
+      const second = parts[1];
+      const third = parts[2];
+      if (first !== undefined && second !== undefined && third !== undefined) {
+        triples.push([first, second, third]);
+      }
     }
   }
 
   return triples;
 }
 
-/**
- * Parse list rows from Prolog response.
- */
 function parseListRows(raw: string): string[] {
   const trimmed = raw.trim();
   if (trimmed === "[]" || trimmed.length === 0) {
@@ -474,9 +467,6 @@ function parseListRows(raw: string): string[] {
   return rows;
 }
 
-/**
- * Unwrap outer list brackets.
- */
 function unwrapList(value: string): string {
   if (value.startsWith("[") && value.endsWith("]")) {
     return value.slice(1, -1).trim();
@@ -495,11 +485,6 @@ export interface ParsedViolation {
   source?: string;
 }
 
-/**
- * Parse a Prolog list of violation/5 terms into JavaScript objects.
- * Handles descriptions and suggestions that contain commas or nested parens.
- * Input: "[violation(rule,'EntityId',\"Desc\",\"Sugg\",'src')]"
- */
 export function parseViolationRows(raw: string): ParsedViolation[] {
   // implements REQ-006
   const trimmed = raw.trim();
@@ -529,24 +514,40 @@ export function parseViolationRows(raw: string): ParsedViolation[] {
     const parts = splitTopLevelGeneral(inner, ",");
     if (parts.length < 4) continue;
 
-    const rule = parts[0].trim().replace(/^'|'$/g, "");
-    const entityId = parts[1].trim().replace(/^'|'$/g, "");
-    const description = parts[2].trim().replace(/^"|"$/g, "");
-    const suggestion = parts[3].trim().replace(/^"|"$/g, "");
+    const rulePart = parts[0];
+    const entityIdPart = parts[1];
+    const descriptionPart = parts[2];
+    const suggestionPart = parts[3];
+    if (
+      rulePart === undefined ||
+      entityIdPart === undefined ||
+      descriptionPart === undefined ||
+      suggestionPart === undefined
+    ) {
+      continue;
+    }
+
+    const rule = rulePart.trim().replace(/^'|'$/g, "");
+    const entityId = entityIdPart.trim().replace(/^'|'$/g, "");
+    const description = descriptionPart.trim().replace(/^"|"$/g, "");
+    const suggestion = suggestionPart.trim().replace(/^"|"$/g, "");
     const source =
       parts.length >= 5
-        ? parts[4].trim().replace(/^'|'$/g, "") || undefined
+        ? parts[4]?.trim().replace(/^'|'$/g, "") || undefined
         : undefined;
 
-    violations.push({ rule, entityId, description, suggestion, source });
+    violations.push({
+      rule,
+      entityId,
+      description,
+      suggestion,
+      ...(source !== undefined ? { source } : {}),
+    });
   }
 
   return violations;
 }
 
-/**
- * Strip quotes from a value (single or double).
- */
 function stripQuotes(value: string): string {
   if (value.startsWith("'") && value.endsWith("'")) {
     return value.slice(1, -1);

@@ -38,6 +38,35 @@
     "severity": { "type": "string" },
     "links": { "type": "array", "items": { "type": "string" } },
     "text_ref": { "type": "string" },
+    "sourceFile": { "type": "string" },
+    "granularity_reason": {
+      "type": "string",
+      "enum": [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link"
+      ]
+    },
+    "symbol_role": {
+      "type": "string",
+      "enum": [
+        "behavioral",
+        "structural",
+        "type-shape",
+        "config",
+        "module",
+        "unknown"
+      ]
+    },
+    "verification_scope": {
+      "type": "string",
+      "enum": ["unit", "integration", "end_to_end"]
+    },
+    "verification_perspective": {
+      "type": "string",
+      "enum": ["internal", "consumer"]
+    },
     "type": {
       "type": "string",
       "enum": [
@@ -53,7 +82,14 @@
     },
     "fact_kind": {
       "type": "string",
-      "enum": ["subject", "property_value", "observation", "meta"]
+      "enum": [
+        "subject",
+        "property_value",
+        "observation",
+        "meta",
+        "predicate_schema",
+        "predicate"
+      ]
     },
     "subject_key": { "type": "string" },
     "property_key": { "type": "string" },
@@ -71,11 +107,26 @@
     "value_bool": { "type": "boolean" },
     "unit": { "type": "string" },
     "scope": { "type": "string" },
-    "polarity": { "type": "string", "enum": ["require", "forbid"] },
+    "polarity": {
+      "type": "string",
+      "enum": ["require", "forbid", "assert", "deny"]
+    },
     "closed_world": { "type": "boolean" },
     "valid_from": { "type": "string" },
     "valid_to": { "type": "string" },
-    "canonical_key": { "type": "string" }
+    "canonical_key": { "type": "string" },
+    "predicate_name": { "type": "string" },
+    "predicate_namespace": { "type": "string" },
+    "predicate_arity": { "type": "integer", "minimum": 1 },
+    "argument_names": { "type": "array", "items": { "type": "string" } },
+    "argument_types": { "type": "array", "items": { "type": "string" } },
+    "argument_descriptions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "aliases": { "type": "array", "items": { "type": "string" } },
+    "examples": { "type": "array", "items": { "type": "string" } },
+    "predicate_args": { "type": "array", "items": { "type": "string" } }
   },
   "required": [
     "id",
@@ -87,6 +138,20 @@
     "type"
   ],
   "allOf": [
+    {
+      "if": {
+        "properties": { "type": { "const": "test" } }
+      },
+      "then": {},
+      "else": {
+        "not": {
+          "anyOf": [
+            { "required": ["verification_scope"] },
+            { "required": ["verification_perspective"] }
+          ]
+        }
+      }
+    },
     {
       "if": {
         "properties": { "type": { "const": "fact" } }
@@ -110,8 +175,63 @@
             { "required": ["closed_world"] },
             { "required": ["valid_from"] },
             { "required": ["valid_to"] },
-            { "required": ["canonical_key"] }
+            { "required": ["canonical_key"] },
+            { "required": ["predicate_name"] },
+            { "required": ["predicate_namespace"] },
+            { "required": ["predicate_arity"] },
+            { "required": ["argument_names"] },
+            { "required": ["argument_types"] },
+            { "required": ["argument_descriptions"] },
+            { "required": ["aliases"] },
+            { "required": ["examples"] },
+            { "required": ["predicate_args"] }
           ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "fact" },
+          "fact_kind": { "const": "predicate_schema" }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": [
+          "predicate_name",
+          "predicate_arity",
+          "argument_names",
+          "argument_types"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "fact" },
+          "fact_kind": { "const": "predicate" }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "required": ["predicate_name", "predicate_args", "canonical_key"],
+        "properties": {
+          "polarity": { "enum": ["assert", "deny"] }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": { "const": "fact" },
+          "fact_kind": { "const": "property_value" }
+        },
+        "required": ["type", "fact_kind"]
+      },
+      "then": {
+        "properties": {
+          "polarity": { "enum": ["require", "forbid"] }
         }
       }
     }

@@ -196,12 +196,20 @@ if (RUN_NODE_TEST_SUITE) {
           "kb_query",
           "kb_search",
           "kb_status",
+          "kb_skills_list",
+          "kb_skills_load",
+          "kb_skills_read",
           "kb_find_gaps",
           "kb_coverage",
           "kb_graph",
+          "kb_sparql_remote",
           "kb_upsert",
+          "kb_validate_upsert",
           "kb_delete",
           "kb_check",
+          "kb_model_requirement",
+          "kb_suggest_predicates",
+          "kb_autopilot_generate",
         ],
       );
 
@@ -235,7 +243,7 @@ if (RUN_NODE_TEST_SUITE) {
         jsonrpc: "2.0",
         id: 201,
         method: "tools/call",
-        params: { name: "kb_branch_gc", arguments: { dry_run: true } },
+        params: { name: "kb_briefing_generate", arguments: {} },
       };
 
       const initLine = JSON.parse(

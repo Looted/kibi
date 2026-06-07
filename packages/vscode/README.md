@@ -63,8 +63,6 @@ Absolute path to the kibi-mcp executable. Examples:
 
 If left empty, the extension will attempt to auto-detect `kibi-mcp` in your system PATH.
 
-In this repository's dogfood workflow you may prefer pointing VS Code at the locally built artifact instead of a global install. After changing local package wiring or package versions here, rebuild first with `bun run build`.
-
 #### Finding the correct path
 
 **Option 1: Check your PATH**
@@ -104,7 +102,9 @@ Or edit `settings.json` directly:
 
 This extension includes MCP (Model Context Protocol) server integration for AI assistant interaction with your knowledge base. The extension relies on the curated public MCP surface, using `kb_search` for discovery and `kb_query` for source-linked exact lookups.
 
-When branch freshness or reporting matters, the same public surface also exposes `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
+ZR|When branch freshness or reporting matters, the same public surface also exposes `kb_status`, `kb_find_gaps`, `kb_coverage`, and `kb_graph`.
+
+JP|## Current Limitations (v0.1)
 
 ## Current Limitations (v0.1)
 

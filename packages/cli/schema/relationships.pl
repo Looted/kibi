@@ -9,6 +9,7 @@ relationship_type(verified_by).
 relationship_type(validates).
 relationship_type(implements).
 relationship_type(covered_by).
+relationship_type(executable_for).
 relationship_type(constrained_by).
 relationship_type(guards).
 relationship_type(publishes).
@@ -25,6 +26,9 @@ valid_relationship(verified_by, req, test).
 valid_relationship(validates, test, req).
 valid_relationship(implements, symbol, req).
 valid_relationship(covered_by, symbol, test).
+valid_relationship(executable_for, symbol, test).
+valid_relationship(verified_by, scenario, test).
+valid_relationship(validates, test, scenario).
 valid_relationship(constrained_by, symbol, adr).
 % guards can target symbol, event, or req
 valid_relationship(guards, flag, symbol).

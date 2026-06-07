@@ -1,5 +1,393 @@
 # kibi-cli
 
+## 0.12.5
+
+### Patch Changes
+
+- 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
+
+  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across product projects.
+
+  - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
+  - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
+  - Add modeling cheatsheet, MCP error reference, and product KB improvement prompt.
+
+- c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
+
+  Technical summary:
+
+  - Added `symbol_role` metadata for symbol entities.
+  - Added shared role-aware symbol granularity helpers.
+  - Updated MCP upsert and CLI staged checks to reject coarse links only when narrower behavioral symbols are available.
+  - Documented manual behavioral anchors for extractor-miss cases.
+
+- Updated dependencies [7f4d51e]
+  - kibi-core@0.6.1
+
+## 0.12.4
+
+### Patch Changes
+
+- 4d13def: Agents can now link requirements directly to class methods when that is the narrowest meaningful code symbol. Method-level symbol upserts use `ClassName.methodName` identities, with bare method names accepted only when they are unique in the file. This reduces unnecessary `extractor-miss` workarounds and keeps traceability closer to the behavior being changed.
+
+  - Add qualified `method` symbols to parser-backed symbol analysis and staged symbol extraction for exported classes.
+  - Include exported class methods in MCP symbol granularity validation so method-level `kb_upsert` calls are accepted without allowing duplicate bare-name collisions.
+  - Update symbol granularity documentation to name class methods as narrow traceability targets.
+
+## 0.12.3
+
+### Patch Changes
+
+- Timed-out MCP tool calls now recover cleanly instead of leaving stale Prolog workers behind. Follow-up Kibi tool calls should be able to continue with a fresh worker after a timeout, reducing the need for users to manually find and terminate wedged `swipl` processes.
+
+  Technical summary:
+
+  - Add MCP tool execution timeout handling with owned Prolog worker reset.
+  - Classify timeout and Prolog worker reset diagnostics in usage metrics.
+  - Harden interactive Prolog timeout termination and repeated termination cleanup.
+
+## 0.12.2
+
+### Patch Changes
+
+- 8b73781: Bootstrap guidance is now easier for agents to apply correctly in OpenCode. The `/init-kibi` workflow and bundled Kibi usage skill explain that OpenCode can expose canonical `kb_*` MCP tools with a `kibi_` server prefix, and autopilot bootstrap output now includes an explicit `applyPlan` so agents can preview exact writes before asking for approval.
+
+  - `kibi-mcp`: expose aggregate `structuredContent.applyPlan`/top-level `applyPlan` from `kb_autopilot_generate`, preserve `/init-kibi` as a post-hoc bootstrap prompt, mention it in visible output, and advertise typed fact fields in the `kb_upsert` input schema.
+  - `kibi-opencode`: document the OpenCode `kibi_kb_*` tool-name convention in `/init-kibi` alias guidance and README.
+  - `kibi-cli`: update the bundled `kibi-usage` skill with host-prefix guidance for OpenCode users.
+
+- 35f3944: Kibi now records MCP tool failures with structured error categories and stages, so operators can tell persistence conflicts, Prolog runtime failures, lifecycle failures, and validation errors apart without manually inspecting raw logs. Usage metrics now surface those categories across all tools instead of only grouping `kb_upsert` failures, making incidents like stale snapshots or Prolog startup errors easier to diagnose.
+
+  - `kibi-mcp`: add diagnostic error classification fields (`error_name`, `error_category`, `error_stage`, `error_summary`) to handler error rows in `.kb/usage.log`.
+  - `kibi-cli`: extend `usage-metrics` reports with cross-tool error category, stage, and tool breakdowns while preserving existing upsert error summaries.
+
+## 0.12.1
+
+### Patch Changes
+
+- Kibi now blocks coarse symbol traceability when narrower source symbols are available. Agents that try to attach ownership, coverage, or executable identity to a module/file-level symbol must either link the specific function/class/type symbol instead or provide an explicit coarse-link reason, making lazy file-level ontology entries much harder to create accidentally. Existing repositories should run `kibi migrate --dry-run` and then `kibi migrate --yes`; the migration marks old coarse links as `legacy-link` so users can upgrade without breaking immediately on historical ontology data.
+
+  - Add staged `symbol_granularity_violation` enforcement for coarse symbol manifest relationships when changed source files expose granular symbols.
+  - Add MCP `kb_upsert` validation that rejects unjustified coarse symbol traceability before writing to the KB.
+  - Bump the KB schema version and teach `kibi migrate` to mark existing coarse symbol links with `granularity_reason: legacy-link`.
+  - Add `granularity_reason` support for accepted coarse-link exceptions: `config-artifact`, `module-level-behavior`, `extractor-miss`, and `legacy-link`.
+
+## 0.12.0
+
+### Minor Changes
+
+- Kibi can now start representing project-local ontology claims as structured predicate facts instead of prose-only notes. This is the first compatibility slice toward richer domain modeling: teams can define predicate schemas and store ground predicate claims while existing strict property facts continue to work unchanged.
+
+  Add predicate ontology fact fields to the CLI entity schema, public schema export, TypeScript fact types, and Prolog schema validation. The new supported fact lanes are `predicate_schema` and `predicate`, with fields for predicate names, namespaces, arity, arguments, aliases, examples, and predicate polarity.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-core@0.6.0
+
+## 0.11.3
+
+### Patch Changes
+
+- Kibi CLI users no longer get configuration or init output for the removed briefs feature. Existing project setup stays focused on the core knowledge base files and hooks, with no new `.kb/briefs/` ignore entry created by `kibi init`. Stale brief-specific config should now be treated as removed product surface rather than as a supported no-op.
+
+  Technical summary:
+
+  - Remove CLI brief config support and the public `brief-config` export from built artifacts.
+  - Regenerate CLI dist after removing brief schema/init behavior.
+
+## 0.11.2
+
+### Patch Changes
+
+- Kibi now recovers more cleanly when an interactive Prolog query times out. Instead of leaving the stale Prolog child running after a timeout, Kibi terminates it so the next MCP operation can restart from a clean process and surface a clearer timeout failure path.
+
+  - Terminate the interactive `PrologProcess` child when a query timeout fires.
+  - Add regression coverage proving timed-out interactive queries do not leave a stuck child running.
+
+- Kibi's bundled usage skill now gives agents clearer guidance for durable traceability and contradiction-safe facts. Agents are steered away from legacy `// implements REQ-xxx` comments and toward symbol entities linked with `implements`, and the skill now includes concrete role and permission examples that make incoherent requirements easier to model and catch.
+
+  - Update the `kibi-usage` skill with symbol-first traceability guidance.
+  - Add granular strict fact examples for role-set and billing-permission contradictions.
+  - Extend skill content tests to lock in the new guidance and examples.
+
+## 0.11.1
+
+### Patch Changes
+
+- 4aa9830: Kibi now has a reusable markdown skill subsystem across CLI, MCP, and OpenCode. The CLI exposes bundled skills with manifest validation and safe resource loading. The MCP server provides progressive-disclosure tools (`kb_skills_list`, `kb_skills_load`, `kb_skills_read`) for agents to discover and read skills without starting Prolog or touching the KB. OpenCode routes its guidance through the `kibi-usage` skill, giving agents a single source of truth for Kibi usage patterns. An official `kibi-usage` skill bundle ships with all three packages, covering fact lanes, relationship directions, and canonical workflows.
+
+  - feat(cli): add markdown skill loader with manifest types, validation errors, secure path/resource validation, and size limits
+  - feat(cli): expose `kibi-cli/skills` public export with `skills list`, `skills load`, `skills read`, `skills validate`
+  - feat(mcp): add `kb_skills_list`, `kb_skills_load`, `kb_skills_read` tool definitions, handlers, runtime wiring, and docs rendering
+  - feat(mcp): resolve bundled skills from packaged source assets when running from compiled CLI output
+  - feat(opencode): route agent guidance through `kibi-usage` skill, add `kb_skills_load` to tool listings
+  - docs: add official `kibi-usage` skill with fact lanes, relationship directions, and workflow guidance
+  - test: add mock-free MCP handler tests against real bundled `kibi-usage` skill, including invalid skill and resource errors
+  - test: add CLI skill unit coverage for valid bundles, validation errors, traversal/symlink escapes, oversize limits
+
+## 0.11.0
+
+### Minor Changes
+
+- f8a3a88: This update introduces a split symbol coordinate workflow that separates logical symbol definitions from their physical source locations. Symbol coordinates are now managed in `documentation/symbol-coordinates.yaml`, which improves git diff readability and reduces merge conflicts when only line numbers change. The `kibi sync` command now supports a `--refresh-symbol-coordinates` flag to explicitly update these locations.
+
+  - **kibi-cli**: Added `--refresh-symbol-coordinates` flag to `kibi sync` and updated pre-commit hooks to enforce coordinate staging.
+  - **kibi-mcp**: Updated symbol resolution logic to read from the new split coordinate manifest.
+  - **kibi-opencode**: Updated background sync behavior and documentation to support the split manifest workflow.
+  - **kibi-vscode**: Updated the symbol resolver to consume the split `symbol-coordinates.yaml` file for navigation and hover features.
+
+- d783b67: Kibi now includes a `usage-metrics` command so operators can inspect how the knowledge base is actually being used and where quality signals are degrading. This makes it easier to spot missing telemetry, frequent zero-result lookups, and recurring validation trouble before those issues turn into blind spots for people or agents. The command reads `.kb/usage.log` and reports the main adoption and remediation indicators in either human-readable table output or JSON.
+
+  - **kibi-cli**: Added `kibi usage-metrics` with `--format json|table` and `--limit <n>` support for usage-log quality reporting.
+
+## 0.10.1
+
+### Patch Changes
+
+- 0d998ad: **Behavior-changing source edits now require Kibi impact evidence before commit.**
+
+  The `kibi check --staged` command now enforces a hard gate: behavior-changing source edits must be accompanied by staged Kibi impact evidence (KB entity documentation or refreshed `documentation/symbols.yaml`). This prevents commits that change behavior without updating the knowledge base.
+
+  **New diagnostics:**
+
+  - `kibi_impact_evidence_missing` — emitted when behavior source edits lack staged KB evidence
+  - `symbols_manifest_stale` — emitted when source edits alter symbol coordinates but the staged manifest is missing or stale
+
+  **What this means for users:**
+
+  - If you change behavior-bearing source code, stage relevant KB entity markdown or refresh `documentation/symbols.yaml`
+  - Test-only edits (`tests/`, `*.test.*`) and docs-only edits (`.md`) are exempt
+  - The no-impact override is available only for classifier false positives, not genuine behavior changes
+
+  **OpenCode guidance updated** to remind agents that Kibi impact evidence is required before completion/commit.
+
+  **Technical changes:**
+
+  - Added `packages/cli/src/traceability/evidence-model.ts` — typed Kibi impact evidence interfaces
+  - Added `packages/cli/src/traceability/staged-diagnostics.ts` — `collectStagedKibiDiagnostics()` with stable diagnostic IDs
+  - Added `packages/cli/src/traceability/staged-impact-contract.ts` — behavior classification and evidence parsing
+  - Added `packages/cli/src/traceability/staged-symbols-manifest.ts` — stale manifest detection
+  - Extended `packages/cli/src/commands/check.ts` staged path to evaluate impact evidence
+  - Updated pre-commit hook comments and contributor docs
+
+## 0.10.0
+
+### Minor Changes
+
+- 5f715a5: Kibi now automatically respects your repository's `.gitignore` rules during knowledge base discovery. Files ignored by Git — as well as tool directories like `.sisyphus` and `.opencode` — are no longer treated as domain knowledge sources. This prevents draft and build artifacts from polluting your knowledge base.
+
+  - Added documentation describing the repository ignore policy and hard-denied directories.
+  - Clarified that Kibi honors repository `.gitignore`, nested `.gitignore`, and `.git/info/exclude` during `kb_autopilot_generate`, briefing generation, and discovery.
+  - Documented that global Git excludes are not honored in v1, and that automatic cleanup of previously-discovered KB entities is out of scope for this release.
+  - Integrated a note about ignore-aware file-event skipping in the OpenCode plugin README.
+
+## 0.9.0
+
+### Minor Changes
+
+- Kibi now records a schema version in new `.kb/config.json` files and can report migration status without rewriting existing configs during normal loads. Older repositories that never stored `schemaVersion` still load cleanly, but tooling can now detect that they need migration. The CLI also exposes shared schema-version helpers so other packages can use the same version and warning logic.
+
+  - add shared KB schema-version constants and migration status utilities for CLI consumers
+  - write `schemaVersion` into init-generated configs while preserving readable legacy versionless configs on load
+
+- The CLI can now turn extracted semantic claims into deterministic strict-model write-sets for contradiction-safe requirement authoring. Re-running the same claim produces the same requirement and fact IDs, while low-confidence claims are downgraded to review-only observations so they stay out of contradiction blocking.
+
+  - add strict modeling utilities for stable ID generation, subject/property normalization, and strict vs observation write-set assembly
+  - add CLI tests covering deterministic IDs, exact strict-lane entity/relationship counts, relationship dedupe, and low-confidence downgrade behavior
+
+### Patch Changes
+
+- Kibi now supports fully automated requirement modeling and schema migrations, allowing repositories to stay up-to-date with the latest contradiction-safe modeling standards without manual intervention. The new system enforces strict readiness levels for requirement/fact pairings and automatically downgrades low-confidence claims to non-blocking observations to ensure high precision in conflict detection.
+
+  - add `kibi migrate` command for automated KB schema upgrades
+  - implement strict readiness checks and confidence-based modeling lanes
+  - update MCP guidance and CLI documentation for automated contradiction workflows
+  - extend inference rules to support v1 contradiction semantics (exact-value, range, polarity)
+
+- Updated dependencies
+  - kibi-core@0.5.3
+
+## 0.8.0
+
+### Minor Changes
+
+- 4746f3f: Briefs no longer surface internal task-tracking artifacts (such as `.sisyphus/boulder.json`) as if they were meaningful project knowledge. Notifications are now specific-or-silent: a toast only appears when the brief can say what changed and why it matters. Previously, any `.sisyphus/` file edit could trigger a brief with generic content and produce a vague "a brief is available" notification regardless of whether it contained real domain context.
+
+  - `kibi-cli`: adds `isOperationalArtifactPath(pathLike)` helper, exported as `kibi-cli/operational-artifacts`, matching `.sisyphus/**` paths as operational task-tracking artifacts
+  - `kibi-mcp`: filters operational artifact sources, entities, and citations before brief content is assembled so `.sisyphus/**` changes never appear in brief entities, citations, prompt blocks, or TLDRs
+  - `kibi-opencode`: suppresses brief eligibility for operational-only source changes; adds specificity gate to toast delivery so generic/operational envelopes do not trigger notifications
+  - `kibi-vscode`: applies same specific-or-silent semantics to VS Code brief watcher so generic/operational envelopes do not call `showInformationMessage`
+
+### Patch Changes
+
+- 7880675: Kibi now makes symbol manifest tracking harder to forget. New projects initialized with `kibi init` get a default `documentation/symbols.yaml`, and the managed pre-commit hook blocks commits when that manifest has unstaged changes so refreshed coordinates are committed with the related work.
+
+  - Create the default symbol manifest during `kibi init` when it is missing.
+  - Add a pre-commit guard that requires dirty `documentation/symbols.yaml` changes to be staged before `kibi check --staged` runs.
+
+- 2a00e15: Kibi discovery is now less noisy for broad agent queries. When agents send multi-intent natural-language searches, targeted domain-specific entities now rank above unrelated generic results. No-signal queries (containing only common stop words) return an empty result instead of arbitrary token-coverage matches. OpenCode agents are now guided to decompose broad queries into focused probes and follow up with exact `kb_query` lookups.
+
+  - `kibi-cli`: Add stop-word filtering, hyphen normalization, plural normalization, and minimum-score threshold to `search-ranking.ts`; add synthetic regression corpus tests.
+  - `kibi-mcp`: Add wrapper-level regression tests asserting improved ranking is preserved end-to-end.
+  - `kibi-opencode`: Update injected agent guidance to instruct query decomposition with concrete examples.
+
+- 8d8ebf6: Sync operations are now more resilient when multiple file edits trigger overlapping syncs. Previously, concurrent `kibi sync` runs for the same branch could collide on a shared staging directory and fail with a stale snapshot permission error. Each sync now uses an isolated staging directory, eliminating this race while preserving protection against genuine external KB mutations.
+
+  - Replace fixed `.kb/branches/<branch>.staging` with unique per-run staging directories using process ID and timestamp.
+  - Add automatic cleanup of abandoned staging directories left by crashed or terminated sync processes.
+  - Preserve atomic publish semantics and true stale-snapshot detection for external KB modifications.
+  - Fix invalid `specifies` relationship type in TEST-015 documentation that caused sync relationship warnings.
+
+## 0.7.0
+
+### Minor Changes
+
+- b9ef9a2: Add shared brief configuration defaults for automatic TUI delivery across Kibi clients. The CLI now reads and exposes brief config from `.kb/config.json` with sensible boolean defaults (all enabled), the OpenCode plugin delivers idle brief summaries via toast notification with automatic prompt append and auto-submit, and the VS Code extension gates notifications by the shared brief policy. This provides a unified, zero-config experience for teams using multiple Kibi clients.
+- 736f675: Add the interactive cold-start bootstrap flow and its regression coverage so the public MCP surface, OpenCode prompt wiring, and extractor exports stay in sync.
+
+### Patch Changes
+
+- 7ed9f0c: Ensure `kibi init` writes `.kb/briefs/` to `.gitignore` so generated brief artifacts are ignored by default.
+- a1a198b: Add configurable idle-brief delay and retention policies in shared `.kb/config.json` (`briefs.tui.idleDelayMs` and `briefs.retention.*`). OpenCode now applies retention garbage collection after brief writes and prunes stale `.tui-seen` hashes for briefs that were deleted by retention.
+- Updated dependencies [699a482]
+  - kibi-core@0.5.2
+
+## 0.6.2
+
+### Patch Changes
+
+- 2066a48: Add init-kibi autopilot generation workflow
+
+  - New MCP tool `kb_autopilot_generate` for read-only candidate generation
+  - Activation-state classification and source discovery helpers
+  - Deterministic candidate generation for Kibi docs and symbol manifests
+  - Conservative generic markdown heuristics for ADR/REQ/FACT candidates
+  - Dedupe logic and payoff summary reporting
+  - Aligned OpenCode prompt guidance with activation workflow
+
+## 0.6.1
+
+### Patch Changes
+
+- 0ec1cb1: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- 4a74281: Enable `noUncheckedIndexedAccess` incrementally across the source packages and add explicit guards where CLI parsing and traceability helpers read indexed values.
+- 0ec1cb1: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
+  - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
+    `config.paths.symbols` manifest before processing staged-manifest overrides.
+    This prevents code-only staged changes (where `symbols.yaml` is not staged) from
+    falling back to hash-generated IDs and incorrectly failing traceability even when
+    the symbol is already linked in the KB.
+  - Remove duplicate `toPrologString` in `temp-kb.ts` and reuse the shared
+    `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
+
+- 0ec1cb1: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+- 0ec1cb1: fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
+- 0ec1cb1: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
+  - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
+  - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
+  - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
+  - This resolves the `temp-kb.test.ts` timeout under bare `bun test` and significantly speeds up all CLI tests that spawn Prolog processes.
+
+- 3a11e57: Fix `kibi status` JSON serialization before first sync and add `kibi-mcp --help` output
+- 0ec1cb1: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- de5dbaf: Enable `exactOptionalPropertyTypes` across source packages and tighten optional property handling in exported type surfaces.
+- Updated dependencies [0ec1cb1]
+- Updated dependencies [3a11e57]
+- Updated dependencies [0ec1cb1]
+  - kibi-core@0.5.1
+
+## 0.6.0
+
+### Minor Changes
+
+- Prepare fresh minor release line for schema and traceability alignment
+
+  This release includes the completed traceability schema realignment work,
+  ensuring proper symbol-to-requirement linking, staged traceability checks,
+  and the updated release automation model.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-core@0.5.0
+
+## 0.5.1
+
+### Patch Changes
+
+- 6cdf9f5: Realign release metadata with the traceability schema update so all publishable packages carry the same patch release notes.
+- efc7fd7: fix(cli): merge working-tree manifests with staged overrides in buildManifestLookup
+
+  - `kibi check --staged` now pre-populates `manifestLookup` from the working-tree
+    `config.paths.symbols` manifest before processing staged-manifest overrides.
+    This prevents code-only staged changes (where `symbols.yaml` is not staged) from
+    falling back to hash-generated IDs and incorrectly failing traceability even when
+    the symbol is already linked in the KB.
+  - Remove duplicate `toPrologString` in `temp-kb.ts` and reuse the shared
+    `toPrologString` from `../prolog/codec` to keep Prolog serialisation consistent.
+
+- d344f57: fix(opencode): respect absolute configured KB doc roots in bootstrap detection
+
+  - Treat absolute `paths.*` entries in `.kb/config.json` as authoritative when checking whether a workspace is bootstrapped.
+  - Add a regression test covering healthy absolute custom doc roots while preserving the existing missing-target bootstrap warning.
+
+  fix(cli): restore prolog codec exports
+
+  - Regenerate the checked-in `src/prolog/codec.js` artifact so `toPrologString` and `toPrologAtom` are available as named exports at runtime, fixing CLI traceability test imports.
+
+- 2994632: fix(cli): eliminate 2-second false wait during PrologProcess startup under Bun
+
+  - `PrologProcess.waitForReady()` previously looped for up to 2000ms waiting for any stdout/stderr output from `swipl`.
+  - Under Bun v1.3.6, spawned `swipl` does not emit output until stdin is written, causing every `start()` to waste ~2 seconds.
+  - The fix sends `true.\n` to stdin immediately after spawn and waits for the `true.` response, reducing startup detection time from ~2000ms to ~50ms.
+  - This resolves the `temp-kb.test.ts` timeout under bare `bun test` and significantly speeds up all CLI tests that spawn Prolog processes.
+
+- 7111197: Accept `sourceFile` as an optional entity property during `kb_upsert`.
+
+  - Allows symbol (and other) entities to include `sourceFile` in `properties` without triggering JSON schema validation errors.
+  - Adds `sourceFile` to the JSON entity schema and the Prolog entity schema.
+  - Adds regression test for symbol upsert with `sourceFile`.
+
+  Fixes #114.
+
+- Updated dependencies [6cdf9f5]
+- Updated dependencies [7111197]
+  - kibi-core@0.4.1
+
+## 0.5.0
+
+### Minor Changes
+
+- 0c2c1e7: feat(traceability): document comment-free test workflow with validation parity
+
+  - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
+  - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
+  - Synchronize guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
+  - Staged enforcement now supports explicit KB relationships in addition to inline comments
+  - Document scope boundary: automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged check
+
+### Patch Changes
+
+- Updated dependencies [0c2c1e7]
+  - kibi-core@0.4.0
+
 ## 0.4.3
 
 ### Patch Changes

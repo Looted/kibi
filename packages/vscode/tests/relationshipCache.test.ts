@@ -77,7 +77,10 @@ describe("RelationshipCache", () => {
 
     const retrieved = cache.getInflight("SYM-001");
     expect(retrieved).toBeDefined();
-    const result = await retrieved!;
+    if (!retrieved) {
+      throw new Error("Expected inflight promise to be present");
+    }
+    const result = await retrieved;
     expect(result).toEqual([
       { type: "implements", from: "SYM-001", to: "REQ-001" },
     ]);
@@ -102,4 +105,65 @@ describe("RelationshipCache", () => {
     const cache = new RelationshipCache();
     expect(cache.getTTL()).toBe(30000);
   });
+
+  test("supports a full cache lifecycle across cache and inflight stores", async () => {
+    const cache = new RelationshipCache();
+    const entry = {
+      data: [{ type: "implements", from: "SYM-123", to: "REQ-123" }],
+      timestamp: 123,
+    };
+    const inflight = Promise.resolve(entry.data);
+
+    cache.set("SYM-123", entry);
+    cache.setInflight("SYM-123", inflight);
+
+    expect(cache.get("SYM-123")).toEqual(entry);
+    expect(await cache.getInflight("SYM-123")).toEqual(entry.data);
+
+    cache.deleteInflight("SYM-123");
+    expect(cache.getInflight("SYM-123")).toBeUndefined();
+
+    cache.clear();
+
+    expect(cache.get("SYM-123")).toBeUndefined();
+    expect(cache.getInflight("SYM-123")).toBeUndefined();
+  });
+});
+
+test("set/get/clear lifecycle works with inflight management", async () => {
+  const cache = new RelationshipCache();
+
+  // Set a cache entry
+  const entry = {
+    data: [{ type: "implements", from: "SYM-A", to: "REQ-A" }],
+    timestamp: 100,
+  };
+  cache.set("A", entry);
+  expect(cache.get("A")).toEqual(entry);
+
+  // Set an inflight promise that resolves
+  const promise = Promise.resolve([
+    { type: "implements", from: "SYM-B", to: "REQ-B" },
+  ]);
+  cache.setInflight("B", promise);
+  expect(cache.getInflight("B")).toBe(promise);
+
+  // Await the inflight promise
+  const result = await promise;
+  expect(result).toEqual([{ type: "implements", from: "SYM-B", to: "REQ-B" }]);
+
+  // Inflight still retrievable until deleted
+  expect(cache.getInflight("B")).toBe(promise);
+
+  // Delete inflight after resolution
+  cache.deleteInflight("B");
+  expect(cache.getInflight("B")).toBeUndefined();
+
+  // Cache still intact
+  expect(cache.get("A")).toEqual(entry);
+
+  // Clear everything
+  cache.clear();
+  expect(cache.get("A")).toBeUndefined();
+  expect(cache.getInflight("B")).toBeUndefined();
 });

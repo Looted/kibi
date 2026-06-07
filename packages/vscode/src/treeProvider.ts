@@ -21,25 +21,29 @@ import * as path from "node:path";
 import { promisify } from "node:util";
 import { load as loadYaml } from "js-yaml";
 import * as vscode from "vscode";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "./shared/manifestResolver";
+import {
+  type KbRelationship as SharedKbRelationship,
+  parseRdfRelationships as parseRdfRelationshipsFromRdf,
+} from "./shared/rdf-parser";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 const execAsync = promisify(exec);
 
 export interface KibiTreeItem {
   label: string;
-  description?: string;
-  iconPath?: string;
-  contextValue?: string;
+  description?: string | undefined;
+  iconPath?: string | undefined;
+  contextValue?: string | undefined;
   collapsibleState: vscode.TreeItemCollapsibleState;
-  children?: KibiTreeItem[];
-  tooltip?: string;
+  children?: KibiTreeItem[] | undefined;
+  tooltip?: string | undefined;
   /** Local filesystem path (when source is a local path, not a URL). */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number used when opening a symbol source file. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
   /** For relationship nodes: the target entity ID to navigate to. */
-  targetId?: string;
+  targetId?: string | undefined;
 }
 
 interface KbEntity {
@@ -50,16 +54,12 @@ interface KbEntity {
   tags: string;
   source: string;
   /** Resolved local path when source is a file path rather than a URL. */
-  localPath?: string;
+  localPath?: string | undefined;
   /** 1-based line number for symbol source navigation. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
 }
 
-interface KbRelationship {
-  relType: string;
-  fromId: string;
-  toId: string;
-}
+type KbRelationship = SharedKbRelationship;
 
 type SupportedEntityType =
   | "req"
@@ -128,8 +128,10 @@ const REL_LABELS: Record<string, string> = {
   depends_on: "depends on",
   specified_by: "specified by",
   verified_by: "verified by",
+  validates: "validates",
   implements: "implements",
   covered_by: "covered by",
+  executable_for: "executable for",
   constrained_by: "constrained by",
   guards: "guards",
   publishes: "publishes",
@@ -298,10 +300,16 @@ export class KibiTreeDataProvider
     this.loaded = true;
     this.entities = [];
     this.relationships = [];
-    this.symbolIndex = buildIndex(
-      resolveSymbolsManifestPath(this.workspaceRoot),
-      this.workspaceRoot,
-    );
+    {
+      const { symbolsPath, coordinatesPath } = resolveSymbolsManifestPaths(
+        this.workspaceRoot,
+      );
+      this.symbolIndex = buildIndex(
+        symbolsPath,
+        this.workspaceRoot,
+        coordinatesPath,
+      );
+    }
 
     const fallbackData = await this.loadFallbackData();
     let rdfEntities: KbEntity[] = [];
@@ -344,6 +352,9 @@ export class KibiTreeDataProvider
 
       const id = match[1];
       const block = match[2];
+      if (id === undefined || block === undefined) {
+        continue;
+      }
 
       const type = this.extractText(block, "kb:type");
       const title = this.extractText(block, "kb:title");
@@ -393,57 +404,13 @@ export class KibiTreeDataProvider
    */
   // implements REQ-vscode-traceability
   private parseRdfRelationships(content: string): KbRelationship[] {
-    const relationships: KbRelationship[] = [];
-
-    // Known relationship types from the KB schema
-    const relTypes = [
-      "depends_on",
-      "specified_by",
-      "verified_by",
-      "implements",
-      "covered_by",
-      "constrained_by",
-      "guards",
-      "publishes",
-      "consumes",
-      "relates_to",
-    ];
-
-    // Match each rdf:Description block to get the source entity ID
-    const blockRe =
-      /<rdf:Description rdf:about="(?:(?:urn:kibi:)|kb:)entity\/([^"]+)">([\s\S]*?)<\/rdf:Description>/g;
-
-    while (true) {
-      const blockMatch = blockRe.exec(content);
-      if (!blockMatch) break;
-
-      const fromId = blockMatch[1];
-      const block = blockMatch[2];
-
-      // For each relationship type, find all rdf:resource references
-      for (const relType of relTypes) {
-        // Match <kb:relType rdf:resource="...entity/TOID"/>
-        const relRe = new RegExp(
-          `<kb:${relType}[^>]*rdf:resource="(?:(?:http://kibi\\.dev/kb/)|kb:)entity/([^"]+)"[^>]*/?>`,
-          "g",
-        );
-        while (true) {
-          const relMatch = relRe.exec(block);
-          if (!relMatch) break;
-
-          const toId = relMatch[1];
-          relationships.push({ relType, fromId, toId });
-        }
-      }
-    }
-
-    return relationships;
+    return parseRdfRelationshipsFromRdf(content);
   }
 
   private extractText(block: string, tag: string): string {
     const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`);
     const m = block.match(re);
-    return m ? m[1].trim() : "";
+    return m?.[1]?.trim() ?? "";
   }
 
   private extractResourceSuffix(block: string, tag: string): string {
@@ -451,7 +418,7 @@ export class KibiTreeDataProvider
       `<${tag}[^>]*rdf:resource="[^"]*\/([^"\/]+)"[^>]*\/?>`,
     );
     const m = block.match(re);
-    return m ? m[1] : "";
+    return m?.[1] ?? "";
   }
 
   // implements REQ-vscode-traceability
@@ -584,7 +551,7 @@ export class KibiTreeDataProvider
           ? this.toWorkspaceRelativePath(localPath)
           : path.relative(
               this.workspaceRoot,
-              resolveSymbolsManifestPath(this.workspaceRoot),
+              resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
             ),
         localPath,
         sourceLine: symbol.sourceLine,
@@ -674,7 +641,11 @@ export class KibiTreeDataProvider
     }
 
     try {
-      const parsed = loadYaml(match[1]);
+      const frontmatterText = match[1];
+      if (frontmatterText === undefined) {
+        return {};
+      }
+      const parsed = loadYaml(frontmatterText);
       return parsed && typeof parsed === "object"
         ? (parsed as Record<string, unknown>)
         : {};
@@ -922,7 +893,7 @@ export class KibiTreeDataProvider
   // implements REQ-vscode-traceability
   getNavigationTargetForEntity(
     id: string,
-  ): { localPath: string; line?: number } | undefined {
+  ): { localPath: string; line?: number | undefined } | undefined {
     const entity = this.entities.find((e) => e.id === id);
     if (entity?.localPath) {
       if (!fs.existsSync(entity.localPath)) {
@@ -978,7 +949,7 @@ export class KibiTreeDataProvider
         ? this.toWorkspaceRelativePath(symbol.sourceFile)
         : path.relative(
             this.workspaceRoot,
-            resolveSymbolsManifestPath(this.workspaceRoot),
+            resolveSymbolsManifestPaths(this.workspaceRoot).symbolsPath,
           ),
       localPath:
         symbol.sourceFile && fs.existsSync(symbol.sourceFile)

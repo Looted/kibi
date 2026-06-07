@@ -7,14 +7,23 @@
     with_kb_mutex/1,
     kb_assert_entity/2,
     kb_assert_entity_no_audit/2,
-    kb_log_entity_upsert/2,
+    kb_log_entity_upsert/3,
     kb_retract_entity/1,
+    kb_retract_entity/3,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
     kb_assert_relationship_no_audit/4,
     kb_log_relationship_upsert/4,
     kb_relationship/3,
+    symbol_owns_requirement/2,
+    scenario_verified_by_test/2,
+    requirement_test_fallback_allowed/1,
+    test_satisfies_requirement_semantics/2,
+    production_symbol_covered_for_requirement/2,
+    production_symbol_untested/1,
+    executable_test_symbol/1,
+    mixed_role_symbol/1,
     transitively_implements/2,
     transitively_depends/2,
     impacted_by_change/2,
@@ -30,6 +39,8 @@
     adr_chain/2,
     deprecated_no_successor/1,
     symbol_no_req_coverage/2,
+    predicate_schema/6,
+    predicate_fact/5,
     contradicting_reqs/3,
     check_req_contradiction/1,
     normalize_term_atom/2,
@@ -246,8 +257,13 @@ load_kb_pl_files(Directory) :-
 % Assert an entity into the KB with audit logging.
 % Properties is a list of Key=Value pairs.
 kb_assert_entity(Type, Props) :-
+    memberchk(id=Id, Props),
+    (   once(kb_entity(Id, _, _))
+    ->  ChangeKind = updated
+    ;   ChangeKind = created
+    ),
     kb_assert_entity_no_audit(Type, Props),
-    kb_log_entity_upsert(Type, Props).
+    kb_log_entity_upsert(ChangeKind, Type, Props).
 
 %% kb_assert_entity_no_audit(+Type, +Properties)
 % Assert an entity RDF payload without recording audit side effects.
@@ -276,19 +292,30 @@ kb_assert_entity_no_audit(Type, Props) :-
         )
     )).
 
-%% kb_log_entity_upsert(+Type, +Properties)
+%% kb_log_entity_upsert(+ChangeKind, +Type, +Properties)
 % Append the audit entry for a successfully committed entity upsert.
-kb_log_entity_upsert(Type, Props) :-
+kb_log_entity_upsert(ChangeKind, Type, Props) :-
     memberchk(id=Id, Props),
+    memberchk(ChangeKind, [created, updated]),
     with_kb_mutex((
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, upsert, Id, Type-Props)
+        assert_changeset(TS, upsert, Id, Type-[change_kind=ChangeKind|Props])
     )).
 
 %% kb_retract_entity(+Id)
 % Remove an entity from the KB with audit logging.
 kb_retract_entity(Id) :-
+    (   once(kb_entity(Id, Type, Props))
+    ->  entity_delete_audit_props(Id, Props, AuditProps)
+    ;   Type = unknown,
+        AuditProps = [id=Id]
+    ),
+    kb_retract_entity(Id, Type, AuditProps).
+
+%% kb_retract_entity(+Id, +Type, +AuditProps)
+% Remove an entity from the KB and log the provided delete payload.
+kb_retract_entity(Id, Type, AuditProps) :-
     kb_graph(Graph),
     with_kb_mutex((
         % Create entity URI
@@ -298,8 +325,29 @@ kb_retract_entity(Id) :-
         % Log to audit
         get_time(Timestamp),
         format_time(atom(TS), '%FT%T%:z', Timestamp),
-        assert_changeset(TS, delete, Id, null)
+        assert_changeset(TS, delete, Id, Type-AuditProps)
     )).
+
+entity_delete_audit_props(Id, Props, AuditProps) :-
+    findall(Key=Value,
+        (   member(Key, [title, source, text_ref]),
+            memberchk(Key=RawValue, Props),
+            audit_property_value(RawValue, Value)
+        ),
+        OptionalProps),
+    AuditProps = [id=Id|OptionalProps].
+
+audit_property_value(RawValue, Value) :-
+    (   RawValue = ^^(Inner, _)
+    ->  Value = Inner
+    ;   RawValue = literal(type(_, Inner))
+    ->  Value = Inner
+    ;   RawValue = literal(lang(_, Inner))
+    ->  Value = Inner
+    ;   RawValue = literal(Inner)
+    ->  Value = Inner
+    ;   Value = RawValue
+    ).
 
 %% kb_entity(?Id, ?Type, ?Properties)
 % Query entities from the KB.
@@ -348,11 +396,17 @@ convert_legacy_prop(Prop, Prop, true).
 kb_entities_by_source(SourcePath, Ids) :-
     findall(Id,
         (kb_entity(Id, _Type, Props),
-         memberchk(source=RawSource, Props),
-         source_value_atom(RawSource, SourceAtom),
+         entity_source_atom(Props, SourceAtom),
          sub_atom(SourceAtom, _, _, _, SourcePath)),
         RawIds),
     sort(RawIds, Ids).
+
+entity_source_atom(Props, SourceAtom) :-
+    (   memberchk(sourceFile=RawSourceFile, Props)
+    ->  source_value_atom(RawSourceFile, SourceAtom)
+    ;   memberchk(source=RawSource, Props),
+        source_value_atom(RawSource, SourceAtom)
+    ).
 
 source_value_atom(Value, Atom) :-
     (   atom(Value)
@@ -382,6 +436,7 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     once(kb_entity(FromId, FromType, _)),
     once(kb_entity(ToId, ToType, _)),
     validate_relationship(RelType, FromType, ToType),
+    validate_symbol_role_compatibility(RelType, FromId, ToId),
     % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
     % via validateStrictLanePairing() before the transaction begins.
     % Prolog-level validation is deferred to avoid potential issues with
@@ -399,6 +454,25 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
         % Assert relationship triple
         rdf_assert(FromURI, RelURI, ToURI, Graph)
     )).
+
+validate_symbol_role_compatibility(RelType, FromId, _ToId) :-
+    memberchk(RelType, [implements, covered_by, executable_for]),
+    !,
+    (   mixed_symbol_role(RelType, FromId)
+    ->  format(atom(Msg), 'symbol ~w cannot mix executable_for with production ownership/coverage relationships', [FromId]),
+        throw(error(validation_error(Msg), Msg))
+    ;   true
+    ).
+validate_symbol_role_compatibility(_, _, _).
+
+mixed_symbol_role(executable_for, SymbolId) :-
+    (   kb_relationship(implements, SymbolId, _)
+    ;   kb_relationship(covered_by, SymbolId, _)
+    ).
+mixed_symbol_role(implements, SymbolId) :-
+    kb_relationship(executable_for, SymbolId, _).
+mixed_symbol_role(covered_by, SymbolId) :-
+    kb_relationship(executable_for, SymbolId, _).
 
 %% kb_log_relationship_upsert(+Type, +From, +To, +Metadata)
 % Append the audit entry for a successfully committed relationship upsert.
@@ -567,17 +641,84 @@ uri_to_key(URI, Key) :-
 %% Inference predicates (Phase 1)
 %% ------------------------------------------------------------------
 
-%% transitively_implements(+Symbol, +Req)
-% A symbol transitively implements a requirement if it directly implements it,
-% or if it is covered by a test that validates/verifies the requirement.
-transitively_implements(Symbol, Req) :-
+%% symbol_owns_requirement(+Symbol, +Req)
+% Direct requirement ownership for production code.
+symbol_owns_requirement(Symbol, Req) :-
     kb_relationship(implements, Symbol, Req).
+
+%% transitively_implements(+Symbol, +Req)
+% Ownership is direct only; coverage/test traceability is handled separately.
 transitively_implements(Symbol, Req) :-
-    kb_relationship(covered_by, Symbol, Test),
+    symbol_owns_requirement(Symbol, Req).
+
+%% scenario_verified_by_test(+Scenario, +Test)
+% Canonical scenario-to-test verification path.
+scenario_verified_by_test(Scenario, Test) :-
+    kb_relationship(validates, Test, Scenario).
+scenario_verified_by_test(Scenario, Test) :-
+    kb_relationship(verified_by, Scenario, Test).
+
+%% requirement_test_fallback_allowed(+Req)
+% Direct requirement-to-test fallback is only allowed when no scenario exists.
+requirement_test_fallback_allowed(Req) :-
+    \+ has_scenario(Req).
+
+%% executable_test_symbol(+Symbol)
+% Symbol represents executable test code rather than production code.
+executable_test_symbol(Symbol) :-
+    kb_relationship(executable_for, Symbol, _).
+
+%% mixed_role_symbol(+Symbol)
+% Invalid symbol carrying both executable test identity and production semantics.
+mixed_role_symbol(Symbol) :-
+    executable_test_symbol(Symbol),
+    (   kb_relationship(implements, Symbol, _)
+    ;   kb_relationship(covered_by, Symbol, _)
+    ).
+
+%% production_symbol(+Symbol)
+% Internal helper for production-only symbol checks.
+production_symbol(Symbol) :-
+    kb_entity(Symbol, symbol, _),
+    \+ executable_test_symbol(Symbol).
+
+%% requirement_verified_by_test(+Req, +Test)
+% Direct req<->test compatibility path.
+requirement_verified_by_test(Req, Test) :-
     kb_relationship(validates, Test, Req).
-transitively_implements(Symbol, Req) :-
-    kb_relationship(covered_by, Symbol, Test),
+requirement_verified_by_test(Req, Test) :-
     kb_relationship(verified_by, Req, Test).
+
+%% test_satisfies_requirement_semantics(+Test, +Req)
+% Matches requirement verification facts against typed test fields when present.
+% If the requirement declares no verification semantics, compatibility passes.
+test_satisfies_requirement_semantics(Test, Req) :-
+    findall(Key-Expected,
+            required_test_semantic(Req, Key, Expected),
+            RequiredPairs0),
+    sort(RequiredPairs0, RequiredPairs),
+    (   RequiredPairs = []
+    ->  true
+    ;   kb_entity(Test, test, TestProps),
+        forall(member(Key-Expected, RequiredPairs),
+               test_matches_required_semantic(TestProps, Key, Expected))
+    ).
+
+required_test_semantic(Req, Key, Expected) :-
+    memberchk(Key, [verification_scope, verification_perspective]),
+    verification_subject_key(Req, SubjectKey),
+    effective_req_property(Req, SubjectKey, Key, Operator, _ValueType, Value, _Unit, _Scope, Polarity),
+    Operator == eq,
+    Polarity == require,
+    normalize_term_atom(Value, Expected).
+
+verification_subject_key(Req, SubjectKey) :-
+    format(atom(SubjectKey), 'requirement.~w.verification', [Req]).
+
+test_matches_required_semantic(TestProps, Key, Expected) :-
+    memberchk(Key=ActualRaw, TestProps),
+    normalize_term_atom(ActualRaw, Actual),
+    Actual == Expected.
 
 %% transitively_depends(+Req1, +Req2)
 % Req1 transitively depends on Req2 through depends_on chains.
@@ -658,14 +799,17 @@ has_test(Req) :-
     once(kb_relationship(validates, _, Req)).
 has_test(Req) :-
     once(kb_relationship(verified_by, Req, _)).
+has_test(Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    once(kb_relationship(validates, _, Scenario)).
+has_test(Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    once(kb_relationship(verified_by, Scenario, _)).
 
 %% untested_symbols(-Symbols)
-% Returns symbols with no test coverage relationship.
+% Returns production symbols with no test coverage relationship.
 untested_symbols(Symbols) :-
-    setof(Symbol,
-          (kb_entity(Symbol, symbol, _),
-           \+ kb_relationship(covered_by, Symbol, _)),
-          Symbols),
+    setof(Symbol, production_symbol_untested(Symbol), Symbols),
     !.
 untested_symbols([]).
 
@@ -683,9 +827,9 @@ stale(Entity, MaxAgeDays) :-
     AgeDays > MaxAgeDays.
 
 %% orphaned(+Symbol)
-% Symbol is orphaned if it has no core traceability links.
+% Production symbol is orphaned if it has no core traceability links.
 orphaned(Symbol) :-
-    kb_entity(Symbol, symbol, _),
+    production_symbol(Symbol),
     \+ kb_relationship(implements, Symbol, _),
     \+ kb_relationship(covered_by, Symbol, _),
     \+ kb_relationship(constrained_by, Symbol, _).
@@ -819,6 +963,57 @@ fact_property_tuple(FactId, Subject, Property, Op, ValType, Value, Unit, Scope, 
     ( memberchk(unit=UnitRaw, Props) -> normalize_term_atom(UnitRaw, Unit) ; Unit = '' ),
     ( memberchk(scope=ScopeRaw, Props) -> normalize_term_atom(ScopeRaw, Scope) ; Scope = '' ),
     ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = require ).
+
+%% predicate_schema(+FactId, -Namespace, -Name, -Arity, -ArgumentNames, -ArgumentTypes)
+% Read one project-local ontology predicate schema fact.
+predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, predicate_schema),
+    memberchk(predicate_name=NameRaw, Props),
+    normalize_term_atom(NameRaw, Name),
+    ( memberchk(predicate_namespace=NamespaceRaw, Props) -> normalize_term_atom(NamespaceRaw, Namespace) ; Namespace = default ),
+    memberchk(predicate_arity=ArityRaw, Props),
+    normalize_term_integer(ArityRaw, Arity),
+    memberchk(argument_names=ArgumentNamesRaw, Props),
+    normalize_term_atom_list(ArgumentNamesRaw, ArgumentNames),
+    memberchk(argument_types=ArgumentTypesRaw, Props),
+    normalize_term_atom_list(ArgumentTypesRaw, ArgumentTypes).
+
+%% predicate_fact(+FactId, -Namespace, -Name, -Args, -Polarity)
+% Read one ground ontology predicate fact.
+predicate_fact(FactId, Namespace, Name, Args, Polarity) :-
+    kb_entity(FactId, fact, Props),
+    memberchk(fact_kind=KindRaw, Props),
+    normalize_term_atom(KindRaw, predicate),
+    memberchk(predicate_name=NameRaw, Props),
+    normalize_term_atom(NameRaw, Name),
+    ( memberchk(predicate_namespace=NamespaceRaw, Props) -> normalize_term_atom(NamespaceRaw, Namespace) ; Namespace = default ),
+    memberchk(predicate_args=ArgsRaw, Props),
+    normalize_term_atom_list(ArgsRaw, Args),
+    ( memberchk(polarity=PolarityRaw, Props) -> normalize_term_atom(PolarityRaw, Polarity) ; Polarity = assert ).
+
+normalize_term_atom_list(List, Atoms) :-
+    is_list(List),
+    !,
+    maplist(normalize_term_atom, List, Atoms).
+normalize_term_atom_list(Raw, Atoms) :-
+    unwrap_rdf_value(Raw, Value),
+    is_list(Value),
+    !,
+    maplist(normalize_term_atom, Value, Atoms).
+
+normalize_term_integer(Raw, Integer) :-
+    unwrap_rdf_value(Raw, Value),
+    (   integer(Value)
+    ->  Integer = Value
+    ;   atom(Value)
+    ->  atom_number(Value, Integer)
+    ;   string(Value)
+    ->  number_string(Integer, Value)
+    ;   Value = ^^(Nested, _Type)
+    ->  normalize_term_integer(Nested, Integer)
+    ).
 
 %% fact_valid_interval(+FactId, -ValidFrom, -ValidTo)
 % Extract optional validity bounds for property_value facts.
@@ -1001,15 +1196,40 @@ normalize_uri_atom(Value, Atom) :-
     ).
 
 %% symbol_no_req_coverage(+Symbol, -Reason)
-% Find symbols that are not traceable to any functional requirement.
-symbol_no_req_coverage(Symbol, no_path_to_req) :-
-    kb_entity(Symbol, symbol, _),
-    \+ transitively_implements(Symbol, _).
+% Find symbols that lack canonical production requirement coverage.
+symbol_no_req_coverage(Symbol, no_qualifying_production_coverage) :-
+    production_symbol(Symbol),
+    \+ production_symbol_covered_for_requirement(Symbol, _).
+
+%% production_symbol_covered_for_requirement(+Symbol, +Req)
+% Production coverage requires a covered_by edge and a canonical requirement/test path.
+production_symbol_covered_for_requirement(Symbol, Req) :-
+    production_symbol(Symbol),
+    kb_relationship(covered_by, Symbol, Test),
+    test_covers_requirement(Test, Req).
+
+symbol_has_req_coverage(Symbol, Req) :-
+    production_symbol_covered_for_requirement(Symbol, Req).
+
+test_covers_requirement(Test, Req) :-
+    requirement_test_fallback_allowed(Req),
+    requirement_verified_by_test(Req, Test),
+    test_satisfies_requirement_semantics(Test, Req).
+test_covers_requirement(Test, Req) :-
+    kb_relationship(specified_by, Req, Scenario),
+    scenario_verified_by_test(Scenario, Test),
+    test_satisfies_requirement_semantics(Test, Req).
+
+%% production_symbol_untested(+Symbol)
+% Production symbol with no covered_by test evidence at all.
+production_symbol_untested(Symbol) :-
+    production_symbol(Symbol),
+    \+ kb_relationship(covered_by, Symbol, _).
 
 % Helper predicate for readability - symbols with no traceability
 symbol_uncovered(Symbol) :-
-    kb_entity(Symbol, symbol, _),
-    \+ transitively_implements(Symbol, _).
+    production_symbol(Symbol),
+    \+ production_symbol_covered_for_requirement(Symbol, _).
 
 
 coerce_timestamp_atom(Val^^_Type, Atom) :-
@@ -1045,7 +1265,8 @@ coerce_timestamp_atom(Val, Atom) :-
 % counted so that `// implements: REQ-001` can satisfy the gate.
 changed_symbol_missing_req(Symbol, MinLinks, Count) :-
     changed_symbol(Symbol),
-    (   setof(Req, transitively_implements(Symbol, Req), KbReqs)
+    \+ executable_test_symbol(Symbol),
+    (   setof(Req, symbol_owns_requirement(Symbol, Req), KbReqs)
     ->  true
     ;   KbReqs = []
     ),

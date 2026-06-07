@@ -145,6 +145,17 @@ export async function validateStagedSymbols(
     // row: [Sym,Count,File,Line,Col,Name]
     if (row.length < 6) continue;
     const [sym, count, file, line, col, name] = row;
+    if (
+      sym === undefined ||
+      count === undefined ||
+      file === undefined ||
+      line === undefined ||
+      col === undefined ||
+      name === undefined
+    ) {
+      continue;
+    }
+
     const symbolId = unquoteAtom(sym);
     const currentLinks = Number(count.replace(/[^0-9]/g, "")) || 0;
     const requiredLinks = minLinks;
@@ -168,6 +179,7 @@ export async function validateStagedSymbols(
 }
 
 export function formatViolations(violations: Violation[]): string {
+  // implements REQ-014
   if (!violations || violations.length === 0) return "";
   const total = violations.length;
   const minLinks = violations[0]?.requiredLinks ?? 0;
@@ -178,9 +190,9 @@ export function formatViolations(violations: Violation[]): string {
   for (const v of violations) {
     const loc = `${v.file}:${v.line}`;
     const name = `${v.name}()`;
-    // Suggest adding requirement links via `implements:` using requirement IDs (e.g. REQ-001)
+    // Suggest adding requirement links with role-specific guidance
     const suggestion =
-      "Add one or more requirement links, for example: implements: REQ-001";
+      "Add ownership: implements: REQ-001 (production code), use covered_by for production coverage, or executable_for for executable test code";
     lines.push(`${loc}  ${name}  -> ${suggestion}`);
   }
   return lines.join("\n");

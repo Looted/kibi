@@ -8,11 +8,161 @@
  * (at your option) any later version.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import process from "node:process";
 import {
+  appendUsageLogLine,
+  classifyDiagnosticError,
   deriveDiagnosticFields,
   extractToolCallPayload,
+  initializeDiagnosticMode,
 } from "../src/diagnostics.js";
+
+describe("classifyDiagnosticError", () => {
+  test("classifies stale snapshot save failures", () => {
+    const result = classifyDiagnosticError(
+      new Error(
+        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot",
+      ),
+    );
+
+    expect(result).toEqual({
+      error_name: "Error",
+      error_message:
+        "Upsert execution failed: Failed to save KB after upsert: No permission to save kb stale_snapshot",
+      error_category: "stale_snapshot",
+      error_stage: "persistence",
+      error_summary:
+        "KB snapshot is stale; refresh/retry after the latest KB state is attached.",
+    });
+  });
+
+  test("classifies Prolog option and lifecycle failures", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Status execution failed: Status execution module load failed: Unknown option (h for help)",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_unknown_option",
+      error_stage: "prolog_runtime",
+    });
+
+    expect(
+      classifyDiagnosticError(new Error("Prolog process not started")),
+    ).toMatchObject({
+      error_category: "prolog_process_not_started",
+      error_stage: "prolog_lifecycle",
+    });
+  });
+
+  test("classifies tool timeout and Prolog worker reset events", () => {
+    expect(
+      classifyDiagnosticError(new Error("Tool kb_upsert timed out after 25ms")),
+    ).toMatchObject({
+      error_category: "tool_timeout",
+      error_stage: "tool_timeout",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error("prolog worker reset: tool timeout: kb_upsert"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_worker_reset",
+      error_stage: "prolog_lifecycle",
+    });
+  });
+
+  test("classifies validation failures separately from runtime failures", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Symbol SYM-VIDEO-TOOL-STATE links src/app/utils/video-tool-state.ts coarsely while granular symbols are available: deriveVideoToolState",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "coarse_symbol_linkage",
+      error_stage: "validation",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Entity validation failed: root: must have required property 'title'",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "entity_validation_failed",
+      error_stage: "validation",
+    });
+  });
+
+  test("classifies validation failures: relationship validation and source mismatch", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error("Relationship validation failed: invalid field 'unknown'"),
+      ),
+    ).toMatchObject({
+      error_category: "relationship_validation_failed",
+      error_stage: "validation",
+    });
+
+    expect(
+      classifyDiagnosticError(
+        new Error(
+          "Relationship source must match the upserted entity TEST-1; received from=REQ-1",
+        ),
+      ),
+    ).toMatchObject({
+      error_category: "relationship_source_mismatch",
+      error_stage: "validation",
+    });
+  });
+
+  test("classifies Prolog failures: module load and query", () => {
+    expect(
+      classifyDiagnosticError(
+        new Error("Status execution module load failed: plunit"),
+      ),
+    ).toMatchObject({
+      error_category: "prolog_module_load_failed",
+      error_stage: "prolog_runtime",
+    });
+
+    expect(
+      classifyDiagnosticError(new Error("Prolog query failed: timeout")),
+    ).toMatchObject({
+      error_category: "prolog_query_failed",
+      error_stage: "prolog_runtime",
+    });
+  });
+
+  test("classifies unhandled handler errors for unknown messages", () => {
+    const result = classifyDiagnosticError(
+      new Error("Unexpected internal failure"),
+    );
+    expect(result).toMatchObject({
+      error_category: "handler_error",
+      error_stage: "handler",
+      error_summary: "Unhandled MCP handler error.",
+    });
+  });
+
+  test("classifies non-Error thrown values", () => {
+    const result = classifyDiagnosticError("plain string error");
+    expect(result).toMatchObject({
+      error_name: "Error",
+      error_category: "handler_error",
+      error_stage: "handler",
+      error_summary: "Unhandled MCP handler error.",
+    });
+  });
+});
 
 describe("deriveDiagnosticFields", () => {
   test("returns telemetry status field", () => {
@@ -177,5 +327,56 @@ describe("extractToolCallPayload", () => {
       c: [3],
       d: { nested: true },
     });
+  });
+});
+
+describe.serial("diagnostic mode lifecycle", () => {
+  const originalArgv = [...process.argv];
+  const originalEnv = { ...process.env };
+  let workspaceRoot = "";
+
+  beforeEach(() => {
+    workspaceRoot = mkdtempSync(
+      path.join(tmpdir(), "kibi-mcp-diagnostics-test-"),
+    );
+    process.argv = [...originalArgv];
+    process.env = {
+      ...originalEnv,
+      KIBI_WORKSPACE: workspaceRoot,
+      KIBI_MCP_DIAGNOSTIC_MODE: undefined,
+    };
+    initializeDiagnosticMode(false);
+  });
+
+  afterEach(() => {
+    initializeDiagnosticMode(false);
+    process.argv = [...originalArgv];
+    process.env = { ...originalEnv };
+    if (workspaceRoot) {
+      rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  test("initializeDiagnosticMode sets diagnostic env and usage log path", () => {
+    const entry = { tool: "kb_query", count: 1 };
+
+    initializeDiagnosticMode(true);
+    appendUsageLogLine(entry);
+
+    const logPath = path.join(workspaceRoot, ".kb", "usage.log");
+
+    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBe("1");
+    expect(existsSync(logPath)).toBe(true);
+    expect(readFileSync(logPath, "utf8")).toBe(`${JSON.stringify(entry)}\n`);
+  });
+
+  test("appendUsageLogLine is a no-op when diagnostic mode is disabled", () => {
+    initializeDiagnosticMode(false);
+    appendUsageLogLine({ tool: "kb_status" });
+
+    expect(process.env.KIBI_MCP_DIAGNOSTIC_MODE).toBe("0");
+    expect(existsSync(path.join(workspaceRoot, ".kb", "usage.log"))).toBe(
+      false,
+    );
   });
 });

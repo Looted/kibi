@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The Align project uses sport-neutral domain terminology internally but maps to target market-specific personas in the user interface.
+The example product uses sport-neutral domain terminology internally but maps to target market-specific personas in the user interface.
 
 ## Internal Terminology
 

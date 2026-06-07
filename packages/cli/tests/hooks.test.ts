@@ -43,6 +43,8 @@ describe("Git hooks", () => {
     const content = fs.readFileSync(hookPath, "utf-8");
     expect(content).toContain("kibi check");
     expect(content).toContain("Hard enforcement boundary");
+    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 
   it("should install post-merge hook that refreshes merge assumptions", () => {
@@ -64,21 +66,17 @@ describe("Git hooks", () => {
     expect(content).toContain("kibi sync");
   });
 
-  it("should update existing hook with partial kibi content", () => {
+  it("should preserve an existing hook with legacy unmanaged content", () => {
     const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
+    const legacyContent = "#!/bin/sh\nkibi sync\n";
 
-    // Simulate the regression: hook exists with partial kibi content
-    // (like what users had after broken init or manual edits)
-    fs.writeFileSync(hookPath, "#!/bin/sh\nkibi sync\n", { mode: 0o755 });
+    fs.writeFileSync(hookPath, legacyContent, { mode: 0o755 });
 
-    // Re-run init to trigger reinstallation
     const kibiBin = path.resolve(__dirname, "../bin/kibi");
     execSync(`bun ${kibiBin} init`, { cwd: tmpDir, stdio: "inherit" });
 
-    // Should be UPDATED with full branch logic, not skipped
     const content = fs.readFileSync(hookPath, "utf-8");
-    expect(content).toContain("kibi branch ensure");
-    expect(content).toMatch(/branch_flag is 1 for branch checkout/);
+    expect(content).toBe(legacyContent);
   });
 
   it("should install post-checkout hook with literal-caret sed expression (not line-anchor)", () => {
@@ -105,5 +103,29 @@ describe("Git hooks", () => {
     // Content should remain the same (not duplicated or corrupted)
     const newContent = fs.readFileSync(hookPath, "utf-8");
     expect(newContent).toBe(currentContent);
+  });
+
+  it("should install post-merge hook without --refresh-symbol-coordinates", () => {
+    const hookPath = path.join(tmpDir, ".git/hooks/post-merge");
+    const content = fs.readFileSync(hookPath, "utf-8");
+    // Must NOT refresh symbol coordinates in automatic hook contexts
+    expect(content).not.toContain("--refresh-symbol-coordinates");
+  });
+
+  it("should install post-checkout hook without --refresh-symbol-coordinates", () => {
+    const hookPath = path.join(tmpDir, ".git/hooks/post-checkout");
+    const content = fs.readFileSync(hookPath, "utf-8");
+    // Must NOT refresh symbol coordinates in automatic hook contexts
+    expect(content).not.toContain("--refresh-symbol-coordinates");
+  });
+
+  it("should install post-rewrite hook that syncs without coordinate refresh", () => {
+    const hookPath = path.join(tmpDir, ".git/hooks/post-rewrite");
+    expect(fs.existsSync(hookPath)).toBe(true);
+    const content = fs.readFileSync(hookPath, "utf-8");
+    expect(content).toContain("kibi sync");
+    expect(content).toContain("post-rewrite hook for kibi");
+    // Must NOT refresh symbol coordinates in automatic hook contexts
+    expect(content).not.toContain("--refresh-symbol-coordinates");
   });
 });

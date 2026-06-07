@@ -21,46 +21,43 @@ import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { getKbPlPathOverride, isPrologDebugEnabled } from "./env.js";
 
 const importMetaDir = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
-
 export function resolveKbPlPath(): string {
   // implements REQ-009
-  const overrideKbPath = process.env.KIBI_KB_PL_PATH;
-  if (overrideKbPath && existsSync(overrideKbPath)) {
+  const overrideKbPath = getKbPlPathOverride();
+  if (overrideKbPath) {
     return overrideKbPath;
   }
 
+  // Strategy 1: Resolve kibi-core package and derive the source file path.
+  // This works in npm workspaces where kibi-core is a direct dependency of kibi-cli.
   try {
-    const installedKbPl = require.resolve("kibi-core/src/kb.pl");
-    if (existsSync(installedKbPl)) return installedKbPl;
+    try {
+      // First try: resolve as a file within the package
+      return require.resolve("kibi-core/src/kb.pl");
+    } catch {
+      // Fall back: resolve package entry point and derive path
+      const coreMain = require.resolve("kibi-core");
+      const coreDir = path.dirname(coreMain);
+      return path.join(coreDir, "src", "kb.pl");
+    }
   } catch {
-    // require.resolve not available or package not installed
+    // Both resolution strategies failed
   }
 
-  const startDirs = [importMetaDir, process.cwd()];
-  for (const startDir of startDirs) {
-    let currentDir = path.resolve(startDir);
-    while (true) {
-      const candidate = path.join(
-        currentDir,
-        "packages",
-        "core",
-        "src",
-        "kb.pl",
-      );
-      if (existsSync(candidate)) {
-        return candidate;
-      }
-
-      const parentDir = path.dirname(currentDir);
-      if (parentDir === currentDir) {
-        break;
-      }
-      currentDir = parentDir;
+  // Strategy 2: Walk up from importMetaDir looking for packages/core/src/kb.pl.
+  // This works when running from the source tree (e.g., during development).
+  let currentDir = importMetaDir;
+  while (currentDir !== path.dirname(currentDir)) {
+    const candidate = path.join(currentDir, "packages", "core", "src", "kb.pl");
+    if (existsSync(candidate)) {
+      return candidate;
     }
+    currentDir = path.dirname(currentDir);
   }
 
   throw new Error(
@@ -87,6 +84,7 @@ export class PrologProcess {
   private errorBuffer = "";
   private cache: Map<string, QueryResult> = new Map();
   private interactiveQueryTail: Promise<void> = Promise.resolve();
+  private terminationPromise: Promise<void> | null = null;
   private useOneShotMode =
     typeof (globalThis as { Bun?: unknown }).Bun !== "undefined";
   private attachedKbPath: string | null = null;
@@ -110,6 +108,7 @@ export class PrologProcess {
       `use_module('${kbPath}'), use_module(library(semweb/rdf_db)), set_prolog_flag(answer_write_options, [max_depth(0), quoted(true)])`,
       "--quiet",
     ]);
+    this.clearQueryBuffers();
 
     if (!this.process.stdout || !this.process.stderr || !this.process.stdin) {
       throw new Error("Failed to spawn Prolog process");
@@ -122,6 +121,8 @@ export class PrologProcess {
     this.process.stderr.on("data", (chunk) => {
       this.errorBuffer += chunk.toString();
     });
+
+    this.process.stdin.write("true.\n");
 
     if (!this.onProcessExit) {
       this.onProcessExit = () => {
@@ -153,14 +154,15 @@ export class PrologProcess {
         );
       }
 
-      // If stdout or stderr shows any output, assume ready.
-      if (this.outputBuffer.length > 0 || this.errorBuffer.length > 0) {
-        break;
+      if (this.outputBuffer.includes("true.")) {
+        this.outputBuffer = "";
+        this.errorBuffer = "";
+        return;
       }
 
       // brief pause
       // eslint-disable-next-line no-await-in-loop
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     // Final sanity check
@@ -202,15 +204,14 @@ export class PrologProcess {
       return this.query(batchGoal);
     }
 
-    if (!this.process || !this.process.stdin) {
+    if (!this.isProcessUsable()) {
       throw new Error("Prolog process not started");
     }
 
     const runInteractiveQuery = async (): Promise<QueryResult> => {
-      this.outputBuffer = "";
-      this.errorBuffer = "";
+      this.clearQueryBuffers();
 
-      const debug = !!process.env.KIBI_PROLOG_DEBUG;
+      const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
         ? normalizedGoal
@@ -224,6 +225,7 @@ export class PrologProcess {
       this.process?.stdin?.write(`${wrappedGoal}.\n`);
 
       return new Promise((resolve, reject) => {
+        let settled = false;
         const timeoutId = setTimeout(() => {
           const msg = `Query timeout after ${this.timeout / 1000}s (pid=${this.process?.pid ?? 0}, killed=${this.process?.killed ? "yes" : "no"}, exitCode=${this.process?.exitCode ?? "null"}, goal=${JSON.stringify(normalizedGoal.slice(0, 120))})`;
           if (debug) {
@@ -233,15 +235,22 @@ export class PrologProcess {
             console.error(`[prolog debug] last stdout: ---\n${tailOut}\n---`);
             console.error(`[prolog debug] last stderr: ---\n${tailErr}\n---`);
           }
-          reject(new Error(msg));
+          settled = true;
+          void this.terminate().finally(() => {
+            reject(new Error(msg));
+          });
         }, this.timeout);
 
         const checkResult = () => {
+          if (settled) {
+            return;
+          }
           if (
             this.errorBuffer.length > 0 &&
             this.errorBuffer.includes("ERROR")
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             if (debug) {
               console.error(
                 `[prolog debug] query error: ${normalizedGoal} error=${this.errorBuffer.split("\n")[0]}`,
@@ -261,6 +270,7 @@ export class PrologProcess {
             this.outputBuffer.match(/\]\s*$/m)
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             const result = {
               success: true,
               bindings: this.extractBindings(this.outputBuffer),
@@ -291,6 +301,7 @@ export class PrologProcess {
             this.outputBuffer.includes("fail.")
           ) {
             clearTimeout(timeoutId);
+            settled = true;
             if (debug) {
               console.error(
                 `[prolog debug] query failed (false): ${normalizedGoal}`,
@@ -319,6 +330,9 @@ export class PrologProcess {
 
     await previousQuery;
     try {
+      if (!this.isProcessUsable()) {
+        throw new Error("Prolog process not started");
+      }
       return await runInteractiveQuery();
     } finally {
       releaseQuery();
@@ -371,6 +385,15 @@ export class PrologProcess {
 
     const attachMatch = trimmedGoal.match(/^kb_attach\('(.+)'\)$/);
     if (attachMatch) {
+      const attachPath = attachMatch[1] ?? null;
+      if (!attachPath) {
+        return {
+          success: false,
+          bindings: {},
+          error: "Invalid KB attach path",
+        };
+      }
+
       if (this.attachedKbPath !== null) {
         return {
           success: false,
@@ -380,7 +403,7 @@ export class PrologProcess {
       }
       const attachResult = this.execOneShot(trimmedGoal, null);
       if (attachResult.success) {
-        this.attachedKbPath = attachMatch[1];
+        this.attachedKbPath = attachPath;
       }
       return attachResult;
     }
@@ -495,6 +518,20 @@ export class PrologProcess {
     return goal.trim().replace(/\.+\s*$/, "");
   }
 
+  private clearQueryBuffers(): void {
+    this.outputBuffer = "";
+    this.errorBuffer = "";
+  }
+
+  // implements REQ-009
+  private isProcessUsable(): boolean {
+    return Boolean(
+      this.process?.stdin &&
+        !this.process?.killed &&
+        this.process?.exitCode === null,
+    );
+  }
+
   private extractBindings(output: string): Record<string, string> {
     const bindings: Record<string, string> = {};
     const lines = output.split("\n");
@@ -503,7 +540,9 @@ export class PrologProcess {
       const match = line.match(/^([A-Z_][A-Za-z0-9_]*)\s*=\s*(.+)\.?\s*$/);
       if (match) {
         const [, varName, value] = match;
-        bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        if (varName !== undefined && value !== undefined) {
+          bindings[varName] = value.trim().replace(/\.$/, "").replace(/,$/, "");
+        }
       }
     }
 
@@ -530,18 +569,21 @@ export class PrologProcess {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
 
-    const simpleError = errorText
-      .replace(/ERROR:\s*/g, "")
-      .replace(/^\*\*.*\*\*$/gm, "")
-      .replace(/^\s+/gm, "")
-      .split("\n")[0]
-      .trim();
+    const simpleError = (
+      errorText
+        .replace(/ERROR:\s*/g, "")
+        .replace(/^\*\*.*\*\*$/gm, "")
+        .replace(/^\s+/gm, "")
+        .split("\n")[0] ?? ""
+    ).trim();
 
     return simpleError || "Unknown error";
   }
 
   isRunning(): boolean {
-    return this.process !== null && !this.process.killed;
+    return Boolean(
+      this.process && !this.process.killed && this.process?.exitCode === null,
+    );
   }
 
   getPid(): number {
@@ -549,28 +591,43 @@ export class PrologProcess {
   }
 
   async terminate(): Promise<void> {
+    if (this.terminationPromise) {
+      await this.terminationPromise;
+      return;
+    }
+
     if (this.onProcessExit) {
       process.off("exit", this.onProcessExit);
       this.onProcessExit = null;
     }
 
-    if (this.process) {
-      this.process.stdin?.end();
-      this.process.kill("SIGTERM");
+    const current = this.process;
+    this.process = null;
+    this.clearQueryBuffers();
 
-      await new Promise((resolve) => {
-        const timeout = setTimeout(() => {
-          this.process?.kill("SIGKILL");
-          resolve(undefined);
-        }, 1000);
+    if (current) {
+      this.terminationPromise = (async () => {
+        current.stdin?.end();
+        current.kill("SIGTERM");
 
-        this.process?.on("exit", () => {
-          clearTimeout(timeout);
-          resolve(undefined);
+        await new Promise((resolve) => {
+          const timeout = setTimeout(() => {
+            current.kill("SIGKILL");
+            resolve(undefined);
+          }, 1000);
+
+          current.on("exit", () => {
+            clearTimeout(timeout);
+            resolve(undefined);
+          });
         });
-      });
+      })();
 
-      this.process = null;
+      try {
+        await this.terminationPromise;
+      } finally {
+        this.terminationPromise = null;
+      }
     }
   }
 }

@@ -30,6 +30,32 @@ export interface QueryResult {
   totalCount: number;
 }
 
+interface QueryCodecDeps {
+  escapeAtom: (value: string) => string;
+  parseListOfLists: (value: string) => string[][];
+  parseEntityFromList: (value: string[]) => Record<string, unknown>;
+  parseEntityFromBinding: (value: string) => Record<string, unknown>;
+}
+
+const defaultCodecDeps: QueryCodecDeps = {
+  escapeAtom,
+  parseListOfLists,
+  parseEntityFromList,
+  parseEntityFromBinding,
+};
+
+let codecDeps: QueryCodecDeps = defaultCodecDeps;
+
+export function _setQueryCodecDepsForTests(deps: QueryCodecDeps): void {
+  // implements REQ-003
+  codecDeps = deps;
+}
+
+export function _resetQueryCodecDepsForTests(): void {
+  // implements REQ-003
+  codecDeps = defaultCodecDeps;
+}
+
 export const VALID_ENTITY_TYPES = [
   "req",
   "scenario",
@@ -45,38 +71,39 @@ export const VALID_ENTITY_TYPES = [
  * Build a Prolog query goal from filters.
  */
 export function buildEntityQueryGoal(filters: QueryFilters): string {
+  // implements REQ-003
   const { type, id, sourceFile, tags } = filters;
 
   if (sourceFile) {
-    const safeSource = escapeAtom(sourceFile);
+    const safeSource = codecDeps.escapeAtom(sourceFile);
     if (type) {
-      const safeType = escapeAtom(type);
+      const safeType = codecDeps.escapeAtom(type);
       return `findall([Id,'${safeType}',Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, '${safeType}', Props)), Results)`;
     }
     return `findall([Id,Type,Props], (kb_entities_by_source('${safeSource}', SourceIds), member(Id, SourceIds), kb_entity(Id, Type, Props)), Results)`;
   }
 
   if (id && type) {
-    const safeId = escapeAtom(id);
-    const safeType = escapeAtom(type);
+    const safeId = codecDeps.escapeAtom(id);
+    const safeType = codecDeps.escapeAtom(type);
     return `findall(['${safeId}','${safeType}',Props], kb_entity('${safeId}', '${safeType}', Props), Results)`;
   }
 
   if (id) {
-    const safeId = escapeAtom(id);
+    const safeId = codecDeps.escapeAtom(id);
     return `findall(['${safeId}',Type,Props], kb_entity('${safeId}', Type, Props), Results)`;
   }
 
   if (tags && tags.length > 0) {
     if (type) {
-      const safeType = escapeAtom(type);
+      const safeType = codecDeps.escapeAtom(type);
       return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
     }
     return "findall([Id,Type,Props], kb_entity(Id, Type, Props), Results)";
   }
 
   if (type) {
-    const safeType = escapeAtom(type);
+    const safeType = codecDeps.escapeAtom(type);
     return `findall([Id,'${safeType}',Props], kb_entity(Id, '${safeType}', Props), Results)`;
   }
 
@@ -90,6 +117,7 @@ export async function queryEntities(
   prolog: PrologProcess,
   filters: QueryFilters,
 ): Promise<QueryResult> {
+  // implements REQ-003
   const { tags, limit = 100, offset = 0 } = filters;
 
   const goal = buildEntityQueryGoal(filters);
@@ -99,14 +127,18 @@ export async function queryEntities(
 
   if (queryResult.success) {
     if (queryResult.bindings.Results) {
-      const entitiesData = parseListOfLists(queryResult.bindings.Results);
+      const entitiesData = codecDeps.parseListOfLists(
+        queryResult.bindings.Results,
+      );
 
       for (const data of entitiesData) {
-        const entity = parseEntityFromList(data);
+        const entity = codecDeps.parseEntityFromList(data);
         entities.push(entity);
       }
     } else if (queryResult.bindings.Result) {
-      const entity = parseEntityFromBinding(queryResult.bindings.Result);
+      const entity = codecDeps.parseEntityFromBinding(
+        queryResult.bindings.Result,
+      );
       entities = [entity];
     }
   } else {

@@ -6,18 +6,23 @@ This document describes the entity and relationship schema for the Kibi Knowledg
 
 ## Entity Types
 
-Kibi supports eight entity types:
+Kibi intentionally supports **eight core entity types**, organized into two logical groups:
 
-| Type     | Description                                                        |
-|----------|--------------------------------------------------------------------|
-| req      | Software requirement specifying functionality or constraints       |
-| scenario | BDD scenario describing user behavior (Given/When/Then)            |
-| test     | Unit, integration, or e2e test case                                |
-| adr      | Architecture Decision Record documenting technical choices         |
-| MQ|       | flag     | Runtime or config gate (feature flag, kill-switch, deferred capability) |
-| HX|       | event    | Domain or system event published/consumed by components            |
-| MN|       | symbol   | Abstract code symbol (function, class, module) - language-agnostic |
-| JZ|       | fact     | Atomic domain fact; use observation/meta for bug and workaround notes |
+### Common Authoring Entities (Standard Workflow)
+| Type | Description |
+|------|-------------|
+| req | Software requirement specifying functionality or constraints |
+| scenario | BDD scenario describing user behavior (Given/When/Then) |
+| test | Unit, integration, or e2e test case |
+| fact | Atomic domain fact; includes strict lanes and observation/meta notes |
+
+### Supporting & System Entities (Context & Infrastructure)
+| Type | Description |
+|------|-------------|
+| adr | Architecture Decision Record documenting technical choices |
+| flag | Runtime or config gate (feature flag, kill-switch, deferred capability) |
+| event | Domain or system event published/consumed by components |
+| symbol | Abstract code symbol (function, class, module) - language-agnostic |
 
 
 ---
@@ -61,7 +66,7 @@ This section provides guidance on selecting the appropriate entity type for your
 | created_at   | Yes      | ISO 8601       | Creation timestamp                               |
 | updated_at   | Yes      | ISO 8601       | Last update timestamp                            |
 | source       | Yes      | string         | Provenance (file path, URL, or reference)        |
-| tags[]       | No       | array[string]  | Array of tags                                    |
+| tags[]       | No       | array[string]  | Array of metadata/search tags only               |
 | owner        | No       | string         | Owner/assignee                                   |
 | priority     | No       | string         | Priority level (must, should, could)             |
 | severity     | No       | string         | Severity level                                   |
@@ -103,8 +108,6 @@ source: documentation/requirements/REQ-001.md
 links:
   - type: specified_by
     target: SCEN-001
-  - type: verified_by
-    target: TEST-001
 ---
 
 # documentation/scenarios/SCEN-001.md
@@ -120,11 +123,14 @@ source: documentation/scenarios/SCEN-001.md
 # documentation/tests/TEST-001.md
 ---
 id: TEST-001
-title: Verify login flow
+title: Login test
 status: passing
 created_at: 2026-03-10T10:02:00Z
 updated_at: 2026-03-10T10:02:00Z
 source: documentation/tests/TEST-001.md
+links:
+  - type: validates
+    target: SCEN-001
 ---
 ```
 
@@ -170,7 +176,8 @@ relationship:
   - one `fact_kind: subject` fact linked via `constrains`
   - one `fact_kind: property_value` fact linked via `requires_property`
 - For v1, the supported evolution path is append-only: create a new requirement and link it to the prior one with `supersedes`.
-- Plain requirement upserts do **not** automatically replace older `constrains` / `requires_property` semantics.
+- Automated modeling via `kb_model_requirement` can produce deterministic write plans. `/init-kibi` also follows this pattern, but bootstrap writes still require a user-facing preview and explicit approval before applying `kb_upsert` payloads.
+- **Low-confidence downgrade:** If confidence is < 0.7, requirements are downgraded to `observation` facts to avoid false-positive contradictions.
 - Use `observation` and `meta` facts for runtime evidence, historical notes, and governance context that should not participate in contradiction blocking.
 
 **Canonical Contradiction-Safe Example:**
@@ -221,6 +228,21 @@ links:
     target: REQ-018
 ---
 ```
+```
+
+**Schema Migration:**
+
+Older KBs can be upgraded to the latest schema using the `migrate` command. This ensures all entities are compatible with the latest contradiction and validation rules.
+
+```bash
+# Check if migration is required
+kibi status
+
+# Perform the migration
+kibi migrate --yes
+```
+
+Schema version 2 introduces strict symbol granularity. During migration, existing coarse file/module links that can be explained by older ontology data are marked with `granularity_reason: legacy-link`; new or updated symbol traceability should target the narrow function, class method (`ClassName.methodName`), class, or other behavioral symbol whenever one exists. Interfaces, type aliases, and enums are `type-shape` symbols; they describe code shape and do not by themselves block a coarse behavioral link.
 
 **Invalid Example (Prohibited):**
 
@@ -283,6 +305,10 @@ tags:
 | severity     | No       | string         | Severity level                                   |
 | links[]      | No       | array[string]  | URLs                                             |
 | text_ref     | No       | string         | Markdown/doc pointer                             |
+| verification_scope | No | enum           | `unit`, `integration`, or `end_to_end`           |
+| verification_perspective | No | enum     | `internal` or `consumer`                         |
+
+`tags` remain metadata only. They do not alias or replace typed verification fields.
 
 **Example:**
 ```yaml
@@ -295,8 +321,12 @@ updated_at: 2026-02-17T13:00:00Z
 source: https://example.com/fixtures/tests/TEST-001
 tags:
   - sample
+verification_scope: integration
+verification_perspective: internal
 ---
 ```
+
+See `docs/examples/test-verification-fields.md` for a complete example using both typed fields.
 
 #### ADR (`adr`)
 
@@ -380,12 +410,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: EVENT-001
-title: Sample event EVENT-001
+id: EVT-001
+title: Sample event EVT-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/events/EVENT-001
+source: https://example.com/fixtures/events/EVT-001
 tags:
   - domain
 ---
@@ -411,12 +441,12 @@ tags:
 **Example:**
 ```yaml
 ---
-id: SYMBOL-001
-title: Sample symbol SYMBOL-001
+id: SYM-001
+title: Sample symbol SYM-001
 status: active
 created_at: 2026-02-17T13:00:00Z
 updated_at: 2026-02-17T13:00:00Z
-source: https://example.com/fixtures/symbols/SYMBOL-001
+source: https://example.com/fixtures/symbols/SYM-001
 tags:
   - code
 ---
@@ -432,10 +462,15 @@ Facts support two authoring lanes:
 - **Context lane** for non-blocking knowledge
   - `observation`
   - `meta`
+- **Ontology lane** for project-local predicate modeling
+  - `predicate_schema`: defines an allowed predicate signature; requires `predicate_name`, `predicate_arity`, `argument_names`, and `argument_types`
+  - `predicate`: stores a ground predicate claim; requires `predicate_name`, non-empty `predicate_args`, and `canonical_key`; may use `polarity: assert` or `deny`
 
 Legacy prose facts without `fact_kind` remain readable during migration, but new requirements should prefer the strict lane when the fact expresses a rule that should block contradictions.
 
-`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, and property values). Requirements can link to facts using `constrains` and `requires_property` so contradictions become structural and queryable.
+`fact` entities represent atomic domain concepts and invariants (for example domain nouns, cardinalities, property values, and ontology predicates). Requirements can link to strict facts using `constrains` and `requires_property`, or to ontology predicate facts using `requires_predicate`, so domain claims become structural and queryable.
+
+**Migration note:** `predicate_schema`, `predicate`, and `requires_predicate` are additive. Existing KB documents do not require a data migration, and legacy prose facts remain readable. Projects can adopt the ontology lane incrementally by adding predicate schema facts, then linking new or updated requirements to ground predicate facts via `requires_predicate`.
 
 | Property     | Required | Type           | Description                                      |
 |--------------|----------|----------------|--------------------------------------------------|
@@ -485,13 +520,16 @@ Kibi supports relationship types listed below. Each relationship has metadata:
 | Relationship         | Source Entity         | Target Entity         | Description                                      |
 |---------------------|----------------------|----------------------|--------------------------------------------------|
 | depends_on          | req                  | req                  | Requirement depends on another requirement        |
-| specified_by        | req                  | scenario             | Requirement specified by scenario                 |
-| verified_by         | req                  | test                 | Requirement verified by test                      |
-| implements          | symbol               | req                  | Symbol implements requirement                     |
-| covered_by          | symbol               | test                 | Symbol covered by test                            |
+| specified_by        | req                  | scenario             | Requirement is specified by a scenario            |
+| verified_by         | req/scenario         | test                 | Requirement or scenario is verified by a test     |
+| validates           | test                 | req/scenario         | Test validates a requirement or scenario          |
+| implements          | symbol               | req                  | Symbol owns or implements requirement behavior    |
+| covered_by          | symbol               | test                 | Production symbol has coverage evidence from a test |
+| executable_for      | symbol               | test                 | Symbol is executable test code for a test entity  |
 | constrained_by      | symbol               | adr                  | Symbol constrained by ADR                         |
 | constrains          | req                  | fact                 | Requirement constrains a specific domain fact     |
 | requires_property   | req                  | fact                 | Requirement requires a property fact/value        |
+| requires_predicate  | req                  | fact                 | Requirement requires a ground ontology predicate fact |
 | guards              | flag                 | symbol/event/req     | Flag guards symbol, event, or requirement         |
 | publishes           | symbol               | event                | Symbol publishes event                            |
 | consumes            | symbol               | event                | Symbol consumes event                             |
@@ -538,36 +576,72 @@ relationship:
   source: https://example.com/fixtures/tests/TEST-001
 ```
 
+`verified_by` has one frozen meaning: a requirement or scenario is verified by a test. Direct `req -> test` is fallback only when no scenario exists. Prefer `req -> scenario -> test`.
+
+**validates**
+```yaml
+# test TEST-001 validates scenario SCEN-001
+relationship:
+  type: validates
+  source: TEST-001
+  target: SCEN-001
+  created_at: 2026-02-17T13:22:00Z
+  created_by: qa
+  source: https://example.com/fixtures/tests/TEST-001
+```
+
+`validates` is the inverse edge for req/scenario ↔ test links.
+
 **implements**
 ```yaml
-# symbol SYMBOL-001 implements req REQ-001
+# symbol SYM-001 implements req REQ-001
 relationship:
   type: implements
-  source: SYMBOL-001
+  source: SYM-001
   target: REQ-001
   created_at: 2026-02-17T13:25:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
+
+`implements` is frozen to requirement ownership only (`symbol -> req`).
 
 **covered_by**
 ```yaml
-# symbol SYMBOL-001 covered_by test TEST-001
+# symbol SYM-001 covered_by test TEST-001
 relationship:
   type: covered_by
-  source: SYMBOL-001
+  source: SYM-001
   target: TEST-001
   created_at: 2026-02-17T13:30:00Z
   created_by: dev
   source: https://example.com/fixtures/tests/TEST-001
 ```
 
+`covered_by` is frozen to production coverage evidence only (`symbol -> test`).
+
+**executable_for**
+```yaml
+# symbol SYM-TEST-001 executable_for test TEST-001
+relationship:
+  type: executable_for
+  source: SYM-TEST-001
+  target: TEST-001
+  created_at: 2026-02-17T13:32:00Z
+  created_by: dev
+  source: https://example.com/fixtures/symbols/SYM-TEST-001
+```
+
+`executable_for` is frozen to executable test code identity only (`symbol -> test`).
+
+For the canonical symbol taxonomy, integration/e2e N/A rubric, and anti-blanket requirement checklist, see [Symbol Traceability Taxonomy](symbol-traceability-taxonomy.md).
+
 **constrained_by**
 ```yaml
-# symbol SYMBOL-001 constrained_by adr ADR-001
+# symbol SYM-001 constrained_by adr ADR-001
 relationship:
   type: constrained_by
-  source: SYMBOL-001
+  source: SYM-001
   target: ADR-001
   created_at: 2026-02-17T13:35:00Z
   created_by: architect
@@ -589,26 +663,26 @@ relationship:
 
 **publishes**
 ```yaml
-# symbol SYMBOL-001 publishes event EVENT-001
+# symbol SYM-001 publishes event EVT-001
 relationship:
   type: publishes
-  source: SYMBOL-001
-  target: EVENT-001
+  source: SYM-001
+  target: EVT-001
   created_at: 2026-02-17T13:50:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
 
 **consumes**
 ```yaml
-# symbol SYMBOL-001 consumes event EVENT-001
+# symbol SYM-001 consumes event EVT-001
 relationship:
   type: consumes
-  source: SYMBOL-001
-  target: EVENT-001
+  source: SYM-001
+  target: EVT-001
   created_at: 2026-02-17T13:55:00Z
   created_by: dev
-  source: https://example.com/fixtures/symbols/SYMBOL-001
+  source: https://example.com/fixtures/symbols/SYM-001
 ```
 
 **constrains**

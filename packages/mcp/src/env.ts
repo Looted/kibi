@@ -20,6 +20,44 @@ import { resolveEnvFilePath, resolveWorkspaceRoot } from "./workspace.js";
 
 const DEFAULT_ENV_FILE = ".env";
 
+function getEnvValue(key: string): string | undefined {
+  const value = process.env[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function getTrimmedEnvValue(key: string): string | undefined {
+  const value = getEnvValue(key)?.trim();
+  return value ? value : undefined;
+}
+
+export function getEnvFileName(): string {
+  // implements REQ-002
+  return getTrimmedEnvValue("KIBI_ENV_FILE") ?? DEFAULT_ENV_FILE;
+}
+
+export function isMcpDebugEnabled(): boolean {
+  // implements REQ-002
+  return Boolean(getEnvValue("KIBI_MCP_DEBUG"));
+}
+
+export function getBranchOverride(): string | undefined {
+  // implements REQ-002
+  return getTrimmedEnvValue("KIBI_BRANCH");
+}
+
+export function getKbPlPathOverride(): string | undefined {
+  // implements REQ-002
+  return getEnvValue("KIBI_KB_PL_PATH");
+}
+
+export function getCoreModulePathOverride(
+  fileName: string,
+): string | undefined {
+  // implements REQ-002
+  const envKey = `KIBI_${fileName.replace(/\W/g, "_").toUpperCase()}_PATH`;
+  return getEnvValue(envKey);
+}
+
 export type LoadEnvResult = {
   loaded: boolean;
   envFilePath: string;
@@ -27,12 +65,14 @@ export type LoadEnvResult = {
 };
 
 export function loadDefaultEnvFile(): LoadEnvResult {
-  const envFileName = process.env.KIBI_ENV_FILE ?? DEFAULT_ENV_FILE;
+  // implements REQ-002
+  const envFileName = getEnvFileName();
   const workspaceRoot = resolveWorkspaceRoot();
   return loadEnvFile({ envFileName, workspaceRoot });
 }
 
 export function loadEnvFile(options: {
+  // implements REQ-002
   envFileName: string;
   workspaceRoot: string;
 }): LoadEnvResult {

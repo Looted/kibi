@@ -9,7 +9,9 @@ tags:
   - sync
   - extractors
 links:
-  - REQ-007
+  - REQ-cli-sync
+  - type: verified_by
+    target: TEST-002
 ---
 
 Steps:

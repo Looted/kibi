@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { execSync } from "node:child_process";
+import { execSync as rawExecSync } from "node:child_process";
 import {
   copyFileSync,
   existsSync,
@@ -25,6 +25,7 @@ import {
   statSync,
 } from "node:fs";
 import * as path from "node:path";
+import { getBranchOverride } from "../env.js";
 
 export type BranchResolutionSuccess = { branch: string };
 export type BranchResolutionError = { error: string; code: BranchErrorCode };
@@ -39,6 +40,19 @@ export type BranchErrorCode =
   | "GIT_NOT_AVAILABLE"
   | "NOT_A_GIT_REPO"
   | "UNKNOWN_ERROR";
+
+export interface BranchResolverDeps {
+  execSync: typeof import("node:child_process").execSync;
+}
+
+const defaultDeps: BranchResolverDeps = { execSync: rawExecSync };
+
+export function _setBranchResolverDepsForTests(
+  deps: Partial<BranchResolverDeps>,
+): void {
+  // implements REQ-008
+  defaultDeps.execSync = deps.execSync ?? rawExecSync;
+}
 
 // Files to exclude when copying branch snapshots (volatile artifacts)
 const VOLATILE_ARTIFACTS = new Set([
@@ -80,8 +94,9 @@ function isVolatileArtifact(fileName: string): boolean {
 export function resolveActiveBranch(
   workspaceRoot: string = process.cwd(),
 ): BranchResolutionResult {
+  // implements REQ-008
   // 1. Check KIBI_BRANCH env var first (highest precedence)
-  const envBranch = process.env.KIBI_BRANCH?.trim();
+  const envBranch = getBranchOverride();
   if (envBranch) {
     // Validate the env branch name
     if (!isValidBranchName(envBranch)) {
@@ -95,12 +110,14 @@ export function resolveActiveBranch(
 
   // 2. Try to get the current git branch
   try {
-    const branch = execSync("git branch --show-current", {
-      cwd: workspaceRoot,
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
+    const branch = defaultDeps
+      .execSync("git branch --show-current", {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+      .trim();
 
     if (!branch) {
       // Empty result means detached HEAD
@@ -125,12 +142,14 @@ export function resolveActiveBranch(
   } catch (error) {
     // Try alternative: git rev-parse --abbrev-ref HEAD
     try {
-      const branch = execSync("git rev-parse --abbrev-ref HEAD", {
-        cwd: workspaceRoot,
-        encoding: "utf8",
-        timeout: 5000,
-        stdio: ["pipe", "pipe", "pipe"],
-      }).trim();
+      const branch = defaultDeps
+        .execSync("git rev-parse --abbrev-ref HEAD", {
+          cwd: workspaceRoot,
+          encoding: "utf8",
+          timeout: 5000,
+          stdio: ["pipe", "pipe", "pipe"],
+        })
+        .trim();
 
       if (branch === "HEAD") {
         return {
@@ -163,7 +182,7 @@ export function resolveActiveBranch(
       const normalizedBranch = branch === "master" ? "main" : branch;
 
       return { branch: normalizedBranch };
-    } catch (fallbackError) {
+    } catch {
       // Determine specific error type
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -203,13 +222,16 @@ export function resolveActiveBranch(
  * @returns true if in detached HEAD, false otherwise
  */
 export function isDetachedHead(workspaceRoot: string = process.cwd()): boolean {
+  // implements REQ-008
   try {
-    const branch = execSync("git rev-parse --abbrev-ref HEAD", {
-      cwd: workspaceRoot,
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
+    const branch = defaultDeps
+      .execSync("git rev-parse --abbrev-ref HEAD", {
+        cwd: workspaceRoot,
+        encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+      .trim();
 
     return branch === "HEAD";
   } catch {
@@ -368,6 +390,7 @@ export function resolveDefaultBranch(
   cwd: string = process.cwd(),
   config?: { defaultBranch?: string },
 ): { branch: string } | { error: string; code: string } {
+  // implements REQ-012
   // 1. Check config.defaultBranch first (highest precedence)
   const configuredBranch = config?.defaultBranch?.trim();
   if (configuredBranch) {
@@ -383,18 +406,20 @@ export function resolveDefaultBranch(
 
   // 2. Try to get the remote default branch from origin/HEAD
   try {
-    const remoteHead = execSync("git symbolic-ref refs/remotes/origin/HEAD", {
-      cwd,
-      encoding: "utf8",
-      timeout: 5000,
-      stdio: ["pipe", "pipe", "pipe"],
-    }).trim();
+    const remoteHead = defaultDeps
+      .execSync("git symbolic-ref refs/remotes/origin/HEAD", {
+        cwd,
+        encoding: "utf8",
+        timeout: 5000,
+        stdio: ["pipe", "pipe", "pipe"],
+      })
+      .trim();
 
     // Parse refs/remotes/origin/BRANCH_NAME -> BRANCH_NAME
     const match = remoteHead.match(/^refs\/remotes\/origin\/(.+)$/);
     if (match) {
       const branch = match[1];
-      if (isValidBranchName(branch)) {
+      if (branch && isValidBranchName(branch)) {
         return { branch };
       }
     }

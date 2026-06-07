@@ -1,4 +1,7 @@
 import { afterEach, describe, expect, mock, spyOn, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
 
@@ -9,6 +12,8 @@ type QueryResult = {
 };
 
 const initialKibiMcpDebug: string | undefined = process.env.KIBI_MCP_DEBUG;
+const initialCwd = process.cwd();
+let tempWorkspace: string | undefined;
 
 function createMockProlog(
   handler: (goal: string) => Promise<QueryResult> | QueryResult,
@@ -32,12 +37,23 @@ function createMockProlog(
 afterEach(() => {
   mock.restore();
   __test__.setRefreshCoordinatesForSymbolIdForTests(undefined);
+  process.chdir(initialCwd);
+  if (tempWorkspace) {
+    rmSync(tempWorkspace, { recursive: true, force: true });
+    tempWorkspace = undefined;
+  }
   if (initialKibiMcpDebug === undefined) {
-    process.env.KIBI_MCP_DEBUG = undefined;
+    Reflect.deleteProperty(process.env, "KIBI_MCP_DEBUG");
   } else {
     process.env.KIBI_MCP_DEBUG = initialKibiMcpDebug;
   }
 });
+
+function createTempWorkspace(): string {
+  tempWorkspace = mkdtempSync(path.join(tmpdir(), "kibi-mcp-upsert-"));
+  process.chdir(tempWorkspace);
+  return tempWorkspace;
+}
 
 describe("handleKbUpsert", () => {
   test("rejects missing required type/id arguments", async () => {
@@ -91,6 +107,67 @@ describe("handleKbUpsert", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  test("accepts valid symbol_role values on symbol upserts", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('SYM-ROLE-VALID', _, _))") {
+        return { success: false };
+      }
+      if (
+        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(symbol,")
+      ) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-ROLE-VALID",
+      properties: {
+        title: "RoleAwareSymbol",
+        status: "active",
+        source: "test://upsert",
+        symbol_role: "behavioral",
+      },
+    });
+
+    const transactionGoal = query.mock.calls.find(([goal]) =>
+      String(goal).startsWith("rdf_transaction"),
+    )?.[0] as string | undefined;
+    expect(transactionGoal).toContain("symbol_role=behavioral");
+    expect(result.structuredContent?.created).toBe(1);
+  });
+
+  test("rejects invalid symbol_role values before querying Prolog", async () => {
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-ROLE-INVALID",
+        properties: {
+          title: "Invalid role symbol",
+          status: "active",
+          source: "test://upsert",
+          symbol_role: "controller",
+        },
+      }),
+    ).rejects.toThrow(/Entity validation failed/);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
   test("rejects relationships whose source does not match the upserted entity", async () => {
     const { prolog, query } = createMockProlog(async () => ({ success: true }));
 
@@ -116,6 +193,217 @@ describe("handleKbUpsert", () => {
     );
 
     expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts coarse symbol traceability when only type-shape symbols are available", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "video-player.store.ts"),
+      `export interface DraftSceneSnapshot { id: string }
+export type VideoPlayerMode = "idle" | "playing";
+export enum VideoPlayerState { Idle = "idle" }
+
+const videoPlayerStore = createStore(withMethods({
+  connectVideoElement() {
+    return true;
+  },
+}));
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-VIDEO-PLAYER-STORE",
+      properties: {
+        title: "VideoPlayerStore",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/video-player.store.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-VIDEO-PLAYER-STORE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
+  test("rejects coarse symbol traceability when granular source symbols exist", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "greet.ts"),
+      `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+`,
+    );
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-GREET-FILE",
+        properties: {
+          title: "greetModule",
+          status: "active",
+          source: "documentation/symbols.yaml",
+          sourceFile: "src/greet.ts",
+        },
+        relationships: [
+          {
+            type: "implements",
+            from: "SYM-GREET-FILE",
+            to: "REQ-GRANULAR-001",
+          },
+        ],
+      }),
+    ).rejects.toThrow(/granular symbols are available/i);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts method symbol traceability when a class method exists", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "worker.ts"),
+      `export class Worker {
+  run() {
+    return "ok";
+  }
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: true,
+      found: true,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-WORKER-RUN",
+      properties: {
+        title: "Worker.run",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/worker.ts",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-WORKER-RUN",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
+  });
+
+  test("rejects ambiguous bare method symbol traceability when duplicate class methods exist", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "workers.ts"),
+      `export class Alpha {
+  run() {
+    return "alpha";
+  }
+}
+
+export class Beta {
+  run() {
+    return "beta";
+  }
+}
+`,
+    );
+    const { prolog, query } = createMockProlog(async () => ({ success: true }));
+
+    await expect(
+      handleKbUpsert(prolog, {
+        type: "symbol",
+        id: "SYM-WORKER-RUN",
+        properties: {
+          title: "run",
+          status: "active",
+          source: "documentation/symbols.yaml",
+          sourceFile: "src/workers.ts",
+        },
+        relationships: [
+          {
+            type: "implements",
+            from: "SYM-WORKER-RUN",
+            to: "REQ-GRANULAR-001",
+          },
+        ],
+      }),
+    ).rejects.toThrow(/Alpha\.run.*Beta\.run/i);
+
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  test("accepts justified coarse symbol traceability", async () => {
+    const root = createTempWorkspace();
+    mkdirSync(path.join(root, "src"), { recursive: true });
+    writeFileSync(
+      path.join(root, "src", "greet.ts"),
+      `export const greetModule = {};
+
+export function greet() {
+  return "hello";
+}
+`,
+    );
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      return { success: true };
+    });
+    __test__.setRefreshCoordinatesForSymbolIdForTests(async () => ({
+      refreshed: false,
+      found: false,
+    }));
+
+    const result = await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "SYM-GREET-FILE",
+      properties: {
+        title: "greetModule",
+        status: "active",
+        source: "documentation/symbols.yaml",
+        sourceFile: "src/greet.ts",
+        granularity_reason: "module-level-behavior",
+      },
+      relationships: [
+        {
+          type: "implements",
+          from: "SYM-GREET-FILE",
+          to: "REQ-GRANULAR-001",
+        },
+      ],
+    });
+
+    expect(result.structuredContent?.relationships_created).toBe(1);
   });
 
   test("rejects constrains relationships targeting property_value facts", async () => {
@@ -204,7 +492,7 @@ describe("handleKbUpsert", () => {
         ) {
           return { success: true };
         }
-        if (goal.startsWith("kb_log_entity_upsert(req,")) {
+        if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
           return { success: true };
         }
         if (goal.startsWith("kb_log_relationship_upsert(constrains,")) {
@@ -245,7 +533,7 @@ describe("handleKbUpsert", () => {
 
     expect(query).toHaveBeenCalledTimes(8);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -263,7 +551,7 @@ describe("handleKbUpsert", () => {
         ) {
           return { success: true };
         }
-        if (goal.startsWith("kb_log_entity_upsert(req,")) {
+        if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
           return { success: true };
         }
         if (goal === "kb_save") {
@@ -292,7 +580,7 @@ describe("handleKbUpsert", () => {
       "check_req_contradiction('REQ-DEFAULT-SOURCE')",
     );
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 0,
@@ -307,7 +595,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(fact,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(fact,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, fact,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -364,7 +652,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_relationship_upsert(")) {
@@ -418,7 +706,7 @@ describe("handleKbUpsert", () => {
     expect(query).toHaveBeenCalledWith(
       `kb_log_relationship_upsert(specified_by, 'REQ-REL-META-001', 'SCEN-001', [created_at="2026-03-30T10:00:00Z", created_by="tester", source="undefined", confidence=0.5])`,
     );
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -426,14 +714,14 @@ describe("handleKbUpsert", () => {
   });
 
   test("reports updates when the entity already exists", async () => {
-    const { prolog } = createMockProlog(async (goal) => {
+    const { prolog, query } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-UPDATED-001', _, _))") {
         return { success: true };
       }
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -454,11 +742,49 @@ describe("handleKbUpsert", () => {
     });
 
     expect(result.content[0]?.text).toContain("updated");
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 0,
       updated: 1,
       relationships_created: 0,
     });
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining("kb_log_entity_upsert(updated, req,"),
+    );
+  });
+
+  test("records created entity audit entries with explicit change_kind", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-CREATED-AUDIT-001', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-CREATED-AUDIT-001",
+      properties: {
+        title: "Created audit req",
+        status: "open",
+        source: "test://upsert",
+      },
+    });
+
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "kb_log_entity_upsert(created, req, [id='REQ-CREATED-AUDIT-001'",
+      ),
+    );
   });
 
   test("deduplicates contradiction details in formatted transaction errors", async () => {
@@ -630,7 +956,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: false, error: "entity audit broke" };
       }
 
@@ -662,7 +988,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal.startsWith("kb_log_relationship_upsert(specified_by,")) {
@@ -705,7 +1031,7 @@ describe("handleKbUpsert", () => {
       if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(req,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -752,7 +1078,7 @@ describe("handleKbUpsert", () => {
       ) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(symbol,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
         return { success: true };
       }
       if (goal === "kb_save") {
@@ -798,7 +1124,7 @@ describe("handleKbUpsert", () => {
       ) {
         return { success: true };
       }
-      if (goal.startsWith("kb_log_entity_upsert(symbol,")) {
+      if (goal.startsWith("kb_log_entity_upsert(created, symbol,")) {
         return { success: true };
       }
       if (goal === "kb_save") {

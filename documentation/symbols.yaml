@@ -2,7 +2,7 @@
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
 # GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn
 # Run `kibi sync` or call the `kb.symbols.refresh` MCP tool to refresh coordinates.
 symbols:
   - id: SYM-001
@@ -16,85 +16,70 @@ symbols:
         target: REQ-001
       - type: implements
         target: REQ-009
-    sourceLine: 82
-    sourceColumn: 13
-    sourceEndLine: 576
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:31.817Z'
-  - id: SYM-002
-    title: handleKbUpsert
-    sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 63
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-PrologOptions
+    title: PrologOptions
+    sourceFile: packages/cli/src/prolog.ts
     links:
-      - REQ-002
-      - REQ-011
+      - REQ-001
+      - REQ-009
     relationships:
       - type: implements
-        target: REQ-002
+        target: REQ-001
       - type: implements
-        target: REQ-011
-    sourceColumn: 22
-    sourceEndLine: 246
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.002Z'
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-QueryResult
+    title: QueryResult
+    sourceFile: packages/cli/src/prolog.ts
+    links:
+      - REQ-001
+      - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
+  - id: SYM-resolveKbPlPath
+    title: resolveKbPlPath
+    sourceFile: packages/cli/src/prolog.ts
+    links:
+      - REQ-001
+      - REQ-009
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: implements
+        target: REQ-009
+      - type: covered_by
+        target: TEST-001
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
-    sourceLine: 48
     links:
-      - REQ-002
+      - REQ-mcp-tool-query
     relationships:
       - type: implements
-        target: REQ-002
-    sourceColumn: 22
-    sourceEndLine: 91
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.005Z'
+        target: REQ-mcp-tool-query
+      - type: covered_by
+        target: TEST-001
   - id: SYM-004
     title: handleKbCheck
     sourceFile: packages/mcp/src/tools/check.ts
     links:
-      - REQ-002
-      - REQ-006
+      - REQ-mcp-tool-check
+      - REQ-core-validation-rules
     relationships:
       - type: implements
-        target: REQ-002
+        target: REQ-mcp-tool-check
       - type: implements
-        target: REQ-006
-    sourceLine: 162
-    sourceColumn: 22
-    sourceEndLine: 219
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.098Z'
-  - id: SYM-005
-    title: KibiTreeDataProvider
-    sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 172
-    links:
-      - REQ-010
-      - REQ-vscode-traceability
-    relationships:
-      - type: implements
-        target: REQ-010
-      - type: implements
-        target: REQ-vscode-traceability
-    sourceColumn: 13
-    sourceEndLine: 1002
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.327Z'
-  - id: SYM-007
-    title: extractFromManifest
-    sourceFile: packages/cli/src/extractors/manifest.ts
-    links:
-      - REQ-007
-    relationships:
-      - type: implements
-        target: REQ-007
-    sourceLine: 83
-    sourceColumn: 16
-    sourceEndLine: 176
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.425Z'
+        target: REQ-core-validation-rules
+      - type: covered_by
+        target: TEST-001
   - id: SYM-010
     title: startServer
     sourceFile: packages/mcp/src/server.ts
@@ -103,213 +88,5851 @@ symbols:
     relationships:
       - type: implements
         target: REQ-002
-    sourceLine: 37
-    sourceColumn: 22
-    sourceEndLine: 57
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.897Z'
-  - id: SYM-KibiTreeDataProvider
-    title: KibiTreeDataProvider
-    sourceFile: packages/vscode/src/treeProvider.ts
-    sourceLine: 172
-    links:
-      - REQ-vscode-traceability
-      - REQ-010
-    relationships:
-      - type: implements
-        target: REQ-vscode-traceability
-      - type: implements
-        target: REQ-010
-    sourceColumn: 13
-    sourceEndLine: 1002
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.898Z'
-  - id: SYM-KibiCodeActionProvider
-    title: KibiCodeActionProvider
-    sourceFile: packages/vscode/src/codeActionProvider.ts
-    links:
-      - REQ-vscode-traceability
-    relationships:
-      - type: implements
-        target: REQ-vscode-traceability
-      - type: constrained_by
-        target: ADR-annotation-strategy
-    sourceLine: 25
-    sourceColumn: 13
-    sourceEndLine: 106
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.902Z'
+      - type: covered_by
+        target: TEST-001
   - id: SYM-handleKbQueryRelationships
     title: handleKbQueryRelationships
     sourceFile: packages/mcp/src/tools/query-relationships.ts
-    sourceLine: 65
     links:
-      - REQ-vscode-traceability
-      - REQ-002
+      - REQ-mcp-search-discovery
     relationships:
       - type: implements
-        target: REQ-vscode-traceability
-      - type: implements
-        target: REQ-002
-    sourceColumn: 22
-    sourceEndLine: 151
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-03-18T12:34:25.137Z'
-  - id: SYM-activateKibiExtension
-    title: activate
-    sourceFile: packages/vscode/src/extension.ts
-    sourceLine: 30
-    links:
-      - REQ-vscode-traceability
-      - REQ-010
-    relationships:
-      - type: implements
-        target: REQ-vscode-traceability
-      - type: implements
-        target: REQ-010
-    sourceColumn: 16
-    sourceEndLine: 91
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:32.904Z'
-  - id: SYM-KibiCodeLensProvider
-    title: KibiCodeLensProvider
-    sourceFile: packages/vscode/src/codeLensProvider.ts
-    sourceLine: 40
-    links:
-      - REQ-vscode-traceability
-    relationships:
-      - type: implements
-        target: REQ-vscode-traceability
-      - type: constrained_by
-        target: ADR-annotation-strategy
-    sourceColumn: 13
-    sourceEndLine: 334
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.077Z'
-  - id: SYM-mergeStaticLinks
-    title: mergeStaticLinks
-    sourceFile: packages/vscode/src/codeLensProvider.ts
-    sourceLine: 188
-    links:
-      - REQ-vscode-traceability
-    relationships:
-      - type: implements
-        target: REQ-vscode-traceability
+        target: REQ-mcp-search-discovery
       - type: covered_by
         target: TEST-vscode-traceability
-    sourceColumn: 10
-    sourceEndLine: 210
-    sourceEndColumn: 3
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.080Z'
-  - id: SYM-parseSymbolsManifest
-    title: parseSymbolsManifest
-    sourceFile: packages/vscode/src/symbolIndex.ts
-    sourceLine: 102
-    links:
-      - REQ-vscode-traceability
-    relationships:
-      - type: constrained_by
-        target: ADR-annotation-strategy
-      - type: implements
-        target: REQ-vscode-traceability
-    sourceColumn: 9
-    sourceEndLine: 185
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.082Z'
   - id: SYM-getKbExistenceTargets
     title: getKbExistenceTargets
     sourceFile: packages/opencode/src/file-filter.ts
     links:
+      - REQ-opencode-bootstrap-nudge
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-checkWorkspaceHealth
+    title: checkWorkspaceHealth
+    sourceFile: packages/opencode/src/workspace-health.ts
+    links:
+      - REQ-opencode-bootstrap-nudge
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-detectPosture
+    title: detectPosture
+    sourceFile: packages/opencode/src/repo-posture.ts
+    links:
+      - REQ-opencode-posture-detection
+    relationships:
+      - type: implements
+        target: REQ-opencode-posture-detection
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+  - id: SYM-classifyRisk
+    title: classifyRisk
+    sourceFile: packages/opencode/src/risk-classifier.ts
+    links:
+      - REQ-opencode-risk-classification
+    relationships:
+      - type: implements
+        target: REQ-opencode-risk-classification
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+  - id: SYM-GuidanceCache
+    title: GuidanceCache
+    sourceFile: packages/opencode/src/guidance-cache.ts
+    links:
+      - REQ-opencode-guidance-caching
+    relationships:
+      - type: implements
+        target: REQ-opencode-guidance-caching
+      - type: covered_by
+        target: TEST-opencode-smart-enforcement
+  - id: SYM-parseRdfRelationships
+    title: parseRdfRelationships
+    sourceFile: packages/vscode/src/shared/rdf-parser.ts
+    links:
+      - REQ-vscode-source-to-kb
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-KB_RELATIONSHIP_TYPES
+    title: KB_RELATIONSHIP_TYPES
+    sourceFile: packages/vscode/src/shared/rdf-parser.ts
+    links:
+      - REQ-vscode-source-to-kb
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+  - id: SYM-kb-status-json
+    title: kb_status/0 (JSON)
+    sourceFile: packages/core/src/status.pl
+    links:
+      - REQ-cli-status-pre-first-sync
+      - REQ-mcp-search-discovery
+    relationships:
+      - type: implements
+        target: REQ-cli-status-pre-first-sync
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-cli-status-pre-first-sync
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+  - id: SYM-kibi-mcp-bin-entrypoint
+    title: kibi-mcp CLI entrypoint
+    sourceFile: packages/mcp/bin/kibi-mcp
+    links:
+      - REQ-mcp-cli-help
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-mcp-cli-help
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-mcp-cli-help
+  - id: SYM-cli-status-pre-first-sync-test
+    title: cli status pre-sync test
+    sourceFile: packages/cli/tests/commands/status.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-cli-status-pre-first-sync
+  - id: SYM-mcp-cli-help-test
+    title: mcp cli help test
+    sourceFile: packages/mcp/tests/cli-help.test.ts
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-cli-help
+  - id: SYM-kibiOpencodePlugin
+    title: kibiOpencodePlugin
+    sourceFile: packages/opencode/src/index.ts
+    links:
       - REQ-opencode-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+  - id: SYM-KibiOpencodePluginEntry
+    title: KibiOpencodePluginEntry
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 14
+    sourceColumn: 17
+    sourceEndLine: 19
+    sourceEndColumn: 1
+  - id: SYM-AutoUpdateStatus
+    title: AutoUpdateStatus
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 21
+    sourceColumn: 12
+    sourceEndLine: 29
+    sourceEndColumn: 21
+  - id: SYM-AutoUpdateResult
+    title: AutoUpdateResult
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 35
+    sourceEndColumn: 1
+  - id: SYM-AutoUpdateInput
+    title: AutoUpdateInput
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 37
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-AutoUpdateRunnerDeps
+    title: AutoUpdateRunnerDeps
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 42
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-findKibiOpencodePluginEntry
+    title: findKibiOpencodePluginEntry
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 99
+    sourceColumn: 16
+    sourceEndLine: 150
+    sourceEndColumn: 1
+  - id: SYM-getCachedPluginVersion
+    title: getCachedPluginVersion
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 300
+    sourceColumn: 16
+    sourceEndLine: 333
+    sourceEndColumn: 1
+  - id: SYM-getLatestPluginVersion
+    title: getLatestPluginVersion
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 335
+    sourceColumn: 22
+    sourceEndLine: 359
+    sourceEndColumn: 1
+  - id: SYM-invalidateKibiOpencodePackage
+    title: invalidateKibiOpencodePackage
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 406
+    sourceColumn: 16
+    sourceEndLine: 426
+    sourceEndColumn: 1
+  - id: SYM-runBunInstallForOpenCodePlugin
+    title: runBunInstallForOpenCodePlugin
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 449
+    sourceColumn: 16
+    sourceEndLine: 457
+    sourceEndColumn: 1
+  - id: SYM-createAutoUpdateRunner
+    title: createAutoUpdateRunner
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 466
+    sourceColumn: 16
+    sourceEndLine: 533
+    sourceEndColumn: 1
+  - id: SYM-runKibiOpencodeAutoUpdate
+    title: runKibiOpencodeAutoUpdate
+    sourceFile: packages/opencode/src/auto-update.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 535
+    sourceColumn: 13
+    sourceEndLine: 544
+    sourceEndColumn: 2
+  - id: SYM-usage-metrics-command
+    title: usageMetricsCommand
+    sourceFile: packages/cli/src/commands/usage-metrics.ts
+    links:
+      - REQ-cli-usage-metrics-v1
+    relationships:
+      - type: implements
+        target: REQ-cli-usage-metrics-v1
+      - type: covered_by
+        target: TEST-cli-usage-metrics-v1
+  - id: SYM-registerIndexCoverageTests
+    title: registerIndexCoverageTests
+    sourceFile: packages/opencode/tests/index.coverage.shared.ts
+    relationships:
+      - type: executable_for
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 16
+    sourceEndLine: 30
+    sourceEndColumn: 1
+  - id: SYM-checkCommand
+    title: checkCommand
+    sourceFile: packages/cli/src/commands/check.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-check
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 543
+    sourceColumn: 22
+    sourceEndLine: 891
+    sourceEndColumn: 1
+  - id: SYM-CheckOptions
+    title: CheckOptions
+    sourceFile: packages/cli/src/commands/check.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-check
+      - type: covered_by
+        target: TEST-004
+    sourceLine: 93
+    sourceColumn: 17
+    sourceEndLine: 100
+    sourceEndColumn: 1
+  - id: SYM-getCurrentBranch
+    title: getCurrentBranch
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 101
+    sourceColumn: 22
+    sourceEndLine: 112
+    sourceEndColumn: 1
+  - id: SYM-createKbDirectoryStructure
+    title: createKbDirectoryStructure
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 114
+    sourceColumn: 16
+    sourceEndLine: 125
+    sourceEndColumn: 1
+  - id: SYM-createConfigFile
+    title: createConfigFile
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 127
+    sourceColumn: 16
+    sourceEndLine: 133
+    sourceEndColumn: 1
+  - id: SYM-updateGitIgnore
+    title: updateGitIgnore
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 135
+    sourceColumn: 16
+    sourceEndLine: 156
+    sourceEndColumn: 1
+  - id: SYM-ensureSymbolsManifestFile
+    title: ensureSymbolsManifestFile
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 159
+    sourceColumn: 16
+    sourceEndLine: 170
+    sourceEndColumn: 1
+  - id: SYM-copySchemaFiles
+    title: copySchemaFiles
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 172
+    sourceColumn: 22
+    sourceEndLine: 187
+    sourceEndColumn: 1
+  - id: SYM-installHook
+    title: installHook
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 196
+    sourceColumn: 16
+    sourceEndLine: 230
+    sourceEndColumn: 1
+  - id: SYM-installGitHooks
+    title: installGitHooks
+    sourceFile: packages/cli/src/commands/init-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-init
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 232
+    sourceColumn: 16
+    sourceEndLine: 249
+    sourceEndColumn: 1
+  - id: SYM-migrateCommand
+    title: migrateCommand
+    sourceFile: packages/cli/src/commands/migrate.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 407
+    sourceColumn: 22
+    sourceEndLine: 552
+    sourceEndColumn: 1
+  - id: SYM-skillsListCommand
+    title: skillsListCommand
+    sourceFile: packages/cli/src/commands/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 23
+    sourceColumn: 22
+    sourceEndLine: 35
+    sourceEndColumn: 1
+  - id: SYM-skillsLoadCommand
+    title: skillsLoadCommand
+    sourceFile: packages/cli/src/commands/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 37
+    sourceColumn: 22
+    sourceEndLine: 64
+    sourceEndColumn: 1
+  - id: SYM-skillsReadCommand
+    title: skillsReadCommand
+    sourceFile: packages/cli/src/commands/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 66
+    sourceColumn: 22
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-skillsValidateCommand
+    title: skillsValidateCommand
+    sourceFile: packages/cli/src/commands/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 82
+    sourceColumn: 22
+    sourceEndLine: 100
+    sourceEndColumn: 1
+  - id: SYM-syncCommand
+    title: syncCommand
+    sourceFile: packages/cli/src/commands/sync.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 94
+    sourceColumn: 22
+    sourceEndLine: 540
+    sourceEndColumn: 1
+  - id: SYM-SyncError
+    title: SyncError
+    sourceFile: packages/cli/src/commands/sync.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 65
+    sourceColumn: 13
+    sourceEndLine: 70
+    sourceEndColumn: 1
+  - id: SYM-SyncResult
+    title: SyncResult
+    sourceFile: packages/cli/src/commands/sync.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 73
+    sourceColumn: 17
+    sourceEndLine: 75
+    sourceEndColumn: 1
+  - id: SYM-refreshManifestCoordinates
+    title: refreshManifestCoordinates
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 83
+    sourceColumn: 22
+    sourceEndLine: 226
+    sourceEndColumn: 1
+  - id: SYM-hasAllGeneratedCoordinates
+    title: hasAllGeneratedCoordinates
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 228
+    sourceColumn: 16
+    sourceEndLine: 238
+    sourceEndColumn: 1
+  - id: SYM-isEligibleForCoordinateRefresh
+    title: isEligibleForCoordinateRefresh
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 240
+    sourceColumn: 16
+    sourceEndLine: 255
+    sourceEndColumn: 1
+  - id: SYM-SYMBOLS-MANIFEST-COMMENT-BLOCK
+    title: SYMBOLS_MANIFEST_COMMENT_BLOCK
+    sourceFile: packages/cli/src/commands/sync/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 57
+    sourceColumn: 13
+    sourceEndLine: 63
+    sourceEndColumn: 1
+  - id: SYM-createUniqueStagingPath
+    title: createUniqueStagingPath
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 66
+    sourceColumn: 16
+    sourceEndLine: 78
+    sourceEndColumn: 1
+  - id: SYM-cleanupAbandonedStagingDirectories
+    title: cleanupAbandonedStagingDirectories
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 81
+    sourceColumn: 22
+    sourceEndLine: 137
+    sourceEndColumn: 1
+  - id: SYM-prepareStagingEnvironment
+    title: prepareStagingEnvironment
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 139
+    sourceColumn: 22
+    sourceEndLine: 158
+    sourceEndColumn: 1
+  - id: SYM-atomicPublish
+    title: atomicPublish
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 200
+    sourceColumn: 16
+    sourceEndLine: 220
+    sourceEndColumn: 1
+  - id: SYM-cleanupStaging
+    title: cleanupStaging
+    sourceFile: packages/cli/src/commands/sync/staging.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 222
+    sourceColumn: 16
+    sourceEndLine: 231
+    sourceEndColumn: 1
+  - id: SYM-extractFromManifestString
+    title: extractFromManifestString
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 213
+    sourceColumn: 16
+    sourceEndLine: 235
+    sourceEndColumn: 1
+  - id: SYM-extractManifestSymbolRecordsString
+    title: extractManifestSymbolRecordsString
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 237
+    sourceColumn: 16
+    sourceEndLine: 259
+    sourceEndColumn: 1
+  - id: SYM-extractFromManifest
+    title: extractFromManifest
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 261
+    sourceColumn: 16
+    sourceEndLine: 266
+    sourceEndColumn: 1
+  - id: SYM-readManifestWithCoordinateOverlay
+    title: readManifestWithCoordinateOverlay
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 304
+    sourceColumn: 16
+    sourceEndLine: 318
+    sourceEndColumn: 1
+  - id: SYM-ManifestError
+    title: ManifestError
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 58
+    sourceColumn: 13
+    sourceEndLine: 66
+    sourceEndColumn: 1
+  - id: SYM-ExtractedEntity
+    title: ExtractedEntity
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 44
+    sourceEndColumn: 1
+  - id: SYM-ExtractedRelationship
+    title: ExtractedRelationship
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 46
+    sourceColumn: 17
+    sourceEndLine: 50
+    sourceEndColumn: 1
+  - id: SYM-ExtractionResult
+    title: ExtractionResult
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 52
+    sourceColumn: 17
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-markdown-ExtractedEntity
+    title: ExtractedEntity
+    sourceFile: packages/cli/src/extractors/markdown.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 57
+    sourceColumn: 17
+    sourceEndLine: 90
+    sourceEndColumn: 1
+  - id: SYM-ManifestSymbolRecord
+    title: ManifestSymbolRecord
+    sourceFile: packages/cli/src/extractors/manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 68
+    sourceColumn: 17
+    sourceEndLine: 90
+    sourceEndColumn: 1
+  - id: SYM-readCoordinateArtifact
+    title: readCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 79
+    sourceColumn: 16
+    sourceEndLine: 99
+    sourceEndColumn: 1
+  - id: SYM-writeCoordinateArtifact
+    title: writeCoordinateArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 102
+    sourceColumn: 16
+    sourceEndLine: 114
+    sourceEndColumn: 1
+  - id: SYM-mergeCoordinatesWithManifest
+    title: mergeCoordinatesWithManifest
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 117
+    sourceColumn: 16
+    sourceEndLine: 141
+    sourceEndColumn: 1
+  - id: SYM-SymbolCoordinatesRecord
+    title: SymbolCoordinatesRecord
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 4
+    sourceColumn: 17
+    sourceEndLine: 10
+    sourceEndColumn: 1
+  - id: SYM-SymbolCoordinatesArtifact
+    title: SymbolCoordinatesArtifact
+    sourceFile: packages/cli/src/extractors/symbol-coordinates.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 12
+    sourceColumn: 17
+    sourceEndLine: 14
+    sourceEndColumn: 1
+  - id: SYM-analyzeSourceText
+    title: analyzeSourceText
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 131
+    sourceColumn: 16
+    sourceEndLine: 161
+    sourceEndColumn: 1
+  - id: SYM-enrichSymbolCoordinates
+    title: enrichSymbolCoordinates
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 163
+    sourceColumn: 22
+    sourceEndLine: 204
+    sourceEndColumn: 1
+  - id: SYM-SourceSymbolAnalysis
+    title: SourceSymbolAnalysis
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 52
+    sourceColumn: 17
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-SourceModuleAnalysis
+    title: SourceModuleAnalysis
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 62
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-SourceAnalysisResult
+    title: SourceAnalysisResult
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 69
+    sourceColumn: 17
+    sourceEndLine: 75
+    sourceEndColumn: 1
+  - id: SYM-SourceAnalysisProvider
+    title: SourceAnalysisProvider
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 77
+    sourceColumn: 17
+    sourceEndLine: 81
+    sourceEndColumn: 1
+  - id: SYM-AnalyzeSourceTextOptions
+    title: AnalyzeSourceTextOptions
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 83
+    sourceColumn: 17
+    sourceEndLine: 85
+    sourceEndColumn: 1
+  - id: SYM-SourceAnalysisMode
+    title: SourceAnalysisMode
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 40
+    sourceColumn: 12
+    sourceEndLine: 40
+    sourceEndColumn: 55
+  - id: SYM-SourceSymbolKind
+    title: SourceSymbolKind
+    sourceFile: packages/cli/src/extractors/symbols-coordinator.ts
+    links:
+      - REQ-core-extractors
+      - REQ-symbol-granularity
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: implements
+        target: REQ-symbol-granularity
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 42
+    sourceColumn: 12
+    sourceEndLine: 50
+    sourceEndColumn: 14
+  - id: SYM-createTsMorphSourceAnalysisProvider
+    title: createTsMorphSourceAnalysisProvider
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 68
+    sourceColumn: 16
+    sourceEndLine: 99
+    sourceEndColumn: 1
+  - id: SYM-enrichSymbolCoordinatesWithTsMorph
+    title: enrichSymbolCoordinatesWithTsMorph
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 101
+    sourceColumn: 22
+    sourceEndLine: 175
+    sourceEndColumn: 1
+  - id: SYM-SymbolCoordinates
+    title: SymbolCoordinates
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-ManifestSymbolEntry
+    title: ManifestSymbolEntry
+    sourceFile: packages/cli/src/extractors/symbols-ts.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 54
+    sourceEndColumn: 1
+  - id: SYM-createRepoIgnorePolicy
+    title: createRepoIgnorePolicy
+    sourceFile: packages/cli/src/public/ignore-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-008
+    sourceLine: 45
+    sourceColumn: 16
+    sourceEndLine: 245
+    sourceEndColumn: 1
+  - id: SYM-IgnorePolicy
+    title: IgnorePolicy
+    sourceFile: packages/cli/src/public/ignore-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-008
+    sourceLine: 21
+    sourceColumn: 17
+    sourceEndLine: 25
+    sourceEndColumn: 1
+  - id: SYM-isOperationalArtifactPath
+    title: isOperationalArtifactPath
+    sourceFile: packages/cli/src/public/operational-artifacts.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-007
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 6
+    sourceEndColumn: 1
+  - id: SYM-setBundledSkillsDir
+    title: setBundledSkillsDir
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 27
+    sourceColumn: 16
+    sourceEndLine: 29
+    sourceEndColumn: 1
+  - id: SYM-resetBundledSkillsDir
+    title: resetBundledSkillsDir
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 31
+    sourceColumn: 16
+    sourceEndLine: 33
+    sourceEndColumn: 1
+  - id: SYM-listBundledSkills
+    title: listBundledSkills
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 96
+    sourceColumn: 16
+    sourceEndLine: 108
+    sourceEndColumn: 1
+  - id: SYM-loadBundledSkill
+    title: loadBundledSkill
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 110
+    sourceColumn: 16
+    sourceEndLine: 118
+    sourceEndColumn: 1
+  - id: SYM-readBundledSkillResource
+    title: readBundledSkillResource
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 120
+    sourceColumn: 16
+    sourceEndLine: 152
+    sourceEndColumn: 1
+  - id: SYM-validateSkillBundle
+    title: validateSkillBundle
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 154
+    sourceColumn: 16
+    sourceEndLine: 177
+    sourceEndColumn: 1
+  - id: SYM-SkillNotFoundError
+    title: SkillNotFoundError
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 51
+    sourceColumn: 13
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-SkillResourceNotFoundError
+    title: SkillResourceNotFoundError
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 58
+    sourceColumn: 13
+    sourceEndLine: 63
+    sourceEndColumn: 1
+  - id: SYM-SkillResourceOutOfBoundsError
+    title: SkillResourceOutOfBoundsError
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 65
+    sourceColumn: 13
+    sourceEndLine: 70
+    sourceEndColumn: 1
+  - id: SYM-SkillValidationError
+    title: SkillValidationError
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 72
+    sourceColumn: 13
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-SkillOversizeError
+    title: SkillOversizeError
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 82
+    sourceColumn: 13
+    sourceEndLine: 94
+    sourceEndColumn: 1
+  - id: SYM-SkillManifest
+    title: SkillManifest
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 43
+    sourceEndColumn: 1
+  - id: SYM-SkillBundle
+    title: SkillBundle
+    sourceFile: packages/cli/src/public/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-reusable-skill-subsystem
+      - type: covered_by
+        target: TEST-skill-cli-load-validate
+    sourceLine: 45
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-rankEntities
+    title: rankEntities
+    sourceFile: packages/cli/src/search-ranking.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+    sourceLine: 57
+    sourceColumn: 22
+    sourceEndLine: 91
+    sourceEndColumn: 1
+  - id: SYM-loadMarkdownBody
+    title: loadMarkdownBody
+    sourceFile: packages/cli/src/search-ranking.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+    sourceLine: 193
+    sourceColumn: 22
+    sourceEndLine: 226
+    sourceEndColumn: 1
+  - id: SYM-SearchMatch
+    title: SearchMatch
+    sourceFile: packages/cli/src/search-ranking.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-search-discovery
+      - type: covered_by
+        target: TEST-mcp-search-discovery
+    sourceLine: 4
+    sourceColumn: 17
+    sourceEndLine: 9
+    sourceEndColumn: 1
+  - id: SYM-getBehaviorSourcePaths
+    title: getBehaviorSourcePaths
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 162
+    sourceColumn: 16
+    sourceEndLine: 167
+    sourceEndColumn: 1
+  - id: SYM-getKbCoveredSourcePaths
+    title: getKbCoveredSourcePaths
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 170
+    sourceColumn: 16
+    sourceEndLine: 180
+    sourceEndColumn: 1
+  - id: SYM-getFreshSymbolsManifestSourcePaths
+    title: getFreshSymbolsManifestSourcePaths
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 183
+    sourceColumn: 16
+    sourceEndLine: 191
+    sourceEndColumn: 1
+  - id: SYM-getKbEvidencePaths
+    title: getKbEvidencePaths
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 197
+    sourceColumn: 16
+    sourceEndLine: 209
+    sourceEndColumn: 1
+  - id: SYM-hasOverrideRationale
+    title: hasOverrideRationale
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 212
+    sourceColumn: 16
+    sourceEndLine: 217
+    sourceEndColumn: 1
+  - id: SYM-getMissingBehaviorSourcePaths
+    title: getMissingBehaviorSourcePaths
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 223
+    sourceColumn: 16
+    sourceEndLine: 233
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactSourceChange
+    title: KibiImpactSourceChange
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 46
+    sourceColumn: 17
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactKbArtifact
+    title: KibiImpactKbArtifact
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 59
+    sourceColumn: 17
+    sourceEndLine: 70
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactSymbolsManifest
+    title: KibiImpactSymbolsManifest
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 82
+    sourceColumn: 17
+    sourceEndLine: 89
+    sourceEndColumn: 1
+  - id: SYM-KibiNoImpactOverride
+    title: KibiNoImpactOverride
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 102
+    sourceColumn: 17
+    sourceEndLine: 113
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactKbChangesMode
+    title: KibiImpactKbChangesMode
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 116
+    sourceColumn: 17
+    sourceEndLine: 120
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactNoImpactOverrideMode
+    title: KibiImpactNoImpactOverrideMode
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 123
+    sourceColumn: 17
+    sourceEndLine: 127
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactMissingMode
+    title: KibiImpactMissingMode
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 130
+    sourceColumn: 17
+    sourceEndLine: 132
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactEvidence
+    title: KibiImpactEvidence
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 148
+    sourceColumn: 17
+    sourceEndLine: 155
+    sourceEndColumn: 1
+  - id: SYM-KibiEntityType
+    title: KibiEntityType
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 23
+    sourceColumn: 12
+    sourceEndLine: 31
+    sourceEndColumn: 11
+  - id: SYM-SourceChangeKind
+    title: SourceChangeKind
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 41
+    sourceColumn: 12
+    sourceEndLine: 43
+    sourceEndColumn: 31
+  - id: SYM-KibiNoImpactReason
+    title: KibiNoImpactReason
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 92
+    sourceColumn: 12
+    sourceEndLine: 94
+    sourceEndColumn: 33
+  - id: SYM-KibiImpactMode
+    title: KibiImpactMode
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 135
+    sourceColumn: 12
+    sourceEndLine: 138
+    sourceEndColumn: 26
+  - id: SYM-KIBI-ENTITY-SCHEMA-DOC
+    title: KIBI_ENTITY_SCHEMA_DOC
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 10
+    sourceColumn: 13
+    sourceEndLine: 10
+    sourceEndColumn: 61
+  - id: SYM-KIBI-SYMBOLS-MANIFEST-PATH
+    title: KIBI_SYMBOLS_MANIFEST_PATH
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 13
+    sourceColumn: 13
+    sourceEndLine: 13
+    sourceEndColumn: 70
+  - id: SYM-KIBI-SYMBOL-COORDINATES-PATH
+    title: KIBI_SYMBOL_COORDINATES_PATH
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 16
+    sourceColumn: 13
+    sourceEndLine: 17
+    sourceEndColumn: 41
+  - id: SYM-KIBI-NO-IMPACT-DECLARATION
+    title: KIBI_NO_IMPACT_DECLARATION
+    sourceFile: packages/cli/src/traceability/evidence-model.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 20
+    sourceColumn: 13
+    sourceEndLine: 20
+    sourceEndColumn: 61
+  - id: SYM-collectStagedKibiDiagnostics
+    title: collectStagedKibiDiagnostics
+    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 91
+    sourceColumn: 16
+    sourceEndLine: 129
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactDiagnostic
+    title: KibiImpactDiagnostic
+    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 17
+    sourceColumn: 17
+    sourceEndLine: 30
+    sourceEndColumn: 1
+  - id: SYM-KibiImpactDiagnosticId
+    title: KibiImpactDiagnosticId
+    sourceFile: packages/cli/src/traceability/staged-diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 11
+    sourceColumn: 12
+    sourceEndLine: 15
+    sourceEndColumn: 45
+  - id: SYM-assessStagedSymbolsManifest
+    title: assessStagedSymbolsManifest
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 323
+    sourceColumn: 16
+    sourceEndLine: 405
+    sourceEndColumn: 1
+  - id: SYM-collectStagedAuthoredSymbolsManifestEvidence
+    title: collectStagedAuthoredSymbolsManifestEvidence
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 425
+    sourceColumn: 16
+    sourceEndLine: 479
+    sourceEndColumn: 1
+  - id: SYM-StagedSymbolsManifestAssessment
+    title: StagedSymbolsManifestAssessment
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 44
+    sourceColumn: 17
+    sourceEndLine: 48
+    sourceEndColumn: 1
+  - id: SYM-StagedAuthoredSymbolsManifestEvidence
+    title: StagedAuthoredSymbolsManifestEvidence
+    sourceFile: packages/cli/src/traceability/staged-symbols-manifest.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 50
+    sourceColumn: 17
+    sourceEndLine: 53
+    sourceEndColumn: 1
+  - id: SYM-createManifestLookupSentinelKey
+    title: createManifestLookupSentinelKey
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 43
+    sourceColumn: 16
+    sourceEndLine: 46
+    sourceEndColumn: 1
+  - id: SYM-extractSymbolsFromStagedFile
+    title: extractSymbolsFromStagedFile
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    links:
+      - REQ-cli-staged-impact-enforcement
+      - REQ-symbol-granularity
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-granularity
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-extract-methods
+    sourceLine: 273
+    sourceColumn: 16
+    sourceEndLine: 510
+    sourceEndColumn: 1
+  - id: SYM-ExtractedSymbol
+    title: ExtractedSymbol
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    links:
+      - REQ-cli-staged-impact-enforcement
+      - REQ-symbol-granularity
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: implements
+        target: REQ-symbol-granularity
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-symbol-extract-methods
+    sourceLine: 21
+    sourceColumn: 17
+    sourceEndLine: 34
+    sourceEndColumn: 1
+  - id: SYM-ManifestLookupEntry
+    title: ManifestLookupEntry
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 36
+    sourceColumn: 17
+    sourceEndLine: 39
+    sourceEndColumn: 1
+  - id: SYM-ManifestLookup
+    title: ManifestLookup
+    sourceFile: packages/cli/src/traceability/symbol-extract.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 41
+    sourceColumn: 12
+    sourceEndLine: 41
+    sourceEndColumn: 62
+  - id: SYM-resetModuleState
+    title: resetModuleState
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 30
+    sourceColumn: 16
+    sourceEndLine: 39
+    sourceEndColumn: 1
+  - id: SYM-setPrologFactory
+    title: _setPrologFactory
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 50
+    sourceColumn: 16
+    sourceEndLine: 55
+    sourceEndColumn: 1
+  - id: SYM-consultOverlay
+    title: consultOverlay
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    granularity_reason: legacy-link
+    sourceLine: 195
+    sourceColumn: 15
+    sourceEndLine: 211
+    sourceEndColumn: 1
+  - id: SYM-projectStagedEntities
+    title: projectStagedEntities
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 216
+    sourceColumn: 22
+    sourceEndLine: 243
+    sourceEndColumn: 1
+  - id: SYM-createTempKb
+    title: createTempKb
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 245
+    sourceColumn: 22
+    sourceEndLine: 290
+    sourceEndColumn: 1
+  - id: SYM-createOverlayFacts
+    title: createOverlayFacts
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 293
+    sourceColumn: 16
+    sourceEndLine: 311
+    sourceEndColumn: 1
+  - id: SYM-cleanupTempKb
+    title: cleanupTempKb
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 313
+    sourceColumn: 22
+    sourceEndLine: 340
+    sourceEndColumn: 1
+  - id: SYM-TempKbContext
+    title: TempKbContext
+    sourceFile: packages/cli/src/traceability/temp-kb.ts
+    relationships:
+      - type: implements
+        target: REQ-cli-staged-impact-enforcement
+      - type: covered_by
+        target: TEST-cli-staged-impact-enforcement
+    sourceLine: 15
+    sourceColumn: 17
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-loadConfig
+    title: loadConfig
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 130
+    sourceColumn: 16
+    sourceEndLine: 165
+    sourceEndColumn: 1
+  - id: SYM-loadSyncConfig
+    title: loadSyncConfig
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 175
+    sourceColumn: 16
+    sourceEndLine: 210
+    sourceEndColumn: 1
+  - id: SYM-KbConfigPaths
+    title: KbConfigPaths
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 31
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-KbConfig
+    title: KbConfig
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 46
+    sourceColumn: 17
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-DEFAULT-CONFIG
+    title: DEFAULT_CONFIG
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 64
+    sourceColumn: 13
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-DEFAULT-SYNC-PATHS
+    title: DEFAULT_SYNC_PATHS
+    sourceFile: packages/cli/src/utils/config.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 85
+    sourceColumn: 13
+    sourceEndLine: 95
+    sourceEndColumn: 1
+  - id: SYM-resolveSymbolsManifestPaths
+    title: resolveSymbolsManifestPaths
+    sourceFile: packages/cli/src/utils/manifest-paths.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 87
+    sourceColumn: 16
+    sourceEndLine: 99
+    sourceEndColumn: 1
+  - id: SYM-resolveSymbolsManifestPath
+    title: resolveSymbolsManifestPath
+    sourceFile: packages/cli/src/utils/manifest-paths.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 102
+    sourceColumn: 16
+    sourceEndLine: 107
+    sourceEndColumn: 1
+  - id: SYM-DEFAULT-SYMBOLS-PATH
+    title: DEFAULT_SYMBOLS_PATH
+    sourceFile: packages/cli/src/utils/manifest-paths.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 64
+  - id: SYM-DEFAULT-COORDINATES-PATH
+    title: DEFAULT_COORDINATES_PATH
+    sourceFile: packages/cli/src/utils/manifest-paths.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-001
+    sourceLine: 5
+    sourceColumn: 13
+    sourceEndLine: 5
+    sourceEndColumn: 79
+  - id: SYM-normalizeSchemaVersion
+    title: normalizeSchemaVersion
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 17
+    sourceColumn: 16
+    sourceEndLine: 35
+    sourceEndColumn: 1
+  - id: SYM-getSchemaVersionStatus
+    title: getSchemaVersionStatus
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 38
+    sourceColumn: 16
+    sourceEndLine: 85
+    sourceEndColumn: 1
+  - id: SYM-SchemaVersionStatus
+    title: SchemaVersionStatus
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 6
+    sourceColumn: 17
+    sourceEndLine: 12
+    sourceEndColumn: 1
+  - id: SYM-LATEST-KB-SCHEMA-VERSION
+    title: LATEST_KB_SCHEMA_VERSION
+    sourceFile: packages/cli/src/utils/schema-version.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-config-schema
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 41
+  - id: SYM-normalizeSubjectKey
+    title: normalizeSubjectKey
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 96
+    sourceColumn: 16
+    sourceEndLine: 113
+    sourceEndColumn: 1
+  - id: SYM-normalizePropertyKey
+    title: normalizePropertyKey
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 115
+    sourceColumn: 16
+    sourceEndLine: 130
+    sourceEndColumn: 1
+  - id: SYM-buildStableRequirementIds
+    title: buildStableRequirementIds
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 132
+    sourceColumn: 16
+    sourceEndLine: 158
+    sourceEndColumn: 1
+  - id: SYM-buildStrictWriteSet
+    title: buildStrictWriteSet
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 160
+    sourceColumn: 16
+    sourceEndLine: 278
+    sourceEndColumn: 1
+  - id: SYM-modelRequirementClaims
+    title: modelRequirementClaims
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 280
+    sourceColumn: 16
+    sourceEndLine: 300
+    sourceEndColumn: 1
+  - id: SYM-SemanticClaim
+    title: SemanticClaim
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 27
+    sourceColumn: 17
+    sourceEndLine: 35
+    sourceEndColumn: 1
+  - id: SYM-StrictModelInput
+    title: StrictModelInput
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 37
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-EntitySpec
+    title: EntitySpec
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 52
+    sourceColumn: 17
+    sourceEndLine: 59
+    sourceEndColumn: 1
+  - id: SYM-StableRequirementIds
+    title: StableRequirementIds
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 66
+    sourceColumn: 17
+    sourceEndLine: 76
+    sourceEndColumn: 1
+  - id: SYM-RelationshipSpec
+    title: RelationshipSpec
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 61
+    sourceColumn: 12
+    sourceEndLine: 64
+    sourceEndColumn: 2
+  - id: SYM-StrictWriteSet
+    title: StrictWriteSet
+    sourceFile: packages/cli/src/utils/strict-modeling.ts
+    relationships:
+      - type: implements
+        target: REQ-011
+      - type: covered_by
+        target: TEST-cli-strict-modeling
+    sourceLine: 94
+    sourceColumn: 12
+    sourceEndLine: 94
+    sourceEndColumn: 77
+  - id: SYM-setupDocsAndPrompts
+    title: setupDocsAndPrompts
+    sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-008
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-008
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 296
+    sourceColumn: 16
+    sourceEndLine: 324
+    sourceEndColumn: 1
+  - id: SYM-DocResource
+    title: DocResource
+    sourceFile: packages/mcp/src/server/docs.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 32
+    sourceColumn: 17
+    sourceEndLine: 38
+    sourceEndColumn: 1
+  - id: SYM-PROMPTS
+    title: PROMPTS
+    sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+      - REQ-mcp-tool-upsert
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 71
+    sourceColumn: 13
+    sourceEndLine: 196
+    sourceEndColumn: 1
+  - id: SYM-DOC-RESOURCES
+    title: DOC_RESOURCES
+    sourceFile: packages/mcp/src/server/docs.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 294
+    sourceColumn: 13
+    sourceEndLine: 294
+    sourceEndColumn: 51
+  - id: SYM-setToolsServerDepsForTests
+    title: _setToolsServerDepsForTests
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 97
+    sourceColumn: 16
+    sourceEndLine: 106
+    sourceEndColumn: 1
+  - id: SYM-resetSessionModulePromise
+    title: _resetSessionModulePromise
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 109
+    sourceColumn: 16
+    sourceEndLine: 111
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-prologProcess
+    title: prologProcess
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 58
+    sourceColumn: 11
+    sourceEndLine: 58
+    sourceEndColumn: 53
+  - id: SYM-mcp-session-activeBranchName
+    title: activeBranchName
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 60
+    sourceColumn: 11
+    sourceEndLine: 60
+    sourceEndColumn: 39
+  - id: SYM-mcp-session-isShuttingDown
+    title: isShuttingDown
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 63
+    sourceColumn: 11
+    sourceEndLine: 63
+    sourceEndColumn: 33
+  - id: SYM-mcp-session-inFlightRequests
+    title: inFlightRequests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 65
+    sourceColumn: 13
+    sourceEndLine: 65
+    sourceEndColumn: 67
+  - id: SYM-mcp-session-resetSessionStateForTests
+    title: resetSessionStateForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 68
+    sourceColumn: 16
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-setSessionDepsForTests
+    title: _setSessionDepsForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 82
+    sourceColumn: 16
+    sourceEndLine: 87
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-resetSessionDepsForTests
+    title: _resetSessionDepsForTests
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 89
+    sourceColumn: 16
+    sourceEndLine: 92
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-ensureBranchKbExists
+    title: ensureBranchKbExists
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 100
+    sourceColumn: 16
+    sourceEndLine: 137
+    sourceEndColumn: 1
+  - id: SYM-mcp-session-initiateGracefulShutdown
+    title: initiateGracefulShutdown
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 139
+    sourceColumn: 22
+    sourceEndLine: 188
+    sourceEndColumn: 1
+  - id: SYM-resetProlog
+    title: resetProlog
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-mcp-session-ensureProlog
+    title: ensureProlog
+    sourceFile: packages/mcp/src/server/session.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 382
+    sourceColumn: 22
+    sourceEndLine: 395
+    sourceEndColumn: 1
+  - id: SYM-DIAGNOSTIC_MODE_ENABLED
+    title: DIAGNOSTIC_MODE_ENABLED
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 29
+    sourceColumn: 13
+    sourceEndLine: 30
+    sourceEndColumn: 45
+  - id: SYM-initializeDiagnosticMode
+    title: initializeDiagnosticMode
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 43
+    sourceColumn: 16
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-appendUsageLogLine
+    title: appendUsageLogLine
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 63
+    sourceColumn: 16
+    sourceEndLine: 72
+    sourceEndColumn: 1
+  - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
+    title: DIAGNOSTIC_TELEMETRY_SCHEMA
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 77
+    sourceColumn: 13
+    sourceEndLine: 108
+    sourceEndColumn: 1
+  - id: SYM-ToolCallPayload
+    title: ToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 113
+    sourceColumn: 17
+    sourceEndLine: 116
+    sourceEndColumn: 1
+  - id: SYM-DiagnosticErrorFields
+    title: DiagnosticErrorFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 118
+    sourceColumn: 17
+    sourceEndLine: 124
+    sourceEndColumn: 1
+  - id: SYM-classifyDiagnosticError
+    title: classifyDiagnosticError
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-008
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 127
+    sourceColumn: 16
+    sourceEndLine: 245
+    sourceEndColumn: 1
+  - id: SYM-deriveDiagnosticFields
+    title: deriveDiagnosticFields
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 263
+    sourceColumn: 16
+    sourceEndLine: 306
+    sourceEndColumn: 1
+  - id: SYM-extractToolCallPayload
+    title: extractToolCallPayload
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 311
+    sourceColumn: 16
+    sourceEndLine: 320
+    sourceEndColumn: 1
+  - id: SYM-jsonSchemaToZod
+    title: jsonSchemaToZod
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 252
+    sourceColumn: 16
+    sourceEndLine: 381
+    sourceEndColumn: 1
+  - id: SYM-addTool
+    title: addTool
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 384
+    sourceColumn: 16
+    sourceEndLine: 532
+    sourceEndColumn: 1
+  - id: SYM-registerAllTools
+    title: registerAllTools
+    sourceFile: packages/mcp/src/server/tools.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 535
+    sourceColumn: 16
+    sourceEndLine: 766
+    sourceEndColumn: 1
+  - id: SYM-ToolConfig
+    title: ToolConfig
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 67
+    sourceColumn: 17
+    sourceEndLine: 71
+    sourceEndColumn: 1
+  - id: SYM-ToolsRuntime
+    title: ToolsRuntime
+    sourceFile: packages/mcp/src/server/tools.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 121
+    sourceColumn: 17
+    sourceEndLine: 161
+    sourceEndColumn: 1
+  - id: SYM-TOOLS
+    title: TOOLS
+    sourceFile: packages/mcp/src/tools-config.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-005
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+    sourceLine: 918
+    sourceColumn: 13
+    sourceEndLine: 920
+    sourceEndColumn: 32
+  - id: SYM-withDiagnosticTelemetrySchema
+    title: withDiagnosticTelemetrySchema
+    sourceFile: packages/mcp/src/tools-config.ts
+    links:
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 892
+    sourceColumn: 16
+    sourceEndLine: 912
+    sourceEndColumn: 1
+  - id: SYM-buildTypedMarkdownCandidates
+    title: buildTypedMarkdownCandidates
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 210
+    sourceColumn: 16
+    sourceEndLine: 256
+    sourceEndColumn: 1
+  - id: SYM-buildSymbolManifestCandidates
+    title: buildSymbolManifestCandidates
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 259
+    sourceColumn: 16
+    sourceEndLine: 306
+    sourceEndColumn: 1
+  - id: SYM-buildGenericMarkdownCandidates
+    title: buildGenericMarkdownCandidates
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 319
+    sourceColumn: 16
+    sourceEndLine: 441
+    sourceEndColumn: 1
+  - id: SYM-collectSourceOnlyAuthoringSignals
+    title: collectSourceOnlyAuthoringSignals
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 444
+    sourceColumn: 16
+    sourceEndLine: 561
+    sourceEndColumn: 1
+  - id: SYM-buildNormativeRequirementCandidates
+    title: buildNormativeRequirementCandidates
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 564
+    sourceColumn: 16
+    sourceEndLine: 686
+    sourceEndColumn: 1
+  - id: SYM-buildProviderEvidenceCandidates
+    title: buildProviderEvidenceCandidates
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 689
+    sourceColumn: 16
+    sourceEndLine: 761
+    sourceEndColumn: 1
+  - id: SYM-Candidate
+    title: Candidate
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 25
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-SourceOnlyAuthoringSignal
+    title: SourceOnlyAuthoringSignal
+    sourceFile: packages/mcp/src/tools/autopilot-candidates.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-discoverProviderEvidence
+    title: discoverProviderEvidence
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 956
+    sourceColumn: 16
+    sourceEndLine: 1011
+    sourceEndColumn: 1
+  - id: SYM-resolveActivationPolicy
+    title: resolveActivationPolicy
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 1072
+    sourceColumn: 22
+    sourceEndLine: 1079
+    sourceEndColumn: 1
+  - id: SYM-classifyActivationState
+    title: classifyActivationState
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 1114
+    sourceColumn: 22
+    sourceEndLine: 1180
+    sourceEndColumn: 1
+  - id: SYM-discoverSources
+    title: discoverSources
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 1223
+    sourceColumn: 16
+    sourceEndLine: 1248
+    sourceEndColumn: 1
+  - id: SYM-collectMarkdownFiles
+    title: collectMarkdownFiles
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 1183
+    sourceColumn: 16
+    sourceEndLine: 1219
+    sourceEndColumn: 1
+  - id: SYM-AutopilotEvidence
+    title: AutopilotEvidence
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 51
+    sourceColumn: 17
+    sourceEndLine: 58
+    sourceEndColumn: 1
+  - id: SYM-EvidenceProviderResult
+    title: EvidenceProviderResult
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 60
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-DiscoverySummary
+    title: DiscoverySummary
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 69
+    sourceColumn: 17
+    sourceEndLine: 83
+    sourceEndColumn: 1
+  - id: SYM-ProviderEvidenceDiscoveryResult
+    title: ProviderEvidenceDiscoveryResult
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 85
+    sourceColumn: 17
+    sourceEndLine: 89
+    sourceEndColumn: 1
+  - id: SYM-ActivationPolicy
+    title: ActivationPolicy
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 102
+    sourceColumn: 17
+    sourceEndLine: 109
+    sourceEndColumn: 1
+  - id: SYM-SourceDiscoveryResult
+    title: SourceDiscoveryResult
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 111
+    sourceColumn: 17
+    sourceEndLine: 115
+    sourceEndColumn: 1
+  - id: SYM-ActivationState
+    title: ActivationState
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 15
+    sourceColumn: 12
+    sourceEndLine: 20
+    sourceEndColumn: 25
+  - id: SYM-ActivationMode
+    title: ActivationMode
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 22
+    sourceColumn: 12
+    sourceEndLine: 27
+    sourceEndColumn: 23
+  - id: SYM-EvidenceProviderName
+    title: EvidenceProviderName
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 40
+    sourceColumn: 12
+    sourceEndLine: 40
+    sourceEndColumn: 77
+  - id: SYM-AutopilotEvidenceKind
+    title: AutopilotEvidenceKind
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 42
+    sourceColumn: 12
+    sourceEndLine: 49
+    sourceEndColumn: 21
+  - id: SYM-AUTOPILOT-PROVIDER-ORDER
+    title: AUTOPILOT_PROVIDER_ORDER
+    sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 30
+    sourceColumn: 13
+    sourceEndLine: 38
+    sourceEndColumn: 10
+  - id: SYM-handleKbAutopilotGenerate
+    title: handleKbAutopilotGenerate
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 698
+    sourceColumn: 22
+    sourceEndLine: 1073
+    sourceEndColumn: 1
+  - id: SYM-AutopilotBootstrapContext
+    title: AutopilotBootstrapContext
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 81
+    sourceColumn: 17
+    sourceEndLine: 87
+    sourceEndColumn: 1
+  - id: SYM-AutopilotConfidence
+    title: AutopilotConfidence
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 89
+    sourceColumn: 17
+    sourceEndLine: 94
+    sourceEndColumn: 1
+  - id: SYM-AutopilotRecommendedAction
+    title: AutopilotRecommendedAction
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 96
+    sourceColumn: 17
+    sourceEndLine: 101
+    sourceEndColumn: 1
+  - id: SYM-AutopilotDeclaredContext
+    title: AutopilotDeclaredContext
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 103
+    sourceColumn: 17
+    sourceEndLine: 109
+    sourceEndColumn: 1
+  - id: SYM-setAutopilotGenerateDepsForTests
+    title: _setAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 71
+    sourceColumn: 16
+    sourceEndLine: 75
+    sourceEndColumn: 1
+  - id: SYM-resetAutopilotGenerateDepsForTests
+    title: _resetAutopilotGenerateDepsForTests
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-init-kibi-autopilot-v1
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 77
+    sourceColumn: 16
+    sourceEndLine: 79
+    sourceEndColumn: 1
+  - id: SYM-AutopilotGenerateArgs
+    title: AutopilotGenerateArgs
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 111
+    sourceColumn: 17
+    sourceEndLine: 117
+    sourceEndColumn: 1
+  - id: SYM-AutopilotGenerateResult
+    title: AutopilotGenerateResult
+    sourceFile: packages/mcp/src/tools/autopilot-generate.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 145
+    sourceColumn: 17
+    sourceEndLine: 153
+    sourceEndColumn: 1
+  - id: SYM-handleKbDelete
+    title: handleKbDelete
+    sourceFile: packages/mcp/src/tools/delete.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 43
+    sourceColumn: 22
+    sourceEndLine: 143
+    sourceEndColumn: 1
+  - id: SYM-DeleteArgs
+    title: DeleteArgs
+    sourceFile: packages/mcp/src/tools/delete.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 25
+    sourceColumn: 17
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-DeleteResult
+    title: DeleteResult
+    sourceFile: packages/mcp/src/tools/delete.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 37
+    sourceEndColumn: 1
+  - id: SYM-estimateNormativeSignalConfidence
+    title: estimateNormativeSignalConfidence
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 276
+    sourceColumn: 16
+    sourceEndLine: 296
+    sourceEndColumn: 1
+  - id: SYM-extractRequirementClaim
+    title: extractRequirementClaim
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 298
+    sourceColumn: 16
+    sourceEndLine: 368
+    sourceEndColumn: 1
+  - id: SYM-strictWriteSetToApplyPlan
+    title: strictWriteSetToApplyPlan
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 380
+    sourceColumn: 16
+    sourceEndLine: 414
+    sourceEndColumn: 1
+  - id: SYM-writeSetPrimaryEntityId
+    title: writeSetPrimaryEntityId
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 416
+    sourceColumn: 16
+    sourceEndLine: 418
+    sourceEndColumn: 1
+  - id: SYM-getWorkspaceMigrationWarning
+    title: getWorkspaceMigrationWarning
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 420
+    sourceColumn: 22
+    sourceEndLine: 441
+    sourceEndColumn: 1
+  - id: SYM-handleKbModelRequirement
+    title: handleKbModelRequirement
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    links:
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 443
+    sourceColumn: 22
+    sourceEndLine: 498
+    sourceEndColumn: 1
+  - id: SYM-handleKbSuggestPredicates
+    title: handleKbSuggestPredicates
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+  - id: SYM-ModelRequirementArgs
+    title: ModelRequirementArgs
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 15
+    sourceColumn: 17
+    sourceEndLine: 25
+    sourceEndColumn: 1
+  - id: SYM-ExtractedRequirementClaim
+    title: ExtractedRequirementClaim
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 27
+    sourceColumn: 17
+    sourceEndLine: 31
+    sourceEndColumn: 1
+  - id: SYM-ModelRequirementResult
+    title: ModelRequirementResult
+    sourceFile: packages/mcp/src/tools/model-requirement.ts
+    links:
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 33
+    sourceColumn: 17
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-SuggestPredicatesArgs
+    title: SuggestPredicatesArgs
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-002
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+  - id: SYM-SuggestPredicatesResult
+    title: SuggestPredicatesResult
+    sourceFile: packages/mcp/src/tools/suggest-predicates.ts
+    links:
+      - REQ-mcp-suggest-predicates
+    relationships:
+      - type: implements
+        target: REQ-mcp-suggest-predicates
+      - type: covered_by
+        target: TEST-mcp-suggest-predicates
+  - id: SYM-handleKbSkillsList
+    title: handleKbSkillsList
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 46
+    sourceColumn: 22
+    sourceEndLine: 62
+    sourceEndColumn: 1
+  - id: SYM-handleKbSkillsLoad
+    title: handleKbSkillsLoad
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 65
+    sourceColumn: 22
+    sourceEndLine: 95
+    sourceEndColumn: 1
+  - id: SYM-handleKbSkillsRead
+    title: handleKbSkillsRead
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 98
+    sourceColumn: 22
+    sourceEndLine: 118
+    sourceEndColumn: 1
+  - id: SYM-SkillsListResult
+    title: SkillsListResult
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 13
+    sourceColumn: 17
+    sourceEndLine: 16
+    sourceEndColumn: 1
+  - id: SYM-SkillsLoadArgs
+    title: SkillsLoadArgs
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 18
+    sourceColumn: 17
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-SkillsLoadPayload
+    title: SkillsLoadPayload
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 22
+    sourceColumn: 17
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-SkillsLoadResult
+    title: SkillsLoadResult
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 33
+    sourceEndColumn: 1
+  - id: SYM-SkillsReadArgs
+    title: SkillsReadArgs
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 38
+    sourceEndColumn: 1
+  - id: SYM-SkillsReadResult
+    title: SkillsReadResult
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 40
+    sourceColumn: 17
+    sourceEndLine: 43
+    sourceEndColumn: 1
+  - id: SYM-SkillsListArgs
+    title: SkillsListArgs
+    sourceFile: packages/mcp/src/tools/skills.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 11
+    sourceColumn: 12
+    sourceEndLine: 11
+    sourceEndColumn: 51
+  - id: SYM-handleKbSymbolsRefresh
+    title: handleKbSymbolsRefresh
+    sourceFile: packages/mcp/src/tools/symbols.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 91
+    sourceColumn: 22
+    sourceEndLine: 189
+    sourceEndColumn: 1
+  - id: SYM-refreshCoordinatesForSymbolId
+    title: refreshCoordinatesForSymbolId
+    sourceFile: packages/mcp/src/tools/symbols.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 191
+    sourceColumn: 22
+    sourceEndLine: 265
+    sourceEndColumn: 1
+  - id: SYM-resolveManifestPath
+    title: resolveManifestPath
+    sourceFile: packages/mcp/src/tools/symbols.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 281
+    sourceColumn: 22
+    sourceEndLine: 317
+    sourceEndColumn: 1
+  - id: SYM-SymbolsRefreshArgs
+    title: SymbolsRefreshArgs
+    sourceFile: packages/mcp/src/tools/symbols.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 27
+    sourceColumn: 17
+    sourceEndLine: 30
+    sourceEndColumn: 1
+  - id: SYM-SymbolsRefreshResult
+    title: SymbolsRefreshResult
+    sourceFile: packages/mcp/src/tools/symbols.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 32
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-handleKbUpsert
+    title: handleKbUpsert
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 262
+    sourceColumn: 22
+    sourceEndLine: 405
+    sourceEndColumn: 1
+  - id: SYM-UpsertArgs
+    title: UpsertArgs
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 47
+    sourceColumn: 17
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-UpsertResult
+    title: UpsertResult
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 62
+    sourceColumn: 17
+    sourceEndLine: 71
+    sourceEndColumn: 1
+  - id: SYM-ValidatedUpsertArgs
+    title: ValidatedUpsertArgs
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 73
+    sourceColumn: 17
+    sourceEndLine: 76
+    sourceEndColumn: 1
+  - id: SYM-validateKbUpsertArgs
+    title: validateKbUpsertArgs
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 407
+    sourceColumn: 16
+    sourceEndLine: 454
+    sourceEndColumn: 1
+  - id: SYM-test
+    title: __test__
+    sourceFile: packages/mcp/src/tools/upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 601
+    sourceColumn: 13
+    sourceEndLine: 608
+    sourceEndColumn: 1
+  - id: SYM-ValidateUpsertResult
+    title: ValidateUpsertResult
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 6
+    sourceColumn: 17
+    sourceEndLine: 15
+    sourceEndColumn: 1
+  - id: SYM-handleKbValidateUpsert
+    title: handleKbValidateUpsert
+    sourceFile: packages/mcp/src/tools/validate-upsert.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-tool-upsert
+      - type: covered_by
+        target: TEST-mcp-upsert-coverage
+    sourceLine: 17
+    sourceColumn: 22
+    sourceEndLine: 58
+    sourceEndColumn: 1
+  - id: SYM-validateAndMerge
+    title: validateAndMerge
+    sourceFile: packages/opencode/src/config.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 109
+    sourceColumn: 16
+    sourceEndLine: 223
+    sourceEndColumn: 1
+  - id: SYM-loadConfig-2
+    title: loadConfig
+    sourceFile: packages/opencode/src/config.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 226
+    sourceColumn: 16
+    sourceEndLine: 244
+    sourceEndColumn: 1
+  - id: SYM-isPluginEnabled
+    title: isPluginEnabled
+    sourceFile: packages/opencode/src/config.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 247
+    sourceColumn: 16
+    sourceEndLine: 250
+    sourceEndColumn: 1
+  - id: SYM-KibiConfig
+    title: KibiConfig
+    sourceFile: packages/opencode/src/config.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 17
+    sourceEndLine: 52
+    sourceEndColumn: 1
+  - id: SYM-getE2eCoverageSignal
+    title: getE2eCoverageSignal
+    sourceFile: packages/opencode/src/e2e-coverage-signals.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 149
+    sourceColumn: 16
+    sourceEndLine: 253
+    sourceEndColumn: 1
+  - id: SYM-E2eCoverageSignal
+    title: E2eCoverageSignal
+    sourceFile: packages/opencode/src/e2e-coverage-signals.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 17
+    sourceEndLine: 12
+    sourceEndColumn: 1
+  - id: SYM-computeEnforcementPolicy
+    title: computeEnforcementPolicy
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 358
+    sourceColumn: 16
+    sourceEndLine: 449
+    sourceEndColumn: 1
+  - id: SYM-PolicyLinkedEntityResult
+    title: PolicyLinkedEntityResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 12
+    sourceColumn: 17
+    sourceEndLine: 15
+    sourceEndColumn: 1
+  - id: SYM-EnforcementLifecycleEvent
+    title: EnforcementLifecycleEvent
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 17
+    sourceColumn: 17
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-EnforcementPolicyInput
+    title: EnforcementPolicyInput
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 34
+    sourceColumn: 17
+    sourceEndLine: 57
+    sourceEndColumn: 1
+  - id: SYM-CheckpointEvidence
+    title: CheckpointEvidence
+    sourceFile: packages/opencode/src/enforcement-policy.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 22
+    sourceColumn: 12
+    sourceEndLine: 32
+    sourceEndColumn: 6
+  - id: SYM-EnforcementPolicyResult
+    title: EnforcementPolicyResult
+    sourceFile: packages/opencode/src/enforcement-policy.ts
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
     sourceLine: 72
+    sourceColumn: 12
+    sourceEndLine: 91
+    sourceEndColumn: 7
+  - id: SYM-buildEnforcementScopeKey
+    title: buildEnforcementScopeKey
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 26
     sourceColumn: 16
-    sourceEndLine: 102
+    sourceEndLine: 37
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.233Z'
-  - id: SYM-checkWorkspaceHealth
-    title: checkWorkspaceHealth
-    sourceFile: packages/opencode/src/workspace-health.ts
-    links:
-      - REQ-opencode-kibi-plugin-v1
+  - id: SYM-buildDirtyRelevantFingerprint
+    title: buildDirtyRelevantFingerprint
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 43
+    sourceColumn: 16
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-EnforcementScopeInput
+    title: EnforcementScopeInput
+    sourceFile: packages/opencode/src/enforcement-scope.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 6
+    sourceColumn: 17
+    sourceEndLine: 12
+    sourceEndColumn: 1
+  - id: SYM-parseSymbolsYaml
+    title: parseSymbolsYaml
+    sourceFile: packages/opencode/src/file-entity-links.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 32
+    sourceColumn: 16
+    sourceEndLine: 133
+    sourceEndColumn: 1
+  - id: SYM-getFileLinkedEntityIds
+    title: getFileLinkedEntityIds
+    sourceFile: packages/opencode/src/file-entity-links.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 213
+    sourceColumn: 16
+    sourceEndLine: 274
+    sourceEndColumn: 1
+  - id: SYM-getFileLinkedTargetsByType
+    title: getFileLinkedTargetsByType
+    sourceFile: packages/opencode/src/file-entity-links.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 277
+    sourceColumn: 16
+    sourceEndLine: 306
+    sourceEndColumn: 1
+  - id: SYM-SymbolsManifestRow
+    title: SymbolsManifestRow
+    sourceFile: packages/opencode/src/file-entity-links.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 13
+    sourceEndColumn: 2
+  - id: SYM-deriveFileOperationReminder
+    title: deriveFileOperationReminder
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 59
+    sourceColumn: 16
+    sourceEndLine: 113
+    sourceEndColumn: 1
+  - id: SYM-LinkedEntityResult
+    title: LinkedEntityResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 18
+    sourceColumn: 17
+    sourceEndLine: 21
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderParams
+    title: DeriveFileOperationReminderParams
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 23
+    sourceColumn: 17
+    sourceEndLine: 39
+    sourceEndColumn: 1
+  - id: SYM-DeriveFileOperationReminderResult
+    title: DeriveFileOperationReminderResult
+    sourceFile: packages/opencode/src/file-operation-reminders.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 41
+    sourceColumn: 17
+    sourceEndLine: 47
+    sourceEndColumn: 1
+  - id: SYM-createFileOperationState
+    title: createFileOperationState
+    sourceFile: packages/opencode/src/file-operation-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 47
+    sourceColumn: 16
+    sourceEndLine: 195
+    sourceEndColumn: 1
+  - id: SYM-PendingLifecycleEvent
+    title: PendingLifecycleEvent
+    sourceFile: packages/opencode/src/file-operation-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 15
+    sourceColumn: 17
+    sourceEndLine: 22
+    sourceEndColumn: 1
+  - id: SYM-FileOperationState
+    title: FileOperationState
+    sourceFile: packages/opencode/src/file-operation-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 24
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-FileLifecycle
+    title: FileLifecycle
+    sourceFile: packages/opencode/src/file-operation-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 12
+    sourceEndLine: 7
+    sourceEndColumn: 61
+  - id: SYM-ReminderKind
+    title: ReminderKind
+    sourceFile: packages/opencode/src/file-operation-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 12
+    sourceEndLine: 13
+    sourceEndColumn: 17
+  - id: SYM-buildInitKibiAlias
+    title: buildInitKibiAlias
+    sourceFile: packages/opencode/src/init-kibi-alias.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 14
+    sourceColumn: 16
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-findSdkPackageJsonForPluginRoot
+    title: findSdkPackageJsonForPluginRoot
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 178
+    sourceColumn: 16
+    sourceEndLine: 194
+    sourceEndColumn: 1
+  - id: SYM-detectInitKibiCommandCapability
+    title: detectInitKibiCommandCapability
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 265
+    sourceColumn: 16
+    sourceEndLine: 302
+    sourceEndColumn: 1
+  - id: SYM-getInitKibiCommandCapability
+    title: getInitKibiCommandCapability
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 304
+    sourceColumn: 16
+    sourceEndLine: 313
+    sourceEndColumn: 1
+  - id: SYM-registerInitKibiCommand
+    title: registerInitKibiCommand
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 315
+    sourceColumn: 16
+    sourceEndLine: 347
+    sourceEndColumn: 1
+  - id: SYM-OpenCodeCommandDefinition
+    title: OpenCodeCommandDefinition
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 12
+    sourceColumn: 17
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-OpenCodeConfigHookInput
+    title: OpenCodeConfigHookInput
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 20
+    sourceColumn: 17
+    sourceEndLine: 23
+    sourceEndColumn: 1
+  - id: SYM-InitKibiCommandCapability
+    title: InitKibiCommandCapability
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 25
+    sourceColumn: 12
+    sourceEndLine: 34
+    sourceEndColumn: 6
+  - id: SYM-INIT-KIBI-COMMAND-NAME
+    title: INIT_KIBI_COMMAND_NAME
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 13
+    sourceEndLine: 7
+    sourceEndColumn: 49
+  - id: SYM-INIT-KIBI-COMMAND-TEMPLATE
+    title: INIT_KIBI_COMMAND_TEMPLATE
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 13
+    sourceEndLine: 8
+    sourceEndColumn: 62
+  - id: SYM-INIT-KIBI-COMMAND-DESCRIPTION
+    title: INIT_KIBI_COMMAND_DESCRIPTION
+    sourceFile: packages/opencode/src/init-kibi-capability.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-bootstrap-nudge
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 13
+    sourceEndLine: 10
+    sourceEndColumn: 49
+  - id: SYM-evaluateKbFreshness
+    title: evaluateKbFreshness
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 68
+    sourceColumn: 16
+    sourceEndLine: 183
+    sourceEndColumn: 1
+  - id: SYM-createKbFreshnessEvidenceStore
+    title: createKbFreshnessEvidenceStore
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 250
+    sourceColumn: 16
+    sourceEndLine: 323
+    sourceEndColumn: 1
+  - id: SYM-KbFreshnessEvidence
+    title: KbFreshnessEvidence
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 29
+    sourceColumn: 17
+    sourceEndLine: 43
+    sourceEndColumn: 1
+  - id: SYM-KbFreshnessEvaluation
+    title: KbFreshnessEvaluation
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 45
+    sourceColumn: 17
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-KbFreshnessScope
+    title: KbFreshnessScope
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 189
+    sourceColumn: 17
+    sourceEndLine: 195
+    sourceEndColumn: 1
+  - id: SYM-KbFreshnessEvidenceStore
+    title: KbFreshnessEvidenceStore
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 225
+    sourceColumn: 17
+    sourceEndLine: 233
+    sourceEndColumn: 1
+  - id: SYM-KbFreshnessDecision
+    title: KbFreshnessDecision
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 14
+    sourceColumn: 12
+    sourceEndLine: 18
+    sourceEndColumn: 13
+  - id: SYM-KbFreshnessStateKind
+    title: KbFreshnessStateKind
+    sourceFile: packages/opencode/src/kb-freshness-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 20
+    sourceColumn: 12
+    sourceEndLine: 27
+    sourceEndColumn: 19
+  - id: SYM-KibiCheckpointRunner
+    title: KibiCheckpointRunner
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 85
+    sourceColumn: 13
+    sourceEndLine: 368
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointContext
+    title: KibiCheckpointContext
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 30
+    sourceColumn: 17
+    sourceEndLine: 41
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRunnerOptions
+    title: KibiCheckpointRunnerOptions
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 43
+    sourceColumn: 17
+    sourceEndLine: 51
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointMetadata
+    title: KibiCheckpointMetadata
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 53
+    sourceColumn: 17
+    sourceEndLine: 67
+    sourceEndColumn: 1
+  - id: SYM-KibiCheckpointRequestResult
+    title: KibiCheckpointRequestResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 69
+    sourceColumn: 12
+    sourceEndLine: 72
+    sourceEndColumn: 61
+  - id: SYM-KibiCheckpointRunResult
+    title: KibiCheckpointRunResult
+    sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 74
+    sourceColumn: 12
+    sourceEndLine: 77
+    sourceEndColumn: 55
+  - id: SYM-classifyKnowledge
+    title: classifyKnowledge
+    sourceFile: packages/opencode/src/knowledge-classifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 92
+    sourceColumn: 16
+    sourceEndLine: 170
+    sourceEndColumn: 1
+  - id: SYM-KnowledgeSuggestion
+    title: KnowledgeSuggestion
+    sourceFile: packages/opencode/src/knowledge-classifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 12
+    sourceEndColumn: 2
+  - id: SYM-setConsoleError
+    title: _setConsoleError
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 18
+    sourceColumn: 16
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-setClient
+    title: setClient
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 23
+    sourceColumn: 16
+    sourceEndLine: 25
+    sourceEndColumn: 1
+  - id: SYM-resetClient
+    title: resetClient
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 28
+    sourceColumn: 16
+    sourceEndLine: 30
+    sourceEndColumn: 1
+  - id: SYM-info
+    title: info
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 46
+    sourceColumn: 16
+    sourceEndLine: 58
+    sourceEndColumn: 1
+  - id: SYM-warn
+    title: warn
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 61
+    sourceColumn: 16
+    sourceEndLine: 73
+    sourceEndColumn: 1
+  - id: SYM-errorStructuredOnly
+    title: errorStructuredOnly
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 110
+    sourceColumn: 16
+    sourceEndLine: 124
+    sourceEndColumn: 1
+  - id: SYM-error
+    title: error
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 127
+    sourceColumn: 16
+    sourceEndLine: 140
+    sourceEndColumn: 1
+  - id: SYM-PluginClient
+    title: PluginClient
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 3
+    sourceColumn: 17
+    sourceEndLine: 7
+    sourceEndColumn: 1
+  - id: SYM-LogMetadata
+    title: LogMetadata
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 12
+    sourceEndLine: 9
+    sourceEndColumn: 50
+  - id: SYM-FailureClassification
+    title: FailureClassification
+    sourceFile: packages/opencode/src/logger.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 104
+    sourceColumn: 12
+    sourceEndLine: 107
+    sourceEndColumn: 29
+  - id: SYM-classifyMeaningfulChange
+    title: classifyMeaningfulChange
+    sourceFile: packages/opencode/src/meaningful-change-classifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 108
+    sourceColumn: 16
+    sourceEndLine: 145
+    sourceEndColumn: 1
+  - id: SYM-MeaningfulChangeClass
+    title: MeaningfulChangeClass
+    sourceFile: packages/opencode/src/meaningful-change-classifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 14
+    sourceColumn: 12
+    sourceEndLine: 17
+    sourceEndColumn: 14
+  - id: SYM-resolveCurrentBranch
+    title: resolveCurrentBranch
+    sourceFile: packages/opencode/src/plugin-startup.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 67
+    sourceColumn: 16
+    sourceEndLine: 85
+    sourceEndColumn: 1
+  - id: SYM-runPluginStartup
+    title: runPluginStartup
+    sourceFile: packages/opencode/src/plugin-startup.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 96
+    sourceColumn: 22
+    sourceEndLine: 287
+    sourceEndColumn: 1
+  - id: SYM-RuntimeDegradedOverlay
+    title: RuntimeDegradedOverlay
+    sourceFile: packages/opencode/src/plugin-startup.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 40
+    sourceColumn: 17
+    sourceEndLine: 49
+    sourceEndColumn: 1
+  - id: SYM-PluginStartupContext
+    title: PluginStartupContext
+    sourceFile: packages/opencode/src/plugin-startup.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 51
+    sourceColumn: 17
+    sourceEndLine: 65
+    sourceEndColumn: 1
+  - id: SYM-PluginInput
+    title: PluginInput
+    sourceFile: packages/opencode/src/plugin.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 85
+    sourceColumn: 17
+    sourceEndLine: 116
+    sourceEndColumn: 1
+  - id: SYM-Hooks
+    title: Hooks
+    sourceFile: packages/opencode/src/plugin.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 142
+    sourceColumn: 17
+    sourceEndLine: 150
+    sourceEndColumn: 1
+  - id: SYM-Plugin
+    title: Plugin
+    sourceFile: packages/opencode/src/plugin.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 152
+    sourceColumn: 12
+    sourceEndLine: 152
+    sourceEndColumn: 68
+  - id: SYM-postureGuidance
+    title: postureGuidance
+    sourceFile: packages/opencode/src/prompt.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 221
+    sourceColumn: 16
+    sourceEndLine: 241
+    sourceEndColumn: 1
+  - id: SYM-buildPrompt
+    title: buildPrompt
+    sourceFile: packages/opencode/src/prompt.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 652
+    sourceColumn: 16
+    sourceEndLine: 660
+    sourceEndColumn: 1
+  - id: SYM-injectPrompt
+    title: injectPrompt
+    sourceFile: packages/opencode/src/prompt.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 665
+    sourceColumn: 16
+    sourceEndLine: 678
+    sourceEndColumn: 1
+  - id: SYM-PromptContext
+    title: PromptContext
+    sourceFile: packages/opencode/src/prompt.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 109
+    sourceColumn: 17
+    sourceEndLine: 149
+    sourceEndColumn: 1
+  - id: SYM-reconcileAuditEntries
+    title: reconcileAuditEntries
+    sourceFile: packages/opencode/src/reconcile-engine.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 112
+    sourceColumn: 16
+    sourceEndLine: 189
+    sourceEndColumn: 1
+  - id: SYM-AuditEntityPayload
+    title: AuditEntityPayload
+    sourceFile: packages/opencode/src/reconcile-engine.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 1
+    sourceColumn: 17
+    sourceEndLine: 9
+    sourceEndColumn: 1
+  - id: SYM-AuditEntry
+    title: AuditEntry
+    sourceFile: packages/opencode/src/reconcile-engine.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 11
+    sourceColumn: 17
+    sourceEndLine: 16
+    sourceEndColumn: 1
+  - id: SYM-EntityChangeItem
+    title: EntityChangeItem
+    sourceFile: packages/opencode/src/reconcile-engine.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 18
+    sourceColumn: 17
+    sourceEndLine: 24
+    sourceEndColumn: 1
+  - id: SYM-ReconcileResult
+    title: ReconcileResult
+    sourceFile: packages/opencode/src/reconcile-engine.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 26
+    sourceColumn: 17
+    sourceEndLine: 31
+    sourceEndColumn: 1
+  - id: SYM-createSyncScheduler
+    title: createSyncScheduler
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 404
+    sourceColumn: 16
+    sourceEndLine: 406
+    sourceEndColumn: 1
+  - id: SYM-SyncRunMetadata
+    title: SyncRunMetadata
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 17
+    sourceEndLine: 23
+    sourceEndColumn: 1
+  - id: SYM-SchedulerOptions
+    title: SchedulerOptions
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 40
+    sourceColumn: 17
+    sourceEndLine: 50
+    sourceEndColumn: 1
+  - id: SYM-SyncScheduler
+    title: SyncScheduler
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 58
+    sourceColumn: 17
+    sourceEndLine: 64
+    sourceEndColumn: 1
+  - id: SYM-TimeoutHandle
+    title: TimeoutHandle
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 7
+    sourceColumn: 12
+    sourceEndLine: 7
+    sourceEndColumn: 58
+  - id: SYM-SyncRunnerResult
+    title: SyncRunnerResult
+    sourceFile: packages/opencode/src/scheduler.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 25
+    sourceColumn: 12
+    sourceEndLine: 31
+    sourceEndColumn: 2
+  - id: SYM-SyncRunner
+    title: SyncRunner
+    sourceFile: packages/opencode/src/scheduler.ts
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
       - type: covered_by
         target: TEST-opencode-kibi-plugin-v1
     sourceLine: 33
-    sourceColumn: 16
-    sourceEndLine: 98
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.339Z'
-  - id: SYM-detectPosture
-    title: detectPosture
-    sourceFile: packages/opencode/src/repo-posture.ts
-    links:
-      - REQ-opencode-smart-enforcement-v1
-      - REQ-opencode-kibi-plugin-v1
+    sourceColumn: 12
+    sourceEndLine: 33
+    sourceEndColumn: 73
+  - id: SYM-CheckRunner
+    title: CheckRunner
+    sourceFile: packages/opencode/src/scheduler.ts
     relationships:
       - type: implements
-        target: REQ-opencode-smart-enforcement-v1
-      - type: implements
         target: REQ-opencode-kibi-plugin-v1
-    sourceLine: 161
-    sourceColumn: 16
-    sourceEndLine: 240
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.340Z'
-  - id: SYM-classifyRisk
-    title: classifyRisk
-    sourceFile: packages/opencode/src/risk-classifier.ts
-    links:
-      - REQ-opencode-smart-enforcement-v1
-      - REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 35
+    sourceColumn: 12
+    sourceEndLine: 38
+    sourceEndColumn: 35
+  - id: SYM-PendingTrigger
+    title: PendingTrigger
+    sourceFile: packages/opencode/src/scheduler.ts
     relationships:
       - type: implements
-        target: REQ-opencode-smart-enforcement-v1
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 52
+    sourceColumn: 12
+    sourceEndLine: 56
+    sourceEndColumn: 2
+  - id: SYM-createSessionEditState
+    title: createSessionEditState
+    sourceFile: packages/opencode/src/session-edit-state.ts
+    relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 46
+    sourceColumn: 16
+    sourceEndLine: 263
+    sourceEndColumn: 1
+  - id: SYM-SessionEditEntry
+    title: SessionEditEntry
+    sourceFile: packages/opencode/src/session-edit-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 11
+    sourceColumn: 17
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-SessionEditState
+    title: SessionEditState
+    sourceFile: packages/opencode/src/session-edit-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 22
+    sourceColumn: 17
+    sourceEndLine: 34
+    sourceEndColumn: 1
+  - id: SYM-EditEventKind
+    title: EditEventKind
+    sourceFile: packages/opencode/src/session-edit-state.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 9
+    sourceColumn: 12
+    sourceEndLine: 9
+    sourceEndColumn: 35
+  - id: SYM-getSourceLinkedRequirementIds
+    title: getSourceLinkedRequirementIds
+    sourceFile: packages/opencode/src/source-linked-guidance.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 13
+    sourceColumn: 16
+    sourceEndLine: 22
+    sourceEndColumn: 1
+  - id: SYM-notifyStartup
+    title: notifyStartup
+    sourceFile: packages/opencode/src/startup-notifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 26
+    sourceColumn: 16
+    sourceEndLine: 139
+    sourceEndColumn: 1
+  - id: SYM-StartupNotifierClient
+    title: StartupNotifierClient
+    sourceFile: packages/opencode/src/startup-notifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 10
+    sourceColumn: 12
+    sourceEndLine: 14
+    sourceEndColumn: 2
+  - id: SYM-StartupNotifierConfig
+    title: StartupNotifierConfig
+    sourceFile: packages/opencode/src/startup-notifier.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 16
+    sourceColumn: 12
+    sourceEndLine: 21
+    sourceEndColumn: 2
+  - id: SYM-sendToast
+    title: sendToast
+    sourceFile: packages/opencode/src/toast.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 32
+    sourceColumn: 22
+    sourceEndLine: 74
+    sourceEndColumn: 1
+  - id: SYM-ToastPayload
+    title: ToastPayload
+    sourceFile: packages/opencode/src/toast.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 1
+    sourceColumn: 12
+    sourceEndLine: 6
+    sourceEndColumn: 2
+  - id: SYM-SendToastResult
+    title: SendToastResult
+    sourceFile: packages/opencode/src/toast.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 8
+    sourceColumn: 12
+    sourceEndLine: 16
+    sourceEndColumn: 6
+  - id: SYM-ToastCapableClient
+    title: ToastCapableClient
+    sourceFile: packages/opencode/src/toast.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 18
+    sourceColumn: 12
+    sourceEndLine: 29
+    sourceEndColumn: 2
+  - id: SYM-ResolveWorkContextInput
+    title: ResolveWorkContextInput
+    sourceFile: packages/opencode/src/work-context-resolver.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 14
+    sourceColumn: 17
+    sourceEndLine: 20
+    sourceEndColumn: 1
+  - id: SYM-WorkContext
+    title: WorkContext
+    sourceFile: packages/opencode/src/work-context-resolver.ts
+    relationships:
+      - type: implements
+        target: REQ-opencode-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-opencode-kibi-plugin-v1
+    sourceLine: 22
+    sourceColumn: 17
+    sourceEndLine: 32
+    sourceEndColumn: 1
+  - id: SYM-registerTraceability
+    title: registerTraceability
+    sourceFile: packages/vscode/src/activation/traceability.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 28
+    sourceColumn: 16
+    sourceEndLine: 145
+    sourceEndColumn: 1
+  - id: SYM-TraceabilityRegistrationResult
+    title: TraceabilityRegistrationResult
+    sourceFile: packages/vscode/src/activation/traceability.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 16
+    sourceColumn: 17
+    sourceEndLine: 23
+    sourceEndColumn: 1
+  - id: SYM-setWorkspaceFsDepsForTests
+    title: _setWorkspaceFsDepsForTests
+    sourceFile: packages/vscode/src/activation/workspace.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 10
+    sourceColumn: 16
+    sourceEndLine: 14
+    sourceEndColumn: 1
+  - id: SYM-resetWorkspaceFsDepsForTests
+    title: _resetWorkspaceFsDepsForTests
+    sourceFile: packages/vscode/src/activation/workspace.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 16
+    sourceColumn: 16
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-resolveWorkspaceRoot
+    title: resolveWorkspaceRoot
+    sourceFile: packages/vscode/src/activation/workspace.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 24
+    sourceColumn: 16
+    sourceEndLine: 56
+    sourceEndColumn: 1
+  - id: SYM-getWorkspaceFolderUri
+    title: getWorkspaceFolderUri
+    sourceFile: packages/vscode/src/activation/workspace.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 61
+    sourceColumn: 16
+    sourceEndLine: 66
+    sourceEndColumn: 1
+  - id: SYM-browseLinkedEntities
+    title: browseLinkedEntities
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 121
+    sourceColumn: 22
+    sourceEndLine: 171
+    sourceEndColumn: 1
+  - id: SYM-openFileAtLine
+    title: openFileAtLine
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 176
+    sourceColumn: 22
+    sourceEndLine: 192
+    sourceEndColumn: 1
+  - id: SYM-KibiCodeActionProvider
+    title: KibiCodeActionProvider
+    sourceFile: packages/vscode/src/codeActionProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 25
+    sourceColumn: 13
+    sourceEndLine: 115
+    sourceEndColumn: 1
+  - id: SYM-KibiCodeLensProvider
+    title: KibiCodeLensProvider
+    sourceFile: packages/vscode/src/codeLensProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 40
+    sourceColumn: 13
+    sourceEndLine: 317
+    sourceEndColumn: 1
+  - id: SYM-resetWorkspaceFeaturesForTests
+    title: _resetWorkspaceFeaturesForTests
+    sourceFile: packages/vscode/src/extension.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 31
+    sourceColumn: 16
+    sourceEndLine: 33
+    sourceEndColumn: 1
+  - id: SYM-activate
+    title: activate
+    sourceFile: packages/vscode/src/extension.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 109
+    sourceColumn: 16
+    sourceEndLine: 135
+    sourceEndColumn: 1
+  - id: SYM-deactivate
+    title: deactivate
+    sourceFile: packages/vscode/src/extension.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 138
+    sourceColumn: 16
+    sourceEndLine: 138
+    sourceEndColumn: 31
+  - id: SYM-KIBI-CONTAINER-ID
+    title: KIBI_CONTAINER_ID
+    sourceFile: packages/vscode/src/extensionIds.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 2
+    sourceColumn: 13
+    sourceEndLine: 2
+    sourceEndColumn: 47
+  - id: SYM-KIBI-VIEW-ID
+    title: KIBI_VIEW_ID
+    sourceFile: packages/vscode/src/extensionIds.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 4
+    sourceColumn: 13
+    sourceEndLine: 4
+    sourceEndColumn: 49
+  - id: SYM-KIBI-REFRESH-TREE-COMMAND
+    title: KIBI_REFRESH_TREE_COMMAND
+    sourceFile: packages/vscode/src/extensionIds.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 6
+    sourceColumn: 13
+    sourceEndLine: 6
+    sourceEndColumn: 59
+  - id: SYM-KIBI-FOCUS-KB-COMMAND
+    title: KIBI_FOCUS_KB_COMMAND
+    sourceFile: packages/vscode/src/extensionIds.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 8
+    sourceColumn: 13
+    sourceEndLine: 8
+    sourceEndColumn: 62
+  - id: SYM-resolveSymbolsManifestPath-2
+    title: resolveSymbolsManifestPath
+    sourceFile: packages/vscode/src/shared/manifestResolver.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 23
+    sourceColumn: 16
+    sourceEndLine: 61
+    sourceEndColumn: 1
+  - id: SYM-resolveSymbolsManifestPaths-2
+    title: resolveSymbolsManifestPaths
+    sourceFile: packages/vscode/src/shared/manifestResolver.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-source-to-kb
+      - type: covered_by
+        target: TEST-vscode-traceability
     sourceLine: 63
     sourceColumn: 16
-    sourceEndLine: 175
+    sourceEndLine: 75
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.446Z'
-  - id: SYM-GuidanceCache
-    title: GuidanceCache
-    sourceFile: packages/opencode/src/guidance-cache.ts
-    links:
-      - REQ-opencode-smart-enforcement-v1
-      - REQ-opencode-kibi-plugin-v1
+  - id: SYM-buildIndex
+    title: buildIndex
+    sourceFile: packages/vscode/src/symbolIndex.ts
     relationships:
       - type: implements
-        target: REQ-opencode-smart-enforcement-v1
-      - type: implements
-        target: REQ-opencode-kibi-plugin-v1
-    sourceLine: 43
-    sourceColumn: 13
-    sourceEndLine: 162
-    sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.556Z'
-  - id: SYM-buildPrompt
-    title: buildPrompt
-    sourceFile: packages/opencode/src/prompt.ts
-    links:
-      - REQ-opencode-smart-enforcement-v1
-      - REQ-opencode-kibi-plugin-v1
-      - REQ-opencode-agent-mcp-only
-    relationships:
-      - type: implements
-        target: REQ-opencode-smart-enforcement-v1
-      - type: implements
-        target: REQ-opencode-kibi-plugin-v1
-      - type: implements
-        target: REQ-opencode-agent-mcp-only
-    sourceLine: 399
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 46
     sourceColumn: 16
-    sourceEndLine: 404
+    sourceEndLine: 114
     sourceEndColumn: 1
-    coordinatesGeneratedAt: '2026-04-03T21:18:33.682Z'
+  - id: SYM-queryRelationshipsViaCli
+    title: queryRelationshipsViaCli
+    sourceFile: packages/vscode/src/symbolIndex.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 254
+    sourceColumn: 16
+    sourceEndLine: 284
+    sourceEndColumn: 1
+  - id: SYM-SymbolEntry
+    title: SymbolEntry
+    sourceFile: packages/vscode/src/symbolIndex.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 23
+    sourceColumn: 17
+    sourceEndLine: 35
+    sourceEndColumn: 1
+  - id: SYM-SymbolIndex
+    title: SymbolIndex
+    sourceFile: packages/vscode/src/symbolIndex.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 37
+    sourceColumn: 17
+    sourceEndLine: 44
+    sourceEndColumn: 1
+  - id: SYM-KibiTreeDataProvider
+    title: KibiTreeDataProvider
+    sourceFile: packages/vscode/src/treeProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 174
+    sourceColumn: 13
+    sourceEndLine: 973
+    sourceEndColumn: 1
+  - id: SYM-KibiTreeItem
+    title: KibiTreeItem
+    sourceFile: packages/vscode/src/treeProvider.ts
+    relationships:
+      - type: implements
+        target: REQ-vscode-traceability
+      - type: covered_by
+        target: TEST-vscode-traceability
+    sourceLine: 33
+    sourceColumn: 17
+    sourceEndLine: 47
+    sourceEndColumn: 1
+  - id: SYM-resolveNpmFixture
+    title: resolveNpmFixture
+    sourceFile: scripts/release-runner-fixture.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 30
+    sourceColumn: 16
+    sourceEndLine: 46
+    sourceEndColumn: 1
+  - id: SYM-NpmFixtureLive
+    title: NpmFixtureLive
+    sourceFile: scripts/release-runner-fixture.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 10
+    sourceColumn: 17
+    sourceEndLine: 12
+    sourceEndColumn: 1
+  - id: SYM-NpmFixtureMock
+    title: NpmFixtureMock
+    sourceFile: scripts/release-runner-fixture.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 14
+    sourceColumn: 17
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-NpmFixtureResult
+    title: NpmFixtureResult
+    sourceFile: scripts/release-runner-fixture.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 20
+    sourceColumn: 12
+    sourceEndLine: 20
+    sourceEndColumn: 63
+  - id: SYM-codex-packageName
+    title: packageName
+    sourceFile: packages/codex/src/index.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-adapterKind
+    title: adapterKind
+    sourceFile: packages/codex/src/index.ts
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-HookEvent
+    title: HookEvent
+    sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-HookInput
+    title: HookInput
+    sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-parseHookInput
+    title: parseHookInput
+    sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-readStdin
+    title: readStdin
+    sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-parseStdinJson
+    title: parseStdinJson
+    sourceFile: packages/codex/src/hook-input.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-bootstrapReminder
+    title: BOOTSTRAP_REMINDER
+    sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-directKbEditWarning
+    title: DIRECT_KB_EDIT_WARNING
+    sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-freshnessReminder
+    title: freshnessReminder
+    sourceFile: packages/codex/src/messages.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-extractExplicitPathFields
+    title: extractExplicitPathFields
+    sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-isDirectKbPath
+    title: isDirectKbPath
+    sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-isMeaningfulTrackedPath
+    title: isMeaningfulTrackedPath
+    sourceFile: packages/codex/src/path-policy.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-HookState
+    title: HookState
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-loadHookState
+    title: loadHookState
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-saveHookState
+    title: saveHookState
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-addDirtyPaths
+    title: addDirtyPaths
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-clearDirtyPaths
+    title: clearDirtyPaths
+    sourceFile: packages/codex/src/hook-state.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-HookResult
+    title: HookResult
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-HookEnvironment
+    title: HookEnvironment
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-runHook
+    title: runHook
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+  - id: SYM-codex-hookRunnerPath
+    title: hookRunnerPath
+    sourceFile: packages/codex/src/hook-runner.ts
+    links:
+      - REQ-codex-kibi-plugin-v1
+    relationships:
+      - type: implements
+        target: REQ-codex-kibi-plugin-v1
+      - type: covered_by
+        target: TEST-codex-kibi-plugin-v1
+    sourceLine: 124
+    sourceColumn: 13
+    sourceEndLine: 124
+    sourceEndColumn: 60
+  - id: SYM-PUBLISHABLE-DIRS
+    title: PUBLISHABLE_DIRS
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 68
+    sourceColumn: 13
+    sourceEndLine: 74
+    sourceEndColumn: 10
+  - id: SYM-ReleaseAction
+    title: ReleaseAction
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 29
+    sourceColumn: 12
+    sourceEndLine: 33
+    sourceEndColumn: 29
+  - id: SYM-PackageInfo
+    title: PackageInfo
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 35
+    sourceColumn: 17
+    sourceEndLine: 40
+    sourceEndColumn: 1
+  - id: SYM-ReleaseDecision
+    title: ReleaseDecision
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 42
+    sourceColumn: 17
+    sourceEndLine: 48
+    sourceEndColumn: 1
+  - id: SYM-ReleaseContext
+    title: ReleaseContext
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 50
+    sourceColumn: 17
+    sourceEndLine: 63
+    sourceEndColumn: 1
+  - id: SYM-determineReleaseAction
+    title: determineReleaseAction
+    sourceFile: scripts/release-state.ts
+    links:
+      - REQ-020
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 87
+    sourceColumn: 16
+    sourceEndLine: 154
+    sourceEndColumn: 1
+  - id: SYM-core-derived-chr
+    title: derived_chr Prolog module derives bounded validation facts
+    sourceFile: packages/core/src/derived_chr.pl
+    owner: core-team
+    links:
+      - REQ-prolog-library-adoption
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: covered_by
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-core-sparql-client
+    title: kibi_sparql_client Prolog module runs validated remote SELECT queries
+    sourceFile: packages/core/src/sparql_client.pl
+    owner: core-team
+    links:
+      - REQ-prolog-library-adoption
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: covered_by
+        target: TEST-prolog-library-adoption-core
+  - id: SYM-mcp-handle-sparql
+    title: handleSparql validates and dispatches remote SPARQL MCP calls
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
+    granularity_reason: extractor-miss
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-SparqlArgs
+    title: SparqlArgs
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-SparqlResult
+    title: SparqlResult
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-handleSparql
+    title: handleSparql
+    sourceFile: packages/mcp/src/tools/sparql.ts
+    owner: mcp-team
+    links:
+      - REQ-prolog-library-adoption
+      - REQ-002
+    relationships:
+      - type: implements
+        target: REQ-prolog-library-adoption
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-prolog-library-adoption-mcp
+  - id: SYM-SYMBOL_ROLES
+    title: SYMBOL_ROLES
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 1
+    sourceColumn: 13
+    sourceEndLine: 8
+    sourceEndColumn: 10
+  - id: SYM-SymbolRole
+    title: SymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+    sourceLine: 10
+    sourceColumn: 12
+    sourceEndLine: 10
+    sourceEndColumn: 55
+  - id: SYM-TRACEABILITY_RELATIONSHIP_TYPES
+    title: TRACEABILITY_RELATIONSHIP_TYPES
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 12
+    sourceColumn: 13
+    sourceEndLine: 16
+    sourceEndColumn: 10
+  - id: SYM-TraceabilityRelationshipType
+    title: TraceabilityRelationshipType
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 18
+    sourceColumn: 12
+    sourceEndLine: 19
+    sourceEndColumn: 51
+  - id: SYM-ALLOWED_GRANULARITY_REASONS
+    title: ALLOWED_GRANULARITY_REASONS
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 21
+    sourceColumn: 13
+    sourceEndLine: 26
+    sourceEndColumn: 10
+  - id: SYM-GranularityReason
+    title: GranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+    sourceLine: 28
+    sourceColumn: 12
+    sourceEndLine: 28
+    sourceEndColumn: 77
+  - id: SYM-SymbolKind
+    title: SymbolKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+    sourceLine: 30
+    sourceColumn: 12
+    sourceEndLine: 38
+    sourceEndColumn: 14
+  - id: SYM-SymbolGranularitySourceSymbolKind
+    title: SourceSymbolKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 40
+    sourceColumn: 12
+    sourceEndLine: 40
+    sourceEndColumn: 42
+  - id: SYM-GranularSymbolCandidate
+    title: GranularSymbolCandidate
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+    sourceLine: 42
+    sourceColumn: 17
+    sourceEndLine: 46
+    sourceEndColumn: 1
+  - id: SYM-inferSymbolRole
+    title: inferSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 55
+    sourceColumn: 16
+    sourceEndLine: 69
+    sourceEndColumn: 1
+  - id: SYM-inferSymbolRoleFromKind
+    title: inferSymbolRoleFromKind
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 71
+    sourceColumn: 13
+    sourceEndLine: 71
+    sourceEndColumn: 54
+  - id: SYM-isSymbolRole
+    title: isSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 73
+    sourceColumn: 16
+    sourceEndLine: 77
+    sourceEndColumn: 1
+  - id: SYM-isTraceabilityRelationshipType
+    title: isTraceabilityRelationshipType
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 79
+    sourceColumn: 16
+    sourceEndLine: 85
+    sourceEndColumn: 1
+  - id: SYM-isAllowedGranularityReason
+    title: isAllowedGranularityReason
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 87
+    sourceColumn: 16
+    sourceEndLine: 91
+    sourceEndColumn: 1
+  - id: SYM-getSymbolRole
+    title: getSymbolRole
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 93
+    sourceColumn: 16
+    sourceEndLine: 97
+    sourceEndColumn: 1
+  - id: SYM-isBehavioralSymbol
+    title: isBehavioralSymbol
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 99
+    sourceColumn: 16
+    sourceEndLine: 103
+    sourceEndColumn: 1
+  - id: SYM-getBehavioralSymbolNames
+    title: getBehavioralSymbolNames
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 105
+    sourceColumn: 16
+    sourceEndLine: 113
+    sourceEndColumn: 1
+  - id: SYM-getNonBehavioralSymbolNames
+    title: getNonBehavioralSymbolNames
+    sourceFile: packages/cli/src/public/symbol-granularity.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-mcp-upsert-symbol-behavioral-anchors
+    sourceLine: 115
+    sourceColumn: 16
+    sourceEndLine: 125
+    sourceEndColumn: 1
+  - id: SYM-createSymbolGranularityDiagnostics
+    title: createSymbolGranularityDiagnostics
+    sourceFile: packages/cli/src/commands/check.ts
+    symbol_role: behavioral
+    granularity_reason: extractor-miss
+    relationships:
+      - type: implements
+        target: REQ-symbol-behavioral-anchors
+      - type: covered_by
+        target: TEST-cli-symbol-behavioral-anchors
+    sourceLine: 239
+    sourceColumn: 9
+    sourceEndLine: 284
+    sourceEndColumn: 1
+  - id: SYM-SEMANTIC_ADVISOR_VERSION
+    title: SEMANTIC_ADVISOR_VERSION
+    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 14
+    sourceColumn: 13
+    sourceEndLine: 14
+    sourceEndColumn: 61
+  - id: SYM-analyzeSemanticAdvisorInput
+    title: analyzeSemanticAdvisorInput
+    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 2058
+    sourceColumn: 16
+    sourceEndLine: 2093
+    sourceEndColumn: 1
+  - id: SYM-handleKbSemanticAdvisor
+    title: handleKbSemanticAdvisor
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 34
+    sourceColumn: 22
+    sourceEndLine: 66
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorArgs
+    title: SemanticAdvisorArgs
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 4
+    sourceColumn: 17
+    sourceEndLine: 11
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorToolResult
+    title: SemanticAdvisorResult
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 13
+    sourceColumn: 17
+    sourceEndLine: 19
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorLane
+    title: SemanticAdvisorLane
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorReadiness
+    title: SemanticAdvisorReadiness
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticSignalKind
+    title: SemanticSignalKind
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticSignal
+    title: SemanticSignal
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAmbiguityWitness
+    title: SemanticAmbiguityWitness
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorReceipt
+    title: SemanticAdvisorReceipt
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticModelingSuggestion
+    title: SemanticModelingSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 46
+    sourceColumn: 12
+    sourceEndLine: 50
+    sourceEndColumn: 34
+  - id: SYM-SemanticStrictPropertyClaim
+    title: SemanticStrictPropertyClaim
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticStrictPropertySuggestion
+    title: SemanticStrictPropertySuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 64
+    sourceColumn: 17
+    sourceEndLine: 73
+    sourceEndColumn: 1
+  - id: SYM-SemanticPredicateClaim
+    title: SemanticPredicateClaim
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticPredicateSuggestion
+    title: SemanticPredicateSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 82
+    sourceColumn: 17
+    sourceEndLine: 92
+    sourceEndColumn: 1
+  - id: SYM-SemanticAmbiguityObservationSuggestion
+    title: SemanticAmbiguityObservationSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticOntologyGapSuggestion
+    title: SemanticOntologyGapSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorInput
+    title: SemanticAdvisorInput
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorResult
+    title: SemanticAdvisorResult
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-ProseCoverageExpectation
+    title: ProseCoverageExpectation
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-ProseCoverageCase
+    title: ProseCoverageCase
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-ProseCoverageFailure
+    title: ProseCoverageFailure
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-ProseCoverageResult
+    title: ProseCoverageResult
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-evaluateProseCoverageCorpus
+    title: evaluateProseCoverageCorpus
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-PROSE_COVERAGE_CORPUS
+    title: PROSE_COVERAGE_CORPUS
+    sourceFile: packages/mcp/tests/semantic-advisor/prose-coverage-fixture.ts
+    symbol_role: fixture
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-semantic-advisor-preflight

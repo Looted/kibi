@@ -7,6 +7,33 @@ created_at: 2026-03-09T03:30:00Z
 updated_at: 2026-03-09T03:30:00Z
 source: documentation/scenarios/SCEN-001.md
 tags: [critical]
+links:
+  - type: validates
+    target: REQ-cli-init
+  - type: validates
+    target: REQ-cli-sync
+  - type: validates
+    target: REQ-cli-query
+  - type: validates
+    target: REQ-cli-check
+  - type: validates
+    target: REQ-cli-gc
+  - type: validates
+    target: REQ-cli-doctor
+  - type: verified_by
+    target: TEST-001
+  - type: verified_by
+    target: TEST-005
+  - type: verified_by
+    target: TEST-012
+  - type: verified_by
+    target: TEST-mcp-query-relationships
+  - type: verified_by
+    target: TEST-mcp-upsert-coverage
+  - type: verified_by
+    target: TEST-007
+  - type: verified_by
+    target: TEST-008
 ---
 
 # Critical Feature Scenario

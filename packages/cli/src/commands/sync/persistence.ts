@@ -48,14 +48,19 @@ const STRING_FIELDS = new Set([
 const NUMBER_FIELDS = new Set(["value_int", "value_number"]);
 const BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
+function getEntityField(entity: ExtractedEntity, field: string): unknown {
+  // ExtractedEntity declares all fact fields as optional properties, so indexing
+  // via keyof is safe. The cast is confined to this single helper.
+  return (entity as unknown as Record<string, unknown>)[field];
+}
+
 // Serialize typed fact fields from entity
 function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   const fields: string[] = [];
-  const entityRecord = entity as unknown as Record<string, unknown>;
 
   // String fields (safely escaped double-quoted Prolog strings)
   for (const field of STRING_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologString(String(value))}`);
     }
@@ -63,7 +68,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   // Atom fields (possibly unquoted if simple)
   for (const field of ATOM_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologAtom(String(value))}`);
     }
@@ -71,7 +76,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   // Number fields (unquoted); value_int must be a true integer
   for (const field of NUMBER_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "number") {
       if (field === "value_int" && !Number.isInteger(value)) {
         continue; // silently drop non-integer value_int
@@ -82,7 +87,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
 
   // Boolean fields (true/false atoms)
   for (const field of BOOLEAN_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }
@@ -120,11 +125,11 @@ export async function persistEntities(
       }
     }
   }
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     entityIds.add(entity.id);
   }
 
-  for (const { entity } of results) {
+  for (const { entity, sourceFile } of results) {
     try {
       const props = [
         `id=${toPrologAtom(entity.id)}`,
@@ -146,6 +151,7 @@ export async function persistEntities(
         props.push(`severity=${toPrologAtom(entity.severity)}`);
       if (entity.text_ref)
         props.push(`text_ref=${toPrologString(entity.text_ref)}`);
+      if (sourceFile) props.push(`sourceFile=${toPrologString(sourceFile)}`);
 
       // Add typed fact fields for fact entities
       if (entity.type === "fact") {

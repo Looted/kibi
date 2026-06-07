@@ -1,0 +1,7 @@
+coordinates:
+  SYM-001:
+    sourceFile: src/foo.ts
+    sourceLine: 10
+    sourceColumn: 0
+    sourceEndLine: 10
+    sourceEndColumn: 12

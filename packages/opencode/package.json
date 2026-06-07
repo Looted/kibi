@@ -1,6 +1,6 @@
 {
   "name": "kibi-opencode",
-  "version": "0.5.4",
+  "version": "0.16.0",
   "description": "Kibi OpenCode plugin - thin adapter to integrate Kibi with OpenCode sessions",
   "type": "module",
   "main": "dist/index.js",
@@ -30,11 +30,14 @@
       "types": "./dist/file-filter.d.ts",
       "import": "./dist/file-filter.js",
       "default": "./dist/file-filter.js"
+    },
+    "./tui": {
+      "types": "./dist/tui.d.ts",
+      "import": "./dist/tui.js",
+      "default": "./dist/tui.js"
     }
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "engines": {
     "node": ">=18"
   },
@@ -47,13 +50,17 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && bun run scripts/generate-version-metadata.ts && bun run scripts/build-tui.ts && tsc -p tsconfig.tui-types.json",
+    "build:tui": "bun run scripts/build-tui.ts && tsc -p tsconfig.tui-types.json",
     "dev": "tsc -p tsconfig.json --watch",
     "clean": "rm -rf dist",
     "prepack": "npm run build"
   },
   "dependencies": {
-    "@opencode-ai/plugin": "^1.2.26"
+    "@opencode-ai/plugin": "^1.4.7",
+    "@opentui/core": "^0.1.99",
+    "@opentui/solid": "^0.1.99",
+    "kibi-cli": "^0.12.3"
   },
   "devDependencies": {
     "@types/node": "latest",

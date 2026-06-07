@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, test } from "bun:test";
 import { strict as assert } from "node:assert";
+import type { createSyncScheduler as createSyncSchedulerFactory } from "../src/scheduler";
+
+type CreateSyncScheduler = typeof createSyncSchedulerFactory;
 
 // implements REQ-opencode-kibi-plugin-v1
 
@@ -10,14 +13,14 @@ describe("logging policy", () => {
   let originalConsoleWarn: typeof console.warn;
   let originalConsoleError: typeof console.error;
 
+  interface MutableConsole {
+    log: (...args: readonly unknown[]) => void;
+    warn: (...args: readonly unknown[]) => void;
+    error: (...args: readonly unknown[]) => void;
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const logger = require("../src/logger") as {
-    setClient: (client: any) => void;
-    resetClient: () => void;
-    info: (msg: string, metadata?: Record<string, unknown>) => void;
-    warn: (msg: string, metadata?: Record<string, unknown>) => void;
-    error: (msg: string, metadata?: Record<string, unknown>) => void;
-  };
+  const logger = require("../src/logger") as typeof import("../src/logger");
 
   beforeEach(() => {
     logCalls = [];
@@ -28,21 +31,21 @@ describe("logging policy", () => {
 
     // Spy on console methods to ensure they are NOT called (info/warn)
     // or called exactly once (error)
-    (console as any).log = (...args: unknown[]) => {
+    (console as MutableConsole).log = (...args: readonly unknown[]) => {
       logCalls.push({
         service: "console.log",
         level: "unexpected",
         message: args.map(String).join(" "),
       });
     };
-    (console as any).warn = (...args: unknown[]) => {
+    (console as MutableConsole).warn = (...args: readonly unknown[]) => {
       logCalls.push({
         service: "console.warn",
         level: "unexpected",
         message: args.map(String).join(" "),
       });
     };
-    (console as any).error = (...args: unknown[]) => {
+    (console as MutableConsole).error = (...args: readonly unknown[]) => {
       errorCalls.push(args.map(String).join(" "));
     };
   });
@@ -240,8 +243,8 @@ describe("logging policy", () => {
   // implements REQ-opencode-kibi-plugin-v1
   describe("scheduler silence policy", () => {
     test("scheduler sync produces zero console.log/warn output", async () => {
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -251,7 +254,7 @@ describe("logging policy", () => {
         },
       });
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -283,8 +286,8 @@ describe("logging policy", () => {
     });
 
     test("scheduler check failure produces zero console.log/warn output", async () => {
-      const scheduler = require("../src/scheduler") as {
-        createSyncScheduler: (opts: any) => any;
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
       };
       const { DEFAULTS } = require("../src/config");
 
@@ -294,7 +297,7 @@ describe("logging policy", () => {
         },
       });
 
-      const sched = scheduler.createSyncScheduler({
+      const sched = createSyncScheduler({
         worktree: process.cwd(),
         config: {
           ...DEFAULTS,
@@ -335,7 +338,7 @@ describe("logging policy", () => {
   describe("session-summary silence policy", () => {
     test("logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -371,7 +374,7 @@ describe("logging policy", () => {
 
     test("recordWarning produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -406,7 +409,7 @@ describe("logging policy", () => {
 
     test("empty logSummary produces zero console.log/warn output", () => {
       const { SessionTracker } = require("../src/session-tracker") as {
-        SessionTracker: new () => any;
+        SessionTracker: typeof import("../src/session-tracker").SessionTracker;
       };
 
       logger.setClient({
@@ -529,14 +532,14 @@ describe("logging policy", () => {
         path.join(srcDir, "models.py"),
         [
           `"""`,
-          `User accounts must have unique email addresses.`,
-          `Each user can have at most 5 active sessions.`,
-          `Sessions expire after 30 minutes of inactivity.`,
+          "User accounts must have unique email addresses.",
+          "Each user can have at most 5 active sessions.",
+          "Sessions expire after 30 minutes of inactivity.",
           `"""`,
-          ``,
-          `class User:`,
-          `    pass`,
-          ``,
+          "",
+          "class User:",
+          "    pass",
+          "",
         ].join("\n"),
       );
 
@@ -674,14 +677,14 @@ describe("logging policy", () => {
         path.join(srcDir, "models.py"),
         [
           `"""`,
-          `User accounts must have unique email addresses.`,
-          `Each user can have at most 5 active sessions.`,
-          `Sessions expire after 30 minutes of inactivity.`,
+          "User accounts must have unique email addresses.",
+          "Each user can have at most 5 active sessions.",
+          "Sessions expire after 30 minutes of inactivity.",
           `"""`,
-          ``,
-          `class User:`,
-          `    pass`,
-          ``,
+          "",
+          "class User:",
+          "    pass",
+          "",
         ].join("\n"),
       );
 
@@ -786,7 +789,10 @@ describe("logging policy", () => {
 
       // Also trigger the transform hook which emits the reminder log
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       const consoleLogCalls = logCalls.filter(
@@ -832,8 +838,7 @@ describe("logging policy", () => {
         path.join(kbDir, "config.json"),
         JSON.stringify({}, null, 2),
       );
-      // Create default KB directories so targets resolve and posture becomes root_active
-      [
+      for (const dir of [
         "documentation/requirements",
         "documentation/scenarios",
         "documentation/tests",
@@ -841,8 +846,13 @@ describe("logging policy", () => {
         "documentation/flags",
         "documentation/events",
         "documentation/facts",
-      ].forEach((dir) => fs.mkdirSync(path.join(tmpDir, dir), { recursive: true }));
-      fs.writeFileSync(path.join(tmpDir, "documentation", "symbols.yaml"), "\n");
+      ]) {
+        fs.mkdirSync(path.join(tmpDir, dir), { recursive: true });
+      }
+      fs.writeFileSync(
+        path.join(tmpDir, "documentation", "symbols.yaml"),
+        "\n",
+      );
 
       const srcDir = path.join(tmpDir, "src");
       fs.mkdirSync(srcDir, { recursive: true });
@@ -875,7 +885,10 @@ describe("logging policy", () => {
 
       // Trigger the transform hook which conditionally emits the reminder log
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       await new Promise((r) => setTimeout(r, 20));
@@ -883,9 +896,7 @@ describe("logging policy", () => {
       // Check if any info log contains the completion reminder event
       const reminderLogs = appLogCalls.filter((p) => {
         const body = p.body as Record<string, unknown>;
-        return (
-          body.event === "smart_enforcement_completion_reminder"
-        );
+        return body.event === "smart_enforcement_completion_reminder";
       });
 
       // Reminder should be emitted via structured info log for risky code edits
@@ -929,10 +940,7 @@ describe("logging policy", () => {
         ),
       );
 
-      fs.writeFileSync(
-        path.join(tmpDir, "README.md"),
-        "# Test\n",
-      );
+      fs.writeFileSync(path.join(tmpDir, "README.md"), "# Test\n");
 
       const mockClient = {
         app: {
@@ -957,7 +965,10 @@ describe("logging policy", () => {
       });
 
       if (hooks["experimental.chat.system.transform"]) {
-        await hooks["experimental.chat.system.transform"]({}, { system: ["prompt"] });
+        await hooks["experimental.chat.system.transform"](
+          {},
+          { system: ["prompt"] },
+        );
       }
 
       await new Promise((r) => setTimeout(r, 20));
@@ -971,6 +982,590 @@ describe("logging policy", () => {
         reminderLogs.length,
         0,
         "Should NOT emit completion reminder log for safe_docs_only",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+  });
+  // implements REQ-opencode-kibi-plugin-v1
+  describe("failure-routing contract: advisory vs operational", () => {
+    test("errorStructuredOnly with client: does NOT call console.error", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.errorStructuredOnly("scheduler.check.failed", {
+        event: "scheduler_check_failed",
+        exitCode: 1,
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Advisory: MUST NOT call console.error when client is bound
+      assert.equal(
+        errorCalls.length,
+        0,
+        "errorStructuredOnly must not call console.error when client is bound",
+      );
+
+      // Must route through client.app.log
+      assert.equal(appLogCalls.length, 1);
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.level, "error");
+      assert.equal(body.message, "scheduler.check.failed");
+      assert.equal(body.event, "scheduler_check_failed");
+    });
+
+    test("errorStructuredOnly without client: is completely silent (no console.error)", () => {
+      logger.resetClient();
+      logger.errorStructuredOnly("advisory-no-client");
+
+      // Advisory: MUST NOT call console.error even without client
+      assert.equal(
+        errorCalls.length,
+        0,
+        "errorStructuredOnly must not call console.error without client",
+      );
+    });
+
+    test("error (operational) with client: calls both console.error and client.app.log", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.error("bootstrap-needed", { event: "workspace_bootstrap_needed" });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      // Operational: MUST call console.error
+      assert.equal(
+        errorCalls.length,
+        1,
+        "operational error must call console.error",
+      );
+      assert.ok(errorCalls[0].includes("bootstrap-needed"));
+
+      // AND structured log
+      assert.equal(appLogCalls.length, 1);
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.level, "error");
+      assert.equal(body.event, "workspace_bootstrap_needed");
+    });
+
+    test("sync.failed routes as canonical operational error with structured metadata", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      logger.error('sync.failed {"exitCode":1}', {
+        event: "sync.failed",
+        exitCode: 1,
+      });
+
+      await new Promise((r) => setTimeout(r, 10));
+
+      assert.equal(errorCalls.length, 1);
+      assert.ok(errorCalls[0].includes("sync.failed"));
+      assert.equal(appLogCalls.length, 1);
+      const body = appLogCalls[0].body as Record<string, unknown>;
+      assert.equal(body.level, "error");
+      assert.equal(body.event, "sync.failed");
+      assert.equal(body.exitCode, 1);
+    });
+  });
+
+  // Task 1 TDD: Advisory check failure console.error noise regression
+  describe("advisory check failure console.error noise", () => {
+    test("scheduler check.failed for symbol-traceability produces zero console.error output", async () => {
+      // Fake clock for deterministic console.error capture
+      let nowMs = 0;
+      let nextId = 1;
+      const tasks = new Map<number, { at: number; fn: () => void }>();
+      const fakeNow = () => nowMs;
+      const fakeSetTimeout = (fn: () => void, ms: number) => {
+        const id = nextId++;
+        tasks.set(id, { at: nowMs + ms, fn });
+        return id as unknown as ReturnType<typeof setTimeout>;
+      };
+      const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
+        tasks.delete(handle as unknown as number);
+      };
+      const advance = (ms: number) => {
+        nowMs += ms;
+        while (true) {
+          const due = [...tasks.entries()]
+            .filter(([, task]) => task.at <= nowMs)
+            .sort((a, b) => a[1].at - b[1].at);
+          if (!due.length) break;
+          for (const [id, task] of due) {
+            tasks.delete(id);
+            task.fn();
+          }
+        }
+      };
+
+      // No client set — errorStructuredOnly is intentionally silent (no console.error fallback)
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
+      };
+      const { DEFAULTS } = require("../src/config");
+
+      const sched = createSyncScheduler({
+        worktree: process.cwd(),
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+        },
+        now: fakeNow,
+        setTimeoutFn: fakeSetTimeout,
+        clearTimeoutFn: fakeClearTimeout,
+        runSync: async () => ({ exitCode: 0 }),
+        runCheck: async () => ({ exitCode: 1 }),
+      });
+
+      sched.scheduleSync("smart-enforcement.traceability", "src/feature.ts", [
+        "symbol-traceability",
+      ]);
+      advance(100);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Advisory failures use errorStructuredOnly which is completely silent when no client is bound.
+      assert.equal(
+        errorCalls.length,
+        0,
+        "advisory check.failed for symbol-traceability must not call console.error",
+      );
+    });
+
+    test("scheduler check.failed for multi-rule payload produces zero console.error output", async () => {
+      let nowMs = 0;
+      let nextId = 1;
+      const tasks = new Map<number, { at: number; fn: () => void }>();
+      const fakeNow = () => nowMs;
+      const fakeSetTimeout = (fn: () => void, ms: number) => {
+        const id = nextId++;
+        tasks.set(id, { at: nowMs + ms, fn });
+        return id as unknown as ReturnType<typeof setTimeout>;
+      };
+      const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
+        tasks.delete(handle as unknown as number);
+      };
+      const advance = (ms: number) => {
+        nowMs += ms;
+        while (true) {
+          const due = [...tasks.entries()]
+            .filter(([, task]) => task.at <= nowMs)
+            .sort((a, b) => a[1].at - b[1].at);
+          if (!due.length) break;
+          for (const [id, task] of due) {
+            tasks.delete(id);
+            task.fn();
+          }
+        }
+      };
+
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
+      };
+      const { DEFAULTS } = require("../src/config");
+
+      const sched = createSyncScheduler({
+        worktree: process.cwd(),
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+        },
+        now: fakeNow,
+        setTimeoutFn: fakeSetTimeout,
+        clearTimeoutFn: fakeClearTimeout,
+        runSync: async () => ({ exitCode: 0 }),
+        runCheck: async () => ({ exitCode: 1 }),
+      });
+
+      sched.scheduleSync(
+        "smart-enforcement.kb-doc",
+        "documentation/facts/FACT-001.md",
+        ["required-fields", "no-dangling-refs", "strict-fact-shape"],
+      );
+      advance(100);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // BUG: Same issue for multi-rule advisory check failure
+      assert.equal(
+        errorCalls.length,
+        0,
+        "advisory check.failed for multi-rule payload must not call console.error",
+      );
+    });
+
+    test("operational sync.failed still produces console.error (control)", async () => {
+      let nowMs = 0;
+      let nextId = 1;
+      const tasks = new Map<number, { at: number; fn: () => void }>();
+      const fakeNow = () => nowMs;
+      const fakeSetTimeout = (fn: () => void, ms: number) => {
+        const id = nextId++;
+        tasks.set(id, { at: nowMs + ms, fn });
+        return id as unknown as ReturnType<typeof setTimeout>;
+      };
+      const fakeClearTimeout = (handle: ReturnType<typeof setTimeout>) => {
+        tasks.delete(handle as unknown as number);
+      };
+      const advance = (ms: number) => {
+        nowMs += ms;
+        while (true) {
+          const due = [...tasks.entries()]
+            .filter(([, task]) => task.at <= nowMs)
+            .sort((a, b) => a[1].at - b[1].at);
+          if (!due.length) break;
+          for (const [id, task] of due) {
+            tasks.delete(id);
+            task.fn();
+          }
+        }
+      };
+
+      const { createSyncScheduler } = require("../src/scheduler") as {
+        createSyncScheduler: CreateSyncScheduler;
+      };
+      const { DEFAULTS } = require("../src/config");
+
+      const sched = createSyncScheduler({
+        worktree: process.cwd(),
+        config: {
+          ...DEFAULTS,
+          sync: { ...DEFAULTS.sync, enabled: true, debounceMs: 100 },
+        },
+        now: fakeNow,
+        setTimeoutFn: fakeSetTimeout,
+        clearTimeoutFn: fakeClearTimeout,
+        runSync: async () => ({ exitCode: 1 }),
+      });
+
+      sched.onFileEdited("documentation/requirements/REQ-001.md");
+      advance(100);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      // Operational sync failure SHOULD still emit console.error
+      assert.ok(
+        errorCalls.length >= 1,
+        "operational sync.failed must still produce console.error",
+      );
+      assert.equal(
+        errorCalls.filter((entry) => entry.includes("sync.failed")).length,
+        1,
+      );
+    });
+  });
+  // implements REQ-opencode-file-context-guidance-v1
+  describe("file-operation reminder logging policy", () => {
+    test("file-operation reminder produces structured log on emission", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-log-emit-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      // Create code file
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(srcDir, "new-thing.ts"),
+        "export const y = 2;",
+      );
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      assert.ok(hooks.event, "event hook should exist");
+      await hooks.event({
+        event: {
+          type: "file.created",
+          properties: { file: "src/new-thing.ts" },
+        },
+      });
+
+      // Trigger transform hook with focus on the created file
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/new-thing.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      });
+
+      assert.ok(
+        reminderLogs.length >= 1,
+        "Should emit file-operation reminder structured log",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("file-operation reminder does NOT emit log when reminder text is absent", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-no-log-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(path.join(srcDir, "existing.ts"), "export const z = 3;");
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      // Fire file.edited event (edited lifecycle has no generic lifecycle reminder)
+      await hooks.event({
+        event: {
+          type: "file.edited",
+          properties: { file: "src/existing.ts" },
+        },
+      });
+
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/existing.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+
+      const reminderLogs = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      });
+
+      assert.equal(
+        reminderLogs.length,
+        0,
+        "Should NOT emit file-operation reminder log for edited file (no reminder text)",
+      );
+
+      try {
+        fs.rmSync(tmpDir, { recursive: true, force: true });
+      } catch {}
+      resetSessionTracker();
+    });
+
+    test("file-operation reminder is suppressed on repeat prompt", async () => {
+      const appLogCalls: Array<Record<string, unknown>> = [];
+      const plugin = require("../src/index").default;
+      const { resetSessionTracker } = require("../src/session-tracker");
+      const fs = require("node:fs");
+      const os = require("node:os");
+      const path = require("node:path");
+
+      const tmpDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-fileop-suppress-"),
+      );
+      const opencodeDir = path.join(tmpDir, ".opencode");
+      fs.mkdirSync(opencodeDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(opencodeDir, "kibi.json"),
+        JSON.stringify(
+          {
+            enabled: true,
+            prompt: { enabled: true, hookMode: "auto" },
+            sync: { enabled: false },
+            guidance: { smartEnforcement: { enabled: true } },
+          },
+          null,
+          2,
+        ),
+      );
+
+      const srcDir = path.join(tmpDir, "src");
+      fs.mkdirSync(srcDir, { recursive: true });
+      fs.writeFileSync(path.join(srcDir, "repeat.ts"), "export const w = 4;");
+
+      // Create .kb/config.json so posture detects root_active
+      const kbDir2 = path.join(tmpDir, ".kb");
+      fs.mkdirSync(kbDir2, { recursive: true });
+      fs.writeFileSync(
+        path.join(kbDir2, "config.json"),
+        JSON.stringify({ version: 1, maintenance: { enabled: false } }),
+      );
+
+      logger.setClient({
+        app: {
+          log: async (payload: Record<string, unknown>) => {
+            appLogCalls.push(payload);
+          },
+        },
+      });
+
+      const hooks = await plugin({
+        directory: tmpDir,
+        worktree: tmpDir,
+        client: {
+          app: {
+            log: async (payload: Record<string, unknown>) => {
+              appLogCalls.push(payload);
+            },
+          },
+        },
+      });
+
+      // Fire file.created event
+      await hooks.event({
+        event: {
+          type: "file.created",
+          properties: { file: "src/repeat.ts" },
+        },
+      });
+
+      // First transform: should emit log
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/repeat.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+      const firstCount = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      }).length;
+
+      assert.ok(firstCount >= 1, "First transform should emit reminder log");
+
+      // Second transform: should NOT emit log (suppressed)
+      if (hooks["experimental.chat.system.transform"]) {
+        await hooks["experimental.chat.system.transform"](
+          { focusFilePath: "src/repeat.ts" },
+          { system: ["prompt"] },
+        );
+      }
+
+      await new Promise((r) => setTimeout(r, 20));
+      const secondCount = appLogCalls.filter((p) => {
+        const body = p.body as Record<string, unknown>;
+        return body.event === "smart_enforcement_file_operation_reminder";
+      }).length;
+
+      assert.equal(
+        secondCount,
+        firstCount,
+        "Second transform should NOT emit additional reminder log (suppressed)",
       );
 
       try {

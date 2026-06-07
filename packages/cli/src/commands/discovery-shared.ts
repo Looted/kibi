@@ -1,5 +1,6 @@
 import path from "node:path";
 import Table from "cli-table3";
+import { getBranchOverride } from "../env.js";
 import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import { escapeAtom } from "../prolog/codec.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
@@ -9,15 +10,24 @@ export interface DiscoveryCommandOptions {
   format?: "json" | "table";
 }
 
+/** Dependencies that can be injected for testing. */
+export interface DiscoveryDeps {
+  createProlog: (opts: { timeout: number }) => PrologProcess;
+  resolveKbPl: typeof resolveKbPlPath;
+}
+
 // implements REQ-003
 export async function withAttachedBranchProlog<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
+  deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
+  const createProlog =
+    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
   let prolog: PrologProcess | null = null;
   let attached = false;
 
   try {
-    prolog = new PrologProcess({ timeout: 120000 });
+    prolog = createProlog({ timeout: 120000 });
     await prolog.start();
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
@@ -25,10 +35,9 @@ export async function withAttachedBranchProlog<T>(
 
     let branch: string;
     try {
-      branch =
-        process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+      branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
     } catch {
-      branch = process.env.KIBI_BRANCH || "main";
+      branch = getBranchOverride() || "main";
     }
 
     const kbPath = path.join(process.cwd(), ".kb/branches", branch);
@@ -51,10 +60,18 @@ export async function withAttachedBranchProlog<T>(
 // implements REQ-003
 export async function withPrologProcess<T>(
   callback: (prolog: PrologProcess) => Promise<T>,
+  deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
-  const prolog = new PrologProcess({ timeout: 120000 });
+  const createProlog =
+    deps?.createProlog ?? ((opts) => new PrologProcess(opts));
+  const prolog = createProlog({ timeout: 120000 });
   try {
     await prolog.start();
+    // NOTE: useOneShotMode is an internal optimization flag on PrologProcess that
+    // forces single-query mode (start → query → terminate per call) instead of the
+    // default interactive session. It is not exposed in the public PrologProcess
+    // type because callers should not set it directly — only internal discovery
+    // helpers use it for lightweight one-shot queries that don't need session state.
     (prolog as unknown as { useOneShotMode: boolean }).useOneShotMode = true;
     await prolog.query(
       "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
@@ -69,17 +86,21 @@ export async function withPrologProcess<T>(
 export async function resolveCurrentKbPath(): Promise<string> {
   let branch: string;
   try {
-    branch = process.env.KIBI_BRANCH || (await getCurrentBranch(process.cwd()));
+    branch = getBranchOverride() || (await getCurrentBranch(process.cwd()));
   } catch {
-    branch = process.env.KIBI_BRANCH || "main";
+    branch = getBranchOverride() || "main";
   }
 
   return path.join(process.cwd(), ".kb/branches", branch);
 }
 
 // implements REQ-003
-export function resolveCoreModulePath(fileName: string): string {
-  return path.join(path.dirname(resolveKbPlPath()), fileName);
+export function resolveCoreModulePath(
+  fileName: string,
+  deps?: Partial<DiscoveryDeps>,
+): string {
+  const resolve = deps?.resolveKbPl ?? resolveKbPlPath;
+  return path.join(path.dirname(resolve()), fileName);
 }
 
 // implements REQ-003
@@ -89,9 +110,10 @@ export async function runJsonModuleQuery<T>(
   goal: string,
   errorLabel: string,
   kbPath?: string,
+  deps?: Partial<DiscoveryDeps>,
 ): Promise<T> {
   const modulePath = escapeAtom(
-    resolveCoreModulePath(fileName).replace(/\\/g, "/"),
+    resolveCoreModulePath(fileName, deps).replace(/\\/g, "/"),
   );
   const wrappedGoal = kbPath
     ? `(use_module('${modulePath}'), kb_attach('${escapeAtom(kbPath)}'), ${goal}, kb_detach)`

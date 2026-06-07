@@ -24,14 +24,16 @@ import { DOC_RESOURCES, PROMPTS } from "../src/server/docs.js";
 /**
  * Regression tests for MCP runtime self-documentation.
  *
- * These tests lock the canonical entity-choice wording in the MCP server's
- * built-in prompts and resources.  They are written TDD-style and should
- * FAIL until `packages/mcp/src/server/docs.ts` is updated in task 7.
+ * These tests lock the canonical entity taxonomy and fact-lane wording in the
+ * MCP server's built-in prompts and resources. They are updated TDD-style so
+ * the runtime docs must keep the eight-entity framing and strict-fact
+ * contradiction guidance.
  *
  * Canonical terse modeling sentence (target form, exact wording may vary
  * slightly after editing, but the key terms must be present):
- *   "Modeling: flags gate runtime/config behavior; normative rules use facts;
- *    bug and workaround notes use observation/meta facts."
+ *   "Modeling: eight entity types; flags gate runtime/config behavior; only
+ *    strict subject/property_value facts participate in contradiction
+ *    inference; observation/meta facts hold bug and workaround notes."
  */
 describe("MCP runtime docs: canonical modeling wording", () => {
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -73,16 +75,35 @@ describe("MCP runtime docs: canonical modeling wording", () => {
       expect(prompt.text).toMatch(/\bobservation\b/);
       expect(prompt.text).toMatch(/\bmeta\b/);
     });
+    test("must state Kibi has eight entity types", () => {
+      const prompt = findPrompt("kibi_overview");
+      expect(prompt.text).toMatch(/\b(eight|8)\b.*entity types/i);
+    });
 
-    test("must not claim 'bug' is an entity type", () => {
+    test("must group entities into common authoring vs supporting/system", () => {
+      const prompt = findPrompt("kibi_overview");
+      expect(prompt.text).toMatch(/common authoring.*supporting.*system/is);
+    });
+
+    test("must state that only strict subject/property_value facts participate in contradiction inference", () => {
+      const prompt = findPrompt("kibi_overview");
+      expect(prompt.text).toMatch(
+        /strict domain facts.*(contradiction|inference)|only strict.*(subject|property_value).*(contradiction|inference)/i,
+      );
+    });
+
+    test("must state observation/meta facts are non-blocking notes", () => {
+      const prompt = findPrompt("kibi_overview");
+      expect(prompt.text).toMatch(
+        /observation.*meta.*non-?blocking|non-?blocking.*observation.*meta/i,
+      );
+    });
+
+    test("must not claim 'bug' or 'workaround' are entity types", () => {
       const prompt = findPrompt("kibi_overview");
       expect(prompt.text).not.toMatch(
         /type:\s*bug|entity type.*\bbug\b|\bbug\b.*entity type/i,
       );
-    });
-
-    test("must not claim 'workaround' is an entity type", () => {
-      const prompt = findPrompt("kibi_overview");
       expect(prompt.text).not.toMatch(
         /type:\s*workaround|entity type.*workaround/i,
       );
@@ -103,6 +124,13 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   });
 
   describe("kibi_workflow prompt", () => {
+    test("must require predicate suggestions before ontology prose fallback", () => {
+      const prompt = findPrompt("kibi_workflow");
+      expect(prompt.text).toContain("kb_suggest_predicates");
+      expect(prompt.text).toMatch(/review:ontology-gap/);
+      expect(prompt.text).toMatch(/requires_predicate/);
+    });
+
     test("must not claim 'bug' or 'workaround' are entity types", () => {
       const prompt = findPrompt("kibi_workflow");
       expect(prompt.text).not.toMatch(/type:\s*bug|type:\s*workaround/i);
@@ -113,6 +141,32 @@ describe("MCP runtime docs: canonical modeling wording", () => {
     test("must not claim 'bug' or 'workaround' are entity types", () => {
       const prompt = findPrompt("init-kibi");
       expect(prompt.text).not.toMatch(/type:\s*bug|type:\s*workaround/i);
+    });
+
+    test("must instruct agents to execute candidate applyPlan steps sequentially", () => {
+      const prompt = findPrompt("init-kibi");
+      expect(prompt.text).toContain("structuredContent.applyPlan");
+      expect(prompt.text).toMatch(/sequentially/i);
+    });
+
+    test("must require preview and explicit approval before bootstrap writes", () => {
+      const prompt = findPrompt("init-kibi");
+      expect(prompt.text).toContain("Preview and Approval");
+      expect(prompt.text).toMatch(/explicit user approval/i);
+      expect(prompt.text).not.toMatch(/optional human review/i);
+      expect(prompt.text).not.toMatch(/must not block writes/i);
+    });
+  });
+
+  describe("removed brief-kibi prompt", () => {
+    test("must not expose the removed briefing prompt or tool guidance", () => {
+      const promptNames = PROMPTS.map((p) => p.name);
+      const promptText = PROMPTS.map((p) => p.text).join("\n");
+
+      expect(promptNames).not.toContain("brief-kibi");
+      expect(promptText).not.toMatch(/kb_briefing_generate/);
+      expect(promptText).not.toMatch(/briefingState/);
+      expect(promptText).not.toMatch(/no_briefing/);
     });
   });
 
@@ -150,6 +204,7 @@ describe("MCP runtime docs: canonical modeling wording", () => {
   describe("PROMPTS array", () => {
     test("must contain kibi_overview, kibi_workflow, kibi_constraints, and init-kibi", () => {
       const promptNames = PROMPTS.map((p) => p.name);
+      expect(promptNames).not.toContain("brief-kibi");
       expect(promptNames).toContain("kibi_overview");
       expect(promptNames).toContain("kibi_workflow");
       expect(promptNames).toContain("kibi_constraints");

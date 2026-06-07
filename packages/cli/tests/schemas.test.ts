@@ -3,13 +3,14 @@
 // @ts-ignore - bun:test provided by Bun runtime
 import { describe, expect, test } from "bun:test";
 import Ajv from "ajv";
+import type { AnySchema } from "ajv";
 import addFormats from "ajv-formats";
 import changesetSchema from "../src/schemas/changeset.schema.json";
 import entitySchema from "../src/schemas/entity.schema.json";
 import relationshipSchema from "../src/schemas/relationship.schema.json";
 
 // helper: try to register the JSON Schema 2020-12 meta-schema from ajv package
-async function addDraft2020Meta(ajvInstance: any) {
+async function addDraft2020Meta(ajvInstance: Ajv) {
   try {
     // @ts-ignore
     const mod = await import("ajv/dist/refs/json-schema-draft-2020-12.json");
@@ -35,7 +36,7 @@ describe("Entity Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema);
     const entity = {
       id: "test-1",
       title: "Test",
@@ -52,7 +53,7 @@ describe("Entity Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema);
     const base = {
       id: "test-entity",
       title: "Test",
@@ -72,7 +73,7 @@ describe("Entity Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as AnySchema);
     const entity = {
       id: "test-1",
       status: "open",
@@ -89,9 +90,21 @@ describe("Relationship Schema", () => {
   test("valid relationship", async () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
-    // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(relationshipSchema as any);
+    const validate = ajv.compile(relationshipSchema as AnySchema);
     const rel = { type: "depends_on", from: "a", to: "b" };
+    expect(validate(rel)).toBe(true);
+  });
+
+  test("valid ontology relationship", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    // @ts-ignore - relax typing for JSON schema import
+    const validate = ajv.compile(relationshipSchema as unknown);
+    const rel = {
+      type: "requires_predicate",
+      from: "REQ-POST-DELETE",
+      to: "FACT-CAN-USER-DELETE-POST",
+    };
     expect(validate(rel)).toBe(true);
   });
 
@@ -99,7 +112,7 @@ describe("Relationship Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(relationshipSchema as any);
+    const validate = ajv.compile(relationshipSchema as unknown);
     const rel = { type: "depends_on", from: "a" };
     expect(validate(rel)).toBe(false);
   });
@@ -111,11 +124,11 @@ describe("Changeset Schema", () => {
     addFormats(ajv);
     // register dependent schemas so $ref can be resolved
     // @ts-ignore
-    ajv.addSchema(entitySchema as any, "entity.schema.json");
+    ajv.addSchema(entitySchema as unknown, "entity.schema.json");
     // @ts-ignore
-    ajv.addSchema(relationshipSchema as any, "relationship.schema.json");
+    ajv.addSchema(relationshipSchema as unknown, "relationship.schema.json");
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(changesetSchema as any);
+    const validate = ajv.compile(changesetSchema as unknown);
     const cs = {
       operations: [
         {
@@ -140,11 +153,11 @@ describe("Changeset Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore
-    ajv.addSchema(entitySchema as any, "entity.schema.json");
+    ajv.addSchema(entitySchema as unknown, "entity.schema.json");
     // @ts-ignore
-    ajv.addSchema(relationshipSchema as any, "relationship.schema.json");
+    ajv.addSchema(relationshipSchema as unknown, "relationship.schema.json");
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(changesetSchema as any);
+    const validate = ajv.compile(changesetSchema as unknown);
     const cs = {
       operations: [
         {
@@ -170,11 +183,11 @@ describe("Changeset Schema", () => {
     await addDraft2020Meta(ajv);
     // register dependent schemas so $ref can be resolved
     // @ts-ignore
-    ajv.addSchema(entitySchema as any, "entity.schema.json");
+    ajv.addSchema(entitySchema as unknown, "entity.schema.json");
     // @ts-ignore
-    ajv.addSchema(relationshipSchema as any, "relationship.schema.json");
+    ajv.addSchema(relationshipSchema as unknown, "relationship.schema.json");
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(changesetSchema as any);
+    const validate = ajv.compile(changesetSchema as unknown);
     const cs = { operations: [{ operation: "delete" }] };
     expect(validate(cs)).toBe(false);
   });
@@ -185,7 +198,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as AnySchema);
 
     const legacyFact = {
       id: "FACT-LEGACY-001",
@@ -205,7 +218,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as AnySchema);
 
     const subjectFact = {
       id: "FACT-USER-SESSION",
@@ -227,7 +240,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as AnySchema);
 
     const propertyFact = {
       id: "FACT-SESSION-TIMEOUT-30",
@@ -256,11 +269,107 @@ describe("Typed Fact Schema", () => {
     expect(isValid).toBe(true);
   });
 
+  test("accepts predicate_schema fact for project-local ontology contracts", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+
+    const predicateSchemaFact = {
+      id: "FACT-SCHEMA-CAN",
+      title: "Predicate schema: auth.can/3",
+      status: "active",
+      created_at: "2026-05-30T00:00:00Z",
+      updated_at: "2026-05-30T00:00:00Z",
+      source: "docs/ontology/auth.md",
+      type: "fact",
+      fact_kind: "predicate_schema",
+      predicate_name: "can",
+      predicate_namespace: "auth",
+      predicate_arity: 3,
+      argument_names: ["actor", "action", "resource"],
+      argument_types: ["role", "action", "resource"],
+      aliases: ["may", "is allowed to"],
+      examples: ["auth.can(user, delete, post)"],
+    };
+
+    expect(validate(predicateSchemaFact)).toBe(true);
+  });
+
+  test("accepts predicate fact for a ground ontology claim", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+
+    const predicateFact = {
+      id: "FACT-CAN-USER-DELETE-POST",
+      title: "User can delete post",
+      status: "active",
+      created_at: "2026-05-30T00:00:00Z",
+      updated_at: "2026-05-30T00:00:00Z",
+      source: "docs/requirements/posts.md",
+      type: "fact",
+      fact_kind: "predicate",
+      predicate_name: "can",
+      predicate_namespace: "auth",
+      predicate_args: ["user", "delete", "post"],
+      argument_types: ["role", "action", "resource"],
+      polarity: "assert",
+      canonical_key: "auth.can.role:user.action:delete.resource:post.assert",
+    };
+
+    expect(validate(predicateFact)).toBe(true);
+  });
+
+  test("rejects predicate fact missing required ontology fields", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+
+    const predicateFact = {
+      id: "FACT-CAN-MALFORMED",
+      title: "Malformed predicate fact",
+      status: "active",
+      created_at: "2026-05-30T00:00:00Z",
+      updated_at: "2026-05-30T00:00:00Z",
+      source: "docs/requirements/posts.md",
+      type: "fact",
+      fact_kind: "predicate",
+      predicate_name: "can",
+    };
+
+    expect(validate(predicateFact)).toBe(false);
+  });
+
+  test("rejects property_value fact with predicate polarity", async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const validate = ajv.compile(entitySchema as AnySchema);
+
+    const propertyFact = {
+      id: "FACT-STRICT-ASSERT",
+      title: "Invalid strict property polarity",
+      status: "active",
+      created_at: "2026-05-30T00:00:00Z",
+      updated_at: "2026-05-30T00:00:00Z",
+      source: "facts/FACT-STRICT-ASSERT.md",
+      type: "fact",
+      fact_kind: "property_value",
+      subject_key: "user.session",
+      property_key: "timeout_minutes",
+      operator: "eq",
+      value_type: "int",
+      value_int: 30,
+      polarity: "assert",
+    };
+
+    expect(validate(propertyFact)).toBe(false);
+  });
+
   test("accepts property_value fact with value_string", async () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const propertyFact = {
       id: "FACT-USER-TYPE-ADMIN",
@@ -289,7 +398,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const propertyFact = {
       id: "FACT-RATE-LIMIT-1-5",
@@ -319,7 +428,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const propertyFact = {
       id: "FACT-FEATURE-FLAG-ON",
@@ -348,7 +457,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const observationFact = {
       id: "FACT-OBS-SESSION-001",
@@ -376,7 +485,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const metaFact = {
       id: "FACT-META-001",
@@ -398,7 +507,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const reqWithFactKind = {
       id: "REQ-001",
@@ -419,7 +528,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const reqWithValueInt = {
       id: "REQ-002",
@@ -440,7 +549,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const factWithInvalidKind = {
       id: "FACT-INVALID",
@@ -461,7 +570,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const factWithInvalidOperator = {
       id: "FACT-INVALID",
@@ -485,7 +594,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const factWithInvalidValueType = {
       id: "FACT-INVALID",
@@ -509,7 +618,7 @@ describe("Typed Fact Schema", () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);
     // @ts-ignore - relax typing for JSON schema import
-    const validate = ajv.compile(entitySchema as any);
+    const validate = ajv.compile(entitySchema as unknown);
 
     const factWithInvalidPolarity = {
       id: "FACT-INVALID",

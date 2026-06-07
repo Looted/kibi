@@ -2,13 +2,14 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { isCliTraceOrDebugEnabled } from "../env.js";
 import type {
   ExtractedEntity,
   ExtractedRelationship,
   ExtractionResult,
 } from "../extractors/markdown.js";
 import { PrologProcess } from "../prolog.js";
-import { toPrologAtom } from "../prolog/codec.js";
+import { toPrologAtom, toPrologString } from "../prolog/codec.js";
 import type { ExtractedSymbol } from "./symbol-extract";
 
 export interface TempKbContext {
@@ -22,6 +23,36 @@ const prologByTempDir = new Map<string, PrologProcess>();
 const cleanupByTempDir = new Map<string, () => void>();
 const cleanedTempDirs = new Set<string>();
 
+/**
+ * Reset module state - used by tests to clear state between test runs.
+ * This is necessary because module-level Maps/Sets persist across tests.
+ */
+export function resetModuleState(): void {
+  // implements REQ-014
+  // Terminate all tracked prolog processes
+  for (const prolog of prologByTempDir.values()) {
+    void prolog.terminate().catch(() => {});
+  }
+  prologByTempDir.clear();
+  cleanupByTempDir.clear();
+  cleanedTempDirs.clear();
+}
+
+// Factory function for creating PrologProcess instances.
+// Default uses the imported PrologProcess. Tests can override via _setPrologFactory
+// to bypass mock.module() pollution from other test files.
+let _createProlog = (opts: { timeout: number }) => new PrologProcess(opts);
+
+/**
+ * Override the PrologProcess factory — used by tests to inject the real constructor
+ * when mock.module() has replaced the module-level binding.
+ */
+export function _setPrologFactory(
+  // implements REQ-014
+  factory: (opts: { timeout: number }) => PrologProcess,
+): void {
+  _createProlog = factory;
+}
 const FACT_ATOM_FIELDS = new Set([
   "fact_kind",
   "operator",
@@ -42,7 +73,7 @@ const FACT_NUMBER_FIELDS = new Set(["value_int", "value_number"]);
 const FACT_BOOLEAN_FIELDS = new Set(["value_bool", "closed_world"]);
 
 function isTraceEnabled(): boolean {
-  return Boolean(process.env.KIBI_TRACE || process.env.KIBI_DEBUG);
+  return isCliTraceOrDebugEnabled();
 }
 
 function trace(message: string): void {
@@ -56,37 +87,31 @@ function escapePrologAtom(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
-function toPrologString(value: string): string {
-  const escaped = value
-    .replace(/\\/g, "\\\\")
-    .replace(/"/g, '\\"')
-    .replace(/\n/g, "\\n")
-    .replace(/\r/g, "\\r")
-    .replace(/\t/g, "\\t");
-
-  return `"${escaped}"`;
+function getEntityField(entity: ExtractedEntity, field: string): unknown {
+  // ExtractedEntity declares all fact fields as optional properties, so indexing
+  // via keyof is safe. The cast is confined to this single helper.
+  return (entity as unknown as Record<string, unknown>)[field];
 }
 
 function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   const fields: string[] = [];
-  const entityRecord = entity as unknown as Record<string, unknown>;
 
   for (const field of FACT_STRING_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologString(String(value))}`);
     }
   }
 
   for (const field of FACT_ATOM_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null) {
       fields.push(`${field}=${toPrologAtom(String(value))}`);
     }
   }
 
   for (const field of FACT_NUMBER_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "number") {
       if (field === "value_int" && !Number.isInteger(value)) {
         continue;
@@ -96,7 +121,7 @@ function serializeTypedFactFields(entity: ExtractedEntity): string[] {
   }
 
   for (const field of FACT_BOOLEAN_FIELDS) {
-    const value = entityRecord[field];
+    const value = getEntityField(entity, field);
     if (value !== undefined && value !== null && typeof value === "boolean") {
       fields.push(`${field}=${value}`);
     }
@@ -128,13 +153,13 @@ function buildEntityAssertionGoal(entity: ExtractedEntity): string {
     props.push(...serializeTypedFactFields(entity));
   }
 
-  return `kb_assert_entity(${entity.type}, [${props.join(", ")}])`;
+  return `kb_assert_entity_no_audit(${entity.type}, [${props.join(", ")}])`;
 }
 
 function buildRelationshipAssertionGoal(
   relationship: ExtractedRelationship,
 ): string {
-  return `kb_assert_relationship(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)}, [])`;
+  return `kb_assert_relationship_no_audit(${toPrologAtom(relationship.type)}, ${toPrologAtom(relationship.from)}, ${toPrologAtom(relationship.to)}, [])`;
 }
 
 function createCleanupHandler(tempDir: string): () => void {
@@ -193,15 +218,6 @@ export async function projectStagedEntities(
   results: ExtractionResult[],
 ): Promise<void> {
   for (const { entity } of results) {
-    const retractResult = await prolog.query(
-      `kb_retract_entity(${toPrologAtom(entity.id)})`,
-    );
-    if (!retractResult.success) {
-      throw new Error(
-        `Failed to retract staged entity ${entity.id}: ${retractResult.error || "unknown error"}`,
-      );
-    }
-
     const assertEntityResult = await prolog.query(
       buildEntityAssertionGoal(entity),
     );
@@ -227,13 +243,15 @@ export async function projectStagedEntities(
 }
 
 export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
+  // implements REQ-014
   if (!existsSync(baseKbPath)) {
     throw new Error(`Base KB path does not exist: ${baseKbPath}`);
   }
 
+  // Use crypto.randomUUID() for uniqueness across concurrent calls
   const tempDir = path.join(
     tmpdir(),
-    `kibi-precommit-${process.pid}-${Date.now()}`,
+    `kibi-precommit-${process.pid}-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
   );
   const kbPath = path.join(tempDir, "kb");
   const overlayPath = path.join(tempDir, "changed_symbols.pl");
@@ -246,7 +264,7 @@ export async function createTempKb(baseKbPath: string): Promise<TempKbContext> {
 
   await writeFile(overlayPath, "", "utf8");
 
-  const prolog = new PrologProcess({ timeout: 120000 });
+  const prolog = _createProlog({ timeout: 120000 });
   await prolog.start();
   prologByTempDir.set(tempDir, prolog);
 
