@@ -1,0 +1,69 @@
+# Kibi MCP Error Reference
+
+Use this reference when an MCP mutation fails. Fix the payload instead of falling back to prose-only `links` or `text_ref`.
+
+## `must NOT have additional properties`
+
+**Likely cause:** The payload used fields not accepted by `kb_upsert.properties`, often camelCase semantic claim names.
+
+**Common fixes:**
+
+| Invalid | Valid |
+| --- | --- |
+| `subjectKey` | `subject_key` |
+| `propertyKey` | `property_key` |
+| `predicateName` | `predicate_name` |
+| `predicateArgs` | `predicate_args` |
+| `canonicalKey` | `canonical_key` |
+| `closedWorld` | `closed_world` |
+| `value: true` | `value_type: "bool"` and `value_bool: true` |
+
+If starting from prose, call `kb_model_requirement` and apply its sequential `applyPlan` instead of guessing field names.
+
+## Invalid `status`, `fact_kind`, `operator`, or `value_type`
+
+Use the enum values shown in the MCP `inputSchema`. For property facts, common values are `fact_kind: "property_value"`, `operator: "eq"`, and `value_type: "bool" | "int" | "number" | "string"`.
+
+## Incomplete `property_value` fact
+
+`fact_kind: "property_value"` requires:
+
+- `subject_key`
+- `property_key`
+- `operator`
+- `value_type`
+- exactly one of `value_string`, `value_int`, `value_number`, `value_bool`
+
+## Incomplete `predicate` fact
+
+`fact_kind: "predicate"` requires:
+
+- `predicate_name`
+- non-empty `predicate_args`
+- `canonical_key`
+
+Call `kb_suggest_predicates` before hand-writing ontology predicates.
+
+## Relationship source mismatch
+
+Same-call relationship rows must start from the entity being upserted. To link `REQ-001 -> TEST-001`, create `TEST-001` first, then upsert `REQ-001` with `verified_by`.
+
+## Strict-lane mismatch
+
+- `constrains` targets `fact_kind: subject`.
+- `requires_property` targets `fact_kind: property_value`.
+- `requires_predicate` targets `fact_kind: predicate`.
+
+Legacy prose facts may remain readable during migration, but they do not provide the same strict contradiction semantics.
+
+## Contradiction detected
+
+Create an append-only replacement requirement and add `supersedes`, or deprecate the conflicting requirement before writing the new one.
+
+## Low-confidence `kb_model_requirement` downgrade
+
+When confidence is below `0.70`, Kibi emits a non-blocking `fact_kind: observation`. If the prose is normative, retry with explicit `subjectKey`, `propertyKey`, `operator`, and `value` so the tool can produce strict facts.
+
+## `kb_suggest_predicates` ontology gap
+
+If no candidate meets `minScore`, Kibi emits a `review:ontology-gap` observation. Keep it as review evidence, or add a project-local `fact_kind: predicate_schema` when the language is recurring domain ontology.

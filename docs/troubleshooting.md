@@ -18,6 +18,28 @@ Since kibi is in alpha, automatic migrations are not yet implemented. If you enc
 
 This rebuilds the entire KB from your documentation. No data is preserved from the old KB - it is regenerated from your Markdown files and YAML manifests.
 
+## Stale or Dirty Symbol Coordinates
+
+If `kibi check --staged` or the pre-commit hook fails with errors about unstaged symbol changes:
+
+**Symptom:**
+- Commit blocked due to modified code symbols not being reflected in the manifest.
+- Error message indicates `documentation/symbol-coordinates.yaml` is out of sync.
+
+**Resolution:**
+1. **Refresh the coordinates:**
+   ```bash
+   kibi sync --refresh-symbol-coordinates
+   ```
+   This command rescans your source code and updates the line/character coordinates in `documentation/symbol-coordinates.yaml`.
+
+2. **Stage the changes:**
+   ```bash
+   git add documentation/symbol-coordinates.yaml
+   ```
+
+3. **Retry the commit.**
+
 ## Dangling References
 
 If `kibi check` fails with `no-dangling-refs` violations:
@@ -93,6 +115,7 @@ If git operations don't trigger kibi hooks:
    ```bash
    kibi init
    ```
+   Re-running `kibi init` also refreshes `.gitignore` entries for `.kb/`.
 
 ### Hook Conflicts
 
@@ -241,7 +264,73 @@ npm view kibi-opencode versions
 
 If you're on an old version, upgrade when a patch is available. Do not repeatedly clear the cache on the same broken version.
 
+## MCP startup resolves stale kibi-mcp@0.13.x pnpm path
+
+### Symptom
+
+MCP startup fails with a path resolution error pointing to an old `kibi-mcp` version, such as `node_modules/.pnpm/kibi-mcp@0.13.0`. This happens after upgrading `kibi-mcp` in a project that previously used pnpm or `npx -y`.
+
+### Root Cause
+
+The MCP configuration or a package manager cache still references a stale path. `npx -y`, `pnpm dlx`/`pnx`, `yarn dlx`, and `bunx` without `--no-install` can mix local dependency resolution, registry fetches, and package-manager cache behavior in ways that produce ambiguous or outdated paths. Project-local execution avoids this by resolving only what is already installed in the project (`npx --no-install` / `npm exec --no -- ...` for npm, `pnpm exec` for pnpm, `yarn exec` for Yarn, or `bunx --no-install` for Bun).
+
+These commands only control package resolution. They do not make parallel agents share or isolate an MCP process; the MCP client starts and owns the stdio server subprocess according to its own lifecycle.
+
+### Evidence-First Recovery
+
+Do NOT delete all caches or `node_modules` as a first step. Capture evidence, inspect, and clean only what the evidence points to.
+
+1. **Capture resolution evidence:**
+   ```bash
+   npx kibi-mcp --print-resolution
+   ```
+   This prints the resolved binary path and version. If it points to `node_modules/.pnpm/kibi-mcp@0.13.0` (or any version older than what your `package.json` declares), the cache or config is stale.
+
+2. **Inspect project lockfile and MCP config:**
+   ```bash
+   grep "kibi-mcp" pnpm-lock.yaml
+   cat .vscode/mcp.json   # or opencode.json
+   ```
+   Confirm the lockfile lists the expected version and that the MCP config uses the local runner for your package manager, not an auto-install/hot-load command such as `npx -y` or `pnpm dlx`.
+
+   For workspaces that intentionally run Kibi from a local checkout, also confirm the MCP config points at the checkout wrapper or binary directly. A command such as `pnpm exec kibi-mcp` resolves the application repository's installed `node_modules` package, not an external Kibi checkout.
+
+3. **Targeted cleanup (only if evidence confirms a stale cache):**
+   ```bash
+   rm -rf "$HOME/.cache/opencode/node_modules/kibi-opencode" "$HOME/.cache/opencode/bun.lock"
+   ```
+   Then restart your editor or OpenCode session.
+
+### Verification
+
+After cleanup, rerun the evidence capture:
+```bash
+npx kibi-mcp --print-resolution
+```
+The path should now match the version in `pnpm-lock.yaml` or `package-lock.json`.
+
+### Historical Context
+
+The forbidden path pattern `node_modules/.pnpm/kibi-mcp@0.13.0` was a known failure mode during the 0.13.x to 0.14.x transition. It appeared when pnpm's store or an MCP config cached an old `.pnpm` path while the project had already moved to a newer version. Always verify with `--print-resolution` before assuming a cache issue.
+
 ---
+
+### Interpreting Sync Failures in OpenCode
+
+When a background sync fails in OpenCode, the plugin logs an operational error with diagnostic metadata. To debug these failures, check the structured logs for the following fields:
+
+- `syncStdout`: The captured standard output from the kibi sync command.
+- `syncStderr`: The captured standard error from the kibi sync command. Often contains SWI-Prolog errors or file permission issues.
+- `syncErrorMessage`: The underlying system error message if the command failed to execute.
+
+**Idle Sync Suppression**: To prevent terminal noise, the plugin suppresses background sync attempts triggered by session idle after a `scheduler_sync_failed` event is latched for the session. Syncs will still be attempted when you edit files or execute tools, which provides opportunities for recovery once the underlying issue is fixed.
+
+To verify behavior or capture detailed logs, start OpenCode with stderr redirection:
+```bash
+opencode 2> opencode-debug.log
+```
+
+Look for entries prefixed with `[kibi-opencode]` and check for the `scheduler_sync_failed` cause in the runtime overlay metadata.
 
 ## Recovery Steps Summary
 For installation issues, see [install guide](install.md).

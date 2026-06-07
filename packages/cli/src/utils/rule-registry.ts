@@ -62,14 +62,14 @@ export const RULES: readonly RuleDefinition[] = [
   {
     name: "symbol-coverage",
     description:
-      "Symbols should be traceable to requirements via transitive implements",
+      "Production symbols need qualifying coverage via covered_by plus a canonical requirement/scenario test path",
     defaultEnabled: true,
     category: "coverage",
   },
   {
     name: "symbol-traceability",
     description:
-      "Source symbols must have direct implements links to requirements; optionally constrained_by ADR",
+      "Production symbols must directly implement requirements for ownership; covered_by is coverage only, executable_for is test identity only, and ADR constraints are optional unless configured",
     defaultEnabled: true,
     category: "traceability",
   },
@@ -109,6 +109,20 @@ export const RULES: readonly RuleDefinition[] = [
     name: "strict-fact-shape",
     description:
       "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
+    defaultEnabled: false,
+    category: "integrity",
+  },
+  {
+    name: "strict-req-fact-pairing",
+    description:
+      "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
+    defaultEnabled: false,
+    category: "integrity",
+  },
+  {
+    name: "strict-readiness",
+    description:
+      "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
     defaultEnabled: false,
     category: "integrity",
   },

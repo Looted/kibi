@@ -19,7 +19,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import Ajv from "ajv";
-import matter from "gray-matter";
+import { load as yamlLoad } from "js-yaml";
 import entitySchema from "../schemas/entity.schema.json" with { type: "json" };
 
 // Typed fact field constants for extraction
@@ -46,6 +46,11 @@ const FACT_ONLY_FIELDS = [
   ...FACT_BOOLEAN_FIELDS,
 ] as const;
 
+const TEST_ENUM_FIELDS = [
+  "verification_scope",
+  "verification_perspective",
+] as const;
+
 const ajv = new Ajv({ strict: false, allErrors: true });
 const validateExtractedEntity = ajv.compile(entitySchema);
 
@@ -62,6 +67,9 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
+  verification_scope?: "unit" | "integration" | "end_to_end";
+  verification_perspective?: "internal" | "consumer";
   // Typed fact fields - only present when type === 'fact'
   fact_kind?: "subject" | "property_value" | "observation" | "meta";
   subject_key?: string;
@@ -90,7 +98,22 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
+  sourceFile?: string;
 }
+
+type FrontmatterData = Record<string, unknown> &
+  Partial<
+    Omit<
+      ExtractedEntity,
+      "created_at" | "updated_at" | "valid_from" | "valid_to"
+    >
+  > & {
+    created_at?: string | Date;
+    updated_at?: string | Date;
+    valid_from?: string | Date;
+    valid_to?: string | Date;
+    links?: Array<string | { type: string; target: string }>;
+  };
 
 const DEFAULT_STATUS_BY_TYPE: Record<string, string> = {
   req: "open",
@@ -117,11 +140,14 @@ export class FrontmatterError extends Error {
       originalError?: string;
     },
   ) {
+    // implements REQ-003
     super(message);
     this.name = "FrontmatterError";
     this.classification = options?.classification || "Generic Error";
     this.hint = options?.hint || "Check the file for syntax errors.";
-    this.originalError = options?.originalError;
+    if (options?.originalError !== undefined) {
+      this.originalError = options.originalError;
+    }
   }
 
   override toString() {
@@ -136,7 +162,68 @@ export class FrontmatterError extends Error {
   }
 }
 
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isVerificationScope(
+  value: unknown,
+): value is ExtractedEntity["verification_scope"] {
+  return value === "unit" || value === "integration" || value === "end_to_end";
+}
+
+function isVerificationPerspective(
+  value: unknown,
+): value is ExtractedEntity["verification_perspective"] {
+  return value === "internal" || value === "consumer";
+}
+
+function parseFrontmatter(content: string): {
+  data: FrontmatterData;
+  content: string;
+} {
+  const trimmedStart = content.trimStart();
+
+  if (!trimmedStart.startsWith("---")) {
+    return { data: {}, content };
+  }
+
+  const parts = trimmedStart.split("---");
+  if (parts.length < 3) {
+    return { data: {}, content };
+  }
+
+  const frontmatter = parts[1];
+  if (frontmatter === undefined) {
+    return { data: {}, content };
+  }
+
+  const parsed = yamlLoad(frontmatter);
+
+  return {
+    data: isObjectRecord(parsed) ? (parsed as FrontmatterData) : {},
+    content: parts.slice(2).join("---"),
+  };
+}
+
+function hasLikelyUnquotedColonInTitle(content: string): boolean {
+  if (!content.trim().startsWith("---")) {
+    return false;
+  }
+
+  const parts = content.split("---");
+  if (parts.length < 2) {
+    return false;
+  }
+
+  const frontmatter = parts[1];
+  return frontmatter
+    ? /^\s*title:\s*(?!["'])(?![>|])[^#\n]*:\s+\S.*$/m.test(frontmatter)
+    : false;
+}
+
 export function detectEmbeddedEntities(
+  // implements REQ-007, REQ-004
   data: Record<string, unknown>,
   entityType: string,
 ): string[] {
@@ -145,42 +232,46 @@ export function detectEmbeddedEntities(
   }
 
   const detected: string[] = [];
+  const hasEmbeddedValue = (value: unknown): boolean =>
+    value !== null &&
+    value !== undefined &&
+    (Array.isArray(value) ||
+      typeof value === "object" ||
+      typeof value === "string");
 
-  const scenarioFields = ["scenarios", "given", "when", "then", "steps"];
+  const scenarioFields = [
+    "scenario",
+    "scenarios",
+    "given",
+    "when",
+    "then",
+    "steps",
+  ];
   for (const field of scenarioFields) {
-    if (field in data) {
-      const value = data[field];
-      if (
-        value !== null &&
-        value !== undefined &&
-        (Array.isArray(value) ||
-          typeof value === "object" ||
-          typeof value === "string")
-      ) {
-        if (!detected.includes("scenario")) {
-          detected.push("scenario");
-        }
-        break;
+    if (hasEmbeddedValue(data[field])) {
+      if (!detected.includes("scenario")) {
+        detected.push("scenario");
       }
+      break;
     }
   }
 
-  const testFields = ["tests", "testCases", "assertions", "testSteps"];
+  const testFields = [
+    "test",
+    "tests",
+    "testCase",
+    "testCases",
+    "assertion",
+    "assertions",
+    "testStep",
+    "testSteps",
+  ];
   for (const field of testFields) {
-    if (field in data) {
-      const value = data[field];
-      if (
-        value !== null &&
-        value !== undefined &&
-        (Array.isArray(value) ||
-          typeof value === "object" ||
-          typeof value === "string")
-      ) {
-        if (!detected.includes("test")) {
-          detected.push("test");
-        }
-        break;
+    if (hasEmbeddedValue(data[field])) {
+      if (!detected.includes("test")) {
+        detected.push("test");
       }
+      break;
     }
   }
 
@@ -193,7 +284,7 @@ function extractFromMarkdownContent(
   filePath: string,
 ): ExtractionResult {
   try {
-    const { data } = matter(content);
+    const { data } = parseFrontmatter(content);
 
     if (content.trim().startsWith("---")) {
       const parts = content.split("---");
@@ -304,7 +395,60 @@ function extractFromMarkdownContent(
       }
     }
 
+    if (type !== "test") {
+      const invalidTestField = TEST_ENUM_FIELDS.find(
+        (field) => data[field] !== undefined,
+      );
+      if (invalidTestField) {
+        throw new FrontmatterError(
+          `Test-only fields are only allowed on type: test (found ${invalidTestField})`,
+          filePath,
+          {
+            classification: "Test Field on Non-Test Entity",
+            hint: "Remove test-only fields or change the entity type to test.",
+          },
+        );
+      }
+    }
+
+    if (type === "test") {
+      if (data.verification_scope !== undefined) {
+        if (!isVerificationScope(data.verification_scope)) {
+          throw new FrontmatterError(
+            "Invalid verification_scope; expected one of: unit, integration, end_to_end",
+            filePath,
+            {
+              classification: "Invalid Test Verification Scope",
+              hint: "Use one of: unit, integration, end_to_end.",
+            },
+          );
+        }
+        entity.verification_scope = data.verification_scope;
+      }
+
+      if (data.verification_perspective !== undefined) {
+        if (!isVerificationPerspective(data.verification_perspective)) {
+          throw new FrontmatterError(
+            "Invalid verification_perspective; expected one of: internal, consumer",
+            filePath,
+            {
+              classification: "Invalid Test Verification Perspective",
+              hint: "Use one of: internal, consumer.",
+            },
+          );
+        }
+        entity.verification_perspective = data.verification_perspective;
+      }
+    }
+
     // Add typed fact fields only for fact entities
+    //
+    // INTENTIONAL DYNAMIC CAST: The casts below assign parsed markdown frontmatter
+    // values to ExtractedEntity fields. TypeScript cannot verify that a runtime string
+    // from a const array (e.g., FACT_STRING_FIELDS) is a valid key of ExtractedEntity,
+    // even though all fields are declared as optional properties on the interface.
+    // Fields are validated against the JSON Schema (via validateExtractedEntity) below,
+    // so any invalid field will be caught at runtime before the entity is returned.
     if (type === "fact") {
       // String fields
       for (const field of FACT_STRING_FIELDS) {
@@ -363,8 +507,9 @@ function extractFromMarkdownContent(
       let hint = "Check the YAML syntax in your frontmatter.";
 
       if (
-        message.includes("incomplete explicit mapping pair") &&
-        message.includes(":")
+        (message.includes("incomplete explicit mapping pair") &&
+          message.includes(":")) ||
+        hasLikelyUnquotedColonInTitle(content)
       ) {
         classification = "Unquoted colon likely in title";
         hint =

@@ -10,6 +10,7 @@ import {
 } from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { LATEST_KB_SCHEMA_VERSION } from "../../src/utils/schema-version.js";
 
 describe("kibi init", () => {
   let tmpDir: string;
@@ -74,6 +75,7 @@ describe("kibi init", () => {
     expect(config.$schema).toBe(
       "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
     );
+    expect(config.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
     expect(config.paths).toBeDefined();
     expect(config.paths.requirements).toBe("documentation/requirements");
     expect(config.paths.scenarios).toBe("documentation/scenarios");
@@ -84,6 +86,38 @@ describe("kibi init", () => {
     expect(config.paths.facts).toBe("documentation/facts");
     expect(config.paths.symbols).toBe("documentation/symbols.yaml");
   });
+
+  test("creates documentation/symbols.yaml when it is missing", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const symbolsPath = path.join(tmpDir, "documentation", "symbols.yaml");
+    expect(existsSync(symbolsPath)).toBe(true);
+    const content = readFileSync(symbolsPath, "utf-8");
+    expect(content).toContain("# symbols.yaml");
+    expect(content).toContain("symbols: []");
+  });
+
+  test("adds only .kb to .gitignore", () => {
+    execSync("git init", { cwd: tmpDir });
+    execSync("git config user.email 'test@test.com'", { cwd: tmpDir });
+    execSync("git config user.name 'Test User'", { cwd: tmpDir });
+    execSync("git commit --allow-empty -m 'init'", { cwd: tmpDir });
+
+    execSync(`bun ${kibiBin} init`, {
+      cwd: tmpDir,
+      stdio: "inherit",
+    });
+
+    const gitignorePath = path.join(tmpDir, ".gitignore");
+    const content = readFileSync(gitignorePath, "utf-8");
+
+    expect(content).toContain(".kb/");
+    expect(content).not.toContain(".kb/briefs/");
+  }, 30000);
 
   test("creates config.json with all check rules explicitly set to true", () => {
     execSync("git init", { cwd: tmpDir });
@@ -106,6 +140,8 @@ describe("kibi init", () => {
     expect(config.checks.rules["deprecated-adr-no-successor"]).toBe(true);
     expect(config.checks.rules["domain-contradictions"]).toBe(true);
     expect(config.checks.rules["strict-fact-shape"]).toBe(false); // disabled by default
+    expect(config.checks.rules["strict-req-fact-pairing"]).toBe(false); // disabled by default
+    expect(config.checks.rules["strict-readiness"]).toBe(false); // disabled by default
     expect(config.checks.symbolTraceability).toBeDefined();
     expect(config.checks.symbolTraceability.requireAdr).toBe(false);
   });
@@ -188,6 +224,8 @@ describe("kibi init", () => {
 
     const content = readFileSync(preCommit, "utf8");
     expect(content).toContain("kibi check");
+    expect(content).toContain("documentation/symbols.yaml");
+    expect(content).toContain("kibi sync --refresh-symbol-coordinates");
   });
 
   test("exits with code 0 on success", () => {

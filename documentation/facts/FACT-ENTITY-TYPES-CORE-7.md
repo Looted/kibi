@@ -14,5 +14,5 @@ value_type: int
 value_int: 8
 ---
 
-The core schema exposes exactly eight entity types:
+The core schema exposes exactly eight entity types (grouped as common authoring vs. supporting/system) and supports two primary fact lanes (strict domain facts vs. observation/meta notes):
 req, scenario, test, adr, flag, event, symbol, and fact.

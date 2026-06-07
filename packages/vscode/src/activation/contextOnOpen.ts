@@ -5,10 +5,25 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as vscode from "vscode";
 
+let contextOnOpenExistsSync: typeof fs.existsSync = fs.existsSync;
+
+export function _setContextOnOpenFsDepsForTests(
+  // implements REQ-vscode-traceability
+  overrides: { existsSync?: typeof fs.existsSync },
+): void {
+  contextOnOpenExistsSync = overrides.existsSync ?? fs.existsSync;
+}
+
+export function _resetContextOnOpenFsDepsForTests(): void {
+  // implements REQ-vscode-traceability
+  contextOnOpenExistsSync = fs.existsSync;
+}
+
 /**
  * Registers a listener that shows KB entities linked to files when they are opened.
  */
 export function registerContextOnOpen(
+  // implements REQ-vscode-traceability
   context: vscode.ExtensionContext,
   output: vscode.OutputChannel,
   workspaceRoot: string,
@@ -27,7 +42,7 @@ export function registerContextOnOpen(
       }
 
       const kbConfigPath = path.join(workspaceRoot, ".kb");
-      const kbExists = fs.existsSync(kbConfigPath);
+      const kbExists = contextOnOpenExistsSync(kbConfigPath);
 
       if (!kbExists) {
         return;

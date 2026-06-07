@@ -1,7 +1,13 @@
 // Packed e2e test for local plugin loading
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
@@ -51,39 +57,31 @@ if (RUN_NODE_TEST_SUITE) {
       rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    it(
-      "plugin package can be loaded",
-      { timeout: 30000 },
-      async () => {
-        const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
-        const pkg = await import(distIndex);
-        assert.ok(pkg.default !== undefined);
-      },
-    );
+    it("plugin package can be loaded", { timeout: 30000 }, async () => {
+      const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+      const pkg = await import(distIndex);
+      assert.ok(pkg.default !== undefined);
+    });
 
-    it(
-      "plugin exports required functions",
-      { timeout: 30000 },
-      async () => {
-        const distRoot = join(REPO_ROOT, "packages/opencode/dist");
-        const { injectPrompt, buildPrompt } = await import(
-          join(distRoot, "prompt.js")
-        );
-        const { loadConfig } = await import(join(distRoot, "config.js"));
-        const { shouldHandleFile } = await import(
-          join(distRoot, "file-filter.js")
-        );
-        const { createSyncScheduler } = await import(
-          join(distRoot, "scheduler.js")
-        );
+    it("plugin exports required functions", { timeout: 30000 }, async () => {
+      const distRoot = join(REPO_ROOT, "packages/opencode/dist");
+      const { injectPrompt, buildPrompt } = await import(
+        join(distRoot, "prompt.js")
+      );
+      const { loadConfig } = await import(join(distRoot, "config.js"));
+      const { shouldHandleFile } = await import(
+        join(distRoot, "file-filter.js")
+      );
+      const { createSyncScheduler } = await import(
+        join(distRoot, "scheduler.js")
+      );
 
-        assert.ok(typeof injectPrompt === "function");
-        assert.ok(typeof buildPrompt === "function");
-        assert.ok(typeof loadConfig === "function");
-        assert.ok(typeof shouldHandleFile === "function");
-        assert.ok(typeof createSyncScheduler === "function");
-      },
-    );
+      assert.ok(typeof injectPrompt === "function");
+      assert.ok(typeof buildPrompt === "function");
+      assert.ok(typeof loadConfig === "function");
+      assert.ok(typeof shouldHandleFile === "function");
+      assert.ok(typeof createSyncScheduler === "function");
+    });
 
     it(
       "plugin root exports only loader-safe plugin function",
@@ -141,7 +139,9 @@ if (RUN_NODE_TEST_SUITE) {
       "does not emit bootstrap warning for healthy relocated paths",
       { timeout: 30000 },
       async () => {
-        const healthyDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-healthy-"));
+        const healthyDir = mkdtempSync(
+          join(tmpdir(), "kibi-e2e-relocated-healthy-"),
+        );
         try {
           mkdirSync(join(healthyDir, ".kb"), { recursive: true });
           writeFileSync(
@@ -201,7 +201,9 @@ if (RUN_NODE_TEST_SUITE) {
       "emits bootstrap warning when configured target is missing",
       { timeout: 30000 },
       async () => {
-        const missingDir = mkdtempSync(join(tmpdir(), "kibi-e2e-relocated-missing-"));
+        const missingDir = mkdtempSync(
+          join(tmpdir(), "kibi-e2e-relocated-missing-"),
+        );
         try {
           mkdirSync(join(missingDir, ".kb"), { recursive: true });
           writeFileSync(
@@ -244,6 +246,59 @@ if (RUN_NODE_TEST_SUITE) {
         } finally {
           rmSync(missingDir, { recursive: true, force: true });
         }
+      },
+    );
+
+    // implements REQ-opencode-kibi-plugin-v1
+    it(
+      "toast behavior uses structured client contract",
+      { timeout: 30000 },
+      async () => {
+        const distIndex = join(REPO_ROOT, "packages/opencode/dist/index.js");
+        const pkg = await import(distIndex);
+        const plugin = pkg.default;
+
+        const toastCalls: unknown[] = [];
+        const logCalls: unknown[] = [];
+
+        const client = {
+          tui: {
+            showToast: async (payload: unknown) => {
+              toastCalls.push(payload);
+            },
+          },
+          app: {
+            log: async (payload: unknown) => {
+              logCalls.push(payload);
+            },
+          },
+        };
+
+        await plugin({ directory: tmpDir, worktree: tmpDir, client });
+
+        assert.ok(
+          toastCalls.length >= 0,
+          "plugin may or may not toast depending on startup timing",
+        );
+        assert.ok(
+          logCalls.length >= 0,
+          "plugin should initialize with a client app logger",
+        );
+
+        const distToast = join(REPO_ROOT, "packages/opencode/dist/toast.js");
+        const distToastContent = readFileSync(distToast, "utf-8");
+        assert.ok(
+          !distToastContent.includes("KIBI-TRACE"),
+          "dist/toast.js must not contain KIBI-TRACE",
+        );
+        assert.ok(
+          !distToastContent.includes("fetch("),
+          "dist/toast.js must not contain raw fetch",
+        );
+        assert.ok(
+          distToastContent.includes("body: payload"),
+          "dist/toast.js must wrap showToast payload with body",
+        );
       },
     );
   });

@@ -20,6 +20,25 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 
+interface SyncCacheDeps {
+  createHash: typeof createHash;
+  existsSync: typeof existsSync;
+  mkdirSync: typeof mkdirSync;
+  readFileSync: typeof readFileSync;
+  writeFileSync: typeof writeFileSync;
+}
+
+function resolveDeps(overrides?: Partial<SyncCacheDeps>): SyncCacheDeps {
+  return {
+    createHash,
+    existsSync,
+    mkdirSync,
+    readFileSync,
+    writeFileSync,
+    ...overrides,
+  };
+}
+
 export type SyncCache = {
   version: number;
   hashes: Record<string, string>;
@@ -33,13 +52,23 @@ export function toCacheKey(filePath: string): string {
   return path.relative(process.cwd(), filePath).split(path.sep).join("/");
 }
 
-export function hashFile(filePath: string): string {
-  const content = readFileSync(filePath);
-  return createHash("sha256").update(content).digest("hex");
+export function hashFile(
+  // implements REQ-003
+  filePath: string,
+  deps?: Partial<SyncCacheDeps>,
+): string {
+  const resolved = resolveDeps(deps);
+  const content = resolved.readFileSync(filePath);
+  return resolved.createHash("sha256").update(content).digest("hex");
 }
 
-export function readSyncCache(cachePath: string): SyncCache {
-  if (!existsSync(cachePath)) {
+export function readSyncCache(
+  // implements REQ-003
+  cachePath: string,
+  deps?: Partial<SyncCacheDeps>,
+): SyncCache {
+  const resolved = resolveDeps(deps);
+  if (!resolved.existsSync(cachePath)) {
     return {
       version: SYNC_CACHE_VERSION,
       hashes: {},
@@ -49,7 +78,7 @@ export function readSyncCache(cachePath: string): SyncCache {
 
   try {
     const parsed = JSON.parse(
-      readFileSync(cachePath, "utf8"),
+      resolved.readFileSync(cachePath, "utf8"),
     ) as Partial<SyncCache>;
     if (parsed.version !== SYNC_CACHE_VERSION) {
       return {
@@ -73,13 +102,19 @@ export function readSyncCache(cachePath: string): SyncCache {
   }
 }
 
-export function writeSyncCache(cachePath: string, cache: SyncCache): void {
+export function writeSyncCache(
+  // implements REQ-003
+  cachePath: string,
+  cache: SyncCache,
+  deps?: Partial<SyncCacheDeps>,
+): void {
+  const resolved = resolveDeps(deps);
   const cacheDir = path.dirname(cachePath);
-  if (!existsSync(cacheDir)) {
-    mkdirSync(cacheDir, { recursive: true });
+  if (!resolved.existsSync(cacheDir)) {
+    resolved.mkdirSync(cacheDir, { recursive: true });
   }
 
-  writeFileSync(
+  resolved.writeFileSync(
     cachePath,
     `${JSON.stringify(cache, null, 2)}
 `,
@@ -87,12 +122,18 @@ export function writeSyncCache(cachePath: string, cache: SyncCache): void {
   );
 }
 
-export function copySyncCache(livePath: string, stagingPath: string): void {
+export function copySyncCache(
+  // implements REQ-003
+  livePath: string,
+  stagingPath: string,
+  deps?: Partial<SyncCacheDeps>,
+): void {
+  const resolved = resolveDeps(deps);
   const liveCachePath = path.join(livePath, "sync-cache.json");
   const stagingCachePath = path.join(stagingPath, "sync-cache.json");
 
-  if (existsSync(liveCachePath)) {
-    const cacheContent = readFileSync(liveCachePath, "utf8");
-    writeFileSync(stagingCachePath, cacheContent, "utf8");
+  if (resolved.existsSync(liveCachePath)) {
+    const cacheContent = resolved.readFileSync(liveCachePath, "utf8");
+    resolved.writeFileSync(stagingCachePath, cacheContent, "utf8");
   }
 }

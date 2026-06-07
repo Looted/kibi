@@ -12,7 +12,7 @@ tags:
   - temporal
 links:
   - type: validates
-    target: REQ-016
+    target: SCEN-011
 ---
 
 ## Test Cases

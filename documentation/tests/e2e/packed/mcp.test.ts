@@ -34,6 +34,7 @@ interface JsonRpcResponse {
     protocolVersion?: string;
     serverInfo?: { name: string };
     tools?: Array<{ name: string }>;
+    prompts?: Array<{ name: string; description?: string }>;
     content?: Array<{ type: string; text: string }>;
   };
   error?: {
@@ -236,13 +237,25 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_query",
                       "kb_search",
                       "kb_status",
+                      "kb_skills_list",
+                      "kb_skills_load",
+                      "kb_skills_read",
                       "kb_find_gaps",
                       "kb_coverage",
                       "kb_graph",
+                      "kb_sparql_remote",
                       "kb_upsert",
+                      "kb_validate_upsert",
                       "kb_delete",
                       "kb_check",
+                      "kb_model_requirement",
+                      "kb_suggest_predicates",
+                      "kb_autopilot_generate",
                     ]);
+                    assert.ok(
+                      !toolNames.includes("kb_briefing_generate"),
+                      "Removed briefing tool should not be listed",
+                    );
                     console.log("  ✓ Available tools:", toolNames.join(", "));
 
                     resolve();
@@ -287,6 +300,89 @@ if (RUN_NODE_TEST_SUITE) {
         setTimeout(() => {
           mcpProcess.stdin?.write(`${JSON.stringify(toolsRequest)}\n`);
         }, 500);
+      });
+    });
+
+    it("should expose the cold-start bootstrap prompt", async () => {
+      if (!hasProlog) return;
+
+      const mcpProcess = spawn("node", [sandbox.kibiMcpBin], {
+        cwd: sandbox.repoDir,
+        env: sandbox.env,
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+
+      let responseReceived = false;
+      let responseData = "";
+
+      const timeout = setTimeout(() => {
+        mcpProcess.kill();
+      }, 10000);
+
+      return new Promise((resolve, reject) => {
+        mcpProcess.stdout?.on("data", (data: Buffer) => {
+          responseData += data.toString();
+
+          try {
+            const lines = responseData.trim().split("\n");
+            for (const line of lines) {
+              if (line.trim()) {
+                const msg = JSON.parse(line) as JsonRpcResponse;
+                if (msg.id === 2 && msg.result?.prompts) {
+                  const prompts = msg.result.prompts;
+                  responseReceived = true;
+                  clearTimeout(timeout);
+                  void stopProcess(mcpProcess).finally(() => {
+                    assert.ok(
+                      Array.isArray(prompts),
+                      "Prompts should be an array",
+                    );
+                    const initPrompt = prompts.find(
+                      (p) => p.name === "init-kibi",
+                    );
+                    assert.ok(initPrompt, "init-kibi should be registered");
+                    assert.match(
+                      initPrompt.description ?? "",
+                      /interactive activation|new or empty/i,
+                    );
+                    resolve();
+                  });
+                  return;
+                }
+              }
+            }
+          } catch {
+            // Keep waiting
+          }
+        });
+
+        mcpProcess.on("error", reject);
+        mcpProcess.on("close", () => {
+          clearTimeout(timeout);
+          if (!responseReceived) {
+            reject(new Error("MCP server did not list prompts"));
+          }
+        });
+
+        const initRequest: JsonRpcRequest = {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "e2e-test", version: "1.0.0" },
+          },
+        };
+
+        const promptsRequest: JsonRpcRequest = {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "prompts/list",
+        };
+
+        mcpProcess.stdin?.write(`${JSON.stringify(initRequest)}\n`);
+        mcpProcess.stdin?.write(`${JSON.stringify(promptsRequest)}\n`);
       });
     });
 

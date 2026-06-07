@@ -8,8 +8,21 @@
  * (at your option) any later version.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import type { LoadEnvResult } from "../src/env.js";
+import {
+  getBranchOverride,
+  getCoreModulePathOverride,
+  getEnvFileName,
+  getKbPlPathOverride,
+  isMcpDebugEnabled,
+} from "../src/env.js";
+
+const originalEnv = { ...process.env };
+
+afterEach(() => {
+  process.env = { ...originalEnv };
+});
 
 // Import the functions we need to test - parseEnvContent is private,
 // so we test via loadEnvFile behavior
@@ -150,23 +163,52 @@ describe("env file parsing logic", () => {
   test("process.env key existence check", () => {
     // Simulate checking if a key exists in process.env
     const existingKey = "PATH";
-    const hasOwnProperty = Object.prototype.hasOwnProperty.call(
+    const keyExists = Object.prototype.hasOwnProperty.call(
       process.env,
       existingKey,
     );
-    expect(typeof hasOwnProperty).toBe("boolean");
+    expect(typeof keyExists).toBe("boolean");
   });
 });
 
 describe("env file loading behavior", () => {
-  test("respects KIBI_ENV_FILE environment variable", () => {
-    const customEnvFile = process.env.KIBI_ENV_FILE;
-    const expectedFileName = customEnvFile ?? ".env";
-    expect(expectedFileName).toBeTruthy();
+  test("getEnvFileName respects KIBI_ENV_FILE environment variable", () => {
+    process.env.KIBI_ENV_FILE = ".env.custom";
+
+    expect(getEnvFileName()).toBe(".env.custom");
   });
 
-  test("default env file is .env", () => {
-    const defaultEnvFile = ".env";
-    expect(defaultEnvFile).toBe(".env");
+  test("getEnvFileName falls back to .env", () => {
+    process.env.KIBI_ENV_FILE = "";
+
+    expect(getEnvFileName()).toBe(".env");
+  });
+
+  test("isMcpDebugEnabled reflects KIBI_MCP_DEBUG", () => {
+    process.env.KIBI_MCP_DEBUG = "";
+    expect(isMcpDebugEnabled()).toBe(false);
+
+    process.env.KIBI_MCP_DEBUG = "1";
+    expect(isMcpDebugEnabled()).toBe(true);
+  });
+
+  test("getBranchOverride trims non-empty KIBI_BRANCH values", () => {
+    process.env.KIBI_BRANCH = "  feature/test  ";
+    expect(getBranchOverride()).toBe("feature/test");
+
+    process.env.KIBI_BRANCH = "   ";
+    expect(getBranchOverride()).toBeUndefined();
+  });
+
+  test("getCoreModulePathOverride resolves per-module override key", () => {
+    process.env.KIBI_DISCOVERY_PL_PATH = "/tmp/discovery.pl";
+
+    expect(getCoreModulePathOverride("discovery.pl")).toBe("/tmp/discovery.pl");
+  });
+
+  test("getKbPlPathOverride returns generic kb.pl override", () => {
+    process.env.KIBI_KB_PL_PATH = "/tmp/kb.pl";
+
+    expect(getKbPlPathOverride()).toBe("/tmp/kb.pl");
   });
 });

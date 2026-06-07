@@ -3,8 +3,11 @@
  */
 import * as vscode from "vscode";
 import { openFileAtLine } from "../codeActionProvider";
-
-const KIBI_VIEW_ID = "kibi-knowledge-base";
+import {
+  KIBI_CONTAINER_ID,
+  KIBI_FOCUS_KB_COMMAND,
+  KIBI_VIEW_ID,
+} from "../extensionIds";
 
 export interface NavigationCommandsResult {
   openEntityCommand: vscode.Disposable;
@@ -23,7 +26,7 @@ export function registerNavigationCommands(
     getLocalPathForEntity: (entityId: string) => string | undefined;
     getNavigationTargetForEntity?: (
       entityId: string,
-    ) => { localPath: string; line?: number } | undefined;
+    ) => { localPath: string; line?: number | undefined } | undefined;
   },
 ): NavigationCommandsResult {
   /** Open an entity's source file by its local filesystem path, optionally at a 1-based line. */
@@ -91,10 +94,10 @@ export function registerNavigationCommands(
   );
 
   const focusKnowledgeBaseCommand = vscode.commands.registerCommand(
-    "kibi.focusKnowledgeBase",
+    KIBI_FOCUS_KB_COMMAND,
     async () => {
       await vscode.commands.executeCommand(
-        "workbench.view.extension.kibi-sidebar",
+        `workbench.view.extension.${KIBI_CONTAINER_ID}`,
       );
       await vscode.commands.executeCommand(`${KIBI_VIEW_ID}.focus`);
     },

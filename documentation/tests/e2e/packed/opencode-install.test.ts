@@ -12,18 +12,14 @@
 // implements REQ-opencode-kibi-plugin-v1
 
 import assert from "node:assert";
-import { execFileSync } from "node:child_process";
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { after, before, describe, it } from "node:test";
+import {
+  createIsolatedInstall,
+  installOpencodeTarball,
+  resolveOpencodeTarball,
+} from "./opencode-packed-utils.js";
 
 const REPO_ROOT = resolve(process.cwd());
 
@@ -33,7 +29,9 @@ const RUN_NODE_TEST_SUITE =
 if (RUN_NODE_TEST_SUITE) {
   describe(
     "E2E: kibi-opencode tarball install and plugin invocation",
-    { timeout: 300000 },
+    {
+      timeout: 300000,
+    },
     () => {
       let tmpDir: string;
       let installDir: string;
@@ -41,62 +39,18 @@ if (RUN_NODE_TEST_SUITE) {
 
       before(
         async () => {
-          tmpDir = mkdtempSync(join(tmpdir(), "kibi-opencode-install-e2e-"));
-          installDir = join(tmpDir, "install");
-          mkdirSync(installDir, { recursive: true });
-
-          // Write a minimal package.json so npm install works in installDir
-          writeFileSync(
-            join(installDir, "package.json"),
-            JSON.stringify(
-              {
-                name: "kibi-opencode-install-e2e",
-                private: true,
-                type: "module",
-              },
-              null,
-              2,
-            ),
-            "utf8",
-          );
-
-          // Pack kibi-opencode (triggers prepack → tsc build)
-          console.log("  📦 Packing kibi-opencode...");
-          const opencodeDir = join(REPO_ROOT, "packages/opencode");
-
-          interface PackResult {
-            filename: string;
-          }
-
-          const packOutput = execFileSync("npm", ["pack", "--json"], {
-            cwd: opencodeDir,
-            encoding: "utf8",
-            stdio: ["pipe", "pipe", "pipe"],
-          });
-
-          const packResults = JSON.parse(packOutput) as PackResult[];
-          if (!packResults?.[0]?.filename) {
-            throw new Error("npm pack did not return a filename");
-          }
-
-          tarballPath = join(opencodeDir, packResults[0].filename);
+          const { tarballPath: tb } = resolveOpencodeTarball(REPO_ROOT);
+          tarballPath = tb;
           assert.ok(
             existsSync(tarballPath),
             `Tarball not found: ${tarballPath}`,
           );
-          console.log(`  ✓ Packed: ${packResults[0].filename}`);
 
-          // Install tarball into isolated prefix
-          console.log("  📥 Installing kibi-opencode from tarball...");
-          execFileSync(
-            "npm",
-            ["install", "--legacy-peer-deps", "--no-audit", tarballPath],
-            {
-              cwd: installDir,
-              stdio: ["pipe", "pipe", "pipe"],
-            },
-          );
-          console.log("  ✓ Installed");
+          const isolated = createIsolatedInstall();
+          tmpDir = isolated.tmpDir;
+          installDir = isolated.installDir;
+
+          installOpencodeTarball(installDir, tarballPath);
         },
         { timeout: 240000 },
       );
@@ -109,7 +63,9 @@ if (RUN_NODE_TEST_SUITE) {
 
       it(
         "installs kibi-opencode package with correct version",
-        { timeout: 30000 },
+        {
+          timeout: 30000,
+        },
         () => {
           const pkgJsonPath = join(
             installDir,
@@ -144,7 +100,9 @@ if (RUN_NODE_TEST_SUITE) {
 
       it(
         "dist/index.js is present after tarball install",
-        { timeout: 30000 },
+        {
+          timeout: 30000,
+        },
         () => {
           const distIndex = join(
             installDir,
@@ -160,7 +118,9 @@ if (RUN_NODE_TEST_SUITE) {
 
       it(
         "plugin default export is callable and returns hooks without throwing",
-        { timeout: 60000 },
+        {
+          timeout: 60000,
+        },
         async () => {
           const distIndex = join(
             installDir,
@@ -198,7 +158,9 @@ if (RUN_NODE_TEST_SUITE) {
 
       it(
         "subpath exports are accessible after install",
-        { timeout: 30000 },
+        {
+          timeout: 30000,
+        },
         async () => {
           const base = join(installDir, "node_modules/kibi-opencode");
 

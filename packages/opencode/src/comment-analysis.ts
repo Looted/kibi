@@ -60,12 +60,14 @@ function extractJsTsComments(
 
   while (i < lines.length) {
     const line = lines[i];
+    if (line === undefined) break;
 
     if (line.trim().startsWith("/*")) {
       const blockLines: string[] = [];
       let j = i;
       while (j < lines.length) {
         const blockLine = lines[j];
+        if (blockLine === undefined) break;
         blockLines.push(blockLine);
         if (blockLine.includes("*/")) break;
         j++;
@@ -88,8 +90,12 @@ function extractJsTsComments(
     if (line.trim().startsWith("//")) {
       const commentLines: string[] = [];
       let j = i;
-      while (j < lines.length && lines[j].trim().startsWith("//")) {
-        commentLines.push(lines[j].trim().replace(/^\/\/\s?/, ""));
+      while (j < lines.length) {
+        const commentLine = lines[j];
+        if (commentLine === undefined || !commentLine.trim().startsWith("//")) {
+          break;
+        }
+        commentLines.push(commentLine.trim().replace(/^\/\/\s?/, ""));
         j++;
       }
       if (commentLines.length > 0) {
@@ -106,13 +112,6 @@ function extractJsTsComments(
   }
 
   return comments;
-}
-
-/**
- * Check if a line is an assignment (x = y), which would disqualify a triple-quoted string from being a docstring.
- */
-function isAssignment(line: string): boolean {
-  return /^\s*\w+\s*=\s*["']/.test(line);
 }
 
 /**
@@ -139,7 +138,7 @@ function extractPythonComments(
   let foundClassDocstring = false;
 
   function getIndent(line: string): number {
-    return line.match(/^(\s*)/)?.[1].length || 0;
+    return line.match(/^(\s*)/)?.[1]?.length ?? 0;
   }
 
   function isSignificantLine(line: string): boolean {
@@ -154,10 +153,14 @@ function extractPythonComments(
   ): { text: string; endIdx: number } | null {
     const docstringLines: string[] = [];
     let j = startIdx;
-    const startLine = lines[j].trim();
+    const startLine = lines[j];
+    if (startLine === undefined) return null;
+    const trimmedStartLine = startLine.trim();
 
     // Extract content from opening line
-    const openingMatch = startLine.match(new RegExp(`^\\s*${quote}(.*)$`));
+    const openingMatch = trimmedStartLine.match(
+      new RegExp(`^\\s*${quote}(.*)$`),
+    );
     if (openingMatch?.[1]) {
       docstringLines.push(openingMatch[1].trim());
     }
@@ -165,6 +168,7 @@ function extractPythonComments(
     j++;
     while (j < lines.length) {
       const docLine = lines[j];
+      if (docLine === undefined) break;
       if (docLine.includes(quote)) {
         // Closing line
         const closingMatch = docLine.match(new RegExp(`^(.*?)${quote}`));
@@ -190,6 +194,7 @@ function extractPythonComments(
   let i = 0;
   while (i < lines.length) {
     const line = lines[i];
+    if (line === undefined) break;
     const trimmed = line.trim();
     const indent = getIndent(line);
 
@@ -202,10 +207,13 @@ function extractPythonComments(
       // Collect contiguous # comments at same indent level
       while (j < lines.length) {
         const commentLine = lines[j];
+        if (commentLine === undefined) break;
         const lineHashMatch = commentLine.match(/^(\s*)#(.*)$/);
         if (!lineHashMatch) break;
         if (getIndent(commentLine) !== currentIndent) break;
-        commentLines.push(lineHashMatch[2].trim());
+        const commentText = lineHashMatch[2];
+        if (commentText === undefined) break;
+        commentLines.push(commentText.trim());
         j++;
       }
 
@@ -248,25 +256,6 @@ function extractPythonComments(
       trimmed.startsWith('"""') || trimmed.startsWith("'''");
 
     if (isTripleQuote) {
-      // Skip if it's an assignment (x = """...""")
-      if (isAssignment(line)) {
-        // Track that we've seen a significant non-docstring statement
-        if (!foundModuleDocstring && !insideClassOrDef) {
-          foundModuleDocstring = true;
-        }
-        if (insideClassOrDef && !foundClassDocstring) {
-          foundClassDocstring = true;
-        }
-        // Skip to end of string
-        const quote = trimmed.startsWith('"""') ? '"""' : "'''";
-        i++;
-        while (i < lines.length && !lines[i].includes(quote)) {
-          i++;
-        }
-        i++;
-        continue;
-      }
-
       const quote = trimmed.startsWith('"""') ? '"""' : "'''";
 
       // Check if this is a valid docstring position
@@ -294,16 +283,13 @@ function extractPythonComments(
         }
       }
 
-      // Not a docstring - mark as significant and skip it
-      if (!foundModuleDocstring && !insideClassOrDef) {
-        foundModuleDocstring = true;
-      }
-      if (insideClassOrDef && !foundClassDocstring) {
-        foundClassDocstring = true;
-      }
       // Find the closing quote
       i++;
-      while (i < lines.length && !lines[i].includes(quote)) {
+      while (i < lines.length) {
+        const nextLine = lines[i];
+        if (nextLine === undefined || nextLine.includes(quote)) {
+          break;
+        }
         i++;
       }
       i++;

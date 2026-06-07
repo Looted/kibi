@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The Align project follows well-established design patterns for Angular 21+ applications.
+The example product follows well-established design patterns for Angular 21+ applications.
 
 ## Component Patterns
 

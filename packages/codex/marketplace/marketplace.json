@@ -1,0 +1,21 @@
+{
+  "name": "kibi-local",
+  "interface": {
+    "displayName": "Kibi Local Marketplace",
+    "description": "Local plugin marketplace for the kibi-codex adapter"
+  },
+  "plugins": [
+    {
+      "name": "kibi-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/kibi-codex"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

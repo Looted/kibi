@@ -23,6 +23,7 @@ import {
   DEFAULT_CHECKS_CONFIG,
   type SymbolTraceabilityOptions,
 } from "./rule-registry.js";
+import { LATEST_KB_SCHEMA_VERSION } from "./schema-version.js";
 
 /**
  * Configuration paths for entity documentation directories.
@@ -44,6 +45,8 @@ export interface KbConfigPaths {
  */
 export interface KbConfig {
   paths: KbConfigPaths;
+  schemaVersion?: number | string;
+  semanticAdvisorBackfill?: "pending" | "completed" | "not_applicable";
   /**
    * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
    * without requiring a configured default. This field is ignored but kept for compatibility.
@@ -57,9 +60,12 @@ export type { ChecksConfig, SymbolTraceabilityOptions };
 /**
  * Default configuration values for new repositories.
  */
+// implements REQ-003
 export const DEFAULT_CONFIG: KbConfig & { $schema: string } = {
+  // implements REQ-003
   $schema:
     "https://raw.githubusercontent.com/Looted/kibi/master/packages/cli/schema/config.json",
+  schemaVersion: LATEST_KB_SCHEMA_VERSION,
   paths: {
     requirements: "documentation/requirements",
     scenarios: "documentation/scenarios",
@@ -77,6 +83,7 @@ export const DEFAULT_CONFIG: KbConfig & { $schema: string } = {
  * Default paths used by sync command (backward compatible glob patterns).
  */
 export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
+  // implements REQ-003
   requirements: "requirements/**/*.md",
   scenarios: "scenarios/**/*.md",
   tests: "tests/**/*.md",
@@ -87,6 +94,32 @@ export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
   symbols: "symbols.yaml",
 };
 
+function readUserConfig(configPath: string): {
+  userConfig: Partial<KbConfig>;
+  useDefaultSchemaVersion: boolean;
+} {
+  if (!existsSync(configPath)) {
+    return {
+      userConfig: {},
+      useDefaultSchemaVersion: true,
+    };
+  }
+
+  try {
+    const content = readFileSync(configPath, "utf8");
+
+    return {
+      userConfig: JSON.parse(content) as Partial<KbConfig>,
+      useDefaultSchemaVersion: false,
+    };
+  } catch {
+    return {
+      userConfig: {},
+      useDefaultSchemaVersion: true,
+    };
+  }
+}
+
 /**
  * Load and parse the Kibi configuration from .kb/config.json.
  * Falls back to DEFAULT_CONFIG if the file doesn't exist or is invalid.
@@ -95,25 +128,27 @@ export const DEFAULT_SYNC_PATHS: KbConfigPaths = {
  * @returns The merged configuration (defaults + user config)
  */
 export function loadConfig(cwd: string = process.cwd()): KbConfig {
+  // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
-
-  let userConfig: Partial<KbConfig> = {};
-  if (existsSync(configPath)) {
-    try {
-      const content = readFileSync(configPath, "utf8");
-      userConfig = JSON.parse(content) as Partial<KbConfig>;
-    } catch {
-      // Invalid config, use defaults
-      userConfig = {};
-    }
-  }
+  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
 
   return {
     paths: {
       ...DEFAULT_CONFIG.paths,
       ...userConfig.paths,
     },
-    defaultBranch: userConfig.defaultBranch,
+    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
+      ? {
+          schemaVersion:
+            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
+        }
+      : {}),
+    ...(userConfig.defaultBranch !== undefined
+      ? { defaultBranch: userConfig.defaultBranch }
+      : {}),
+    ...(userConfig.semanticAdvisorBackfill !== undefined
+      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
+      : {}),
     checks: userConfig.checks
       ? {
           rules: {
@@ -138,25 +173,27 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
  * @returns The merged configuration with sync-compatible paths
  */
 export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
+  // implements REQ-003
   const configPath = path.join(cwd, ".kb/config.json");
-
-  let userConfig: Partial<KbConfig> = {};
-  if (existsSync(configPath)) {
-    try {
-      const content = readFileSync(configPath, "utf8");
-      userConfig = JSON.parse(content) as Partial<KbConfig>;
-    } catch {
-      // Invalid config, use defaults
-      userConfig = {};
-    }
-  }
+  const { userConfig, useDefaultSchemaVersion } = readUserConfig(configPath);
 
   return {
     paths: {
       ...DEFAULT_SYNC_PATHS,
       ...userConfig.paths,
     },
-    defaultBranch: userConfig.defaultBranch,
+    ...(userConfig.schemaVersion !== undefined || useDefaultSchemaVersion
+      ? {
+          schemaVersion:
+            userConfig.schemaVersion ?? DEFAULT_CONFIG.schemaVersion,
+        }
+      : {}),
+    ...(userConfig.defaultBranch !== undefined
+      ? { defaultBranch: userConfig.defaultBranch }
+      : {}),
+    ...(userConfig.semanticAdvisorBackfill !== undefined
+      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
+      : {}),
     checks: userConfig.checks
       ? {
           rules: {

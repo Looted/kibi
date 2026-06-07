@@ -13,19 +13,35 @@ test(entity_types_count) :-
 test(relationship_types_count) :-
     findall(R, relationship_type(R), Rs),
     sort(Rs, Sorted),
-    % relationship_type/1 includes 14 items; ensure length and membership
-    length(Sorted, 14),
+    % relationship_type/1 includes 16 items; ensure length and membership
+    length(Sorted, 16),
     member(depends_on, Sorted),
+    member(executable_for, Sorted),
     member(specified_by, Sorted),
     member(verified_by, Sorted),
     member(constrains, Sorted),
-    member(requires_property, Sorted).
+    member(requires_property, Sorted),
+    member(requires_predicate, Sorted).
 
 test(valid_relationship_ok) :-
     validate_relationship(depends_on, req, req).
 
 test(invalid_relationship_bad_types) :-
     \+ validate_relationship(depends_on, invalid, req).
+
+test(traceability_schema_valid_relationships) :-
+    validate_relationship(executable_for, symbol, test),
+    validate_relationship(verified_by, scenario, test),
+    validate_relationship(validates, test, scenario).
+
+test(ontology_schema_valid_relationships) :-
+    validate_relationship(requires_predicate, req, fact).
+
+test(traceability_schema_invalid_relationships) :-
+    \+ validate_relationship(implements, symbol, test),
+    \+ validate_relationship(implements, symbol, scenario),
+    \+ validate_relationship(covered_by, scenario, test),
+    \+ validate_relationship(executable_for, req, test).
 
 test(missing_required_property) :-
     % missing title
@@ -40,6 +56,30 @@ test(invalid_property_type) :-
 test(valid_entity) :-
     Props = [id=foo, title="T", status=active, created_at="2020-01-01", updated_at="2020-01-01", source="http://x"],
     validate_entity(req, Props).
+
+test(test_entity_without_verification_fields_valid) :-
+    Props = [id='TEST-LEGACY', title="Legacy test", status=pending, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-LEGACY.md"],
+    validate_entity(test, Props).
+
+test(test_entity_with_verification_fields_valid) :-
+    Props = [id='TEST-TYPED', title="Typed test", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-TYPED.md", verification_scope=integration, verification_perspective=consumer],
+    validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_scope_invalid) :-
+    Props = [id='TEST-BAD-SCOPE', title="Bad scope", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-SCOPE.md", verification_scope=e2e],
+    \+ validate_entity(test, Props).
+
+test(test_entity_with_invalid_verification_perspective_invalid) :-
+    Props = [id='TEST-BAD-PERSPECTIVE', title="Bad perspective", status=passing, created_at="2024-01-01", updated_at="2024-01-01", source="tests/TEST-BAD-PERSPECTIVE.md", verification_perspective=external],
+    \+ validate_entity(test, Props).
+
+test(req_with_verification_scope_invalid) :-
+    Props = [id='REQ-BAD-SCOPE', title="Req with scope", status=open, created_at="2024-01-01", updated_at="2024-01-01", source="reqs/REQ-BAD-SCOPE.md", verification_scope=unit],
+    \+ validate_entity(req, Props).
+
+test(symbol_with_verification_perspective_invalid) :-
+    Props = [id='SYM-BAD-PERSPECTIVE', title="Symbol with perspective", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="symbols/SYM-BAD-PERSPECTIVE.md", verification_perspective=internal],
+    \+ validate_entity(symbol, Props).
 
 % Typed fact validation tests
 
@@ -72,6 +112,22 @@ test(property_value_fact_with_bool_valid) :-
     % Property_value fact with value_type="bool" and value_bool is valid
     Props = [id='FACT-FEATURE', title="Feature enabled", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FEATURE.md", fact_kind=property_value, subject_key="feature.new-ui", property_key="enabled", operator=eq, value_type=bool, value_bool=true],
     validate_entity(fact, Props).
+
+test(predicate_schema_fact_valid) :-
+    Props = [id='FACT-SCHEMA-CAN', title="Predicate schema: auth.can/3", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/ontology/auth.md", fact_kind=predicate_schema, predicate_name="can", predicate_namespace="auth", predicate_arity=3, argument_names=["actor", "action", "resource"], argument_types=["role", "action", "resource"], aliases=["may", "is allowed to"], examples=["auth.can(user, delete, post)"]],
+    validate_entity(fact, Props).
+
+test(predicate_schema_missing_argument_types_invalid) :-
+    Props = [id='FACT-SCHEMA-CAN-BAD', title="Predicate schema missing argument types", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/ontology/auth.md", fact_kind=predicate_schema, predicate_name="can", predicate_arity=3, argument_names=["actor", "action", "resource"]],
+    \+ validate_entity(fact, Props).
+
+test(predicate_fact_valid) :-
+    Props = [id='FACT-CAN-USER-DELETE-POST', title="User can delete post", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/requirements/posts.md", fact_kind=predicate, predicate_name="can", predicate_namespace="auth", predicate_args=["user", "delete", "post"], argument_types=["role", "action", "resource"], polarity=assert, canonical_key="auth.can.role:user.action:delete.resource:post.assert"],
+    validate_entity(fact, Props).
+
+test(predicate_fact_missing_canonical_key_invalid) :-
+    Props = [id='FACT-CAN-USER-DELETE-POST-BAD', title="User can delete post missing key", status=active, created_at="2026-05-30", updated_at="2026-05-30", source="docs/requirements/posts.md", fact_kind=predicate, predicate_name="can", predicate_args=["user", "delete", "post"], polarity=assert],
+    \+ validate_entity(fact, Props).
 
 test(property_value_fact_missing_value_field_invalid) :-
     % Property_value fact missing the matching value field is invalid
@@ -158,6 +214,10 @@ test(valid_polarity_forbid) :-
     % Valid polarity=forbid is accepted
     Props = [id='FACT-FORBID', title="Forbidden polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-FORBID.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=forbid],
     validate_entity(fact, Props).
+
+test(property_value_with_assert_polarity_invalid) :-
+    Props = [id='FACT-ASSERT-PROP', title="Invalid assert polarity", status=active, created_at="2024-01-01", updated_at="2024-01-01", source="facts/FACT-ASSERT-PROP.md", fact_kind=property_value, subject_key="user", property_key="name", operator=eq, value_type=string, value_string="test", polarity=assert],
+    \+ validate_entity(fact, Props).
 
 % Strict-lane pairing validation tests for constrains/requires_property
 

@@ -16,8 +16,13 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
-import { extractFromManifestString } from "../extractors/manifest.js";
+import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
+import {
+  extractFromManifest,
+  extractFromManifestString,
+} from "../extractors/manifest.js";
 import {
   type ExtractionResult,
   extractFromMarkdownString,
@@ -28,8 +33,34 @@ import {
   parseTriples,
   parseViolationRows,
 } from "../prolog/codec.js";
-import { getStagedFiles } from "../traceability/git-staged.js";
+import {
+  getBehavioralSymbolNames,
+  getNonBehavioralSymbolNames,
+  isAllowedGranularityReason,
+  isTraceabilityRelationshipType,
+} from "../public/symbol-granularity.js";
+import {
+  KIBI_NO_IMPACT_DECLARATION,
+  KIBI_SYMBOLS_MANIFEST_PATH,
+  KIBI_SYMBOL_COORDINATES_PATH,
+  type KibiEntityType,
+  type KibiImpactEvidence,
+} from "../traceability/evidence-model.js";
+import { type StagedFile, getStagedFiles } from "../traceability/git-staged.js";
 import { validateStagedMarkdown } from "../traceability/markdown-validate.js";
+import {
+  type KibiImpactDiagnostic,
+  collectStagedKibiDiagnostics,
+} from "../traceability/staged-diagnostics.js";
+import {
+  classifyKibiImpactEvidence,
+  isBehaviorSourceEdit,
+  parseKibiImpactOverride,
+} from "../traceability/staged-impact-contract.js";
+import {
+  assessStagedSymbolsManifest,
+  collectStagedAuthoredSymbolsManifestEvidence,
+} from "../traceability/staged-symbols-manifest.js";
 import {
   type ManifestLookup,
   createManifestLookupSentinelKey,
@@ -68,12 +99,67 @@ export interface CheckOptions {
   dryRun?: boolean;
 }
 
+function getMatchGroup(
+  match: RegExpMatchArray | null,
+  index = 1,
+): string | null {
+  const value = match?.[index];
+  return typeof value === "string" ? value : null;
+}
+
 function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   manifestLookup: ManifestLookup;
   manifestResults: ExtractionResult[];
+  authoredSymbolResults: ExtractionResult[];
+  stagedAuthoredSymbolResults: ExtractionResult[];
 } {
   const manifestLookup: ManifestLookup = new Map();
   const manifestResults: ExtractionResult[] = [];
+  const authoredSymbolResults: ExtractionResult[] = [];
+  const stagedAuthoredSymbolResults: ExtractionResult[] = [];
+
+  // Pre-populate lookup from working-tree manifests so that code-only changes
+  // (where symbols.yaml is not staged) still resolve to the correct symbol IDs
+  // and relationships already defined on disk.
+  const config = loadConfig(process.cwd());
+  const symbolsRelPath = config.paths.symbols;
+  if (symbolsRelPath) {
+    const absSymbolsPath = path.resolve(process.cwd(), symbolsRelPath);
+    if (existsSync(absSymbolsPath)) {
+      try {
+        const entries = extractFromManifest(absSymbolsPath);
+        for (const entry of entries) {
+          authoredSymbolResults.push(entry);
+          const sourceFile =
+            entry.sourceFile || entry.entity.source || absSymbolsPath;
+          const key = `${sourceFile}:${entry.entity.title}`;
+          manifestLookup.set(key, {
+            id: entry.entity.id,
+            relationships: entry.relationships
+              .filter(
+                (relationship) =>
+                  relationship.type === "implements" ||
+                  relationship.type === "covered_by" ||
+                  relationship.type === "executable_for",
+              )
+              .map((relationship) => ({
+                type: relationship.type,
+                to: relationship.to,
+              })),
+          });
+        }
+      } catch (e) {
+        // Ignore working-tree manifest parsing errors; staged-only fallback still applies
+        if (isCliTraceOrDebugEnabled()) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.debug(
+            `[kibi] skipping working-tree manifest ${absSymbolsPath}: ${msg}`,
+          );
+        }
+      }
+    }
+  }
+
   const stagedManifestFiles = stagedFiles.filter(
     (file) =>
       file.content !== undefined &&
@@ -99,6 +185,15 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
           entity: entry.entity,
           relationships: entry.relationships,
         });
+        const authoredSymbolResult = {
+          entity: entry.entity,
+          relationships: entry.relationships,
+          ...(entry.sourceFile !== undefined
+            ? { sourceFile: entry.sourceFile }
+            : {}),
+        };
+        authoredSymbolResults.push(authoredSymbolResult);
+        stagedAuthoredSymbolResults.push(authoredSymbolResult);
 
         const sourceFile =
           entry.sourceFile || entry.entity.source || manifestFile.path;
@@ -109,7 +204,8 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
             .filter(
               (relationship) =>
                 relationship.type === "implements" ||
-                relationship.type === "covered_by",
+                relationship.type === "covered_by" ||
+                relationship.type === "executable_for",
             )
             .map((relationship) => ({
               type: relationship.type,
@@ -122,7 +218,325 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
     }
   }
 
-  return { manifestLookup, manifestResults };
+  return {
+    manifestLookup,
+    manifestResults,
+    authoredSymbolResults,
+    stagedAuthoredSymbolResults,
+  };
+}
+
+function hasTraceabilityRelationship(result: ExtractionResult): boolean {
+  return result.relationships.some((relationship) =>
+    isTraceabilityRelationshipType(relationship.type),
+  );
+}
+
+function hasValidGranularityReason(result: ExtractionResult): boolean {
+  return isAllowedGranularityReason(result.entity.granularity_reason);
+}
+
+function createSymbolGranularityDiagnostics(options: {
+  manifestResults: ExtractionResult[];
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  sourceContentByFile: Map<string, string>;
+}): KibiImpactDiagnostic[] {
+  const diagnostics: KibiImpactDiagnostic[] = [];
+
+  for (const result of options.manifestResults) {
+    if (!result.sourceFile) continue;
+    if (!hasTraceabilityRelationship(result)) continue;
+    if (hasValidGranularityReason(result)) continue;
+
+    const granularSymbols = getGranularSymbolsForSourceFile(
+      result.sourceFile,
+      options.symbolsByFile,
+      options.sourceContentByFile,
+    );
+    if (granularSymbols.length === 0) continue;
+    const granularNames = [
+      ...new Set(granularSymbols.map((s) => s.name)),
+    ].sort();
+    if (granularNames.includes(result.entity.title)) continue;
+
+    const behavioralNames = getBehavioralSymbolNames(granularSymbols);
+    if (behavioralNames.length === 0) continue;
+
+    const nonBehavioralNames = getNonBehavioralSymbolNames(granularSymbols);
+    const ignoredSymbolsSuggestion =
+      nonBehavioralNames.length > 0
+        ? ` Non-behavioral symbols ignored for this decision: ${nonBehavioralNames.join(
+            ", ",
+          )}.`
+        : "";
+
+    diagnostics.push({
+      id: "symbol_granularity_violation",
+      severity: "error",
+      files: [result.entity.source, result.sourceFile],
+      docs: ["docs/symbol-traceability-taxonomy.md"],
+      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
+      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
+    });
+  }
+
+  return diagnostics;
+}
+
+function getGranularSymbolsForSourceFile(
+  sourceFile: string,
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>,
+  sourceContentByFile: Map<string, string>,
+): ReturnType<typeof extractSymbolsFromStagedFile> {
+  const stagedContent = sourceContentByFile.get(sourceFile);
+  if (stagedContent !== undefined) {
+    return extractSymbolsFromStagedFile({
+      path: sourceFile,
+      status: "M",
+      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+      content: stagedContent,
+    });
+  }
+
+  const absolutePath = path.isAbsolute(sourceFile)
+    ? sourceFile
+    : path.resolve(process.cwd(), sourceFile);
+  if (!existsSync(absolutePath)) {
+    return [];
+  }
+
+  return extractSymbolsFromStagedFile({
+    path: sourceFile,
+    status: "M",
+    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
+    content: readFileSync(absolutePath, "utf8"),
+  });
+}
+
+const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
+  "req",
+  "scenario",
+  "test",
+  "adr",
+  "flag",
+  "event",
+  "symbol",
+  "fact",
+]);
+
+function isKibiEntityType(value: string): value is KibiEntityType {
+  return KIBI_ENTITY_TYPES.has(value as KibiEntityType);
+}
+
+function isStagedManifestPath(filePath: string): boolean {
+  if (
+    filePath.endsWith("/symbols.yaml") ||
+    filePath.endsWith("/symbols.yml") ||
+    filePath.endsWith("/symbol-coordinates.yaml") ||
+    filePath === "symbols.yaml" ||
+    filePath === "symbols.yml" ||
+    filePath === "symbol-coordinates.yaml"
+  ) {
+    return true;
+  }
+  try {
+    const config = loadConfig(process.cwd());
+    if (config.paths.symbols) {
+      const relSymbols = config.paths.symbols;
+      const configuredBase = relSymbols.split(/[\\/]/).pop();
+      if (
+        filePath === relSymbols ||
+        (configuredBase && filePath.endsWith(`/${configuredBase}`))
+      ) {
+        return true;
+      }
+    }
+  } catch {
+    // ignore config read errors
+  }
+  return false;
+}
+
+function isTestOnlySourcePath(filePath: string): boolean {
+  return (
+    filePath.startsWith("tests/") ||
+    filePath.includes("/tests/") ||
+    filePath.endsWith(".test.ts") ||
+    filePath.endsWith(".test.tsx") ||
+    filePath.endsWith(".test.js") ||
+    filePath.endsWith(".test.jsx") ||
+    filePath.endsWith(".spec.ts") ||
+    filePath.endsWith(".spec.tsx") ||
+    filePath.endsWith(".spec.js") ||
+    filePath.endsWith(".spec.jsx")
+  );
+}
+
+function getStagedDiffText(stagedFile: StagedFile): string {
+  return stagedFile.diffText ?? "";
+}
+
+function formatStagedKibiDiagnostics(
+  diagnostics: KibiImpactDiagnostic[],
+): string {
+  return diagnostics
+    .map((diagnostic) => {
+      const lines = [`[${diagnostic.id}] ${diagnostic.message}`];
+      if (diagnostic.files.length > 0) {
+        lines.push(`  Files: ${diagnostic.files.join(", ")}`);
+      }
+      if (diagnostic.docs.length > 0) {
+        lines.push(`  Docs: ${diagnostic.docs.join(", ")}`);
+      }
+      lines.push(`  Suggestion: ${diagnostic.suggestion}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
+function uniqueSorted(values: Iterable<string>): string[] {
+  return Array.from(new Set(values)).sort();
+}
+
+function buildStagedKibiImpactEvidence(options: {
+  stagedFiles: StagedFile[];
+  sourceFiles: StagedFile[];
+  markdownFiles: StagedFile[];
+  markdownResults: ExtractionResult[];
+  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
+  symbolsManifestPath: string;
+}): KibiImpactEvidence {
+  const {
+    stagedFiles,
+    sourceFiles,
+    markdownFiles,
+    markdownResults,
+    symbolsByFile,
+    symbolsManifestPath,
+  } = options;
+  const sourceChanges = sourceFiles.map((file) => {
+    const symbolsForFile = symbolsByFile.get(file.path) ?? [];
+    const behaviorCandidate =
+      !isTestOnlySourcePath(file.path) &&
+      isBehaviorSourceEdit({
+        path: file.path,
+        diffText: getStagedDiffText(file),
+        intersectsBehaviorBearingSymbol: symbolsForFile.length > 0,
+        knownUserFacingSurface: false,
+      });
+
+    return {
+      path: file.path,
+      kind: behaviorCandidate
+        ? ("behavior_source_edit" as const)
+        : ("non_behavior_source_edit" as const),
+    };
+  });
+
+  const behaviorSourcePaths = sourceChanges
+    .filter((change) => change.kind === "behavior_source_edit")
+    .map((change) => change.path);
+  const allSourcePaths = sourceChanges.map((change) => change.path);
+  const behaviorSourceFiles = sourceFiles.filter((file) =>
+    behaviorSourcePaths.includes(file.path),
+  );
+  const stagedSymbolsManifest = assessStagedSymbolsManifest({
+    symbolsManifestPath,
+    stagedFiles,
+    sourceFiles: behaviorSourceFiles,
+  });
+  const stagedAuthoredSymbolsEvidence =
+    collectStagedAuthoredSymbolsManifestEvidence({
+      stagedFiles,
+      sourceFiles: behaviorSourceFiles,
+    });
+
+  const markdownResultsByPath = new Map<string, ExtractionResult>();
+  for (const [index, file] of markdownFiles.entries()) {
+    const result = markdownResults[index];
+    if (result) {
+      markdownResultsByPath.set(file.path, result);
+    }
+  }
+
+  type KbArtifact = Extract<
+    KibiImpactEvidence["mode"],
+    { kind: "kb_changes" }
+  >["kbArtifacts"][number];
+  type NoImpactOverride = Extract<
+    KibiImpactEvidence["mode"],
+    { kind: "no_impact_override" }
+  >["override"];
+
+  const resolvedKbArtifacts: KbArtifact[] = [];
+  let override: NoImpactOverride | null = null;
+
+  for (const file of markdownFiles) {
+    const parsedOverride = parseKibiImpactOverride(file.content ?? "");
+    const evidenceKind = classifyKibiImpactEvidence({
+      filePath: file.path,
+      extractionOutputChanged: false,
+      overrideDeclared: parsedOverride.declared,
+      overrideRationale: parsedOverride.rationale,
+    });
+
+    if (evidenceKind === "entity_markdown") {
+      const result = markdownResultsByPath.get(file.path);
+      if (result && isKibiEntityType(result.entity.type)) {
+        resolvedKbArtifacts.push({
+          kind: "entity_markdown",
+          path: file.path,
+          entityTypes: [result.entity.type],
+          entityIds: [result.entity.id],
+          sourcePaths: [...behaviorSourcePaths],
+        });
+      }
+      continue;
+    }
+
+    if (!parsedOverride.declared || override !== null) {
+      continue;
+    }
+
+    override = {
+      declaration: KIBI_NO_IMPACT_DECLARATION,
+      path: file.path,
+      sourcePaths: [...allSourcePaths],
+      reason: "non_behavioral_source_edit",
+      rationale: parsedOverride.rationale ?? "",
+    };
+  }
+
+  if (stagedAuthoredSymbolsEvidence.entries.length > 0) {
+    resolvedKbArtifacts.push({
+      kind: "symbols_manifest",
+      path: stagedAuthoredSymbolsEvidence.path,
+      entityTypes: ["symbol"],
+      entityIds: uniqueSorted(
+        stagedAuthoredSymbolsEvidence.entries.flatMap(
+          (entry) => entry.entityIds,
+        ),
+      ),
+      sourcePaths: uniqueSorted(
+        stagedAuthoredSymbolsEvidence.entries.map((entry) => entry.sourcePath),
+      ),
+    });
+  }
+
+  return {
+    sourceChanges,
+    symbolsManifest: {
+      path: stagedSymbolsManifest.path,
+      state: stagedSymbolsManifest.state,
+      sourcePaths: stagedSymbolsManifest.sourcePaths,
+    },
+    mode:
+      resolvedKbArtifacts.length > 0
+        ? { kind: "kb_changes", kbArtifacts: resolvedKbArtifacts }
+        : override
+          ? { kind: "no_impact_override", override }
+          : { kind: "missing" },
+  };
 }
 
 // implements REQ-006
@@ -136,7 +550,7 @@ export async function checkCommand(
     if (options.kbPath) {
       resolvedKbPath = options.kbPath;
     } else {
-      const envBranch = process.env.KIBI_BRANCH;
+      const envBranch = getBranchOverride();
       let branch = envBranch || undefined;
       if (!branch) {
         try {
@@ -169,10 +583,19 @@ export async function checkCommand(
           return { exitCode: 0 };
         }
 
-        const { manifestLookup, manifestResults } =
-          buildManifestLookup(stagedFiles);
+        const {
+          manifestLookup,
+          manifestResults,
+          authoredSymbolResults,
+          stagedAuthoredSymbolResults,
+        } = buildManifestLookup(stagedFiles);
+        const symbolsManifestPath =
+          loadConfig(process.cwd()).paths.symbols ?? KIBI_SYMBOLS_MANIFEST_PATH;
 
-        const codeFiles = stagedFiles.filter((f) => !f.path.endsWith(".md"));
+        const sourceFiles = stagedFiles.filter(
+          (file) =>
+            !file.path.endsWith(".md") && !isStagedManifestPath(file.path),
+        );
         const markdownFiles = stagedFiles.filter((f) => f.path.endsWith(".md"));
 
         const markdownErrors: string[] = [];
@@ -197,9 +620,18 @@ export async function checkCommand(
           return { exitCode: 1 };
         }
         const allSymbols: ReturnType<typeof extractSymbolsFromStagedFile> = [];
-        for (const f of codeFiles) {
+        const symbolsByFile = new Map<
+          string,
+          ReturnType<typeof extractSymbolsFromStagedFile>
+        >();
+        const sourceContentByFile = new Map<string, string>();
+        for (const f of sourceFiles) {
           try {
+            if (f.content !== undefined) {
+              sourceContentByFile.set(f.path, f.content);
+            }
             const symbols = extractSymbolsFromStagedFile(f, manifestLookup);
+            symbolsByFile.set(f.path, symbols);
             if (symbols?.length) {
               allSymbols.push(...symbols);
             }
@@ -219,6 +651,32 @@ export async function checkCommand(
           ...markdownResults,
         ];
 
+        const stagedKibiEvidence = buildStagedKibiImpactEvidence({
+          stagedFiles,
+          sourceFiles,
+          markdownFiles,
+          markdownResults,
+          symbolsByFile,
+          symbolsManifestPath,
+        });
+        const stagedKibiDiagnostics =
+          collectStagedKibiDiagnostics(stagedKibiEvidence);
+        const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
+        const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
+        const activeGranularityResults = authoredSymbolResults.filter(
+          (result) =>
+            stagedAuthoredSymbolSet.has(result) ||
+            (result.sourceFile !== undefined &&
+              stagedSourcePaths.has(result.sourceFile)),
+        );
+        stagedKibiDiagnostics.push(
+          ...createSymbolGranularityDiagnostics({
+            manifestResults: activeGranularityResults,
+            symbolsByFile,
+            sourceContentByFile,
+          }),
+        );
+
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
           console.log(
             "No exported symbols or staged entities found in staged files.",
@@ -227,6 +685,13 @@ export async function checkCommand(
         }
 
         if (allSymbols.length === 0) {
+          if (stagedKibiDiagnostics.length > 0) {
+            console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+            if (options.dryRun) {
+              return { exitCode: 0 };
+            }
+            return { exitCode: 1 };
+          }
           console.log("✓ No violations found in staged files.");
           return { exitCode: 0 };
         }
@@ -253,8 +718,21 @@ export async function checkCommand(
         });
         const violationsFormatted = formatStagedViolations(violationsRaw);
 
+        if (stagedKibiDiagnostics.length > 0) {
+          console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+          console.log();
+        }
+
         if (violationsRaw && violationsRaw.length > 0) {
           console.log(violationsFormatted);
+          await cleanupTempKb(tempCtx.tempDir);
+          if (options.dryRun) {
+            return { exitCode: 0 };
+          }
+          return { exitCode: 1 };
+        }
+
+        if (stagedKibiDiagnostics.length > 0) {
           await cleanupTempKb(tempCtx.tempDir);
           if (options.dryRun) {
             return { exitCode: 0 };
@@ -335,6 +813,8 @@ export async function checkCommand(
       "deprecated-adr-no-successor",
       "domain-contradictions",
       "strict-fact-shape",
+      "strict-req-fact-pairing",
+      "strict-readiness",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -373,6 +853,8 @@ export async function checkCommand(
       await runCheck("deprecated-adr-no-successor", checkDeprecatedAdrs);
       await runCheck("domain-contradictions", checkDomainContradictions);
       await runCheck("strict-fact-shape", checkStrictFactShape);
+      await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
+      await runCheck("strict-readiness", checkStrictReadiness);
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");
@@ -385,6 +867,12 @@ export async function checkCommand(
     for (const v of violations) {
       const filename = v.source ? path.basename(v.source, ".md") : v.entityId;
       console.log(`[${v.rule}] ${filename}`);
+      if (filename !== v.entityId) {
+        console.log(`  Entity: ${v.entityId}`);
+      }
+      if (v.source) {
+        console.log(`  Source: ${v.source}`);
+      }
       console.log(`  ${v.description}`);
       if (options.fix && v.suggestion) {
         console.log(`  Suggestion: ${v.suggestion}`);
@@ -418,8 +906,9 @@ async function checkMustPriorityCoverage(
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
       const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      if (sourceMatch) {
-        source = sourceMatch[1];
+      const sourceValue = getMatchGroup(sourceMatch);
+      if (sourceValue) {
+        source = sourceValue;
       }
     }
 
@@ -467,11 +956,7 @@ async function findMustPriorityReqs(prolog: PrologProcess): Promise<string[]> {
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return [];
   }
@@ -493,11 +978,7 @@ async function getAllEntityIds(
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return [];
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return [];
   }
@@ -532,15 +1013,17 @@ async function checkNoDanglingRefs(
     if (relsResult.success && relsResult.bindings.Rels) {
       const relsStr = relsResult.bindings.Rels;
       const match = relsStr.match(/\[(.*)\]/);
-      if (match) {
-        const content = match[1].trim();
-        if (content) {
-          const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
-          for (const relMatch of relMatches) {
-            const fromId = relMatch[1].trim().replace(/^'|'$/g, "");
-            const toId = relMatch[2].trim().replace(/^'|'$/g, "");
-            allRels.push({ from: fromId, to: toId });
-          }
+      const content = getMatchGroup(match)?.trim();
+      if (content) {
+        const relMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
+        for (const relMatch of relMatches) {
+          const fromValue = getMatchGroup(relMatch);
+          const toValue = getMatchGroup(relMatch, 2);
+          if (!fromValue || !toValue) continue;
+
+          const fromId = fromValue.trim().replace(/^'|'$/g, "");
+          const toId = toValue.trim().replace(/^'|'$/g, "");
+          allRels.push({ from: fromId, to: toId });
         }
       }
     }
@@ -582,11 +1065,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
 
   const depsStr = depsResult.bindings.Deps;
   const match = depsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return violations;
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return violations;
   }
@@ -595,8 +1074,12 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
   const depMatches = content.matchAll(/\[([^,]+),([^\]]+)\]/g);
 
   for (const depMatch of depMatches) {
-    const from = depMatch[1].trim().replace(/^'|'$/g, "");
-    const to = depMatch[2].trim().replace(/^'|'$/g, "");
+    const fromValue = getMatchGroup(depMatch);
+    const toValue = getMatchGroup(depMatch, 2);
+    if (!fromValue || !toValue) continue;
+
+    const from = fromValue.trim().replace(/^'|'$/g, "");
+    const to = toValue.trim().replace(/^'|'$/g, "");
     if (!graph.has(from)) {
       graph.set(from, []);
     }
@@ -633,6 +1116,11 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
     if (!visited.has(node)) {
       const cyclePath = hasCycleDFS(node, []);
       if (cyclePath) {
+        const cycleEntityId = cyclePath[0];
+        if (!cycleEntityId) {
+          continue;
+        }
+
         const cycleWithSources: string[] = [];
         for (const entityId of cyclePath) {
           const entityResult = await prolog.query(
@@ -642,8 +1130,9 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
           if (entityResult.success && entityResult.bindings.Props) {
             const propsStr = entityResult.bindings.Props;
             const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-            if (sourceMatch) {
-              sourceName = path.basename(sourceMatch[1], ".md");
+            const sourceValue = getMatchGroup(sourceMatch);
+            if (sourceValue) {
+              sourceName = path.basename(sourceValue, ".md");
             }
           }
           cycleWithSources.push(sourceName);
@@ -651,7 +1140,7 @@ async function checkNoCycles(prolog: PrologProcess): Promise<Violation[]> {
 
         violations.push({
           rule: "no-cycles",
-          entityId: cyclePath[0],
+          entityId: cycleEntityId,
           description: `Circular dependency detected: ${cycleWithSources.join(" → ")}`,
           suggestion:
             "Break cycle by removing one of the depends_on relationships",
@@ -688,7 +1177,10 @@ async function checkRequiredFields(
 
       const keyMatches = propsStr.matchAll(/(\w+)\s*=/g);
       for (const match of keyMatches) {
-        propKeys.add(match[1]);
+        const key = getMatchGroup(match);
+        if (key) {
+          propKeys.add(key);
+        }
       }
 
       for (const field of required) {
@@ -723,11 +1215,7 @@ async function checkDeprecatedAdrs(
 
   const idsStr = result.bindings.Ids;
   const match = idsStr.match(/\[(.*)\]/);
-  if (!match) {
-    return violations;
-  }
-
-  const content = match[1].trim();
+  const content = getMatchGroup(match)?.trim();
   if (!content) {
     return violations;
   }
@@ -744,8 +1232,9 @@ async function checkDeprecatedAdrs(
     if (entityResult.success && entityResult.bindings.Props) {
       const propsStr = entityResult.bindings.Props;
       const sourceMatch = propsStr.match(/source\s*=\s*\^\^?\("([^"]+)"/);
-      if (sourceMatch) {
-        source = sourceMatch[1];
+      const sourceValue = getMatchGroup(sourceMatch);
+      if (sourceValue) {
+        source = sourceValue;
       }
     }
 
@@ -781,7 +1270,7 @@ async function checkDomainContradictions(
     violations.push({
       rule: "domain-contradictions",
       entityId: `${reqA}/${reqB}`,
-      description: reason,
+      description: `${reason} [strict-readiness: contradiction-ready]`,
       suggestion:
         "Supersede one requirement or align both to the same required property",
     });
@@ -815,6 +1304,56 @@ async function checkStrictFactShape(
   return violations;
 }
 
+async function checkStrictReqFactPairing(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_req_fact_pairing_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
+  }
+
+  return violations;
+}
+
+async function checkStrictReadiness(
+  prolog: PrologProcess,
+): Promise<Violation[]> {
+  const violations: Violation[] = [];
+
+  const result = await prolog.query(
+    `findall(violation(Rule, EntityId, Desc, Sugg, Src),
+      checks:strict_readiness_violation(violation(Rule, EntityId, Desc, Sugg, Src)),
+      Violations)`,
+  );
+
+  if (!result.success || !result.bindings.Violations) {
+    return violations;
+  }
+
+  const violationsStr = result.bindings.Violations as string;
+  if (violationsStr && violationsStr !== "[]") {
+    for (const v of parseViolationRows(violationsStr)) {
+      violations.push(v);
+    }
+  }
+
+  return violations;
+}
+
 async function checkSymbolCoverage(
   prolog: PrologProcess,
 ): Promise<Violation[]> {
@@ -828,21 +1367,21 @@ async function checkSymbolCoverage(
     const symbolsStr = uncoveredResult.bindings.Symbols;
     const match = symbolsStr.match(/\[(.*)\]/);
 
-    if (match) {
-      const content = match[1].trim();
-      if (content) {
-        const symbolMatches = content.matchAll(/'([^']+)'/g);
-        for (const symbolMatch of symbolMatches) {
-          const symbolId = symbolMatch[1];
-          violations.push({
-            rule: "symbol-coverage",
-            entityId: symbolId,
-            description:
-              "Code symbol is not traceable to any functional requirement.",
-            suggestion:
-              "Update symbols.yaml to link this symbol to a related requirement.",
-          });
-        }
+    const content = getMatchGroup(match)?.trim();
+    if (content) {
+      const symbolMatches = content.matchAll(/'([^']+)'/g);
+      for (const symbolMatch of symbolMatches) {
+        const symbolId = getMatchGroup(symbolMatch);
+        if (!symbolId) continue;
+
+        violations.push({
+          rule: "symbol-coverage",
+          entityId: symbolId,
+          description:
+            "Code symbol is not traceable to any functional requirement.",
+          suggestion:
+            "Update symbols.yaml to link this symbol to a related requirement.",
+        });
       }
     }
   }

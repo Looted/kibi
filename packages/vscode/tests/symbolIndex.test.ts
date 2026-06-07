@@ -1,18 +1,60 @@
-import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
+import { execSync as realExecSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { buildIndex } from "../src/symbolIndex";
+
+type ExecSyncOptions = {
+  cwd: string;
+  encoding: "utf8";
+  timeout: number;
+  stdio: ["ignore", "pipe", "ignore"];
+};
+
+let execSyncImpl: (cmd: string, options: ExecSyncOptions) => string =
+  realExecSync as unknown as (cmd: string, options: ExecSyncOptions) => string;
+
+const execSyncCalls: Array<{ cmd: string; options: ExecSyncOptions }> = [];
+
+mock.module("node:child_process", () => ({
+  execSync: (cmd: string, options: ExecSyncOptions) => {
+    execSyncCalls.push({ cmd, options });
+    return execSyncImpl(cmd, options);
+  },
+}));
+
+const symbolIndexModuleNonce = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const { buildIndex, queryRelationshipsViaCli } = await import(
+  `../src/symbolIndex?case=${symbolIndexModuleNonce}`
+);
 
 describe("symbolIndex", () => {
   let tmpDir: string;
 
   beforeEach(() => {
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-symbol-index-"));
+    execSyncCalls.length = 0;
+    execSyncImpl = realExecSync as unknown as (
+      cmd: string,
+      options: ExecSyncOptions,
+    ) => string;
   });
 
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
+    execSyncCalls.length = 0;
+    execSyncImpl = realExecSync as unknown as (
+      cmd: string,
+      options: ExecSyncOptions,
+    ) => string;
   });
 
   test("buildIndex parses symbols and links from symbols.yaml", () => {
@@ -55,6 +97,13 @@ describe("symbolIndex", () => {
     expect(index.byTitle.size).toBe(0);
   });
 
+  test("buildIndex returns empty index when manifest path is a directory", () => {
+    const index = buildIndex(tmpDir, tmpDir);
+
+    expect(index.byId.size).toBe(0);
+    expect(index.byFile.size).toBe(0);
+    expect(index.byTitle.size).toBe(0);
+  });
 
   test("buildIndex correctly maps internal helper function entries", () => {
     const manifestPath = path.join(tmpDir, "symbols.yaml");
@@ -124,7 +173,10 @@ describe("symbolIndex", () => {
     expect(index.byId.size).toBe(2);
     expect(index.byFile.size).toBe(1);
 
-    const absPath = path.resolve(tmpDir, "packages/vscode/src/codeLensProvider.ts");
+    const absPath = path.resolve(
+      tmpDir,
+      "packages/vscode/src/codeLensProvider.ts",
+    );
     const fileEntries = index.byFile.get(absPath);
     expect(fileEntries?.length).toBe(2);
 
@@ -134,4 +186,188 @@ describe("symbolIndex", () => {
     const method2 = index.byId.get("SYM-METHOD-002");
     expect(method2?.sourceLine).toBe(115);
   });
+
+  test("buildIndex unquotes single-quoted YAML values", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: 'SYM-SINGLE-001'",
+        "    title: 'MyFunc'",
+        "    sourceFile: 'packages/vscode/src/symbolIndex.ts'",
+        "    links:",
+        "      - 'REQ-quoted-001'",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const index = buildIndex(manifestPath, tmpDir);
+    const symbol = index.byId.get("SYM-SINGLE-001");
+
+    expect(symbol).toBeDefined();
+    expect(symbol?.title).toBe("MyFunc");
+    expect(symbol?.sourceFile).toBe(
+      path.resolve(tmpDir, "packages/vscode/src/symbolIndex.ts"),
+    );
+    expect(symbol?.links).toEqual(["REQ-quoted-001"]);
+  });
+
+  test("buildIndex prefers coordinate artifact source metadata over inline manifest coordinates", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    const coordinatesPath = path.join(tmpDir, "symbol-coordinates.yaml");
+    const staleSourcePath = path.join(tmpDir, "src", "stale.ts");
+    const freshSourcePath = path.join(tmpDir, "src", "fresh.ts");
+
+    fs.mkdirSync(path.dirname(staleSourcePath), { recursive: true });
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-OVERLAY-001",
+        "    title: OverlaySymbol",
+        `    sourceFile: ${staleSourcePath}`,
+        "    sourceLine: 2",
+        "    links:",
+        "      - REQ-OVERLAY-001",
+      ].join("\n"),
+    );
+    fs.writeFileSync(
+      coordinatesPath,
+      [
+        "coordinates:",
+        "  SYM-OVERLAY-001:",
+        `    sourceFile: ${freshSourcePath}`,
+        "    sourceLine: 12",
+        "    sourceColumn: 1",
+        "    sourceEndLine: 16",
+        "    sourceEndColumn: 3",
+      ].join("\n"),
+    );
+
+    const index = buildIndex(manifestPath, tmpDir, coordinatesPath);
+
+    expect(index.byFile.has(freshSourcePath)).toBe(true);
+    expect(index.byFile.has(staleSourcePath)).toBe(false);
+    expect(index.byId.get("SYM-OVERLAY-001")).toMatchObject({
+      sourceFile: freshSourcePath,
+      sourceLine: 12,
+      links: ["REQ-OVERLAY-001"],
+    });
+  });
+
+  test("buildIndex falls back to inline manifest coordinates when coordinate artifact is missing", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    const inlineSourcePath = path.join(tmpDir, "src", "inline.ts");
+
+    fs.mkdirSync(path.dirname(inlineSourcePath), { recursive: true });
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-INLINE-001",
+        "    title: InlineSymbol",
+        `    sourceFile: ${inlineSourcePath}`,
+        "    sourceLine: 7",
+        "    links:",
+        "      - REQ-INLINE-001",
+      ].join("\n"),
+    );
+
+    const index = buildIndex(
+      manifestPath,
+      tmpDir,
+      path.join(tmpDir, "symbol-coordinates.yaml"),
+    );
+
+    expect(index.byFile.has(inlineSourcePath)).toBe(true);
+    expect(index.byId.get("SYM-INLINE-001")).toMatchObject({
+      sourceFile: inlineSourcePath,
+      sourceLine: 7,
+      links: ["REQ-INLINE-001"],
+    });
+  });
+
+  test("buildIndex stops collecting links after a non-link line in links block", () => {
+    const manifestPath = path.join(tmpDir, "symbols.yaml");
+    fs.writeFileSync(
+      manifestPath,
+      [
+        "symbols:",
+        "  - id: SYM-LINK-RESET-001",
+        "    title: MyFunc",
+        "    links:",
+        "      - REQ-001",
+        "    kind: function",
+        "      - REQ-SHOULD-NOT-BE-COLLECTED",
+        "    sourceLine: 27",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const index = buildIndex(manifestPath, tmpDir);
+    const symbol = index.byId.get("SYM-LINK-RESET-001");
+
+    expect(symbol).toBeDefined();
+    expect(symbol?.links).toEqual(["REQ-001"]);
+    expect(symbol?.sourceLine).toBe(27);
+  });
+
+  test("queryRelationshipsViaCli parses JSON from the first successful candidate", () => {
+    const relationships = [
+      { type: "implements", from: "SYM-001", to: "REQ-001" },
+      { type: "verified_by", from: "REQ-001", to: "TEST-001" },
+    ];
+
+    execSyncImpl = () => JSON.stringify(relationships);
+
+    expect(queryRelationshipsViaCli("SYM-001", tmpDir)).toEqual(relationships);
+    expect(execSyncCalls).toEqual([
+      {
+        cmd: "kibi query --relationships SYM-001 --format json",
+        options: {
+          cwd: tmpDir,
+          encoding: "utf8",
+          timeout: 10000,
+          stdio: ["ignore", "pipe", "ignore"],
+        },
+      },
+    ]);
+  });
+
+  test("queryRelationshipsViaCli falls back to the bun command after a failure", () => {
+    const relationships = [
+      { type: "implements", from: "SYM-002", to: "REQ-002" },
+    ];
+    let callCount = 0;
+
+    execSyncImpl = (cmd) => {
+      callCount += 1;
+      if (callCount === 1) {
+        expect(cmd).toBe("kibi query --relationships SYM-002 --format json");
+        throw new Error("kibi not found");
+      }
+
+      expect(cmd).toBe(
+        "bun run packages/cli/bin/kibi query --relationships SYM-002 --format json",
+      );
+      return JSON.stringify(relationships);
+    };
+
+    expect(queryRelationshipsViaCli("SYM-002", tmpDir)).toEqual(relationships);
+    expect(execSyncCalls).toHaveLength(2);
+  });
+
+  test("queryRelationshipsViaCli returns an empty array when all candidates fail", () => {
+    execSyncImpl = () => {
+      throw new Error("all commands failed");
+    };
+
+    expect(queryRelationshipsViaCli("SYM-003", tmpDir)).toEqual([]);
+    expect(execSyncCalls).toHaveLength(2);
+  });
+});
+
+afterAll(() => {
+  mock.restore();
 });

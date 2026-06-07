@@ -11,7 +11,15 @@
  * shape, etc.) are caught — unlike the prior approach of testing an in-file
  * reimplementation.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import {
+  afterAll,
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  mock,
+  test,
+} from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -20,84 +28,14 @@ import * as path from "node:path";
 // can include the real implementation without using an async factory (which races
 // with Bun's synchronous named-export resolution and drops the export).
 import { buildIndex } from "../src/symbolIndex";
+import {
+  DefaultCodeLens as MockCodeLens,
+  DefaultRange as MockRange,
+  getVscodeMockModule,
+  resetVscodeMock,
+} from "./shared/vscode-mock";
 
-// ---------------------------------------------------------------------------
-// Minimal vscode mock — only the APIs used by KibiCodeLensProvider
-// ---------------------------------------------------------------------------
-class MockEventEmitter {
-  event = () => {};
-  fire() {}
-  dispose() {}
-}
-
-class MockRange {
-  start: { line: number; character: number };
-  end: { line: number; character: number };
-  constructor(
-    startLine: number,
-    startCharacter: number,
-    endLine: number,
-    endCharacter: number,
-  ) {
-    this.start = { line: startLine, character: startCharacter };
-    this.end = { line: endLine, character: endCharacter };
-  }
-}
-
-class MockCodeLens {
-  command?: unknown;
-  constructor(
-    public range: unknown,
-    command?: unknown,
-  ) {
-    this.command = command;
-  }
-}
-
-const MockUri = { file: (p: string) => ({ fsPath: p, scheme: "file" }) };
-const MockRelativePattern = class {
-  constructor(
-    public base: unknown,
-    public pattern: string,
-  ) {}
-};
-const mockWorkspace = {
-  createFileSystemWatcher: () => ({
-    onDidChange: () => {},
-    onDidCreate: () => {},
-    onDidDelete: () => {},
-    dispose: () => {},
-  }),
-};
-// Stub out additional vscode APIs used by treeProvider (loaded in the same
-// Bun process). If this mock wins the mock.module race these stubs prevent
-// "undefined is not an object" errors in the extension.test.ts suite.
-const MockTreeItemCollapsibleState = { None: 0, Collapsed: 1, Expanded: 2 };
-class MockThemeIcon {
-  constructor(public id: string) {}
-}
-class MockTreeItem {
-  constructor(
-    public label: string,
-    public collapsibleState: number,
-  ) {}
-  iconPath?: MockThemeIcon;
-  contextValue?: string;
-}
-const mockWindow = { showInformationMessage: () => {} };
-
-mock.module("vscode", () => ({
-  EventEmitter: MockEventEmitter,
-  Range: MockRange,
-  CodeLens: MockCodeLens,
-  Uri: MockUri,
-  RelativePattern: MockRelativePattern,
-  workspace: mockWorkspace,
-  TreeItemCollapsibleState: MockTreeItemCollapsibleState,
-  ThemeIcon: MockThemeIcon,
-  TreeItem: MockTreeItem,
-  window: mockWindow,
-}));
+mock.module("vscode", () => getVscodeMockModule());
 
 // ---------------------------------------------------------------------------
 // Mock queryRelationshipsViaCli — keep buildIndex real (reads YAML)
@@ -116,8 +54,20 @@ mock.module("../src/symbolIndex", () => ({
 // ---------------------------------------------------------------------------
 // Import real classes AFTER mocks are registered
 // ---------------------------------------------------------------------------
-const { KibiCodeLensProvider } = await import("../src/codeLensProvider");
-const { RelationshipCache } = await import("../src/relationshipCache");
+const moduleNonce = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const { KibiCodeLensProvider } = await import(
+  `../src/codeLensProvider?case=${moduleNonce}`
+);
+const { RelationshipCache } = await import(
+  `../src/relationshipCache?case=${moduleNonce}`
+);
+// Capture the workspace object that Bun snapshots into vscode.workspace inside
+// codeLensProvider.ts at `import * as vscode from "vscode"` time.  Bun freezes
+// the namespace at first import so resetVscodeMock workspace overrides do NOT
+// propagate through the getter.  We hold a reference to this original object so
+// configureVscodeMock can mutate its createFileSystemWatcher in-place.
+const vscodeWorkspaceSpy = (getVscodeMockModule() as Record<string, unknown>)
+  .workspace as Record<string, unknown>;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -125,8 +75,9 @@ const { RelationshipCache } = await import("../src/relationshipCache");
 function writeTestSymbols(
   dir: string,
   symbols: Array<Record<string, unknown>>,
+  fileName = "symbols.yaml",
 ): string {
-  const symbolsPath = path.join(dir, "symbols.yaml");
+  const symbolsPath = path.join(dir, fileName);
   const lines: string[] = ["symbols:"];
   for (const symbol of symbols) {
     lines.push(`  - id: ${String(symbol.id ?? "")}`);
@@ -181,12 +132,129 @@ function getCommand(lens: InstanceType<typeof MockCodeLens>) {
 }
 
 // ---------------------------------------------------------------------------
+// Helpers for "refresh and watchers" tests
+// ---------------------------------------------------------------------------
+class MockEventEmitter {
+  listeners: Array<() => void> = [];
+  fireCount = 0;
+
+  event = (listener?: () => void) => {
+    if (listener) this.listeners.push(listener);
+    return { dispose() {} };
+  };
+
+  fire() {
+    this.fireCount++;
+    for (const listener of this.listeners) listener();
+  }
+
+  dispose() {}
+}
+
+class MockFileSystemWatcher {
+  changeListeners: Array<() => void> = [];
+  createListeners: Array<() => void> = [];
+  deleteListeners: Array<() => void> = [];
+
+  constructor(public pattern: unknown) {}
+
+  onDidChange(listener: () => void) {
+    this.changeListeners.push(listener);
+  }
+
+  onDidCreate(listener: () => void) {
+    this.createListeners.push(listener);
+  }
+
+  onDidDelete(listener: () => void) {
+    this.deleteListeners.push(listener);
+  }
+
+  emitChange() {
+    for (const listener of this.changeListeners) listener();
+  }
+
+  emitCreate() {
+    for (const listener of this.createListeners) listener();
+  }
+
+  emitDelete() {
+    for (const listener of this.deleteListeners) listener();
+  }
+
+  dispose() {}
+}
+
+const MockUri = {
+  file: (p: string) => ({ fsPath: p, path: p, scheme: "file" }),
+};
+const MockRelativePattern = class {
+  constructor(
+    public base: unknown,
+    public pattern: string,
+  ) {}
+};
+const MockTreeItemCollapsibleState = { None: 0, Collapsed: 1, Expanded: 2 };
+class MockThemeIcon {
+  constructor(public id: string) {}
+}
+class MockTreeItem {
+  constructor(
+    public label: string,
+    public collapsibleState: number,
+  ) {}
+  iconPath?: MockThemeIcon;
+  contextValue?: string;
+}
+const mockWindow = { showInformationMessage: () => {} };
+
+const createdWatchers: MockFileSystemWatcher[] = [];
+const mockWorkspace = {
+  createFileSystemWatcher: (pattern: unknown) => {
+    const watcher = new MockFileSystemWatcher(pattern);
+    createdWatchers.push(watcher);
+    return watcher;
+  },
+};
+
+function configureVscodeMock() {
+  resetVscodeMock({
+    EventEmitter: MockEventEmitter,
+    Range: MockRange,
+    CodeLens: MockCodeLens,
+    Uri: MockUri,
+    RelativePattern: MockRelativePattern,
+    workspace: mockWorkspace,
+    TreeItemCollapsibleState: MockTreeItemCollapsibleState,
+    ThemeIcon: MockThemeIcon,
+    TreeItem: MockTreeItem,
+    window: mockWindow,
+  });
+  // Bun snapshots vscode.workspace at codeLensProvider import time, so the
+  // workspace override in resetVscodeMock doesn't reach it.  Mutate the
+  // snapshotted workspace object's createFileSystemWatcher directly.
+  vscodeWorkspaceSpy.createFileSystemWatcher =
+    mockWorkspace.createFileSystemWatcher;
+}
+
+type MockExtensionContext = { subscriptions: unknown[] };
+
+function makeContext(): MockExtensionContext {
+  return { subscriptions: [] };
+}
+
+async function waitForDebounce() {
+  await new Promise((resolve) => setTimeout(resolve, 550));
+}
+
+// ---------------------------------------------------------------------------
 // provideCodeLenses
 // ---------------------------------------------------------------------------
 describe("KibiCodeLensProvider – provideCodeLenses", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -349,7 +417,6 @@ describe("KibiCodeLensProvider – provideCodeLenses", () => {
     ).toBe(114);
   });
 
-
   test("returns null when symbols.yaml is malformed", () => {
     const testFile = path.join(tmpDir, "src", "main.ts");
     fs.mkdirSync(path.dirname(testFile), { recursive: true });
@@ -396,6 +463,7 @@ describe("KibiCodeLensProvider – resolveCodeLens", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -578,6 +646,7 @@ describe("KibiCodeLensProvider – caching", () => {
   let tmpDir: string;
 
   beforeEach(() => {
+    resetVscodeMock();
     tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
     mockQueryImpl = () => [];
   });
@@ -654,4 +723,229 @@ describe("KibiCodeLensProvider – caching", () => {
     await provider.resolveCodeLens(lenses[0], noCancel);
     expect(callCount).toBe(2);
   });
+});
+
+// ---------------------------------------------------------------------------
+// refresh and watchers
+// ---------------------------------------------------------------------------
+describe("KibiCodeLensProvider \u2013 refresh and watchers", () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    configureVscodeMock();
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-codelens-refresh-"));
+    mockQueryImpl = () => [];
+    createdWatchers.length = 0;
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("refresh uses relative symbolsManifest from .kb/config.json", () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    const altDir = path.join(tmpDir, "config");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// main\n", "utf8");
+
+    const provider = makeProvider(tmpDir);
+    expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
+
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    fs.mkdirSync(altDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, ".kb", "config.json"),
+      JSON.stringify({ symbolsManifest: "config/symbols.yaml" }),
+      "utf8",
+    );
+    writeTestSymbols(
+      altDir,
+      [
+        {
+          id: "SYM-001",
+          title: "main",
+          sourceFile: "src/main.ts",
+          sourceLine: 3,
+          links: [],
+        },
+      ],
+      "symbols.yaml",
+    );
+
+    provider.refresh();
+
+    const lenses = provider.provideCodeLenses(makeDoc(testFile), noCancel);
+    expect(lenses?.length).toBe(1);
+  });
+
+  test("refresh uses absolute paths.symbols, clears cache, and emits change", async () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    const manifestDir = path.join(tmpDir, "absolute");
+    const manifestPath = path.join(manifestDir, "symbols.yml");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(testFile, "// main\n", "utf8");
+    fs.writeFileSync(
+      path.join(tmpDir, ".kb", "config.json"),
+      JSON.stringify({ paths: { symbols: manifestPath } }),
+      "utf8",
+    );
+    writeTestSymbols(
+      manifestDir,
+      [
+        {
+          id: "SYM-ABS-001",
+          title: "main",
+          sourceFile: "src/main.ts",
+          sourceLine: 5,
+          links: [],
+        },
+      ],
+      "symbols.yml",
+    );
+
+    const cache = new RelationshipCache();
+    cache.set("codelens:rel:SYM-ABS-001", { data: [], timestamp: Date.now() });
+    const provider = makeProvider(tmpDir, cache);
+    let fireCount = 0;
+    provider.onDidChangeCodeLenses(() => {
+      fireCount++;
+    });
+
+    provider.refresh();
+
+    expect(cache.get("codelens:rel:SYM-ABS-001")).toBeUndefined();
+    expect(fireCount).toBe(1);
+    expect(
+      provider.provideCodeLenses(makeDoc(testFile), noCancel)?.length,
+    ).toBe(1);
+  });
+
+  test("refresh ignores malformed config and falls back to symbols.yml", () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    fs.writeFileSync(testFile, "// main\n", "utf8");
+    fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{", "utf8");
+    writeTestSymbols(
+      tmpDir,
+      [
+        {
+          id: "SYM-YML-001",
+          title: "main",
+          sourceFile: "src/main.ts",
+          sourceLine: 7,
+          links: [],
+        },
+      ],
+      "symbols.yml",
+    );
+
+    const provider = makeProvider(tmpDir);
+    provider.refresh();
+
+    expect(
+      provider.provideCodeLenses(makeDoc(testFile), noCancel)?.length,
+    ).toBe(1);
+  });
+
+  test("refresh falls back to default symbols.yaml path when no manifest exists", () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// main\n", "utf8");
+
+    const cache = new RelationshipCache();
+    cache.set("orphan", { data: [], timestamp: Date.now() });
+    const provider = makeProvider(tmpDir, cache);
+    let fireCount = 0;
+    provider.onDidChangeCodeLenses(() => {
+      fireCount++;
+    });
+
+    provider.refresh();
+
+    expect(cache.get("orphan")).toBeUndefined();
+    expect(fireCount).toBe(1);
+    expect(provider.provideCodeLenses(makeDoc(testFile), noCancel)).toBeNull();
+  });
+
+  test("watchSources registers watchers and manifest changes debounce refresh", async () => {
+    const testFile = path.join(tmpDir, "src", "main.ts");
+    fs.mkdirSync(path.dirname(testFile), { recursive: true });
+    fs.writeFileSync(testFile, "// main\n", "utf8");
+
+    const provider = makeProvider(tmpDir);
+    let fireCount = 0;
+    provider.onDidChangeCodeLenses(() => {
+      fireCount++;
+    });
+
+    const context = makeContext();
+    provider.watchSources(context as never);
+
+    expect(createdWatchers.length).toBe(2);
+    expect(context.subscriptions.length).toBe(2);
+
+    writeTestSymbols(tmpDir, [
+      {
+        id: "SYM-001",
+        title: "main",
+        sourceFile: "src/main.ts",
+        sourceLine: 2,
+        links: [],
+      },
+    ]);
+
+    createdWatchers[0]?.emitChange();
+    createdWatchers[0]?.emitChange();
+    await waitForDebounce();
+
+    expect(fireCount).toBe(1);
+    expect(
+      provider.provideCodeLenses(makeDoc(testFile), noCancel)?.length,
+    ).toBe(1);
+  });
+
+  test("watchSources clears relationship cache on KB watcher events", async () => {
+    const cache = new RelationshipCache();
+    cache.set("codelens:rel:SYM-001", { data: [], timestamp: Date.now() });
+    const provider = makeProvider(tmpDir, cache);
+    let fireCount = 0;
+    provider.onDidChangeCodeLenses(() => {
+      fireCount++;
+    });
+
+    provider.watchSources(makeContext() as never);
+    createdWatchers[1]?.emitCreate();
+    await waitForDebounce();
+
+    expect(cache.get("codelens:rel:SYM-001")).toBeUndefined();
+    expect(fireCount).toBe(1);
+  });
+
+  test("debounce helper only invokes the latest call", async () => {
+    const provider = makeProvider(tmpDir);
+    const calls: string[] = [];
+    const withDebounce = provider as unknown as {
+      debounce: (
+        fn: (value: string) => void,
+        delay: number,
+      ) => (value: string) => void;
+    };
+    const debounced = withDebounce.debounce((value: string) => {
+      calls.push(value);
+    }, 20);
+
+    debounced("first");
+    debounced("second");
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    expect(calls).toEqual(["second"]);
+  });
+});
+
+afterAll(() => {
+  resetVscodeMock();
+  mock.restore();
 });

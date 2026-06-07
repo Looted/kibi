@@ -11,6 +11,7 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import { parseRdfRelationships } from "../src/shared/rdf-parser";
 
 // ── Minimal VS Code API mock ────────────────────────────────────────────────
 
@@ -277,5 +278,140 @@ describe("KibiCodeActionProvider – symbol index", () => {
 
     expect(fs.existsSync(resolved)).toBe(true);
     expect(resolved).toContain("src/auth.ts");
+  });
+});
+
+describe("treeProvider – split traceability RDF edges", () => {
+  test("parses inline executable_for, verified_by, and validates from RDF", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
+    const kbDir = path.join(tmpDir, ".kb", "branches", "main");
+    fs.mkdirSync(kbDir, { recursive: true });
+
+    const rdf = `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:kb="urn:kibi:">
+
+  <rdf:Description rdf:about="kb:entity/SCEN-001">
+    <kb:type>scenario</kb:type>
+    <kb:title>Login scenario</kb:title>
+    <kb:status rdf:resource="kb:status/active"/>
+    <kb:source>docs/SCEN-001.md</kb:source>
+    <kb:tags></kb:tags>
+    <kb:verified_by rdf:resource="kb:entity/TEST-001"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="kb:entity/TEST-001">
+    <kb:type>test</kb:type>
+    <kb:title>Login test</kb:title>
+    <kb:status rdf:resource="kb:status/passing"/>
+    <kb:source>docs/TEST-001.md</kb:source>
+    <kb:tags></kb:tags>
+    <kb:validates rdf:resource="kb:entity/SCEN-001"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="kb:entity/SYM-001">
+    <kb:type>symbol</kb:type>
+    <kb:title>loginHandler</kb:title>
+    <kb:status rdf:resource="kb:status/active"/>
+    <kb:source>src/login.ts</kb:source>
+    <kb:tags></kb:tags>
+    <kb:executable_for rdf:resource="kb:entity/TEST-001"/>
+  </rdf:Description>
+
+</rdf:RDF>`;
+    fs.writeFileSync(path.join(kbDir, "kb.rdf"), rdf, "utf8");
+
+    const relationships = parseRdfRelationships(rdf);
+
+    // scenario --verified_by--> test
+    expect(relationships).toContainEqual({
+      relType: "verified_by",
+      fromId: "SCEN-001",
+      toId: "TEST-001",
+    });
+
+    // test --validates--> scenario
+    expect(relationships).toContainEqual({
+      relType: "validates",
+      fromId: "TEST-001",
+      toId: "SCEN-001",
+    });
+
+    // symbol --executable_for--> test
+    expect(relationships).toContainEqual({
+      relType: "executable_for",
+      fromId: "SYM-001",
+      toId: "TEST-001",
+    });
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test("parses req → scenario → test canonical chain from RDF", () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-test-"));
+    const kbDir = path.join(tmpDir, ".kb", "branches", "main");
+    fs.mkdirSync(kbDir, { recursive: true });
+
+    const rdf = `<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:kb="urn:kibi:">
+
+  <rdf:Description rdf:about="kb:entity/REQ-CHAIN">
+    <kb:type>req</kb:type>
+    <kb:title>Chain requirement</kb:title>
+    <kb:status rdf:resource="kb:status/open"/>
+    <kb:source>docs/REQ-CHAIN.md</kb:source>
+    <kb:tags></kb:tags>
+    <kb:specified_by rdf:resource="kb:entity/SCEN-CHAIN"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="kb:entity/SCEN-CHAIN">
+    <kb:type>scenario</kb:type>
+    <kb:title>Chain scenario</kb:title>
+    <kb:status rdf:resource="kb:status/active"/>
+    <kb:source>docs/SCEN-CHAIN.md</kb:source>
+    <kb:tags></kb:tags>
+    <kb:verified_by rdf:resource="kb:entity/TEST-CHAIN"/>
+  </rdf:Description>
+
+  <rdf:Description rdf:about="kb:entity/TEST-CHAIN">
+    <kb:type>test</kb:type>
+    <kb:title>Chain test</kb:title>
+    <kb:status rdf:resource="kb:status/passing"/>
+    <kb:source>docs/TEST-CHAIN.md</kb:source>
+    <kb:tags></kb:tags>
+    <kb:validates rdf:resource="kb:entity/SCEN-CHAIN"/>
+  </rdf:Description>
+
+</rdf:RDF>`;
+    fs.writeFileSync(path.join(kbDir, "kb.rdf"), rdf, "utf8");
+
+    const relationships = parseRdfRelationships(rdf);
+
+    // Canonical chain: req --specified_by--> scenario
+    expect(relationships).toContainEqual({
+      relType: "specified_by",
+      fromId: "REQ-CHAIN",
+      toId: "SCEN-CHAIN",
+    });
+
+    // scenario --verified_by--> test
+    expect(relationships).toContainEqual({
+      relType: "verified_by",
+      fromId: "SCEN-CHAIN",
+      toId: "TEST-CHAIN",
+    });
+
+    // test --validates--> scenario (bidirectional)
+    expect(relationships).toContainEqual({
+      relType: "validates",
+      fromId: "TEST-CHAIN",
+      toId: "SCEN-CHAIN",
+    });
+
+    // Total edges in the canonical chain
+    expect(relationships).toHaveLength(3);
+
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 });

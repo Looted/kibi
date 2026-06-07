@@ -52,6 +52,19 @@ describe("workspace-health checkWorkspaceHealth", () => {
     assert.equal(result.missingConfig, false);
   });
 
+  // implements REQ-opencode-kibi-plugin-v1
+  it("falls back to default health checks when config JSON is invalid", () => {
+    const kbDir = path.join(tmpDir, ".kb");
+    fs.mkdirSync(kbDir, { recursive: true });
+    fs.writeFileSync(path.join(kbDir, "config.json"), "{invalid-json");
+
+    const result = checkWorkspaceHealth(tmpDir);
+
+    assert.equal(result.missingConfig, false);
+    assert.ok(result.missingDocDirs.includes("documentation/requirements"));
+    assert.equal(result.needsBootstrap, true);
+  });
+
   it("detects missing documentation directories", () => {
     const result = checkWorkspaceHealth(tmpDir);
     assert.ok(result.missingDocDirs.length > 0);

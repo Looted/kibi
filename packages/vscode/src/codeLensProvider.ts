@@ -20,7 +20,7 @@ import * as path from "node:path";
 import * as vscode from "vscode";
 import { categorizeEntities, formatLensTitle } from "./helpers";
 import type { RelationshipCache } from "./relationshipCache";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "./shared/manifestResolver";
 import {
   type SymbolEntry,
   type SymbolIndex,
@@ -31,8 +31,8 @@ import {
 interface CodeLensMetadata {
   symbolId: string;
   staticLinks: string[];
-  sourceFile?: string;
-  sourceLine?: number;
+  sourceFile?: string | undefined;
+  sourceLine?: number | undefined;
 }
 
 const codeLensMetadata = new WeakMap<vscode.CodeLens, CodeLensMetadata>();
@@ -44,6 +44,7 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
 
   private index: SymbolIndex | null = null;
   private manifestPath: string;
+  private coordinatesPath: string;
   private byFileAliases = new Map<string, SymbolEntry[]>();
   private byRelativePath = new Map<string, SymbolEntry[]>();
 
@@ -51,37 +52,14 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
     private workspaceRoot: string,
     private sharedCache: RelationshipCache,
   ) {
-    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot);
+    ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
+      resolveSymbolsManifestPaths(workspaceRoot));
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
     this.rebuildFileAliases();
-  }
-
-  private resolveManifestPath(): string {
-    // Prefer path in .kb/config.json if present
-    const configPath = path.join(this.workspaceRoot, ".kb", "config.json");
-    if (fs.existsSync(configPath)) {
-      try {
-        const config = JSON.parse(fs.readFileSync(configPath, "utf8")) as {
-          symbolsManifest?: string;
-          paths?: { symbols?: string };
-        };
-        // Check top-level symbolsManifest (legacy) or paths.symbols (current convention)
-        const manifestRelPath = config.symbolsManifest ?? config.paths?.symbols;
-        if (manifestRelPath) {
-          return path.isAbsolute(manifestRelPath)
-            ? manifestRelPath
-            : path.resolve(this.workspaceRoot, manifestRelPath);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    // Default convention: symbols.yaml at workspace root
-    const candidates = [
-      path.join(this.workspaceRoot, "symbols.yaml"),
-      path.join(this.workspaceRoot, "symbols.yml"),
-    ];
-    return candidates.find((p) => fs.existsSync(p)) ?? candidates[0];
   }
 
   provideCodeLenses(
@@ -255,8 +233,13 @@ export class KibiCodeLensProvider implements vscode.CodeLensProvider {
   }
 
   refresh(): void {
-    this.manifestPath = this.resolveManifestPath();
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot);
+    ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
+      resolveSymbolsManifestPaths(this.workspaceRoot));
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
     this.rebuildFileAliases();
     this.clearRelationshipCache();
     this._onDidChangeCodeLenses.fire();

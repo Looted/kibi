@@ -64,8 +64,6 @@ describe("analyzePath", () => {
     expect(result.isKibiDocRelevant).toBe(false);
   });
 
-
-
   test("identifies unknown file types as unknown", () => {
     const result = analyzePath("README.txt");
     expect(result.kind).toBe("unknown");

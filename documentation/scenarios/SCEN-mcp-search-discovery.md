@@ -9,6 +9,9 @@ tags:
   - mcp
   - cli
   - discovery
+links:
+  - type: verified_by
+    target: TEST-mcp-search-discovery
 ---
 
 Given a synced Kibi repository with requirements, scenarios, tests, and symbols

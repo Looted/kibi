@@ -17,7 +17,7 @@
 */
 import * as path from "node:path";
 import * as vscode from "vscode";
-import { resolveSymbolsManifestPath } from "./shared/manifestResolver";
+import { resolveSymbolsManifestPaths } from "./shared/manifestResolver";
 import { type SymbolEntry, type SymbolIndex, buildIndex } from "./symbolIndex";
 
 // queryRelationshipsViaCli is provided by ./symbolIndex
@@ -27,15 +27,21 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
 
   private index: SymbolIndex | null = null;
   private manifestPath: string;
+  private coordinatesPath: string;
   private watcher: vscode.FileSystemWatcher | null = null;
 
   constructor(private workspaceRoot: string) {
-    this.manifestPath = resolveSymbolsManifestPath(workspaceRoot);
+    ({ symbolsPath: this.manifestPath, coordinatesPath: this.coordinatesPath } =
+      resolveSymbolsManifestPaths(workspaceRoot));
     this.buildIndexFromManifest();
   }
 
   private buildIndexFromManifest(): void {
-    this.index = buildIndex(this.manifestPath, this.workspaceRoot);
+    this.index = buildIndex(
+      this.manifestPath,
+      this.workspaceRoot,
+      this.coordinatesPath,
+    );
   }
 
   /** Call this to attach a filesystem watcher and auto-rebuild the index. */
@@ -47,7 +53,10 @@ export class KibiCodeActionProvider implements vscode.CodeActionProvider {
       ),
     );
     const rebuild = () => {
-      this.manifestPath = resolveSymbolsManifestPath(this.workspaceRoot);
+      ({
+        symbolsPath: this.manifestPath,
+        coordinatesPath: this.coordinatesPath,
+      } = resolveSymbolsManifestPaths(this.workspaceRoot));
       this.buildIndexFromManifest();
     };
     this.watcher.onDidChange(rebuild);
@@ -115,10 +124,11 @@ export async function browseLinkedEntities(
   _workspaceRoot: string,
   getNavigationTarget: (
     id: string,
-  ) => { localPath: string; line?: number } | undefined,
+  ) => { localPath: string; line?: number | undefined } | undefined,
   _symbolSourceFile?: string,
   _symbolSourceLine?: number,
 ): Promise<void> {
+  // implements REQ-vscode-traceability
   const allIds = relationships
     .filter((r) => r.from === symbolId || r.to === symbolId)
     .map((r) => (r.from === symbolId ? r.to : r.from));
@@ -133,12 +143,11 @@ export async function browseLinkedEntities(
 
   const items: vscode.QuickPickItem[] = uniqueIds.map((id) => {
     const navigationTarget = getNavigationTarget(id);
+    const detail = navigationTarget?.localPath;
     return {
       label: id,
-      description: navigationTarget?.localPath
-        ? path.basename(navigationTarget.localPath)
-        : "(no local file)",
-      detail: navigationTarget?.localPath ?? undefined,
+      description: detail ? path.basename(detail) : "(no local file)",
+      ...(detail ? { detail } : {}),
     };
   });
 

@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The Align project uses the Smart/Dumb pattern to separate concerns and enable independent development.
+The example product uses the Smart/Dumb pattern to separate concerns and enable independent development.
 
 ## Pattern Definition
 

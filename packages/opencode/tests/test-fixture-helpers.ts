@@ -1,13 +1,18 @@
-import { cpSync, existsSync, mkdtempSync, rmSync } from "fs";
-import { tmpdir } from "os";
-import { join, resolve } from "path";
+import { cpSync, existsSync, mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 export interface TempRepo {
   path: string;
   cleanup(): void;
 }
 
-export function createTempRepoFromFixture(fixtureName: string): TempRepo { // implements REQ-opencode-smart-enforcement-v1
+export function createTempRepoFromFixture(fixtureName: string): TempRepo {
+  // implements REQ-opencode-smart-enforcement-v1
   const fixturesDir = resolve(__dirname, "fixtures");
   const fixturePath = join(fixturesDir, fixtureName);
 

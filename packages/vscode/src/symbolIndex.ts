@@ -18,14 +18,15 @@
 import { execSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { load as loadYaml } from "js-yaml";
 
 export interface SymbolEntry {
   id: string;
   title: string;
   /** Absolute path of the source file where this symbol lives, if available. */
-  sourceFile?: string;
+  sourceFile?: string | undefined;
   /** 1-based line number of the symbol declaration within sourceFile. */
-  sourceLine?: number;
+  sourceLine?: number | undefined;
   /**
    * Optional array of entity IDs this symbol is linked to.
    * @deprecated Use relationships from canonical shard storage instead.
@@ -46,6 +47,7 @@ export function buildIndex(
   // implements REQ-vscode-traceability
   manifestPath: string,
   workspaceRoot: string,
+  coordinatesPath?: string,
 ): SymbolIndex {
   const byTitle = new Map<string, SymbolEntry[]>();
   const byFile = new Map<string, SymbolEntry[]>();
@@ -60,12 +62,20 @@ export function buildIndex(
     return { byTitle, byFile, byId };
   }
 
+  const coordinateOverlay = loadCoordinatesOverlay(
+    coordinatesPath ??
+      path.join(path.dirname(manifestPath), "symbol-coordinates.yaml"),
+  );
+
   for (const sym of rawSymbols) {
     const id = String(sym.id ?? "");
     const title = String(sym.title ?? "");
     if (!id || !title) continue;
 
-    const rawSource = String(sym.sourceFile ?? sym.source ?? "");
+    const overlay = coordinateOverlay.get(id);
+    const rawSource = String(
+      overlay?.sourceFile ?? sym.sourceFile ?? sym.source ?? "",
+    );
     let sourceFile: string | undefined;
     if (rawSource && !rawSource.startsWith("http")) {
       sourceFile = path.isAbsolute(rawSource)
@@ -74,9 +84,13 @@ export function buildIndex(
     }
 
     const sourceLine =
-      typeof sym.sourceLine === "number" ? sym.sourceLine : undefined;
+      typeof overlay?.sourceLine === "number"
+        ? overlay.sourceLine
+        : typeof sym.sourceLine === "number"
+          ? sym.sourceLine
+          : undefined;
 
-    const rawLinks = sym.links;
+    const rawLinks = overlay?.links ?? sym.links;
     const links: string[] = Array.isArray(rawLinks)
       ? rawLinks.map((l) => String(l))
       : [];
@@ -97,6 +111,46 @@ export function buildIndex(
   }
 
   return { byTitle, byFile, byId };
+}
+
+function loadCoordinatesOverlay(
+  coordinatesPath: string,
+): Map<string, { sourceFile?: string; sourceLine?: number; links?: string[] }> {
+  const overlay = new Map<
+    string,
+    { sourceFile?: string; sourceLine?: number; links?: string[] }
+  >();
+  if (!fs.existsSync(coordinatesPath)) return overlay;
+
+  try {
+    const parsed = loadYaml(fs.readFileSync(coordinatesPath, "utf8")) as
+      | { coordinates?: Record<string, unknown> }
+      | undefined;
+    const coordinates =
+      parsed && typeof parsed === "object" ? parsed.coordinates : undefined;
+    if (!coordinates || typeof coordinates !== "object") return overlay;
+
+    for (const [id, raw] of Object.entries(coordinates)) {
+      if (!raw || typeof raw !== "object") continue;
+      const entry = raw as Record<string, unknown>;
+      const item: {
+        sourceFile?: string;
+        sourceLine?: number;
+        links?: string[];
+      } = {};
+      if (typeof entry.sourceFile === "string")
+        item.sourceFile = entry.sourceFile;
+      if (typeof entry.sourceLine === "number")
+        item.sourceLine = entry.sourceLine;
+      if (Array.isArray(entry.links))
+        item.links = entry.links.map((l) => String(l));
+      overlay.set(id, item);
+    }
+  } catch {
+    return overlay;
+  }
+
+  return overlay;
 }
 
 function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
@@ -137,9 +191,11 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
 
     const itemMatch = trimmed.match(/^-+\s*id:\s*(.+)$/);
     if (itemMatch) {
+      const idValue = itemMatch[1];
+      if (idValue === undefined) continue;
       pushCurrent();
       current = {
-        id: unquote(itemMatch[1]),
+        id: unquote(idValue),
         links: [],
       };
       inLinks = false;
@@ -156,7 +212,10 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
     if (inLinks) {
       const linkMatch = trimmed.match(/^-+\s*(.+)$/);
       if (linkMatch) {
-        (current.links as string[]).push(unquote(linkMatch[1]));
+        const linkValue = linkMatch[1];
+        if (linkValue !== undefined && Array.isArray(current.links)) {
+          current.links.push(unquote(linkValue));
+        }
         continue;
       }
       inLinks = false;
@@ -164,13 +223,20 @@ function parseSymbolsManifest(content: string): Array<Record<string, unknown>> {
 
     const titleMatch = trimmed.match(/^title:\s*(.+)$/);
     if (titleMatch) {
-      current.title = unquote(titleMatch[1]);
+      const titleValue = titleMatch[1];
+      if (titleValue !== undefined) {
+        current.title = unquote(titleValue);
+      }
       continue;
     }
 
     const sourceMatch = trimmed.match(/^(sourceFile|source):\s*(.+)$/);
     if (sourceMatch) {
-      current[sourceMatch[1]] = unquote(sourceMatch[2]);
+      const sourceKey = sourceMatch[1];
+      const sourceValue = sourceMatch[2];
+      if (sourceKey !== undefined && sourceValue !== undefined) {
+        current[sourceKey] = unquote(sourceValue);
+      }
       continue;
     }
 

@@ -10,6 +10,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   readdirSync,
   statSync,
   writeFileSync,
@@ -29,6 +30,63 @@ export interface IsolatedInstall {
   installDir: string;
 }
 
+export interface NpmPackResult {
+  filename: string;
+  version: string;
+}
+
+type KibiPackage = "core" | "cli" | "mcp" | "opencode";
+
+const REQUIRED_DEP_PACKAGES: ReadonlyArray<KibiPackage> = ["core", "cli"];
+
+function findTarballFromEnv(
+  tarballEnv: string,
+  pkg: KibiPackage,
+): string | null {
+  const candidateDirs = [join(tarballEnv, pkg), tarballEnv];
+
+  // Determine the expected version from the package manifest
+  let preferredVersion: string | null = null;
+  try {
+    const pkgJsonPath = join(REPO_ROOT, "packages", pkg, "package.json");
+    const pkgJson = JSON.parse(readFileSync(pkgJsonPath, "utf8"));
+    preferredVersion = pkgJson.version ?? null;
+  } catch {
+    // If we can't read the package.json, proceed without version matching
+  }
+
+  for (const dir of candidateDirs) {
+    if (!existsSync(dir)) continue;
+    const files = readdirSync(dir).filter((f: string) =>
+      f.match(new RegExp(`^kibi-${pkg}-.*\.tgz$`)),
+    );
+    if (files.length === 0) continue;
+
+    // Prefer version-matched tarball
+    if (preferredVersion) {
+      const versionMatched = files.find(
+        (f) => f === `kibi-${pkg}-${preferredVersion}.tgz`,
+      );
+      if (versionMatched) {
+        return join(dir, versionMatched);
+      }
+    }
+
+    // Fall back to newest by mtime
+    files.sort((a: string, b: string) => {
+      const statA = statSync(join(dir, a));
+      const statB = statSync(join(dir, b));
+      return statB.mtimeMs - statA.mtimeMs;
+    });
+
+    const latest = files[0];
+    if (!latest) continue;
+    return join(dir, latest);
+  }
+
+  return null;
+}
+
 /**
  * Log a message only when KIBI_E2E_VERBOSE is set.
  * This prevents noisy console output in CI while allowing debugging when needed.
@@ -37,6 +95,62 @@ function log(message: string): void {
   if (process.env.KIBI_E2E_VERBOSE) {
     console.log(message);
   }
+}
+
+function packKibiPackageTarball(
+  pkg: KibiPackage,
+  repoRoot: string = REPO_ROOT,
+): string {
+  const pkgDir = join(repoRoot, "packages", pkg);
+
+  let packOutput: string;
+  try {
+    packOutput = execFileSync("npm", ["pack", "--json"], {
+      cwd: pkgDir,
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  } catch (error) {
+    const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
+    throw new Error(
+      `npm pack failed in ${pkgDir}: ${err.message}${
+        err.stderr ? `\nstderr: ${err.stderr.toString()}` : ""
+      }${err.stdout ? `\nstdout: ${err.stdout.toString()}` : ""}`,
+    );
+  }
+
+  const packResults = parseNpmPackJsonOutput(packOutput);
+  if (!packResults?.[0]?.filename) {
+    throw new Error(`npm pack did not return a filename for kibi-${pkg}`);
+  }
+
+  const tarballPath = join(pkgDir, packResults[0].filename);
+  if (!existsSync(tarballPath)) {
+    throw new Error(`Tarball not found: ${tarballPath}`);
+  }
+
+  return tarballPath;
+}
+
+export function parseNpmPackJsonOutput(output: string): NpmPackResult[] {
+  // implements REQ-opencode-kibi-plugin-v1
+  for (let i = 0; i < output.length; i += 1) {
+    if (output[i] !== "[") continue;
+
+    const remaining = output.slice(i + 1).trimStart();
+    if (!remaining.startsWith("{")) continue;
+
+    try {
+      const parsed = JSON.parse(output.slice(i)) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed as NpmPackResult[];
+      }
+    } catch {
+      // Keep scanning: earlier build output may contain non-JSON bracketed text.
+    }
+  }
+
+  throw new Error(`npm pack did not emit parseable JSON output: ${output}`);
 }
 
 /**
@@ -52,26 +166,13 @@ export function resolveOpencodeTarball(
   const tarballEnv = process.env.KIBI_TEST_TARBALLS;
 
   if (tarballEnv) {
-    const searchDir = join(tarballEnv, "opencode");
-    if (existsSync(searchDir)) {
-      // Search for existing tarballs
-      const files = readdirSync(searchDir).filter((f: string) =>
-        f.match(/^kibi-opencode-.*\.tgz$/),
-      );
-      if (files.length > 0) {
-        // Sort by modified time, newest first
-        files.sort((a: string, b: string) => {
-          const statA = statSync(join(searchDir, a));
-          const statB = statSync(join(searchDir, b));
-          return statB.mtimeMs - statA.mtimeMs;
-        });
-        const tarballPath = join(searchDir, files[0]);
-        // Extract version from filename
-        const match = files[0].match(/kibi-opencode-(.+)\.tgz/);
-        const version = match ? match[1] : "unknown";
-        log(`  📦 Using existing tarball: ${files[0]}`);
-        return { tarballPath, version };
-      }
+    const found = findTarballFromEnv(tarballEnv, "opencode");
+    if (found) {
+      const filename = found.split("/").pop() ?? "";
+      const match = filename.match(/kibi-opencode-(.+)\.tgz/);
+      const version = match?.[1] ?? "unknown";
+      log(`  📦 Using existing tarball: ${filename}`);
+      return { tarballPath: found, version };
     }
     // Fall through to pack if no tarballs found
   }
@@ -79,11 +180,6 @@ export function resolveOpencodeTarball(
   // Pack fresh tarball
   log("  📦 Packing kibi-opencode...");
   const opencodeDir = join(repoRoot, "packages/opencode");
-
-  interface PackResult {
-    filename: string;
-    version: string;
-  }
 
   let packOutput: string;
   try {
@@ -101,7 +197,7 @@ export function resolveOpencodeTarball(
     );
   }
 
-  const packResults = JSON.parse(packOutput) as PackResult[];
+  const packResults = parseNpmPackJsonOutput(packOutput);
   if (!packResults?.[0]?.filename) {
     throw new Error("npm pack did not return a filename");
   }
@@ -155,15 +251,32 @@ export function installOpencodeTarball(
 ): void {
   // implements REQ-opencode-kibi-plugin-v1
   log("  📥 Installing kibi-opencode from tarball...");
+  const installArgs = ["install", "--legacy-peer-deps", "--no-audit"];
+  const tarballEnv = process.env.KIBI_TEST_TARBALLS;
+
+  for (const dep of ["core", "cli"] as const) {
+    if (tarballEnv) {
+      const depTarball = findTarballFromEnv(tarballEnv, dep);
+      if (depTarball) {
+        installArgs.push(depTarball);
+      } else if (REQUIRED_DEP_PACKAGES.includes(dep)) {
+        throw new Error(
+          `Required dependency tarball for kibi-${dep} not found in KIBI_TEST_TARBALLS=${tarballEnv}. ` +
+            `Ensure the tarball is present in ${tarballEnv}/${dep}/ or ${tarballEnv}/ before running packed tests.`,
+        );
+      }
+    } else {
+      installArgs.push(packKibiPackageTarball(dep));
+    }
+  }
+
+  installArgs.push(tarballPath);
+
   try {
-    execFileSync(
-      "npm",
-      ["install", "--legacy-peer-deps", "--no-audit", tarballPath],
-      {
-        cwd: installDir,
-        stdio: ["pipe", "pipe", "pipe"],
-      },
-    );
+    execFileSync("npm", installArgs, {
+      cwd: installDir,
+      stdio: ["pipe", "pipe", "pipe"],
+    });
   } catch (error) {
     const err = error as Error & { stderr?: Buffer; stdout?: Buffer };
     throw new Error(

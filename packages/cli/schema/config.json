@@ -61,6 +61,15 @@
       "description": "[DEPRECATED] No longer used. Branch lifecycle now follows git naturally without requiring a configured default. This field is ignored but kept for backward compatibility.",
       "deprecated": true
     },
+    "schemaVersion": {
+      "type": ["integer", "string"],
+      "description": "Kibi KB schema version used by the migration command"
+    },
+    "semanticAdvisorBackfill": {
+      "type": "string",
+      "enum": ["pending", "completed", "not_applicable"],
+      "description": "Review state for retroactive semantic-advisor modeling of existing requirements"
+    },
     "checks": {
       "type": "object",
       "description": "Configuration for KB validation rules",
@@ -113,6 +122,16 @@
               "type": "boolean",
               "description": "Detect malformed strict facts (facts with fact_kind that are missing required fields)",
               "default": false
+            },
+            "strict-req-fact-pairing": {
+              "type": "boolean",
+              "description": "Detect requirements with incomplete strict subject/property fact pairing for contradiction-safe semantics",
+              "default": false
+            },
+            "strict-readiness": {
+              "type": "boolean",
+              "description": "Report strict contradiction-readiness levels for requirements that are still prose-only or otherwise not contradiction-ready",
+              "default": false
             }
           },
           "additionalProperties": false
@@ -156,7 +175,9 @@
           "required-fields": true,
           "deprecated-adr-no-successor": true,
           "domain-contradictions": true,
-          "strict-fact-shape": false
+          "strict-fact-shape": false,
+          "strict-req-fact-pairing": false,
+          "strict-readiness": false
         },
         "symbolTraceability": {
           "requireAdr": false

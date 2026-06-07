@@ -11,12 +11,15 @@ Initializes a kibi project in the current directory.
 - Installs git hooks (pre-commit, post-checkout, post-merge, post-rewrite) by default
 - Adds `.kb/` to `.gitignore`
 - Creates default `config.json` with document path patterns
+- Creates `documentation/symbols.yaml` and `documentation/symbol-coordinates.yaml` when they do not already exist
 
 **Flags:**
 - `--no-hooks` - Skip git hook installation (hooks are installed by default)
 
 **Notes:**
 - Hooks are installed by default. Only use `--no-hooks` if you specifically don't want automated syncing.
+- The pre-commit hook blocks commits when `documentation/symbol-coordinates.yaml` has unstaged changes, forcing refreshed symbol coordinates to be staged with the related code changes.
+- The pre-commit hook also blocks behavior-changing source edits that lack staged Kibi impact evidence (KB entity docs or refreshed manifest). Test-only and docs-only edits are exempt.
 - Idempotent: safe to run multiple times
 - After running, see the quick start guide in README.md for next steps
 
@@ -33,10 +36,11 @@ Extracts entities and relationships from project documents and updates the knowl
 **Flags:**
 - `--validate-only` - Perform validation without making mutations
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
+- `--refresh-symbol-coordinates` - Refresh symbol location data in `documentation/symbol-coordinates.yaml` during sync
 
 **Notes:**
 - Supports these entity types: req, scenario, test, adr, flag, event, symbol, fact
-- **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`.
+- **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** (subject, property_value) drive contradiction checks, while observation/meta facts are non-blocking notes.
 - Symbol manifests must be in YAML format
 - Changes are committed to the branch KB's audit log
 
@@ -167,7 +171,7 @@ Validates knowledge base integrity and runs inference rules.
 - Checks requirement coverage (must-priority rules)
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
-- Supports strict migration checks like `strict-fact-shape` for malformed typed facts
+- Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing` (both default-off) for malformed typed facts and incomplete requirement/fact pairing
 - Reports violations with actionable suggestions
 
 **Flags:**
@@ -189,7 +193,10 @@ kibi check --staged
 kibi check --rules must-priority-coverage,no-dangling-refs
 
 # Opt into strict fact migration checks
-kibi check --rules strict-fact-shape
+kibi check --rules strict-fact-shape # Migration-oriented check
+
+# Audit strict requirement/fact pairing during migration
+kibi check --rules strict-req-fact-pairing
 ```
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
@@ -216,6 +223,63 @@ kibi doctor
 - `.kb/` missing → Run `kibi init`
 - Git hooks missing → Run `kibi init`
 - Config invalid → Check `.kb/config.json` syntax
+
+## `kibi usage-metrics`
+
+Reports adoption and quality metrics from `.kb/usage.log`.
+
+**Syntax:**
+```bash
+kibi usage-metrics [--format json|table] [--limit N]
+```
+
+**Behavior:**
+- Reads `.kb/usage.log` from the current repository
+- Summarizes tool usage, branch activity, and success/error outcomes
+- Reports telemetry completeness and zero-result rates
+- Shows `kb_check` violation trend entries and grouped `kb_upsert` error categories
+- Limits the zero-result source-file leaderboard with `--limit`
+
+**Flags:**
+- `--format json|table` - Output format (default: table)
+- `--limit N` - Maximum number of top zero-result source files to include (default: 10)
+
+**Examples:**
+```bash
+# Show the default table report
+kibi usage-metrics
+
+# Export the full report structure as JSON
+kibi usage-metrics --format json
+
+# Show only the top 5 zero-result source files
+kibi usage-metrics --limit 5
+```
+
+**Notes:**
+- Returns an error if `.kb/usage.log` does not exist in the current repository
+- `--limit` must be a positive integer
+
+
+## `kibi migrate`
+
+Upgrades the branch knowledge base to the latest schema version.
+
+**Behavior:**
+- Upgrades entity schemas and internal storage formats
+- Marks pre-existing coarse symbol links with `granularity_reason: legacy-link` when narrower exported symbols or class methods (`ClassName.methodName`) are already available
+- Fixes legacy requirement modeling to follow strict fact-pairing rules
+- Updates `.kb/config.json` with the latest `schemaVersion`
+- Idempotent: safe to run if already on the latest version
+
+**Flags:**
+- `--dry-run` - Show what would be migrated without making changes
+- `--yes` - Apply migration changes without prompting
+
+**Notes:**
+- Use `kibi status` to check if a migration is pending for your branch.
+- Migration is recommended when upgrading `kibi-cli` or `kibi-mcp` packages.
+- After migration, run `kibi sync --refresh-symbol-coordinates` if symbol coordinate diagnostics remain.
 
 ## `kibi gc`
 
@@ -272,6 +336,53 @@ kibi branch ensure
 kibi branch ensure --from main
 ```
 
+HT|## `kibi skills`
+QN|
+MV|Manage and inspect bundled agent skills. Skills are reusable Markdown guidance packages shipped with Kibi.
+QN|
+XW|**Behavior:**
+TY|- Lists available bundled skills
+TZ|- Loads a skill's manifest and body
+BH|- Reads individual resources declared by a skill
+JM|- Validates a local skill bundle directory
+QN|
+XQ|**Subcommands:**
+PJ|
+BV|```bash
+QN|kibi skills list [--format json|table]
+SV|kibi skills load <id> [--format json|markdown]
+HY|kibi skills read <id> <resource> [--format text|json]
+QB|kibi skills validate <path> [--format json|table]
+BP|```
+ZS|
+JK|**Arguments:**
+JB|- `list` - Show all bundled skills with ID, name, version, and description
+XY|- `load <id>` - Load a skill by its bundled ID. Returns the skill body and manifest.
+BJ|- `read <id> <resource>` - Read a specific resource file declared in the skill manifest
+PX|- `validate <path>` - Validate a local skill bundle directory against the skill schema
+PS|
+XQ|**Flags:**
+PX|- `--format json|table` - Output format for `list` and `validate` (default: table)
+YR|- `--format json|markdown` - Output format for `load` (default: markdown)
+SP|- `--format text|json` - Output format for `read` (default: text)
+PT|
+MT|**Examples:**
+BV|```bash
+QQ|# List all bundled skills
+NZ|kibi skills list
+TM|
+MS|# Load the canonical usage skill as markdown
+NB|kibi skills load kibi-usage --format markdown
+NZ|
+VW|# Read a specific resource from a skill
+MB|kibi skills read kibi-usage resources/fact-lanes.md --format text
+QJ|```
+PY|
+HX|**Notes:**
+YS|- Skills are bundled with Kibi. Remote installation, marketplace, and script execution are not supported in v1.
+QT|- OpenCode is an adapter for skill discovery, not the source of truth. The bundled skill set is authoritative.
+XB
+
 ## Staged Symbol Traceability
 
 The `kibi check --staged` command enforces traceability on code before commit.
@@ -280,7 +391,7 @@ The `kibi check --staged` command enforces traceability on code before commit.
 Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
 
 **Workflow Options:**
-1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your symbol manifest (e.g., `documentation/symbols.yaml`), link it to a `TEST-*` entity with `covered_by`, and link the test to the requirement with `validates` or `verified_by`. This satisfies the staged check without modifying source code.
+1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `documentation/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `documentation/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
 2. **Comment-based (Optional Shortcut):** Add an inline `// implements REQ-xxx` comment. This remains backward-compatible and useful for quick code-only changes.
 
 **How to use:**
@@ -294,33 +405,6 @@ This command scans only files staged for commit and reports any new or modified 
 **Scope Note**: Staged check handles explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
 
 **Inline Directive Syntax (Optional):**
-
-Link a code symbol to a requirement by adding a comment:
-
-```typescript
-export function myFunc() { } // implements REQ-001
-```
-
-Link to multiple requirements:
-
-```typescript
-export class MyClass { } // implements REQ-001, REQ-002
-```
-
-The `kibi check --staged` command enforces traceability on code before commit.
-
-**Purpose:**
-Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
-
-**How to use:**
-```bash
-# Check staged files for traceability coverage
-kibi check --staged
-```
-
-This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
-
-**The `implements REQ-xxx` directive syntax:**
 
 Link a code symbol to a requirement by adding a comment:
 

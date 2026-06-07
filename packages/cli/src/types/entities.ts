@@ -33,7 +33,13 @@ export interface BaseEntity {
 
 // Typed fact fields per proposal
 export interface FactFields {
-  fact_kind?: "subject" | "property_value" | "observation" | "meta";
+  fact_kind?:
+    | "subject"
+    | "property_value"
+    | "observation"
+    | "meta"
+    | "predicate_schema"
+    | "predicate";
   subject_key?: string;
   property_key?: string;
   operator?: "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
@@ -44,11 +50,20 @@ export interface FactFields {
   value_bool?: boolean;
   unit?: string;
   scope?: string;
-  polarity?: "require" | "forbid";
+  polarity?: "require" | "forbid" | "assert" | "deny";
   closed_world?: boolean;
   valid_from?: string;
   valid_to?: string;
   canonical_key?: string;
+  predicate_name?: string;
+  predicate_namespace?: string;
+  predicate_arity?: number;
+  argument_names?: string[];
+  argument_types?: string[];
+  argument_descriptions?: string[];
+  aliases?: string[];
+  examples?: string[];
+  predicate_args?: string[];
 }
 
 export type Requirement = BaseEntity & { type: "req" };

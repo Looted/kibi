@@ -141,10 +141,16 @@ function convertRecordToRelationship(
     record.confidence !== undefined
   ) {
     relationship.metadata = {
-      created_at: record.created_at,
-      created_by: record.created_by,
-      source: record.source,
-      confidence: record.confidence,
+      ...(record.created_at !== undefined
+        ? { created_at: record.created_at }
+        : {}),
+      ...(record.created_by !== undefined
+        ? { created_by: record.created_by }
+        : {}),
+      ...(record.source !== undefined ? { source: record.source } : {}),
+      ...(record.confidence !== undefined
+        ? { confidence: record.confidence }
+        : {}),
     };
   }
 

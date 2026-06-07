@@ -10,8 +10,10 @@ tags:
   - check
   - unit
 links:
-  - REQ-006
-  - SCEN-005
+  - type: validates
+    target: REQ-cli-check
+  - type: validates
+    target: SCEN-005
 ---
 
 Seeds KB with a `must`-priority requirement that has no linked scenario or test.

@@ -1,9 +1,9 @@
 ---
 id: TEST-014
 title: Verify Changesets-based release automation and fallback policy
-status: pending
+status: passing
 created_at: 2026-03-11T12:20:00Z
-updated_at: 2026-03-11T12:20:00Z
+updated_at: 2026-04-21T00:00:00Z
 source: documentation/tests/TEST-014.md
 tags:
   - release
@@ -11,7 +11,10 @@ tags:
   - changesets
   - verification
 links:
-  - REQ-020
+  - type: validates
+    target: REQ-020
+  - type: validates
+    target: SCEN-release-automation
   - ADR-014
   - FACT-034
 ---
@@ -31,6 +34,9 @@ links:
 1. Attempt to publish without Changesets: should fail
 2. Attempt to publish with Changesets: should succeed
 3. Changelog and version are updated automatically
+
+## Coverage
+- Automated guard: `scripts/tests/release-workflow-contract.test.ts` ensures checkout and fetch-depth semantics for publish workflow jobs
 
 ## Fallback Guidance
 If KB query is unavailable or unreliable, maintainers and agents MUST consult REQ-020, ADR-014, and FACT-034 for authoritative release policy.

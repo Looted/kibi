@@ -1,79 +1,145 @@
 import { describe, expect, it } from "bun:test";
-import { FrontmatterError } from "../../src/extractors/markdown";
-
+import {
+  FrontmatterError,
+  extractFromMarkdownString,
+} from "../../src/extractors/markdown";
 import { validateStagedMarkdown } from "../../src/traceability/markdown-validate";
 
-function fm(obj: Record<string, any>) {
-  const yaml = Object.entries(obj)
-    .map(
-      ([k, v]) =>
-        `${k}: ${typeof v === "string" ? `"${v}"` : JSON.stringify(v)}`,
-    )
-    .join("\n");
-  return `---\n${yaml}\n---\n`;
-}
-
 describe("validateStagedMarkdown", () => {
-  it("returns no errors for valid requirement frontmatter", () => {
-    const content = fm({ id: "REQ-1", title: "Req", status: "open" });
-    const res = validateStagedMarkdown(
-      "/some/requirements/req.md",
+  it("returns no errors when neither frontmatter type nor path type is available", () => {
+    const result = validateStagedMarkdown("/docs/random/file.md", "# content");
+
+    expect(result.filePath).toBe("/docs/random/file.md");
+    expect(result.errors).toEqual([]);
+  });
+
+  it("infers requirement type from path and reports embedded scenario fields", () => {
+    const content = `---
+id: REQ-123
+title: Requirement with embedded scenario
+scenarios:
+  - given: user is logged in
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-123.md",
       content,
-      (v) => {},
     );
-    expect(res.errors.length).toBe(0);
+
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]?.classification).toBe("Embedded Entity Violation");
+    expect(result.errors[0]?.message).toContain("scenario");
   });
 
-  it("returns no errors for valid scenario frontmatter", () => {
-    const content = fm({
-      id: "SCEN-1",
-      title: "Scen",
-      status: "draft",
-      type: "scenario",
-    });
-    const res = validateStagedMarkdown(
-      "/some/scenarios/sc.md",
+  it("infers requirement type from path and reports embedded test fields", () => {
+    const content = `---
+id: REQ-124
+title: Requirement with embedded test
+test: run api assertion
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-124.md",
       content,
-      () => {},
     );
-    expect(res.errors.length).toBe(0);
+
+    expect(result.errors.length).toBe(1);
+    expect(result.errors[0]?.classification).toBe("Embedded Entity Violation");
+    expect(result.errors[0]?.message).toContain("test");
   });
 
-  it("returns no errors for valid test frontmatter", () => {
-    const content = fm({
-      id: "TEST-1",
-      title: "T",
-      status: "pending",
-      type: "test",
-    });
-    const res = validateStagedMarkdown("/some/tests/t.md", content, () => {});
-    expect(res.errors.length).toBe(0);
+  it("uses explicit frontmatter type over path inference", () => {
+    const content = `---
+id: SCEN-001
+type: scenario
+title: Scenario file
+scenario: Given something
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-999.md",
+      content,
+    );
+
+    expect(result.errors).toEqual([]);
   });
 
-  it("handles missing fields gracefully (no embedded entities)", () => {
-    const content = fm({});
-    const res = validateStagedMarkdown("/requirements/a.md", content);
-    expect(res.errors.length).toBe(0);
+  it("returns no errors for malformed frontmatter parse failures", () => {
+    const malformed = `---
+id: REQ-001
+title: broken
+links:
+  - type: verified_by
+    target: TEST-001
+    extra: [unclosed
+---
+`;
+
+    const result = validateStagedMarkdown(
+      "/docs/requirements/REQ-001.md",
+      malformed,
+    );
+
+    expect(result.errors).toEqual([]);
   });
 
-  it("detects embedded scenario fields inside a requirement", () => {
-    const content = fm({ title: "X", scenarios: [{ given: "a" }] });
-    const res = validateStagedMarkdown("/requirements/req.md", content);
-    expect(res.errors.length).toBe(1);
-    expect(res.errors[0]).toBeInstanceOf(FrontmatterError);
-    expect(String(res.errors[0].message)).toContain("Invalid embedded entity");
+  it("extracts optional test verification fields from test frontmatter", () => {
+    const content = `---
+id: TEST-200
+title: Consumer login flow smoke test
+status: passing
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/tests/TEST-200.md
+verification_scope: end_to_end
+verification_perspective: consumer
+---
+`;
+
+    const result = extractFromMarkdownString(
+      content,
+      "/docs/tests/TEST-200.md",
+    );
+
+    expect(result.entity.type).toBe("test");
+    expect(result.entity.verification_scope).toBe("end_to_end");
+    expect(result.entity.verification_perspective).toBe("consumer");
   });
 
-  it("handles generic parse errors without throwing", () => {
-    const content = "---\nfoo: [\n---\n";
-    const res = validateStagedMarkdown("/requirements/req.md", content);
-    expect(res).toHaveProperty("filePath", "/requirements/req.md");
-    expect(Array.isArray(res.errors)).toBe(true);
+  it("rejects invalid test verification enum values", () => {
+    const content = `---
+id: TEST-201
+title: Invalid verification scope test
+status: passing
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/tests/TEST-201.md
+verification_scope: playwright
+---
+`;
+
+    expect(() =>
+      extractFromMarkdownString(content, "/docs/tests/TEST-201.md"),
+    ).toThrow(FrontmatterError);
   });
 
-  it("returns early for unknown path types", () => {
-    const content = fm({ title: "NoType" });
-    const res = validateStagedMarkdown("/some/other/thing.md", content);
-    expect(res.errors.length).toBe(0);
+  it("rejects verification fields on non-test entities", () => {
+    const content = `---
+id: REQ-200
+title: Requirement with invalid test field
+status: open
+created_at: 2026-04-01T00:00:00Z
+updated_at: 2026-04-01T00:00:00Z
+source: documentation/requirements/REQ-200.md
+verification_perspective: consumer
+---
+`;
+
+    expect(() =>
+      extractFromMarkdownString(content, "/docs/requirements/REQ-200.md"),
+    ).toThrow(FrontmatterError);
   });
 });

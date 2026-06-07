@@ -2,7 +2,10 @@
  * Activation module entry point
  * Provides all registration helpers for the Kibi VS Code extension
  */
-export { resolveWorkspaceRoot, getWorkspaceFolderUri } from "./workspace";
+export {
+  resolveWorkspaceRoot,
+  getWorkspaceFolderUri,
+} from "./workspace";
 export { validateMcpServerPath, findKibiMcpInPath } from "./mcp";
 export {
   registerTreeView,

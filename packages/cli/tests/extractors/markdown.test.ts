@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { beforeAll, describe, expect, mock, test } from "bun:test";
 import { mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import {
   FrontmatterError,
@@ -8,6 +8,11 @@ import {
   normalizeDateLike,
 } from "../../src/extractors/markdown";
 
+// Defensive: clear any module mocks leaked by other test files that ran first
+// in the same bun process (e.g. traceability/markdown-validate.test.ts).
+beforeAll(() => {
+  mock.restore();
+});
 describe("Markdown Extractor", () => {
   describe("Type Inference", () => {
     test("infers type from path for all supported directories", () => {
@@ -443,12 +448,33 @@ links:
       expect(result).toContain("scenario");
     });
 
+    test("detectEmbeddedEntities detects singular scenario field", () => {
+      const result = detectEmbeddedEntities(
+        { scenario: "Given user is logged in" },
+        "req",
+      );
+      expect(result).toContain("scenario");
+    });
+
     test("detectEmbeddedEntities detects scalar string test fields", () => {
       const result = detectEmbeddedEntities(
         { tests: "some test description" },
         "req",
       );
       expect(result).toContain("test");
+    });
+
+    test("detectEmbeddedEntities detects singular test-family fields", () => {
+      const cases = [
+        { test: "some test description" },
+        { testCase: { name: "test case 1" } },
+        { assertion: "assert the result" },
+        { testStep: { expected: "success" } },
+      ];
+
+      for (const data of cases) {
+        expect(detectEmbeddedEntities(data, "req")).toContain("test");
+      }
     });
   });
 

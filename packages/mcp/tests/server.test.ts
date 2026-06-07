@@ -12,6 +12,7 @@ const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as {
   version?: string;
 };
 const EXPECTED_VERSION = packageJson.version ?? "0.1.0";
+const HEAVY_TOOL_TIMEOUT_MS = 30000;
 
 async function sendRequest(
   proc: ChildProcess,
@@ -241,18 +242,29 @@ describe("MCP Server", () => {
     const result = response.result as Record<string, unknown>;
     expect(result.tools).toBeDefined();
     const tools = result.tools as Array<Record<string, unknown>>;
-    expect(tools.length).toBe(9);
+    expect(tools.length).toBe(17);
     expect(tools.map((tool) => tool.name)).toEqual([
       "kb_query",
       "kb_search",
       "kb_status",
+      "kb_skills_list",
+      "kb_skills_load",
+      "kb_skills_read",
       "kb_find_gaps",
       "kb_coverage",
       "kb_graph",
+      "kb_sparql_remote",
       "kb_upsert",
+      "kb_validate_upsert",
       "kb_delete",
       "kb_check",
+      "kb_model_requirement",
+      "kb_suggest_predicates",
+      "kb_autopilot_generate",
     ]);
+    expect(tools.map((tool) => tool.name)).not.toContain(
+      "kb_briefing_generate",
+    );
 
     const kbUpsert = tools.find((tool) => tool.name === "kb_upsert");
     const statusSchema = (
@@ -296,11 +308,15 @@ describe("MCP Server", () => {
     const prompts = result.prompts as Array<Record<string, unknown>>;
     expect(prompts.length).toBeGreaterThanOrEqual(1);
 
-    // Check that init-kibi prompt is included
+    // Check that public prompts are included
     const initKibiPrompt = prompts.find((p) => p.name === "init-kibi");
     expect(initKibiPrompt).toBeDefined();
     expect(initKibiPrompt?.description).toBeDefined();
     expect(typeof initKibiPrompt?.description).toBe("string");
+    expect(initKibiPrompt?.description).toMatch(
+      /interactive activation|new or empty/i,
+    );
+    expect(prompts.map((prompt) => prompt.name)).not.toContain("brief-kibi");
 
     await killServer(proc);
   });
@@ -349,12 +365,16 @@ describe("MCP Server", () => {
       .join(" ");
 
     // Assert that content mentions expected public tools
-    expect(contentText).toMatch(/kb_query/);
+    expect(contentText).toMatch(/kb_autopilot_generate/);
     expect(contentText).toMatch(/kb_upsert/);
     expect(contentText).toMatch(/kb_check/);
+    expect(contentText).toMatch(/Project Summary/);
+    expect(contentText).toMatch(/Source of Truth/);
+    expect(contentText).toMatch(/post-hoc/i);
+    expect(contentText).toMatch(/read-only/);
 
-    // Assert that content mentions bootstrap or backfill
-    expect(contentText).toMatch(/(bootstrap|backfill)/);
+    // Assert that content mentions activation workflow concepts
+    expect(contentText).toMatch(/(activationState|activation|approval)/i);
 
     // Assert that content does NOT mention non-public tools
     expect(contentText).not.toMatch(/kb_query_relationships/);
@@ -363,6 +383,250 @@ describe("MCP Server", () => {
 
     await killServer(proc);
   });
+
+  test("should reject prompts/get for removed brief-kibi prompt", async () => {
+    const proc = startServer();
+
+    await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2024-11-05",
+        capabilities: {},
+        clientInfo: { name: "test", version: "1.0" },
+      },
+    });
+
+    const response = await sendRequest(proc, {
+      jsonrpc: "2.0",
+      id: 2,
+      method: "prompts/get",
+      params: {
+        name: "brief-kibi",
+      },
+    });
+
+    const error = response.error as Record<string, unknown> | undefined;
+    expect(error).toBeDefined();
+    expect(String(error?.message ?? "")).toMatch(/not found|unknown prompt/i);
+
+    await killServer(proc);
+  });
+
+  test(
+    "should handle tools/call for kb_autopilot_generate",
+    async () => {
+      const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "kibi-mcp-auto-"));
+      const kibiBin = path.resolve(import.meta.dir, "../../cli/bin/kibi");
+
+      execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      execSync('git config user.name "Kibi Test"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      execSync(`bun ${kibiBin} init --no-hooks`, {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+
+      const proc = startServer({
+        cwd: tempRoot,
+        env: { KIBI_WORKSPACE: tempRoot },
+      });
+
+      try {
+        await sendRequest(proc, {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        });
+
+        const response = await sendRequest(
+          proc,
+          {
+            jsonrpc: "2.0",
+            id: 2,
+            method: "tools/call",
+            params: {
+              name: "kb_autopilot_generate",
+              arguments: {},
+            },
+          },
+          HEAVY_TOOL_TIMEOUT_MS,
+        );
+
+        const result = response.result as Record<string, unknown>;
+        expect(result).toBeDefined();
+        expect(result.isError).toBeFalsy();
+
+        const content = result.content as Array<{ type: string; text: string }>;
+        expect(content).toBeDefined();
+        expect(content.length).toBeGreaterThan(0);
+        expect(content[0].type).toBe("text");
+
+        const structured = result.structuredContent as Record<string, unknown>;
+        expect(structured).toBeDefined();
+        expect([
+          "root_uninitialized",
+          "root_partial",
+          "vendored_only",
+          "root_active_thin",
+          "root_active_seeded",
+        ]).toContain(structured.activationState as string);
+        expect(typeof structured.activationReason).toBe("string");
+        expect(typeof structured.applyBlocked).toBe("boolean");
+        expect([
+          "cold_start_bootstrap",
+          "repair_bootstrap",
+          "attached_thin_handoff",
+          "attached_seeded_handoff",
+          "vendored_blocked",
+        ]).toContain(structured.bootstrapMode as string);
+        expect(typeof structured.tldr).toBe("string");
+        expect(typeof structured.promptBlock).toBe("string");
+        expect(typeof structured.confidence).toBe("object");
+        expect(typeof structured.declaredContext).toBe("object");
+        expect(Array.isArray(structured.recommendedActions)).toBe(true);
+        expect(Array.isArray(structured.candidates)).toBe(true);
+        expect(Array.isArray(structured.suppressedCandidates)).toBe(true);
+        expect(typeof structured.discoverySummary).toBe("object");
+        expect(typeof structured.payoffSummary).toBe("object");
+
+        expect(result.candidates).toEqual(structured.candidates);
+        expect(result.suppressedCandidates).toEqual(
+          structured.suppressedCandidates,
+        );
+        expect(result.payoffSummary).toEqual(structured.payoffSummary);
+      } finally {
+        await killServer(proc);
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
+
+  test(
+    "should handle tools/call for kb_model_requirement",
+    async () => {
+      const proc = startServer();
+
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_model_requirement",
+            arguments: {
+              text: "Customer data must be retained for 7 years.",
+              source: "documentation/requirements/customer-retention.md",
+              confidence: 0.92,
+              subjectKey: "Customer.Data",
+              propertyKey: "Retention Years",
+              operator: "eq",
+              value: 7,
+              provenance: "documentation/requirements/customer-retention.md#L1",
+            },
+          },
+        },
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
+
+      const result = response.result as Record<string, unknown>;
+      expect(result).toBeDefined();
+      expect(result.isError).toBeFalsy();
+
+      const content = result.content as Array<{ type: string; text: string }>;
+      expect(content).toBeDefined();
+      expect(content.length).toBeGreaterThan(0);
+      expect(content[0]?.type).toBe("text");
+
+      const structured = result.structuredContent as Record<string, unknown>;
+      expect(structured).toBeDefined();
+      expect(structured.isStrict).toBe(true);
+      expect(Array.isArray(structured.applyPlan)).toBe(true);
+      expect((structured.applyPlan as unknown[]).length).toBe(3);
+      expect(typeof structured.writeSet).toBe("object");
+      expect(typeof structured.claim).toBe("object");
+      expect(
+        [null, expect.any(String)].some((matcher) =>
+          matcher === null
+            ? structured.migrationWarning === null
+            : typeof structured.migrationWarning === "string",
+        ),
+      ).toBe(true);
+
+      await killServer(proc);
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
+
+  test(
+    "should reject tools/call for removed kb_briefing_generate",
+    async () => {
+      const proc = startServer();
+
+      await sendRequest(proc, {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "test", version: "1.0" },
+        },
+      });
+
+      const response = await sendRequest(
+        proc,
+        {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_briefing_generate",
+            arguments: {
+              taskText:
+                "Generate a task-aware citation-backed briefing for MCP registration work.",
+            },
+          },
+        },
+        HEAVY_TOOL_TIMEOUT_MS,
+      );
+
+      const result = response.result as Record<string, unknown> | undefined;
+      expect(result?.isError).toBe(true);
+      const content = result?.content as
+        | Array<{ type: string; text: string }>
+        | undefined;
+      expect(content?.[0]?.text).toMatch(/not found/i);
+
+      await killServer(proc);
+    },
+    HEAVY_TOOL_TIMEOUT_MS,
+  );
 
   test("should reject removed MCP tools", async () => {
     const proc = startServer();

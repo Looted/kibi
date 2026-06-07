@@ -19,10 +19,11 @@
 import process from "node:process";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { isMcpDebugEnabled } from "../env.js";
 import { initiateGracefulShutdown } from "./session.js";
 
 function debugLog(...args: Parameters<typeof console.error>): void {
-  if (process.env.KIBI_MCP_DEBUG) {
+  if (isMcpDebugEnabled()) {
     console.error(...args);
   }
 }

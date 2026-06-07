@@ -200,7 +200,6 @@ title: No Priority
   describe("edge cases", () => {
     it("handles CRLF line endings", () => {
       const reqFile = path.join(tmpDir, "REQ-CRLF.md");
-      // biome-ignore lint/style/useTemplate: Need escaped CRLF for test
       const content = "---\r\nid: REQ-CRLF\r\npriority: must\r\n---\r\n";
       fs.writeFileSync(reqFile, content);
 
@@ -209,7 +208,6 @@ title: No Priority
 
     it("handles BOM marker", () => {
       const reqFile = path.join(tmpDir, "REQ-BOM.md");
-      // biome-ignore lint/style/useTemplate: BOM character needed for test
       const content = "\uFEFF---\nid: REQ-BOM\npriority: must\n---\n";
       fs.writeFileSync(reqFile, content);
 

@@ -17,8 +17,15 @@
 */
 
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import * as path from "node:path";
 import { load as parseYAML } from "js-yaml";
+import { DEFAULT_COORDINATES_PATH } from "../utils/manifest-paths.js";
+import {
+  type SymbolCoordinatesArtifact,
+  mergeCoordinatesWithManifest,
+  readCoordinateArtifact,
+} from "./symbol-coordinates.js";
 
 export interface ExtractedEntity {
   id: string;
@@ -33,6 +40,7 @@ export interface ExtractedEntity {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
 }
 
 export interface ExtractedRelationship {
@@ -44,7 +52,6 @@ export interface ExtractedRelationship {
 export interface ExtractionResult {
   entity: ExtractedEntity;
   relationships: ExtractedRelationship[];
-  /** The per-symbol source code file, distinct from the manifest file path. */
   sourceFile?: string;
 }
 
@@ -58,7 +65,7 @@ export class ManifestError extends Error {
   }
 }
 
-interface ManifestSymbol {
+export interface ManifestSymbolRecord {
   id?: string;
   title?: string;
   source?: string;
@@ -69,19 +76,37 @@ interface ManifestSymbol {
   priority?: string;
   severity?: string;
   text_ref?: string;
+  granularity_reason?: string;
   created_at?: string;
   updated_at?: string;
   links?: Array<string | { type: string; target: string }>;
   relationships?: Array<{ type: string; target: string }>;
+  sourceLine?: number;
+  sourceColumn?: number;
+  sourceEndLine?: number;
+  sourceEndColumn?: number;
+  coordinatesGeneratedAt?: string;
+  [key: string]: unknown;
 }
 
 interface ManifestFile {
-  symbols?: ManifestSymbol[];
+  symbols?: ManifestSymbolRecord[];
+}
+
+function getManifestSymbols(
+  manifest: ManifestFile,
+  filePath: string,
+): ManifestSymbolRecord[] {
+  if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
+    throw new ManifestError("No symbols array found in manifest", filePath);
+  }
+
+  return manifest.symbols;
 }
 
 function extractRelationships(
   id: string,
-  symbol: ManifestSymbol,
+  symbol: ManifestSymbolRecord,
 ): ExtractedRelationship[] {
   const relationships: ExtractedRelationship[] = [];
 
@@ -132,36 +157,56 @@ function extractFromParsedManifest(
   manifest: ManifestFile,
   filePath: string,
 ): ExtractionResult[] {
-  if (!manifest.symbols || !Array.isArray(manifest.symbols)) {
-    throw new ManifestError("No symbols array found in manifest", filePath);
-  }
+  return extractFromManifestSymbolRecords(
+    getManifestSymbols(manifest, filePath),
+    filePath,
+  );
+}
 
-  return manifest.symbols.map((symbol) => {
+function extractFromManifestSymbolRecords(
+  manifestSymbols: ManifestSymbolRecord[],
+  filePath: string,
+): ExtractionResult[] {
+  return manifestSymbols.map((symbol) => {
     if (!symbol.title) {
       throw new ManifestError("Missing required field: title", filePath);
     }
 
     const id = symbol.id || generateId(filePath, symbol.title);
+    const entity: ExtractedEntity = {
+      id,
+      type: "symbol",
+      title: symbol.title,
+      status: symbol.status || "active",
+      created_at: symbol.created_at || new Date().toISOString(),
+      updated_at: symbol.updated_at || new Date().toISOString(),
+      source: filePath,
+      ...(symbol.tags !== undefined ? { tags: symbol.tags } : {}),
+      ...(symbol.owner !== undefined ? { owner: symbol.owner } : {}),
+      ...(symbol.priority !== undefined ? { priority: symbol.priority } : {}),
+      ...(symbol.severity !== undefined ? { severity: symbol.severity } : {}),
+      ...(symbol.text_ref !== undefined ? { text_ref: symbol.text_ref } : {}),
+      ...(symbol.granularity_reason !== undefined
+        ? { granularity_reason: symbol.granularity_reason }
+        : {}),
+    };
+    const sourceFile = symbol.sourceFile ?? symbol.source;
 
     return {
-      entity: {
-        id,
-        type: "symbol",
-        title: symbol.title,
-        status: symbol.status || "active",
-        created_at: symbol.created_at || new Date().toISOString(),
-        updated_at: symbol.updated_at || new Date().toISOString(),
-        source: filePath,
-        tags: symbol.tags,
-        owner: symbol.owner,
-        priority: symbol.priority,
-        severity: symbol.severity,
-        text_ref: symbol.text_ref,
-      },
+      entity,
       relationships: extractRelationships(id, symbol),
-      sourceFile: symbol.sourceFile ?? symbol.source,
+      ...(sourceFile !== undefined ? { sourceFile } : {}),
     };
   });
+}
+
+function cloneManifestSymbols(
+  manifest: ManifestFile,
+  filePath: string,
+): ManifestSymbolRecord[] {
+  return getManifestSymbols(manifest, filePath).map((symbol) => ({
+    ...symbol,
+  }));
 }
 
 // implements REQ-007
@@ -189,9 +234,87 @@ export function extractFromManifestString(
   }
 }
 
+export function extractManifestSymbolRecordsString(
+  content: string,
+  filePath: string,
+): ManifestSymbolRecord[] {
+  try {
+    const manifest = parseYAML(content) as ManifestFile;
+
+    return cloneManifestSymbols(manifest, filePath);
+  } catch (error) {
+    if (error instanceof ManifestError) {
+      throw error;
+    }
+
+    if (error instanceof Error) {
+      throw new ManifestError(
+        `Failed to parse manifest: ${error.message}`,
+        filePath,
+      );
+    }
+
+    throw error;
+  }
+}
+
 export function extractFromManifest(filePath: string): ExtractionResult[] {
-  const content = readFileSync(filePath, "utf8");
-  return extractFromManifestString(content, filePath);
+  return extractFromManifestSymbolRecords(
+    readManifestWithCoordinateOverlay(filePath),
+    filePath,
+  );
+}
+
+function resolveCoordinatesPath(
+  manifestPath: string,
+  coordinatesPath?: string,
+): string {
+  if (coordinatesPath) {
+    return coordinatesPath;
+  }
+
+  return path.join(
+    path.dirname(manifestPath),
+    path.basename(DEFAULT_COORDINATES_PATH),
+  );
+}
+
+function readCoordinateArtifactFromFile(
+  coordinatesPath: string,
+): SymbolCoordinatesArtifact | null {
+  if (!existsSync(coordinatesPath)) {
+    return null;
+  }
+
+  try {
+    return readCoordinateArtifact(readFileSync(coordinatesPath, "utf8"));
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new ManifestError(
+        `Failed to parse coordinate artifact: ${error.message}`,
+        coordinatesPath,
+      );
+    }
+
+    throw error;
+  }
+}
+
+// implements REQ-core-extractors
+export function readManifestWithCoordinateOverlay(
+  manifestPath: string,
+  coordinatesPath?: string,
+): ManifestSymbolRecord[] {
+  const manifestContent = readFileSync(manifestPath, "utf8");
+  const manifestRecords = extractManifestSymbolRecordsString(
+    manifestContent,
+    manifestPath,
+  );
+  const coordinateArtifact = readCoordinateArtifactFromFile(
+    resolveCoordinatesPath(manifestPath, coordinatesPath),
+  );
+
+  return mergeCoordinatesWithManifest(manifestRecords, coordinateArtifact);
 }
 
 function generateId(filePath: string, title: string): string {

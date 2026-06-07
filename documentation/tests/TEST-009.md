@@ -9,9 +9,8 @@ tags:
   - integration
   - branching
 links:
-  - REQ-001
-  - REQ-012
-  - SCEN-003
+  - type: validates
+    target: SCEN-003
 ---
 
 In a git repo with kibi initialised on `main`:

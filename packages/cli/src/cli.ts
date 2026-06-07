@@ -26,10 +26,18 @@ import { gapsCommand } from "./commands/gaps.js";
 import { gcCommand } from "./commands/gc.js";
 import { graphCommand } from "./commands/graph.js";
 import { initCommand } from "./commands/init.js";
+import { migrateCommand } from "./commands/migrate.js";
 import { queryCommand } from "./commands/query.js";
 import { searchCommand } from "./commands/search.js";
+import {
+  skillsListCommand,
+  skillsLoadCommand,
+  skillsReadCommand,
+  skillsValidateCommand,
+} from "./commands/skills.js";
 import { statusCommand } from "./commands/status.js";
 import { syncCommand } from "./commands/sync.js";
+import { usageMetricsCommand } from "./commands/usage-metrics.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -72,9 +80,24 @@ program
   );
 
 program
+  .command("migrate")
+  .description("Migrate .kb/config.json to the latest schema version")
+  .option("--dry-run", "Preview migration changes without writing files")
+  .option("--yes", "Apply migration changes without prompting")
+  .action(
+    withExitCode(async (options: Parameters<typeof migrateCommand>[0]) => {
+      return migrateCommand(options);
+    }),
+  );
+
+program
   .command("sync")
   .description("Sync entities from documents")
   .option("--validate-only", "Perform validation without mutations")
+  .option(
+    "--refresh-symbol-coordinates",
+    "Refresh generated symbol coordinates",
+  )
   .option(
     "--rebuild",
     "Rebuild branch snapshot from scratch (discards current KB)",
@@ -85,6 +108,7 @@ program
     }),
   );
 
+program;
 program
   .command("query [type]")
   .description("Query knowledge base")
@@ -214,6 +238,81 @@ program
   .command("doctor")
   .description("Diagnose KB setup and configuration")
   .action(withExitCode(async () => doctorCommand()));
+
+program
+  .command("usage-metrics")
+  .description("Report usage and quality metrics from .kb/usage.log")
+  .option("--format <format>", "Output format: json|table", "table")
+  .option("--limit <n>", "Limit top zero-result source files", "10")
+  .action(
+    withExitCode(async (options: Parameters<typeof usageMetricsCommand>[0]) => {
+      return usageMetricsCommand(options);
+    }),
+  );
+
+const skillsProgram = program
+  .command("skills")
+  .description("Manage bundled markdown skills");
+
+skillsProgram
+  .command("list")
+  .description("List bundled markdown skills")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(
+    withExitCode(async (options: Parameters<typeof skillsListCommand>[0]) => {
+      return skillsListCommand(options);
+    }),
+  );
+
+skillsProgram
+  .command("load")
+  .description("Load a bundled markdown skill")
+  .argument("<id>", "Bundled skill ID")
+  .option("--format <format>", "Output format: json|markdown", "markdown")
+  .action(
+    withExitCode(
+      async (
+        id: Parameters<typeof skillsLoadCommand>[0],
+        options: Parameters<typeof skillsLoadCommand>[1],
+      ) => {
+        return skillsLoadCommand(id, options);
+      },
+    ),
+  );
+
+skillsProgram
+  .command("read")
+  .description("Read a declared bundled skill resource")
+  .argument("<id>", "Bundled skill ID")
+  .argument("<resource>", "Declared resource path")
+  .option("--format <format>", "Output format: text|json", "text")
+  .action(
+    withExitCode(
+      async (
+        id: Parameters<typeof skillsReadCommand>[0],
+        resource: Parameters<typeof skillsReadCommand>[1],
+        options: Parameters<typeof skillsReadCommand>[2],
+      ) => {
+        return skillsReadCommand(id, resource, options);
+      },
+    ),
+  );
+
+skillsProgram
+  .command("validate")
+  .description("Validate a bundled markdown skill path")
+  .argument("<path>", "Skill bundle directory or SKILL.md path")
+  .option("--format <format>", "Output format: json|table", "table")
+  .action(
+    withExitCode(
+      async (
+        pathLike: Parameters<typeof skillsValidateCommand>[0],
+        options: Parameters<typeof skillsValidateCommand>[1],
+      ) => {
+        return skillsValidateCommand(pathLike, options);
+      },
+    ),
+  );
 
 program
   .command("branch")

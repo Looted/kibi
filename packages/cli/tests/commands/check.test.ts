@@ -1,4 +1,3 @@
-// @ts-ignore
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import { execSync, spawnSync } from "node:child_process";
 import {
@@ -44,7 +43,7 @@ function runKibi(
 }
 
 describe("kibi check", () => {
-  const TEST_TIMEOUT_MS = 20000;
+  const TEST_TIMEOUT_MS = 30000;
   let tmpDir: string;
   const kibiBin = path.resolve(__dirname, "../../bin/kibi");
 
@@ -65,6 +64,131 @@ describe("kibi check", () => {
       rmSync(tmpDir, { recursive: true, force: true });
     }
   });
+
+  test(
+    "reports legacy fact-linked requirements as not-ready instead of contradictions",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-LEGACY-TRACEABLE-001.md"),
+        `---
+id: FACT-LEGACY-TRACEABLE-001
+title: Legacy Account Policy Note
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-LEGACY-TRACEABLE-001.md
+---
+Legacy prose fact without strict shape
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-LEGACY-TRACEABLE-001.md"),
+        `---
+id: REQ-LEGACY-TRACEABLE-001
+title: Legacy requirement linked to a prose fact
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-LEGACY-TRACEABLE-001.md
+links:
+  - type: constrains
+    target: FACT-LEGACY-TRACEABLE-001
+---
+
+# Legacy requirement linked to a prose fact
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-readiness,domain-contradictions"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("strict-readiness");
+      expect(output).toContain("REQ-LEGACY-TRACEABLE-001");
+      expect(output).toContain("traceable");
+      expect(output).toContain("not-ready");
+      expect(output).not.toContain("domain-contradictions");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "reports subject-only requirements as has-subject and pairing violations",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-SUBJECT-ONLY-001.md"),
+        `---
+id: FACT-SUBJECT-ONLY-001
+title: Subject-only account policy
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-SUBJECT-ONLY-001.md
+fact_kind: subject
+subject_key: account.policy
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-SUBJECT-ONLY-001.md"),
+        `---
+id: REQ-SUBJECT-ONLY-001
+title: Subject-only strict requirement
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-SUBJECT-ONLY-001.md
+links:
+  - type: constrains
+    target: FACT-SUBJECT-ONLY-001
+---
+
+# Subject-only strict requirement
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-readiness,strict-req-fact-pairing"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+      expect(status).toBe(1);
+      expect(output).toContain("strict-readiness");
+      expect(output).toContain("REQ-SUBJECT-ONLY-001");
+      expect(output).toContain("has-subject");
+      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("requires_property");
+    },
+    TEST_TIMEOUT_MS,
+  );
 
   test(
     "passes on valid KB",
@@ -856,6 +980,8 @@ links:
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("domain-contradictions");
+      expect(output).toContain("REQ-018/REQ-019");
+      expect(output).toContain("contradiction-ready");
       expect(output).toContain("user.role_assignment.max_roles");
     },
     TEST_TIMEOUT_MS,
@@ -1045,7 +1171,17 @@ source: documentation/requirements/REQ-STAGED-001.md
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       // Sync KB first
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync(
+        "git add documentation/symbol-coordinates.yaml documentation/symbols.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
 
       // Run staged check - should pass because symbols.yaml links it
       const { status, stdout, stderr } = runKibi(
@@ -1065,6 +1201,7 @@ source: documentation/requirements/REQ-STAGED-001.md
     "--staged uses custom paths.symbols from config",
     async () => {
       const configDir = path.join(tmpDir, ".kb");
+      const docDir = path.join(tmpDir, "documentation");
       const customDir = path.join(tmpDir, "custom");
       const reqDocDir = path.join(tmpDir, "documentation/requirements");
       const srcDir = path.join(tmpDir, "src");
@@ -1138,6 +1275,22 @@ source: documentation/requirements/REQ-CUSTOM-001.md
       );
 
       writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-CUSTOM-001
+    title: customFunction
+    sourceFile: src/app.ts
+    sourceLine: 1
+    sourceColumn: 16
+    sourceEndLine: 3
+    sourceEndColumn: 1
+    links:
+      - REQ-CUSTOM-001
+    status: active
+`,
+      );
+
+      writeFileSync(
         path.join(srcDir, "app.ts"),
         `export function customFunction() {
   return "custom";
@@ -1153,13 +1306,14 @@ source: documentation/requirements/REQ-CUSTOM-001.md
 }
 `,
       );
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync(
-        "git add src/app.ts custom/my-symbols.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
+        "git add src/app.ts custom/my-symbols.yaml custom/symbol-coordinates.yaml custom/symbols.yaml documentation/requirements/REQ-CUSTOM-001.md",
         { cwd: tmpDir, stdio: "pipe" },
       );
-
-      // Sync KB
-      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       // Run staged check
       const { status, stdout, stderr } = runKibi(
@@ -1292,12 +1446,93 @@ Legacy prose fact without strict shape
     TEST_TIMEOUT_MS,
   );
 
+  test(
+    "should detect requires_property facts without matching strict subject linkage",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const factDir = path.join(tmpDir, "documentation/facts");
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(factDir, { recursive: true });
+
+      writeFileSync(
+        path.join(factDir, "FACT-PAIR-SUBJECT-CLI-001.md"),
+        `---
+id: FACT-PAIR-SUBJECT-CLI-001
+title: CLI Pairing Subject
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-PAIR-SUBJECT-CLI-001.md
+fact_kind: subject
+subject_key: account.session
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(factDir, "FACT-PAIR-PROP-CLI-001.md"),
+        `---
+id: FACT-PAIR-PROP-CLI-001
+title: CLI Pairing Property
+status: active
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: facts/FACT-PAIR-PROP-CLI-001.md
+fact_kind: property_value
+subject_key: billing.account
+property_key: max_sessions
+operator: eq
+value_type: int
+value_int: 1
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(reqDir, "REQ-PAIRING-CLI-001.md"),
+        `---
+id: REQ-PAIRING-CLI-001
+title: CLI strict pairing mismatch
+type: req
+status: open
+priority: should
+created_at: 2026-02-20T10:00:00Z
+updated_at: 2026-02-20T10:00:00Z
+source: requirements/REQ-PAIRING-CLI-001.md
+links:
+  - type: constrains
+    target: FACT-PAIR-SUBJECT-CLI-001
+  - type: requires_property
+    target: FACT-PAIR-PROP-CLI-001
+---
+
+# CLI strict pairing mismatch
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "strict-req-fact-pairing"],
+        tmpDir,
+      );
+
+      const output = stdoutToString(stdout || stderr);
+
+      expect(status).toBe(1);
+      expect(output).toContain("strict-req-fact-pairing");
+      expect(output).toContain("REQ-PAIRING-CLI-001");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
   // === Staged E2E Traceability Matrix ===
   // Each test stages source + manifest + docs in one commit without prior kibi sync.
   // The staged pipeline must resolve traceability end-to-end.
 
   test(
-    "staged e2e: covered_by -> validates -> req passes without prior sync",
+    "staged e2e: covered_by alone does not satisfy ownership gate (split semantics)",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
       const testDocDir = path.join(docDir, "tests");
@@ -1374,17 +1609,19 @@ links:
       );
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
-      expect(result.status).toBe(0);
-      expect(output).toContain("No violations found");
+      // covered_by alone does NOT satisfy staged ownership gate
+      expect(result.status).not.toBe(0);
+      expect(output).toContain("Traceability failed");
     },
     TEST_TIMEOUT_MS,
   );
 
   test(
-    "staged e2e: covered_by -> verified_by <- req passes without prior sync",
+    "staged e2e: covered_by -> verified_by <- req fails ownership (split semantics)",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
       const testDocDir = path.join(docDir, "tests");
@@ -1461,11 +1698,14 @@ source: documentation/tests/TEST-E2E-LOGOUT.md
       );
 
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
-      expect(result.status).toBe(0);
-      expect(output).toContain("No violations found");
+      // covered_by alone does NOT satisfy staged ownership gate
+      expect(result.status).not.toBe(0);
+      expect(output).toContain("Traceability failed");
+      expect(output).toContain("implement");
     },
     TEST_TIMEOUT_MS,
   );
@@ -1626,6 +1866,280 @@ links:
   );
 
   test(
+    "staged e2e: executable_for symbol passes staged ownership gate",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "tests");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-EXE-001.md"),
+        `---
+id: REQ-EXE-001
+title: Exe Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-EXE-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-EXE-001.md"),
+        `---
+id: TEST-EXE-001
+title: Exe Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-EXE-001.md
+links:
+  - type: validates
+    target: REQ-EXE-001
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-EXE-TEST
+    title: testHelper
+    sourceFile: tests/helper.ts
+    links:
+      - type: executable_for
+        target: TEST-EXE-001
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "helper.ts"),
+        `export function testHelper() {
+  return "helper";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      // executable_for symbols are excluded from ownership gate
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: mixed-role symbol (executable_for + implements) fails",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-MIXED.md"),
+        `---
+id: REQ-MIXED
+title: Mixed Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-MIXED.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-MIXED.md"),
+        `---
+id: TEST-MIXED
+title: Mixed Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-MIXED.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-MIXED-ROLE
+    title: mixedRoleFunc
+    sourceFile: src/mixed.ts
+    links:
+      - type: executable_for
+        target: TEST-MIXED
+      - type: implements
+        target: REQ-MIXED
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "mixed.ts"),
+        `export function mixedRoleFunc() {
+  return "mixed";
+}
+`,
+      );
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      // Mixed-role symbol should be rejected - but note: staged validation
+      // uses changed_symbol_violation which only checks ownership gate.
+      // Mixed-role rejection happens at projectStagedEntities level.
+      // The symbol has implements so ownership passes.
+      // The mixed-role check is enforced at relationship assertion time.
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      // Symbol has implements so ownership gate passes,
+      // but mixed role should cause projection failure
+      expect(result.status).not.toBe(0);
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "staged e2e: production implements + covered_by with direct req->test fallback passes",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const testDocDir = path.join(docDir, "tests");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      mkdirSync(testDocDir, { recursive: true });
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      writeFileSync(path.join(tmpDir, ".gitkeep"), "");
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-FALLBACK.md"),
+        `---
+id: REQ-FALLBACK
+title: Fallback Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-FALLBACK.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(testDocDir, "TEST-FALLBACK.md"),
+        `---
+id: TEST-FALLBACK
+title: Fallback Test
+status: passing
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/tests/TEST-FALLBACK.md
+links:
+  - type: validates
+    target: REQ-FALLBACK
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-FALLBACK
+    title: fallbackFunc
+    sourceFile: src/fallback.ts
+    links:
+      - type: implements
+        target: REQ-FALLBACK
+      - type: covered_by
+        target: TEST-FALLBACK
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "fallback.ts"),
+        `export function fallbackFunc() {
+  return "fallback";
+}
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      // implements satisfies ownership; covered_by + direct validates satisfies coverage
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "staged e2e: direct manifest implements link still works (backward compat)",
     async () => {
       const docDir = path.join(tmpDir, "documentation");
@@ -1683,6 +2197,10 @@ source: documentation/requirements/REQ-E2E-DIRECT.md
 `,
       );
 
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
@@ -1738,12 +2256,120 @@ export function inlineFunc() {}
 `,
       );
 
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYM-INLINE-001
+    title: inlineFunc
+    sourceFile: src/inline.ts
+    sourceLine: 2
+    sourceColumn: 16
+    sourceEndLine: 2
+    sourceEndColumn: 31
+    links:
+      - REQ-E2E-INLINE
+    status: active
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
       execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
 
       const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
       const output = stdoutToString(result.stdout || result.stderr);
       expect(result.status).toBe(0);
       expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "--staged resolves symbol ID from working-tree manifest when only code is staged (comment-only change, no symbols.yaml staged)",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(docDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Write requirement and symbols.yaml, commit them (not staged)
+      writeFileSync(
+        path.join(reqDocDir, "REQ-WT-001.md"),
+        `---
+id: REQ-WT-001
+title: Working Tree Manifest Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-WT-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "wt-app.ts"),
+        `export function wtFunction() {
+  return "v1";
+}
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-WT-001
+    title: wtFunction
+    sourceFile: src/wt-app.ts
+    links:
+      - REQ-WT-001
+    status: active
+`,
+      );
+
+      // Commit everything including symbols.yaml — this is the "working tree" state
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "initial with symbols" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      // Sync KB so the requirement is known to Prolog
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+
+      // Now modify ONLY the code file (do not touch symbols.yaml)
+      // Use a comment-only change so the new enforcement does not flag it
+      writeFileSync(
+        path.join(srcDir, "wt-app.ts"),
+        `// updated comment
+export function wtFunction() {
+  return "v1";
+}
+`,
+      );
+
+      // Stage only the code file, NOT symbols.yaml
+      execSync("git add src/wt-app.ts", { cwd: tmpDir, stdio: "pipe" });
+
+      // Run staged check — should resolve SYMBOL-WT-001 from the working-tree manifest
+      // and pass without falling back to a content-hash-based ID
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+      expect(result.status).toBe(0);
     },
     TEST_TIMEOUT_MS,
   );

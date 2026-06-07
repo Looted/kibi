@@ -14,21 +14,51 @@
 
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+*/
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import * as path from "node:path";
 import { dump as dumpYAML, load as parseYAML } from "js-yaml";
 import {
+  type SymbolCoordinatesRecord,
+  writeCoordinateArtifact,
+} from "../../extractors/symbol-coordinates.js";
+import {
   type ManifestSymbolEntry,
   enrichSymbolCoordinates,
 } from "../../extractors/symbols-coordinator.js";
+import { resolveSymbolsManifestPaths } from "../../utils/manifest-paths.js";
 
-const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
+interface ManifestDeps {
+  dumpYAML: typeof dumpYAML;
+  enrichSymbolCoordinates: typeof enrichSymbolCoordinates;
+  existsSync: typeof existsSync;
+  parseYAML: typeof parseYAML;
+  readFileSync: typeof readFileSync;
+  writeFileSync: typeof writeFileSync;
+  writeCoordinateArtifact: typeof writeCoordinateArtifact;
+  resolveSymbolsManifestPaths: typeof resolveSymbolsManifestPaths;
+}
+
+function resolveDeps(overrides?: Partial<ManifestDeps>): ManifestDeps {
+  return {
+    dumpYAML,
+    enrichSymbolCoordinates,
+    existsSync,
+    parseYAML,
+    readFileSync,
+    writeFileSync,
+    writeCoordinateArtifact,
+    resolveSymbolsManifestPaths,
+    ...overrides,
+  };
+}
+
+export const SYMBOLS_MANIFEST_COMMENT_BLOCK = `# symbols.yaml
 # AUTHORED fields (edit freely):
 #   id, title, sourceFile, links, status, tags, owner, priority
 # GENERATED fields (never edit manually — overwritten by kibi sync and kb.symbols.refresh):
-#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn, coordinatesGeneratedAt
+#   sourceLine, sourceColumn, sourceEndLine, sourceEndColumn
 # Run \`kibi sync\` or call the \`kb.symbols.refresh\` MCP tool to refresh coordinates.
 `;
 
@@ -48,15 +78,20 @@ const GENERATED_COORD_FIELDS = [
   "sourceColumn",
   "sourceEndLine",
   "sourceEndColumn",
-  "coordinatesGeneratedAt",
 ] as const;
 
 export async function refreshManifestCoordinates(
+  // implements REQ-003
   manifestPath: string,
   workspaceRoot: string,
+  deps?: Partial<ManifestDeps> & { refreshSymbolCoordinates?: boolean },
 ): Promise<void> {
-  const rawContent = readFileSync(manifestPath, "utf8");
-  const parsed = parseYAML(rawContent);
+  const resolved = resolveDeps(deps);
+
+  const shouldRefreshCoordinates = deps?.refreshSymbolCoordinates ?? false;
+
+  const rawContent = resolved.readFileSync(manifestPath, "utf8");
+  const parsed = resolved.parseYAML(rawContent);
 
   if (!isRecord(parsed)) {
     console.warn(
@@ -78,8 +113,66 @@ export async function refreshManifestCoordinates(
       ? ({ ...entry } as ManifestSymbolEntry)
       : ({} as ManifestSymbolEntry),
   );
-  const enriched = await enrichSymbolCoordinates(before, workspaceRoot);
-  parsed.symbols = enriched;
+
+  const enriched = await resolved.enrichSymbolCoordinates(
+    before,
+    workspaceRoot,
+  );
+
+  // Build coordinates map keyed by symbol id
+  const coordinatesMap: Record<string, SymbolCoordinatesRecord> = {};
+  for (const entry of enriched) {
+    const id = typeof entry?.id === "string" ? entry.id : undefined;
+    if (!id) continue;
+    if (
+      typeof entry.sourceFile === "string" &&
+      typeof entry.sourceLine === "number" &&
+      typeof entry.sourceColumn === "number" &&
+      typeof entry.sourceEndLine === "number" &&
+      typeof entry.sourceEndColumn === "number"
+    ) {
+      coordinatesMap[id] = {
+        sourceFile: entry.sourceFile,
+        sourceLine: entry.sourceLine,
+        sourceColumn: entry.sourceColumn,
+        sourceEndLine: entry.sourceEndLine,
+        sourceEndColumn: entry.sourceEndColumn,
+      };
+    }
+  }
+
+  // Optionally write the coordinate artifact to the coordinates path when explicitly requested
+  if (shouldRefreshCoordinates) {
+    try {
+      const coordinatesPath =
+        resolved.resolveSymbolsManifestPaths(workspaceRoot).coordinatesPath;
+      const artifactContent = resolved.writeCoordinateArtifact(coordinatesMap);
+      resolved.writeFileSync(coordinatesPath, artifactContent, "utf8");
+    } catch (err) {
+      console.warn(
+        `Warning: Failed to write symbol-coordinates artifact: ${String(err)}`,
+      );
+    }
+  }
+
+  // Strip generated fields from symbols.yaml entries only if original had them
+  const strippedEnriched = enriched.map((current, idx) => {
+    const prev = before[idx] ?? ({} as ManifestSymbolEntry);
+    const out: Record<string, unknown> = { ...current };
+    const originalHadGenerated = GENERATED_COORD_FIELDS.some(
+      (f) => prev[f as keyof ManifestSymbolEntry] !== undefined,
+    );
+    if (originalHadGenerated) {
+      for (const field of GENERATED_COORD_FIELDS) {
+        delete out[field as string];
+      }
+    }
+    // Ensure we never write coordinatesGeneratedAt
+    out.coordinatesGeneratedAt = undefined;
+    return out;
+  });
+
+  parsed.symbols = strippedEnriched;
 
   let refreshed = 0;
   let failed = 0;
@@ -89,7 +182,9 @@ export async function refreshManifestCoordinates(
     const previous = before[i] ?? ({} as ManifestSymbolEntry);
     const current = enriched[i] ?? previous;
     const changed = GENERATED_COORD_FIELDS.some(
-      (field) => previous[field] !== current[field],
+      (field) =>
+        previous[field as keyof ManifestSymbolEntry] !==
+        current[field as keyof ManifestSymbolEntry],
     );
 
     if (changed) {
@@ -104,6 +199,7 @@ export async function refreshManifestCoordinates(
           ? previous.sourceFile
           : undefined,
       workspaceRoot,
+      resolved,
     );
 
     if (eligible && !hasAllGeneratedCoordinates(current)) {
@@ -113,7 +209,7 @@ export async function refreshManifestCoordinates(
     }
   }
 
-  const dumped = dumpYAML(parsed, {
+  const dumped = resolved.dumpYAML(parsed, {
     lineWidth: -1,
     noRefs: true,
     sortKeys: false,
@@ -121,37 +217,39 @@ export async function refreshManifestCoordinates(
   const nextContent = `${SYMBOLS_MANIFEST_COMMENT_BLOCK}${dumped}`;
 
   if (rawContent !== nextContent) {
-    writeFileSync(manifestPath, nextContent, "utf8");
+    resolved.writeFileSync(manifestPath, nextContent, "utf8");
   }
 
   console.log(
-    `✓ Refreshed symbol coordinates in ${path.relative(workspaceRoot, manifestPath)} (refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed})`,
+    `\u2713 Refreshed symbol coordinates in ${path.relative(workspaceRoot, manifestPath)} (refreshed=${refreshed}, unchanged=${unchanged}, failed=${failed})`,
   );
 }
 
 export function hasAllGeneratedCoordinates(
+  // implements REQ-003
   entry: ManifestSymbolEntry,
 ): boolean {
   return (
     typeof entry.sourceLine === "number" &&
     typeof entry.sourceColumn === "number" &&
     typeof entry.sourceEndLine === "number" &&
-    typeof entry.sourceEndColumn === "number" &&
-    typeof entry.coordinatesGeneratedAt === "string" &&
-    entry.coordinatesGeneratedAt.length > 0
+    typeof entry.sourceEndColumn === "number"
   );
 }
 
 export function isEligibleForCoordinateRefresh(
+  // implements REQ-003
   sourceFile: string | undefined,
   workspaceRoot: string,
+  deps?: Partial<ManifestDeps>,
 ): boolean {
+  const resolved = resolveDeps(deps);
   if (!sourceFile) return false;
   const absolute = path.isAbsolute(sourceFile)
     ? sourceFile
     : path.resolve(workspaceRoot, sourceFile);
 
-  if (!existsSync(absolute)) return false;
+  if (!resolved.existsSync(absolute)) return false;
   const ext = path.extname(absolute).toLowerCase();
   return SYMBOL_COORD_EXTENSIONS.has(ext);
 }

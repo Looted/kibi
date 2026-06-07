@@ -53,5 +53,23 @@ export function resolveSymbolsManifestPath(workspaceRoot: string): string {
     path.join(workspaceRoot, "symbols.yml"),
   ];
   const foundPath = candidates.find((p) => fs.existsSync(p));
-  return foundPath ?? candidates[0];
+  return (
+    foundPath ??
+    candidates[0] ??
+    path.join(workspaceRoot, "documentation", "symbols.yaml")
+  );
+}
+
+export function resolveSymbolsManifestPaths(workspaceRoot: string): {
+  symbolsPath: string;
+  coordinatesPath: string;
+} {
+  const symbolsPath = resolveSymbolsManifestPath(workspaceRoot);
+  return {
+    symbolsPath,
+    coordinatesPath: path.join(
+      path.dirname(symbolsPath),
+      "symbol-coordinates.yaml",
+    ),
+  };
 }

@@ -8,13 +8,30 @@
  * (at your option) any later version.
  */
 
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import {
   getKbExistenceTargets,
   loadKbSyncPaths,
   shouldHandleFile,
   stripToRoot,
 } from "../src/file-filter.js";
+
+const tmpDirs: string[] = [];
+
+function makeTempDir(prefix: string): string {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  tmpDirs.push(dir);
+  return dir;
+}
+
+afterEach(() => {
+  for (const dir of tmpDirs.splice(0)) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 describe("stripToRoot", () => {
   test("returns root directory from glob pattern", () => {
@@ -66,6 +83,18 @@ describe("loadKbSyncPaths", () => {
     expect(paths.facts).toBe("documentation/facts/**/*.md");
     expect(paths.symbols).toBe("documentation/symbols.yaml");
   });
+
+  // implements REQ-opencode-kibi-plugin-v1
+  test("falls back to defaults when config JSON is invalid", () => {
+    const tmpDir = makeTempDir("kibi-file-filter-invalid-");
+    fs.mkdirSync(path.join(tmpDir, ".kb"), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, ".kb", "config.json"), "{invalid-json");
+
+    const paths = loadKbSyncPaths(tmpDir);
+
+    expect(paths.requirements).toBe("documentation/requirements/**/*.md");
+    expect(paths.symbols).toBe("documentation/symbols.yaml");
+  });
 });
 
 describe("getKbExistenceTargets", () => {
@@ -87,7 +116,7 @@ describe("getKbExistenceTargets", () => {
   test("symbols target is a file", () => {
     const targets = getKbExistenceTargets("/nonexistent");
     const symbols = targets.find((t) => t.key === "symbols");
-    expect(symbols).toBeDefined();
+    expect(Boolean(symbols)).toBe(true);
     expect(symbols?.kind).toBe("file");
     expect(symbols?.relativePath).toBe("documentation/symbols.yaml");
   });
@@ -95,7 +124,7 @@ describe("getKbExistenceTargets", () => {
   test("requirements target is a directory", () => {
     const targets = getKbExistenceTargets("/nonexistent");
     const reqs = targets.find((t) => t.key === "requirements");
-    expect(reqs).toBeDefined();
+    expect(Boolean(reqs)).toBe(true);
     expect(reqs?.kind).toBe("dir");
     expect(reqs?.relativePath).toBe("documentation/requirements");
   });
@@ -103,7 +132,7 @@ describe("getKbExistenceTargets", () => {
   test("all directory targets have dir kind", () => {
     const targets = getKbExistenceTargets("/nonexistent");
     const dirTargets = targets.filter((t) => t.kind === "dir");
-    expect(dirTargets.length).toBeGreaterThan(0);
+    expect(dirTargets.length > 0).toBe(true);
 
     for (const target of dirTargets) {
       expect(target.relativePath).not.toContain("*");
@@ -178,4 +207,8 @@ describe("shouldHandleFile", () => {
     expect(shouldHandleFile(absPath, "/home/user/project")).toBe(true);
   });
 
+  // implements REQ-opencode-kibi-plugin-v1
+  test("returns false for files inside .opencode", () => {
+    expect(shouldHandleFile(".opencode/kibi.json")).toBe(false);
+  });
 });

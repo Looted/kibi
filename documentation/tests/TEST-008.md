@@ -10,9 +10,8 @@ tags:
   - e2e
   - cli
 links:
-  - REQ-001
-  - REQ-003
-  - REQ-007
+  - type: validates
+    target: SCEN-001
 ---
 
 Full pipeline in a temp directory:

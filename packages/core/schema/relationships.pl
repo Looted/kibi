@@ -4,6 +4,7 @@
 
 % Relationship types
 relationship_type(depends_on).
+relationship_type(executable_for).
 relationship_type(specified_by).
 relationship_type(verified_by).
 relationship_type(validates).
@@ -17,12 +18,16 @@ relationship_type(relates_to).
 relationship_type(supersedes).
 relationship_type(constrains).
 relationship_type(requires_property).
+relationship_type(requires_predicate).
 
 % valid_relationship(RelType, FromType, ToType).
 valid_relationship(depends_on, req, req).
+valid_relationship(executable_for, symbol, test).
 valid_relationship(specified_by, req, scenario).
 valid_relationship(verified_by, req, test).
+valid_relationship(verified_by, scenario, test).
 valid_relationship(validates, test, req).
+valid_relationship(validates, test, scenario).
 valid_relationship(implements, symbol, req).
 valid_relationship(covered_by, symbol, test).
 valid_relationship(constrained_by, symbol, adr).
@@ -34,6 +39,7 @@ valid_relationship(publishes, symbol, event).
 valid_relationship(consumes, symbol, event).
 valid_relationship(constrains, req, fact).
 valid_relationship(requires_property, req, fact).
+valid_relationship(requires_predicate, req, fact).
 
 %% supersedes(+NewAdrId, +OldAdrId)
 %% NewAdrId is the decision that replaces OldAdrId.

@@ -17,12 +17,69 @@
  */
 
 // Typed fact field enums per proposal
-type FactKind = "subject" | "property_value" | "observation" | "meta";
+import { SYMBOL_ROLES, type SymbolRole } from "../symbol-granularity.js";
+
+type FactKind =
+  | "subject"
+  | "property_value"
+  | "observation"
+  | "meta"
+  | "predicate_schema"
+  | "predicate";
 type Operator = "eq" | "neq" | "lt" | "lte" | "gt" | "gte";
 type ValueType = "string" | "int" | "number" | "bool";
-type Polarity = "require" | "forbid";
+type Polarity = "require" | "forbid" | "assert" | "deny";
 
-const entitySchema = {
+const factConditionals = JSON.parse(`[
+  {
+    "if": {
+      "properties": {
+        "type": { "const": "fact" },
+        "fact_kind": { "const": "predicate_schema" }
+      },
+      "required": ["type", "fact_kind"]
+    },
+    "then": {
+      "required": [
+        "predicate_name",
+        "predicate_arity",
+        "argument_names",
+        "argument_types"
+      ]
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "type": { "const": "fact" },
+        "fact_kind": { "const": "predicate" }
+      },
+      "required": ["type", "fact_kind"]
+    },
+    "then": {
+      "required": ["predicate_name", "predicate_args", "canonical_key"],
+      "properties": {
+        "polarity": { "enum": ["assert", "deny"] }
+      }
+    }
+  },
+  {
+    "if": {
+      "properties": {
+        "type": { "const": "fact" },
+        "fact_kind": { "const": "property_value" }
+      },
+      "required": ["type", "fact_kind"]
+    },
+    "then": {
+      "properties": {
+        "polarity": { "enum": ["require", "forbid"] }
+      }
+    }
+  }
+]`) as Array<Record<string, unknown>>;
+
+const entitySchema: Record<string, unknown> = {
   $id: "entity.schema.json",
   title: "Entity",
   type: "object",
@@ -62,6 +119,20 @@ const entitySchema = {
     severity: { type: "string" },
     links: { type: "array", items: { type: "string" } },
     text_ref: { type: "string" },
+    sourceFile: { type: "string" },
+    granularity_reason: {
+      type: "string",
+      enum: [
+        "config-artifact",
+        "module-level-behavior",
+        "extractor-miss",
+        "legacy-link",
+      ],
+    },
+    symbol_role: {
+      type: "string",
+      enum: [...SYMBOL_ROLES] satisfies SymbolRole[],
+    },
     type: {
       type: "string",
       enum: [
@@ -78,7 +149,14 @@ const entitySchema = {
     // Typed fact fields - only valid when type === "fact"
     fact_kind: {
       type: "string",
-      enum: ["subject", "property_value", "observation", "meta"],
+      enum: [
+        "subject",
+        "property_value",
+        "observation",
+        "meta",
+        "predicate_schema",
+        "predicate",
+      ] satisfies FactKind[],
     },
     subject_key: { type: "string" },
     property_key: { type: "string" },
@@ -90,11 +168,23 @@ const entitySchema = {
     value_bool: { type: "boolean" },
     unit: { type: "string" },
     scope: { type: "string" },
-    polarity: { type: "string", enum: ["require", "forbid"] },
+    polarity: {
+      type: "string",
+      enum: ["require", "forbid", "assert", "deny"] satisfies Polarity[],
+    },
     closed_world: { type: "boolean" },
     valid_from: { type: "string" },
     valid_to: { type: "string" },
     canonical_key: { type: "string" },
+    predicate_name: { type: "string" },
+    predicate_namespace: { type: "string" },
+    predicate_arity: { type: "integer", minimum: 1 },
+    argument_names: { type: "array", items: { type: "string" } },
+    argument_types: { type: "array", items: { type: "string" } },
+    argument_descriptions: { type: "array", items: { type: "string" } },
+    aliases: { type: "array", items: { type: "string" } },
+    examples: { type: "array", items: { type: "string" } },
+    predicate_args: { type: "array", items: { type: "string" } },
   },
   required: [
     "id",
@@ -132,10 +222,20 @@ const entitySchema = {
             { required: ["valid_from"] },
             { required: ["valid_to"] },
             { required: ["canonical_key"] },
+            { required: ["predicate_name"] },
+            { required: ["predicate_namespace"] },
+            { required: ["predicate_arity"] },
+            { required: ["argument_names"] },
+            { required: ["argument_types"] },
+            { required: ["argument_descriptions"] },
+            { required: ["aliases"] },
+            { required: ["examples"] },
+            { required: ["predicate_args"] },
           ],
         },
       },
     },
+    ...factConditionals,
   ],
   additionalProperties: false,
 };

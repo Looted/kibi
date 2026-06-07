@@ -1,18 +1,28 @@
 import { createHash } from "node:crypto";
 import { Project, ScriptKind, type SourceFile } from "ts-morph";
-import { extractFromManifest } from "../extractors/manifest.js";
+import { readManifestWithCoordinateOverlay } from "../extractors/manifest.js";
+import {
+  type SymbolKind,
+  type SymbolRole,
+  inferSymbolRole,
+} from "../public/symbol-granularity.js";
 import type { HunkRange, StagedFile } from "./git-staged.js";
 
 type TraceabilityRelationship = { type: string; to: string };
-const TRACEABILITY_RELATIONSHIP_TYPES = new Set(["implements", "covered_by"]);
-const REQUIREMENT_ID_PATTERN = /^[A-Z][A-Z0-9\-_]*$/;
+const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
+  "implements",
+  "covered_by",
+  "executable_for",
+]);
+const REQUIREMENT_ID_PATTERN = /^[A-Za-z][A-Za-z0-9\-_]*$/;
 const LOCAL_MANIFEST_NAMES = ["symbols.yaml", "symbols.yml"];
 const MANIFEST_SENTINEL_PREFIX = "__manifest__:";
 
 export interface ExtractedSymbol {
   id: string;
   name: string;
-  kind: "function" | "class" | "variable" | "enum" | "unknown";
+  kind: SymbolKind;
+  role: SymbolRole;
   location: {
     file: string;
     startLine: number;
@@ -102,16 +112,13 @@ function resolveSymbolTraceability(
 
   for (const manifestPath of candidateManifestPaths) {
     try {
-      const ents = extractFromManifest(manifestPath);
-      for (const e of ents) {
-        if (e.entity.title === name) {
+      const records = readManifestWithCoordinateOverlay(manifestPath);
+      for (const record of records) {
+        if (record.title === name && typeof record.id === "string") {
           return {
-            id: e.entity.id,
+            id: record.id,
             relationships: filterTraceabilityRelationships(
-              e.relationships.map((relationship) => ({
-                type: relationship.type,
-                to: relationship.to,
-              })),
+              extractRelationshipsFromManifestRecord(record),
             ),
           };
         }
@@ -122,6 +129,48 @@ function resolveSymbolTraceability(
   }
 
   return { id: createHashFallbackId(filePath, name) };
+}
+
+function extractRelationshipsFromManifestRecord(record: {
+  links?: Array<string | { type?: unknown; target?: unknown }>;
+  relationships?: Array<{ type?: unknown; target?: unknown }>;
+}): TraceabilityRelationship[] {
+  const relationships: TraceabilityRelationship[] = [];
+
+  if (Array.isArray(record.links)) {
+    for (const link of record.links) {
+      if (typeof link === "string") {
+        relationships.push({ type: "implements", to: link });
+        continue;
+      }
+
+      if (
+        link &&
+        typeof link === "object" &&
+        typeof link.type === "string" &&
+        typeof link.target === "string"
+      ) {
+        relationships.push({ type: link.type, to: link.target });
+      }
+    }
+  }
+
+  if (Array.isArray(record.relationships)) {
+    for (const relationship of record.relationships) {
+      if (
+        relationship &&
+        typeof relationship.type === "string" &&
+        typeof relationship.target === "string"
+      ) {
+        relationships.push({
+          type: relationship.type,
+          to: relationship.target,
+        });
+      }
+    }
+  }
+
+  return relationships;
 }
 
 function buildSymbolResult(
@@ -145,6 +194,7 @@ function buildSymbolResult(
     id,
     name,
     kind,
+    role: inferSymbolRole(kind),
     location: {
       file: stagedFile.path,
       startLine: span.startLine,
@@ -156,7 +206,7 @@ function buildSymbolResult(
       stagedFile.hunkRanges,
     ),
     reqLinks: mergedReqLinks,
-    relationships,
+    ...(relationships !== undefined ? { relationships } : {}),
   };
 }
 
@@ -189,7 +239,7 @@ function parseReqDirectives(text: string): string[] {
   // look for lines containing implements REQ-123 or implements: REQ-1, REQ-2
   // Stop at end-of-line and only accept IDs starting with an uppercase letter
   // to avoid capturing tokens like `export`, `function`, etc.
-  const REQ_ID = "[A-Z][A-Z0-9\\-_]*";
+  const REQ_ID = "[A-Za-z][A-Za-z0-9\\-_]*";
   const regex = new RegExp(
     `implements\\s*:?\\s*(${REQ_ID}(?:\\s*,\\s*${REQ_ID})*)\\s*$`,
     "gim",
@@ -200,6 +250,8 @@ function parseReqDirectives(text: string): string[] {
     m = regex.exec(text);
     if (!m) break;
     const list = m[1];
+    if (!list) continue;
+
     for (const part of list.split(/[,\s]+/)) {
       const p = part.trim();
       if (!p) continue;
@@ -288,7 +340,7 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
     }
   }
 
@@ -300,12 +352,7 @@ export function extractSymbolsFromStagedFile(
       const start = cls.getNameNode()?.getStart() ?? cls.getStart();
       const end = cls.getEnd();
       const span = getSpan(start, end);
-      const reqLinks = parseReqDirectives(
-        `${cls.getText()}\n${cls
-          .getJsDocs()
-          .map((d) => d.getFullText())
-          .join("\n")}`,
-      );
+      const reqLinks = parseReqDirectives(getJsDocText(cls.getJsDocs()));
       results.push(
         buildSymbolResult(
           stagedFile,
@@ -317,7 +364,36 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
+    }
+
+    for (const method of typeof cls.getMethods === "function"
+      ? cls.getMethods()
+      : []) {
+      try {
+        const name = formatMethodSymbolName(cls.getName(), method.getName());
+        const start = method.getNameNode()?.getStart() ?? method.getStart();
+        const end = method.getEnd();
+        const span = getSpan(start, end);
+        const reqLinks = parseReqDirectives(
+          `${method.getFullText()}\n${method
+            .getJsDocs()
+            .map((d) => d.getFullText())
+            .join("\n")}`,
+        );
+        results.push(
+          buildSymbolResult(
+            stagedFile,
+            name,
+            "method",
+            span,
+            reqLinks,
+            manifestLookup,
+          ),
+        );
+      } catch {
+        void stagedFile.path;
+      }
     }
   }
 
@@ -341,7 +417,57 @@ export function extractSymbolsFromStagedFile(
         ),
       );
     } catch {
-      // skip: individual declaration extraction may fail on malformed AST nodes
+      void stagedFile.path;
+    }
+  }
+
+  for (const iface of typeof sf.getInterfaces === "function"
+    ? sf.getInterfaces()
+    : []) {
+    if (!iface.isExported()) continue;
+    try {
+      const name = iface.getName();
+      const start = iface.getNameNode().getStart();
+      const end = iface.getEnd();
+      const span = getSpan(start, end);
+      const reqLinks = parseReqDirectives(iface.getText());
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "interface",
+          span,
+          reqLinks,
+          manifestLookup,
+        ),
+      );
+    } catch {
+      void stagedFile.path;
+    }
+  }
+
+  for (const alias of typeof sf.getTypeAliases === "function"
+    ? sf.getTypeAliases()
+    : []) {
+    if (!alias.isExported()) continue;
+    try {
+      const name = alias.getName();
+      const start = alias.getNameNode().getStart();
+      const end = alias.getEnd();
+      const span = getSpan(start, end);
+      const reqLinks = parseReqDirectives(alias.getText());
+      results.push(
+        buildSymbolResult(
+          stagedFile,
+          name,
+          "type",
+          span,
+          reqLinks,
+          manifestLookup,
+        ),
+      );
+    } catch {
+      void stagedFile.path;
     }
   }
 
@@ -366,7 +492,7 @@ export function extractSymbolsFromStagedFile(
           ),
         );
       } catch {
-        // skip: individual declaration extraction may fail on malformed AST nodes
+        void stagedFile.path;
       }
     }
   }
@@ -381,6 +507,17 @@ export function extractSymbolsFromStagedFile(
   }
 
   return results;
+}
+
+function formatMethodSymbolName(
+  className: string | undefined,
+  methodName: string,
+): string {
+  return className ? `${className}.${methodName}` : methodName;
+}
+
+function getJsDocText(jsDocs: Array<{ getFullText(): string }>): string {
+  return jsDocs.map((d) => d.getFullText()).join("\n");
 }
 
 function intersectingHunks(

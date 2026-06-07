@@ -11,7 +11,12 @@
     "declaration": true,
     "declarationMap": true,
     "outDir": "dist",
-    "types": ["node"]
+    "rootDir": "src",
+    "types": ["node"],
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true
   },
   "include": ["src/**/*"],
   "exclude": ["src/**/*test*"]

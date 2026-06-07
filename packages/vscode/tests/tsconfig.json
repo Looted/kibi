@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "exactOptionalPropertyTypes": false,
+    "noUncheckedIndexedAccess": false,
+    "rootDir": "..",
+    "types": ["bun-types", "node", "vscode"]
+  },
+  "include": ["**/*.test.ts", "../src/types/**/*.d.ts"]
+}

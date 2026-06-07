@@ -10,110 +10,63 @@ concurrency:
 on:
   push:
     branches: [master]
-  workflow_dispatch:
-    inputs:
-      packages:
-        description: 'Comma-separated list of packages to publish (e.g., core,cli,mcp). If empty, auto-detect changed packages.'
-        required: false
-        default: ''
-      dry-run:
-        description: 'Perform a dry run (no actual publish)'
-        required: false
-        default: false
-        type: boolean
+
 jobs:
-  check-changesets:
+  check-release:
     runs-on: ubuntu-latest
     outputs:
-      has_changesets: ${{ steps.check.outputs.has_changesets }}
+      release_action: ${{ steps.decide.outputs.action }}
+      toPublish: ${{ steps.decide.outputs.toPublish }}
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 1
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Check for changesets
-        id: check
+      - name: Determine release action
+        id: decide
         run: |
-          BASE_BRANCH=$(node -e "console.log(require('./.changeset/config.json').baseBranch || 'main')")
-          git fetch origin "${BASE_BRANCH}:${BASE_BRANCH}" || true
-          git fetch origin "${BASE_BRANCH}" || true
-
-          if bunx changeset status --since "${BASE_BRANCH}" --output /dev/null 2>&1; then
-            echo "has_changesets=true" >> $GITHUB_OUTPUT
-            echo "Changesets detected - will version packages"
-          else
-            STATUS_OUTPUT=$(bunx changeset status --since "${BASE_BRANCH}" 2>&1 || true)
-            if echo "$STATUS_OUTPUT" | grep -q "Some packages have been changed"; then
-              echo "has_changesets=true" >> $GITHUB_OUTPUT
-              echo "Changesets detected - will version packages"
-            elif echo "$STATUS_OUTPUT" | grep -q "No changesets present"; then
-              echo "has_changesets=false" >> $GITHUB_OUTPUT
-              echo "No changesets detected"
-            else
-              echo "$STATUS_OUTPUT"
-              echo "changeset status failed unexpectedly"
-              exit 1
-            fi
-          fi
-
-  version-packages:
-    runs-on: ubuntu-latest
-    needs: check-changesets
-    if: ${{ needs.check-changesets.outputs.has_changesets == 'true' && inputs.dry-run != true }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: '1.3.6'
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-        env:
-          NODE_INSTALLER: npm
-      - name: Verify npm is available
-        run: npm --version
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-      - name: Version packages
-        run: bun run version-packages
-      - name: Upload versioned files
-        uses: actions/upload-artifact@v4
-        with:
-          name: versioned-packages
-          path: |
-            packages/*/package.json
-            packages/*/CHANGELOG.md
-            .changeset/
-          retention-days: 1
+          DECISION=$(bun run scripts/run-release-state.ts)
+          ACTION=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));process.stdout.write(d.action)")
+          TO_PUBLISH=$(echo "$DECISION" | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));d.toPublish.forEach(x=>console.log(x))")
+          echo "action=$ACTION" >> $GITHUB_OUTPUT
+          echo "toPublish<<EOF" >> $GITHUB_OUTPUT
+          echo "$TO_PUBLISH" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "Release action: $ACTION"
+          echo "$DECISION"
 
   build-and-check:
     runs-on: ubuntu-latest
-    needs: [check-changesets, version-packages]
-    if: ${{ always() && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: check-release
+    if: ${{ needs.check-release.outputs.release_action != 'NOOP' && needs.check-release.outputs.release_action != 'ALREADY_PUBLISHED_NOOP' }}
     outputs:
-      to_publish: ${{ steps.check-packages.outputs.to_publish }}
+      toPublish: ${{ steps.check-packages.outputs.toPublish }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          ref: refs/heads/master
+          fetch-depth: 1
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          sudo apt-get install -y software-properties-common
+          sudo apt-add-repository -y ppa:swi-prolog/stable
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -128,25 +81,29 @@ jobs:
         run: |
           bun install --frozen-lockfile
           cd .opencode && bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
+
+      - name: Typecheck matrix
+        run: bun run typecheck
+
       - name: Build CLI package
         run: bun run build:cli
       - name: Build MCP package
         run: bun run build:mcp
+      - name: Build Codex plugin package
+        run: bun run build:codex
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
+      - name: Clean stale tarballs
+        run: bun run clean:tarballs
       - name: Pack packages
         run: |
           cd packages/core && npm pack
           cd ../cli && npm pack
           cd ../mcp && npm pack
           cd ../opencode && npm pack
+          cd ../codex && npm pack
       - name: Upload package tarballs
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: package-tarballs
           path: |
@@ -154,102 +111,65 @@ jobs:
             packages/cli/*.tgz
             packages/mcp/*.tgz
             packages/opencode/*.tgz
+            packages/codex/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: vscode-vsix
           path: packages/vscode/*.vsix
           retention-days: 1
-      - name: Determine packages to publish
+      - name: Pass through packages to publish
         id: check-packages
         run: |
-          to_publish=""
-          
-          check_package() {
-            local pkg_name="$1"
-            local pkg_dir="$2"
-            local version=$(node -p "require('./packages/${pkg_dir}/package.json').version")
-            
-            echo "Checking ${pkg_name} local version: ${version}"
-            
-            if npm view ${pkg_name}@${version} version > /dev/null 2>&1; then
-              echo "${pkg_name}@${version} already exists on npm"
-              return 0
-            else
-              echo "${pkg_name}@${version} needs to be published"
-              to_publish="${to_publish}${pkg_dir}=${pkg_name}"$'\n'
-              return 0
-            fi
-          }
-          
-          if [ -n "${{ inputs.packages }}" ]; then
-            IFS=',' read -ra PACKAGES <<< "${{ inputs.packages }}"
-            for pkg in "${PACKAGES[@]}"; do
-              pkg=$(echo $pkg | xargs)
-              case $pkg in
-                core) check_package "kibi-core" "core" ;;
-                cli) check_package "kibi-cli" "cli" ;;
-                mcp) check_package "kibi-mcp" "mcp" ;;
-                opencode) check_package "kibi-opencode" "opencode" ;;
-                vscode) echo "kibi-vscode is distributed via VSIX on GitHub Releases, not npm" ;;
-                *) echo "Unknown package: $pkg" ;;
-              esac
-            done
-          else
-            check_package "kibi-core" "core"
-            check_package "kibi-cli" "cli"
-            check_package "kibi-mcp" "mcp"
-            check_package "kibi-opencode" "opencode"
-          fi
-          
-          echo "to_publish<<EOF" >> $GITHUB_OUTPUT
-          echo -n "$to_publish" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          cat >> $GITHUB_OUTPUT <<'EOFMARKER'
+          toPublish<<EOF
+          ${{ needs.check-release.outputs.toPublish }}
+          EOF
+          EOFMARKER
 
   release-gate:
     runs-on: ubuntu-latest
-    needs: [build-and-check, version-packages]
-    # Run when build-and-check succeeded with packages to publish,
-    # and version-packages either succeeded (changesets present) or was skipped (no changesets/dry-run).
-    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.to_publish != '' && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: [build-and-check, check-release]
+    if: ${{ always() && needs.build-and-check.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          ref: refs/heads/master
+          fetch-depth: 1
       - name: Install SWI-Prolog
-        run: sudo apt-get update && sudo apt-get install -y swi-prolog
+        run: |
+          sudo apt-get install -y software-properties-common
+          sudo apt-add-repository -y ppa:swi-prolog/stable
+          sudo apt-get update
+          sudo apt-get install -y swi-prolog
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download package tarballs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: package-tarballs
           path: packages
       - name: Tarball content verification
         run: |
-          bun test --timeout=300000 documentation/tests/e2e/packed/cli-verify-tarball-core.test.ts
+          bun test --cwd documentation/tests/e2e/packed --timeout=300000 cli-verify-tarball-core.test.ts packed-path-hygiene.test.ts
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
         timeout-minutes: 5
       - name: Opencode packed behavior verification
         run: |
+          bun run typecheck:e2e:packed
           rm -rf /tmp/kibi-e2e-packed-compiled
-          bunx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled --noEmitOnError false || true
+          bunx tsc -p documentation/tests/e2e/packed/tsconfig.e2e.json --outDir /tmp/kibi-e2e-packed-compiled
           export NODE_OPTIONS='--enable-source-maps' && bunx node --test --test-concurrency=1 /tmp/kibi-e2e-packed-compiled/opencode-install.test.js /tmp/kibi-e2e-packed-compiled/opencode-plugin.test.js /tmp/kibi-e2e-packed-compiled/opencode-bootstrap-paths.test.js
         env:
           KIBI_TEST_TARBALLS: ${{ github.workspace }}/packages
@@ -263,6 +183,7 @@ jobs:
           npm install ${{ github.workspace }}/packages/cli/kibi-cli-*.tgz
           npm install ${{ github.workspace }}/packages/mcp/kibi-mcp-*.tgz
           npm install ${{ github.workspace }}/packages/opencode/kibi-opencode-*.tgz
+          npm install ${{ github.workspace }}/packages/codex/kibi-codex-*.tgz
           ./node_modules/.bin/kibi --version
           ./node_modules/.bin/kibi init --no-hooks
           ./node_modules/.bin/kibi query req
@@ -277,38 +198,29 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    needs: [build-and-check, release-gate, version-packages]
-    if: ${{ needs.build-and-check.outputs.to_publish != '' && inputs.dry-run != true && (needs.version-packages.result == 'success' || needs.version-packages.result == 'skipped') }}
+    needs: [build-and-check, release-gate, check-release]
+    if: ${{ needs.build-and-check.outputs.toPublish != '' }}
     permissions:
       contents: read
       id-token: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download package tarballs
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: package-tarballs
           path: packages
       - name: Publish packages
         run: |
-          to_publish="${{ needs.build-and-check.outputs.to_publish }}"
+          to_publish="${{ needs.build-and-check.outputs.toPublish }}"
           while IFS= read -r output; do
             [ -z "$output" ] && continue
             pkg_dir="${output%=*}"
@@ -326,34 +238,30 @@ jobs:
 
   create-github-releases:
     runs-on: ubuntu-latest
-    needs: [publish, build-and-check, version-packages]
-    if: ${{ needs.publish.result == 'success' && needs.build-and-check.outputs.to_publish != '' }}
+    needs: [publish, build-and-check, check-release]
+    if: ${{ needs.publish.result == 'success' && needs.build-and-check.outputs.toPublish != '' }}
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          ref: refs/heads/master
+          fetch-depth: 1
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.3.6'
+          bun-version: '1.3.10'
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Download versioned files
-        if: ${{ needs.version-packages.result == 'success' }}
-        uses: actions/download-artifact@v4
-        with:
-          name: versioned-packages
       - name: Download VS Code extension VSIX
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: vscode-vsix
           path: packages/vscode
       - name: Create GitHub releases
         run: |
-          to_publish="${{ needs.build-and-check.outputs.to_publish }}"
+          to_publish="${{ needs.build-and-check.outputs.toPublish }}"
           vsix_file=$(ls -1 packages/vscode/*.vsix 2>/dev/null | head -1)
           while IFS= read -r output; do
             [ -z "$output" ] && continue

@@ -10,6 +10,10 @@
     "rootDir": "src",
     "baseUrl": ".",
     "types": ["node"],
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "paths": {
       "kibi-cli/prolog": ["../cli/dist/public/prolog"],
       "kibi-cli/prolog/codec": ["../cli/dist/prolog/codec"],
@@ -22,7 +26,12 @@
       ],
       "kibi-cli/schemas": ["../cli/dist/public/schemas"],
       "kibi-cli/search-ranking": ["../cli/dist/search-ranking"],
-      "kibi-cli/public/check-types": ["../cli/dist/public/check-types"]
+      "kibi-cli/public/symbol-granularity": [
+        "../cli/dist/public/symbol-granularity"
+      ],
+      "kibi-cli/schema-version": ["../cli/dist/public/schema-version"],
+      "kibi-cli/public/check-types": ["../cli/dist/public/check-types"],
+      "kibi-cli/public/branch-resolver": ["../cli/dist/public/branch-resolver"]
     }
   },
   "include": ["src/**/*"],
