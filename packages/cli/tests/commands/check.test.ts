@@ -2373,6 +2373,82 @@ export function wtFunction() {
     },
     TEST_TIMEOUT_MS,
   );
+  test(
+    "passes symbol-coverage with complete scenario chain via typed links",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const testDir = path.join(tmpDir, "documentation/tests");
+      const docsDir = path.join(tmpDir, "documentation");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(scenarioDir, { recursive: true });
+      mkdirSync(testDir, { recursive: true });
+
+      writeFileSync(
+        path.join(reqDir, "REQ-COV-CHAIN-002.md"),
+        "---\nid: REQ-COV-CHAIN-002\ntitle: Coverage Chain Req\nstatus: open\npriority: must\nsource: requirements/REQ-COV-CHAIN-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-COV-CHAIN-002\n---\n\n# Coverage Chain Req\n",
+      );
+      writeFileSync(
+        path.join(scenarioDir, "SCEN-COV-CHAIN-002.md"),
+        "---\nid: SCEN-COV-CHAIN-002\ntitle: Coverage Chain Scenario\nstatus: active\nsource: scenarios/SCEN-COV-CHAIN-002.md\nlinks:\n  - type: verified_by\n    target: TEST-COV-CHAIN-002\n---\n\n# Coverage Chain Scenario\n",
+      );
+      writeFileSync(
+        path.join(testDir, "TEST-COV-CHAIN-002.md"),
+        "---\nid: TEST-COV-CHAIN-002\ntitle: Coverage Chain Test\nstatus: passing\nsource: tests/TEST-COV-CHAIN-002.md\n---\n\n# Coverage Chain Test\n",
+      );
+      writeFileSync(
+        path.join(docsDir, "symbols.yaml"),
+        "symbols:\n  - id: symbol-cov-chain-002\n    title: Covered Symbol\n    status: active\n    links:\n      - type: covered_by\n        target: TEST-COV-CHAIN-002\n      - type: implements\n        target: REQ-COV-CHAIN-002\n",
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      const { status, stdout, stderr } = runKibi(kibiBin, ["check", "--rules", "symbol-coverage"], tmpDir);
+      expect(status).toBe(0);
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("No violations found");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
+    "fails symbol-coverage when direct req→test exists but req has scenario",
+    async () => {
+      const reqDir = path.join(tmpDir, "documentation/requirements");
+      const scenarioDir = path.join(tmpDir, "documentation/scenarios");
+      const testDir = path.join(tmpDir, "documentation/tests");
+      const docsDir = path.join(tmpDir, "documentation");
+
+      mkdirSync(reqDir, { recursive: true });
+      mkdirSync(scenarioDir, { recursive: true });
+      mkdirSync(testDir, { recursive: true });
+
+      writeFileSync(
+        path.join(reqDir, "REQ-DIRECT-BLOCKED-002.md"),
+        "---\nid: REQ-DIRECT-BLOCKED-002\ntitle: Direct Blocked Req\nstatus: open\npriority: must\nsource: requirements/REQ-DIRECT-BLOCKED-002.md\nlinks:\n  - type: specified_by\n    target: SCEN-DIRECT-BLOCKED-002\n  - type: verified_by\n    target: TEST-DIRECT-BLOCKED-002\n---\n\n# Direct Blocked Req\n",
+      );
+      writeFileSync(
+        path.join(scenarioDir, "SCEN-DIRECT-BLOCKED-002.md"),
+        "---\nid: SCEN-DIRECT-BLOCKED-002\ntitle: Direct Blocked Scenario\nstatus: active\nsource: scenarios/SCEN-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Scenario\n",
+      );
+      writeFileSync(
+        path.join(testDir, "TEST-DIRECT-BLOCKED-002.md"),
+        "---\nid: TEST-DIRECT-BLOCKED-002\ntitle: Direct Blocked Test\nstatus: passing\nsource: tests/TEST-DIRECT-BLOCKED-002.md\n---\n\n# Direct Blocked Test\n",
+      );
+      writeFileSync(
+        path.join(docsDir, "symbols.yaml"),
+        "symbols:\n  - id: symbol-direct-blocked-002\n    title: Direct Blocked Symbol\n    status: active\n    links:\n      - type: covered_by\n        target: TEST-DIRECT-BLOCKED-002\n      - type: implements\n        target: REQ-DIRECT-BLOCKED-002\n",
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      const { status, stdout, stderr } = runKibi(kibiBin, ["check", "--rules", "symbol-coverage"], tmpDir);
+      expect(status).toBe(1);
+      const output = stdoutToString(stdout || stderr);
+      expect(output).toContain("symbol-direct-blocked-002");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
 });
 
 import { parseViolationRows } from "../../src/prolog/codec";
