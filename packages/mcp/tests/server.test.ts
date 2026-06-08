@@ -1111,4 +1111,146 @@ describe("MCP Server", () => {
       fs.rmSync(tempRoot, { recursive: true, force: true });
     }
   }, 60000);
+
+  test(
+    "should see fresh data after external sync rebuild without restart (refreshes after external sync rebuild)",
+    async () => {
+      const tempRoot = fs.mkdtempSync(
+        path.join(os.tmpdir(), "kibi-mcp-refresh-"),
+      );
+
+      // Initialize git repo
+      execSync("git init -b main", { cwd: tempRoot, stdio: "ignore" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      execSync('git config user.name "Kibi Test"', {
+        cwd: tempRoot,
+        stdio: "ignore",
+      });
+      fs.writeFileSync(path.join(tempRoot, "README.md"), "test\n");
+      execSync("git add README.md", { cwd: tempRoot, stdio: "ignore" });
+      execSync('git commit -m "init"', { cwd: tempRoot, stdio: "ignore" });
+      execSync("git checkout -b develop", { cwd: tempRoot, stdio: "ignore" });
+
+      // Write a seed kb.rdf with a stale entity
+      const developKbDir = path.join(tempRoot, ".kb/branches/develop");
+      fs.mkdirSync(path.join(developKbDir, "journal"), { recursive: true });
+      fs.writeFileSync(path.join(developKbDir, "kb.rdf.lock"), "");
+      fs.writeFileSync(
+        path.join(developKbDir, "kb.rdf"),
+        `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:kb="urn-kibi:"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+  <rdf:Description rdf:about="kb:entity/REQ-stale-before-rebuild">
+    <kb:type rdf:datatype="http://www.w3.org/2001/XMLSchema#string">req</kb:type>
+    <kb:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">REQ-stale-before-rebuild</kb:id>
+    <kb:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Stale requirement</kb:title>
+    <kb:status rdf:datatype="http://www.w3.org/2001/XMLSchema#string">open</kb:status>
+  </rdf:Description>
+</rdf:RDF>
+`,
+      );
+
+      const proc = startServer({ cwd: tempRoot });
+      const pidBefore = proc.pid;
+
+      try {
+        // Initialize MCP session
+        await sendRequest(proc, {
+          jsonrpc: "2.0",
+          id: 1,
+          method: "initialize",
+          params: {
+            protocolVersion: "2024-11-05",
+            capabilities: {},
+            clientInfo: { name: "test", version: "1.0" },
+          },
+        });
+        proc.stdin?.write(
+          `${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" })}\n`,
+        );
+
+        // Query: confirm stale entity is visible
+        const before = await sendRequest(proc, {
+          jsonrpc: "2.0",
+          id: 2,
+          method: "tools/call",
+          params: {
+            name: "kb_query",
+            arguments: { id: "REQ-stale-before-rebuild" },
+          },
+        }, HEAVY_TOOL_TIMEOUT_MS);
+
+        expect(before.error).toBeUndefined();
+        const beforeResult = before.result as Record<string, unknown>;
+        expect(beforeResult.isError).toBeFalsy();
+        const beforeContent = beforeResult.content as Array<{ type: string; text: string }>;
+        expect(beforeContent[0]?.text).toContain("REQ-stale-before-rebuild");
+
+        // Externally replace the branch KB (simulates kibi sync rebuild)
+        fs.writeFileSync(
+          path.join(developKbDir, "kb.rdf"),
+          `<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:kb="urn-kibi:"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema#">
+  <rdf:Description rdf:about="kb:entity/REQ-fresh-after-rebuild">
+    <kb:type rdf:datatype="http://www.w3.org/2001/XMLSchema#string">req</kb:type>
+    <kb:id rdf:datatype="http://www.w3.org/2001/XMLSchema#string">REQ-fresh-after-rebuild</kb:id>
+    <kb:title rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Fresh requirement</kb:title>
+    <kb:status rdf:datatype="http://www.w3.org/2001/XMLSchema#string">open</kb:status>
+  </rdf:Description>
+</rdf:RDF>
+`,
+        );
+
+        // Verify file was replaced correctly
+        const fileAfterReplace = fs.readFileSync(path.join(developKbDir, "kb.rdf"), "utf8");
+        expect(fileAfterReplace).toContain("REQ-fresh-after-rebuild");
+        expect(fileAfterReplace).not.toContain("REQ-stale-before-rebuild");
+
+        // Query SAME process again — must see fresh data
+        const after = await sendRequest(proc, {
+          jsonrpc: "2.0",
+          id: 3,
+          method: "tools/call",
+          params: {
+            name: "kb_query",
+            arguments: { type: "req" },
+          },
+        }, HEAVY_TOOL_TIMEOUT_MS);
+
+        expect(after.error).toBeUndefined();
+        const afterResult = after.result as Record<string, unknown>;
+        expect(afterResult.isError).toBeFalsy();
+        const afterContent = afterResult.content as Array<{ type: string; text: string }>;
+
+        // Fresh entity is visible
+        expect(afterContent[0]?.text).toContain("REQ-fresh-after-rebuild");
+
+        // Stale entity is no longer returned by the fresh KB
+        expect(afterContent[0]?.text).not.toContain("REQ-stale-before-rebuild");
+
+        // Same process (no restart)
+        expect(proc.pid).toBe(pidBefore);
+        expect(proc.killed).toBe(false);
+
+        // No Prolog crash string in any response
+        const allResponses = [before, after];
+        for (const resp of allResponses) {
+          const text = JSON.stringify(resp);
+          expect(text).not.toContain("Unknown option");
+        }
+      } finally {
+        await killServer(proc);
+        fs.rmSync(tempRoot, { recursive: true, force: true });
+      }
+    },
+    60000,
+  );
 });
