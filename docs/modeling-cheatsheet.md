@@ -15,6 +15,7 @@ Use this one-page guide when deciding how to model knowledge through MCP tools.
 6. **Reusable domain predicate?** Call `kb_suggest_predicates`, then write `fact_kind: predicate` with `predicate_name`, `predicate_args`, and `canonical_key`, linked by `requires_predicate`.
 7. **BDD behavior?** Use `scenario`, linked with `specified_by`.
 8. **Executable evidence?** Use `test`, linked with `verified_by` or `validates`.
+   - When the requirement has a `scenario`, this link must target the scenario: use `verified_by(Scenario, Test)` or `validates(Test, Scenario)`. Directly linking `verified_by(Req, Test)` and `validates(Test, Req)` does not satisfy scenario-aware symbol-coverage.
 9. **Code ownership or coverage?** Use `symbol`, linked with `implements`, `covered_by`, or `executable_for`.
 
 ## Strict property example

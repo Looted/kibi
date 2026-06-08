@@ -21,6 +21,10 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes)`
 - `predicate_fact(FactId, Namespace, Name, Args, Polarity)`
 
+## Symbol coverage semantics
+
+**Scenario-aware coverage**: When a requirement has `specified_by(Req,Scenario)`, direct `verified_by(Req,Test)` or `validates(Test,Req)` does NOT satisfy symbol-coverage. The canonical path requires `verified_by(Scenario,Test)` or `validates(Test,Scenario)`.
+
 ## Requirement contradiction semantics
 
 `contradicting_reqs/3` uses strict requirement semantics only for current requirements and **strict domain facts**.
