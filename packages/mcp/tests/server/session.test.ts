@@ -724,6 +724,11 @@ describe.serial("session module", () => {
         await session.ensureProlog();
         prologCalls.length = 0;
 
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="query-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
+
         // External same-branch KB replacement occurs here: branch identity and path
         // remain stable, but the already-attached Prolog RDF graph is stale.
         const prolog = await session.ensureProlog();
@@ -746,6 +751,11 @@ describe.serial("session module", () => {
         session.resetSessionStateForTests();
         await session.ensureProlog();
         prologCalls.length = 0;
+
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="mutation-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
 
         // The mutation must not save stale in-memory RDF over an externally
         // replaced same-branch KB; refresh must happen before the save.
@@ -799,6 +809,11 @@ describe.serial("session module", () => {
         await session.ensureProlog();
         prologCalls.length = 0;
 
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="concurrent-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
+
         const first = async () => {
           const prolog = await session.ensureProlog();
           return prolog.query("kb_query(req, first)");
@@ -845,6 +860,10 @@ describe.serial("session module", () => {
         session.resetSessionStateForTests();
         await session.ensureProlog();
         prologCalls.length = 0;
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="attach-fail-${Date.now()}"></g></rdf:RDF>`,
+        );
         failRefreshAttach = true;
 
         const caught = await (async () => {

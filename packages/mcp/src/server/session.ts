@@ -69,7 +69,6 @@ let ensurePrologTail: Promise<void> = Promise.resolve();
 let prologResetGeneration = 0;
 let attachedBranchKbPath: string | null = null;
 let attachedBranchStamp: BranchKbStamp | null = null;
-let hasValidatedSameBranchRefresh = false;
 export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
@@ -83,7 +82,6 @@ export function resetSessionStateForTests(): void {
   prologResetGeneration = 0;
   attachedBranchKbPath = null;
   attachedBranchStamp = null;
-  hasValidatedSameBranchRefresh = false;
   isShuttingDown = false;
   inFlightRequests.clear();
   if (shutdownTimeout) {
@@ -209,7 +207,7 @@ export async function resetProlog(reason: string): Promise<void> {
   isInitialized = false;
   attachedBranchKbPath = null;
   attachedBranchStamp = null;
-  hasValidatedSameBranchRefresh = false;
+
 
   if (current) {
     try {
@@ -262,8 +260,13 @@ async function refreshAttachedBranchKbWithRetry(
     return postAttachStamp;
   }
 
-  postAttachStamp = await refreshAttachedBranchKb(prolog, kbPath, assertGeneration);
-  if (!sameBranchKbStamp(postAttachStamp, currentStamp)) {
+  const preRetryStamp = await readBranchKbStamp(kbPath);
+  postAttachStamp = await refreshAttachedBranchKb(
+    prolog,
+    kbPath,
+    assertGeneration,
+  );
+  if (!sameBranchKbStamp(postAttachStamp, preRetryStamp)) {
     throw new KbRefreshError("KB refresh failed: stamp changed during attach");
   }
 
@@ -344,8 +347,7 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
         attachedBranchKbPath === kbPath &&
         attachedBranchStamp !== null &&
         usesBranchKbPath(kbPath) &&
-        (!hasValidatedSameBranchRefresh ||
-          !sameBranchKbStamp(currentStamp, attachedBranchStamp));
+        !sameBranchKbStamp(currentStamp, attachedBranchStamp);
 
       if (shouldRefresh) {
         attachedBranchStamp = await refreshAttachedBranchKbWithRetry(
@@ -354,7 +356,6 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
           currentStamp,
           assertGeneration,
         );
-        hasValidatedSameBranchRefresh = true;
       } else {
         attachedBranchKbPath = kbPath;
         attachedBranchStamp = currentStamp;
@@ -401,7 +402,6 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     activeBranchName = targetBranch;
     attachedBranchKbPath = kbPath;
     attachedBranchStamp = await readBranchKbStamp(kbPath);
-    hasValidatedSameBranchRefresh = false;
     debugLog(`[KIBI-MCP] Re-attached to branch: ${targetBranch}`);
     debugLog(`[KIBI-MCP] KB path: ${kbPath}`);
 
@@ -477,7 +477,6 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   attachedBranchKbPath = kbPath;
   attachedBranchStamp = await readBranchKbStamp(kbPath);
-  hasValidatedSameBranchRefresh = false;
 
   isInitialized = true;
   debugLog(
