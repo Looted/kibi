@@ -2255,7 +2255,7 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 438
+    sourceEndLine: 445
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 268
   SYM-handleKbValidateUpsert:
@@ -2849,9 +2849,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 650
+    sourceEndLine: 657
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 643
+    sourceLine: 650
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2873,9 +2873,9 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 487
+    sourceEndLine: 494
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 440
+    sourceLine: 447
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1

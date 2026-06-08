@@ -271,32 +271,39 @@ export async function handleKbUpsert(
 ): Promise<UpsertResult> {
   const { entity, relationships } = validateKbUpsertArgs(args);
 
-  // If relationships are not explicitly provided, preserve existing ones.
-  // This prevents accidental relationship loss when updating only properties.
-  let effectiveRelationships = relationships;
-  if (args.relationships === undefined && args.id) {
-    const existing = await fetchExistingRelationships(prolog, args.id as string);
-    if (existing.length > 0) {
-      effectiveRelationships = existing;
-    }
-  }
-
   const semanticAdvisor = analyzeSemanticAdvisorInput({
     payload: { ...args },
   });
   const type = entity.type as string;
 
   const entities = [entity];
-
-  // Validate strict-lane fact_kind pairing for constrains/requires_property
-  // implements REQ-011
-  await validateStrictLanePairing(prolog, effectiveRelationships);
+  // If relationships are not explicitly provided, preserve existing ones.
+  // This prevents accidental relationship loss when updating only properties.
+  let effectiveRelationships = relationships;
 
   let created = 0;
   let updated = 0;
   let relationshipsCreated = 0;
 
   try {
+    if (args.relationships === undefined && args.id) {
+      // Preserve relationships only for updates. For creates, this would add
+      // unnecessary per-upsert lookups and significantly slow batch inserts.
+      const existsResult = await prolog.query(
+        `once(kb_entity('${escapeAtom(args.id as string)}', _, _))`,
+      );
+      if (existsResult.success) {
+        const existing = await fetchExistingRelationships(prolog, args.id as string);
+        if (existing.length > 0) {
+          effectiveRelationships = existing;
+        }
+      }
+    }
+
+    // Validate strict-lane fact_kind pairing for constrains/requires_property
+    // implements REQ-011
+    await validateStrictLanePairing(prolog, effectiveRelationships);
+
     // Process entities
     for (const entity of entities) {
       const id = entity.id as string;
