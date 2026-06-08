@@ -107,7 +107,7 @@ symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
     "Production symbol lacks qualifying requirement coverage.",
-    "Add 'covered_by: TEST-xxx' for production coverage, and ensure that test reaches the requirement through a scenario->test path or direct req->test fallback when no scenario exists.",
+    "Add 'covered_by: TEST-xxx' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.",
     Source
 )) :-
     violation_source(SymbolId, symbol, Source).
