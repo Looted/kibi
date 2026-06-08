@@ -792,6 +792,84 @@ export function greet() {
     );
   });
 
+  test("preserves existing relationships when relationships is an empty array", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-PRESERVE-EMPTY-RELS', _, _))") {
+        return { success: true };
+      }
+      if (
+        goal ===
+        "findall(To, kb_relationship(depends_on, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)"
+      ) {
+        return { success: true, bindings: { Targets: "['REQ-DEP-001']" } };
+      }
+      if (
+        goal ===
+        "findall(To, kb_relationship(specified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)"
+      ) {
+        return { success: true, bindings: { Targets: "['SCEN-001']" } };
+      }
+      if (
+        goal.startsWith(
+          "findall(To, kb_relationship(verified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
+        )
+      ) {
+        return { success: true, bindings: { Targets: "['TEST-001']" } };
+      }
+      if (goal.startsWith("findall(To, kb_relationship(")) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(From, kb_relationship(")) {
+        return { success: true, bindings: { Sources: "[]" } };
+      }
+      if (
+        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,") &&
+        goal.includes(
+          "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+        ) &&
+        goal.includes(
+          "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+        )
+      ) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_relationship_upsert(")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PRESERVE-EMPTY-RELS",
+      properties: {
+        title: "Preserve relationships",
+        status: "open",
+        source: "test://upsert",
+      },
+      relationships: [],
+    });
+
+    const transactionGoal = query.mock.calls.find(([goal]) =>
+      String(goal).startsWith("rdf_transaction"),
+    )?.[0] as string | undefined;
+
+    expect(transactionGoal).toContain(
+      "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+    );
+    expect(transactionGoal).toContain(
+      "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+    );
+    expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
+  });
+
   test("deduplicates contradiction details in formatted transaction errors", async () => {
     const { prolog, invalidateCache } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('REQ-CONTRA-DEDUPE', _, _))") {
