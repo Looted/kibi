@@ -3,6 +3,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { registerAllTools } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
 
 type QueryResult = {
@@ -1056,6 +1058,101 @@ export function greet() {
     );
 
     expect(invalidateCache).toHaveBeenCalledTimes(1);
+  });
+
+  test("registered upsert tool refreshes a stale attachment before saving", async () => {
+    const calls: string[] = [];
+    const { prolog } = createMockProlog(async (goal) => {
+      calls.push(goal);
+      if (goal === "kb_detach") {
+        return { success: true };
+      }
+      if (goal === "kb_attach('/tmp/kibi-stale-replacement')") {
+        return { success: true };
+      }
+      if (goal === "once(kb_entity('REQ-FRESH-SAVE-001', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    const originalInvalidateCache = prolog.invalidateCache.bind(prolog);
+    prolog.invalidateCache = mock(() => {
+      calls.push("invalidateCache");
+      originalInvalidateCache();
+    }) as PrologProcess["invalidateCache"];
+    const ensureProlog = mock(async () => {
+      prolog.invalidateCache();
+      await prolog.query("kb_detach");
+      await prolog.query("kb_attach('/tmp/kibi-stale-replacement')");
+      return prolog;
+    });
+    const registered = new Map<string, (args: Record<string, unknown>) => unknown>();
+    const server = {
+      registerTool: mock(
+        (
+          name: string,
+          _config: unknown,
+          handler: (args: Record<string, unknown>) => unknown,
+        ) => {
+          registered.set(name, handler);
+        },
+      ),
+    };
+    const runtime = {
+      tools: TOOLS,
+      diagnosticModeEnabled: () => false,
+      extractToolCallPayload: (args: Record<string, unknown>) => ({
+        businessArgs: args,
+        telemetry: null,
+      }),
+      inFlightRequests: async () => new Map<string, Promise<unknown>>(),
+      isShuttingDown: async () => false,
+      resetProlog: async () => {},
+      prologProcess: async () => null,
+      activeBranchName: async () => "test",
+      appendUsageLogLine: () => {},
+      deriveDiagnosticFields: () => ({}),
+      classifyDiagnosticError: () => ({}),
+      ensureProlog,
+      handleKbUpsert,
+    } as unknown as Parameters<typeof registerAllTools>[1];
+
+    registerAllTools(server as never, runtime);
+    await registered.get("kb_upsert")?.({
+      type: "req",
+      id: "REQ-FRESH-SAVE-001",
+      properties: {
+        title: "Fresh before save",
+        status: "open",
+        source: "test://upsert",
+      },
+    });
+
+    expect(ensureProlog).toHaveBeenCalledTimes(1);
+    expect(calls.indexOf("invalidateCache")).toBeLessThan(
+      calls.indexOf("kb_detach"),
+    );
+    expect(calls.indexOf("kb_detach")).toBeLessThan(
+      calls.indexOf("kb_attach('/tmp/kibi-stale-replacement')"),
+    );
+    expect(calls.indexOf("kb_attach('/tmp/kibi-stale-replacement')")).toBeLessThan(
+      calls.indexOf("kb_save"),
+    );
+    expect(calls.slice(0, 3)).toEqual([
+      "invalidateCache",
+      "kb_detach",
+      "kb_attach('/tmp/kibi-stale-replacement')",
+    ]);
   });
 
   test("refreshes symbol coordinates after a successful symbol upsert", async () => {
