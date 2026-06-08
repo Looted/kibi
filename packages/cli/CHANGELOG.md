@@ -1,5 +1,16 @@
 # kibi-cli
 
+## 0.12.7
+
+### Patch Changes
+
+- Added CLI-level regression tests proving that typed markdown links (`verified_by`, `specified_by`, `validates`) imported through `kibi sync` are visible to `kibi check --rules symbol-coverage` with the correct scenario-aware semantics.
+
+  - `kibi-cli`: added cross-boundary typed-link symbol-coverage regression tests for complete scenario→test chains and scenario-blocked direct req→test paths.
+
+- Updated dependencies [c810f5f]
+  - kibi-core@0.6.2
+
 ## 0.12.6
 
 ### Patch Changes

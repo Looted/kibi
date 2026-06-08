@@ -1,5 +1,19 @@
 # kibi-mcp
 
+## 0.17.2
+
+### Patch Changes
+
+- `kb_upsert` now warns when adding a `verified_by(req,test)` relationship to a requirement that has existing scenarios. The edge is still created, but the warning explains that direct req→test verification does not satisfy `symbol-coverage` for scenario-backed requirements — use `verified_by(scenario,test)` or `validates(test,scenario)` instead.
+
+  - `kibi-mcp`: added non-blocking guidance in `handleKbUpsert` for insufficient direct req→test coverage links.
+  - Added regression tests for warning presence/absence based on scenario configuration.
+
+- Updated dependencies
+- Updated dependencies [c810f5f]
+  - kibi-cli@0.12.7
+  - kibi-core@0.6.2
+
 ## 0.17.1
 
 ### Patch Changes
