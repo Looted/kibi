@@ -178,6 +178,9 @@ export async function handleKbCheck(
       };
     }
 
+    // Ensure we read the latest KB state, not a cached snapshot.
+    prolog.invalidateCache();
+
     // Run aggregated checks using same approach as CLI
     // This now runs ALL rules including symbol-traceability
     const aggregatedViolations = await runAggregatedChecks(

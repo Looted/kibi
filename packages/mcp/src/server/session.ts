@@ -67,8 +67,14 @@ let isInitialized = false;
 export let activeBranchName = "develop";
 let ensurePrologTail: Promise<void> = Promise.resolve();
 let prologResetGeneration = 0;
-let attachedBranchKbPath: string | null = null;
+export let attachedBranchKbPath: string | null = null;
 let attachedBranchStamp: BranchKbStamp | null = null;
+
+export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
+  attachedBranchStamp = stamp;
+}
+
+
 export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();

@@ -41,6 +41,12 @@ import { isMcpDebugEnabled } from "../env.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
+import {
+  attachedBranchKbPath,
+  updateAttachedBranchStamp,
+} from "../server/session.js";
+import { readBranchKbStamp } from "../server/kb-freshness.js";
+
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
 
@@ -369,6 +375,17 @@ export async function handleKbUpsert(
         `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
       );
     }
+    // Update session stamp so kb_check (and other tools) don't trigger a
+    // stale-detach refresh that would unload the just-saved runtime state.
+    if (attachedBranchKbPath) {
+      try {
+        const freshStamp = await readBranchKbStamp(attachedBranchKbPath);
+        updateAttachedBranchStamp(freshStamp);
+      } catch {
+        // Non-fatal: stamp update is best-effort to avoid spurious refresh.
+      }
+    }
+
 
     if (type === "symbol") {
       try {
