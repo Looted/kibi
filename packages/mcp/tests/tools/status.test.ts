@@ -3,6 +3,7 @@ import type { PrologProcess } from "kibi-cli/prolog";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
 import { handleKbStatus } from "../../src/tools/status.js";
+import { resolveCorePlPath } from "../../src/tools/core-module.js";
 
 describe("MCP status tool handler", () => {
   test("returns branch, snapshot, and freshness metadata", async () => {
@@ -106,13 +107,10 @@ describe("MCP status tool handler", () => {
     registerAllTools(server as never, runtime);
     await registered.get("kb_status")?.({});
 
+    const statusPlPath = resolveCorePlPath("status.pl").replace(/\\/g, "/");
+    const expectedQuery = `(use_module('${statusPlPath}'), status:kb_status_json(JsonString))`;
     expect(ensureProlog).toHaveBeenCalledTimes(1);
-    expect(query).toHaveBeenCalledWith(
-      "(use_module('/home/looted/projects/kibi/packages/core/src/status.pl'), status:kb_status_json(JsonString))",
-    );
-    expect(calls).toEqual([
-      "ensureProlog",
-      "(use_module('/home/looted/projects/kibi/packages/core/src/status.pl'), status:kb_status_json(JsonString))",
-    ]);
+    expect(query).toHaveBeenCalledWith(expectedQuery);
+    expect(calls).toEqual(["ensureProlog", expectedQuery]);
   });
 });
