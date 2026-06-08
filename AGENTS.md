@@ -16,6 +16,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 - Do **not** manually read or edit `.kb/` files.
 - Do **not** run `kibi` CLI from agent sessions unless explicitly required by the user/operator workflow.
 - If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
+- **Pre-existing test failures must always be fixed.** Never ship past broken tests. If a test was failing before your changes, diagnose and fix it as part of your work. Skipping or bypassing pre-existing failures is not acceptable.
 
 ## Required Kibi Workflow (Current Standard)
 
