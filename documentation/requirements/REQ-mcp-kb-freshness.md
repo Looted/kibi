@@ -22,4 +22,4 @@ MCP must detect when the attached branch KB snapshot has been replaced externall
 
 The attached KB stamp is based on branch KB filesystem metadata (`packages/mcp/src/server/kb-freshness.ts`) so same-branch replacements are detected without blocking normal branch-switch semantics.
 
-When mismatch is detected, MCP must attempt deterministic refresh, retry once for transient failures, and fail closed with `KbRefreshError` semantics when reconciliation cannot be completed.
+When mismatch is detected, MCP must attempt deterministic refresh, retry once if the stamp changed between pre-attach and post-attach detection, and fail closed with `KbRefreshError` when reconciliation cannot be completed.
