@@ -164,65 +164,68 @@ if (RUN_NODE_TEST_SUITE) {
       });
       await new Promise((r) => setTimeout(r, 500));
 
-      const init = {
-        jsonrpc: "2.0",
-        id: 100,
-        method: "initialize",
-        params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
-      };
-      const list = { jsonrpc: "2.0", id: 101, method: "tools/list" };
-      const call = {
-        jsonrpc: "2.0",
-        id: 102,
-        method: "tools/call",
-        params: { name: "kb_query", arguments: { type: "req" } },
-      };
+      try {
+        const init = {
+          jsonrpc: "2.0",
+          id: 100,
+          method: "initialize",
+          params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+        };
+        const list = { jsonrpc: "2.0", id: 101, method: "tools/list" };
+        const call = {
+          jsonrpc: "2.0",
+          id: 102,
+          method: "tools/call",
+          params: { name: "kb_query", arguments: { type: "req" } },
+        };
 
-      const initLine = JSON.parse(
-        await sendRaw(proc, JSON.stringify(init)),
-      ) as JsonRpcRes;
-      assert.strictEqual(initLine.id, 100);
+        const initLine = JSON.parse(
+          await sendRaw(proc, JSON.stringify(init)),
+        ) as JsonRpcRes;
+        assert.strictEqual(initLine.id, 100);
 
-      const listLine = JSON.parse(
-        await sendRaw(proc, JSON.stringify(list)),
-      ) as JsonRpcRes;
-      assert.strictEqual(listLine.id, 101);
-      const tools = (listLine.result as { tools?: unknown[] } | undefined)
-        ?.tools;
-      assert.ok(Array.isArray(tools));
-      assert.deepStrictEqual(
-        (tools as Array<{ name: string }>).map((tool) => tool.name),
-        [
-          "kb_query",
-          "kb_search",
-          "kb_status",
-          "kb_skills_list",
-          "kb_skills_load",
-          "kb_skills_read",
-          "kb_find_gaps",
-          "kb_coverage",
-          "kb_graph",
-          "kb_sparql_remote",
-          "kb_semantic_advisor",
-          "kb_upsert",
-          "kb_validate_upsert",
-          "kb_delete",
-          "kb_model_requirement",
-          "kb_suggest_predicates",
-          "kb_autopilot_generate",
-        ],
-      );
+        const listLine = JSON.parse(
+          await sendRaw(proc, JSON.stringify(list)),
+        ) as JsonRpcRes;
+        assert.strictEqual(listLine.id, 101);
+        const tools = (listLine.result as { tools?: unknown[] } | undefined)
+          ?.tools;
+        assert.ok(Array.isArray(tools));
+        assert.deepStrictEqual(
+          (tools as Array<{ name: string }>).map((tool) => tool.name),
+          [
+            "kb_query",
+            "kb_search",
+            "kb_status",
+            "kb_skills_list",
+            "kb_skills_load",
+            "kb_skills_read",
+            "kb_find_gaps",
+            "kb_coverage",
+            "kb_graph",
+            "kb_sparql_remote",
+            "kb_semantic_advisor",
+            "kb_upsert",
+            "kb_validate_upsert",
+            "kb_delete",
+            "kb_check",
+            "kb_model_requirement",
+            "kb_suggest_predicates",
+            "kb_autopilot_generate",
+          ],
+        );
 
-      const callLine = JSON.parse(
-        await sendRaw(proc, JSON.stringify(call)),
-      ) as JsonRpcRes;
-      assert.strictEqual(callLine.id, 102);
-      assert.ok(
-        !callLine.error,
-        "tools/call should succeed or return structured result",
-      );
-
-      await stopProcess(proc);
+        const callLine = JSON.parse(
+          await sendRaw(proc, JSON.stringify(call)),
+        ) as JsonRpcRes;
+        assert.strictEqual(callLine.id, 102);
+        assert.ok(
+          !callLine.error,
+          "tools/call should succeed or return structured result",
+        );
+      } finally {
+        await stopProcess(proc);
+      }
     });
 
     it("should reject removed tools after initialization", async () => {

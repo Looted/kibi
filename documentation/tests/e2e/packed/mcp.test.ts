@@ -248,6 +248,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_upsert",
                       "kb_validate_upsert",
                       "kb_delete",
+                      "kb_check",
                       "kb_model_requirement",
                       "kb_suggest_predicates",
                       "kb_autopilot_generate",
