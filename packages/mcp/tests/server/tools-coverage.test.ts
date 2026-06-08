@@ -187,6 +187,10 @@ function createSessionModuleMock(
     _setSessionDepsForTests: (): void => {},
     _resetSessionDepsForTests: (): void => {},
     prologProcess: null,
+    resetSessionStateForTests: (): void => {},
+    attachedBranchKbPath: null,
+    updateAttachedBranchStamp: (): void => {},
+  };
     attachedBranchKbPath: null,
     updateAttachedBranchStamp: (): void => {},
   };
