@@ -191,9 +191,6 @@ function createSessionModuleMock(
     attachedBranchKbPath: null,
     updateAttachedBranchStamp: (): void => {},
   };
-    attachedBranchKbPath: null,
-    updateAttachedBranchStamp: (): void => {},
-  };
 }
 
 function createCapturingServer(): {

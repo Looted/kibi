@@ -17,7 +17,7 @@ coordinates:
   SYM-004:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 216
+    sourceEndLine: 219
     sourceFile: packages/mcp/src/tools/check.ts
     sourceLine: 159
   SYM-010:
@@ -1469,15 +1469,15 @@ coordinates:
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 60
+    sourceEndLine: 66
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 47
+    sourceLine: 53
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 71
+    sourceEndLine: 77
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 62
+    sourceLine: 68
   SYM-ValidateUpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1487,9 +1487,9 @@ coordinates:
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 82
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 73
+    sourceLine: 79
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1511,9 +1511,9 @@ coordinates:
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 2093
+    sourceEndLine: 2096
     sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
-    sourceLine: 2058
+    sourceLine: 2061
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2255,9 +2255,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 405
+    sourceEndLine: 438
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 262
+    sourceLine: 268
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2423,63 +2423,63 @@ coordinates:
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39
-    sourceEndLine: 66
+    sourceEndLine: 67
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 66
+    sourceLine: 67
   SYM-mcp-session-ensureBranchKbExists:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 149
+    sourceEndLine: 154
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 112
+    sourceLine: 117
   SYM-mcp-session-ensureProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 492
+    sourceEndLine: 508
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 479
+    sourceLine: 495
   SYM-mcp-session-inFlightRequests:
     sourceColumn: 13
     sourceEndColumn: 67
-    sourceEndLine: 74
+    sourceEndLine: 80
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 74
+    sourceLine: 80
   SYM-mcp-session-initiateGracefulShutdown:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 200
+    sourceEndLine: 205
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 151
+    sourceLine: 156
   SYM-mcp-session-isShuttingDown:
     sourceColumn: 11
     sourceEndColumn: 33
-    sourceEndLine: 72
+    sourceEndLine: 78
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 72
+    sourceLine: 78
   SYM-mcp-session-prologProcess:
     sourceColumn: 11
     sourceEndColumn: 53
-    sourceEndLine: 64
+    sourceEndLine: 65
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 64
+    sourceLine: 65
   SYM-mcp-session-resetSessionDepsForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 109
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 106
+  SYM-mcp-session-resetSessionStateForTests:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 97
+    sourceFile: packages/mcp/src/server/session.ts
+    sourceLine: 83
+  SYM-mcp-session-setSessionDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 104
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 101
-  SYM-mcp-session-resetSessionStateForTests:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 92
-    sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 77
-  SYM-mcp-session-setSessionDepsForTests:
-    sourceColumn: 16
-    sourceEndColumn: 1
-    sourceEndLine: 99
-    sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 94
+    sourceLine: 99
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2657,9 +2657,9 @@ coordinates:
   SYM-resetProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 220
+    sourceEndLine: 225
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 203
+    sourceLine: 208
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2849,9 +2849,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 608
+    sourceEndLine: 650
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 601
+    sourceLine: 643
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2873,9 +2873,9 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 454
+    sourceEndLine: 487
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 407
+    sourceLine: 440
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
