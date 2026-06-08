@@ -286,9 +286,15 @@ export async function handleKbUpsert(
   let relationshipsCreated = 0;
 
   try {
-    if (args.relationships === undefined && args.id) {
-      // Preserve relationships only for updates. For creates, this would add
-      // unnecessary per-upsert lookups and significantly slow batch inserts.
+    if (
+      (args.relationships === undefined ||
+        (Array.isArray(args.relationships) && args.relationships.length === 0)) &&
+      args.id
+    ) {
+      // Preserve relationships on updates when the request omits relationships
+      // OR provides an empty array. This avoids accidental edge deletion by
+      // clients that always serialize `relationships: []` for partial updates.
+      // For creates, this remains cheap because existence is checked first.
       const existsResult = await prolog.query(
         `once(kb_entity('${escapeAtom(args.id as string)}', _, _))`,
       );
