@@ -42,6 +42,7 @@ export interface ShardExtractionResult {
  */
 const VALID_RELATIONSHIP_TYPES = new Set([
   "depends_on",
+  "executable_for",
   "specified_by",
   "verified_by",
   "validates",
@@ -50,6 +51,7 @@ const VALID_RELATIONSHIP_TYPES = new Set([
   "constrained_by",
   "constrains",
   "requires_property",
+  "requires_predicate",
   "guards",
   "publishes",
   "consumes",
