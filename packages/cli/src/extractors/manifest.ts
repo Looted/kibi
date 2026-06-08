@@ -60,6 +60,7 @@ type RelationshipType =
   | "executable_for"
   | "specified_by"
   | "verified_by"
+  | "validates"
   | "implements"
   | "covered_by"
   | "constrained_by"
@@ -77,6 +78,7 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
   "executable_for",
   "specified_by",
   "verified_by",
+  "validates",
   "implements",
   "covered_by",
   "constrained_by",
@@ -100,6 +102,8 @@ const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   { type: "specified_by", from: "req", to: "scenario" },
   { type: "verified_by", from: "req", to: "test" },
   { type: "verified_by", from: "scenario", to: "test" },
+  { type: "validates", from: "test", to: "req" },
+  { type: "validates", from: "test", to: "scenario" },
   { type: "implements", from: "symbol", to: "req" },
   { type: "covered_by", from: "symbol", to: "test" },
   { type: "constrained_by", from: "symbol", to: "adr" },
