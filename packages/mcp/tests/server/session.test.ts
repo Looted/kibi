@@ -17,6 +17,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import process from "node:process";
 import * as coveredSession from "../../src/server/session.js";
 
@@ -666,15 +669,41 @@ describe.serial("session module", () => {
 
     describe("same-branch KB freshness", () => {
       const branchName = "fresh-branch";
-      const branchPath = `/workspace/.kb/branches/${branchName}`;
+      const tempRoots: string[] = [];
+      let branchPath = "";
 
-      function useSameBranchWorkspace(prologCalls: string[]): void {
+      afterEach(() => {
+        for (const root of tempRoots.splice(0)) {
+          rmSync(root, { recursive: true, force: true });
+        }
+      });
+
+      function makeBranchPath(options: { withRdf: boolean }): string {
+        const tempRoot = mkdtempSync(path.join(tmpdir(), "kibi-session-fresh-"));
+        tempRoots.push(tempRoot);
+        const nextBranchPath = path.join(tempRoot, ".kb", "branches", branchName);
+        mkdirSync(nextBranchPath, { recursive: true });
+        if (options.withRdf) {
+          writeFileSync(path.join(nextBranchPath, "kb.rdf"), "<rdf:RDF />\n");
+        }
+        return nextBranchPath;
+      }
+
+      function useSameBranchWorkspace(
+        prologCalls: string[],
+        options: { withRdf?: boolean } = {},
+      ): void {
+        branchPath = makeBranchPath({ withRdf: options.withRdf ?? true });
         process.env.KIBI_BRANCH = branchName;
-        mockResolveWorkspaceRoot.mockImplementation(() => "/workspace");
-        mockResolveKbPath.mockImplementation(
-          (_workspaceRoot, branch) => `/workspace/.kb/branches/${branch}`,
+        mockResolveWorkspaceRoot.mockImplementation(() =>
+          path.dirname(path.dirname(path.dirname(branchPath))),
         );
-        mockExistsSync.mockImplementation((path) => path === branchPath);
+        mockResolveKbPath.mockImplementation(
+          (_workspaceRoot, branch) => path.join(path.dirname(branchPath), branch),
+        );
+        mockExistsSync.mockImplementation(
+          (candidatePath) => candidatePath === branchPath,
+        );
         mockPrologProcessInstance.invalidateCache.mockImplementation(() => {
           prologCalls.push("invalidateCache");
         });
@@ -730,6 +759,35 @@ describe.serial("session module", () => {
           `kb_attach('${branchPath}')`,
           "kb_save",
         ]);
+      });
+
+      test("fails closed when branch KB is missing or unreadable", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls, { withRdf: false });
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+
+        const caught = await (async () => {
+          try {
+            const prolog = await session.ensureProlog();
+            await prolog.query("stale_query");
+            return null;
+          } catch (error) {
+            return error;
+          }
+        })();
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).name).toBe("KbRefreshError");
+        expect((caught as Error).message).toContain(
+          "branch KB snapshot is unstable",
+        );
+        expect((caught as Error).message).toContain("rdfMissing=true");
+        expect(prologCalls).not.toContain("stale_query");
+        expect(prologCalls).not.toContain("kb_detach");
       });
 
       test("serializes concurrent refresh and query", async () => {
