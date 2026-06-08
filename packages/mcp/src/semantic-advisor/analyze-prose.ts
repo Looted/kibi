@@ -81,7 +81,10 @@ function canonicalize(value: unknown): string {
 }
 
 function payloadHash(payload: Record<string, unknown>): string {
-  return createHash("sha256").update(canonicalize(payload)).digest("hex");
+  const stable = Object.fromEntries(
+    Object.entries(payload).filter(([key]) => !key.startsWith("_")),
+  );
+  return createHash("sha256").update(canonicalize(stable)).digest("hex");
 }
 
 function shortHash(value: string): string {
