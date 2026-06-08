@@ -660,6 +660,9 @@ export function greet() {
       if (goal.startsWith("kb_log_relationship_upsert(")) {
         return { success: true };
       }
+      if (goal.includes("kb_relationship(specified_by, 'REQ-REL-META-001'")) {
+        return { success: true };
+      }
       if (goal === "kb_save") {
         return { success: true };
       }
@@ -1274,4 +1277,85 @@ export function greet() {
       }),
     ).rejects.toThrow("Upsert execution failed: string failure");
   });
+
+  test("warns when verified_by added to req with scenarios", async () => {
+    const createdEntities = new Set<string>();
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+
+      // Entity existence checks with state tracking
+      const entityMatch = goal.match(/once\(kb_entity\('([^']+)', _, _\)\)/);
+      if (entityMatch) {
+        const entityId = entityMatch[1];
+        const exists = createdEntities.has(entityId);
+        createdEntities.add(entityId);
+        return { success: exists };
+      }
+
+      // Scenario check for req-scenario-warn-001 returns true (scenario exists)
+      if (goal.includes("kb_relationship(specified_by, 'req-scenario-warn-001'")) {
+        return { success: true };
+      }
+
+      // All other queries (transaction, audit, save, etc.)
+      return { success: true };
+    });
+
+    // Create a requirement
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+    });
+
+    // Create a scenario
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-warn-001",
+      properties: { title: "Warning scenario", status: "active", source: "test://scenario-warn" },
+    });
+
+    // Link req->scenario
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+      relationships: [{ type: "specified_by", from: "req-scenario-warn-001", to: "scenario-warn-001" }],
+    });
+
+    // Now re-upsert with verified_by — should warn
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+      relationships: [{ type: "verified_by", from: "req-scenario-warn-001", to: "test-scenario-warn-001" }],
+    });
+    const warnings = result.structuredContent?.warnings || [];
+    const coverageWarning = warnings.find(w => w.includes("Scenario-backed coverage"));
+    expect(coverageWarning).toBeDefined();
+    expect(coverageWarning).toContain("verified_by(scenario,test) or validates(test,scenario)");
+  });
+
+  test("no warning when verified_by added to req without scenarios", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      if (goal === "once(kb_entity('req-no-scenario-warn-001', _, _))") {
+        return { success: false };
+      }
+      // Scenario check: returns false (no scenarios)
+      if (goal.includes("kb_relationship(specified_by, 'req-no-scenario-warn-001'")) {
+        return { success: false };
+      }
+      return { success: true };
+    });
+
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-no-scenario-warn-001",
+      properties: { title: "Req without scenario", status: "open", source: "test://no-scenario-warn" },
+      relationships: [{ type: "verified_by", from: "req-no-scenario-warn-001", to: "test-no-scenario-warn-001" }],
+    });
+    const warnings = result.structuredContent?.warnings || [];
+    expect(warnings.find(w => w.includes("Scenario-backed coverage"))).toBeUndefined();
+});
 });
