@@ -1,5 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { registerAllTools } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import {
   parseEntityFromBinding,
   parseEntityFromList,
@@ -327,6 +329,58 @@ describe("MCP kb.query Parsing Functions", () => {
       ).rejects.toThrow(
         `Invalid type '${invalidType}'. Valid types: ${VALID_ENTITY_TYPES.join(", ")}. Use a single type value, or omit this parameter to query all entities.`,
       );
+    });
+
+    test("registered query tool enters the runtime freshness gate before querying Prolog", async () => {
+      const calls: string[] = [];
+      const query = mock(async () => {
+        calls.push("query");
+        return { success: true, bindings: { Results: "[]" } };
+      });
+      const prolog = { query } as unknown as PrologProcess;
+      const ensureProlog = mock(async () => {
+        calls.push("ensureProlog");
+        return prolog;
+      });
+      const registered = new Map<string, (args: Record<string, unknown>) => unknown>();
+      const server = {
+        registerTool: mock(
+          (
+            name: string,
+            _config: unknown,
+            handler: (args: Record<string, unknown>) => unknown,
+          ) => {
+            registered.set(name, handler);
+          },
+        ),
+      };
+      const runtime = {
+        tools: TOOLS,
+        diagnosticModeEnabled: () => false,
+        extractToolCallPayload: (args: Record<string, unknown>) => ({
+          businessArgs: args,
+          telemetry: null,
+        }),
+        inFlightRequests: async () => new Map<string, Promise<unknown>>(),
+        isShuttingDown: async () => false,
+        resetProlog: async () => {},
+        prologProcess: async () => null,
+        activeBranchName: async () => "test",
+        appendUsageLogLine: () => {},
+        deriveDiagnosticFields: () => ({}),
+        classifyDiagnosticError: () => ({}),
+        ensureProlog,
+        handleKbQuery,
+      } as unknown as Parameters<typeof registerAllTools>[1];
+
+      registerAllTools(server as never, runtime);
+      await registered.get("kb_query")?.({ type: "req" });
+
+      expect(ensureProlog).toHaveBeenCalledTimes(1);
+      expect(query).toHaveBeenCalledWith(
+        "findall([Id,'req',Props], kb_entity(Id, 'req', Props), Results)",
+      );
+      expect(calls).toEqual(["ensureProlog", "query"]);
     });
   });
 });
