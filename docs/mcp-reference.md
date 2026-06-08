@@ -53,9 +53,12 @@ When using discovery tools, agents and operators should assume that ignored path
 
 When prose contains a machine-checkable rule, do not store it only in `text_ref` or freeform `links`. Use the concise decision tree in `docs/modeling-cheatsheet.md`.
 
-1. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
-2. For ontology claims, call `kb_suggest_predicates` before writing prose. Apply the returned `fact_kind: predicate` plan and link with `requires_predicate`, or record the returned `review:ontology-gap` observation.
-3. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
+1. Call `kb_semantic_advisor` when starting from raw prose, or run `kb_validate_upsert` before `kb_upsert` for new or updated normative requirements. Both return semantic advisor receipts when prose appears machine-checkable but unmodeled.
+2. For property/value requirements, call `kb_model_requirement` or create a `fact_kind: subject` fact plus a `fact_kind: property_value` fact. Link the requirement with `constrains` and `requires_property`.
+3. For ontology claims, call `kb_suggest_predicates` before writing prose. Apply the returned `fact_kind: predicate` plan and link with `requires_predicate`, or record the returned `review:ontology-gap` observation.
+4. Use snake_case field names exactly as the MCP schema shows. `kb_upsert.properties` rejects camelCase aliases such as `subjectKey`, `propertyKey`, `predicateName`, and generic `value`.
+
+Semantic advisor receipts are advisory in v1. They identify likely modeling debt; they do not prove prose contradictions, they do not auto-create facts, and they do not replace strict `constrains`/`requires_property` or `requires_predicate` links. If a receipt reports `logic_readiness: needs_modeling`, inspect `suggestions`: high-confidence strict-property and predicate suggestions include draft `applyPlan` payloads, ambiguous prose emits an ambiguity observation plan, and unsupported logical prose emits an ontology-gap observation with a recommended predicate schema. Review and apply the suggested modeling tool or observation before treating the requirement as Prolog-checkable.
 
 ### `kb_model_requirement`
 
@@ -81,7 +84,7 @@ Human approval is not required. The write-set is deterministic and idempotent â€
 
 Suggest ontology predicate candidates for a prose requirement before an agent writes freeform ontology notes. Agents should spell out the requirement claim, call this tool, then either apply a returned `fact_kind: predicate` plan linked with `requires_predicate` or record the returned `review:ontology-gap` observation when no predicate fits.
 
-The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state transitions, guards, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, and events.
+The tool ranks project-local `fact_kind: predicate_schema` facts when available and falls back to Kibi's built-in predicate catalog covering state, transitions, guards, exceptions, mutual exclusion, dependencies, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency, data residency, audit logging, consent, lifecycle actions, conflict resolution, fallback behavior, batch operations, consistency rules, build constraints, environment safety rules, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, preservation rules, abstraction boundaries, security configuration, ordered strategies, refresh policies, scoped authorization, documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, throttling policies, persistence/save/discard behavior, accessibility, retention, resource constraints, feature gates, events, permissions, defaults, uniqueness, state memberships, temporal ordering, conditional behavior, rate limits, and acceptance outcomes. Built-in candidates include usage hints (`use_when` / `do_not_use_when`) so agents can choose precise predicates instead of matching keywords blindly.
 
 **Parameters:**
 - `text` (required): Prose requirement or claim to classify into ontology predicates.
@@ -93,7 +96,7 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 - `includeExistingSchemas` (optional): Include project-local predicate schema facts alongside built-ins.
 
 **Returns:**
-- `candidates`: Ranked predicate suggestions with schema signature, ordered `predicate_args`, `canonical_key`, score, and rationale.
+- `candidates`: Ranked predicate suggestions with schema signature, usage hints, ordered `predicate_args`, `canonical_key`, score, and rationale.
 - `recommendedAction`: `apply_requires_predicate` when a candidate fits, otherwise `record_ontology_gap`.
 - `structuredContent.applyPlan`: A ready-to-apply `kb_upsert` payload for the top predicate fact, or an explicit `fact_kind: observation` tagged `review:ontology-gap` and `needs_schema_extension`.
 - `structuredContent.relationshipPlan`: When `requirementId` is supplied and a predicate fits, the req -> fact `requires_predicate` link to attach after querying/preserving the existing requirement entity. This is separate from `applyPlan` so the tool never emits a foreign-source relationship that `kb_upsert` would reject.
@@ -108,6 +111,26 @@ The tool ranks project-local `fact_kind: predicate_schema` facts when available 
 }
 ```
 
+
+### `kb_semantic_advisor`
+
+Analyze requirement prose without mutating the KB. Use this before constructing a `kb_upsert` payload when you have raw requirement text and want modeling suggestions.
+
+**Parameters:**
+- `text` (required): Requirement prose to inspect.
+- `type` (optional): Entity type context. Currently `req` is supported.
+- `id` (optional): Requirement ID used for draft relationship guidance.
+- `title` (optional): Requirement title for draft apply plans.
+- `source` (optional): Provenance for draft suggestions.
+- `status` (optional): Requirement status for draft suggestions.
+
+**Returns:**
+- `structuredContent.receipt`: Semantic advisor receipt with detected signals, ambiguity witnesses, modeling suggestions, candidate lane, payload hash, and suggested next tools.
+- `structuredContent.warnings`: Non-blocking warning strings explaining why the prose is not yet contradiction-checkable.
+
+Suggestion kinds include `strict_property`, `predicate`, `ambiguity_observation`, and `ontology_gap`. Supported deterministic suggestions include multi-claim prose, cardinality, thresholds with units, retention/expiry durations, booleans, enum sets, permissions and prohibitions, defaults, uniqueness constraints, state memberships, state transitions, exception rules, mutual exclusion, dependency rules, ownership, retry policies, escalation rules, availability SLAs, notification routing, idempotency rules, data residency rules, audit logging, consent requirements, lifecycle archive/delete/expiry rules, conflict-resolution strategies, fallback/degradation behavior, batch operation constraints, cross-entity consistency/reference requirements, conditional behavior, temporal ordering, comparative numeric constraints, rate limits, and ambiguity observations.
+
+For exact predicate suggestions, the receipt `candidate_lane` and `suggested_next_tools` follow the generated suggestion rather than the weaker signal heuristic. For example, a lifecycle rule containing a number still routes to `kb_suggest_predicates`, not `kb_model_requirement`, when the advisor can ground it as a predicate fact.
 
 ### `kb_query`
 
@@ -330,11 +353,13 @@ Create or update a single entity and optional relationships in one call.
 `symbol_role` values are `behavioral`, `structural`, `type-shape`, `config`, `module`, and `unknown`. Use `behavioral` for manual anchors when behavior is hidden inside factory/expression composition and the extractor cannot create a narrower symbol.
 
 **Returns:**
-Confirmation of entity creation/update and relationship creation counts.
+Confirmation of entity creation/update and relationship creation counts. Successful responses may also include `structuredContent.semanticAdvisor` and `structuredContent.warnings`. The advisor receipt can contain draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions with apply plans. These suggestions are non-blocking in v1, but agents should review and repair them before considering prose-heavy requirements contradiction-checkable.
 
 ### `kb_validate_upsert`
 
-Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, and `normalizedPreview` so agents can fix strict fact and predicate payloads before calling `kb_upsert`.
+Validate a `kb_upsert` payload without mutating the KB. This read-only preflight returns `valid`, `errors`, `warnings`, `semanticAdvisor`, and `normalizedPreview` so agents can fix schema issues and semantic modeling gaps before calling `kb_upsert`.
+
+`semanticAdvisor` includes a version, payload hash, logic readiness, candidate lane, detected signals, ambiguity witnesses, modeling suggestions, and suggested next tools. Use the receipt as proof that the payload was inspected, not as proof that the prose is logically enforced.
 
 ### `kb_delete`
 

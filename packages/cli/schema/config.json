@@ -61,6 +61,15 @@
       "description": "[DEPRECATED] No longer used. Branch lifecycle now follows git naturally without requiring a configured default. This field is ignored but kept for backward compatibility.",
       "deprecated": true
     },
+    "schemaVersion": {
+      "type": ["integer", "string"],
+      "description": "Kibi KB schema version used by the migration command"
+    },
+    "semanticAdvisorBackfill": {
+      "type": "string",
+      "enum": ["pending", "completed", "not_applicable"],
+      "description": "Review state for retroactive semantic-advisor modeling of existing requirements"
+    },
     "checks": {
       "type": "object",
       "description": "Configuration for KB validation rules",

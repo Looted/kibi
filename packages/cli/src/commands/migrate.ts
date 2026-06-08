@@ -50,6 +50,7 @@ interface MigrationAuditRecord {
   configPath: string;
   fromVersion: number | null;
   migratedAt: string;
+  semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
   status: "applied";
   symbolGranularityLegacyLinks: number;
   toVersion: number;
@@ -193,6 +194,7 @@ function buildMigrationAuditRecord(args: {
   configPath: string;
   fromVersion: number | null;
   migratedAt: string;
+  semanticAdvisorBackfill: "pending" | "completed" | "not_applicable" | null;
   symbolGranularityLegacyLinks: number;
   warning: string | null;
 }): MigrationAuditRecord {
@@ -202,11 +204,22 @@ function buildMigrationAuditRecord(args: {
     configPath: args.configPath,
     fromVersion: args.fromVersion,
     migratedAt: args.migratedAt,
+    semanticAdvisorBackfill: args.semanticAdvisorBackfill,
     status: "applied",
     symbolGranularityLegacyLinks: args.symbolGranularityLegacyLinks,
     toVersion: LATEST_KB_SCHEMA_VERSION,
     warning: args.warning,
   };
+}
+
+function normalizeSemanticAdvisorBackfill(
+  value: unknown,
+): "pending" | "completed" | "not_applicable" | null {
+  return value === "pending" ||
+    value === "completed" ||
+    value === "not_applicable"
+    ? value
+    : null;
 }
 
 const TRACEABILITY_RELATIONSHIP_TYPES = new Set([
@@ -464,6 +477,9 @@ export async function migrateCommand(
     config,
     dryRun: options.dryRun || !options.yes,
   });
+  const semanticAdvisorBackfill =
+    normalizeSemanticAdvisorBackfill(config.semanticAdvisorBackfill) ??
+    "pending";
 
   if (options.dryRun) {
     console.log(
@@ -475,6 +491,11 @@ export async function migrateCommand(
     if (symbolGranularityMigration.count > 0) {
       console.log(
         `dry run: would mark ${symbolGranularityMigration.count} legacy coarse symbol link(s) in ${toRelativePath(cwd, symbolGranularityMigration.manifestPath ?? "symbols.yaml")}.`,
+      );
+    }
+    if (semanticAdvisorBackfill === "pending") {
+      console.log(
+        `dry run: would mark semantic advisor backfill as pending in ${configPathRelative}.`,
       );
     }
     console.log("Re-run with --yes to apply these changes.");
@@ -491,6 +512,7 @@ export async function migrateCommand(
   const nextConfig: RawKbConfigDocument = {
     ...config,
     schemaVersion: LATEST_KB_SCHEMA_VERSION,
+    semanticAdvisorBackfill,
   };
   const migratedAt = new Date().toISOString();
 
@@ -502,6 +524,7 @@ export async function migrateCommand(
       configPath: configPathRelative,
       fromVersion: configStatus.currentVersion,
       migratedAt,
+      semanticAdvisorBackfill,
       symbolGranularityLegacyLinks: symbolGranularityMigration.count,
       warning: migrationWarning,
     }),
@@ -513,6 +536,11 @@ export async function migrateCommand(
   if (symbolGranularityMigration.count > 0) {
     console.log(
       `Marked ${symbolGranularityMigration.count} existing coarse symbol link(s) as legacy-link.`,
+    );
+  }
+  if (semanticAdvisorBackfill === "pending") {
+    console.log(
+      `Marked semantic advisor backfill as pending in ${configPathRelative}.`,
     );
   }
   console.log(`Wrote migration audit metadata to ${auditPathRelative}.`);

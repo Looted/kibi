@@ -37,6 +37,7 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - Scope and validity windows only conflict when they intersect.
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
 - **V1 Limits:** Contradiction detection is bounded to exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
+- **Semantic advisor receipts:** MCP preflight/write responses may warn that prose looks machine-checkable but unmodeled and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory in v1 and do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
 ## Predicate ontology semantics

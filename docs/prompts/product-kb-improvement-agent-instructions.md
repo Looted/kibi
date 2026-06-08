@@ -1,10 +1,10 @@
-# Align KB Improvement Agent Instructions
+# Product KB Improvement Agent Instructions
 
-Use this prompt for agents working in `/home/looted/projects/align` when they improve the Kibi KB or convert prose requirements into strict facts or ontology predicates.
+Use this prompt for agents improving a product Kibi KB or converting prose requirements into strict facts or ontology predicates.
 
 ## Mission
 
-Improve Align's KB from a traceability-heavy graph into a semantic, queryable project memory. Preserve REQ → SCEN → TEST → SYM traceability, but add typed facts for machine-checkable claims.
+Improve a product KB from a traceability-heavy graph into a semantic, queryable project memory. Preserve REQ → SCEN → TEST → SYM traceability, but add typed facts for machine-checkable claims.
 
 ## Hard Rules
 

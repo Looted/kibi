@@ -46,6 +46,7 @@ export interface KbConfigPaths {
 export interface KbConfig {
   paths: KbConfigPaths;
   schemaVersion?: number | string;
+  semanticAdvisorBackfill?: "pending" | "completed" | "not_applicable";
   /**
    * @deprecated defaultBranch is deprecated. Branch lifecycle now follows git naturally
    * without requiring a configured default. This field is ignored but kept for compatibility.
@@ -145,6 +146,9 @@ export function loadConfig(cwd: string = process.cwd()): KbConfig {
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }
       : {}),
+    ...(userConfig.semanticAdvisorBackfill !== undefined
+      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
+      : {}),
     checks: userConfig.checks
       ? {
           rules: {
@@ -186,6 +190,9 @@ export function loadSyncConfig(cwd: string = process.cwd()): KbConfig {
       : {}),
     ...(userConfig.defaultBranch !== undefined
       ? { defaultBranch: userConfig.defaultBranch }
+      : {}),
+    ...(userConfig.semanticAdvisorBackfill !== undefined
+      ? { semanticAdvisorBackfill: userConfig.semanticAdvisorBackfill }
       : {}),
     checks: userConfig.checks
       ? {

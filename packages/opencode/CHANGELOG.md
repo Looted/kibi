@@ -286,7 +286,7 @@
   - Repair `sendToast()` to use the official OpenCode SDK contract: prefers legacy `client.tui.toast(payload)` when available, otherwise uses `client.tui.showToast({ body: payload })`.
   - Add discriminated `SendToastResult` union (`delivered`, `unavailable`, `failed`) for explicit, testable toast outcomes.
   - Fix `makeToastClient()` to preserve bound TUI methods (`toast` and `showToast`) so `this` context is not lost.
-  - Align logger contract: `info()` and `warn()` remain terminal-silent even when `client.app.log()` rejects; `error()` emits exactly one prefixed `console.error` without secondary spam from structured log rejection.
+  - Synchronize logger contract: `info()` and `warn()` remain terminal-silent even when `client.app.log()` rejects; `error()` emits exactly one prefixed `console.error` without secondary spam from structured log rejection.
   - Update startup notifier to log truthful structured outcomes (`startup toast delivered`, `startup toast unavailable`, `startup toast delivery failed`) instead of `result: String(undefined)`.
   - Remove `serverUrl` parameter from toast call chains and `PluginInput` interface.
   - Add regression coverage at unit level (`packages/opencode/tests/toast.test.ts`) and built-artifact level (`documentation/tests/e2e/opencode-plugin-local.test.ts`).
@@ -379,7 +379,7 @@
 
   - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
-  - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
+  - Synchronize guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments
   - Document scope boundary: automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged check
 
