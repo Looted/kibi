@@ -102,6 +102,33 @@ export interface PersistenceResult {
   kbModified: boolean;
 }
 
+function isQueryFailedError(error: string): boolean {
+  const lowered = error.toLowerCase();
+  return (
+    lowered.includes("query failed") ||
+    lowered.includes("query returned false") ||
+    lowered.includes("predicate or file not found")
+  );
+}
+
+async function tryResetPrologProcess(prolog: PrologProcess): Promise<boolean> {
+  const maybe = prolog as unknown as {
+    terminate?: () => Promise<void>;
+    start?: () => Promise<void>;
+  };
+  if (typeof maybe.terminate !== "function" || typeof maybe.start !== "function") {
+    return false;
+  }
+
+  try {
+    await maybe.terminate();
+    await maybe.start();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function persistEntities(
   // implements REQ-009
   prolog: PrologProcess,
@@ -259,6 +286,7 @@ export async function persistRelationships(
 
   // Retry failed relationships
   const retryCount = 3;
+  let resetAttempted = false;
   for (
     let pass = 0;
     pass < retryCount && failedRelationships.length > 0;
@@ -289,6 +317,18 @@ export async function persistRelationships(
 
     failedRelationships.length = 0;
     failedRelationships.push(...remainingFailed);
+
+    const allLookLikeSessionFailures =
+      remainingFailed.length > 0 &&
+      remainingFailed.every(({ error }) => isQueryFailedError(error));
+
+    // If every pending relationship fails with generic query errors, attempt one
+    // best-effort Prolog restart before the next retry pass to recover from a
+    // potentially poisoned interactive session.
+    if (allLookLikeSessionFailures && !resetAttempted && pass + 1 < retryCount) {
+      resetAttempted = true;
+      await tryResetPrologProcess(prolog);
+    }
   }
 
   // Log remaining failures
