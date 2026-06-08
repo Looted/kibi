@@ -28,6 +28,12 @@ import {
 } from "kibi-cli/public/branch-resolver";
 import { getBranchOverride, isMcpDebugEnabled } from "../env.js";
 import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
+import {
+  type BranchKbStamp,
+  KbRefreshError,
+  readBranchKbStamp,
+  sameBranchKbStamp,
+} from "./kb-freshness.js";
 
 interface SessionDeps {
   PrologProcess: typeof PrologProcess;
@@ -60,6 +66,9 @@ let isInitialized = false;
 export let activeBranchName = "develop";
 let ensurePrologTail: Promise<void> = Promise.resolve();
 let prologResetGeneration = 0;
+let attachedBranchKbPath: string | null = null;
+let attachedBranchStamp: BranchKbStamp | null = null;
+let hasValidatedSameBranchRefresh = false;
 export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
@@ -71,6 +80,9 @@ export function resetSessionStateForTests(): void {
   activeBranchName = "develop";
   ensurePrologTail = Promise.resolve();
   prologResetGeneration = 0;
+  attachedBranchKbPath = null;
+  attachedBranchStamp = null;
+  hasValidatedSameBranchRefresh = false;
   isShuttingDown = false;
   inFlightRequests.clear();
   if (shutdownTimeout) {
@@ -194,6 +206,9 @@ export async function resetProlog(reason: string): Promise<void> {
   const current = prologProcess;
   prologProcess = null;
   isInitialized = false;
+  attachedBranchKbPath = null;
+  attachedBranchStamp = null;
+  hasValidatedSameBranchRefresh = false;
 
   if (current) {
     try {
@@ -202,6 +217,60 @@ export async function resetProlog(reason: string): Promise<void> {
       console.error("[KIBI-MCP] Error resetting Prolog worker:", error);
     }
   }
+}
+
+async function refreshAttachedBranchKb(
+  prolog: PrologProcess,
+  kbPath: string,
+  assertGeneration: () => Promise<void>,
+): Promise<BranchKbStamp> {
+  prolog.invalidateCache();
+
+  const detachResult = await prolog.query("kb_detach");
+  await assertGeneration();
+  if (!detachResult.success) {
+    throw new KbRefreshError(
+      `KB refresh failed: detach failed: ${detachResult.error || "Unknown error"}`,
+    );
+  }
+
+  const attachResult = await prolog.query(`kb_attach('${kbPath}')`);
+  await assertGeneration();
+  if (!attachResult.success) {
+    throw new KbRefreshError(
+      `KB refresh failed: attach failed: ${attachResult.error || "Unknown error"}`,
+    );
+  }
+
+  return await readBranchKbStamp(kbPath);
+}
+
+async function refreshAttachedBranchKbWithRetry(
+  prolog: PrologProcess,
+  kbPath: string,
+  currentStamp: BranchKbStamp,
+  assertGeneration: () => Promise<void>,
+): Promise<BranchKbStamp> {
+  let postAttachStamp = await refreshAttachedBranchKb(
+    prolog,
+    kbPath,
+    assertGeneration,
+  );
+
+  if (sameBranchKbStamp(postAttachStamp, currentStamp)) {
+    return postAttachStamp;
+  }
+
+  postAttachStamp = await refreshAttachedBranchKb(prolog, kbPath, assertGeneration);
+  if (!sameBranchKbStamp(postAttachStamp, currentStamp)) {
+    throw new KbRefreshError("KB refresh failed: stamp changed during attach");
+  }
+
+  return postAttachStamp;
+}
+
+function usesBranchKbPath(kbPath: string): boolean {
+  return kbPath.includes("/.kb/branches/") || kbPath.includes("\\.kb\\branches\\");
 }
 
 // implements REQ-008
@@ -256,8 +325,30 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
   // Check if we need to switch branches
   if (isInitialized && prologProcess?.isRunning()) {
+    const kbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
+
     if (targetBranch === activeBranchName) {
-      // Still on the same branch - return existing connection
+      const currentStamp = await readBranchKbStamp(kbPath);
+      const shouldRefresh =
+        attachedBranchKbPath === kbPath &&
+        attachedBranchStamp !== null &&
+        usesBranchKbPath(kbPath) &&
+        (!hasValidatedSameBranchRefresh ||
+          !sameBranchKbStamp(currentStamp, attachedBranchStamp));
+
+      if (shouldRefresh) {
+        attachedBranchStamp = await refreshAttachedBranchKbWithRetry(
+          prologProcess,
+          kbPath,
+          currentStamp,
+          assertGeneration,
+        );
+        hasValidatedSameBranchRefresh = true;
+      } else {
+        attachedBranchKbPath = kbPath;
+        attachedBranchStamp = currentStamp;
+      }
+      attachedBranchKbPath = kbPath;
       return prologProcess;
     }
 
@@ -286,10 +377,9 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
     // Ensure new branch KB exists
     ensureBranchKbExists(workspaceRoot, targetBranch);
-    const newKbPath = sessionDeps.resolveKbPath(workspaceRoot, targetBranch);
 
     // Attach to new branch KB
-    const attachResult = await prologProcess.query(`kb_attach('${newKbPath}')`);
+    const attachResult = await prologProcess.query(`kb_attach('${kbPath}')`);
     await assertGeneration();
     if (!attachResult.success) {
       throw new Error(
@@ -298,8 +388,11 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
     }
 
     activeBranchName = targetBranch;
+    attachedBranchKbPath = kbPath;
+    attachedBranchStamp = await readBranchKbStamp(kbPath);
+    hasValidatedSameBranchRefresh = false;
     debugLog(`[KIBI-MCP] Re-attached to branch: ${targetBranch}`);
-    debugLog(`[KIBI-MCP] KB path: ${newKbPath}`);
+    debugLog(`[KIBI-MCP] KB path: ${kbPath}`);
 
     return prologProcess;
   }
@@ -370,6 +463,10 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
       `Failed to attach KB: ${attachResult.error || "Unknown error"}`,
     );
   }
+
+  attachedBranchKbPath = kbPath;
+  attachedBranchStamp = await readBranchKbStamp(kbPath);
+  hasValidatedSameBranchRefresh = false;
 
   isInitialized = true;
   debugLog(
