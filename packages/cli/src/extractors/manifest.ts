@@ -55,6 +55,133 @@ export interface ExtractionResult {
   sourceFile?: string;
 }
 
+type RelationshipType =
+  | "depends_on"
+  | "executable_for"
+  | "specified_by"
+  | "verified_by"
+  | "implements"
+  | "covered_by"
+  | "constrained_by"
+  | "constrains"
+  | "requires_property"
+  | "requires_predicate"
+  | "guards"
+  | "publishes"
+  | "consumes"
+  | "supersedes"
+  | "relates_to";
+
+const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
+  "depends_on",
+  "executable_for",
+  "specified_by",
+  "verified_by",
+  "implements",
+  "covered_by",
+  "constrained_by",
+  "constrains",
+  "requires_property",
+  "requires_predicate",
+  "guards",
+  "publishes",
+  "consumes",
+  "supersedes",
+  "relates_to",
+]);
+
+const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
+  type: RelationshipType;
+  from: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
+  to: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
+}> = [
+  { type: "depends_on", from: "req", to: "req" },
+  { type: "executable_for", from: "symbol", to: "test" },
+  { type: "specified_by", from: "req", to: "scenario" },
+  { type: "verified_by", from: "req", to: "test" },
+  { type: "verified_by", from: "scenario", to: "test" },
+  { type: "implements", from: "symbol", to: "req" },
+  { type: "covered_by", from: "symbol", to: "test" },
+  { type: "constrained_by", from: "symbol", to: "adr" },
+  { type: "constrains", from: "req", to: "fact" },
+  { type: "requires_property", from: "req", to: "fact" },
+  { type: "requires_predicate", from: "req", to: "fact" },
+  { type: "guards", from: "flag", to: "symbol" },
+  { type: "guards", from: "flag", to: "event" },
+  { type: "guards", from: "flag", to: "req" },
+  { type: "publishes", from: "symbol", to: "event" },
+  { type: "consumes", from: "symbol", to: "event" },
+  { type: "supersedes", from: "adr", to: "adr" },
+  { type: "supersedes", from: "req", to: "req" },
+];
+
+const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
+  .sort()
+  .join(", ");
+
+function inferEntityTypeFromId(id: string):
+  | "req"
+  | "scenario"
+  | "test"
+  | "adr"
+  | "flag"
+  | "event"
+  | "symbol"
+  | "fact"
+  | null {
+  const upper = id.toUpperCase();
+  if (upper.startsWith("REQ-")) return "req";
+  if (upper.startsWith("SCEN-")) return "scenario";
+  if (upper.startsWith("TEST-")) return "test";
+  if (upper.startsWith("ADR-")) return "adr";
+  if (upper.startsWith("FLAG-")) return "flag";
+  if (upper.startsWith("EVENT-")) return "event";
+  if (upper.startsWith("SYM-")) return "symbol";
+  if (upper.startsWith("FACT-")) return "fact";
+  return null;
+}
+
+function validateRelationshipType(type: string, filePath: string): asserts type is RelationshipType {
+  if (!VALID_RELATIONSHIP_TYPES.has(type as RelationshipType)) {
+    throw new ManifestError(
+      `Invalid relationship type \"${type}\". Allowed types: ${RELATIONSHIP_TYPE_DISPLAY_LIST}`,
+      filePath,
+    );
+  }
+}
+
+function validateRelationshipDirection(
+  type: RelationshipType,
+  from: string,
+  to: string,
+  filePath: string,
+): void {
+  if (type === "relates_to") {
+    return;
+  }
+
+  const fromType = inferEntityTypeFromId(from);
+  const toType = inferEntityTypeFromId(to);
+
+  // If we cannot infer one side from ID prefix, defer to downstream existence/type checks.
+  if (!fromType || !toType) {
+    return;
+  }
+
+  const valid = VALID_RELATIONSHIP_DIRECTIONS.some(
+    (rule) => rule.type === type && rule.from === fromType && rule.to === toType,
+  );
+  if (!valid) {
+    const allowed = VALID_RELATIONSHIP_DIRECTIONS.filter((rule) => rule.type === type)
+      .map((rule) => `${rule.from} -> ${rule.to}`)
+      .join(", ");
+    throw new ManifestError(
+      `Invalid relationship direction for \"${type}\": ${fromType} -> ${toType}. Allowed: ${allowed}`,
+      filePath,
+    );
+  }
+}
+
 export class ManifestError extends Error {
   constructor(
     message: string,
@@ -107,6 +234,7 @@ function getManifestSymbols(
 function extractRelationships(
   id: string,
   symbol: ManifestSymbolRecord,
+  filePath: string,
 ): ExtractedRelationship[] {
   const relationships: ExtractedRelationship[] = [];
 
@@ -124,6 +252,8 @@ function extractRelationships(
           typeof typedLink.type === "string" &&
           typeof typedLink.target === "string"
         ) {
+          validateRelationshipType(typedLink.type, filePath);
+          validateRelationshipDirection(typedLink.type, id, typedLink.target, filePath);
           relationships.push({
             type: typedLink.type,
             from: id,
@@ -141,6 +271,8 @@ function extractRelationships(
         typeof rel.type === "string" &&
         typeof rel.target === "string"
       ) {
+        validateRelationshipType(rel.type, filePath);
+        validateRelationshipDirection(rel.type, id, rel.target, filePath);
         relationships.push({
           type: rel.type,
           from: id,
@@ -194,7 +326,7 @@ function extractFromManifestSymbolRecords(
 
     return {
       entity,
-      relationships: extractRelationships(id, symbol),
+      relationships: extractRelationships(id, symbol, filePath),
       ...(sourceFile !== undefined ? { sourceFile } : {}),
     };
   });
