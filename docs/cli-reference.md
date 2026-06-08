@@ -42,7 +42,7 @@ Extracts entities and relationships from project documents and updates the knowl
 
 - Rebuild with `--rebuild` replaces the on-disk branch KB snapshot while MCP can continue running.
 - A running MCP session detects same-branch snapshot replacement before serving affected operations.
-- If auto-refresh cannot complete (for example, after transient sync failures), MCP returns a recovery error and usually requires MCP process restart.
+- If auto-refresh cannot complete during a transient publish conflict, MCP returns a recovery error; retry the tool call after the publish settles.
 
 **Notes:**
 - Supports these entity types: req, scenario, test, adr, flag, event, symbol, fact

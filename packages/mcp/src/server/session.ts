@@ -31,6 +31,7 @@ import { resolveKbPath, resolveWorkspaceRoot } from "../workspace.js";
 import {
   type BranchKbStamp,
   KbRefreshError,
+  describeBranchKbStamp,
   readBranchKbStamp,
   sameBranchKbStamp,
 } from "./kb-freshness.js";
@@ -329,6 +330,16 @@ async function ensurePrologUnsafe(): Promise<PrologProcess> {
 
     if (targetBranch === activeBranchName) {
       const currentStamp = await readBranchKbStamp(kbPath);
+      if (
+        usesBranchKbPath(kbPath) &&
+        (currentStamp.rdfMissing ||
+          currentStamp.dirMissing ||
+          currentStamp.errorMessage !== null)
+      ) {
+        throw new KbRefreshError(
+          `KB refresh failed: branch KB snapshot is unstable: ${describeBranchKbStamp(currentStamp)}`,
+        );
+      }
       const shouldRefresh =
         attachedBranchKbPath === kbPath &&
         attachedBranchStamp !== null &&
