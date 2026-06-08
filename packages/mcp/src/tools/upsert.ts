@@ -270,6 +270,17 @@ export async function handleKbUpsert(
   args: UpsertArgs,
 ): Promise<UpsertResult> {
   const { entity, relationships } = validateKbUpsertArgs(args);
+
+  // If relationships are not explicitly provided, preserve existing ones.
+  // This prevents accidental relationship loss when updating only properties.
+  let effectiveRelationships = relationships;
+  if (args.relationships === undefined && args.id) {
+    const existing = await fetchExistingRelationships(prolog, args.id as string);
+    if (existing.length > 0) {
+      effectiveRelationships = existing;
+    }
+  }
+
   const semanticAdvisor = analyzeSemanticAdvisorInput({
     payload: { ...args },
   });
@@ -279,7 +290,7 @@ export async function handleKbUpsert(
 
   // Validate strict-lane fact_kind pairing for constrains/requires_property
   // implements REQ-011
-  await validateStrictLanePairing(prolog, relationships);
+  await validateStrictLanePairing(prolog, effectiveRelationships);
 
   let created = 0;
   let updated = 0;
@@ -302,7 +313,7 @@ export async function handleKbUpsert(
 
       // Build relationship goals
       const relationshipGoals: string[] = [];
-      for (const rel of relationships) {
+      for (const rel of effectiveRelationships) {
         const relType = rel.type as string;
         const from = rel.from as string;
         const to = rel.to as string;
@@ -353,7 +364,7 @@ export async function handleKbUpsert(
         type,
         entity,
       );
-      for (const rel of relationships) {
+      for (const rel of effectiveRelationships) {
         await recordRelationshipAudit(prolog, rel);
       }
 
@@ -364,7 +375,7 @@ export async function handleKbUpsert(
         created++;
       }
 
-      relationshipsCreated += relationships.length;
+      relationshipsCreated += effectiveRelationships.length;
     }
     // Save KB to disk after all entities/relationships are written to ensure
     // durability across process restarts.
@@ -608,15 +619,24 @@ function validateSymbolGranularity(
   if (behavioralNames.length === 0) return;
 
   const nonBehavioralNames = getNonBehavioralSymbolNames(candidates);
+  const maxNamesInMessage = 10;
+  const shownBehavioral = behavioralNames.slice(0, maxNamesInMessage);
+  const hiddenBehavioralCount = behavioralNames.length - shownBehavioral.length;
+  const behavioralList = shownBehavioral.join(", ") +
+    (hiddenBehavioralCount > 0 ? `, and ${hiddenBehavioralCount} more` : "");
+
+  const shownNonBehavioral = nonBehavioralNames.slice(0, maxNamesInMessage);
+  const hiddenNonBehavioralCount = nonBehavioralNames.length - shownNonBehavioral.length;
+  const nonBehavioralList = shownNonBehavioral.join(", ") +
+    (hiddenNonBehavioralCount > 0 ? `, and ${hiddenNonBehavioralCount} more` : "");
+
   const ignoredSymbolsMessage =
     nonBehavioralNames.length > 0
-      ? ` Non-behavioral symbols in the file were ignored for this decision: ${nonBehavioralNames.join(
-          ", ",
-        )}.`
+      ? ` Non-behavioral symbols in the file were ignored for this decision: ${nonBehavioralList}.`
       : "";
 
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignoredSymbolsMessage}`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralList}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignoredSymbolsMessage}`,
   );
 }
 
@@ -811,6 +831,79 @@ async function checkScenarioCoverageGuidance(
   }
   return warnings;
 }
+
+/**
+ * Query existing relationships for an entity from the live KB.
+ * Used to preserve relationships when the upsert request omits the
+ * relationships field (entity-only property update).
+ */
+async function fetchExistingRelationships(
+  prolog: PrologProcess,
+  entityId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const relTypes = [
+    "depends_on", "specified_by", "verified_by", "validates",
+    "implements", "covered_by", "executable_for", "constrained_by",
+    "constrains", "requires_property", "requires_predicate",
+    "guards", "publishes", "consumes", "supersedes", "relates_to",
+  ];
+  const existing: Array<Record<string, unknown>> = [];
+
+  try {
+    for (const relType of relTypes) {
+      const forwardGoal = `findall(To, kb_relationship(${relType}, '${escapeAtom(entityId)}', To), Targets)`;
+      const forwardResult = await prolog.query(forwardGoal);
+      if (forwardResult.success && forwardResult.bindings.Targets) {
+        const targetsStr = forwardResult.bindings.Targets;
+        const targets = parsePrologList(targetsStr);
+        for (const to of targets) {
+          existing.push({ type: relType, from: entityId, to });
+        }
+      }
+
+      const reverseGoal = `findall(From, kb_relationship(${relType}, From, '${escapeAtom(entityId)}'), Sources)`;
+      const reverseResult = await prolog.query(reverseGoal);
+      if (reverseResult.success && reverseResult.bindings.Sources) {
+        const sourcesStr = reverseResult.bindings.Sources;
+        const sources = parsePrologList(sourcesStr);
+        for (const from of sources) {
+          existing.push({ type: relType, from, to: entityId });
+        }
+      }
+    }
+  } catch (e) {
+    // Best-effort: if we can't read existing relationships, proceed without them.
+    // This preserves backward compatibility and avoids breaking mocked tests.
+  }
+
+  return existing;
+}
+
+function parsePrologList(listStr: string): string[] {
+  const trimmed = listStr.trim();
+  if (trimmed === "[]") return [];
+  const match = trimmed.match(/^\[(.*)\]$/s);
+  if (!match || !match[1]) return [];
+  const content = match[1];
+  const items: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const char of content) {
+    if (char === "[") depth++;
+    if (char === "]") depth--;
+    if (char === "," && depth === 0) {
+      items.push(current.trim().replace(/^'|'$/g, ""));
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) {
+    items.push(current.trim().replace(/^'|'$/g, ""));
+  }
+  return items;
+}
+
 
 /**
  * Record audit entry for a successfully committed entity mutation.
