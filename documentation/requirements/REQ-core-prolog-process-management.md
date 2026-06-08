@@ -19,3 +19,5 @@ links:
 
 The CLI manages the lifecycle of the SWI-Prolog child process, handling startup, shutdown, and error recovery.
 Communication with the Prolog engine is conducted via a JSON-RPC bridge, ensuring robust serialization of complex entity graphs.
+
+MCP must refresh the attached branch KB when the same branch snapshot is replaced externally (for example, by `kibi sync --rebuild`) while remaining attached to the branch.
