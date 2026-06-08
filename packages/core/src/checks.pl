@@ -718,7 +718,7 @@ strict_readiness_issue(
 strict_readiness_issue(
     ReqId,
     "Strict readiness: not-ready (strict-ready). Requirement has strict subject and property facts but no contradiction-ready matched pair, so contradiction checks still skip it.",
-    "Align constrains and requires_property on the same subject_key, and keep the requirement current if it should participate in contradiction checks"
+    "Ensure constrains and requires_property use the same subject_key, and keep the requirement current if it should participate in contradiction checks"
 ) :-
     kb_entity(ReqId, req, _),
     strict_readiness_level(ReqId, strict_ready).

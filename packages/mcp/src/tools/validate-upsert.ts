@@ -1,3 +1,5 @@
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import type { UpsertArgs } from "./upsert.js";
 import { validateKbUpsertArgs } from "./upsert.js";
 
@@ -7,6 +9,7 @@ export interface ValidateUpsertResult {
     valid: boolean;
     errors: string[];
     warnings: string[];
+    semanticAdvisor: SemanticAdvisorReceipt | null;
     normalizedPreview: Record<string, unknown> | null;
   };
 }
@@ -16,6 +19,9 @@ export async function handleKbValidateUpsert(
 ): Promise<ValidateUpsertResult> {
   try {
     const { entity } = validateKbUpsertArgs(args);
+    const semanticAdvisor = analyzeSemanticAdvisorInput({
+      payload: { ...args },
+    });
     return {
       content: [
         {
@@ -26,7 +32,8 @@ export async function handleKbValidateUpsert(
       structuredContent: {
         valid: true,
         errors: [],
-        warnings: [],
+        warnings: semanticAdvisor.warnings,
+        semanticAdvisor: semanticAdvisor.receipt,
         normalizedPreview: entity,
       },
     };
@@ -43,6 +50,7 @@ export async function handleKbValidateUpsert(
         valid: false,
         errors: [message],
         warnings: [],
+        semanticAdvisor: null,
         normalizedPreview: null,
       },
     };

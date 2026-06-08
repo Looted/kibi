@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The data flow for video files in Align follows a pipeline from upload to analysis and playback, with specific optimizations at each stage.
+The data flow for video files in the example product follows a pipeline from upload to analysis and playback, with specific optimizations at each stage.
 
 ## Flow Overview
 

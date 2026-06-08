@@ -11,7 +11,7 @@ function createMockProlog() {
 }
 
 describe("kb_upsert modeling guidance errors", () => {
-  test("explains how to fix Align-style camelCase strict fact fields", async () => {
+  test("explains how to fix product-style camelCase strict fact fields", async () => {
     await expect(
       handleKbUpsert(createMockProlog(), {
         type: "fact",

@@ -208,6 +208,38 @@ describe("kibi migrate", () => {
     expect(audit.symbolGranularityLegacyLinks).toBe(1);
   });
 
+  test("--yes marks semantic advisor backfill pending for schema v2 configs", () => {
+    const configPath = path.join(tmpDir, ".kb", "config.json");
+    const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");
+    const config = readJson(configPath);
+    writeFileSync(
+      configPath,
+      `${JSON.stringify(
+        {
+          ...config,
+          schemaVersion: 2,
+        },
+        null,
+        2,
+      )}\n`,
+      "utf8",
+    );
+
+    const result = runKibi(["migrate", "--yes"], tmpDir);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("semantic advisor backfill as pending");
+
+    const migratedConfig = readJson(configPath);
+    expect(migratedConfig.schemaVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(migratedConfig.semanticAdvisorBackfill).toBe("pending");
+
+    const audit = readJson(auditPath);
+    expect(audit.fromVersion).toBe(2);
+    expect(audit.toVersion).toBe(LATEST_KB_SCHEMA_VERSION);
+    expect(audit.semanticAdvisorBackfill).toBe("pending");
+  });
+
   test("second --yes run is a no-op", () => {
     const configPath = path.join(tmpDir, ".kb", "config.json");
     const auditPath = path.join(tmpDir, ".kb", "migrations", "main.json");

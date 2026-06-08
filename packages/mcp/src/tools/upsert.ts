@@ -38,6 +38,8 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
@@ -63,6 +65,8 @@ export interface UpsertResult {
     created: number;
     updated: number;
     relationships_created: number;
+    warnings: string[];
+    semanticAdvisor: SemanticAdvisorReceipt;
   };
 }
 
@@ -260,6 +264,9 @@ export async function handleKbUpsert(
   args: UpsertArgs,
 ): Promise<UpsertResult> {
   const { entity, relationships } = validateKbUpsertArgs(args);
+  const semanticAdvisor = analyzeSemanticAdvisorInput({
+    payload: { ...args },
+  });
   const type = entity.type as string;
 
   const entities = [entity];
@@ -387,6 +394,8 @@ export async function handleKbUpsert(
         created,
         updated,
         relationships_created: relationshipsCreated,
+        warnings: semanticAdvisor.warnings,
+        semanticAdvisor: semanticAdvisor.receipt,
       },
     };
   } catch (error) {

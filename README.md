@@ -30,6 +30,7 @@ Kibi is designed to boost AI agents' memory during software development. It main
 - **Enforces traceability** — Links code symbols to requirements, preventing orphan features and technical debt
 - **Validates automatically** — Rules catch missing requirements, dangling references, and consistency issues
 - **Agent-friendly** — LLM assistants can query and update knowledge base via MCP without risking file corruption
+- **Guides semantic modeling** — The MCP server can inspect prose requirements and suggest strict facts or reusable predicate facts before agents treat text as machine-checkable knowledge
 
 ### What You Get
 
@@ -46,6 +47,8 @@ Kibi provides concrete, day-to-day benefits for developers and teams:
 - **Event-Driven Architecture** — Map who publishes and consumes each domain event. Trace event flows and identify couplings across the system.
 
 - **Branch-Local Memory** — Every git branch keeps its own KB snapshot. Switch contexts without losing traceability or polluting other branches.
+
+- **Semantic Advisor** — Get reviewable modeling suggestions for requirement prose, including scalar constraints, permissions, workflow rules, operational policies, privacy rules, and consistency requirements.
 
 For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopilot_generate\`).
 

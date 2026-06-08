@@ -1,16 +1,32 @@
 # kibi-mcp
 
+## 0.17.0
+
+### Minor Changes
+
+- 9132558: Agents now get semantic modeling guidance before or during requirement writes. When a requirement contains machine-checkable prose, Kibi explains why Prolog cannot reason over it yet and suggests draft strict facts, predicates, ambiguity observations, or ontology-gap observations.
+
+  This makes prose-heavy requirements visible as logic debt instead of silently accepting them as contradiction-checkable knowledge, while still leaving all suggestions advisory and reviewable.
+
+  - Add a read-only `kb_semantic_advisor` tool for raw prose modeling suggestions before agents construct `kb_upsert` payloads.
+  - Add MCP semantic advisor receipts with modeling suggestions for upsert validation and upsert responses.
+  - Detect deterministic modeling signals for numeric, cardinality, conditional, permission, state/default, and modal prose.
+  - Add usage hints to production predicate candidates and align the predicate catalog with semantic advisor suggestions, including rate-limit, exception, mutual-exclusion, dependency, ownership, retry, escalation, availability SLA, notification routing, idempotency, data residency, audit logging, consent, lifecycle, conflict-resolution, fallback, batching, and consistency predicates.
+  - Add a prose coverage corpus evaluator so semantic advisor coverage is measurable rather than anecdotal.
+  - Produce draft apply plans for strict-property suggestions, predicate suggestions, ambiguity observations, and ontology-gap observations, including multi-claim prose, thresholds, booleans, defaults, uniqueness, state memberships, state transitions, conditional behavior, temporal ordering, prohibitions, and comparative numeric constraints.
+  - Document advisory v1 behavior and recommended repair paths.
+
 ## 0.16.1
 
 ### Patch Changes
 
 - 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
 
-  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across projects such as Align.
+  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across product projects.
 
   - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
   - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
-  - Add modeling cheatsheet, MCP error reference, and Align KB improvement prompt.
+  - Add modeling cheatsheet, MCP error reference, and product KB improvement prompt.
 
 - c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
 
@@ -367,7 +383,7 @@
 
   - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
-  - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
+  - Synchronize guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments
   - Document scope boundary: automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged check
 

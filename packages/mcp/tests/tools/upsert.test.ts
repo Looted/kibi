@@ -533,7 +533,7 @@ export function greet() {
 
     expect(query).toHaveBeenCalledTimes(8);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -580,7 +580,7 @@ export function greet() {
       "check_req_contradiction('REQ-DEFAULT-SOURCE')",
     );
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 0,
@@ -706,7 +706,7 @@ export function greet() {
     expect(query).toHaveBeenCalledWith(
       `kb_log_relationship_upsert(specified_by, 'REQ-REL-META-001', 'SCEN-001', [created_at="2026-03-30T10:00:00Z", created_by="tester", source="undefined", confidence=0.5])`,
     );
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -742,7 +742,7 @@ export function greet() {
     });
 
     expect(result.content[0]?.text).toContain("updated");
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 0,
       updated: 1,
       relationships_created: 0,

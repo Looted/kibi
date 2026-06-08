@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The Align project follows a clear component architecture organized by responsibility and separation of concerns.
+The example product follows a clear component architecture organized by responsibility and separation of concerns.
 
 ## Directory Structure
 
