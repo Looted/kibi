@@ -383,6 +383,11 @@ export async function handleKbUpsert(
       }
     }
 
+
+    // Check for scenario-coverage guidance
+    const coverageWarnings = await checkScenarioCoverageGuidance(
+      prolog, relationships, type, entity.id as string,
+    );
     return {
       content: [
         {
@@ -394,7 +399,7 @@ export async function handleKbUpsert(
         created,
         updated,
         relationships_created: relationshipsCreated,
-        warnings: semanticAdvisor.warnings,
+        warnings: [...semanticAdvisor.warnings, ...coverageWarnings],
         semanticAdvisor: semanticAdvisor.receipt,
       },
     };
@@ -753,6 +758,41 @@ async function validateStrictLanePairing(
       }
     }
   }
+}
+
+/**
+ * Check for scenario-coverage guidance when verified_by is added to a
+ * requirement that already has scenarios (specified_by relationships).
+ * Returns non-blocking warnings; never throws.
+ */
+async function checkScenarioCoverageGuidance(
+  prolog: PrologProcess,
+  relationships: Array<Record<string, unknown>>,
+  entityType: string,
+  entityId: string,
+): Promise<string[]> {
+  const warnings: string[] = [];
+  if (entityType !== "req") return warnings;
+
+  try {
+    for (const rel of relationships) {
+      const relType = rel.type as string;
+      if (relType !== "verified_by") continue;
+
+      // Check if this requirement has scenarios
+      const scenarioQuery = `kb_relationship(specified_by, '${escapeAtom(entityId)}', ScenarioId)`;
+      const scenarioResult = await prolog.query(`once(${scenarioQuery})`);
+      if (scenarioResult.success) {
+        warnings.push(
+          `Scenario-backed coverage: verified_by(${entityId},test) is valid but will not satisfy symbol-coverage because ${entityId} has specified_by a scenario. Use verified_by(scenario,test) or validates(test,scenario) instead.`,
+        );
+        break; // One warning per entity is enough
+      }
+    }
+  } catch {
+    // Non-blocking: never fail the upsert
+  }
+  return warnings;
 }
 
 /**
