@@ -1699,9 +1699,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 191
+    sourceLine: 203
     sourceColumn: 22
-    sourceEndLine: 205
+    sourceEndLine: 220
     sourceEndColumn: 1
   - id: SYM-mcp-session-ensureProlog
     title: ensureProlog

@@ -22,3 +22,5 @@ links:
 Kibi's knowledge base is persisted on disk using the SWI-Prolog `rdf_persistency` library.
 Entities and relationships are stored as RDF triples in a branch-specific `.kb/branches/<branch>/kb.rdf` file.
 The storage layer handles file locking to prevent corruption during concurrent access.
+
+Replacement of the branch KB on disk must be detectable from MCP attachment state so that stale in-memory/attached views are not used after external sync operations.

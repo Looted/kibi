@@ -402,6 +402,19 @@ Interactive onboarding workflow for day-0 KB activation. It guides agents to ask
 - You can override the branch selection by setting the `KIBI_BRANCH` environment variable before starting the server.
 - Branch garbage collection is not part of the public MCP interface. Use `kibi gc` or automation hooks instead.
 
+### KB Auto-Refresh
+
+For same-branch workflows, MCP validates the attached branch KB against filesystem stat metadata before attach-sensitive operations.
+When MCP detects a KB replacement for the same branch, it triggers a controlled re-attach flow.
+
+- The session stores an `attachedBranchStamp` at attachment time.
+- MCP recomputes the latest branch stamp with `readBranchKbStamp` and compares it with `sameBranchKbStamp`.
+- If stale, MCP runs a full `refreshAttachedBranchKb` attempt.
+- For transient refresh failures, MCP retries through `refreshAttachedBranchKbWithRetry`.
+- If recovery fails, MCP returns a `KbRefreshError` and the operation fails closed.
+
+This behavior is important after external branch operations such as `kibi sync --rebuild`, where the branch KB snapshot can be replaced while the MCP process stays running.
+
 ## Recommended Agent Workflow
 
 1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
