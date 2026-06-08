@@ -76,6 +76,8 @@ type QueryMock = ReturnType<typeof mock> & {
 type MockProlog = {
   query: QueryMock;
   callLog: string[];
+  terminate: ReturnType<typeof mock>;
+  start: ReturnType<typeof mock>;
 };
 
 function asPrologProcess(prolog: MockProlog): PrologProcess {
@@ -95,6 +97,8 @@ function makeProlog(queries?: Record<string, QueryResult>): MockProlog {
       return { success: true, bindings: {} as Record<string, string> };
     }) as QueryMock,
     callLog,
+    terminate: mock(async () => {}),
+    start: mock(async () => {}),
   };
 }
 
@@ -1349,5 +1353,37 @@ describe("persistRelationships", () => {
     );
 
     expect(result.relationshipCount).toBe(1);
+  });
+
+  test("attempts one Prolog restart when retries repeatedly return query failed", async () => {
+    const prolog = makeProlog();
+    prolog.query.mockImplementation(async (goal: string | string[]) => {
+      const g = Array.isArray(goal) ? goal.join(", ") : goal;
+      prolog.callLog.push(g);
+      return { success: false, bindings: {}, error: "Query failed" };
+    });
+
+    const entity = makeEntity({ id: "REQ-001" });
+    const rel: ExtractedRelationship = {
+      type: "depends_on",
+      from: "REQ-001",
+      to: "REQ-002",
+    };
+
+    const warnSpy = mock();
+    const origWarn = console.warn;
+    console.warn = warnSpy;
+
+    const result = await persistRelationships(
+      asPrologProcess(prolog),
+      [{ entity, relationships: [rel] }],
+      [],
+    );
+
+    console.warn = origWarn;
+
+    expect(result.relationshipCount).toBe(0);
+    expect(prolog.terminate).toHaveBeenCalledTimes(1);
+    expect(prolog.start).toHaveBeenCalledTimes(1);
   });
 });

@@ -272,6 +272,46 @@ symbols:
     cleanup();
   });
 
+  test("rejects unsupported relationship types in symbol links", () => {
+    const yaml = `
+symbols:
+  - id: symbol-invalid-rel-type
+    title: Invalid Relationship Type
+    status: active
+    relationships:
+      - type: decomposes
+        target: REQ-001
+`;
+    const filePath = setupTestFile("test-invalid-rel-type.yaml", yaml);
+
+    expect(() => extractFromManifest(filePath)).toThrow(ManifestError);
+    expect(() => extractFromManifest(filePath)).toThrow(
+      'Invalid relationship type "decomposes"',
+    );
+
+    cleanup();
+  });
+
+  test("rejects invalid relationship direction for specified_by on symbol", () => {
+    const yaml = `
+symbols:
+  - id: SYM-INVALID-SPECIFIED-BY
+    title: Invalid specified_by direction
+    status: active
+    relationships:
+      - type: specified_by
+        target: REQ-001
+`;
+    const filePath = setupTestFile("test-invalid-rel-direction.yaml", yaml);
+
+    expect(() => extractFromManifest(filePath)).toThrow(ManifestError);
+    expect(() => extractFromManifest(filePath)).toThrow(
+      'Invalid relationship direction for "specified_by": symbol -> req',
+    );
+
+    cleanup();
+  });
+
   test("extractFromManifest overlays authored entries with coordinate artifact metadata", () => {
     const yaml = `
 symbols:
