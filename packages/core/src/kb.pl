@@ -10,6 +10,7 @@
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
+    kb_retract_entity_relationships/1,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
@@ -280,8 +281,18 @@ kb_assert_entity_no_audit(Type, Props) :-
     with_kb_mutex((
         % Create entity URI using prefix notation for namespace expansion
         format(atom(EntityURI), 'kb:entity/~w', [Id]),
-        % Upsert semantics: remove any existing triples for this entity first.
-        rdf_retractall(EntityURI, _, _, Graph),
+        % Upsert semantics: remove only property triples, preserving relationships.
+        % Relationship triples have entity URI objects (kb:entity/...);
+        % property triples have typed literal objects (_^^xsd:...).
+        forall(
+            (   rdf(EntityURI, Prop, Obj, Graph),
+                (   atom(Obj)
+                ->  \+ atom_concat('kb:entity/', _, Obj)
+                ;   true
+                )
+            ),
+            rdf_retractall(EntityURI, Prop, Obj, Graph)
+        ),
         % Store type as string literal to prevent URI interpretation
         atom_string(Type, TypeStr),
         rdf_assert(EntityURI, kb:type, TypeStr^^'http://www.w3.org/2001/XMLSchema#string', Graph),
@@ -289,6 +300,22 @@ kb_assert_entity_no_audit(Type, Props) :-
         forall(
             member(Key=Value, Props),
             store_property(EntityURI, Key, Value, Graph)
+        )
+    )).
+
+%% kb_retract_entity_relationships(+Id)
+% Remove all relationship triples for an entity, preserving property triples.
+% Used by projectStagedEntities to clear stale relationships before re-asserting.
+kb_retract_entity_relationships(Id) :-
+    kb_graph(Graph),
+    with_kb_mutex((
+        format(atom(EntityURI), 'kb:entity/~w', [Id]),
+        forall(
+            (   rdf(EntityURI, RelURI, TargetURI, Graph),
+                atom(TargetURI),
+                atom_concat('kb:entity/', _, TargetURI)
+            ),
+            rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
         )
     )).
 
@@ -430,12 +457,24 @@ kb_assert_relationship(RelType, FromId, ToId, Metadata) :-
 % leave partial audit residue.
 kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
-    % Validate entities exist and relationship is valid
-    % Use once/1 to keep this predicate deterministic even if the store
-    % contains duplicate type triples from previous versions.
-    once(kb_entity(FromId, FromType, _)),
-    once(kb_entity(ToId, ToType, _)),
-    validate_relationship(RelType, FromType, ToType),
+    % Validate source entity exists
+    (   once(kb_entity(FromId, FromType, _))
+    ->  true
+    ;   throw(error(existence_error(entity, FromId),
+                context(kb_assert_relationship, 'Source entity does not exist')))
+    ),
+    % Validate target entity exists
+    (   once(kb_entity(ToId, ToType, _))
+    ->  true
+    ;   throw(error(existence_error(entity, ToId),
+                context(kb_assert_relationship, 'Target entity does not exist')))
+    ),
+    % Validate relationship type and direction
+    (   validate_relationship(RelType, FromType, ToType)
+    ->  true
+    ;   throw(error(type_error(relationship, RelType),
+                context(kb_assert_relationship, 'Invalid relationship: ~w from ~w to ~w'-[RelType, FromType, ToType])))
+    ),
     validate_symbol_role_compatibility(RelType, FromId, ToId),
     % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
     % via validateStrictLanePairing() before the transaction begins.

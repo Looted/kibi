@@ -126,6 +126,142 @@ const DEFAULT_STATUS_BY_TYPE: Record<string, string> = {
   fact: "active",
 };
 
+type RelationshipType =
+  | "depends_on"
+  | "executable_for"
+  | "specified_by"
+  | "verified_by"
+  | "validates"
+  | "implements"
+  | "covered_by"
+  | "constrained_by"
+  | "constrains"
+  | "requires_property"
+  | "requires_predicate"
+  | "guards"
+  | "publishes"
+  | "consumes"
+  | "supersedes"
+  | "relates_to";
+
+const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
+  "depends_on",
+  "executable_for",
+  "specified_by",
+  "verified_by",
+  "validates",
+  "implements",
+  "covered_by",
+  "constrained_by",
+  "constrains",
+  "requires_property",
+  "requires_predicate",
+  "guards",
+  "publishes",
+  "consumes",
+  "supersedes",
+  "relates_to",
+]);
+
+const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
+  type: RelationshipType;
+  from: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
+  to: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
+}> = [
+  { type: "depends_on", from: "req", to: "req" },
+  { type: "executable_for", from: "symbol", to: "test" },
+  { type: "specified_by", from: "req", to: "scenario" },
+  { type: "verified_by", from: "req", to: "test" },
+  { type: "verified_by", from: "scenario", to: "test" },
+  { type: "validates", from: "test", to: "req" },
+  { type: "validates", from: "test", to: "scenario" },
+  { type: "implements", from: "symbol", to: "req" },
+  { type: "covered_by", from: "symbol", to: "test" },
+  { type: "constrained_by", from: "symbol", to: "adr" },
+  { type: "constrains", from: "req", to: "fact" },
+  { type: "requires_property", from: "req", to: "fact" },
+  { type: "requires_predicate", from: "req", to: "fact" },
+  { type: "guards", from: "flag", to: "symbol" },
+  { type: "guards", from: "flag", to: "event" },
+  { type: "guards", from: "flag", to: "req" },
+  { type: "publishes", from: "symbol", to: "event" },
+  { type: "consumes", from: "symbol", to: "event" },
+  { type: "supersedes", from: "adr", to: "adr" },
+  { type: "supersedes", from: "req", to: "req" },
+];
+
+const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
+  .sort()
+  .join(", ");
+
+function inferEntityTypeFromId(id: string):
+  | "req"
+  | "scenario"
+  | "test"
+  | "adr"
+  | "flag"
+  | "event"
+  | "symbol"
+  | "fact"
+  | null {
+  const upper = id.toUpperCase();
+  if (upper.startsWith("REQ-")) return "req";
+  if (upper.startsWith("SCEN-")) return "scenario";
+  if (upper.startsWith("TEST-")) return "test";
+  if (upper.startsWith("ADR-")) return "adr";
+  if (upper.startsWith("FLAG-")) return "flag";
+  if (upper.startsWith("EVENT-")) return "event";
+  if (upper.startsWith("SYM-")) return "symbol";
+  if (upper.startsWith("FACT-")) return "fact";
+  return null;
+}
+
+function validateRelationshipType(type: string, filePath: string): asserts type is RelationshipType {
+  if (!VALID_RELATIONSHIP_TYPES.has(type as RelationshipType)) {
+    throw new FrontmatterError(
+      `Invalid relationship type \"${type}\". Allowed types: ${RELATIONSHIP_TYPE_DISPLAY_LIST}`,
+      filePath,
+      {
+        classification: "Invalid Relationship Type",
+        hint: "Use one of the supported relationship types from relationship.schema.json.",
+      },
+    );
+  }
+}
+
+function validateRelationshipDirection(
+  type: RelationshipType,
+  fromType: ExtractedEntity["type"],
+  toId: string,
+  filePath: string,
+): void {
+  if (type === "relates_to") {
+    return;
+  }
+
+  const toType = inferEntityTypeFromId(toId);
+  if (!toType) {
+    return;
+  }
+
+  const valid = VALID_RELATIONSHIP_DIRECTIONS.some(
+    (rule) => rule.type === type && rule.from === fromType && rule.to === toType,
+  );
+  if (!valid) {
+    const allowed = VALID_RELATIONSHIP_DIRECTIONS.filter((rule) => rule.type === type)
+      .map((rule) => `${rule.from} -> ${rule.to}`)
+      .join(", ");
+    throw new FrontmatterError(
+      `Invalid relationship direction for \"${type}\": ${fromType} -> ${toType}. Allowed: ${allowed}`,
+      filePath,
+      {
+        classification: "Invalid Relationship Direction",
+        hint: "Reverse the link direction or use the correct relationship type for these entity kinds.",
+      },
+    );
+  }
+}
+
 export class FrontmatterError extends Error {
   public classification: string;
   public hint: string;
@@ -350,6 +486,13 @@ function extractFromMarkdownContent(
           typeof link.type === "string" &&
           typeof link.target === "string"
         ) {
+          validateRelationshipType(link.type, filePath);
+          validateRelationshipDirection(
+            link.type,
+            type as ExtractedEntity["type"],
+            link.target,
+            filePath,
+          );
           relationships.push({
             type: link.type,
             from: id,

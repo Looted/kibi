@@ -1,16 +1,89 @@
 # kibi-mcp
 
+## 0.17.2
+
+### Patch Changes
+
+- `kb_upsert` now warns when adding a `verified_by(req,test)` relationship to a requirement that has existing scenarios. The edge is still created, but the warning explains that direct req→test verification does not satisfy `symbol-coverage` for scenario-backed requirements — use `verified_by(scenario,test)` or `validates(test,scenario)` instead.
+
+  - `kibi-mcp`: added non-blocking guidance in `handleKbUpsert` for insufficient direct req→test coverage links.
+  - Added regression tests for warning presence/absence based on scenario configuration.
+
+- Updated dependencies
+- Updated dependencies [c810f5f]
+  - kibi-cli@0.12.7
+  - kibi-core@0.6.2
+
+## 0.17.1
+
+### Patch Changes
+
+- 5fdcd46: MCP now re-validates the attached branch KB whenever the same-branch snapshot is externally rebuilt, so running `kibi sync --rebuild` no longer leaves a long-running server stuck on stale data. If refresh cannot be reconciled, requests fail fast with explicit `KbRefreshError` behavior instead of silently continuing from a stale attachment.
+
+  - Added formal docs for same-branch KB freshness detection in MCP, including stat-based stamps and fail-closed retry semantics.
+  - Clarified CLI behavior so `--rebuild` is documented as triggering MCP auto-refresh on unchanged branch attachments where applicable.
+  - Added KB entities/ADR/requirements evidence and symbol traceability updates for the MCP session refresh path.
+
+- 37ce479: Semantic advisor suggestions now recognize more requirement shapes found in real product repositories. Agents get reviewable predicate plans for build constraints, environment safety, schema invariants, coding standards, migration boundaries, absence/removal requirements, offline behavior, release gates, platform consistency, and preservation rules instead of falling back to generic prose.
+
+  - Add built-in predicate schemas, usage hints, extraction, and advisor detections for ten product-audit families.
+  - Extend deterministic prose coverage fixtures and MCP predicate/advisor tests for the new families.
+  - Document the expanded advisory-only predicate coverage in agent-facing docs.
+
+- 37ce479: Semantic advisor suggestions now avoid two broad false positives that came from product workflow prose. Generic user-facing “must use” requirements no longer route to coding-standard predicates, and generic “must pass before” workflow prerequisites no longer route to release-gate predicates unless the prose includes code/build/release cues.
+
+  - Add negative coverage for product usage and checkout prerequisite prose in `kb_suggest_predicates` and `kb_semantic_advisor`.
+  - Tighten `coding_standard_rule` and `release_gate_rule` exact scoring/detection to require domain-specific cues.
+
+- 37ce479: Semantic advisor suggestions now cover five additional real-product requirement families from product KB audits. Agents can model abstraction boundaries, security configuration requirements, ordered strategy selection, refresh policies, and scoped authorization without falling back to generic ontology-gap observations.
+
+  - Add built-in predicate schemas, usage hints, extraction, scoring, and advisor receipt suggestions for `abstraction_boundary_rule`, `security_configuration_rule`, `ordered_strategy_rule`, `refresh_policy_rule`, and `scoped_authorization_rule`.
+  - Extend deterministic prose coverage fixtures and direct MCP predicate/advisor tests for the new families.
+  - Document the expanded advisory-only predicate catalog in agent-facing docs.
+
+- 37ce479: Semantic advisor suggestions now recognize more real-product phrasing without requiring users to rewrite requirements into catalog-shaped prose. Declarative absence, cap-at numeric limits, disabled-until guards, when/must conditionals, and deduplicated redundant request prose now produce reviewable strict or predicate modeling suggestions.
+
+  - Add phrase-variant coverage for `absence_requirement`, strict cap-at properties, `guard`, `conditional_behavior`, and `idempotency_rule`.
+  - Harden predicate keyword scoring so short keywords match whole words instead of substrings such as `event` inside `prevent`.
+  - Preserve existing save/navigation ranking with exact commit-action scoring and explicit navigation keyword variants.
+
+- 37ce479: Semantic advisor coverage now handles additional broad requirement shapes found in product KB audits. Requirements about documentation obligations, warmup behavior, visual layout consistency, enforcement location, reconciliation cleanup, throttling policies, migration-boundary variants, API-avoidance coding standards, and readiness ordering now produce reviewable semantic suggestions instead of generic observation gaps.
+
+  - Add built-in predicate schemas and advisor detections for documentation standards, warmup policies, visual layout rules, enforcement-location rules, reconciliation rules, and throttling policies.
+  - Extend migration-boundary, coding-standard, and temporal-order phrase handling for product-style requirement prose.
+  - Expand deterministic coverage fixtures and direct MCP predicate/advisor tests for the remaining product-audit examples.
+
+- Updated dependencies [5fdcd46]
+- Updated dependencies [37ce479]
+  - kibi-cli@0.12.6
+
+## 0.17.0
+
+### Minor Changes
+
+- 9132558: Agents now get semantic modeling guidance before or during requirement writes. When a requirement contains machine-checkable prose, Kibi explains why Prolog cannot reason over it yet and suggests draft strict facts, predicates, ambiguity observations, or ontology-gap observations.
+
+  This makes prose-heavy requirements visible as logic debt instead of silently accepting them as contradiction-checkable knowledge, while still leaving all suggestions advisory and reviewable.
+
+  - Add a read-only `kb_semantic_advisor` tool for raw prose modeling suggestions before agents construct `kb_upsert` payloads.
+  - Add MCP semantic advisor receipts with modeling suggestions for upsert validation and upsert responses.
+  - Detect deterministic modeling signals for numeric, cardinality, conditional, permission, state/default, and modal prose.
+  - Add usage hints to production predicate candidates and align the predicate catalog with semantic advisor suggestions, including rate-limit, exception, mutual-exclusion, dependency, ownership, retry, escalation, availability SLA, notification routing, idempotency, data residency, audit logging, consent, lifecycle, conflict-resolution, fallback, batching, and consistency predicates.
+  - Add a prose coverage corpus evaluator so semantic advisor coverage is measurable rather than anecdotal.
+  - Produce draft apply plans for strict-property suggestions, predicate suggestions, ambiguity observations, and ontology-gap observations, including multi-claim prose, thresholds, booleans, defaults, uniqueness, state memberships, state transitions, conditional behavior, temporal ordering, prohibitions, and comparative numeric constraints.
+  - Document advisory v1 behavior and recommended repair paths.
+
 ## 0.16.1
 
 ### Patch Changes
 
 - 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
 
-  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across projects such as Align.
+  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across product projects.
 
   - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
   - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
-  - Add modeling cheatsheet, MCP error reference, and Align KB improvement prompt.
+  - Add modeling cheatsheet, MCP error reference, and product KB improvement prompt.
 
 - c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
 
@@ -367,7 +440,7 @@
 
   - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
-  - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
+  - Synchronize guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments
   - Document scope boundary: automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged check
 

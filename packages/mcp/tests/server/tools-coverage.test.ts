@@ -24,6 +24,7 @@ import type { GraphArgs } from "../../src/tools/graph.js";
 import type { ModelRequirementArgs } from "../../src/tools/model-requirement.js";
 import type { QueryArgs } from "../../src/tools/query.js";
 import type { SearchArgs } from "../../src/tools/search.js";
+import type { SemanticAdvisorArgs } from "../../src/tools/semantic-advisor.js";
 import type {
   SkillsListArgs,
   SkillsLoadArgs,
@@ -60,6 +61,7 @@ const TOOL_NAMES = [
   "kb_coverage",
   "kb_graph",
   "kb_sparql_remote",
+  "kb_semantic_advisor",
   "kb_upsert",
   "kb_validate_upsert",
   "kb_delete",
@@ -93,6 +95,19 @@ test("kb_upsert schema advertises typed fact fields", () => {
   expect(entityProperties.value_int).toBeDefined();
   expect(entityProperties.value_number).toBeDefined();
   expect(entityProperties.value_bool).toBeDefined();
+});
+
+test("kb_semantic_advisor schema accepts prose without mutation fields", () => {
+  const advisor = TOOLS.find((tool) => tool.name === "kb_semantic_advisor");
+  expect(advisor).toBeDefined();
+  const inputSchema = objectRecord(advisor?.inputSchema);
+  const rootProperties = objectRecord(inputSchema.properties);
+
+  expect(inputSchema.required).toEqual(["text"]);
+  expect(rootProperties.text).toBeDefined();
+  expect(rootProperties.type).toBeDefined();
+  expect(rootProperties.id).toBeDefined();
+  expect(rootProperties.source).toBeDefined();
 });
 
 test("withDiagnosticTelemetrySchema adds telemetry to tool schema immutably", () => {
@@ -173,6 +188,8 @@ function createSessionModuleMock(
     _resetSessionDepsForTests: (): void => {},
     prologProcess: null,
     resetSessionStateForTests: (): void => {},
+    attachedBranchKbPath: null,
+    updateAttachedBranchStamp: (): void => {},
   };
 }
 
@@ -360,6 +377,13 @@ function createRuntime() {
       args,
     }),
   );
+  const handleKbSemanticAdvisor: ToolsRuntime<MockProlog>["handleKbSemanticAdvisor"] =
+    mock(
+      async (args: SemanticAdvisorArgs): Promise<unknown> => ({
+        tool: "kb_semantic_advisor",
+        args,
+      }),
+    );
   const handleKbSkillsList: ToolsRuntime<MockProlog>["handleKbSkillsList"] =
     mock(
       async (args: SkillsListArgs): Promise<unknown> => ({
@@ -446,6 +470,7 @@ function createRuntime() {
     handleKbQuery,
     handleKbSearch,
     handleKbStatus,
+    handleKbSemanticAdvisor,
     handleKbSkillsList,
     handleKbSkillsLoad,
     handleKbSkillsRead,
@@ -481,6 +506,7 @@ function createRuntime() {
       handleKbQuery,
       handleKbSearch,
       handleKbStatus,
+      handleKbSemanticAdvisor,
       handleKbSkillsList,
       handleKbSkillsLoad,
       handleKbSkillsRead,
@@ -880,7 +906,7 @@ describe.serial("server tools coverage", () => {
       })),
     );
 
-    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 4);
+    expect(spies.ensureProlog).toHaveBeenCalledTimes(TOOL_NAMES.length - 5);
     expect(spies.handleKbQuery).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_query"),
@@ -892,6 +918,9 @@ describe.serial("server tools coverage", () => {
     expect(spies.handleKbStatus).toHaveBeenCalledWith(
       mockProlog,
       argsByTool.get("kb_status"),
+    );
+    expect(spies.handleKbSemanticAdvisor).toHaveBeenCalledWith(
+      argsByTool.get("kb_semantic_advisor"),
     );
     expect(spies.handleKbSkillsList).toHaveBeenCalledWith(
       argsByTool.get("kb_skills_list"),

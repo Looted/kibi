@@ -418,6 +418,66 @@ links:
       }
     });
 
+    test("rejects unsupported relationship types in markdown links", () => {
+      const tempFile = "/tmp/requirements/test-invalid-typed-link.md";
+      mkdirSync("/tmp/requirements", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: REQ-001
+title: Invalid relationship type in markdown
+links:
+  - type: decomposes
+    target: REQ-002
+---
+# Invalid relationship type in markdown
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Invalid Relationship Type");
+        expect(fe.message).toContain('Invalid relationship type "decomposes"');
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
+    test("rejects invalid specified_by direction in scenario markdown", () => {
+      const tempFile = "/tmp/scenarios/test-invalid-specified-by.md";
+      mkdirSync("/tmp/scenarios", { recursive: true });
+      writeFileSync(
+        tempFile,
+        `---
+id: SCEN-001
+title: Scenario with wrong specified_by direction
+links:
+  - type: specified_by
+    target: REQ-001
+---
+# Scenario with wrong specified_by direction
+`,
+      );
+
+      try {
+        extractFromMarkdown(tempFile);
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FrontmatterError);
+        const fe = error as FrontmatterError;
+        expect(fe.classification).toBe("Invalid Relationship Direction");
+        expect(fe.message).toContain(
+          'Invalid relationship direction for "specified_by": scenario -> req',
+        );
+      } finally {
+        unlinkSync(tempFile);
+      }
+    });
+
     test("detectEmbeddedEntities returns empty for non-req types", () => {
       const data = { scenarios: [{ given: "test" }] };
       const result = detectEmbeddedEntities(data, "scenario");

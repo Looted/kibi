@@ -254,6 +254,7 @@ if (RUN_NODE_TEST_SUITE) {
                 "kb_model_requirement",
                 "kb_query",
                 "kb_search",
+                "kb_semantic_advisor",
                 "kb_skills_list",
                 "kb_skills_load",
                 "kb_skills_read",

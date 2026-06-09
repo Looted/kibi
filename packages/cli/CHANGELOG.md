@@ -1,16 +1,43 @@
 # kibi-cli
 
+## 0.12.7
+
+### Patch Changes
+
+- Added CLI-level regression tests proving that typed markdown links (`verified_by`, `specified_by`, `validates`) imported through `kibi sync` are visible to `kibi check --rules symbol-coverage` with the correct scenario-aware semantics.
+
+  - `kibi-cli`: added cross-boundary typed-link symbol-coverage regression tests for complete scenario→test chains and scenario-blocked direct req→test paths.
+
+- Updated dependencies [c810f5f]
+  - kibi-core@0.6.2
+
+## 0.12.6
+
+### Patch Changes
+
+- 5fdcd46: MCP now re-validates the attached branch KB whenever the same-branch snapshot is externally rebuilt, so running `kibi sync --rebuild` no longer leaves a long-running server stuck on stale data. If refresh cannot be reconciled, requests fail fast with explicit `KbRefreshError` behavior instead of silently continuing from a stale attachment.
+
+  - Added formal docs for same-branch KB freshness detection in MCP, including stat-based stamps and fail-closed retry semantics.
+  - Clarified CLI behavior so `--rebuild` is documented as triggering MCP auto-refresh on unchanged branch attachments where applicable.
+  - Added KB entities/ADR/requirements evidence and symbol traceability updates for the MCP session refresh path.
+
+- 37ce479: Existing KBs now get an explicit semantic-advisor backfill marker when they migrate to the latest schema. This helps maintainers and agents distinguish deterministic schema upgrades from the separate, reviewable semantic modeling work that may still be needed.
+
+  - Bump the KB schema version and add `semanticAdvisorBackfill: "pending"` during migration.
+  - Record the marker in migration audit metadata without creating semantic facts automatically.
+  - Update the config schema so migrated configs validate with the new marker.
+
 ## 0.12.5
 
 ### Patch Changes
 
 - 909be41: Agents now get clearer guidance when modeling Kibi facts and predicates. Instead of opaque validation errors that encourage falling back to prose, common mistakes now point to exact snake_case fields and typed value payloads.
 
-  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across projects such as Align.
+  The documentation also gives agents a compact path for choosing between requirements, strict facts, predicate facts, observations, and metadata. This makes semantic KB modeling easier to apply consistently across product projects.
 
   - Improve `kb_upsert` diagnostics for camelCase fact fields and incomplete strict/predicate facts.
   - Add modeling-helper warnings for low-confidence requirement downgrades and ontology-gap predicate suggestions.
-  - Add modeling cheatsheet, MCP error reference, and Align KB improvement prompt.
+  - Add modeling cheatsheet, MCP error reference, and product KB improvement prompt.
 
 - c724c8b: Kibi now treats symbol granularity as a behavioral traceability decision instead of assuming every exported declaration is an equally precise target. Agents can model behavior hidden inside factory or composition expressions with manual behavioral anchors, while interfaces, type aliases, and enums no longer block valid coarse behavioral links by themselves. This makes traceability stricter where real behavior symbols exist and more flexible when extractors only see type-shape declarations.
 
@@ -379,7 +406,7 @@
 
   - Add relationship-first traceability guidance: prefer split semantics with `implements` for production ownership, `covered_by` for production coverage, and `executable_for` plus `verified_by`/`validates` for test identity and verification instead of relying only on inline `// implements REQ-xxx` comments
   - Document staged symbol traceability enforcement with both workflow paths: relationship-based (preferred) and comment-based (optional/backward-compatible)
-  - Align guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
+  - Synchronize guidance across AGENTS.md, CLI reference, and LLM rules with the implemented policy
   - Staged enforcement now supports explicit KB relationships in addition to inline comments
   - Document scope boundary: automatic extraction of framework-specific `test()` or `it()` callbacks is out of scope for staged check
 

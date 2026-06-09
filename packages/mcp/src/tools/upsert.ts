@@ -38,7 +38,15 @@ import entitySchema from "kibi-cli/schemas/entity";
 import relationshipSchema from "kibi-cli/schemas/relationship";
 import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
+import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
+import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
 import { refreshCoordinatesForSymbolId } from "./symbols.js";
+import {
+  attachedBranchKbPath,
+  updateAttachedBranchStamp,
+} from "../server/session.js";
+import { readBranchKbStamp } from "../server/kb-freshness.js";
+
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
 
@@ -63,6 +71,8 @@ export interface UpsertResult {
     created: number;
     updated: number;
     relationships_created: number;
+    warnings: string[];
+    semanticAdvisor: SemanticAdvisorReceipt;
   };
 }
 
@@ -260,19 +270,46 @@ export async function handleKbUpsert(
   args: UpsertArgs,
 ): Promise<UpsertResult> {
   const { entity, relationships } = validateKbUpsertArgs(args);
+
+  const semanticAdvisor = analyzeSemanticAdvisorInput({
+    payload: { ...args },
+  });
   const type = entity.type as string;
 
   const entities = [entity];
-
-  // Validate strict-lane fact_kind pairing for constrains/requires_property
-  // implements REQ-011
-  await validateStrictLanePairing(prolog, relationships);
+  // If relationships are not explicitly provided, preserve existing ones.
+  // This prevents accidental relationship loss when updating only properties.
+  let effectiveRelationships = relationships;
 
   let created = 0;
   let updated = 0;
   let relationshipsCreated = 0;
 
   try {
+    if (
+      (args.relationships === undefined ||
+        (Array.isArray(args.relationships) && args.relationships.length === 0)) &&
+      args.id
+    ) {
+      // Preserve relationships on updates when the request omits relationships
+      // OR provides an empty array. This avoids accidental edge deletion by
+      // clients that always serialize `relationships: []` for partial updates.
+      // For creates, this remains cheap because existence is checked first.
+      const existsResult = await prolog.query(
+        `once(kb_entity('${escapeAtom(args.id as string)}', _, _))`,
+      );
+      if (existsResult.success) {
+        const existing = await fetchExistingRelationships(prolog, args.id as string);
+        if (existing.length > 0) {
+          effectiveRelationships = existing;
+        }
+      }
+    }
+
+    // Validate strict-lane fact_kind pairing for constrains/requires_property
+    // implements REQ-011
+    await validateStrictLanePairing(prolog, effectiveRelationships);
+
     // Process entities
     for (const entity of entities) {
       const id = entity.id as string;
@@ -289,7 +326,7 @@ export async function handleKbUpsert(
 
       // Build relationship goals
       const relationshipGoals: string[] = [];
-      for (const rel of relationships) {
+      for (const rel of effectiveRelationships) {
         const relType = rel.type as string;
         const from = rel.from as string;
         const to = rel.to as string;
@@ -340,7 +377,7 @@ export async function handleKbUpsert(
         type,
         entity,
       );
-      for (const rel of relationships) {
+      for (const rel of effectiveRelationships) {
         await recordRelationshipAudit(prolog, rel);
       }
 
@@ -351,7 +388,7 @@ export async function handleKbUpsert(
         created++;
       }
 
-      relationshipsCreated += relationships.length;
+      relationshipsCreated += effectiveRelationships.length;
     }
     // Save KB to disk after all entities/relationships are written to ensure
     // durability across process restarts.
@@ -362,6 +399,17 @@ export async function handleKbUpsert(
         `Failed to save KB after upsert: ${saveResult.error || "Unknown error"}`,
       );
     }
+    // Update session stamp so kb_check (and other tools) don't trigger a
+    // stale-detach refresh that would unload the just-saved runtime state.
+    if (attachedBranchKbPath) {
+      try {
+        const freshStamp = await readBranchKbStamp(attachedBranchKbPath);
+        updateAttachedBranchStamp(freshStamp);
+      } catch {
+        // Non-fatal: stamp update is best-effort to avoid spurious refresh.
+      }
+    }
+
 
     if (type === "symbol") {
       try {
@@ -376,6 +424,11 @@ export async function handleKbUpsert(
       }
     }
 
+
+    // Check for scenario-coverage guidance
+    const coverageWarnings = await checkScenarioCoverageGuidance(
+      prolog, relationships, type, entity.id as string,
+    );
     return {
       content: [
         {
@@ -387,6 +440,8 @@ export async function handleKbUpsert(
         created,
         updated,
         relationships_created: relationshipsCreated,
+        warnings: [...semanticAdvisor.warnings, ...coverageWarnings],
+        semanticAdvisor: semanticAdvisor.receipt,
       },
     };
   } catch (error) {
@@ -577,15 +632,24 @@ function validateSymbolGranularity(
   if (behavioralNames.length === 0) return;
 
   const nonBehavioralNames = getNonBehavioralSymbolNames(candidates);
+  const maxNamesInMessage = 10;
+  const shownBehavioral = behavioralNames.slice(0, maxNamesInMessage);
+  const hiddenBehavioralCount = behavioralNames.length - shownBehavioral.length;
+  const behavioralList = shownBehavioral.join(", ") +
+    (hiddenBehavioralCount > 0 ? `, and ${hiddenBehavioralCount} more` : "");
+
+  const shownNonBehavioral = nonBehavioralNames.slice(0, maxNamesInMessage);
+  const hiddenNonBehavioralCount = nonBehavioralNames.length - shownNonBehavioral.length;
+  const nonBehavioralList = shownNonBehavioral.join(", ") +
+    (hiddenNonBehavioralCount > 0 ? `, and ${hiddenNonBehavioralCount} more` : "");
+
   const ignoredSymbolsMessage =
     nonBehavioralNames.length > 0
-      ? ` Non-behavioral symbols in the file were ignored for this decision: ${nonBehavioralNames.join(
-          ", ",
-        )}.`
+      ? ` Non-behavioral symbols in the file were ignored for this decision: ${nonBehavioralList}.`
       : "";
 
   throw new Error(
-    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignoredSymbolsMessage}`,
+    `Symbol ${String(entity.id)} links ${entity.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralList}. Move relationships to a behavioral symbol, add a manifest behavioral anchor, or set granularity_reason to config-artifact, module-level-behavior, extractor-miss, or legacy-link.${ignoredSymbolsMessage}`,
   );
 }
 
@@ -745,6 +809,114 @@ async function validateStrictLanePairing(
     }
   }
 }
+
+/**
+ * Check for scenario-coverage guidance when verified_by is added to a
+ * requirement that already has scenarios (specified_by relationships).
+ * Returns non-blocking warnings; never throws.
+ */
+async function checkScenarioCoverageGuidance(
+  prolog: PrologProcess,
+  relationships: Array<Record<string, unknown>>,
+  entityType: string,
+  entityId: string,
+): Promise<string[]> {
+  const warnings: string[] = [];
+  if (entityType !== "req") return warnings;
+
+  try {
+    for (const rel of relationships) {
+      const relType = rel.type as string;
+      if (relType !== "verified_by") continue;
+
+      // Check if this requirement has scenarios
+      const scenarioQuery = `kb_relationship(specified_by, '${escapeAtom(entityId)}', ScenarioId)`;
+      const scenarioResult = await prolog.query(`once(${scenarioQuery})`);
+      if (scenarioResult.success) {
+        warnings.push(
+          `Scenario-backed coverage: verified_by(${entityId},test) is valid but will not satisfy symbol-coverage because ${entityId} has specified_by a scenario. Use verified_by(scenario,test) or validates(test,scenario) instead.`,
+        );
+        break; // One warning per entity is enough
+      }
+    }
+  } catch {
+    // Non-blocking: never fail the upsert
+  }
+  return warnings;
+}
+
+/**
+ * Query existing relationships for an entity from the live KB.
+ * Used to preserve relationships when the upsert request omits the
+ * relationships field (entity-only property update).
+ */
+async function fetchExistingRelationships(
+  prolog: PrologProcess,
+  entityId: string,
+): Promise<Array<Record<string, unknown>>> {
+  const relTypes = [
+    "depends_on", "specified_by", "verified_by", "validates",
+    "implements", "covered_by", "executable_for", "constrained_by",
+    "constrains", "requires_property", "requires_predicate",
+    "guards", "publishes", "consumes", "supersedes", "relates_to",
+  ];
+  const existing: Array<Record<string, unknown>> = [];
+
+  try {
+    for (const relType of relTypes) {
+      const forwardGoal = `findall(To, kb_relationship(${relType}, '${escapeAtom(entityId)}', To), Targets)`;
+      const forwardResult = await prolog.query(forwardGoal);
+      if (forwardResult.success && forwardResult.bindings.Targets) {
+        const targetsStr = forwardResult.bindings.Targets;
+        const targets = parsePrologList(targetsStr);
+        for (const to of targets) {
+          existing.push({ type: relType, from: entityId, to });
+        }
+      }
+
+      const reverseGoal = `findall(From, kb_relationship(${relType}, From, '${escapeAtom(entityId)}'), Sources)`;
+      const reverseResult = await prolog.query(reverseGoal);
+      if (reverseResult.success && reverseResult.bindings.Sources) {
+        const sourcesStr = reverseResult.bindings.Sources;
+        const sources = parsePrologList(sourcesStr);
+        for (const from of sources) {
+          existing.push({ type: relType, from, to: entityId });
+        }
+      }
+    }
+  } catch (e) {
+    // Best-effort: if we can't read existing relationships, proceed without them.
+    // This preserves backward compatibility and avoids breaking mocked tests.
+  }
+
+  return existing;
+}
+
+function parsePrologList(listStr: string): string[] {
+  const trimmed = listStr.trim();
+  if (trimmed === "[]") return [];
+  const match = trimmed.match(/^\[(.*)\]$/s);
+  if (!match || !match[1]) return [];
+  const content = match[1];
+  const items: string[] = [];
+  let depth = 0;
+  let current = "";
+  for (const char of content) {
+    if (char === "[") depth++;
+    if (char === "]") depth--;
+    if (char === "," && depth === 0) {
+      items.push(current.trim().replace(/^'|'$/g, ""));
+      current = "";
+      continue;
+    }
+    current += char;
+  }
+  if (current.trim()) {
+    items.push(current.trim().replace(/^'|'$/g, ""));
+  }
+  return items;
+}
+
 
 /**
  * Record audit entry for a successfully committed entity mutation.

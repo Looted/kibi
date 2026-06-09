@@ -320,9 +320,49 @@ const BASE_TOOLS = [
     },
   },
   {
+    name: "kb_semantic_advisor",
+    description:
+      "Analyze requirement prose without mutating the KB and return semantic advisor receipts with modeling suggestions. Use before constructing kb_upsert payloads when prose may contain machine-checkable logic. Suggestions can include strict-property facts, predicate facts, ambiguity observations, or ontology-gap observations; all suggestions are advisory and reviewable.",
+    inputSchema: {
+      type: "object",
+      required: ["text"],
+      properties: {
+        text: {
+          type: "string",
+          description:
+            "Requirement prose to inspect for machine-checkable modeling suggestions.",
+        },
+        type: {
+          type: "string",
+          enum: ["req"],
+          default: "req",
+          description:
+            "Entity type context for analysis. Currently requirement prose is supported.",
+        },
+        id: {
+          type: "string",
+          description:
+            "Optional requirement ID used for deterministic draft relationship guidance.",
+        },
+        title: {
+          type: "string",
+          description: "Optional requirement title for draft apply plans.",
+        },
+        source: {
+          type: "string",
+          description: "Optional provenance for draft suggestions.",
+        },
+        status: {
+          type: "string",
+          description: "Optional requirement status for draft suggestions.",
+        },
+      },
+    },
+  },
+  {
     name: "kb_upsert",
     description:
-      "Create or update one entity and optional relationships. Use for KB mutations after validating intent. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
+      "Create or update one entity and optional relationships. Use for KB mutations after validating intent; prefer kb_validate_upsert first because it returns semantic advisor receipts for prose-heavy requirements. Use kb_model_requirement before hand-writing strict property facts from prose, and kb_suggest_predicates before hand-writing ontology predicate facts. Use the `relationships` array for batch creation of multiple links in a single call (e.g., linking a requirement to multiple tests or facts). Prefer modeling requirements as reusable fact links (`constrains`, `requires_property`, or `requires_predicate`) so consistency and contradiction checks remain queryable. Relationship endpoints must already exist in KB. For requirements, the write will be rejected if it contradicts existing current requirements that constrain the same subject with incompatible properties. To replace a conflicting requirement, include a `supersedes` relationship from the new requirement to the old one in the same request. Successful writes may return non-blocking semantic advisor warnings; inspect and repair those warnings before treating prose as contradiction-checkable. Do not use for read-only inspection. Side effects: writes KB, may refresh symbol coordinates.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],
@@ -565,7 +605,7 @@ const BASE_TOOLS = [
   {
     name: "kb_validate_upsert",
     description:
-      "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight when modeling strict facts or predicates and you want actionable schema/modeling errors before calling kb_upsert.",
+      "Validate a kb_upsert payload without mutating the KB. Use this read-only preflight before kb_upsert, especially for requirements, because it returns schema/modeling errors plus semantic advisor receipts that identify prose likely needing kb_model_requirement, kb_suggest_predicates, ambiguity review, or an ontology-gap observation.",
     inputSchema: {
       type: "object",
       required: ["type", "id", "properties"],

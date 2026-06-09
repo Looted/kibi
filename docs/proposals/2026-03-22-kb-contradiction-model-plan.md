@@ -11,7 +11,7 @@
 | **Write-time Enforcement** | `kb_upsert` intercepts contradictions using `check_req_contradiction/1` in `rdf_transaction`. | Detailed error message formatting with specific remediation hints. | Strict validation that new normative reqs link to at least one `property_value` fact. |
 | **Validation Rules** | `strict-fact-shape` rule exists in `checks.pl`. | `strict-req-fact-pairing` and `invalid-supersession` rules. | Enabling `strict-fact-shape` by default (currently `false` in config). |
 | **OpenCode Guidance** | `AGENTS.md` mentions `fact_kind` and two-lane model. | Explicit "audit-first" guidance for legacy prose facts. | Prompts for `retroactive-init.md` and `llm-rules.md` updates. |
-| **Documentation** | `entity-schema.md` contains basic two-lane description. | Concrete examples for `bizzwords` and `align` migration. | Freeze v1 semantics explicitly in all doc locations. |
+| **Documentation** | `entity-schema.md` contains basic two-lane description. | Concrete examples for product KB migrations. | Freeze v1 semantics explicitly in all doc locations. |
 
 ## 2. Frozen v1 Semantics
 
@@ -22,7 +22,7 @@ The following product decisions are frozen for v1 and must not be expanded or mo
 3.  **Authoring Lanes**: Legacy/mixed requirement authoring (linked to prose facts) is **audit-first**. They do not block writes but appear in `kb_check`.
 4.  **Closed Requirements**: Requirements with `status: closed` remain **current** for contradiction checks to prevent regression against fulfilled requirements.
 5.  **Reserved Fields**: `closed_world` and `canonical_key` are reserved for round-tripping and future use. They do **not** carry functional contradiction semantics in v1.
-6.  **External Repos**: `align` and `bizzwords` content are treated as evidence/examples. Remediation does NOT require breaking their default behavior or forced migrations in this pass.
+6.  **External Repos**: Product repository content is treated as evidence/examples. Remediation does NOT require breaking default behavior or forced migrations in this pass.
 
 ## 3. Transition & Evolution Rules
 

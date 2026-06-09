@@ -1751,6 +1751,301 @@ describe("MCP Check Tool Handler", () => {
     // Should pass: covered_by test → validates scenario ← specified_by req (with implements)
     expect(violation).toBeUndefined();
   }, 15000);
+
+  // --- TDD regression tests: symbol-coverage misconception & diagnostic detail ---
+  // Tests A & D assert diagnostic detail that Task 2 will implement — they may FAIL
+  // on the suggestion/description assertions until then. Semantic assertions should PASS.
+
+  test("fails symbol-coverage when direct verified_by exists but req has scenario (direct req→test blocked)", async () => {
+    // Misconception: agent adds verified_by(req,test) thinking it helps, but direct
+    // req→test path is blocked when a scenario exists via specified_by.
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-direct-blocked-001",
+      properties: {
+        title: "Req with scenario",
+        status: "open",
+        source: "test://coverage-direct-blocked",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-direct-blocked-001",
+      properties: {
+        title: "Blocking scenario",
+        status: "active",
+        source: "test://coverage-direct-blocked",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-direct-blocked-001",
+      properties: {
+        title: "Blocked test",
+        status: "passing",
+        source: "test://coverage-direct-blocked",
+      },
+    });
+
+    // Link req → scenario (specified_by) AND add direct verified_by(req→test)
+    // Both in ONE upsert: each re-upsert retracts all prior entity triples, so
+    // specified_by would be lost if we made separate calls. The agent wrongly
+    // thinks verified_by(req,test) fixes coverage, but it's blocked by the scenario.
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-direct-blocked-001",
+      properties: {
+        title: "Req with scenario",
+        status: "open",
+        source: "test://coverage-direct-blocked",
+      },
+      relationships: [
+        {
+          type: "specified_by",
+          from: "req-direct-blocked-001",
+          to: "scenario-direct-blocked-001",
+        },
+        {
+          type: "verified_by",
+          from: "req-direct-blocked-001",
+          to: "test-direct-blocked-001",
+        },
+      ],
+    });
+
+    // Symbol: implements req, covered_by test
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-direct-blocked-001",
+      properties: {
+        title: "Blocked symbol",
+        status: "active",
+        source: "test://coverage-direct-blocked",
+      },
+      relationships: [
+        { type: "implements", from: "symbol-direct-blocked-001", to: "req-direct-blocked-001" },
+        { type: "covered_by", from: "symbol-direct-blocked-001", to: "test-direct-blocked-001" },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const violation = result.structuredContent?.violations.find(
+      (v: any) => v.entityId === "symbol-direct-blocked-001",
+    );
+    // CORRECT semantic: violation exists because direct req→test is blocked
+    expect(violation).toBeDefined();
+    expect(violation?.description).toMatch(/qualifying requirement coverage/i);
+    // FAILS until Task 2: suggestion should mention scenario path
+    expect(violation?.suggestion).toMatch(/scenario|specified_by|scenario_path/i);
+  }, 15000);
+
+  test("passes symbol-coverage with verified_by from scenario to test (scenario path)", async () => {
+    // Correct path: verified_by(scenario→test) satisfies scenario chain
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-vb-001",
+      properties: {
+        title: "Scenario VB requirement",
+        status: "open",
+        source: "test://scenario-vb",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-scenario-vb-001",
+      properties: {
+        title: "Scenario VB scenario",
+        status: "active",
+        source: "test://scenario-vb",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-scenario-vb-001",
+      properties: {
+        title: "Scenario VB test",
+        status: "passing",
+        source: "test://scenario-vb",
+      },
+    });
+
+    // req → scenario (specified_by)
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-vb-001",
+      properties: {
+        title: "Scenario VB requirement",
+        status: "open",
+        source: "test://scenario-vb",
+      },
+      relationships: [
+        { type: "specified_by", from: "req-scenario-vb-001", to: "scenario-scenario-vb-001" },
+      ],
+    });
+
+    // scenario → test (verified_by)
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-scenario-vb-001",
+      properties: {
+        title: "Scenario VB scenario",
+        status: "active",
+        source: "test://scenario-vb",
+      },
+      relationships: [
+        { type: "verified_by", from: "scenario-scenario-vb-001", to: "test-scenario-vb-001" },
+      ],
+    });
+
+    // Symbol: implements req, covered_by test
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-scenario-vb-001",
+      properties: {
+        title: "Scenario VB symbol",
+        status: "active",
+        source: "test://scenario-vb",
+      },
+      relationships: [
+        { type: "implements", from: "symbol-scenario-vb-001", to: "req-scenario-vb-001" },
+        { type: "covered_by", from: "symbol-scenario-vb-001", to: "test-scenario-vb-001" },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const violation = result.structuredContent?.violations.find(
+      (v: any) => v.entityId === "symbol-scenario-vb-001",
+    );
+    // Coverage satisfied through scenario path
+    expect(violation).toBeUndefined();
+  }, 15000);
+
+  test("passes symbol-coverage with validates from test to scenario (scenario path)", async () => {
+    // Correct path: validates(test→scenario) satisfies scenario chain
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-val-001",
+      properties: {
+        title: "Scenario validates requirement",
+        status: "open",
+        source: "test://scenario-val",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-scenario-val-001",
+      properties: {
+        title: "Scenario validates scenario",
+        status: "active",
+        source: "test://scenario-val",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-scenario-val-001",
+      properties: {
+        title: "Scenario validates test",
+        status: "passing",
+        source: "test://scenario-val",
+      },
+    });
+
+    // req → scenario (specified_by)
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-val-001",
+      properties: {
+        title: "Scenario validates requirement",
+        status: "open",
+        source: "test://scenario-val",
+      },
+      relationships: [
+        { type: "specified_by", from: "req-scenario-val-001", to: "scenario-scenario-val-001" },
+      ],
+    });
+
+    // test → scenario (validates)
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-scenario-val-001",
+      properties: {
+        title: "Scenario validates test",
+        status: "passing",
+        source: "test://scenario-val",
+      },
+      relationships: [
+        { type: "validates", from: "test-scenario-val-001", to: "scenario-scenario-val-001" },
+      ],
+    });
+
+    // Symbol: implements req, covered_by test
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-scenario-val-001",
+      properties: {
+        title: "Scenario validates symbol",
+        status: "active",
+        source: "test://scenario-val",
+      },
+      relationships: [
+        { type: "implements", from: "symbol-scenario-val-001", to: "req-scenario-val-001" },
+        { type: "covered_by", from: "symbol-scenario-val-001", to: "test-scenario-val-001" },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const violation = result.structuredContent?.violations.find(
+      (v: any) => v.entityId === "symbol-scenario-val-001",
+    );
+    // Coverage satisfied through scenario validates path
+    expect(violation).toBeUndefined();
+  }, 15000);
+
+  test("fails symbol-coverage when symbol has no covered_by (diagnostic mentions covered_by)", async () => {
+    // Symbol implements req but lacks covered_by — should fail
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-no-cb-001",
+      properties: {
+        title: "No covered_by requirement",
+        status: "open",
+        source: "test://no-cb",
+      },
+    });
+    await handleKbUpsert(prolog, {
+      type: "test",
+      id: "test-no-cb-001",
+      properties: {
+        title: "No covered_by test",
+        status: "passing",
+        source: "test://no-cb",
+      },
+      relationships: [
+        { type: "validates", from: "test-no-cb-001", to: "req-no-cb-001" },
+      ],
+    });
+    // Symbol with implements but NO covered_by
+    await handleKbUpsert(prolog, {
+      type: "symbol",
+      id: "symbol-no-cb-001",
+      properties: {
+        title: "No covered_by symbol",
+        status: "active",
+        source: "test://no-cb",
+      },
+      relationships: [
+        { type: "implements", from: "symbol-no-cb-001", to: "req-no-cb-001" },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const violation = result.structuredContent?.violations.find(
+      (v: any) => v.entityId === "symbol-no-cb-001",
+    );
+    expect(violation).toBeDefined();
+    // FAILS until Task 2: suggestion should mention covered_by
+    expect(violation?.suggestion).toContain("covered_by");
+  }, 15000);
 });
 describe("kb_check resolveCorePlPath integration", () => {
   const savedEnv: Record<string, string | undefined> = {};

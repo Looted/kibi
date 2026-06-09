@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-The Align component architecture follows a hierarchical tree structure from root to shared components.
+The example product component architecture follows a hierarchical tree structure from root to shared components.
 
 ## Root Component
 

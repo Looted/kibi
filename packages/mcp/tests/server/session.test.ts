@@ -17,6 +17,9 @@
  */
 
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import process from "node:process";
 import * as coveredSession from "../../src/server/session.js";
 
@@ -52,6 +55,7 @@ const defaults = {
   prologIsRunning: () => true,
   prologGetPid: () => 12345,
   prologStart: async () => {},
+  prologInvalidateCache: () => {},
 };
 
 // Mock instances
@@ -61,6 +65,7 @@ const mockPrologProcessInstance = {
   isRunning: mock(defaults.prologIsRunning),
   getPid: mock(defaults.prologGetPid),
   start: mock(defaults.prologStart),
+  invalidateCache: mock(defaults.prologInvalidateCache),
 };
 
 const mockExistsSync = mock(defaults.existsSync);
@@ -97,6 +102,7 @@ function resetMocks() {
   mockPrologProcessInstance.isRunning.mockClear();
   mockPrologProcessInstance.getPid.mockClear();
   mockPrologProcessInstance.start.mockClear();
+  mockPrologProcessInstance.invalidateCache.mockClear();
 
   mockExistsSync.mockImplementation(defaults.existsSync);
   mockMkdirSync.mockImplementation(defaults.mkdirSync);
@@ -117,6 +123,9 @@ function resetMocks() {
   );
   mockPrologProcessInstance.getPid.mockImplementation(defaults.prologGetPid);
   mockPrologProcessInstance.start.mockImplementation(defaults.prologStart);
+  mockPrologProcessInstance.invalidateCache.mockImplementation(
+    defaults.prologInvalidateCache,
+  );
 }
 
 function createMockSessionDeps() {
@@ -632,6 +641,7 @@ describe.serial("session module", () => {
             isRunning: mock(defaults.prologIsRunning),
             getPid: mock(defaults.prologGetPid),
             start: mock(defaults.prologStart),
+            invalidateCache: mock(defaults.prologInvalidateCache),
           };
           instances.push(instance);
           Object.assign(this, instance);
@@ -655,6 +665,227 @@ describe.serial("session module", () => {
       expect(instances[1]?.query).toHaveBeenCalledWith(
         "kb_attach('/mock/kb/path')",
       );
+    });
+
+    describe("same-branch KB freshness", () => {
+      const branchName = "fresh-branch";
+      const tempRoots: string[] = [];
+      let branchPath = "";
+
+      afterEach(() => {
+        for (const root of tempRoots.splice(0)) {
+          rmSync(root, { recursive: true, force: true });
+        }
+      });
+
+      function makeBranchPath(options: { withRdf: boolean }): string {
+        const tempRoot = mkdtempSync(path.join(tmpdir(), "kibi-session-fresh-"));
+        tempRoots.push(tempRoot);
+        const nextBranchPath = path.join(tempRoot, ".kb", "branches", branchName);
+        mkdirSync(nextBranchPath, { recursive: true });
+        if (options.withRdf) {
+          writeFileSync(path.join(nextBranchPath, "kb.rdf"), "<rdf:RDF />\n");
+        }
+        return nextBranchPath;
+      }
+
+      function useSameBranchWorkspace(
+        prologCalls: string[],
+        options: { withRdf?: boolean } = {},
+      ): void {
+        branchPath = makeBranchPath({ withRdf: options.withRdf ?? true });
+        process.env.KIBI_BRANCH = branchName;
+        mockResolveWorkspaceRoot.mockImplementation(() =>
+          path.dirname(path.dirname(path.dirname(branchPath))),
+        );
+        mockResolveKbPath.mockImplementation(
+          (_workspaceRoot, branch) => path.join(path.dirname(branchPath), branch),
+        );
+        mockExistsSync.mockImplementation(
+          (candidatePath) => candidatePath === branchPath,
+        );
+        mockPrologProcessInstance.invalidateCache.mockImplementation(() => {
+          prologCalls.push("invalidateCache");
+        });
+        mockPrologProcessInstance.query.mockImplementation((async (
+          command: string,
+        ) => {
+          prologCalls.push(command);
+          return { success: true, data: [{ fresh: true }] };
+        }) as unknown as typeof defaults.prologQuery);
+      }
+
+      test("refreshes same-branch KB before query", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls);
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="query-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
+
+        // External same-branch KB replacement occurs here: branch identity and path
+        // remain stable, but the already-attached Prolog RDF graph is stale.
+        const prolog = await session.ensureProlog();
+        const result = await prolog.query("kb_query(req, _{})");
+
+        expect(result.success).toBe(true);
+        expect(prologCalls.slice(0, 4)).toEqual([
+          "invalidateCache",
+          "kb_detach",
+          `kb_attach('${branchPath}')`,
+          "kb_query(req, _{})",
+        ]);
+      });
+
+      test("refreshes same-branch KB before mutation", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls);
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="mutation-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
+
+        // The mutation must not save stale in-memory RDF over an externally
+        // replaced same-branch KB; refresh must happen before the save.
+        const prolog = await session.ensureProlog();
+        const result = await prolog.query("kb_save");
+
+        expect(result.success).toBe(true);
+        expect(prologCalls.slice(0, 4)).toEqual([
+          "invalidateCache",
+          "kb_detach",
+          `kb_attach('${branchPath}')`,
+          "kb_save",
+        ]);
+      });
+
+      test("fails closed when branch KB is missing or unreadable", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls, { withRdf: false });
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+
+        const caught = await (async () => {
+          try {
+            const prolog = await session.ensureProlog();
+            await prolog.query("stale_query");
+            return null;
+          } catch (error) {
+            return error;
+          }
+        })();
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).name).toBe("KbRefreshError");
+        expect((caught as Error).message).toContain(
+          "branch KB snapshot is unstable",
+        );
+        expect((caught as Error).message).toContain("rdfMissing=true");
+        expect(prologCalls).not.toContain("stale_query");
+        expect(prologCalls).not.toContain("kb_detach");
+      });
+
+      test("serializes concurrent refresh and query", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls);
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="concurrent-refresh-${Date.now()}"></g></rdf:RDF>`,
+        );
+
+        const first = async () => {
+          const prolog = await session.ensureProlog();
+          return prolog.query("kb_query(req, first)");
+        };
+        const second = async () => {
+          const prolog = await session.ensureProlog();
+          return prolog.query("kb_query(req, second)");
+        };
+
+        const [firstResult, secondResult] = await Promise.all([
+          first(),
+          second(),
+        ]);
+
+        expect(firstResult.success).toBe(true);
+        expect(secondResult.success).toBe(true);
+        expect(
+          prologCalls.filter((call) => call === "invalidateCache"),
+        ).toHaveLength(1);
+        expect(prologCalls.slice(0, 5)).toEqual([
+          "invalidateCache",
+          "kb_detach",
+          `kb_attach('${branchPath}')`,
+          "kb_query(req, first)",
+          "kb_query(req, second)",
+        ]);
+      });
+
+      test("fails closed when same-branch KB refresh cannot attach", async () => {
+        const prologCalls: string[] = [];
+        useSameBranchWorkspace(prologCalls);
+        let failRefreshAttach = false;
+        mockPrologProcessInstance.query.mockImplementation((async (
+          command: string,
+        ) => {
+          prologCalls.push(command);
+          if (failRefreshAttach && command.startsWith("kb_attach(")) {
+            return { success: false, error: "replacement attach denied" };
+          }
+          return { success: true, data: [{ stale: command === "stale_query" }] };
+        }) as unknown as typeof defaults.prologQuery);
+
+        const session = await importSession();
+        session.resetSessionStateForTests();
+        await session.ensureProlog();
+        prologCalls.length = 0;
+        writeFileSync(
+          path.join(branchPath, "kb.rdf"),
+          `<rdf:RDF><g id="attach-fail-${Date.now()}"></g></rdf:RDF>`,
+        );
+        failRefreshAttach = true;
+
+        const caught = await (async () => {
+          try {
+            const prolog = await session.ensureProlog();
+            await prolog.query("stale_query");
+            return null;
+          } catch (error) {
+            return error;
+          }
+        })();
+
+        expect(caught).toBeInstanceOf(Error);
+        expect((caught as Error).name).toBe("KbRefreshError");
+        expect((caught as Error).message).toContain("replacement attach denied");
+        expect(prologCalls).not.toContain("stale_query");
+        expect(prologCalls.slice(0, 3)).toEqual([
+          "invalidateCache",
+          "kb_detach",
+          `kb_attach('${branchPath}')`,
+        ]);
+      });
     });
   });
 

@@ -48,7 +48,7 @@ describe("kb_check error and edge branches", () => {
     }));
 
     const result = await handleKbCheck(
-      { query } as unknown as PrologProcess,
+      { query, invalidateCache: () => {} } as unknown as PrologProcess,
       {},
     );
 
@@ -64,7 +64,7 @@ describe("kb_check error and edge branches", () => {
       },
     }));
 
-    const result = await handleKbCheck({ query } as unknown as PrologProcess, {
+    const result = await handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
       rules: ["not-a-rule"],
     });
 
@@ -85,7 +85,7 @@ describe("kb_check error and edge branches", () => {
     }));
 
     await expect(
-      handleKbCheck({ query } as unknown as PrologProcess, {
+      handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
         rules: ["required-fields"],
       }),
     ).rejects.toThrow(
@@ -100,7 +100,7 @@ describe("kb_check error and edge branches", () => {
     }));
 
     await expect(
-      handleKbCheck({ query } as unknown as PrologProcess, {
+      handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
         rules: ["required-fields"],
       }),
     ).rejects.toThrow(

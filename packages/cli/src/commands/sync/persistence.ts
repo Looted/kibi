@@ -102,6 +102,36 @@ export interface PersistenceResult {
   kbModified: boolean;
 }
 
+function isQueryFailedError(error: string): boolean {
+  const lowered = error.toLowerCase();
+  // Only match session-corruption errors that might benefit from a Prolog process restart.
+  // Data errors (entity missing, invalid relationship) are deterministic and should NOT
+  // trigger a restart — the error would persist and the restart would lose kb_attach state.
+  return (
+    lowered.includes("query failed") ||
+    lowered.includes("query returned false") ||
+    lowered.includes("predicate or file not found")
+  );
+}
+
+async function tryResetPrologProcess(prolog: PrologProcess): Promise<boolean> {
+  const maybe = prolog as unknown as {
+    terminate?: () => Promise<void>;
+    start?: () => Promise<void>;
+  };
+  if (typeof maybe.terminate !== "function" || typeof maybe.start !== "function") {
+    return false;
+  }
+
+  try {
+    await maybe.terminate();
+    await maybe.start();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function persistEntities(
   // implements REQ-009
   prolog: PrologProcess,
@@ -259,6 +289,7 @@ export async function persistRelationships(
 
   // Retry failed relationships
   const retryCount = 3;
+  let resetAttempted = false;
   for (
     let pass = 0;
     pass < retryCount && failedRelationships.length > 0;
@@ -289,6 +320,18 @@ export async function persistRelationships(
 
     failedRelationships.length = 0;
     failedRelationships.push(...remainingFailed);
+
+    const allLookLikeSessionFailures =
+      remainingFailed.length > 0 &&
+      remainingFailed.every(({ error }) => isQueryFailedError(error));
+
+    // If every pending relationship fails with generic query errors, attempt one
+    // best-effort Prolog restart before the next retry pass to recover from a
+    // potentially poisoned interactive session.
+    if (allLookLikeSessionFailures && !resetAttempted && pass + 1 < retryCount) {
+      resetAttempted = true;
+      await tryResetPrologProcess(prolog);
+    }
   }
 
   // Log remaining failures
@@ -305,9 +348,35 @@ export async function persistRelationships(
         console.warn(`    Error: ${error}`);
       }
     }
-    console.warn(
-      "\nTip: Ensure target entities exist before creating relationships.",
+    const missingEntities = failedRelationships.filter(
+      ({ error }) => error.toLowerCase().includes("entity does not exist"),
     );
+    const invalidRels = failedRelationships.filter(
+      ({ error }) => error.includes("Invalid relationship"),
+    );
+    if (missingEntities.length > 0) {
+      // Collect unique missing entity IDs from error messages
+      const missingIds = new Set<string>();
+      for (const { error } of missingEntities) {
+        const match = error.match(/does not exist: (.+)$/);
+        if (match) missingIds.add(match[1]!.trim());
+      }
+      const idList = [...missingIds].sort().join(", ");
+      console.warn(
+        `\nTip: ${missingEntities.length} relationship(s) reference ${missingIds.size} missing entity/ies: ${idList}.`,
+      );
+      console.warn(
+        "  Create the missing docs (e.g., docs/requirements/REQ-*.md) or remove stale relationships.",
+      );
+    } else if (invalidRels.length > 0) {
+      console.warn(
+        "\nTip: Check that relationship types and directions match the allowed schema (e.g., implements symbol→req, verified_by req→test).",
+      );
+    } else {
+      console.warn(
+        "\nTip: Ensure target entities exist before creating relationships.",
+      );
+    }
   }
 
   return { relationshipCount: relCount, kbModified };

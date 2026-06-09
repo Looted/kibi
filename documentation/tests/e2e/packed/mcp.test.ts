@@ -244,6 +244,7 @@ if (RUN_NODE_TEST_SUITE) {
                       "kb_coverage",
                       "kb_graph",
                       "kb_sparql_remote",
+                      "kb_semantic_advisor",
                       "kb_upsert",
                       "kb_validate_upsert",
                       "kb_delete",

@@ -102,7 +102,7 @@ symbols:
         target: TEST-001
     sourceLine: 159
     sourceColumn: 22
-    sourceEndLine: 216
+    sourceEndLine: 219
     sourceEndColumn: 1
   - id: SYM-010
     title: startServer
@@ -254,6 +254,14 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-mcp-cli-help
+  - id: SYM-BaseRelationship
+    title: BaseRelationship
+    sourceFile: packages/cli/src/types/relationships.ts
+    relationships:
+      - type: implements
+        target: REQ-001
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-status-pre-first-sync-test
     title: cli status pre-sync test
     sourceFile: packages/cli/tests/commands/status.test.ts
@@ -1699,9 +1707,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 191
+    sourceLine: 208
     sourceColumn: 22
-    sourceEndLine: 205
+    sourceEndLine: 225
     sourceEndColumn: 1
   - id: SYM-mcp-session-ensureProlog
     title: ensureProlog
@@ -2210,9 +2218,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 627
+    sourceLine: 2910
     sourceColumn: 22
-    sourceEndLine: 695
+    sourceEndLine: 2978
     sourceEndColumn: 1
   - id: SYM-ModelRequirementArgs
     title: ModelRequirementArgs
@@ -2251,9 +2259,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 20
+    sourceLine: 494
     sourceColumn: 17
-    sourceEndLine: 28
+    sourceEndLine: 502
     sourceEndColumn: 1
   - id: SYM-SuggestPredicatesResult
     title: SuggestPredicatesResult
@@ -2265,9 +2273,9 @@ symbols:
         target: REQ-mcp-suggest-predicates
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 42
+    sourceLine: 518
     sourceColumn: 17
-    sourceEndLine: 56
+    sourceEndLine: 532
     sourceEndColumn: 1
   - id: SYM-handleKbSkillsList
     title: handleKbSkillsList
@@ -4174,16 +4182,6 @@ symbols:
         target: TEST-cli-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-mcp-upsert-symbol-behavioral-anchors
-  - id: SYM-validateSymbolGranularity
-    title: validateSymbolGranularity
-    sourceFile: packages/mcp/src/tools/upsert.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
-      - type: covered_by
-        target: TEST-mcp-upsert-symbol-behavioral-anchors
   - id: SYM-createSymbolGranularityDiagnostics
     title: createSymbolGranularityDiagnostics
     sourceFile: packages/cli/src/commands/check.ts
@@ -4194,3 +4192,307 @@ symbols:
         target: REQ-symbol-behavioral-anchors
       - type: covered_by
         target: TEST-cli-symbol-behavioral-anchors
+  - id: SYM-SEMANTIC_ADVISOR_VERSION
+    title: SEMANTIC_ADVISOR_VERSION
+    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
+    symbol_role: config
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-analyzeSemanticAdvisorInput
+    title: analyzeSemanticAdvisorInput
+    sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-handleKbSemanticAdvisor
+    title: handleKbSemanticAdvisor
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorArgs
+    title: SemanticAdvisorArgs
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorToolResult
+    title: SemanticAdvisorResult
+    sourceFile: packages/mcp/src/tools/semantic-advisor.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAdvisorLane
+    title: SemanticAdvisorLane
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 1
+    sourceColumn: 12
+    sourceEndLine: 5
+    sourceEndColumn: 11
+  - id: SYM-SemanticAdvisorReadiness
+    title: SemanticAdvisorReadiness
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 7
+    sourceColumn: 12
+    sourceEndLine: 10
+    sourceEndColumn: 21
+  - id: SYM-SemanticSignalKind
+    title: SemanticSignalKind
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 12
+    sourceColumn: 12
+    sourceEndLine: 18
+    sourceEndColumn: 23
+  - id: SYM-SemanticSignal
+    title: SemanticSignal
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 20
+    sourceColumn: 17
+    sourceEndLine: 25
+    sourceEndColumn: 1
+  - id: SYM-SemanticAmbiguityWitness
+    title: SemanticAmbiguityWitness
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 27
+    sourceColumn: 17
+    sourceEndLine: 32
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorReceipt
+    title: SemanticAdvisorReceipt
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 34
+    sourceColumn: 17
+    sourceEndLine: 44
+    sourceEndColumn: 1
+  - id: SYM-SemanticModelingSuggestion
+    title: SemanticModelingSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticStrictPropertyClaim
+    title: SemanticStrictPropertyClaim
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 52
+    sourceColumn: 17
+    sourceEndLine: 62
+    sourceEndColumn: 1
+  - id: SYM-SemanticStrictPropertySuggestion
+    title: SemanticStrictPropertySuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticPredicateClaim
+    title: SemanticPredicateClaim
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 75
+    sourceColumn: 17
+    sourceEndLine: 80
+    sourceEndColumn: 1
+  - id: SYM-SemanticPredicateSuggestion
+    title: SemanticPredicateSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+  - id: SYM-SemanticAmbiguityObservationSuggestion
+    title: SemanticAmbiguityObservationSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 94
+    sourceColumn: 17
+    sourceEndLine: 102
+    sourceEndColumn: 1
+  - id: SYM-SemanticOntologyGapSuggestion
+    title: SemanticOntologyGapSuggestion
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 104
+    sourceColumn: 17
+    sourceEndLine: 116
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorInput
+    title: SemanticAdvisorInput
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 118
+    sourceColumn: 17
+    sourceEndLine: 120
+    sourceEndColumn: 1
+  - id: SYM-SemanticAdvisorResult
+    title: SemanticAdvisorResult
+    sourceFile: packages/mcp/src/semantic-advisor/types.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 122
+    sourceColumn: 17
+    sourceEndLine: 125
+    sourceEndColumn: 1
+  - id: SYM-ProseCoverageExpectation
+    title: ProseCoverageExpectation
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 4
+    sourceColumn: 17
+    sourceEndLine: 9
+    sourceEndColumn: 1
+  - id: SYM-ProseCoverageCase
+    title: ProseCoverageCase
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 11
+    sourceColumn: 17
+    sourceEndLine: 15
+    sourceEndColumn: 1
+  - id: SYM-ProseCoverageFailure
+    title: ProseCoverageFailure
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 17
+    sourceColumn: 17
+    sourceEndLine: 21
+    sourceEndColumn: 1
+  - id: SYM-ProseCoverageResult
+    title: ProseCoverageResult
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: type-shape
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 23
+    sourceColumn: 17
+    sourceEndLine: 31
+    sourceEndColumn: 1
+  - id: SYM-evaluateProseCoverageCorpus
+    title: evaluateProseCoverageCorpus
+    sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
+    symbol_role: behavioral
+    relationships:
+      - type: implements
+        target: REQ-mcp-semantic-advisor-preflight
+      - type: covered_by
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 33
+    sourceColumn: 16
+    sourceEndLine: 47
+    sourceEndColumn: 1
+  - id: SYM-PROSE_COVERAGE_CORPUS
+    title: PROSE_COVERAGE_CORPUS
+    sourceFile: packages/mcp/tests/semantic-advisor/prose-coverage-fixture.ts
+    symbol_role: fixture
+    relationships:
+      - type: executable_for
+        target: TEST-mcp-semantic-advisor-preflight
+    sourceLine: 3
+    sourceColumn: 13
+    sourceEndLine: 340
+    sourceEndColumn: 1

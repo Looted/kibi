@@ -21,6 +21,10 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - `predicate_schema(FactId, Namespace, Name, Arity, ArgumentNames, ArgumentTypes)`
 - `predicate_fact(FactId, Namespace, Name, Args, Polarity)`
 
+## Symbol coverage semantics
+
+**Scenario-aware coverage**: When a requirement has `specified_by(Req,Scenario)`, direct `verified_by(Req,Test)` or `validates(Test,Req)` does NOT satisfy symbol-coverage. The canonical path requires `verified_by(Scenario,Test)` or `validates(Test,Scenario)`.
+
 ## Requirement contradiction semantics
 
 `contradicting_reqs/3` uses strict requirement semantics only for current requirements and **strict domain facts**.
@@ -37,6 +41,7 @@ Kibi includes deterministic derived predicates for internal analysis and automat
 - Scope and validity windows only conflict when they intersect.
 - **Readiness Levels:** Requirements must pass strict readiness checks (e.g., valid `subject_key`, matching `property_key`, valid operator) before participating in contradiction checks.
 - **V1 Limits:** Contradiction detection is bounded to exact-value, boolean/enum, numeric range, and polarity conflicts. Prose-only requirements without strict fact modeling are not checked for contradictions.
+- **Semantic advisor receipts:** MCP preflight/write responses may warn that prose looks machine-checkable but unmodeled and may include draft strict-property, predicate, ambiguity-observation, or ontology-gap suggestions. These suggestions are advisory in v1 and do not add contradiction semantics unless the requirement is linked to strict facts or predicate facts.
 - **Automation:** The modeling pipeline is fully automated and does not require human approval for high-confidence (>= 0.7) claims.
 
 ## Predicate ontology semantics

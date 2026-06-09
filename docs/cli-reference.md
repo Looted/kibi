@@ -38,6 +38,12 @@ Extracts entities and relationships from project documents and updates the knowl
 - `--rebuild` - Rebuild branch snapshot from scratch (discards current KB)
 - `--refresh-symbol-coordinates` - Refresh symbol location data in `documentation/symbol-coordinates.yaml` during sync
 
+**Notes (sync + MCP):**
+
+- Rebuild with `--rebuild` replaces the on-disk branch KB snapshot while MCP can continue running.
+- A running MCP session detects same-branch snapshot replacement before serving affected operations.
+- If auto-refresh cannot complete during a transient publish conflict, MCP returns a recovery error; retry the tool call after the publish settles.
+
 **Notes:**
 - Supports these entity types: req, scenario, test, adr, flag, event, symbol, fact
 - **Modeling:** Use `flag` for runtime/config gates; record bugs and workarounds as `fact` entities, usually with `fact_kind: observation` or `meta`. **Strict facts** (subject, property_value) drive contradiction checks, while observation/meta facts are non-blocking notes.

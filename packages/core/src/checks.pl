@@ -107,7 +107,7 @@ symbol_coverage_violation(SymbolId, violation(
     'symbol-coverage',
     SymbolId,
     "Production symbol lacks qualifying requirement coverage.",
-    "Add 'covered_by: TEST-xxx' for production coverage, and ensure that test reaches the requirement through a scenario->test path or direct req->test fallback when no scenario exists.",
+    "Add 'covered_by: TEST-xxx' for production coverage. If the requirement has specified_by a scenario, use verified_by(scenario,test) or validates(test,scenario). Direct verified_by(req,test) does not count when a scenario exists.",
     Source
 )) :-
     violation_source(SymbolId, symbol, Source).
@@ -718,7 +718,7 @@ strict_readiness_issue(
 strict_readiness_issue(
     ReqId,
     "Strict readiness: not-ready (strict-ready). Requirement has strict subject and property facts but no contradiction-ready matched pair, so contradiction checks still skip it.",
-    "Align constrains and requires_property on the same subject_key, and keep the requirement current if it should participate in contradiction checks"
+    "Ensure constrains and requires_property use the same subject_key, and keep the requirement current if it should participate in contradiction checks"
 ) :-
     kb_entity(ReqId, req, _),
     strict_readiness_level(ReqId, strict_ready).

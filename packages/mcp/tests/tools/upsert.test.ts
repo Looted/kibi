@@ -3,6 +3,8 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { PrologProcess } from "kibi-cli/prolog";
+import { registerAllTools } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import { __test__, handleKbUpsert } from "../../src/tools/upsert.js";
 
 type QueryResult = {
@@ -533,7 +535,7 @@ export function greet() {
 
     expect(query).toHaveBeenCalledTimes(8);
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -580,7 +582,7 @@ export function greet() {
       "check_req_contradiction('REQ-DEFAULT-SOURCE')",
     );
     expect(invalidateCache).toHaveBeenCalledTimes(1);
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 0,
@@ -658,6 +660,9 @@ export function greet() {
       if (goal.startsWith("kb_log_relationship_upsert(")) {
         return { success: true };
       }
+      if (goal.includes("kb_relationship(specified_by, 'REQ-REL-META-001'")) {
+        return { success: true };
+      }
       if (goal === "kb_save") {
         return { success: true };
       }
@@ -706,7 +711,7 @@ export function greet() {
     expect(query).toHaveBeenCalledWith(
       `kb_log_relationship_upsert(specified_by, 'REQ-REL-META-001', 'SCEN-001', [created_at="2026-03-30T10:00:00Z", created_by="tester", source="undefined", confidence=0.5])`,
     );
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 1,
       updated: 0,
       relationships_created: 2,
@@ -742,7 +747,7 @@ export function greet() {
     });
 
     expect(result.content[0]?.text).toContain("updated");
-    expect(result.structuredContent).toEqual({
+    expect(result.structuredContent).toMatchObject({
       created: 0,
       updated: 1,
       relationships_created: 0,
@@ -785,6 +790,84 @@ export function greet() {
         "kb_log_entity_upsert(created, req, [id='REQ-CREATED-AUDIT-001'",
       ),
     );
+  });
+
+  test("preserves existing relationships when relationships is an empty array", async () => {
+    const { prolog, query } = createMockProlog(async (goal) => {
+      if (goal === "once(kb_entity('REQ-PRESERVE-EMPTY-RELS', _, _))") {
+        return { success: true };
+      }
+      if (
+        goal ===
+        "findall(To, kb_relationship(depends_on, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)"
+      ) {
+        return { success: true, bindings: { Targets: "['REQ-DEP-001']" } };
+      }
+      if (
+        goal ===
+        "findall(To, kb_relationship(specified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)"
+      ) {
+        return { success: true, bindings: { Targets: "['SCEN-001']" } };
+      }
+      if (
+        goal.startsWith(
+          "findall(To, kb_relationship(verified_by, 'REQ-PRESERVE-EMPTY-RELS', To), Targets)",
+        )
+      ) {
+        return { success: true, bindings: { Targets: "['TEST-001']" } };
+      }
+      if (goal.startsWith("findall(To, kb_relationship(")) {
+        return { success: true, bindings: { Targets: "[]" } };
+      }
+      if (goal.startsWith("findall(From, kb_relationship(")) {
+        return { success: true, bindings: { Sources: "[]" } };
+      }
+      if (
+        goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,") &&
+        goal.includes(
+          "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+        ) &&
+        goal.includes(
+          "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+        )
+      ) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(updated, req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_relationship_upsert(")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PRESERVE-EMPTY-RELS",
+      properties: {
+        title: "Preserve relationships",
+        status: "open",
+        source: "test://upsert",
+      },
+      relationships: [],
+    });
+
+    const transactionGoal = query.mock.calls.find(([goal]) =>
+      String(goal).startsWith("rdf_transaction"),
+    )?.[0] as string | undefined;
+
+    expect(transactionGoal).toContain(
+      "kb_assert_relationship_no_audit(specified_by, 'REQ-PRESERVE-EMPTY-RELS', 'SCEN-001', [])",
+    );
+    expect(transactionGoal).toContain(
+      "kb_assert_relationship_no_audit(verified_by, 'REQ-PRESERVE-EMPTY-RELS', 'TEST-001', [])",
+    );
+    expect(result.structuredContent?.relationships_created).toBeGreaterThan(0);
   });
 
   test("deduplicates contradiction details in formatted transaction errors", async () => {
@@ -1058,6 +1141,101 @@ export function greet() {
     expect(invalidateCache).toHaveBeenCalledTimes(1);
   });
 
+  test("registered upsert tool refreshes a stale attachment before saving", async () => {
+    const calls: string[] = [];
+    const { prolog } = createMockProlog(async (goal) => {
+      calls.push(goal);
+      if (goal === "kb_detach") {
+        return { success: true };
+      }
+      if (goal === "kb_attach('/tmp/kibi-stale-replacement')") {
+        return { success: true };
+      }
+      if (goal === "once(kb_entity('REQ-FRESH-SAVE-001', _, _))") {
+        return { success: false };
+      }
+      if (goal.startsWith("rdf_transaction((kb_assert_entity_no_audit(req,")) {
+        return { success: true };
+      }
+      if (goal.startsWith("kb_log_entity_upsert(created, req,")) {
+        return { success: true };
+      }
+      if (goal === "kb_save") {
+        return { success: true };
+      }
+
+      throw new Error(`Unexpected goal: ${goal}`);
+    });
+    const originalInvalidateCache = prolog.invalidateCache.bind(prolog);
+    prolog.invalidateCache = mock(() => {
+      calls.push("invalidateCache");
+      originalInvalidateCache();
+    }) as PrologProcess["invalidateCache"];
+    const ensureProlog = mock(async () => {
+      prolog.invalidateCache();
+      await prolog.query("kb_detach");
+      await prolog.query("kb_attach('/tmp/kibi-stale-replacement')");
+      return prolog;
+    });
+    const registered = new Map<string, (args: Record<string, unknown>) => unknown>();
+    const server = {
+      registerTool: mock(
+        (
+          name: string,
+          _config: unknown,
+          handler: (args: Record<string, unknown>) => unknown,
+        ) => {
+          registered.set(name, handler);
+        },
+      ),
+    };
+    const runtime = {
+      tools: TOOLS,
+      diagnosticModeEnabled: () => false,
+      extractToolCallPayload: (args: Record<string, unknown>) => ({
+        businessArgs: args,
+        telemetry: null,
+      }),
+      inFlightRequests: async () => new Map<string, Promise<unknown>>(),
+      isShuttingDown: async () => false,
+      resetProlog: async () => {},
+      prologProcess: async () => null,
+      activeBranchName: async () => "test",
+      appendUsageLogLine: () => {},
+      deriveDiagnosticFields: () => ({}),
+      classifyDiagnosticError: () => ({}),
+      ensureProlog,
+      handleKbUpsert,
+    } as unknown as Parameters<typeof registerAllTools>[1];
+
+    registerAllTools(server as never, runtime);
+    await registered.get("kb_upsert")?.({
+      type: "req",
+      id: "REQ-FRESH-SAVE-001",
+      properties: {
+        title: "Fresh before save",
+        status: "open",
+        source: "test://upsert",
+      },
+    });
+
+    expect(ensureProlog).toHaveBeenCalledTimes(1);
+    expect(calls.indexOf("invalidateCache")).toBeLessThan(
+      calls.indexOf("kb_detach"),
+    );
+    expect(calls.indexOf("kb_detach")).toBeLessThan(
+      calls.indexOf("kb_attach('/tmp/kibi-stale-replacement')"),
+    );
+    expect(calls.indexOf("kb_attach('/tmp/kibi-stale-replacement')")).toBeLessThan(
+      calls.indexOf("kb_save"),
+    );
+    expect(calls.slice(0, 3)).toEqual([
+      "invalidateCache",
+      "kb_detach",
+      "kb_attach('/tmp/kibi-stale-replacement')",
+    ]);
+  });
+
   test("refreshes symbol coordinates after a successful symbol upsert", async () => {
     const refreshCoordinatesForSymbolId = mock(async () => ({
       refreshed: true,
@@ -1177,4 +1355,85 @@ export function greet() {
       }),
     ).rejects.toThrow("Upsert execution failed: string failure");
   });
+
+  test("warns when verified_by added to req with scenarios", async () => {
+    const createdEntities = new Set<string>();
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+
+      // Entity existence checks with state tracking
+      const entityMatch = goal.match(/once\(kb_entity\('([^']+)', _, _\)\)/);
+      if (entityMatch) {
+        const entityId = entityMatch[1];
+        const exists = createdEntities.has(entityId);
+        createdEntities.add(entityId);
+        return { success: exists };
+      }
+
+      // Scenario check for req-scenario-warn-001 returns true (scenario exists)
+      if (goal.includes("kb_relationship(specified_by, 'req-scenario-warn-001'")) {
+        return { success: true };
+      }
+
+      // All other queries (transaction, audit, save, etc.)
+      return { success: true };
+    });
+
+    // Create a requirement
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+    });
+
+    // Create a scenario
+    await handleKbUpsert(prolog, {
+      type: "scenario",
+      id: "scenario-warn-001",
+      properties: { title: "Warning scenario", status: "active", source: "test://scenario-warn" },
+    });
+
+    // Link req->scenario
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+      relationships: [{ type: "specified_by", from: "req-scenario-warn-001", to: "scenario-warn-001" }],
+    });
+
+    // Now re-upsert with verified_by — should warn
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-scenario-warn-001",
+      properties: { title: "Req with scenario", status: "open", source: "test://scenario-warn" },
+      relationships: [{ type: "verified_by", from: "req-scenario-warn-001", to: "test-scenario-warn-001" }],
+    });
+    const warnings = result.structuredContent?.warnings || [];
+    const coverageWarning = warnings.find(w => w.includes("Scenario-backed coverage"));
+    expect(coverageWarning).toBeDefined();
+    expect(coverageWarning).toContain("verified_by(scenario,test) or validates(test,scenario)");
+  });
+
+  test("no warning when verified_by added to req without scenarios", async () => {
+    const { prolog } = createMockProlog(async (goal) => {
+      if (goal.includes("normalize_term_atom")) return { success: false };
+      if (goal === "once(kb_entity('req-no-scenario-warn-001', _, _))") {
+        return { success: false };
+      }
+      // Scenario check: returns false (no scenarios)
+      if (goal.includes("kb_relationship(specified_by, 'req-no-scenario-warn-001'")) {
+        return { success: false };
+      }
+      return { success: true };
+    });
+
+    const result = await handleKbUpsert(prolog, {
+      type: "req",
+      id: "req-no-scenario-warn-001",
+      properties: { title: "Req without scenario", status: "open", source: "test://no-scenario-warn" },
+      relationships: [{ type: "verified_by", from: "req-no-scenario-warn-001", to: "test-no-scenario-warn-001" }],
+    });
+    const warnings = result.structuredContent?.warnings || [];
+    expect(warnings.find(w => w.includes("Scenario-backed coverage"))).toBeUndefined();
+});
 });

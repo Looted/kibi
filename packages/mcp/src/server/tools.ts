@@ -44,6 +44,10 @@ import {
 import { type QueryArgs, handleKbQuery } from "../tools/query.js";
 import { type SearchArgs, handleKbSearch } from "../tools/search.js";
 import {
+  type SemanticAdvisorArgs,
+  handleKbSemanticAdvisor,
+} from "../tools/semantic-advisor.js";
+import {
   type SkillsListArgs,
   type SkillsLoadArgs,
   type SkillsReadArgs,
@@ -136,6 +140,7 @@ export interface ToolsRuntime<TProlog = DefaultRuntimeProlog> {
   handleKbQuery: (prolog: TProlog, args: QueryArgs) => Promise<unknown>;
   handleKbSearch: (prolog: TProlog, args: SearchArgs) => Promise<unknown>;
   handleKbStatus: (prolog: TProlog, args: StatusArgs) => Promise<unknown>;
+  handleKbSemanticAdvisor: (args: SemanticAdvisorArgs) => Promise<unknown>;
   handleKbSkillsList: (args: SkillsListArgs) => Promise<unknown>;
   handleKbSkillsLoad: (args: SkillsLoadArgs) => Promise<unknown>;
   handleKbSkillsRead: (args: SkillsReadArgs) => Promise<unknown>;
@@ -180,6 +185,7 @@ const DEFAULT_TOOLS_RUNTIME: ToolsRuntime<DefaultRuntimeProlog> = {
   handleKbQuery,
   handleKbSearch,
   handleKbStatus,
+  handleKbSemanticAdvisor,
   handleKbSkillsList,
   handleKbSkillsLoad,
   handleKbSkillsRead,
@@ -649,6 +655,19 @@ export function registerAllTools<TProlog>(
     async (args) => {
       const prolog = await runtime.ensureProlog();
       return runtime.handleSparql(prolog, args as unknown as SparqlArgs);
+    },
+    runtime,
+  );
+
+  addTool(
+    server,
+    "kb_semantic_advisor",
+    toolDef("kb_semantic_advisor").description,
+    toolDef("kb_semantic_advisor").inputSchema,
+    async (args) => {
+      return runtime.handleKbSemanticAdvisor(
+        args as unknown as SemanticAdvisorArgs,
+      );
     },
     runtime,
   );

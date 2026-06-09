@@ -214,8 +214,8 @@ export class PrologProcess {
       const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
-        ? normalizedGoal
-        : `once((${normalizedGoal}))`;
+        ? `catch(${normalizedGoal}, _E, (print_message(error, _E), fail))`
+        : `catch(once((${normalizedGoal})), _E, (print_message(error, _E), fail))`;
       const start = Date.now();
 
       if (debug) {
@@ -307,10 +307,17 @@ export class PrologProcess {
                 `[prolog debug] query failed (false): ${normalizedGoal}`,
               );
             }
+            // Check errorBuffer first — Prolog catch/3 writes ERROR to stderr
+            // then fail to stdout. If stderr has the real error, surface it.
+            const errorMessage =
+              this.errorBuffer.length > 0 &&
+              this.errorBuffer.includes("ERROR")
+                ? this.translateError(this.errorBuffer)
+                : "Query failed";
             resolve({
               success: false,
               bindings: {},
-              error: "Query failed",
+              error: errorMessage,
             });
             return;
           }
@@ -550,6 +557,30 @@ export class PrologProcess {
   }
 
   private translateError(errorText: string): string {
+    // SWI-Prolog print_message/2 formats errors as human-readable messages,
+    // not raw Prolog terms. Match the actual output format.
+    if (errorText.includes('does not exist') && /entity [`'"].+?[`'"]/ .test(errorText)) {
+      // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
+      const entityIdMatch = errorText.match(/entity [`'"]+(.+?)[`'"]+ does not exist/);
+      const entityId = entityIdMatch
+        ? entityIdMatch[1]!.replace(/^`?'+|'+`?$/g, "")
+        : "unknown";
+      if (errorText.includes("Target entity does not exist")) {
+        return `Target entity does not exist: ${entityId}`;
+      }
+      if (errorText.includes("Source entity does not exist")) {
+        return `Source entity does not exist: ${entityId}`;
+      }
+      return `Entity does not exist: ${entityId}`;
+    }
+    if (errorText.includes("Type error: `relationship' expected")) {
+      const relMatch = errorText.match(/\(Invalid relationship: ([^)]+)\)/);
+      if (relMatch) {
+        return `Invalid relationship: ${relMatch[1]!.trim()}`;
+      }
+      return "Invalid relationship type or direction";
+    }
+    // Fallback: check for raw Prolog error terms (used by other tools)
     if (
       errorText.includes("existence_error") ||
       errorText.includes("Unknown procedure")
@@ -568,7 +599,6 @@ export class PrologProcess {
     if (errorText.includes("timeout_error")) {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
-
     const simpleError = (
       errorText
         .replace(/ERROR:\s*/g, "")
@@ -576,7 +606,6 @@ export class PrologProcess {
         .replace(/^\s+/gm, "")
         .split("\n")[0] ?? ""
     ).trim();
-
     return simpleError || "Unknown error";
   }
 

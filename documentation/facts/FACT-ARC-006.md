@@ -9,7 +9,7 @@ updated_at: 2026-02-20T12:00:00Z
 fact_kind: meta
 ---
 
-Service abstraction is a key architectural pattern in the Align project that enables backend changes without requiring UI code modifications.
+Service abstraction is a key architectural pattern in the example product that enables backend changes without requiring UI code modifications.
 
 ## Pattern Overview
 
