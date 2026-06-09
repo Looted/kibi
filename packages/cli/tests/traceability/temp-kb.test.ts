@@ -484,7 +484,7 @@ describe("temp-kb", () => {
 
       await projectStagedEntities(prolog, [result]);
 
-      const assertGoal = prolog.queries[0];
+      const assertGoal = prolog.queries[1];
       expect(typeof assertGoal).toBe("string");
       if (typeof assertGoal !== "string") {
         throw new Error("Expected string assertion goal");
