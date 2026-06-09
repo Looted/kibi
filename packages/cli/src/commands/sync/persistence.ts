@@ -348,14 +348,24 @@ export async function persistRelationships(
       }
     }
     const missingEntities = failedRelationships.filter(
-      ({ error }) => error.includes("entity does not exist"),
+      ({ error }) => error.toLowerCase().includes("entity does not exist"),
     );
     const invalidRels = failedRelationships.filter(
       ({ error }) => error.includes("Invalid relationship"),
     );
     if (missingEntities.length > 0) {
+      // Collect unique missing entity IDs from error messages
+      const missingIds = new Set<string>();
+      for (const { error } of missingEntities) {
+        const match = error.match(/does not exist: (.+)$/);
+        if (match) missingIds.add(match[1]!.trim());
+      }
+      const idList = [...missingIds].sort().join(", ");
       console.warn(
-        `\nTip: ${missingEntities.length} relationship(s) reference entities that don't exist. Create the missing entities first or remove the stale relationships.`,
+        `\nTip: ${missingEntities.length} relationship(s) reference ${missingIds.size} missing entity/ies: ${idList}.`,
+      );
+      console.warn(
+        "  Create the missing docs (e.g., docs/requirements/REQ-*.md) or remove stale relationships.",
       );
     } else if (invalidRels.length > 0) {
       console.warn(
