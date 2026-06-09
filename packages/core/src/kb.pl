@@ -10,6 +10,7 @@
     kb_log_entity_upsert/3,
     kb_retract_entity/1,
     kb_retract_entity/3,
+    kb_retract_entity_relationships/1,
     kb_entity/3,
     kb_entities_by_source/2,
     kb_assert_relationship/4,
@@ -299,6 +300,22 @@ kb_assert_entity_no_audit(Type, Props) :-
         forall(
             member(Key=Value, Props),
             store_property(EntityURI, Key, Value, Graph)
+        )
+    )).
+
+%% kb_retract_entity_relationships(+Id)
+% Remove all relationship triples for an entity, preserving property triples.
+% Used by projectStagedEntities to clear stale relationships before re-asserting.
+kb_retract_entity_relationships(Id) :-
+    kb_graph(Graph),
+    with_kb_mutex((
+        format(atom(EntityURI), 'kb:entity/~w', [Id]),
+        forall(
+            (   rdf(EntityURI, RelURI, TargetURI, Graph),
+                atom(TargetURI),
+                atom_concat('kb:entity/', _, TargetURI)
+            ),
+            rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
         )
     )).
 
