@@ -35,6 +35,10 @@ const BATCHES: Batch[] = [
     args: ["test", "--timeout", "15000", "./packages/codex"],
   },
   {
+    label: "cursor",
+    args: ["test", "--timeout", "15000", "./packages/cursor"],
+  },
+  {
     label: "vscode activation",
     args: [
       "test",

@@ -62,6 +62,7 @@ For OpenCode users, bootstrap an existing repo with \`/init-kibi\` (\`kb_autopil
 - **kibi-mcp** — Model Context Protocol server for LLM integration
 - **kibi-opencode** — OpenCode plugin that injects Kibi guidance and runs background syncs
 - **kibi-codex** — Optional Codex adapter that brings Kibi MCP skills and hooks into Codex workflows
+- **kibi-cursor** — Optional Cursor plugin with rules, skills, MCP wiring, and advisory editor hooks
 - **kibi-vscode** — VS Code extension for exploring the knowledge base
 - **Skill subsystem** — Reusable Markdown skills for agent guidance (bundled skills, CLI + MCP progressive disclosure)
 
@@ -200,6 +201,46 @@ yet, so keep the manual MCP configuration above as the supported fallback.
 </details>
 
 <details>
+<summary>Cursor</summary>
+
+Install the optional `kibi-cursor` plugin from the repo marketplace at `.cursor-plugin/marketplace.json`, or test locally:
+
+```bash
+./scripts/sync-cursor-plugin-local.sh
+```
+
+Then reload Cursor and check **Plugins → User**. The plugin bundles:
+
+- `mcp.json` pointing at the project-local `kibi-mcp` binary
+- Rules, skills, and `/init-kibi` command guidance
+- Advisory hooks for bootstrap reminders, read/write guidance, and freshness follow-ups
+
+`kibi-cursor` is optional and does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`.
+
+You can also install the npm package for local development:
+
+```bash
+npm install --save-dev kibi-cursor
+```
+
+Manual MCP fallback (no plugin install required):
+
+```json
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+See [Cursor Plugins](https://cursor.com/docs/plugins) and `packages/cursor/README.md` for details.
+
+</details>
+
+<details>
 <summary>Generic MCP clients</summary>
 
 Most stdio MCP clients need the same command and arguments:
@@ -311,4 +352,4 @@ bun run version-packages
 
 ---
 
-⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, `kibi-opencode`, and `kibi-codex` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.
+⚠️ **Alpha Status:** Kibi is in early alpha. Expect breaking changes. Pin exact versions of `kibi-cli`, `kibi-mcp`, `kibi-opencode`, `kibi-codex`, and `kibi-cursor` in your projects, and expect to occasionally delete and rebuild your `.kb` folder when upgrading.

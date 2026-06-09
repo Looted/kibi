@@ -71,6 +71,7 @@ export const PUBLISHABLE_DIRS = [
   "mcp",
   "opencode",
   "codex",
+  "cursor",
 ] as const; // implements REQ-020
 
 // --- Implementation ---------------------------------------------------------

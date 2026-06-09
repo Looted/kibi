@@ -1,0 +1,14 @@
+---
+description: Requirement traceability and symbol linking through Kibi
+globs:
+  - "**/*.{ts,tsx,js,jsx,py,go,rs,java}"
+alwaysApply: false
+---
+
+Before changing production code, discover linked requirements with `kb_search` and `kb_query(sourceFile=...)`.
+
+Preserve the canonical chain `REQ-* -> SCEN-* -> TEST-*` when modeling behavior.
+
+Prefer symbol manifest + `executable_for` for test/e2e code. Inline `// implements REQ-xxx` remains acceptable for quick code-only changes.
+
+Route durable domain facts to strict `fact` entities. Use `fact_kind: observation` or `meta` for bugs and workarounds, not `flag`.

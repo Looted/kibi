@@ -34,6 +34,7 @@ const PACKAGE_DIRS = [
   "packages/mcp",
   "packages/opencode",
   "packages/codex",
+  "packages/cursor",
 ];
 
 /** Globally ignored paths (repo-relative prefixes). */

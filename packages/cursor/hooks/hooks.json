@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node dist/hook-runner.js"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "node dist/hook-runner.js"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "node dist/hook-runner.js"
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "node dist/hook-runner.js"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node dist/hook-runner.js",
+        "loop_limit": 1
+      }
+    ]
+  }
+}

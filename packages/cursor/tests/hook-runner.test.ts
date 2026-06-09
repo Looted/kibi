@@ -1,0 +1,196 @@
+import { afterEach, describe, expect, test } from "bun:test";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+
+import { runHook } from "../src/hook-runner";
+import { loadHookState } from "../src/hook-state";
+
+function createTempRoot(prefix: string): string {
+  return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+}
+
+const tempRoots: string[] = [];
+
+afterEach(() => {
+  for (const root of tempRoots.splice(0)) {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+describe("Cursor hook runner", () => {
+  test("sessionStart reminds when cwd has no Kibi config", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", cwd },
+      { pluginData },
+    );
+
+    expect(result.additional_context).toContain("Kibi is not initialized");
+  });
+
+  test("sessionStart stays quiet when cwd has Kibi config", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    expect(
+      await runHook({ hook_event_name: "sessionStart", cwd }, { pluginData }),
+    ).toEqual({});
+  });
+
+  test("preToolUse warns on explicit direct .kb path edits without blocking", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    const result = await runHook(
+      {
+        hook_event_name: "preToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: ".kb/config.json" },
+      },
+      { pluginData },
+    );
+
+    expect(result.permission).toBe("allow");
+    expect(result.agent_message).toContain("Avoid direct edits to .kb/");
+  });
+
+  test("preToolUse does not parse Bash command text for .kb paths", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+
+    expect(
+      await runHook(
+        {
+          hook_event_name: "preToolUse",
+          tool_name: "Shell",
+          tool_input: { command: "cat .kb/config.json" },
+        },
+        { pluginData },
+      ),
+    ).toEqual({});
+  });
+
+  test("beforeReadFile injects read guidance once per path", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+    fs.mkdirSync(path.join(cwd, "src"), { recursive: true });
+
+    const payload = {
+      hook_event_name: "beforeReadFile",
+      cwd,
+      file_path: path.join(cwd, "src", "auth.ts"),
+    };
+
+    const first = await runHook(payload, { pluginData });
+    expect(first.permission).toBe("allow");
+    expect(first.agent_message).toContain("Kibi read guidance");
+
+    const second = await runHook(payload, { pluginData });
+    expect(second).toEqual({ permission: "allow" });
+  });
+
+  test("postToolUse tracks only explicit meaningful paths", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Shell",
+        tool_input: { command: "touch src/ignored.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "package.json" },
+      },
+      { pluginData },
+    );
+
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([
+      "packages/cursor/src/hook-runner.ts",
+    ]);
+  });
+
+  test("postToolUse injects write guidance for tracked source edits", async () => {
+    const cwd = createTempRoot("kibi-cursor-cwd-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(cwd, pluginData);
+    fs.mkdirSync(path.join(cwd, ".kb"));
+    fs.writeFileSync(path.join(cwd, ".kb", "config.json"), "{}");
+
+    const result = await runHook(
+      {
+        hook_event_name: "postToolUse",
+        cwd,
+        tool_name: "Write",
+        tool_input: { file_path: "packages/cursor/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+
+    expect(result.additional_context).toContain("Kibi write guidance");
+  });
+
+  test("stop returns freshness follow-up once and clears tracked paths", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "docs/cursor.md" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+
+    expect(result.followup_message).toContain("Kibi freshness reminder");
+    expect(result.followup_message).toContain("docs/cursor.md");
+    expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+  });
+
+  test("unknown hook events return empty output", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+
+    expect(
+      await runHook({ hook_event_name: "FutureHookEvent" }, { pluginData }),
+    ).toEqual({});
+  });
+});

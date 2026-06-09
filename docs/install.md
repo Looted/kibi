@@ -237,6 +237,54 @@ args = ["--no-install", "kibi-mcp"]
 
 This fallback is supported for teams that do not use the adapter package.
 
+### Optional: Cursor plugin
+
+`kibi-cursor` is an optional adapter that gives Cursor users prepackaged Kibi rules,
+skills, commands, MCP configuration, and advisory editor hooks. It builds on
+`kibi-core`, `kibi-cli`, and `kibi-mcp` and does not replace them.
+
+Install from the repo marketplace at `.cursor-plugin/marketplace.json`, which points
+at `./plugins/kibi-cursor`. For local development, copy the built plugin into
+Cursor's user-plugins directory (symlinks are rejected on WSL):
+
+```bash
+./scripts/sync-cursor-plugin-local.sh
+```
+
+On WSL workspaces, Cursor reads `~/.cursor/plugins/local` in your Linux home.
+Restart Cursor or run **Developer: Reload Window**, then check **Plugins → User**.
+
+You can also install the npm package for smoke testing:
+
+```bash
+npm install --save-dev kibi-cursor
+```
+
+The installed plugin package contributes:
+
+- `.cursor-plugin/plugin.json` manifest
+- `mcp.json` MCP config pointing to your local `kibi-mcp`
+- `hooks/hooks.json` advisory lifecycle hooks
+- `rules/*.mdc` workflow and traceability guidance
+- `skills/*/SKILL.md` Kibi workflow skills
+- `commands/init-kibi.md` bootstrap command guidance
+
+Manual MCP fallback (no plugin install required):
+
+```json
+{
+  "mcpServers": {
+    "kibi": {
+      "command": "npx",
+      "args": ["--no-install", "kibi-mcp"]
+    }
+  }
+}
+```
+
+See [Cursor Plugins](https://cursor.com/docs/plugins) and `packages/cursor/README.md`
+for hook behavior and local testing details.
+
 ### Optional: Global install
 
 Global install is convenient for interactive use across projects, but local install is preferred for reproducibility.

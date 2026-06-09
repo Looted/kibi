@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 633
+    sourceEndLine: 662
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 79
   SYM-003:
@@ -701,9 +701,9 @@ coordinates:
   SYM-ManifestError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 193
+    sourceEndLine: 197
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 185
+    sourceLine: 189
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
@@ -725,9 +725,9 @@ coordinates:
   SYM-ManifestSymbolRecord:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 217
+    sourceEndLine: 221
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 195
+    sourceLine: 199
   SYM-MeaningfulChangeClass:
     sourceColumn: 12
     sourceEndColumn: 14
@@ -791,7 +791,7 @@ coordinates:
   SYM-PUBLISHABLE-DIRS:
     sourceColumn: 13
     sourceEndColumn: 10
-    sourceEndLine: 74
+    sourceEndLine: 75
     sourceFile: scripts/release-state.ts
     sourceLine: 68
   SYM-PackageInfo:
@@ -1679,9 +1679,9 @@ coordinates:
   SYM-cleanupTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 340
+    sourceEndLine: 345
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 313
+    sourceLine: 318
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1895,9 +1895,9 @@ coordinates:
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 311
+    sourceEndLine: 316
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 293
+    sourceLine: 298
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1925,9 +1925,9 @@ coordinates:
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 290
+    sourceEndLine: 295
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 245
+    sourceLine: 250
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1940,6 +1940,186 @@ coordinates:
     sourceEndLine: 78
     sourceFile: packages/cli/src/commands/sync/staging.ts
     sourceLine: 66
+  SYM-cursor-BOOTSTRAP_REMINDER:
+    sourceColumn: 13
+    sourceEndColumn: 164
+    sourceEndLine: 3
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 2
+  SYM-cursor-CursorHookResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 35
+    sourceFile: packages/cursor/src/hook-runner.ts
+    sourceLine: 29
+  SYM-cursor-DIRECT_KB_EDIT_WARNING:
+    sourceColumn: 13
+    sourceEndColumn: 112
+    sourceEndLine: 6
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 5
+  SYM-cursor-HookEnvironment:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 39
+    sourceFile: packages/cursor/src/hook-runner.ts
+    sourceLine: 37
+  SYM-cursor-HookEvent:
+    sourceColumn: 12
+    sourceEndColumn: 11
+    sourceEndLine: 7
+    sourceFile: packages/cursor/src/hook-input.ts
+    sourceLine: 2
+  SYM-cursor-HookInput:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 16
+    sourceFile: packages/cursor/src/hook-input.ts
+    sourceLine: 9
+  SYM-cursor-HookState:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 19
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 15
+  SYM-cursor-adapterKind:
+    sourceColumn: 13
+    sourceEndColumn: 42
+    sourceEndLine: 3
+    sourceFile: packages/cursor/src/index.ts
+    sourceLine: 3
+  SYM-cursor-addDirtyPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 252
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 242
+  SYM-cursor-clearDirtyPaths:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 302
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 290
+  SYM-cursor-extractExplicitPathFields:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 101
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 97
+  SYM-cursor-freshnessReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 8
+  SYM-cursor-hasGuidedPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 288
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 279
+  SYM-cursor-hookRunnerPath:
+    sourceColumn: 13
+    sourceEndColumn: 60
+    sourceEndLine: 229
+    sourceFile: packages/cursor/src/hook-runner.ts
+    sourceLine: 229
+  SYM-cursor-isDirectKbPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 105
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 103
+  SYM-cursor-isDocumentationTrackedPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 154
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 141
+  SYM-cursor-isMeaningfulTrackedPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 139
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 107
+  SYM-cursor-loadHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 196
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 184
+  SYM-cursor-packageName:
+    sourceColumn: 13
+    sourceEndColumn: 40
+    sourceEndLine: 2
+    sourceFile: packages/cursor/src/index.ts
+    sourceLine: 2
+  SYM-cursor-parseHookInput:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 94
+    sourceFile: packages/cursor/src/hook-input.ts
+    sourceLine: 45
+  SYM-cursor-parseStdinJson:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 113
+    sourceFile: packages/cursor/src/hook-input.ts
+    sourceLine: 106
+  SYM-cursor-readGuidance:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 27
+    sourceFile: packages/cursor/src/guidance.ts
+    sourceLine: 8
+  SYM-cursor-readStdin:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 104
+    sourceFile: packages/cursor/src/hook-input.ts
+    sourceLine: 96
+  SYM-cursor-rememberGuidedPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 277
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 254
+  SYM-cursor-resolveStateDir:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 182
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 165
+  SYM-cursor-runHook:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 206
+    sourceFile: packages/cursor/src/hook-runner.ts
+    sourceLine: 86
+  SYM-cursor-saveHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 211
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 198
+  SYM-cursor-toRepoRelativePath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 171
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 156
+  SYM-cursor-updateHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 240
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 213
+  SYM-cursor-writeGuidance:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 56
+    sourceFile: packages/cursor/src/guidance.ts
+    sourceLine: 29
   SYM-deactivate:
     sourceColumn: 16
     sourceEndColumn: 31
@@ -1973,9 +2153,9 @@ coordinates:
   SYM-determineReleaseAction:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 155
     sourceFile: scripts/release-state.ts
-    sourceLine: 87
+    sourceLine: 88
   SYM-discoverProviderEvidence:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2039,21 +2219,21 @@ coordinates:
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 398
+    sourceEndLine: 402
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 393
+    sourceLine: 397
   SYM-extractFromManifestString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 367
+    sourceEndLine: 371
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 345
+    sourceLine: 349
   SYM-extractManifestSymbolRecordsString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 391
+    sourceEndLine: 395
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 369
+    sourceLine: 373
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2561,7 +2741,7 @@ coordinates:
   SYM-projectStagedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 243
+    sourceEndLine: 248
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 216
   SYM-queryRelationshipsViaCli:
@@ -2591,9 +2771,9 @@ coordinates:
   SYM-readManifestWithCoordinateOverlay:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 450
+    sourceEndLine: 454
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 436
+    sourceLine: 440
   SYM-reconcileAuditEntries:
     sourceColumn: 16
     sourceEndColumn: 1

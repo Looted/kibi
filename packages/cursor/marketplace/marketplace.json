@@ -1,0 +1,16 @@
+{
+  "name": "kibi-local",
+  "owner": {
+    "name": "Kibi"
+  },
+  "metadata": {
+    "description": "Local plugin marketplace for the kibi-cursor adapter"
+  },
+  "plugins": [
+    {
+      "name": "kibi-cursor",
+      "source": "plugins/kibi-cursor",
+      "description": "Kibi MCP integration, rules, skills, and advisory Cursor hooks"
+    }
+  ]
+}
