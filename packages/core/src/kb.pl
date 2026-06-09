@@ -280,14 +280,14 @@ kb_assert_entity_no_audit(Type, Props) :-
     % Execute RDF operations with mutex protection
     with_kb_mutex((
         % Create entity URI using prefix notation for namespace expansion
-        format(atom(EntityURI), 'kb:entity/~w', [Id]),
+        entity_id_to_uri(Id, EntityURI),
         % Upsert semantics: remove only property triples, preserving relationships.
         % Relationship triples have entity URI objects (kb:entity/...);
         % property triples have typed literal objects (_^^xsd:...).
         forall(
             (   rdf(EntityURI, Prop, Obj, Graph),
                 (   atom(Obj)
-                ->  \+ atom_concat('kb:entity/', _, Obj)
+                ->  \+ entity_uri_to_id(Obj, _)
                 ;   true
                 )
             ),
@@ -309,11 +309,11 @@ kb_assert_entity_no_audit(Type, Props) :-
 kb_retract_entity_relationships(Id) :-
     kb_graph(Graph),
     with_kb_mutex((
-        format(atom(EntityURI), 'kb:entity/~w', [Id]),
+        entity_id_to_uri(Id, EntityURI),
         forall(
             (   rdf(EntityURI, RelURI, TargetURI, Graph),
                 atom(TargetURI),
-                atom_concat('kb:entity/', _, TargetURI)
+                entity_uri_to_id(TargetURI, _)
             ),
             rdf_retractall(EntityURI, RelURI, TargetURI, Graph)
         )
@@ -346,7 +346,7 @@ kb_retract_entity(Id, Type, AuditProps) :-
     kb_graph(Graph),
     with_kb_mutex((
         % Create entity URI
-        atom_concat('kb:entity/', Id, EntityURI),
+        entity_id_to_uri(Id, EntityURI),
         % Remove all triples for this entity
         rdf_retractall(EntityURI, _, _, Graph),
         % Log to audit
@@ -384,8 +384,8 @@ kb_entity(Id, Type, Props) :-
     % Find entity by pattern - use unquoted namespace term kb:type
     (   var(Id)
     ->  rdf(EntityURI, kb:type, TypeLiteral, Graph),
-        atom_concat('kb:entity/', Id, EntityURI)
-    ;   atom_concat('kb:entity/', Id, EntityURI),
+        entity_uri_to_id(EntityURI, Id)
+    ;   entity_id_to_uri(Id, EntityURI),
         rdf(EntityURI, kb:type, TypeLiteral, Graph)
     ),
     % Extract type - convert string literal to atom
@@ -483,8 +483,8 @@ kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     % Execute RDF operations with mutex protection
     with_kb_mutex((
         % Create entity URIs
-        atom_concat('kb:entity/', FromId, FromURI),
-        atom_concat('kb:entity/', ToId, ToURI),
+        entity_id_to_uri(FromId, FromURI),
+        entity_id_to_uri(ToId, ToURI),
         % Create relationship property URI (full URI to match saved/loaded RDF)
         kb_uri(BaseURI),
         atom_concat(BaseURI, RelType, RelURI),
@@ -567,13 +567,44 @@ kb_relationship(RelType, FromId, ToId) :-
     % Create relationship property URI (full URI to match loaded RDF)
     kb_uri(BaseURI),
     atom_concat(BaseURI, RelType, RelURI),
-    % Find matching relationships
+    kb_relationship_with_reluri(RelURI, Graph, FromId, ToId).
+
+kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
+    nonvar(FromId), nonvar(ToId), !,
+    entity_id_to_uri(FromId, FromURI),
+    entity_id_to_uri(ToId, ToURI),
+    rdf(FromURI, RelURI, ToURI, Graph).
+kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
+    nonvar(FromId), var(ToId), !,
+    entity_id_to_uri(FromId, FromURI),
     rdf(FromURI, RelURI, ToURI, Graph),
-    % Extract IDs from URIs
-    atom_concat('kb:entity/', FromId, FromURI),
-    atom_concat('kb:entity/', ToId, ToURI).
+    entity_uri_to_id(ToURI, ToId).
+kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
+    var(FromId), nonvar(ToId), !,
+    entity_id_to_uri(ToId, ToURI),
+    rdf(FromURI, RelURI, ToURI, Graph),
+    entity_uri_to_id(FromURI, FromId).
+kb_relationship_with_reluri(RelURI, Graph, FromId, ToId) :-
+    rdf(FromURI, RelURI, ToURI, Graph),
+    entity_uri_to_id(FromURI, FromId),
+    entity_uri_to_id(ToURI, ToId).
 
 % Helper predicates
+
+%% entity_id_to_uri(+Id, -URI)
+% Build the canonical entity URI used for RDF read/write.
+entity_id_to_uri(Id, URI) :-
+    format(atom(URI), 'kb:entity/~w', [Id]).
+
+%% entity_uri_to_id(+URI, -Id)
+% Extract entity ID from canonical or legacy entity URIs.
+entity_uri_to_id(URI, Id) :-
+    (   kb_uri(BaseURI),
+        atom_concat(BaseURI, 'entity/', Prefix),
+        atom_concat(Prefix, Id, URI)
+    ->  true
+    ;   atom_concat('kb:entity/', Id, URI)
+    ).
 
 %% store_property(+EntityURI, +Key, +Value, +Graph)
 % Store a property as an RDF triple with appropriate datatype.
