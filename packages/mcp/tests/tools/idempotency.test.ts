@@ -9,34 +9,34 @@ import {
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "kibi-cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
+import {
+  attachTestKb,
+  createTestKbDir,
+  detachTestKb,
+  startIntegrationProlog,
+  stopIntegrationProlog,
+} from "../helpers/integration-prolog.js";
 
 describe("KB Relationship Idempotency", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-
-    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-idempotency-"));
+    prolog = await startIntegrationProlog();
+    testKbPath = await createTestKbDir("kibi-idempotency-");
   });
 
   beforeEach(async () => {
+    await detachTestKb(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
-    await prolog.query(`kb_attach('${testKbPath}')`);
+    await attachTestKb(prolog, testKbPath);
   });
 
   afterAll(async () => {
-    if (prolog?.isRunning()) {
-      await prolog.query("kb_detach");
-      await prolog.terminate();
-    }
+    await stopIntegrationProlog(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 

@@ -138,6 +138,21 @@ export function isMeaningfulTrackedPath(candidate: string): boolean {
   return false;
 }
 
+/** Paths whose edits should trigger a KB freshness stop follow-up. */
+export function isKbFreshnessRelevantPath(candidate: string): boolean {
+  const segments = pathSegments(normalizePath(candidate));
+
+  if (segments.includes("documentation")) {
+    return true;
+  }
+
+  return (
+    segments[0] === "packages" &&
+    segments[1] === "core" &&
+    segments[2] === "src"
+  );
+}
+
 export function isDocumentationTrackedPath(candidate: string): boolean {
   const normalized = normalizePath(candidate);
   const segments = pathSegments(normalized);

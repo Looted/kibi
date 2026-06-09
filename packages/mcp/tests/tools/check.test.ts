@@ -18,44 +18,41 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { PrologProcess } from "kibi-cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbCheck } from "../../src/tools/check.js";
 import { resolveCorePlPath } from "../../src/tools/core-module.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
+import {
+  attachTestKb,
+  createTestKbDir,
+  detachTestKb,
+  startIntegrationProlog,
+  stopIntegrationProlog,
+} from "../helpers/integration-prolog.js";
 
 describe("MCP Check Tool Handler", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
+    prolog = await startIntegrationProlog();
   });
 
   beforeEach(async () => {
-    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-check-"));
-    const attachResult = await prolog.query(`kb_attach('${testKbPath}')`);
+    testKbPath = await createTestKbDir("kibi-mcp-check-");
+    const attachResult = await attachTestKb(prolog, testKbPath);
     expect(attachResult.success).toBe(true);
   });
 
   afterEach(async () => {
-    if (prolog?.isRunning()) {
-      await prolog.query("kb_detach");
-    }
+    await detachTestKb(prolog);
     if (testKbPath) {
       await fs.rm(testKbPath, { recursive: true, force: true });
     }
   });
 
   afterAll(async () => {
-    if (prolog?.isRunning()) {
-      await prolog.query("kb_detach");
-      await prolog.terminate();
-    }
+    await stopIntegrationProlog(prolog);
   });
 
   test("should return no violations for empty KB", async () => {
