@@ -430,12 +430,24 @@ kb_assert_relationship(RelType, FromId, ToId, Metadata) :-
 % leave partial audit residue.
 kb_assert_relationship_no_audit(RelType, FromId, ToId, _Metadata) :-
     kb_graph(Graph),
-    % Validate entities exist and relationship is valid
-    % Use once/1 to keep this predicate deterministic even if the store
-    % contains duplicate type triples from previous versions.
-    once(kb_entity(FromId, FromType, _)),
-    once(kb_entity(ToId, ToType, _)),
-    validate_relationship(RelType, FromType, ToType),
+    % Validate source entity exists
+    (   once(kb_entity(FromId, FromType, _))
+    ->  true
+    ;   throw(error(existence_error(entity, FromId),
+                context(kb_assert_relationship, 'Source entity does not exist')))
+    ),
+    % Validate target entity exists
+    (   once(kb_entity(ToId, ToType, _))
+    ->  true
+    ;   throw(error(existence_error(entity, ToId),
+                context(kb_assert_relationship, 'Target entity does not exist')))
+    ),
+    % Validate relationship type and direction
+    (   validate_relationship(RelType, FromType, ToType)
+    ->  true
+    ;   throw(error(type_error(relationship, RelType),
+                context(kb_assert_relationship, 'Invalid relationship: ~w from ~w to ~w'-[RelType, FromType, ToType])))
+    ),
     validate_symbol_role_compatibility(RelType, FromId, ToId),
     % NOTE: Strict-lane fact_kind pairing is validated at the MCP layer
     % via validateStrictLanePairing() before the transaction begins.
