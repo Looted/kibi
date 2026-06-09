@@ -12,6 +12,7 @@ graph TD
     KB -->|Query| CLI[CLI]
     KB -->|Query| MCP[MCP Server]
     CC[kibi-codex (optional plugin)] -->|calls| MCP
+    CU[kibi-cursor (optional plugin)] -->|calls| MCP
     MCP -->|Tooling| VSCode[VS Code Extension]
     CLI -->|Git Hooks| GH[Git Hooks]
     GH -->|post-checkout/post-merge| KB
@@ -50,6 +51,13 @@ graph TD
 - Located at `packages/codex/`
 - Optional package that provides a Codex plugin manifest, skill bundle, and lifecycle hooks
 - Points Codex MCP wiring to the local `kibi-mcp` server
+- Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
+
+### Cursor Adapter Plugin
+- Located at `packages/cursor/`
+- Optional package that provides a Cursor plugin manifest, rules, skills, commands, MCP config, and editor hooks
+- Points Cursor MCP wiring to the local `kibi-mcp` server
+- Uses Cursor-specific hooks (`sessionStart`, `preToolUse`, `postToolUse`, `beforeReadFile`, `stop`) for read/write guidance and freshness follow-ups
 - Provides optional reminders and advisories only; it does not replace `kibi-core`, `kibi-cli`, or `kibi-mcp`
 
 > **Entity Modeling:** `flag` entities represent runtime/config gates. Bug and workaround notes belong in `fact` entities with `fact_kind: observation` or `meta`. **Strict facts** drive contradiction checks; observation/meta are non-blocking notes. See [Entity Schema](entity-schema.md). `domain-contradictions` applies to strict lane; `strict-fact-shape` is a default-off migration check.

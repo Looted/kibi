@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js"
+      }
+    ],
+    "postToolUse": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js"
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node packages/cursor/dist/hook-runner.js",
+        "loop_limit": 1
+      }
+    ]
+  }
+}
