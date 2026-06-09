@@ -280,8 +280,18 @@ kb_assert_entity_no_audit(Type, Props) :-
     with_kb_mutex((
         % Create entity URI using prefix notation for namespace expansion
         format(atom(EntityURI), 'kb:entity/~w', [Id]),
-        % Upsert semantics: remove any existing triples for this entity first.
-        rdf_retractall(EntityURI, _, _, Graph),
+        % Upsert semantics: remove only property triples, preserving relationships.
+        % Relationship triples have entity URI objects (kb:entity/...);
+        % property triples have typed literal objects (_^^xsd:...).
+        forall(
+            (   rdf(EntityURI, Prop, Obj, Graph),
+                (   atom(Obj)
+                ->  \+ atom_concat('kb:entity/', _, Obj)
+                ;   true
+                )
+            ),
+            rdf_retractall(EntityURI, Prop, Obj, Graph)
+        ),
         % Store type as string literal to prevent URI interpretation
         atom_string(Type, TypeStr),
         rdf_assert(EntityURI, kb:type, TypeStr^^'http://www.w3.org/2001/XMLSchema#string', Graph),
