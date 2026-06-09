@@ -163,26 +163,86 @@ describe("Cursor hook runner", () => {
     expect(result.additional_context).toContain("Kibi write guidance");
   });
 
-  test("stop returns freshness follow-up once and clears tracked paths", async () => {
+  test("stop returns a short freshness follow-up once and clears tracked paths", async () => {
     const pluginData = createTempRoot("kibi-cursor-data-");
     tempRoots.push(pluginData);
     await runHook(
       {
         hook_event_name: "postToolUse",
         tool_name: "Write",
-        tool_input: { file_path: "docs/cursor.md" },
+        tool_input: { file_path: "documentation/requirements/REQ-cursor.md" },
       },
       { pluginData },
     );
 
     const result = await runHook({ hook_event_name: "stop" }, { pluginData });
 
-    expect(result.followup_message).toContain("Kibi freshness reminder");
-    expect(result.followup_message).toContain("docs/cursor.md");
+    expect(result.followup_message).toBe(
+      "Kibi: sync or record no-impact after 1 edited file.",
+    );
     expect(loadHookState(pluginData).dirtyPaths).toEqual([]);
     expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
       {},
     );
+  });
+
+  test("stop stays quiet for test-only edits", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/mcp/tests/tools/check.test.ts" },
+      },
+      { pluginData },
+    );
+
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+  });
+
+  test("stop stays quiet after kb_check even when source files changed", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "CallMcpTool",
+        tool_input: { toolName: "kb_check" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "Write",
+        tool_input: { file_path: "packages/core/src/kb.pl" },
+      },
+      { pluginData },
+    );
+
+    expect(await runHook({ hook_event_name: "stop" }, { pluginData })).toEqual(
+      {},
+    );
+  });
+
+  test("stop summarizes KB mutations briefly", async () => {
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        hook_event_name: "postToolUse",
+        tool_name: "kb_upsert",
+        tool_input: { type: "fact", id: "FACT-001" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook({ hook_event_name: "stop" }, { pluginData });
+
+    expect(result.followup_message).toBe("Kibi KB updated (kb_upsert).");
   });
 
   test("unknown hook events return empty output", async () => {

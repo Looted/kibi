@@ -6,18 +6,20 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
+import { extractKbMcpToolName } from "./kb-mcp-tools.js";
 import {
   addDirtyPaths,
-  clearDirtyPaths,
+  clearSessionHookState,
   hasGuidedPath,
   loadHookState,
+  recordKbMcpTool,
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
-  freshnessReminder,
+  stopFollowupMessage,
 } from "./messages.js";
 import {
   extractExplicitPathFields,
@@ -140,6 +142,11 @@ export async function runHook(
     }
 
     case "postToolUse": {
+      const kbToolName = extractKbMcpToolName(input.toolName, input.toolInput);
+      if (kbToolName) {
+        recordKbMcpTool(stateDir, kbToolName);
+      }
+
       const explicitPaths = extractExplicitPathFields(input.toolInput);
       const dirtyPaths = explicitPaths
         .map((candidate) => toRepoRelativePath(candidate, cwd))
@@ -190,11 +197,18 @@ export async function runHook(
 
     case "stop": {
       const state = loadHookState(stateDir);
-      if (state.dirtyPaths.length > 0) {
-        clearDirtyPaths(stateDir);
-        return {
-          followup_message: freshnessReminder(state.dirtyPaths),
-        };
+      const followupMessage = stopFollowupMessage(state);
+      if (followupMessage) {
+        clearSessionHookState(stateDir);
+        return { followup_message: followupMessage };
+      }
+
+      if (
+        state.dirtyPaths.length > 0 ||
+        state.kbMutationTools.length > 0 ||
+        state.kbCheckRun
+      ) {
+        clearSessionHookState(stateDir);
       }
 
       return emptyResult();

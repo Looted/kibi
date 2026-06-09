@@ -8,43 +8,39 @@ import {
   test,
 } from "bun:test";
 
-// One-shot mode spawns a fresh swipl process per query (~1-1.5s each).
-// Tests with 4+ sequential upserts exceed the default 5s timeout.
 setDefaultTimeout(30_000);
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "kibi-cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbQuery } from "../../src/tools/query.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
+import {
+  attachTestKb,
+  createTestKbDir,
+  detachTestKb,
+  startIntegrationProlog,
+  stopIntegrationProlog,
+} from "../helpers/integration-prolog.js";
 
 describe("MCP Upsert Contradictions and Typed Facts", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-
-    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-upsert-"));
+    prolog = await startIntegrationProlog();
+    testKbPath = await createTestKbDir("kibi-mcp-upsert-");
   });
 
   beforeEach(async () => {
-    // Detach first to avoid "No permission to attach" on test 2+
-    await prolog.query("kb_detach").catch(() => {});
+    await detachTestKb(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
-    await prolog.query(`kb_attach('${testKbPath}')`);
+    await attachTestKb(prolog, testKbPath);
   });
 
   afterAll(async () => {
-    if (prolog?.isRunning()) {
-      await prolog.query("kb_detach");
-      await prolog.terminate();
-    }
+    await stopIntegrationProlog(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
