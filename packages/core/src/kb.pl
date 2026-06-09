@@ -1282,8 +1282,8 @@ symbol_has_req_coverage(Symbol, Req) :-
     production_symbol_covered_for_requirement(Symbol, Req).
 
 test_covers_requirement(Test, Req) :-
-    requirement_test_fallback_allowed(Req),
     requirement_verified_by_test(Req, Test),
+    requirement_test_fallback_allowed(Req),
     test_satisfies_requirement_semantics(Test, Req).
 test_covers_requirement(Test, Req) :-
     kb_relationship(specified_by, Req, Scenario),
