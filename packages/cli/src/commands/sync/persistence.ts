@@ -104,12 +104,13 @@ export interface PersistenceResult {
 
 function isQueryFailedError(error: string): boolean {
   const lowered = error.toLowerCase();
+  // Only match session-corruption errors that might benefit from a Prolog process restart.
+  // Data errors (entity missing, invalid relationship) are deterministic and should NOT
+  // trigger a restart — the error would persist and the restart would lose kb_attach state.
   return (
     lowered.includes("query failed") ||
     lowered.includes("query returned false") ||
-    lowered.includes("predicate or file not found") ||
-    lowered.includes("entity does not exist") ||
-    lowered.includes("invalid relationship")
+    lowered.includes("predicate or file not found")
   );
 }
 

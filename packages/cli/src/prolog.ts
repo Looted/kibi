@@ -307,10 +307,17 @@ export class PrologProcess {
                 `[prolog debug] query failed (false): ${normalizedGoal}`,
               );
             }
+            // Check errorBuffer first — Prolog catch/3 writes ERROR to stderr
+            // then fail to stdout. If stderr has the real error, surface it.
+            const errorMessage =
+              this.errorBuffer.length > 0 &&
+              this.errorBuffer.includes("ERROR")
+                ? this.translateError(this.errorBuffer)
+                : "Query failed";
             resolve({
               success: false,
               bindings: {},
-              error: "Query failed",
+              error: errorMessage,
             });
             return;
           }
