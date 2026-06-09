@@ -1,5 +1,28 @@
 # kibi-mcp
 
+## 0.17.3
+
+### Patch Changes
+
+- 5119f39: **Fix stale KB state in `kb_check` after runtime upserts.**
+
+  Previously, after `kb_upsert` wrote runtime relationships and called `kb_save`, the MCP session's TypeScript-side `attachedBranchStamp` was not updated to match the new disk state. When `kb_check` (or any other tool) subsequently called `ensureProlog()`, it detected a stamp mismatch and triggered a `kb_detach` → `kb_attach` refresh cycle. This reload unloaded the in-memory RDF graph and reloaded `kb.rdf` from disk — but because the TypeScript stamp was stale, the reload happened even though the disk already contained the runtime relationships. In environments where background syncs or other processes could modify `kb.rdf`, this caused `kb_check` to evaluate against an outdated snapshot instead of the live KB state.
+
+  **Changes:**
+
+  - **`packages/mcp/src/server/session.ts`**: Export `attachedBranchKbPath` and add `updateAttachedBranchStamp()` so mutation tools can keep the session stamp in sync after saves.
+  - **`packages/mcp/src/tools/upsert.ts`**: After `kb_save` succeeds, read the fresh disk stamp via `readBranchKbStamp` and update the session stamp. This prevents the next `ensureProlog()` call from triggering an unnecessary (and potentially destructive) refresh.
+  - **`packages/mcp/src/tools/check.ts`**: Add `prolog.invalidateCache()` at the start of `handleKbCheck`, aligning read-only check behavior with `kb_graph` and ensuring no stale query cache interferes with violation detection.
+
+- 53447ac: fix: prevent relationship loss on entity-only property updates in kibi-mcp
+
+  When `kb_upsert` omits the relationships field (entity-only property update), existing relationships were silently lost because the handler only processed the provided relationship array. Now the handler queries the live KB for existing relationships when the field is not provided and includes them in the transaction, preventing accidental relationship deletion on property-only updates.
+
+  Also fixes a syntax error in `fetchExistingRelationships` caused by incorrect indentation of the for loop body, which prevented compilation on Bun's indent-aware parser.
+
+- Updated dependencies
+  - kibi-core@0.6.3
+
 ## 0.17.2
 
 ### Patch Changes
