@@ -214,8 +214,8 @@ export class PrologProcess {
       const debug = isPrologDebugEnabled();
       const normalizedGoal = this.normalizeGoal(goal as string);
       const wrappedGoal = /^once\s*\(/.test(normalizedGoal)
-        ? normalizedGoal
-        : `once((${normalizedGoal}))`;
+        ? `catch(${normalizedGoal}, _E, (print_message(error, _E), fail))`
+        : `catch(once((${normalizedGoal})), _E, (print_message(error, _E), fail))`;
       const start = Date.now();
 
       if (debug) {
@@ -551,10 +551,33 @@ export class PrologProcess {
 
   private translateError(errorText: string): string {
     if (
+      errorText.includes("existence_error(entity,")
+    ) {
+      // Extract the entity ID from the error message
+      const entityIdMatch = errorText.match(/existence_error\(entity,\s*([^)]+)\)/);
+      const entityId = entityIdMatch ? entityIdMatch[1] : "unknown";
+      // Determine if it's source or target from the context
+      if (errorText.includes("Source entity does not exist")) {
+        return `Source entity does not exist: ${entityId}`;
+      }
+      if (errorText.includes("Target entity does not exist")) {
+        return `Target entity does not exist: ${entityId}`;
+      }
+      return `Entity does not exist: ${entityId}`;
+    }
+    if (
       errorText.includes("existence_error") ||
       errorText.includes("Unknown procedure")
     ) {
       return "Predicate or file not found";
+    }
+    if (errorText.includes("type_error(relationship")) {
+      // Extract relationship validation details
+      const relMatch = errorText.match(/Invalid relationship:\s*(.+)/);
+      if (relMatch) {
+        return `Invalid relationship: ${relMatch[1]!.trim()}`;
+      }
+      return "Invalid relationship type or direction";
     }
     if (errorText.includes("permission_error")) {
       return "Access denied or KB locked";

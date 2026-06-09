@@ -107,7 +107,9 @@ function isQueryFailedError(error: string): boolean {
   return (
     lowered.includes("query failed") ||
     lowered.includes("query returned false") ||
-    lowered.includes("predicate or file not found")
+    lowered.includes("predicate or file not found") ||
+    lowered.includes("entity does not exist") ||
+    lowered.includes("invalid relationship")
   );
 }
 
@@ -345,9 +347,25 @@ export async function persistRelationships(
         console.warn(`    Error: ${error}`);
       }
     }
-    console.warn(
-      "\nTip: Ensure target entities exist before creating relationships.",
+    const missingEntities = failedRelationships.filter(
+      ({ error }) => error.includes("entity does not exist"),
     );
+    const invalidRels = failedRelationships.filter(
+      ({ error }) => error.includes("Invalid relationship"),
+    );
+    if (missingEntities.length > 0) {
+      console.warn(
+        `\nTip: ${missingEntities.length} relationship(s) reference entities that don't exist. Create the missing entities first or remove the stale relationships.`,
+      );
+    } else if (invalidRels.length > 0) {
+      console.warn(
+        "\nTip: Check that relationship types and directions match the allowed schema (e.g., implements symbol→req, verified_by req→test).",
+      );
+    } else {
+      console.warn(
+        "\nTip: Ensure target entities exist before creating relationships.",
+      );
+    }
   }
 
   return { relationshipCount: relCount, kbModified };
