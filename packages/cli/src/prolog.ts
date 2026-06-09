@@ -550,34 +550,35 @@ export class PrologProcess {
   }
 
   private translateError(errorText: string): string {
-    if (
-      errorText.includes("existence_error(entity,")
-    ) {
-      // Extract the entity ID from the error message
-      const entityIdMatch = errorText.match(/existence_error\(entity,\s*([^)]+)\)/);
-      const entityId = entityIdMatch ? entityIdMatch[1] : "unknown";
-      // Determine if it's source or target from the context
-      if (errorText.includes("Source entity does not exist")) {
-        return `Source entity does not exist: ${entityId}`;
-      }
+    // SWI-Prolog print_message/2 formats errors as human-readable messages,
+    // not raw Prolog terms. Match the actual output format.
+    if (errorText.includes("entity '") && errorText.includes("' does not exist")) {
+      // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
+      const entityIdMatch = errorText.match(/entity [`'"]+(.+?)[`'"]+ does not exist/);
+      const entityId = entityIdMatch
+        ? entityIdMatch[1]!.replace(/^`?'+|'+`?$/g, "")
+        : "unknown";
       if (errorText.includes("Target entity does not exist")) {
         return `Target entity does not exist: ${entityId}`;
       }
+      if (errorText.includes("Source entity does not exist")) {
+        return `Source entity does not exist: ${entityId}`;
+      }
       return `Entity does not exist: ${entityId}`;
     }
+    if (errorText.includes("Type error: `relationship' expected")) {
+      const relMatch = errorText.match(/\(Invalid relationship: ([^)]+)\)/);
+      if (relMatch) {
+        return `Invalid relationship: ${relMatch[1]!.trim()}`;
+      }
+      return "Invalid relationship type or direction";
+    }
+    // Fallback: check for raw Prolog error terms (used by other tools)
     if (
       errorText.includes("existence_error") ||
       errorText.includes("Unknown procedure")
     ) {
       return "Predicate or file not found";
-    }
-    if (errorText.includes("type_error(relationship")) {
-      // Extract relationship validation details
-      const relMatch = errorText.match(/Invalid relationship:\s*(.+)/);
-      if (relMatch) {
-        return `Invalid relationship: ${relMatch[1]!.trim()}`;
-      }
-      return "Invalid relationship type or direction";
     }
     if (errorText.includes("permission_error")) {
       return "Access denied or KB locked";
@@ -591,7 +592,6 @@ export class PrologProcess {
     if (errorText.includes("timeout_error")) {
       return `Operation exceeded ${this.timeout / 1000}s timeout`;
     }
-
     const simpleError = (
       errorText
         .replace(/ERROR:\s*/g, "")
@@ -599,7 +599,6 @@ export class PrologProcess {
         .replace(/^\s+/gm, "")
         .split("\n")[0] ?? ""
     ).trim();
-
     return simpleError || "Unknown error";
   }
 
