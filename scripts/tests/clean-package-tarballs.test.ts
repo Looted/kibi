@@ -38,6 +38,7 @@ function makeTempRepo(): string {
     "packages/mcp",
     "packages/opencode",
     "packages/codex",
+    "packages/cursor",
   ]) {
     mkdirSync(join(root, dir), { recursive: true });
   }

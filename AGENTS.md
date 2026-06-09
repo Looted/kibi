@@ -107,14 +107,14 @@ Requirement semantic evolution is append-only:
 
 ## Release & Versioning Rules (npm packages)
 
-Applies when changing publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`).
+Applies when changing publishable packages (`kibi-core`, `kibi-cli`, `kibi-mcp`, `kibi-opencode`, `kibi-codex`, `kibi-cursor`).
 
 - Add a changeset as part of the same work.
 - Use Conventional Commits.
 - Do not publish manually (`npm publish` forbidden).
 - Run `bun run version-packages` on `develop` (or pre-merge flow targeting develop).
 - Do not merge `master` back into `develop`.
-- After version/wiring changes used by local dogfooding, run `bun run build`.
+- After version/wiring changes used by local dogfooding, run `bun run build`. For Cursor dogfood in this repo, also run `bun run sync:cursor-dogfood`.
 
 ### Changeset writing rule: human-readable first
 

@@ -1,0 +1,58 @@
+{
+  "name": "kibi-cursor",
+  "version": "0.2.0",
+  "description": "Kibi Cursor plugin - thin adapter for Cursor MCP integration and editor hooks",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    ".cursor-plugin",
+    "mcp.json",
+    "hooks",
+    "skills",
+    "rules",
+    "commands",
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Looted/kibi.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && bun run scripts/copy-plugin-assets.ts",
+    "dev": "tsc -p tsconfig.json --watch",
+    "clean": "rm -rf dist",
+    "prepack": "npm run build"
+  },
+  "peerDependencies": {
+    "kibi-cli": ">=0.12.0 <1",
+    "kibi-mcp": ">=0.12.0 <1"
+  },
+  "peerDependenciesMeta": {
+    "kibi-cli": {
+      "optional": true
+    },
+    "kibi-mcp": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "typescript": "^5.7.0"
+  }
+}

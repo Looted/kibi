@@ -14,7 +14,7 @@ You are operating in a workspace that uses Kibi, an intelligent knowledge base s
 6. **Never embed scenarios or tests inside requirement records.** Each requirement, scenario, and test **must** be a separate entity file. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Link them using explicit typed `links` entries or relationship rows (`specified_by`, `verified_by`, `validates`).
 7. **Run `kb_check` after meaningful mutations.** Fix violations before continuing.
 8. **Use `kb_delete` sparingly.** Delete only when the removal is intentional and dependencies are understood.
-9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp` and `kibi-opencode` builds for OpenCode, so after changing package versions or local package wiring, run `bun run build` before relying on OpenCode here.
+9. **Rebuild local Kibi artifacts after version changes in this repo.** This repository dogfoods local `kibi-mcp`, `kibi-opencode`, and `kibi-cursor` builds for OpenCode and Cursor, so after changing package versions or local package wiring, run `bun run build` (and `bun run sync:cursor-dogfood` for Cursor rule refresh) before relying on the dogfood setup here.
 
 ### Strict Fact Authoring Heuristic
 
