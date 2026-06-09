@@ -552,7 +552,7 @@ export class PrologProcess {
   private translateError(errorText: string): string {
     // SWI-Prolog print_message/2 formats errors as human-readable messages,
     // not raw Prolog terms. Match the actual output format.
-    if (errorText.includes("entity '") && errorText.includes("' does not exist")) {
+    if (errorText.includes('does not exist') && /entity [`'"].+?[`'"]/ .test(errorText)) {
       // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
       const entityIdMatch = errorText.match(/entity [`'"]+(.+?)[`'"]+ does not exist/);
       const entityId = entityIdMatch
