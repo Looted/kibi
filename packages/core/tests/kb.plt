@@ -642,6 +642,57 @@ test(production_symbol_coverage_helper_rejects_direct_req_test_fallback_when_sce
     kb_assert_relationship(covered_by, 'sym-scenario-helper', 'test-scenario-helper', []),
     \+ production_symbol_covered_for_requirement('sym-scenario-helper', 'req-scenario-helper').
 
+test(production_symbol_coverage_works_with_unbound_req_when_other_reqs_have_scenarios, [setup(setup_kb), cleanup(cleanup_kb), nondet]) :-
+    kb_assert_entity(req, [
+        id='req-with-scenario',
+        title="Decoy Req With Scenario",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(scenario, [
+        id='scen-decoy',
+        title="Decoy Scenario",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(specified_by, 'req-with-scenario', 'scen-decoy', []),
+    kb_assert_entity(req, [
+        id='req-fallback',
+        title="Req Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt",
+        priority=must
+    ]),
+    kb_assert_entity(test, [
+        id='test-fallback',
+        title="Test Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_entity(symbol, [
+        id='sym-fallback',
+        title="Sym Fallback",
+        status=active,
+        created_at="2026-02-17T00:00:00Z",
+        updated_at="2026-02-17T00:00:00Z",
+        source="test://kb.plt"
+    ]),
+    kb_assert_relationship(verified_by, 'req-fallback', 'test-fallback', []),
+    kb_assert_relationship(covered_by, 'sym-fallback', 'test-fallback', []),
+    production_symbol_covered_for_requirement('sym-fallback', _),
+    \+ symbol_no_req_coverage('sym-fallback', _),
+    check_symbol_coverage(Violations),
+    \+ member(violation('symbol-coverage', 'sym-fallback', _, _, _), Violations).
+
 test(symbol_coverage_accepts_direct_req_test_fallback_without_scenario, [setup(setup_kb), cleanup(cleanup_kb)]) :-
     kb_assert_entity(req, [
         id='req-direct-fallback',
