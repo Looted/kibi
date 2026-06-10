@@ -7,11 +7,10 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import {
-  PrologProcess,
-  type PrologOptions,
-  type QueryResult,
-} from "kibi-cli/prolog";
+import { PrologProcess } from "kibi-cli/prolog";
+
+type PrologOptions = ConstructorParameters<typeof PrologProcess>[0];
+type QueryResult = Awaited<ReturnType<PrologProcess["query"]>>;
 
 export function createIntegrationProlog(
   options: PrologOptions = {},
