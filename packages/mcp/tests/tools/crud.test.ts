@@ -9,36 +9,37 @@ import {
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { PrologProcess } from "kibi-cli/prolog";
+import type { PrologProcess } from "kibi-cli/prolog";
 import { handleKbDelete } from "../../src/tools/delete.js";
 import { handleKbQuery } from "../../src/tools/query.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
+import {
+  attachTestKb,
+  createIntegrationProlog,
+  createTestKbDir,
+  detachTestKb,
+  startIntegrationProlog,
+  stopIntegrationProlog,
+} from "../helpers/integration-prolog.js";
 
 describe("MCP CRUD Tool Handlers", () => {
   let prolog: PrologProcess;
   let testKbPath: string;
 
   beforeAll(async () => {
-    prolog = new PrologProcess();
-    await prolog.start();
-    await prolog.query(
-      "set_prolog_flag(answer_write_options, [max_depth(0), spacing(next_argument)])",
-    );
-
-    testKbPath = await fs.mkdtemp(path.join(os.tmpdir(), "kibi-mcp-crud-"));
+    prolog = await startIntegrationProlog();
+    testKbPath = await createTestKbDir("kibi-mcp-crud-");
   });
 
   beforeEach(async () => {
+    await detachTestKb(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
     await fs.mkdir(testKbPath, { recursive: true });
-    await prolog.query(`kb_attach('${testKbPath}')`);
+    await attachTestKb(prolog, testKbPath);
   });
 
   afterAll(async () => {
-    if (prolog?.isRunning()) {
-      await prolog.query("kb_detach");
-      await prolog.terminate();
-    }
+    await stopIntegrationProlog(prolog);
     await fs.rm(testKbPath, { recursive: true, force: true });
   });
 
@@ -336,10 +337,10 @@ describe("MCP CRUD Tool Handlers", () => {
       await prolog.query("kb_save");
       await prolog.query("kb_detach");
 
-      const restarted = new PrologProcess();
+      const restarted = createIntegrationProlog();
       try {
         await restarted.start();
-        const attach = await restarted.query(`kb_attach('${testKbPath}')`);
+        const attach = await attachTestKb(restarted, testKbPath);
         expect(attach.success).toBe(true);
 
         const byId = await handleKbQuery(restarted, { id: reqId });

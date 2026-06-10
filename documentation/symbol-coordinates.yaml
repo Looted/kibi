@@ -1943,27 +1943,27 @@ coordinates:
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
     sourceEndColumn: 164
-    sourceEndLine: 3
-    sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 2
-  SYM-cursor-CursorHookResult:
-    sourceColumn: 12
-    sourceEndColumn: 2
-    sourceEndLine: 35
-    sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 29
-  SYM-cursor-DIRECT_KB_EDIT_WARNING:
-    sourceColumn: 13
-    sourceEndColumn: 112
     sourceEndLine: 6
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 5
+  SYM-cursor-CursorHookResult:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 37
+    sourceFile: packages/cursor/src/hook-runner.ts
+    sourceLine: 31
+  SYM-cursor-DIRECT_KB_EDIT_WARNING:
+    sourceColumn: 13
+    sourceEndColumn: 112
+    sourceEndLine: 9
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 8
   SYM-cursor-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 39
+    sourceEndLine: 41
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 37
+    sourceLine: 39
   SYM-cursor-HookEvent:
     sourceColumn: 12
     sourceEndColumn: 11
@@ -1979,7 +1979,7 @@ coordinates:
   SYM-cursor-HookState:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 19
+    sourceEndLine: 21
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 15
   SYM-cursor-adapterKind:
@@ -1991,39 +1991,51 @@ coordinates:
   SYM-cursor-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 252
+    sourceEndLine: 264
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 242
+    sourceLine: 254
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 302
+    sourceEndLine: 344
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 290
+    sourceLine: 342
+  SYM-cursor-clearSessionHookState:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 339
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 329
   SYM-cursor-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
     sourceEndLine: 101
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 97
+  SYM-cursor-extractKbMcpToolName:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 20
   SYM-cursor-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 19
+    sourceEndLine: 32
     sourceFile: packages/cursor/src/messages.ts
-    sourceLine: 8
+    sourceLine: 28
   SYM-cursor-hasGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 288
+    sourceEndLine: 300
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 279
+    sourceLine: 291
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 229
+    sourceEndLine: 243
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 229
+    sourceLine: 243
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2033,9 +2045,15 @@ coordinates:
   SYM-cursor-isDocumentationTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
+    sourceEndLine: 169
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 156
+  SYM-cursor-isKbFreshnessRelevantPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
     sourceEndLine: 154
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 141
+    sourceLine: 142
   SYM-cursor-isMeaningfulTrackedPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2045,9 +2063,9 @@ coordinates:
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 196
+    sourceEndLine: 208
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 184
+    sourceLine: 196
   SYM-cursor-packageName:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -2078,42 +2096,54 @@ coordinates:
     sourceEndLine: 104
     sourceFile: packages/cursor/src/hook-input.ts
     sourceLine: 96
+  SYM-cursor-recordKbMcpTool:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 327
+    sourceFile: packages/cursor/src/hook-state.ts
+    sourceLine: 302
   SYM-cursor-rememberGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 277
+    sourceEndLine: 289
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 254
+    sourceLine: 266
   SYM-cursor-resolveStateDir:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 182
+    sourceEndLine: 194
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 165
+    sourceLine: 177
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 206
+    sourceEndLine: 220
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 86
+    sourceLine: 88
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 211
+    sourceEndLine: 223
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 198
+    sourceLine: 210
+  SYM-cursor-stopFollowupMessage:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 11
   SYM-cursor-toRepoRelativePath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 171
+    sourceEndLine: 186
     sourceFile: packages/cursor/src/path-policy.ts
-    sourceLine: 156
+    sourceLine: 171
   SYM-cursor-updateHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 240
+    sourceEndLine: 252
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 213
+    sourceLine: 225
   SYM-cursor-writeGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2606,6 +2636,30 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-mcp-attachTestKb:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 49
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 44
+  SYM-mcp-createIntegrationProlog:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 22
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 16
+  SYM-mcp-createTestKbDir:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 42
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 40
+  SYM-mcp-detachTestKb:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 55
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 51
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39
@@ -2666,6 +2720,18 @@ coordinates:
     sourceEndLine: 104
     sourceFile: packages/mcp/src/server/session.ts
     sourceLine: 99
+  SYM-mcp-startIntegrationProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 24
+  SYM-mcp-stopIntegrationProlog:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 64
+    sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
+    sourceLine: 57
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1

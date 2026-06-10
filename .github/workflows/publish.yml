@@ -91,6 +91,8 @@ jobs:
         run: bun run build:mcp
       - name: Build Codex plugin package
         run: bun run build:codex
+      - name: Build Cursor plugin package
+        run: bun run build:cursor
       - name: Build and package VS Code extension
         run: bun run --cwd packages/vscode package
       - name: Clean stale tarballs
@@ -102,6 +104,7 @@ jobs:
           cd ../mcp && npm pack
           cd ../opencode && npm pack
           cd ../codex && npm pack
+          cd ../cursor && npm pack
       - name: Upload package tarballs
         uses: actions/upload-artifact@v6
         with:
@@ -112,6 +115,7 @@ jobs:
             packages/mcp/*.tgz
             packages/opencode/*.tgz
             packages/codex/*.tgz
+            packages/cursor/*.tgz
           retention-days: 1
       - name: Upload VS Code extension VSIX
         uses: actions/upload-artifact@v6

@@ -16,6 +16,8 @@ export type HookState = {
   dirtyPaths: string[];
   guidedReadPaths: string[];
   guidedWritePaths: string[];
+  kbMutationTools: string[];
+  kbCheckRun: boolean;
 };
 
 function statePath(pluginData: string): string {
@@ -58,14 +60,15 @@ function mergeStringPaths(
   return [...new Set(merged)].slice(-maxGuidedPaths);
 }
 
-function mergeDirtyPaths(
-  existingPaths: readonly string[],
-  dirtyPaths: readonly string[],
-): HookState {
+const maxKbMutationTools = 20;
+
+function emptyHookState(): HookState {
   return {
-    dirtyPaths: mergeStringPaths(existingPaths, dirtyPaths).slice(-maxDirtyPaths),
+    dirtyPaths: [],
     guidedReadPaths: [],
     guidedWritePaths: [],
+    kbMutationTools: [],
+    kbCheckRun: false,
   };
 }
 
@@ -133,7 +136,7 @@ function releaseLock(pluginData: string, fileDescriptor: number): void {
 
 function coerceHookState(value: unknown): HookState {
   if (!isRecord(value)) {
-    return { dirtyPaths: [], guidedReadPaths: [], guidedWritePaths: [] };
+    return emptyHookState();
   }
 
   const dirtyPaths = Array.isArray(value.dirtyPaths)
@@ -154,11 +157,20 @@ function coerceHookState(value: unknown): HookState {
         .map(normalizePath)
         .filter((entry) => entry.length > 0)
     : [];
+  const kbMutationTools = Array.isArray(value.kbMutationTools)
+    ? value.kbMutationTools
+        .filter((entry): entry is string => typeof entry === "string")
+        .map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0)
+    : [];
+  const kbCheckRun = value.kbCheckRun === true;
 
   return {
     dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths),
     guidedReadPaths: [...new Set(guidedReadPaths)].slice(-maxGuidedPaths),
     guidedWritePaths: [...new Set(guidedWritePaths)].slice(-maxGuidedPaths),
+    kbMutationTools: [...new Set(kbMutationTools)].slice(-maxKbMutationTools),
+    kbCheckRun,
   };
 }
 
@@ -183,7 +195,7 @@ export function resolveStateDir(
 
 export function loadHookState(stateDir: string | undefined): HookState {
   if (!stateDir) {
-    return { dirtyPaths: [], guidedReadPaths: [], guidedWritePaths: [] };
+    return emptyHookState();
   }
 
   try {
@@ -191,7 +203,7 @@ export function loadHookState(stateDir: string | undefined): HookState {
       JSON.parse(fs.readFileSync(statePath(stateDir), "utf8")),
     );
   } catch {
-    return { dirtyPaths: [], guidedReadPaths: [], guidedWritePaths: [] };
+    return emptyHookState();
   }
 }
 
@@ -287,16 +299,46 @@ export function hasGuidedPath(
   return bucket.includes(normalized);
 }
 
-export function clearDirtyPaths(stateDir: string | undefined): HookState {
-  const clearedState: HookState = {
-    dirtyPaths: [],
-    guidedReadPaths: [],
-    guidedWritePaths: [],
-  };
+export function recordKbMcpTool(
+  stateDir: string | undefined,
+  toolName: string,
+): HookState {
+  const normalized = toolName.trim();
+  if (normalized.length === 0) {
+    return loadHookState(stateDir);
+  }
+
+  return updateHookState(stateDir, (state) => {
+    if (normalized === "kb_check") {
+      return { ...state, kbCheckRun: true };
+    }
+
+    if (normalized === "kb_upsert" || normalized === "kb_delete") {
+      return {
+        ...state,
+        kbMutationTools: mergeStringPaths(state.kbMutationTools, [normalized]).slice(
+          -maxKbMutationTools,
+        ),
+      };
+    }
+
+    return state;
+  });
+}
+
+export function clearSessionHookState(
+  stateDir: string | undefined,
+): HookState {
+  const clearedState = emptyHookState();
 
   if (!stateDir) {
     return clearedState;
   }
 
   return updateHookState(stateDir, () => clearedState);
+}
+
+/** @deprecated Use clearSessionHookState */
+export function clearDirtyPaths(stateDir: string | undefined): HookState {
+  return clearSessionHookState(stateDir);
 }
