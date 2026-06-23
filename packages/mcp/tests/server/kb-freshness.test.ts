@@ -14,7 +14,11 @@ import {
 const tempRoots: string[] = [];
 
 afterEach(async () => {
-  await Promise.all(tempRoots.splice(0).map((root) => rm(root, { recursive: true, force: true })));
+  await Promise.all(
+    tempRoots
+      .splice(0)
+      .map((root) => rm(root, { recursive: true, force: true })),
+  );
 });
 
 async function makeBranchPath(): Promise<string> {
@@ -68,7 +72,12 @@ describe("sameBranchKbStamp", () => {
 
   test("detects low-resolution mtime replacements with same mtime but different size, ctime, and inode", () => {
     const first = stamp({ rdfMtimeMs: 5000 });
-    const second = stamp({ rdfMtimeMs: 5000, rdfSize: 101, rdfCtimeMs: 2001, rdfIno: 11 });
+    const second = stamp({
+      rdfMtimeMs: 5000,
+      rdfSize: 101,
+      rdfCtimeMs: 2001,
+      rdfIno: 11,
+    });
 
     expect(sameBranchKbStamp(first, second)).toBe(false);
   });
@@ -77,7 +86,9 @@ describe("sameBranchKbStamp", () => {
 describe("readBranchKbStamp", () => {
   test("reads file and directory metadata without reading kb.rdf contents", async () => {
     const branchPath = await makeBranchPath();
-    await writeFile(path.join(branchPath, "kb.rdf"), "rdf data", { flag: "wx" });
+    await writeFile(path.join(branchPath, "kb.rdf"), "rdf data", {
+      flag: "wx",
+    });
 
     const result = await readBranchKbStamp(branchPath);
 
@@ -104,7 +115,11 @@ describe("readBranchKbStamp", () => {
   });
 
   test("captures stat errors on the stamp instead of throwing", async () => {
-    const missingBranchPath = path.join(tmpdir(), "kibi-kb-freshness-missing", String(Date.now()));
+    const missingBranchPath = path.join(
+      tmpdir(),
+      "kibi-kb-freshness-missing",
+      String(Date.now()),
+    );
 
     const result = await readBranchKbStamp(missingBranchPath);
 
@@ -118,7 +133,12 @@ describe("readBranchKbStamp", () => {
 describe("describeBranchKbStamp", () => {
   test("includes branch path, missing flags, and error diagnostics", () => {
     const description = describeBranchKbStamp(
-      stamp({ rdfMissing: true, rdfDev: null, rdfIno: null, errorMessage: "ENOENT: no such file" }),
+      stamp({
+        rdfMissing: true,
+        rdfDev: null,
+        rdfIno: null,
+        errorMessage: "ENOENT: no such file",
+      }),
     );
 
     expect(description).toContain("/repo/.kb/branches/main");
