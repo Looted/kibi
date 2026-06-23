@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 669
+    sourceEndLine: 671
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 79
   SYM-003:
@@ -1682,6 +1682,126 @@ coordinates:
     sourceEndLine: 343
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 316
+  SYM-cli-PersistenceResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 99
+  SYM-cli-PrologProcess-clearQueryBuffers:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 531
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 528
+  SYM-cli-PrologProcess-execOneShot:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 522
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 424
+  SYM-cli-PrologProcess-extractBindings:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 557
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 542
+  SYM-cli-PrologProcess-getPid:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 629
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 627
+  SYM-cli-PrologProcess-invalidateCache:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 351
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 349
+  SYM-cli-PrologProcess-isCacheableGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 363
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 353
+  SYM-cli-PrologProcess-isExplicitSaveGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 377
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 375
+  SYM-cli-PrologProcess-isMutatingGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 372
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 366
+  SYM-cli-PrologProcess-isProcessUsable:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 540
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 534
+  SYM-cli-PrologProcess-isRunning:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 625
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 621
+  SYM-cli-PrologProcess-normalizeGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 526
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 524
+  SYM-cli-PrologProcess-query:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 347
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 180
+  SYM-cli-PrologProcess-queryOneShot:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 419
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 379
+  SYM-cli-PrologProcess-start:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 135
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 98
+  SYM-cli-PrologProcess-terminate:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 670
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 631
+  SYM-cli-PrologProcess-translateError:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 619
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 560
+  SYM-cli-PrologProcess-waitForReady:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 177
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 137
+  SYM-cli-persistEntities:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 212
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 138
+  SYM-cli-persistRelationships:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 394
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 215
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
