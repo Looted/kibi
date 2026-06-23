@@ -2756,6 +2756,18 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-mcp-BranchKbStamp:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 4
+  SYM-mcp-KbRefreshError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 20
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2774,12 +2786,30 @@ coordinates:
     sourceEndLine: 41
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 39
+  SYM-mcp-describeBranchKbStamp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 81
   SYM-mcp-detachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 50
+  SYM-mcp-readBranchKbStamp:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 27
+  SYM-mcp-sameBranchKbStamp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 63
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39

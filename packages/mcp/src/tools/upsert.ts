@@ -40,13 +40,12 @@ import { Project, ScriptKind } from "ts-morph";
 import { isMcpDebugEnabled } from "../env.js";
 import { analyzeSemanticAdvisorInput } from "../semantic-advisor/analyze-prose.js";
 import type { SemanticAdvisorReceipt } from "../semantic-advisor/types.js";
-import { refreshCoordinatesForSymbolId } from "./symbols.js";
+import { readBranchKbStamp } from "../server/kb-freshness.js";
 import {
   attachedBranchKbPath,
   updateAttachedBranchStamp,
 } from "../server/session.js";
-import { readBranchKbStamp } from "../server/kb-freshness.js";
-
+import { refreshCoordinatesForSymbolId } from "./symbols.js";
 
 let refreshCoordinatesForSymbolIdImpl = refreshCoordinatesForSymbolId;
 
@@ -288,7 +287,8 @@ export async function handleKbUpsert(
   try {
     if (
       (args.relationships === undefined ||
-        (Array.isArray(args.relationships) && args.relationships.length === 0)) &&
+        (Array.isArray(args.relationships) &&
+          args.relationships.length === 0)) &&
       args.id
     ) {
       // Preserve relationships on updates when the request omits relationships
@@ -299,7 +299,10 @@ export async function handleKbUpsert(
         `once(kb_entity('${escapeAtom(args.id as string)}', _, _))`,
       );
       if (existsResult.success) {
-        const existing = await fetchExistingRelationships(prolog, args.id as string);
+        const existing = await fetchExistingRelationships(
+          prolog,
+          args.id as string,
+        );
         if (existing.length > 0) {
           effectiveRelationships = existing;
         }
@@ -410,7 +413,6 @@ export async function handleKbUpsert(
       }
     }
 
-
     if (type === "symbol") {
       try {
         await refreshCoordinatesForSymbolIdImpl(entity.id as string);
@@ -424,10 +426,12 @@ export async function handleKbUpsert(
       }
     }
 
-
     // Check for scenario-coverage guidance
     const coverageWarnings = await checkScenarioCoverageGuidance(
-      prolog, relationships, type, entity.id as string,
+      prolog,
+      relationships,
+      type,
+      entity.id as string,
     );
     return {
       content: [
@@ -635,13 +639,18 @@ function validateSymbolGranularity(
   const maxNamesInMessage = 10;
   const shownBehavioral = behavioralNames.slice(0, maxNamesInMessage);
   const hiddenBehavioralCount = behavioralNames.length - shownBehavioral.length;
-  const behavioralList = shownBehavioral.join(", ") +
+  const behavioralList =
+    shownBehavioral.join(", ") +
     (hiddenBehavioralCount > 0 ? `, and ${hiddenBehavioralCount} more` : "");
 
   const shownNonBehavioral = nonBehavioralNames.slice(0, maxNamesInMessage);
-  const hiddenNonBehavioralCount = nonBehavioralNames.length - shownNonBehavioral.length;
-  const nonBehavioralList = shownNonBehavioral.join(", ") +
-    (hiddenNonBehavioralCount > 0 ? `, and ${hiddenNonBehavioralCount} more` : "");
+  const hiddenNonBehavioralCount =
+    nonBehavioralNames.length - shownNonBehavioral.length;
+  const nonBehavioralList =
+    shownNonBehavioral.join(", ") +
+    (hiddenNonBehavioralCount > 0
+      ? `, and ${hiddenNonBehavioralCount} more`
+      : "");
 
   const ignoredSymbolsMessage =
     nonBehavioralNames.length > 0
@@ -855,10 +864,22 @@ async function fetchExistingRelationships(
   entityId: string,
 ): Promise<Array<Record<string, unknown>>> {
   const relTypes = [
-    "depends_on", "specified_by", "verified_by", "validates",
-    "implements", "covered_by", "executable_for", "constrained_by",
-    "constrains", "requires_property", "requires_predicate",
-    "guards", "publishes", "consumes", "supersedes", "relates_to",
+    "depends_on",
+    "specified_by",
+    "verified_by",
+    "validates",
+    "implements",
+    "covered_by",
+    "executable_for",
+    "constrained_by",
+    "constrains",
+    "requires_property",
+    "requires_predicate",
+    "guards",
+    "publishes",
+    "consumes",
+    "supersedes",
+    "relates_to",
   ];
   const existing: Array<Record<string, unknown>> = [];
 
@@ -916,7 +937,6 @@ function parsePrologList(listStr: string): string[] {
   }
   return items;
 }
-
 
 /**
  * Record audit entry for a successfully committed entity mutation.

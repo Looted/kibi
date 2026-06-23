@@ -3500,6 +3500,7 @@ symbols:
   - id: SYM-handleKbUpsert
     title: handleKbUpsert
     sourceFile: packages/mcp/src/tools/upsert.ts
+    text_ref: packages/mcp/src/tools/upsert.ts#handleKbUpsert
     relationships:
       - type: implements
         target: REQ-002
@@ -3508,6 +3509,52 @@ symbols:
     sourceLine: 267
     sourceColumn: 22
     sourceEndLine: 455
+    sourceEndColumn: 1
+  - id: SYM-mcp-sameBranchKbStamp
+    title: sameBranchKbStamp
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+  - id: SYM-mcp-BranchKbStamp
+    title: BranchKbStamp
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+    sourceLine: 4
+    sourceColumn: 17
+    sourceEndLine: 18
+    sourceEndColumn: 1
+  - id: SYM-mcp-KbRefreshError
+    title: KbRefreshError
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+    sourceLine: 20
+    sourceColumn: 13
+    sourceEndLine: 25
+    sourceEndColumn: 1
+  - id: SYM-mcp-readBranchKbStamp
+    title: readBranchKbStamp
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+    sourceLine: 27
+    sourceColumn: 22
+    sourceEndLine: 61
+    sourceEndColumn: 1
+  - id: SYM-mcp-describeBranchKbStamp
+    title: describeBranchKbStamp
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    relationships:
+      - type: implements
+        target: REQ-mcp-kb-freshness
+    sourceLine: 81
+    sourceColumn: 16
+    sourceEndLine: 90
     sourceEndColumn: 1
   - id: SYM-UpsertArgs
     title: UpsertArgs
