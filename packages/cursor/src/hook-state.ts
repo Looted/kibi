@@ -141,7 +141,9 @@ function coerceHookState(value: unknown): HookState {
 
   const dirtyPaths = Array.isArray(value.dirtyPaths)
     ? value.dirtyPaths
-        .filter((dirtyPath): dirtyPath is string => typeof dirtyPath === "string")
+        .filter(
+          (dirtyPath): dirtyPath is string => typeof dirtyPath === "string",
+        )
         .map(normalizePath)
         .filter((dirtyPath) => dirtyPath.length > 0)
     : [];
@@ -316,9 +318,9 @@ export function recordKbMcpTool(
     if (normalized === "kb_upsert" || normalized === "kb_delete") {
       return {
         ...state,
-        kbMutationTools: mergeStringPaths(state.kbMutationTools, [normalized]).slice(
-          -maxKbMutationTools,
-        ),
+        kbMutationTools: mergeStringPaths(state.kbMutationTools, [
+          normalized,
+        ]).slice(-maxKbMutationTools),
       };
     }
 
@@ -326,9 +328,7 @@ export function recordKbMcpTool(
   });
 }
 
-export function clearSessionHookState(
-  stateDir: string | undefined,
-): HookState {
+export function clearSessionHookState(stateDir: string | undefined): HookState {
   const clearedState = emptyHookState();
 
   if (!stateDir) {

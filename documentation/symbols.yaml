@@ -6575,6 +6575,7 @@ symbols:
   - id: SYM-cursor-extractKbMcpToolName
     title: extractKbMcpToolName
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    text_ref: packages/cursor/src/kb-mcp-tools.ts#extractKbMcpToolName
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6585,6 +6586,7 @@ symbols:
   - id: SYM-cursor-recordKbMcpTool
     title: recordKbMcpTool
     sourceFile: packages/cursor/src/hook-state.ts
+    text_ref: packages/cursor/src/hook-state.ts#recordKbMcpTool
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
@@ -6595,6 +6597,7 @@ symbols:
   - id: SYM-cursor-clearSessionHookState
     title: clearSessionHookState
     sourceFile: packages/cursor/src/hook-state.ts
+    text_ref: packages/cursor/src/hook-state.ts#clearSessionHookState
     links:
       - REQ-cursor-kibi-plugin-v1
     relationships:
