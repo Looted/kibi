@@ -2403,7 +2403,11 @@ export function wtFunction() {
       );
 
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check", "--rules", "symbol-coverage"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "symbol-coverage"],
+        tmpDir,
+      );
       expect(status).toBe(0);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("No violations found");
@@ -2441,14 +2445,17 @@ export function wtFunction() {
       );
 
       execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
-      const { status, stdout, stderr } = runKibi(kibiBin, ["check", "--rules", "symbol-coverage"], tmpDir);
+      const { status, stdout, stderr } = runKibi(
+        kibiBin,
+        ["check", "--rules", "symbol-coverage"],
+        tmpDir,
+      );
       expect(status).toBe(1);
       const output = stdoutToString(stdout || stderr);
       expect(output).toContain("symbol-direct-blocked-002");
     },
     TEST_TIMEOUT_MS,
   );
-
 });
 
 import { parseViolationRows } from "../../src/prolog/codec";
