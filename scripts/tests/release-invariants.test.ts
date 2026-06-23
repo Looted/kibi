@@ -158,7 +158,14 @@ describe("release invariants: develop-to-master model", () => {
       const decision = determineReleaseAction(ctx);
 
       const dirs = decision.packages.map((p) => p.dir).sort();
-      expect(dirs).toEqual(["cli", "codex", "core", "cursor", "mcp", "opencode"]);
+      expect(dirs).toEqual([
+        "cli",
+        "codex",
+        "core",
+        "cursor",
+        "mcp",
+        "opencode",
+      ]);
     });
 
     test("captures the release-source SHA", () => {
@@ -330,7 +337,14 @@ describe("release invariants: develop-to-master model", () => {
     test("all four publishable package dirs are represented", () => {
       const ctx = makeContext({});
       const dirs = Object.keys(ctx.packages).sort();
-      expect(dirs).toEqual(["cli", "codex", "core", "cursor", "mcp", "opencode"]);
+      expect(dirs).toEqual([
+        "cli",
+        "codex",
+        "core",
+        "cursor",
+        "mcp",
+        "opencode",
+      ]);
     });
 
     test("changeset fixtures are valid .md filenames", () => {

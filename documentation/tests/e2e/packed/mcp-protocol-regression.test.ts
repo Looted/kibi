@@ -169,7 +169,10 @@ if (RUN_NODE_TEST_SUITE) {
           jsonrpc: "2.0",
           id: 100,
           method: "initialize",
-          params: { protocolVersion: "2024-11-05", clientInfo: { name: "e2e" } },
+          params: {
+            protocolVersion: "2024-11-05",
+            clientInfo: { name: "e2e" },
+          },
         };
         const list = { jsonrpc: "2.0", id: 101, method: "tools/list" };
         const call = {
