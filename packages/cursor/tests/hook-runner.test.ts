@@ -11,8 +11,11 @@ function createTempRoot(prefix: string): string {
 }
 
 const tempRoots: string[] = [];
+const originalCwd = process.cwd();
 
 afterEach(() => {
+  process.chdir(originalCwd);
+
   for (const root of tempRoots.splice(0)) {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -29,7 +32,9 @@ describe("Cursor hook runner", () => {
       { pluginData },
     );
 
-    expect(result.additional_context).toContain("Kibi is not initialized");
+    expect(result.additional_context).toContain(
+      "Kibi config was not found at the Cursor workspace root",
+    );
   });
 
   test("sessionStart stays quiet when cwd has Kibi config", async () => {
@@ -42,6 +47,23 @@ describe("Cursor hook runner", () => {
     expect(
       await runHook({ hook_event_name: "sessionStart", cwd }, { pluginData }),
     ).toEqual({});
+  });
+
+  test("sessionStart uses Cursor workspace_roots when cwd is absent", async () => {
+    const workspaceRoot = createTempRoot("kibi-cursor-workspace-");
+    const pluginData = createTempRoot("kibi-cursor-data-");
+    const pluginInstallRoot = createTempRoot("kibi-cursor-plugin-");
+    tempRoots.push(workspaceRoot, pluginData, pluginInstallRoot);
+    fs.mkdirSync(path.join(workspaceRoot, ".kb"));
+    fs.writeFileSync(path.join(workspaceRoot, ".kb", "config.json"), "{}");
+    process.chdir(pluginInstallRoot);
+
+    const result = await runHook(
+      { hook_event_name: "sessionStart", workspace_roots: [workspaceRoot] },
+      { pluginData },
+    );
+
+    expect(result).toEqual({});
   });
 
   test("preToolUse warns on explicit direct .kb path edits without blocking", async () => {

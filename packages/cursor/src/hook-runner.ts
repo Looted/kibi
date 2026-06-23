@@ -6,7 +6,6 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { readGuidance, writeGuidance } from "./guidance.js";
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import { extractKbMcpToolName } from "./kb-mcp-tools.js";
 import {
   addDirtyPaths,
   clearSessionHookState,
@@ -16,6 +15,7 @@ import {
   rememberGuidedPath,
   resolveStateDir,
 } from "./hook-state.js";
+import { extractKbMcpToolName } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
@@ -70,8 +70,10 @@ function isReadLikeTool(toolName: string | undefined): boolean {
   return toolName === undefined || readTools.has(toolName);
 }
 
-function resolveWorkspaceRoot(input: ReturnType<typeof parseHookInput>): string {
-  return input.cwd ?? process.cwd();
+function resolveWorkspaceRoot(
+  input: ReturnType<typeof parseHookInput>,
+): string {
+  return input.workspaceRoots?.[0] ?? input.cwd ?? process.cwd();
 }
 
 function resolvePrimaryPath(

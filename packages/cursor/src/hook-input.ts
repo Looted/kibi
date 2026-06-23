@@ -9,6 +9,7 @@ export type HookEvent =
 export type HookInput = {
   event: string;
   cwd?: string;
+  workspaceRoots?: readonly string[];
   toolName?: string;
   toolInput?: unknown;
   conversationId?: string;
@@ -27,6 +28,27 @@ function readString(
     const value = record[key];
     if (typeof value === "string") {
       return value;
+    }
+  }
+
+  return undefined;
+}
+
+function readStringArray(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): readonly string[] | undefined {
+  for (const key of keys) {
+    const value = record[key];
+    if (!Array.isArray(value)) {
+      continue;
+    }
+
+    const strings = value.filter(
+      (item): item is string => typeof item === "string" && item.length > 0,
+    );
+    if (strings.length > 0) {
+      return strings;
     }
   }
 
@@ -61,6 +83,10 @@ export function parseHookInput(input: unknown): HookInput {
     "current_working_directory",
     "workspace",
   ]);
+  const workspaceRoots = readStringArray(input, [
+    "workspace_roots",
+    "workspaceRoots",
+  ]);
   const toolName = readString(input, ["toolName", "tool_name", "tool"]);
   const toolInput = input.toolInput ?? input.tool_input ?? input.input;
   const conversationId = readString(input, [
@@ -72,6 +98,10 @@ export function parseHookInput(input: unknown): HookInput {
 
   if (cwd !== undefined) {
     parsed.cwd = cwd;
+  }
+
+  if (workspaceRoots !== undefined) {
+    parsed.workspaceRoots = workspaceRoots;
   }
 
   if (toolName !== undefined) {
