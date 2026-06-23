@@ -2,8 +2,8 @@ import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
 import { registerAllTools } from "../../src/server/tools.js";
 import { TOOLS } from "../../src/tools-config.js";
-import { handleKbStatus } from "../../src/tools/status.js";
 import { resolveCorePlPath } from "../../src/tools/core-module.js";
+import { handleKbStatus } from "../../src/tools/status.js";
 
 describe("MCP status tool handler", () => {
   test("returns branch, snapshot, and freshness metadata", async () => {
@@ -73,7 +73,10 @@ describe("MCP status tool handler", () => {
       calls.push("ensureProlog");
       return prolog;
     });
-    const registered = new Map<string, (args: Record<string, unknown>) => unknown>();
+    const registered = new Map<
+      string,
+      (args: Record<string, unknown>) => unknown
+    >();
     const server = {
       registerTool: mock(
         (

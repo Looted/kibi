@@ -46,7 +46,10 @@ describe("MCP coverage tool handler", () => {
       },
     }));
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
     const result = await handleKbCoverage(prolog, { by: "req" });
 
     expect(result.structuredContent?.summary.total).toBe(2);
@@ -67,7 +70,10 @@ describe("MCP coverage tool handler", () => {
       },
     }));
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
     await handleKbCoverage(prolog, {
       by: "req",
       includePassing: false,
