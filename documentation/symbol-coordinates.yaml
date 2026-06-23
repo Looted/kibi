@@ -1942,7 +1942,7 @@ coordinates:
     sourceLine: 66
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
-    sourceEndColumn: 164
+    sourceEndColumn: 187
     sourceEndLine: 6
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 5
@@ -1973,7 +1973,7 @@ coordinates:
   SYM-cursor-HookInput:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: packages/cursor/src/hook-input.ts
     sourceLine: 9
   SYM-cursor-HookState:
@@ -2033,9 +2033,9 @@ coordinates:
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 243
+    sourceEndLine: 245
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 243
+    sourceLine: 245
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2075,15 +2075,15 @@ coordinates:
   SYM-cursor-parseHookInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 94
+    sourceEndLine: 124
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 45
+    sourceLine: 67
   SYM-cursor-parseStdinJson:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 143
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 106
+    sourceLine: 136
   SYM-cursor-readGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2093,9 +2093,9 @@ coordinates:
   SYM-cursor-readStdin:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 134
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 96
+    sourceLine: 126
   SYM-cursor-recordKbMcpTool:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2117,9 +2117,9 @@ coordinates:
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 220
+    sourceEndLine: 222
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 88
+    sourceLine: 90
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2639,27 +2639,27 @@ coordinates:
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 48
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 44
+    sourceLine: 43
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 22
+    sourceEndLine: 21
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 16
+    sourceLine: 15
   SYM-mcp-createTestKbDir:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 41
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 40
+    sourceLine: 39
   SYM-mcp-detachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 51
+    sourceLine: 50
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39
@@ -2723,15 +2723,15 @@ coordinates:
   SYM-mcp-startIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 37
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 24
+    sourceLine: 23
   SYM-mcp-stopIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 64
+    sourceEndLine: 63
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 57
+    sourceLine: 56
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
