@@ -15,7 +15,13 @@
       "description": "Optional Cursor adapter for Kibi. Prerequisite: SWI-Prolog 9+ and project-local kibi-cli, kibi-mcp, kibi-core (see docs/install.md). Bundles MCP config, rules, skills, commands, and advisory hooks.",
       "homepage": "https://github.com/Looted/kibi/blob/develop/docs/install.md",
       "repository": "https://github.com/Looted/kibi",
-      "keywords": ["kibi", "mcp", "knowledge-base", "traceability", "swi-prolog"],
+      "keywords": [
+        "kibi",
+        "mcp",
+        "knowledge-base",
+        "traceability",
+        "swi-prolog"
+      ],
       "tags": ["prerequisites", "mcp", "cli"]
     }
   ]
