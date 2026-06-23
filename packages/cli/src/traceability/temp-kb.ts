@@ -220,9 +220,7 @@ export async function projectStagedEntities(
   for (const { entity } of results) {
     // Retract stale relationships before re-asserting entity
     // (kb_assert_entity_no_audit preserves relationships on upsert)
-    await prolog.query(
-      `kb_retract_entity_relationships('${entity.id}')`,
-    );
+    await prolog.query(`kb_retract_entity_relationships('${entity.id}')`);
     const assertEntityResult = await prolog.query(
       buildEntityAssertionGoal(entity),
     );
