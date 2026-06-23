@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import type { PrologProcess } from "kibi-cli/prolog";
+import type { Violation } from "kibi-cli/public/check-types";
 import { handleKbCheck } from "../../src/tools/check.js";
 import { resolveCorePlPath } from "../../src/tools/core-module.js";
 import { handleKbUpsert } from "../../src/tools/upsert.js";
@@ -1820,20 +1821,30 @@ describe("MCP Check Tool Handler", () => {
         source: "test://coverage-direct-blocked",
       },
       relationships: [
-        { type: "implements", from: "symbol-direct-blocked-001", to: "req-direct-blocked-001" },
-        { type: "covered_by", from: "symbol-direct-blocked-001", to: "test-direct-blocked-001" },
+        {
+          type: "implements",
+          from: "symbol-direct-blocked-001",
+          to: "req-direct-blocked-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-direct-blocked-001",
+          to: "test-direct-blocked-001",
+        },
       ],
     });
 
     const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
     const violation = result.structuredContent?.violations.find(
-      (v: any) => v.entityId === "symbol-direct-blocked-001",
+      (v: Violation) => v.entityId === "symbol-direct-blocked-001",
     );
     // CORRECT semantic: violation exists because direct req→test is blocked
     expect(violation).toBeDefined();
     expect(violation?.description).toMatch(/qualifying requirement coverage/i);
     // FAILS until Task 2: suggestion should mention scenario path
-    expect(violation?.suggestion).toMatch(/scenario|specified_by|scenario_path/i);
+    expect(violation?.suggestion).toMatch(
+      /scenario|specified_by|scenario_path/i,
+    );
   }, 15000);
 
   test("passes symbol-coverage with verified_by from scenario to test (scenario path)", async () => {
@@ -1876,7 +1887,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-vb",
       },
       relationships: [
-        { type: "specified_by", from: "req-scenario-vb-001", to: "scenario-scenario-vb-001" },
+        {
+          type: "specified_by",
+          from: "req-scenario-vb-001",
+          to: "scenario-scenario-vb-001",
+        },
       ],
     });
 
@@ -1890,7 +1905,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-vb",
       },
       relationships: [
-        { type: "verified_by", from: "scenario-scenario-vb-001", to: "test-scenario-vb-001" },
+        {
+          type: "verified_by",
+          from: "scenario-scenario-vb-001",
+          to: "test-scenario-vb-001",
+        },
       ],
     });
 
@@ -1904,14 +1923,22 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-vb",
       },
       relationships: [
-        { type: "implements", from: "symbol-scenario-vb-001", to: "req-scenario-vb-001" },
-        { type: "covered_by", from: "symbol-scenario-vb-001", to: "test-scenario-vb-001" },
+        {
+          type: "implements",
+          from: "symbol-scenario-vb-001",
+          to: "req-scenario-vb-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-scenario-vb-001",
+          to: "test-scenario-vb-001",
+        },
       ],
     });
 
     const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
     const violation = result.structuredContent?.violations.find(
-      (v: any) => v.entityId === "symbol-scenario-vb-001",
+      (v: Violation) => v.entityId === "symbol-scenario-vb-001",
     );
     // Coverage satisfied through scenario path
     expect(violation).toBeUndefined();
@@ -1957,7 +1984,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-val",
       },
       relationships: [
-        { type: "specified_by", from: "req-scenario-val-001", to: "scenario-scenario-val-001" },
+        {
+          type: "specified_by",
+          from: "req-scenario-val-001",
+          to: "scenario-scenario-val-001",
+        },
       ],
     });
 
@@ -1971,7 +2002,11 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-val",
       },
       relationships: [
-        { type: "validates", from: "test-scenario-val-001", to: "scenario-scenario-val-001" },
+        {
+          type: "validates",
+          from: "test-scenario-val-001",
+          to: "scenario-scenario-val-001",
+        },
       ],
     });
 
@@ -1985,14 +2020,22 @@ describe("MCP Check Tool Handler", () => {
         source: "test://scenario-val",
       },
       relationships: [
-        { type: "implements", from: "symbol-scenario-val-001", to: "req-scenario-val-001" },
-        { type: "covered_by", from: "symbol-scenario-val-001", to: "test-scenario-val-001" },
+        {
+          type: "implements",
+          from: "symbol-scenario-val-001",
+          to: "req-scenario-val-001",
+        },
+        {
+          type: "covered_by",
+          from: "symbol-scenario-val-001",
+          to: "test-scenario-val-001",
+        },
       ],
     });
 
     const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
     const violation = result.structuredContent?.violations.find(
-      (v: any) => v.entityId === "symbol-scenario-val-001",
+      (v: Violation) => v.entityId === "symbol-scenario-val-001",
     );
     // Coverage satisfied through scenario validates path
     expect(violation).toBeUndefined();
@@ -2037,7 +2080,7 @@ describe("MCP Check Tool Handler", () => {
 
     const result = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
     const violation = result.structuredContent?.violations.find(
-      (v: any) => v.entityId === "symbol-no-cb-001",
+      (v: Violation) => v.entityId === "symbol-no-cb-001",
     );
     expect(violation).toBeDefined();
     // FAILS until Task 2: suggestion should mention covered_by

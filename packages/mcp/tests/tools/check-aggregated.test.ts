@@ -39,7 +39,10 @@ describe("MCP check aggregated path", () => {
       throw new Error(`Unexpected query: ${goal}`);
     });
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
 
     const result = await handleKbCheck(prolog, {
       rules: ["required-fields"],
@@ -87,7 +90,10 @@ describe("MCP check aggregated path", () => {
       throw new Error(`Unexpected query: ${goal}`);
     });
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
 
     const result = await handleKbCheck(prolog, {
       rules: ["strict-fact-shape"],
@@ -131,7 +137,10 @@ describe("MCP check aggregated path", () => {
         throw new Error(`Unexpected query: ${goal}`);
       });
 
-      const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+      const prolog = {
+        query,
+        invalidateCache: () => {},
+      } as unknown as PrologProcess;
 
       const result = await handleKbCheck(prolog, { workspaceRoot });
 
@@ -189,7 +198,10 @@ describe("MCP check aggregated path", () => {
         throw new Error(`Unexpected query: ${goal}`);
       });
 
-      const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+      const prolog = {
+        query,
+        invalidateCache: () => {},
+      } as unknown as PrologProcess;
 
       const result = await handleKbCheck(prolog, {
         rules: ["strict-fact-shape"],
@@ -232,7 +244,10 @@ describe("MCP check aggregated path", () => {
       throw new Error(`Unexpected query: ${goal}`);
     });
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
 
     const result = await handleKbCheck(prolog, {
       rules: ["strict-req-fact-pairing"],
@@ -272,7 +287,10 @@ describe("MCP check aggregated path", () => {
       throw new Error(`Unexpected query: ${goal}`);
     });
 
-    const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+    const prolog = {
+      query,
+      invalidateCache: () => {},
+    } as unknown as PrologProcess;
 
     const result = await handleKbCheck(prolog, {
       rules: ["domain-contradictions"],
@@ -318,7 +336,10 @@ describe("MCP check aggregated path", () => {
         throw new Error(`Unexpected query: ${goal}`);
       });
 
-      const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+      const prolog = {
+        query,
+        invalidateCache: () => {},
+      } as unknown as PrologProcess;
 
       const result = await handleKbCheck(prolog, { workspaceRoot });
 
@@ -377,7 +398,10 @@ describe("MCP check aggregated path", () => {
         throw new Error(`Unexpected query: ${goal}`);
       });
 
-      const prolog = { query, invalidateCache: () => {} } as unknown as PrologProcess;
+      const prolog = {
+        query,
+        invalidateCache: () => {},
+      } as unknown as PrologProcess;
 
       const result = await handleKbCheck(prolog, {
         rules: ["strict-req-fact-pairing"],
