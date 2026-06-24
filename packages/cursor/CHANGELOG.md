@@ -1,5 +1,17 @@
 # kibi-cursor
 
+## 0.2.2
+
+### Patch Changes
+
+- Kibi now gives agents clearer guidance for the diagnostics flow, so the release notes should reflect that the bundled usage text and MCP logging story were tightened together.
+
+  This update also keeps the package mirrors aligned where applicable, which helps downstream plugin consumers stay in sync with the canonical guidance.
+
+  - Hardened bundled skill guidance for kibi usage.
+  - Improved MCP diagnostic logging shape and validation hints.
+  - Synced packaged skill copies where they are shipped with the release.
+
 ## 0.2.1
 
 ### Patch Changes

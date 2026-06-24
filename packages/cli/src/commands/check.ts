@@ -184,6 +184,9 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
         manifestResults.push({
           entity: entry.entity,
           relationships: entry.relationships,
+          ...(entry.sourceFile !== undefined
+            ? { sourceFile: entry.sourceFile }
+            : {}),
         });
         const authoredSymbolResult = {
           entity: entry.entity,
@@ -646,8 +649,16 @@ export async function checkCommand(
           extractFromMarkdownString(file.content ?? "", file.path),
         );
 
+        const stagedSourceFilePaths = new Set(
+          sourceFiles.map((file) => file.path),
+        );
+        const scopedManifestResults = manifestResults.filter(
+          (result) =>
+            result.sourceFile !== undefined &&
+            stagedSourceFilePaths.has(result.sourceFile),
+        );
         const stagedEntityResults: ExtractionResult[] = [
-          ...manifestResults,
+          ...scopedManifestResults,
           ...markdownResults,
         ];
 

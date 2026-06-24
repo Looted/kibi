@@ -187,6 +187,23 @@ describe("kibi-usage skill content", () => {
     expect(bundle.body).toContain("Bug-as-flag");
   });
 
+  test("body covers diagnostics guardrails for req status, upserts, and retries", () => {
+    expect(bundle.body).toContain("status: implemented");
+    expect(bundle.body).toContain(
+      "Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead",
+    );
+    expect(bundle.body).toContain(
+      "strict `kb_upsert.properties` rejects unknown fields",
+    );
+    expect(bundle.body).toContain(
+      "each row's `from` must equal the upserted entity ID",
+    );
+    expect(bundle.body).toContain("Keep symbol payloads minimal");
+    expect(bundle.body).toContain(
+      "When a generic `Query failed` appears, do not keep retrying the same payload",
+    );
+  });
+
   test("resources are readable and non-empty", () => {
     const relDir = readBundledSkillResource(
       "kibi-usage",
