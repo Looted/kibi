@@ -64,9 +64,12 @@ describe("kb_check error and edge branches", () => {
       },
     }));
 
-    const result = await handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
-      rules: ["not-a-rule"],
-    });
+    const result = await handleKbCheck(
+      { query, invalidateCache: () => {} } as unknown as PrologProcess,
+      {
+        rules: ["not-a-rule"],
+      },
+    );
 
     expect(result.content[0]?.text).toBe("No violations found");
     expect(result.structuredContent).toEqual({
@@ -85,9 +88,12 @@ describe("kb_check error and edge branches", () => {
     }));
 
     await expect(
-      handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
-        rules: ["required-fields"],
-      }),
+      handleKbCheck(
+        { query, invalidateCache: () => {} } as unknown as PrologProcess,
+        {
+          rules: ["required-fields"],
+        },
+      ),
     ).rejects.toThrow(
       "Check execution failed: Aggregated checks query failed: aggregated boom",
     );
@@ -100,9 +106,12 @@ describe("kb_check error and edge branches", () => {
     }));
 
     await expect(
-      handleKbCheck({ query, invalidateCache: () => {} } as unknown as PrologProcess, {
-        rules: ["required-fields"],
-      }),
+      handleKbCheck(
+        { query, invalidateCache: () => {} } as unknown as PrologProcess,
+        {
+          rules: ["required-fields"],
+        },
+      ),
     ).rejects.toThrow(
       "Check execution failed: Failed to parse violations JSON: No JSON string in binding",
     );

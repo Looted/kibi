@@ -119,7 +119,10 @@ async function tryResetPrologProcess(prolog: PrologProcess): Promise<boolean> {
     terminate?: () => Promise<void>;
     start?: () => Promise<void>;
   };
-  if (typeof maybe.terminate !== "function" || typeof maybe.start !== "function") {
+  if (
+    typeof maybe.terminate !== "function" ||
+    typeof maybe.start !== "function"
+  ) {
     return false;
   }
 
@@ -208,6 +211,7 @@ export async function persistEntities(
   return { entityCount, kbModified };
 }
 
+// implements REQ-core-persistence
 export async function persistRelationships(
   prolog: PrologProcess,
   results: ExtractionResult[],
@@ -328,7 +332,11 @@ export async function persistRelationships(
     // If every pending relationship fails with generic query errors, attempt one
     // best-effort Prolog restart before the next retry pass to recover from a
     // potentially poisoned interactive session.
-    if (allLookLikeSessionFailures && !resetAttempted && pass + 1 < retryCount) {
+    if (
+      allLookLikeSessionFailures &&
+      !resetAttempted &&
+      pass + 1 < retryCount
+    ) {
       resetAttempted = true;
       await tryResetPrologProcess(prolog);
     }
@@ -348,18 +356,21 @@ export async function persistRelationships(
         console.warn(`    Error: ${error}`);
       }
     }
-    const missingEntities = failedRelationships.filter(
-      ({ error }) => error.toLowerCase().includes("entity does not exist"),
+    const missingEntities = failedRelationships.filter(({ error }) =>
+      error.toLowerCase().includes("entity does not exist"),
     );
-    const invalidRels = failedRelationships.filter(
-      ({ error }) => error.includes("Invalid relationship"),
+    const invalidRels = failedRelationships.filter(({ error }) =>
+      error.includes("Invalid relationship"),
     );
     if (missingEntities.length > 0) {
       // Collect unique missing entity IDs from error messages
       const missingIds = new Set<string>();
       for (const { error } of missingEntities) {
         const match = error.match(/does not exist: (.+)$/);
-        if (match) missingIds.add(match[1]!.trim());
+        const missingId = match?.[1];
+        if (missingId !== undefined) {
+          missingIds.add(missingId.trim());
+        }
       }
       const idList = [...missingIds].sort().join(", ");
       console.warn(

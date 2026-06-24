@@ -112,7 +112,10 @@ describe("kibi-cursor local marketplace fixture", () => {
       const pluginSourceRoot = packageRoot;
 
       for (const source of [
-        [".cursor-plugin/plugin.json", "plugins/kibi-cursor/.cursor-plugin/plugin.json"],
+        [
+          ".cursor-plugin/plugin.json",
+          "plugins/kibi-cursor/.cursor-plugin/plugin.json",
+        ],
         ["mcp.json", "plugins/kibi-cursor/mcp.json"],
         ["hooks/hooks.json", "plugins/kibi-cursor/hooks/hooks.json"],
         ["skills", "plugins/kibi-cursor/skills"],

@@ -1,5 +1,22 @@
 # kibi-cursor
 
+## 0.2.1
+
+### Patch Changes
+
+- 5d2975a: Cursor stop hooks no longer inject a long multi-line Kibi freshness reminder after every agent response. Follow-ups are now one line, and most sessions stay silent.
+
+  - Track `kb_upsert`, `kb_delete`, and `kb_check` MCP usage during the session.
+  - Emit no stop follow-up when nothing KB-relevant changed, or when `kb_check` already ran after edits.
+  - Emit a short summary (`Kibi KB updated (kb_upsert).`) after KB mutations, or a single-line sync nudge when source files changed without KB activity.
+  - Fix publish workflow to build and pack `kibi-cursor` tarballs before npm publish.
+
+- Cursor sessions now use Cursor's documented workspace root payload when deciding whether Kibi is already configured. This prevents the plugin from telling agents that Kibi needs bootstrapping just because the hook process is running from the plugin install directory instead of the actual workspace. The bootstrap reminder now names the missing `.kb/config.json` condition directly instead of implying MCP is unavailable.
+
+  - Parse `workspace_roots` from Cursor hook payloads and prefer the first workspace root for Kibi config detection.
+  - Add a regression test covering `sessionStart` without `cwd` when `workspace_roots` points at a configured workspace.
+  - Reword the bootstrap reminder to describe a missing workspace config rather than generic initialization failure.
+
 ## 0.2.0
 
 ### Minor Changes

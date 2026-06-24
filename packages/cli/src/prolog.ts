@@ -176,6 +176,7 @@ export class PrologProcess {
     this.errorBuffer = "";
   }
 
+  // implements REQ-core-prolog-process-management
   async query(goal: string | string[]): Promise<QueryResult> {
     const isSingleGoal = typeof goal === "string";
     const goalKey = isSingleGoal ? goal : null;
@@ -310,8 +311,7 @@ export class PrologProcess {
             // Check errorBuffer first — Prolog catch/3 writes ERROR to stderr
             // then fail to stdout. If stderr has the real error, surface it.
             const errorMessage =
-              this.errorBuffer.length > 0 &&
-              this.errorBuffer.includes("ERROR")
+              this.errorBuffer.length > 0 && this.errorBuffer.includes("ERROR")
                 ? this.translateError(this.errorBuffer)
                 : "Query failed";
             resolve({
@@ -556,15 +556,23 @@ export class PrologProcess {
     return bindings;
   }
 
+  // implements REQ-core-prolog-process-management
   private translateError(errorText: string): string {
     // SWI-Prolog print_message/2 formats errors as human-readable messages,
     // not raw Prolog terms. Match the actual output format.
-    if (errorText.includes('does not exist') && /entity [`'"].+?[`'"]/ .test(errorText)) {
+    if (
+      errorText.includes("does not exist") &&
+      /entity [`'"].+?[`'"]/.test(errorText)
+    ) {
       // SWI-Prolog doubles single quotes in formatted messages: ''REQ-TEST''
-      const entityIdMatch = errorText.match(/entity [`'"]+(.+?)[`'"]+ does not exist/);
-      const entityId = entityIdMatch
-        ? entityIdMatch[1]!.replace(/^`?'+|'+`?$/g, "")
-        : "unknown";
+      const entityIdMatch = errorText.match(
+        /entity [`'"]+(.+?)[`'"]+ does not exist/,
+      );
+      const matchedEntityId = entityIdMatch?.[1];
+      const entityId =
+        matchedEntityId !== undefined
+          ? matchedEntityId.replace(/^`?'+|'+`?$/g, "")
+          : "unknown";
       if (errorText.includes("Target entity does not exist")) {
         return `Target entity does not exist: ${entityId}`;
       }
@@ -575,8 +583,9 @@ export class PrologProcess {
     }
     if (errorText.includes("Type error: `relationship' expected")) {
       const relMatch = errorText.match(/\(Invalid relationship: ([^)]+)\)/);
-      if (relMatch) {
-        return `Invalid relationship: ${relMatch[1]!.trim()}`;
+      const invalidRelationship = relMatch?.[1];
+      if (invalidRelationship !== undefined) {
+        return `Invalid relationship: ${invalidRelationship.trim()}`;
       }
       return "Invalid relationship type or direction";
     }

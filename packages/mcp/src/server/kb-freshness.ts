@@ -60,10 +60,7 @@ export async function readBranchKbStamp(
   return stamp;
 }
 
-export function sameBranchKbStamp(
-  a: BranchKbStamp,
-  b: BranchKbStamp,
-): boolean {
+export function sameBranchKbStamp(a: BranchKbStamp, b: BranchKbStamp): boolean {
   return (
     a.branchPath === b.branchPath &&
     a.rdfDev === b.rdfDev &&

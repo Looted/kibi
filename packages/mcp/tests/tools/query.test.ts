@@ -1,7 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
 import type { PrologProcess } from "kibi-cli/prolog";
-import { registerAllTools } from "../../src/server/tools.js";
-import { TOOLS } from "../../src/tools-config.js";
 import {
   parseEntityFromBinding,
   parseEntityFromList,
@@ -10,6 +8,8 @@ import {
   parsePropertyList,
   splitTopLevel,
 } from "kibi-cli/prolog/codec";
+import { registerAllTools } from "../../src/server/tools.js";
+import { TOOLS } from "../../src/tools-config.js";
 import { VALID_ENTITY_TYPES, handleKbQuery } from "../../src/tools/query.js";
 
 describe("MCP kb.query Parsing Functions", () => {
@@ -342,7 +342,10 @@ describe("MCP kb.query Parsing Functions", () => {
         calls.push("ensureProlog");
         return prolog;
       });
-      const registered = new Map<string, (args: Record<string, unknown>) => unknown>();
+      const registered = new Map<
+        string,
+        (args: Record<string, unknown>) => unknown
+      >();
       const server = {
         registerTool: mock(
           (

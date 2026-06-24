@@ -94,8 +94,24 @@ const VALID_RELATIONSHIP_TYPES = new Set<RelationshipType>([
 
 const VALID_RELATIONSHIP_DIRECTIONS: ReadonlyArray<{
   type: RelationshipType;
-  from: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
-  to: "req" | "scenario" | "test" | "adr" | "flag" | "event" | "symbol" | "fact";
+  from:
+    | "req"
+    | "scenario"
+    | "test"
+    | "adr"
+    | "flag"
+    | "event"
+    | "symbol"
+    | "fact";
+  to:
+    | "req"
+    | "scenario"
+    | "test"
+    | "adr"
+    | "flag"
+    | "event"
+    | "symbol"
+    | "fact";
 }> = [
   { type: "depends_on", from: "req", to: "req" },
   { type: "executable_for", from: "symbol", to: "test" },
@@ -123,7 +139,9 @@ const RELATIONSHIP_TYPE_DISPLAY_LIST = Array.from(VALID_RELATIONSHIP_TYPES)
   .sort()
   .join(", ");
 
-function inferEntityTypeFromId(id: string):
+function inferEntityTypeFromId(
+  id: string,
+):
   | "req"
   | "scenario"
   | "test"
@@ -145,7 +163,10 @@ function inferEntityTypeFromId(id: string):
   return null;
 }
 
-function validateRelationshipType(type: string, filePath: string): asserts type is RelationshipType {
+function validateRelationshipType(
+  type: string,
+  filePath: string,
+): asserts type is RelationshipType {
   if (!VALID_RELATIONSHIP_TYPES.has(type as RelationshipType)) {
     throw new ManifestError(
       `Invalid relationship type \"${type}\". Allowed types: ${RELATIONSHIP_TYPE_DISPLAY_LIST}`,
@@ -173,10 +194,13 @@ function validateRelationshipDirection(
   }
 
   const valid = VALID_RELATIONSHIP_DIRECTIONS.some(
-    (rule) => rule.type === type && rule.from === fromType && rule.to === toType,
+    (rule) =>
+      rule.type === type && rule.from === fromType && rule.to === toType,
   );
   if (!valid) {
-    const allowed = VALID_RELATIONSHIP_DIRECTIONS.filter((rule) => rule.type === type)
+    const allowed = VALID_RELATIONSHIP_DIRECTIONS.filter(
+      (rule) => rule.type === type,
+    )
       .map((rule) => `${rule.from} -> ${rule.to}`)
       .join(", ");
     throw new ManifestError(
@@ -257,7 +281,12 @@ function extractRelationships(
           typeof typedLink.target === "string"
         ) {
           validateRelationshipType(typedLink.type, filePath);
-          validateRelationshipDirection(typedLink.type, id, typedLink.target, filePath);
+          validateRelationshipDirection(
+            typedLink.type,
+            id,
+            typedLink.target,
+            filePath,
+          );
           relationships.push({
             type: typedLink.type,
             from: id,

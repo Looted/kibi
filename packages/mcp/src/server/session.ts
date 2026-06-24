@@ -74,7 +74,6 @@ export function updateAttachedBranchStamp(stamp: BranchKbStamp): void {
   attachedBranchStamp = stamp;
 }
 
-
 export let isShuttingDown = false;
 let shutdownTimeout: NodeJS.Timeout | null = null;
 export const inFlightRequests = new Map<string, Promise<unknown>>();
@@ -214,7 +213,6 @@ export async function resetProlog(reason: string): Promise<void> {
   attachedBranchKbPath = null;
   attachedBranchStamp = null;
 
-
   if (current) {
     try {
       await current.terminate();
@@ -280,7 +278,9 @@ async function refreshAttachedBranchKbWithRetry(
 }
 
 function usesBranchKbPath(kbPath: string): boolean {
-  return kbPath.includes("/.kb/branches/") || kbPath.includes("\\.kb\\branches\\");
+  return (
+    kbPath.includes("/.kb/branches/") || kbPath.includes("\\.kb\\branches\\")
+  );
 }
 
 // implements REQ-008

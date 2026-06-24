@@ -679,9 +679,16 @@ describe.serial("session module", () => {
       });
 
       function makeBranchPath(options: { withRdf: boolean }): string {
-        const tempRoot = mkdtempSync(path.join(tmpdir(), "kibi-session-fresh-"));
+        const tempRoot = mkdtempSync(
+          path.join(tmpdir(), "kibi-session-fresh-"),
+        );
         tempRoots.push(tempRoot);
-        const nextBranchPath = path.join(tempRoot, ".kb", "branches", branchName);
+        const nextBranchPath = path.join(
+          tempRoot,
+          ".kb",
+          "branches",
+          branchName,
+        );
         mkdirSync(nextBranchPath, { recursive: true });
         if (options.withRdf) {
           writeFileSync(path.join(nextBranchPath, "kb.rdf"), "<rdf:RDF />\n");
@@ -698,8 +705,8 @@ describe.serial("session module", () => {
         mockResolveWorkspaceRoot.mockImplementation(() =>
           path.dirname(path.dirname(path.dirname(branchPath))),
         );
-        mockResolveKbPath.mockImplementation(
-          (_workspaceRoot, branch) => path.join(path.dirname(branchPath), branch),
+        mockResolveKbPath.mockImplementation((_workspaceRoot, branch) =>
+          path.join(path.dirname(branchPath), branch),
         );
         mockExistsSync.mockImplementation(
           (candidatePath) => candidatePath === branchPath,
@@ -853,7 +860,10 @@ describe.serial("session module", () => {
           if (failRefreshAttach && command.startsWith("kb_attach(")) {
             return { success: false, error: "replacement attach denied" };
           }
-          return { success: true, data: [{ stale: command === "stale_query" }] };
+          return {
+            success: true,
+            data: [{ stale: command === "stale_query" }],
+          };
         }) as unknown as typeof defaults.prologQuery);
 
         const session = await importSession();
@@ -878,7 +888,9 @@ describe.serial("session module", () => {
 
         expect(caught).toBeInstanceOf(Error);
         expect((caught as Error).name).toBe("KbRefreshError");
-        expect((caught as Error).message).toContain("replacement attach denied");
+        expect((caught as Error).message).toContain(
+          "replacement attach denied",
+        );
         expect(prologCalls).not.toContain("stale_query");
         expect(prologCalls.slice(0, 3)).toEqual([
           "invalidateCache",

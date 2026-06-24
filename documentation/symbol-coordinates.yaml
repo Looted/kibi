@@ -5,7 +5,7 @@ coordinates:
   SYM-001:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 662
+    sourceEndLine: 671
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 79
   SYM-003:
@@ -701,9 +701,9 @@ coordinates:
   SYM-ManifestError:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 197
+    sourceEndLine: 221
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 189
+    sourceLine: 213
   SYM-ManifestLookup:
     sourceColumn: 12
     sourceEndColumn: 62
@@ -725,9 +725,9 @@ coordinates:
   SYM-ManifestSymbolRecord:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 245
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 199
+    sourceLine: 223
   SYM-MeaningfulChangeClass:
     sourceColumn: 12
     sourceEndColumn: 14
@@ -1475,15 +1475,15 @@ coordinates:
   SYM-UpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 66
+    sourceEndLine: 65
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 53
+    sourceLine: 52
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 77
+    sourceEndLine: 76
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 68
+    sourceLine: 67
   SYM-ValidateUpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1493,9 +1493,9 @@ coordinates:
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 82
+    sourceEndLine: 81
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 79
+    sourceLine: 78
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1679,9 +1679,129 @@ coordinates:
   SYM-cleanupTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 345
+    sourceEndLine: 343
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 318
+    sourceLine: 316
+  SYM-cli-PersistenceResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 99
+  SYM-cli-PrologProcess-clearQueryBuffers:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 531
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 528
+  SYM-cli-PrologProcess-execOneShot:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 522
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 424
+  SYM-cli-PrologProcess-extractBindings:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 557
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 542
+  SYM-cli-PrologProcess-getPid:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 629
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 627
+  SYM-cli-PrologProcess-invalidateCache:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 351
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 349
+  SYM-cli-PrologProcess-isCacheableGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 363
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 353
+  SYM-cli-PrologProcess-isExplicitSaveGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 377
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 375
+  SYM-cli-PrologProcess-isMutatingGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 372
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 366
+  SYM-cli-PrologProcess-isProcessUsable:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 540
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 534
+  SYM-cli-PrologProcess-isRunning:
+    sourceColumn: 2
+    sourceEndColumn: 3
+    sourceEndLine: 625
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 621
+  SYM-cli-PrologProcess-normalizeGoal:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 526
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 524
+  SYM-cli-PrologProcess-query:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 347
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 180
+  SYM-cli-PrologProcess-queryOneShot:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 419
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 379
+  SYM-cli-PrologProcess-start:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 135
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 98
+  SYM-cli-PrologProcess-terminate:
+    sourceColumn: 8
+    sourceEndColumn: 3
+    sourceEndLine: 670
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 631
+  SYM-cli-PrologProcess-translateError:
+    sourceColumn: 10
+    sourceEndColumn: 3
+    sourceEndLine: 619
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 560
+  SYM-cli-PrologProcess-waitForReady:
+    sourceColumn: 16
+    sourceEndColumn: 3
+    sourceEndLine: 177
+    sourceFile: packages/cli/src/prolog.ts
+    sourceLine: 137
+  SYM-cli-persistEntities:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 212
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 138
+  SYM-cli-persistRelationships:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 394
+    sourceFile: packages/cli/src/commands/sync/persistence.ts
+    sourceLine: 215
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1895,9 +2015,9 @@ coordinates:
   SYM-createOverlayFacts:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 316
+    sourceEndLine: 314
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 298
+    sourceLine: 296
   SYM-createRepoIgnorePolicy:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1925,9 +2045,9 @@ coordinates:
   SYM-createTempKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 295
+    sourceEndLine: 293
     sourceFile: packages/cli/src/traceability/temp-kb.ts
-    sourceLine: 250
+    sourceLine: 248
   SYM-createTsMorphSourceAnalysisProvider:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1942,7 +2062,7 @@ coordinates:
     sourceLine: 66
   SYM-cursor-BOOTSTRAP_REMINDER:
     sourceColumn: 13
-    sourceEndColumn: 164
+    sourceEndColumn: 187
     sourceEndLine: 6
     sourceFile: packages/cursor/src/messages.ts
     sourceLine: 5
@@ -1973,7 +2093,7 @@ coordinates:
   SYM-cursor-HookInput:
     sourceColumn: 12
     sourceEndColumn: 2
-    sourceEndLine: 16
+    sourceEndLine: 17
     sourceFile: packages/cursor/src/hook-input.ts
     sourceLine: 9
   SYM-cursor-HookState:
@@ -1991,9 +2111,9 @@ coordinates:
   SYM-cursor-addDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 264
+    sourceEndLine: 266
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 254
+    sourceLine: 256
   SYM-cursor-clearDirtyPaths:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2005,7 +2125,7 @@ coordinates:
     sourceEndColumn: 1
     sourceEndLine: 339
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 329
+    sourceLine: 331
   SYM-cursor-extractExplicitPathFields:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2015,7 +2135,7 @@ coordinates:
   SYM-cursor-extractKbMcpToolName:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 53
     sourceFile: packages/cursor/src/kb-mcp-tools.ts
     sourceLine: 20
   SYM-cursor-freshnessReminder:
@@ -2027,15 +2147,15 @@ coordinates:
   SYM-cursor-hasGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 300
+    sourceEndLine: 302
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 291
+    sourceLine: 293
   SYM-cursor-hookRunnerPath:
     sourceColumn: 13
     sourceEndColumn: 60
-    sourceEndLine: 243
+    sourceEndLine: 245
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 243
+    sourceLine: 245
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2063,9 +2183,9 @@ coordinates:
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 208
+    sourceEndLine: 210
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 196
+    sourceLine: 198
   SYM-cursor-packageName:
     sourceColumn: 13
     sourceEndColumn: 40
@@ -2075,15 +2195,15 @@ coordinates:
   SYM-cursor-parseHookInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 94
+    sourceEndLine: 124
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 45
+    sourceLine: 67
   SYM-cursor-parseStdinJson:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 113
+    sourceEndLine: 143
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 106
+    sourceLine: 136
   SYM-cursor-readGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2093,39 +2213,39 @@ coordinates:
   SYM-cursor-readStdin:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 134
     sourceFile: packages/cursor/src/hook-input.ts
-    sourceLine: 96
+    sourceLine: 126
   SYM-cursor-recordKbMcpTool:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 327
+    sourceEndLine: 329
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 302
+    sourceLine: 304
   SYM-cursor-rememberGuidedPath:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 289
+    sourceEndLine: 291
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 266
+    sourceLine: 268
   SYM-cursor-resolveStateDir:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 194
+    sourceEndLine: 196
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 177
+    sourceLine: 179
   SYM-cursor-runHook:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 220
+    sourceEndLine: 222
     sourceFile: packages/cursor/src/hook-runner.ts
-    sourceLine: 88
+    sourceLine: 90
   SYM-cursor-saveHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 223
+    sourceEndLine: 225
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 210
+    sourceLine: 212
   SYM-cursor-stopFollowupMessage:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2141,9 +2261,9 @@ coordinates:
   SYM-cursor-updateHookState:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 252
+    sourceEndLine: 254
     sourceFile: packages/cursor/src/hook-state.ts
-    sourceLine: 225
+    sourceLine: 227
   SYM-cursor-writeGuidance:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2249,21 +2369,21 @@ coordinates:
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 402
+    sourceEndLine: 431
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 397
+    sourceLine: 426
   SYM-extractFromManifestString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 371
+    sourceEndLine: 400
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 349
+    sourceLine: 378
   SYM-extractManifestSymbolRecordsString:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 395
+    sourceEndLine: 424
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 373
+    sourceLine: 402
   SYM-extractRequirementClaim:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2471,9 +2591,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 451
+    sourceEndLine: 455
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 268
+    sourceLine: 267
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2636,30 +2756,60 @@ coordinates:
     sourceEndLine: 90
     sourceFile: packages/cli/src/extractors/markdown.ts
     sourceLine: 57
+  SYM-mcp-BranchKbStamp:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 18
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 4
+  SYM-mcp-KbRefreshError:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 25
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 20
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 49
+    sourceEndLine: 48
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 44
+    sourceLine: 43
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 22
+    sourceEndLine: 21
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 16
+    sourceLine: 15
   SYM-mcp-createTestKbDir:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 42
+    sourceEndLine: 41
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 40
+    sourceLine: 39
+  SYM-mcp-describeBranchKbStamp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 90
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 81
   SYM-mcp-detachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 55
+    sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 51
+    sourceLine: 50
+  SYM-mcp-readBranchKbStamp:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 61
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 27
+  SYM-mcp-sameBranchKbStamp:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 79
+    sourceFile: packages/mcp/src/server/kb-freshness.ts
+    sourceLine: 63
   SYM-mcp-session-activeBranchName:
     sourceColumn: 11
     sourceEndColumn: 39
@@ -2669,9 +2819,9 @@ coordinates:
   SYM-mcp-session-ensureBranchKbExists:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 154
+    sourceEndLine: 153
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 117
+    sourceLine: 116
   SYM-mcp-session-ensureProlog:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -2681,21 +2831,21 @@ coordinates:
   SYM-mcp-session-inFlightRequests:
     sourceColumn: 13
     sourceEndColumn: 67
-    sourceEndLine: 80
+    sourceEndLine: 79
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 80
+    sourceLine: 79
   SYM-mcp-session-initiateGracefulShutdown:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 205
+    sourceEndLine: 204
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 156
+    sourceLine: 155
   SYM-mcp-session-isShuttingDown:
     sourceColumn: 11
     sourceEndColumn: 33
-    sourceEndLine: 78
+    sourceEndLine: 77
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 78
+    sourceLine: 77
   SYM-mcp-session-prologProcess:
     sourceColumn: 11
     sourceEndColumn: 53
@@ -2705,33 +2855,33 @@ coordinates:
   SYM-mcp-session-resetSessionDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 109
+    sourceEndLine: 108
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 106
+    sourceLine: 105
   SYM-mcp-session-resetSessionStateForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 96
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 83
+    sourceLine: 82
   SYM-mcp-session-setSessionDepsForTests:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 104
+    sourceEndLine: 103
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 99
+    sourceLine: 98
   SYM-mcp-startIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 38
+    sourceEndLine: 37
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 24
+    sourceLine: 23
   SYM-mcp-stopIntegrationProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 64
+    sourceEndLine: 63
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
-    sourceLine: 57
+    sourceLine: 56
   SYM-mergeCoordinatesWithManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2807,7 +2957,7 @@ coordinates:
   SYM-projectStagedEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 248
+    sourceEndLine: 246
     sourceFile: packages/cli/src/traceability/temp-kb.ts
     sourceLine: 216
   SYM-queryRelationshipsViaCli:
@@ -2837,9 +2987,9 @@ coordinates:
   SYM-readManifestWithCoordinateOverlay:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 454
+    sourceEndLine: 483
     sourceFile: packages/cli/src/extractors/manifest.ts
-    sourceLine: 440
+    sourceLine: 469
   SYM-reconcileAuditEntries:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2909,9 +3059,9 @@ coordinates:
   SYM-resetProlog:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 225
+    sourceEndLine: 223
     sourceFile: packages/mcp/src/server/session.ts
-    sourceLine: 208
+    sourceLine: 207
   SYM-resetSessionModulePromise:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3101,9 +3251,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 663
+    sourceEndLine: 672
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 656
+    sourceLine: 665
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3125,9 +3275,9 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 500
+    sourceEndLine: 504
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 453
+    sourceLine: 457
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1

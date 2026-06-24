@@ -60,7 +60,9 @@ describe("MCP transaction integrity", () => {
     });
 
     // Verify entity exists
-    const entityResult = await prolog.query("kb_entity('SYM-TX-001', symbol, Props)");
+    const entityResult = await prolog.query(
+      "kb_entity('SYM-TX-001', symbol, Props)",
+    );
     expect(entityResult.success).toBe(true);
 
     // Attempt to create a relationship to a non-existent target
@@ -74,13 +76,19 @@ describe("MCP transaction integrity", () => {
           source: "test://tx-test",
         },
         relationships: [
-          { type: "covered_by", from: "SYM-TX-001", to: "NONEXISTENT-TEST-001" },
+          {
+            type: "covered_by",
+            from: "SYM-TX-001",
+            to: "NONEXISTENT-TEST-001",
+          },
         ],
       }),
     ).rejects.toThrow();
 
     // Verify entity still exists after failed relationship upsert
-    const entityAfter = await prolog.query("kb_entity('SYM-TX-001', symbol, Props)");
+    const entityAfter = await prolog.query(
+      "kb_entity('SYM-TX-001', symbol, Props)",
+    );
     expect(entityAfter.success).toBe(true);
 
     // Verify no partial relationship was created
@@ -144,7 +152,11 @@ describe("MCP transaction integrity", () => {
           source: "test://tx-test",
         },
         relationships: [
-          { type: "covered_by", from: "SYM-TX-002", to: "NONEXISTENT-TEST-002" },
+          {
+            type: "covered_by",
+            from: "SYM-TX-002",
+            to: "NONEXISTENT-TEST-002",
+          },
         ],
       }),
     ).rejects.toThrow();
@@ -163,14 +175,14 @@ describe("MCP transaction integrity", () => {
   }, 30000);
 
   test("symbol coverage check should see relationships after successful upsert", async () => {
-// Create requirement → scenario → test → symbol chain
-await handleKbUpsert(prolog, {
-type: "req",
-id: "REQ-TX-003",
-properties: {
-title: "Test requirement",
-status: "open",
-source: "test://tx-test",
+    // Create requirement → scenario → test → symbol chain
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-TX-003",
+      properties: {
+        title: "Test requirement",
+        status: "open",
+        source: "test://tx-test",
       },
     });
 
@@ -192,10 +204,10 @@ source: "test://tx-test",
         status: "open",
         source: "test://tx-test",
       },
-relationships: [
-{ type: "specified_by", from: "REQ-TX-003", to: "SCEN-TX-003" },
-],
-});
+      relationships: [
+        { type: "specified_by", from: "REQ-TX-003", to: "SCEN-TX-003" },
+      ],
+    });
     await handleKbUpsert(prolog, {
       type: "scenario",
       id: "SCEN-TX-003",
@@ -233,7 +245,9 @@ relationships: [
     });
 
     // Run symbol-coverage check
-    const checkResult = await handleKbCheck(prolog, { rules: ["symbol-coverage"] });
+    const checkResult = await handleKbCheck(prolog, {
+      rules: ["symbol-coverage"],
+    });
     const violations = checkResult.structuredContent?.violations ?? [];
     const symbolViolation = violations.find(
       (v: { entityId: string }) => v.entityId === "SYM-TX-003",

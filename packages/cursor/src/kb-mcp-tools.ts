@@ -39,7 +39,11 @@ export function extractKbMcpToolName(
 
   const nestedArgs = toolInput.arguments ?? toolInput.args;
   if (isRecord(nestedArgs)) {
-    const nestedTool = readString(nestedArgs, ["toolName", "tool_name", "name"]);
+    const nestedTool = readString(nestedArgs, [
+      "toolName",
+      "tool_name",
+      "name",
+    ]);
     if (nestedTool?.startsWith("kb_")) {
       return nestedTool;
     }
