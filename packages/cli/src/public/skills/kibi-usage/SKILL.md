@@ -170,6 +170,12 @@ Anti-example: do not create a `flag` named `BUG-123` to track a defect. Create a
 
 Always confirm or create endpoint entities before linking them. Query target IDs with `kb_query` first. If an endpoint does not exist, create it with `kb_upsert` before creating the relationship. Creating relationships to non-existent entities produces dangling references that `kb_check` will flag.
 
+For `kb_upsert`, keep relationship rows anchored to the entity you are upserting: each row's `from` must equal the upserted entity ID. If you need a `SYM -> REQ` link, upsert the symbol endpoint first, then link that symbol to the requirement.
+
+Keep symbol payloads minimal: include only the fields needed to identify the symbol, its status, and its source traceability. Put extra prose, examples, or audit notes in docs or evidence files instead of custom `kb_upsert.properties`; strict `kb_upsert.properties` rejects unknown fields.
+
+When a generic `Query failed` appears, do not keep retrying the same payload. First call `kb_validate_upsert`, query or create the missing endpoints, reduce the payload to the minimum required fields, and retry once. If it still fails, report the blocker instead of looping.
+
 ## Sequential Upserts
 
 Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid lock contention and ensure deterministic ordering. This is especially important when creating chains of related entities.
@@ -200,6 +206,7 @@ Call `kb_status` when you suspect the branch KB is stale or when switching conte
 | Missing `kb_check` | Undetected dangling refs and violations | Run targeted checks during work, full check at completion |
 | Tags as multi-ID lookup | Tags are metadata, not identifiers | Use `kb_query` with explicit `id` values |
 | `relates_to` for strict modeling | Loses contradiction safety | Use `constrains` and `requires_property` instead |
+| `status: implemented` on requirements | Not a valid lifecycle status | Use a valid status such as `closed`, add an `implemented` tag, and link evidence instead |
 
 Before/after for reversed direction:
 

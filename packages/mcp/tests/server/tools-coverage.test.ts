@@ -713,6 +713,11 @@ describe.serial("server tools coverage", () => {
 
     expect(response).toEqual({ ...result, args: businessArgs });
     expect(handler).toHaveBeenCalledWith(businessArgs);
+    expect(handler).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        _diagnostic_telemetry: expect.anything(),
+      }),
+    );
     expect(spies.extractToolCallPayload).toHaveBeenCalledWith(rawArgs);
     expect(spies.deriveDiagnosticFields).toHaveBeenCalledWith(
       "diagnostic_tool",
@@ -729,8 +734,16 @@ describe.serial("server tools coverage", () => {
         telemetry,
         business_args: businessArgs,
         status: "success",
+        diagnostic_phase: "success",
         prolog_pid: 9876,
         active_branch: "feature/diagnostic",
+        retry_key: expect.any(String),
+        tool_call: expect.objectContaining({
+          diagnostic_phase: "success",
+          retry_key: expect.any(String),
+          business_args: businessArgs,
+          diagnostic_telemetry: telemetry,
+        }),
         tool_name: "diagnostic_tool",
         business_marker: "diagnostic",
         telemetry_kind: true,
@@ -790,12 +803,21 @@ describe.serial("server tools coverage", () => {
         telemetry,
         business_args: businessArgs,
         status: "error",
+        diagnostic_phase: "error",
         prolog_pid: null,
         active_branch: "feature/error",
         error_message: "boom",
         error_category: "handler_error",
         error_stage: "handler",
         error_summary: "Unhandled MCP handler error.",
+        diagnostic_hints: expect.arrayContaining([
+          expect.stringContaining("handler_error handler:"),
+        ]),
+        tool_call: expect.objectContaining({
+          diagnostic_phase: "error",
+          diagnostic_telemetry: telemetry,
+          business_args: businessArgs,
+        }),
       }),
     );
     expect(
@@ -865,10 +887,17 @@ describe.serial("server tools coverage", () => {
         request_id: "req-timeout",
         tool: "timeout_tool",
         status: "error",
+        diagnostic_phase: "error",
         error_category: "tool_timeout",
         reset_attempted: true,
         reset_succeeded: true,
         reset_error: null,
+        diagnostic_hints: expect.arrayContaining([
+          expect.stringContaining("tool_timeout runtime:"),
+        ]),
+        tool_call: expect.objectContaining({
+          diagnostic_phase: "error",
+        }),
       }),
     );
     restoreEnvVar("KIBI_MCP_TOOL_TIMEOUT_MS", originalTimeout);

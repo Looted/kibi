@@ -16,6 +16,13 @@ const requiredSkills = [
   "kibi-traceability",
 ] as const;
 
+const expectedSkillNames: Record<(typeof requiredSkills)[number], string> = {
+  "kibi-usage": "Kibi Usage",
+  "init-kibi": "init-kibi",
+  "kibi-freshness": "kibi-freshness",
+  "kibi-traceability": "kibi-traceability",
+};
+
 const requiredToolNames = [
   "kb_search",
   "kb_query",
@@ -64,7 +71,7 @@ describe("kibi-codex skills", () => {
       const raw = fs.readFileSync(skillFile, "utf8");
       const frontmatter = parseFrontmatter(raw);
 
-      expect(frontmatter.name).toBe(skillName);
+      expect(frontmatter.name).toBe(expectedSkillNames[skillName]);
       expect(typeof frontmatter.description).toBe("string");
       expect(frontmatter.description.length).toBeGreaterThan(10);
     }
@@ -135,5 +142,23 @@ describe("kibi-codex skills", () => {
     expect(conceptCoverage.sourceLinked).toBe(true);
     expect(conceptCoverage.freshness).toBe(true);
     expect(conceptCoverage.traceability).toBe(true);
+  });
+
+  test("kibi-usage includes status and source-mismatch guardrails", () => {
+    const raw = fs.readFileSync(
+      path.join(skillsRoot, "kibi-usage", "SKILL.md"),
+      "utf8",
+    );
+
+    expect(raw).toContain("status: implemented");
+    expect(raw).toContain(
+      "strict `kb_upsert.properties` rejects unknown fields",
+    );
+    expect(raw).toContain(
+      "each row's `from` must equal the upserted entity ID",
+    );
+    expect(raw).toContain(
+      "When a generic `Query failed` appears, do not keep retrying the same payload",
+    );
   });
 });
