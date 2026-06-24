@@ -689,6 +689,14 @@ export async function checkCommand(
         );
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
+          if (stagedKibiDiagnostics.length > 0) {
+            console.log(formatStagedKibiDiagnostics(stagedKibiDiagnostics));
+            if (options.dryRun) {
+              return { exitCode: 0 };
+            }
+            return { exitCode: 1 };
+          }
+
           console.log(
             "No exported symbols or staged entities found in staged files.",
           );
