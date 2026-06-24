@@ -1679,7 +1679,7 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 902
+    sourceEndLine: 910
     sourceFile: packages/cli/src/commands/check.ts
     sourceLine: 546
   SYM-checkWorkspaceHealth:
