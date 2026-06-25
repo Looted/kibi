@@ -205,6 +205,24 @@ test(prefers_source_file_over_legacy_source, [setup(setup_kb), cleanup(cleanup_k
     kb_entities_by_source('documentation/brief.md', LegacyIds),
     \+ memberchk('sym-both-source-fields', LegacyIds).
 
+test(accepts_symbol_metadata_fields, [setup(setup_kb), cleanup(cleanup_kb)]) :-
+    kb_assert_entity(symbol, [
+        id='sym-metadata-fields',
+        title="Symbol metadata fields",
+        status=active,
+        created_at="2026-06-25T00:00:00Z",
+        updated_at="2026-06-25T00:00:00Z",
+        source="documentation/symbols.yaml#sym-metadata-fields",
+        sourceFile="packages/cli/src/public/impact/analyzer.ts",
+        symbol_role=behavioral,
+        granularity_reason='module-level-behavior'
+    ]),
+    kb_entity('sym-metadata-fields', symbol, Props),
+    memberchk(symbol_role=Role, Props),
+    memberchk(granularity_reason=Reason, Props),
+    assertion(Role = ^^("behavioral", _)),
+    assertion(Reason = ^^("module-level-behavior", _)).
+
 :- end_tests(kb_source_queries).
 
 :- begin_tests(kb_audit).
