@@ -6790,3 +6790,27 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-upsert-coverage
+  - id: SYM-syncPluginManifestVersions-result
+    title: PluginManifestSyncResult
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 23
+    sourceColumn: 17
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-syncPluginManifestVersions
+    title: syncPluginManifestVersions
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 137
+    sourceColumn: 22
+    sourceEndLine: 148
+    sourceEndColumn: 1

@@ -51,7 +51,7 @@
     "release:npm": "bun run build && ./scripts/publish-selective.sh",
     "release:bun": "bun run build && ./scripts/publish-selective.sh",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && bun run scripts/sync-plugin-manifest-versions.ts",
     "release": "changeset publish"
   },
   "devDependencies": {
