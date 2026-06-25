@@ -1,7 +1,7 @@
 {
   "name": "kibi-cursor",
   "displayName": "Kibi",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Optional Cursor adapter for Kibi. Requires SWI-Prolog 9+ and project-local kibi-cli, kibi-mcp, and kibi-core before the bundled MCP server can start.",
   "license": "AGPL-3.0-or-later",
   "author": {
