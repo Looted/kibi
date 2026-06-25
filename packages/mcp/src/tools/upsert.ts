@@ -689,6 +689,7 @@ function buildPropertyList(entity: Record<string, unknown>): string {
     "priority",
     "severity",
     "symbol_role",
+    "granularity_reason",
     // Typed fact enum fields must be atoms for Prolog validation
     "fact_kind",
     "operator",

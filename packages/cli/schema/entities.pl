@@ -48,6 +48,10 @@ entity_property(fact, valid_from, datetime).
 entity_property(fact, valid_to, datetime).
 entity_property(fact, canonical_key, string).
 
+% Typed symbol metadata fields - only valid for symbol entities
+entity_property(symbol, symbol_role, atom).
+entity_property(symbol, granularity_reason, atom).
+
 % Required properties for all entity types
 required_property(Type, id) :- entity_type(Type).
 required_property(Type, title) :- entity_type(Type).

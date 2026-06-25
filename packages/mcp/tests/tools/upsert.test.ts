@@ -109,7 +109,7 @@ describe("handleKbUpsert", () => {
     expect(query).not.toHaveBeenCalled();
   });
 
-  test("accepts valid symbol_role values on symbol upserts", async () => {
+  test("accepts valid symbol metadata atom fields on symbol upserts", async () => {
     const { prolog, query } = createMockProlog(async (goal) => {
       if (goal === "once(kb_entity('SYM-ROLE-VALID', _, _))") {
         return { success: false };
@@ -141,6 +141,7 @@ describe("handleKbUpsert", () => {
         status: "active",
         source: "test://upsert",
         symbol_role: "behavioral",
+        granularity_reason: "config-artifact",
       },
     });
 
@@ -148,6 +149,7 @@ describe("handleKbUpsert", () => {
       String(goal).startsWith("rdf_transaction"),
     )?.[0] as string | undefined;
     expect(transactionGoal).toContain("symbol_role=behavioral");
+    expect(transactionGoal).toContain("granularity_reason='config-artifact'");
     expect(result.structuredContent?.created).toBe(1);
   });
 
