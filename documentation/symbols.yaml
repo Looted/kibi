@@ -10,12 +10,12 @@ symbols:
     sourceFile: packages/cli/src/prolog.ts
     links:
       - REQ-001
-      - REQ-009
+      - REQ-core-persistence
     relationships:
       - type: implements
         target: REQ-001
       - type: implements
-        target: REQ-009
+        target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
   - id: SYM-PrologOptions
@@ -23,12 +23,12 @@ symbols:
     sourceFile: packages/cli/src/prolog.ts
     links:
       - REQ-001
-      - REQ-009
+      - REQ-core-persistence
     relationships:
       - type: implements
         target: REQ-001
       - type: implements
-        target: REQ-009
+        target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
   - id: SYM-QueryResult
@@ -36,12 +36,12 @@ symbols:
     sourceFile: packages/cli/src/prolog.ts
     links:
       - REQ-001
-      - REQ-009
+      - REQ-core-persistence
     relationships:
       - type: implements
         target: REQ-001
       - type: implements
-        target: REQ-009
+        target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
   - id: SYM-resolveKbPlPath
@@ -49,12 +49,12 @@ symbols:
     sourceFile: packages/cli/src/prolog.ts
     links:
       - REQ-001
-      - REQ-009
+      - REQ-core-persistence
     relationships:
       - type: implements
         target: REQ-001
       - type: implements
-        target: REQ-009
+        target: REQ-core-persistence
       - type: covered_by
         target: TEST-001
   - id: SYM-cli-PrologProcess-query
@@ -592,9 +592,9 @@ symbols:
         target: REQ-cli-check
       - type: covered_by
         target: TEST-004
-    sourceLine: 543
+    sourceLine: 546
     sourceColumn: 22
-    sourceEndLine: 891
+    sourceEndLine: 910
     sourceEndColumn: 1
   - id: SYM-CheckOptions
     title: CheckOptions
@@ -2377,27 +2377,27 @@ symbols:
     sourceEndColumn: 51
   - id: SYM-setToolsServerDepsForTests
     title: _setToolsServerDepsForTests
-    sourceFile: packages/mcp/src/server/tools.ts
+    sourceFile: packages/mcp/src/server/tools-runtime.ts
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 97
+    sourceLine: 48
     sourceColumn: 16
-    sourceEndLine: 106
+    sourceEndLine: 57
     sourceEndColumn: 1
   - id: SYM-resetSessionModulePromise
     title: _resetSessionModulePromise
-    sourceFile: packages/mcp/src/server/tools.ts
+    sourceFile: packages/mcp/src/server/tools-runtime.ts
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 109
+    sourceLine: 60
     sourceColumn: 16
-    sourceEndLine: 111
+    sourceEndLine: 62
     sourceEndColumn: 1
   - id: SYM-mcp-session-prologProcess
     title: prologProcess
@@ -2535,9 +2535,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 29
+    sourceLine: 26
     sourceColumn: 13
-    sourceEndLine: 30
+    sourceEndLine: 27
     sourceEndColumn: 45
   - id: SYM-initializeDiagnosticMode
     title: initializeDiagnosticMode
@@ -2547,9 +2547,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 43
+    sourceLine: 31
     sourceColumn: 16
-    sourceEndLine: 56
+    sourceEndLine: 43
     sourceEndColumn: 1
   - id: SYM-appendUsageLogLine
     title: appendUsageLogLine
@@ -2559,9 +2559,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 63
+    sourceLine: 45
     sourceColumn: 16
-    sourceEndLine: 72
+    sourceEndLine: 51
     sourceEndColumn: 1
   - id: SYM-DIAGNOSTIC_TELEMETRY_SCHEMA
     title: DIAGNOSTIC_TELEMETRY_SCHEMA
@@ -2571,10 +2571,10 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 77
+    sourceLine: 53
     sourceColumn: 13
-    sourceEndLine: 108
-    sourceEndColumn: 1
+    sourceEndLine: 84
+    sourceEndColumn: 10
   - id: SYM-ToolCallPayload
     title: ToolCallPayload
     sourceFile: packages/mcp/src/diagnostics.ts
@@ -2583,9 +2583,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 113
+    sourceLine: 86
     sourceColumn: 17
-    sourceEndLine: 116
+    sourceEndLine: 89
     sourceEndColumn: 1
   - id: SYM-DiagnosticErrorFields
     title: DiagnosticErrorFields
@@ -2595,13 +2595,13 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 118
+    sourceLine: 91
     sourceColumn: 17
-    sourceEndLine: 124
+    sourceEndLine: 97
     sourceEndColumn: 1
   - id: SYM-classifyDiagnosticError
     title: classifyDiagnosticError
-    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
     relationships:
       - type: implements
         target: REQ-002
@@ -2609,9 +2609,9 @@ symbols:
         target: REQ-008
       - type: covered_by
         target: TEST-005
-    sourceLine: 127
+    sourceLine: 67
     sourceColumn: 16
-    sourceEndLine: 245
+    sourceEndLine: 162
     sourceEndColumn: 1
   - id: SYM-deriveDiagnosticFields
     title: deriveDiagnosticFields
@@ -2621,33 +2621,69 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 263
+    sourceLine: 112
     sourceColumn: 16
-    sourceEndLine: 306
+    sourceEndLine: 155
     sourceEndColumn: 1
   - id: SYM-extractToolCallPayload
     title: extractToolCallPayload
-    sourceFile: packages/mcp/src/diagnostics.ts
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 311
+    sourceLine: 223
     sourceColumn: 16
-    sourceEndLine: 320
+    sourceEndLine: 232
     sourceEndColumn: 1
   - id: SYM-jsonSchemaToZod
     title: jsonSchemaToZod
-    sourceFile: packages/mcp/src/server/tools.ts
+    sourceFile: packages/mcp/src/server/json-schema-to-zod.ts
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 252
+    sourceLine: 6
     sourceColumn: 16
-    sourceEndLine: 381
+    sourceEndLine: 135
+    sourceEndColumn: 1
+  - id: SYM-appendDiagnosticSuccessUsage
+    title: appendDiagnosticSuccessUsage
+    sourceFile: packages/mcp/src/server/diagnostic-usage.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 24
+    sourceColumn: 22
+    sourceEndLine: 60
+    sourceEndColumn: 1
+  - id: SYM-appendDiagnosticErrorUsage
+    title: appendDiagnosticErrorUsage
+    sourceFile: packages/mcp/src/server/diagnostic-usage.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 63
+    sourceColumn: 22
+    sourceEndLine: 109
+    sourceEndColumn: 1
+  - id: SYM-registerConfiguredTools
+    title: registerConfiguredTools
+    sourceFile: packages/mcp/src/server/tool-registration.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+    sourceLine: 39
+    sourceColumn: 16
+    sourceEndLine: 189
     sourceEndColumn: 1
   - id: SYM-addTool
     title: addTool
@@ -2657,9 +2693,9 @@ symbols:
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 384
+    sourceLine: 100
     sourceColumn: 16
-    sourceEndLine: 532
+    sourceEndLine: 224
     sourceEndColumn: 1
   - id: SYM-registerAllTools
     title: registerAllTools
@@ -2676,25 +2712,25 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-suggest-predicates
-    sourceLine: 535
+    sourceLine: 227
     sourceColumn: 16
-    sourceEndLine: 766
+    sourceEndLine: 233
     sourceEndColumn: 1
   - id: SYM-ToolConfig
     title: ToolConfig
-    sourceFile: packages/mcp/src/server/tools.ts
+    sourceFile: packages/mcp/src/server/tool-types.ts
     relationships:
       - type: implements
         target: REQ-002
       - type: covered_by
         target: TEST-005
-    sourceLine: 67
+    sourceLine: 29
     sourceColumn: 17
-    sourceEndLine: 71
+    sourceEndLine: 33
     sourceEndColumn: 1
   - id: SYM-ToolsRuntime
     title: ToolsRuntime
-    sourceFile: packages/mcp/src/server/tools.ts
+    sourceFile: packages/mcp/src/server/tool-types.ts
     relationships:
       - type: implements
         target: REQ-002
@@ -2704,10 +2740,90 @@ symbols:
         target: TEST-005
       - type: covered_by
         target: TEST-mcp-upsert-coverage
-    sourceLine: 121
+    sourceLine: 44
     sourceColumn: 17
-    sourceEndLine: 161
+    sourceEndLine: 84
     sourceEndColumn: 1
+  - id: SYM-redactDiagnosticArgs
+    title: redactDiagnosticArgs
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-deriveDiagnosticRetryKey
+    title: deriveDiagnosticRetryKey
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-deriveDiagnosticHints
+    title: deriveDiagnosticHints
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-buildDiagnosticToolCall
+    title: buildDiagnosticToolCall
+    sourceFile: packages/mcp/src/diagnostics-helpers.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DiagnosticToolCall
+    title: DiagnosticToolCall
+    sourceFile: packages/mcp/src/diagnostics.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolHandler
+    title: ToolHandler
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-ToolHandlerArgs
+    title: ToolHandlerArgs
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-Awaitable
+    title: Awaitable
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DefaultRuntimeProlog
+    title: DefaultRuntimeProlog
+    sourceFile: packages/mcp/src/server/tool-types.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
+  - id: SYM-DEFAULT-TOOLS-RUNTIME
+    title: DEFAULT_TOOLS_RUNTIME
+    sourceFile: packages/mcp/src/server/tools-runtime.ts
+    relationships:
+      - type: implements
+        target: REQ-002
+      - type: covered_by
+        target: TEST-005
   - id: SYM-TOOLS
     title: TOOLS
     sourceFile: packages/mcp/src/tools-config.ts
@@ -5905,20 +6021,6 @@ symbols:
     sourceColumn: 16
     sourceEndLine: 125
     sourceEndColumn: 1
-  - id: SYM-createSymbolGranularityDiagnostics
-    title: createSymbolGranularityDiagnostics
-    sourceFile: packages/cli/src/commands/check.ts
-    symbol_role: behavioral
-    granularity_reason: extractor-miss
-    relationships:
-      - type: implements
-        target: REQ-symbol-behavioral-anchors
-      - type: covered_by
-        target: TEST-cli-symbol-behavioral-anchors
-    sourceLine: 239
-    sourceColumn: 9
-    sourceEndLine: 284
-    sourceEndColumn: 1
   - id: SYM-SEMANTIC_ADVISOR_VERSION
     title: SEMANTIC_ADVISOR_VERSION
     sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
@@ -6688,3 +6790,27 @@ symbols:
     relationships:
       - type: executable_for
         target: TEST-mcp-upsert-coverage
+  - id: SYM-syncPluginManifestVersions-result
+    title: PluginManifestSyncResult
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 23
+    sourceColumn: 17
+    sourceEndLine: 28
+    sourceEndColumn: 1
+  - id: SYM-syncPluginManifestVersions
+    title: syncPluginManifestVersions
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    relationships:
+      - type: implements
+        target: REQ-020
+      - type: covered_by
+        target: TEST-014
+    sourceLine: 137
+    sourceColumn: 22
+    sourceEndLine: 148
+    sourceEndColumn: 1

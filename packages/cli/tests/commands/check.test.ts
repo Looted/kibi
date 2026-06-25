@@ -1198,6 +1198,127 @@ source: documentation/requirements/REQ-STAGED-001.md
   );
 
   test(
+    "--staged projects only manifest entities for staged source files",
+    async () => {
+      const docDir = path.join(tmpDir, "documentation");
+      const reqDocDir = path.join(docDir, "requirements");
+      const srcDir = path.join(tmpDir, "src");
+      const legacyDir = path.join(tmpDir, "legacy");
+
+      mkdirSync(reqDocDir, { recursive: true });
+      mkdirSync(srcDir, { recursive: true });
+      mkdirSync(legacyDir, { recursive: true });
+
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git config user.email "test@example.com"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git config user.name "Test User"', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync('git commit -m "initial" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(reqDocDir, "REQ-STAGED-SCOPED-001.md"),
+        `---
+id: REQ-STAGED-SCOPED-001
+title: Staged Scoped Requirement
+status: open
+priority: must
+created_at: 2026-02-20T10:00:00.000Z
+updated_at: 2026-02-20T10:00:00.000Z
+source: documentation/requirements/REQ-STAGED-SCOPED-001.md
+---
+`,
+      );
+
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-STAGED-SCOPED-001
+    title: stagedScopedFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-STAGED-SCOPED-001
+    status: active
+`,
+      );
+
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function stagedScopedFunction() {
+  return "hello";
+}
+`,
+      );
+      writeFileSync(
+        path.join(legacyDir, "unrelated.ts"),
+        `export function unrelatedHistoricalFunction() {
+  return "historical";
+}
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync`, { cwd: tmpDir, stdio: "pipe" });
+      execSync("git add .", { cwd: tmpDir, stdio: "pipe" });
+      execSync('git commit -m "baseline" --no-verify', {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+
+      writeFileSync(
+        path.join(srcDir, "app.ts"),
+        `export function stagedScopedFunction() {
+  return "hello scoped";
+}
+`,
+      );
+      writeFileSync(
+        path.join(docDir, "symbols.yaml"),
+        `symbols:
+  - id: SYMBOL-STAGED-SCOPED-001
+    title: stagedScopedFunction
+    sourceFile: src/app.ts
+    links:
+      - REQ-STAGED-SCOPED-001
+    status: active
+  - id: SYMBOL-UNRELATED-HISTORICAL-001
+    title: unrelatedHistoricalFunction
+    sourceFile: legacy/unrelated.ts
+    links:
+      - REQ-UNRELATED-MISSING-001
+    status: active
+`,
+      );
+
+      execSync(`bun ${kibiBin} sync --refresh-symbol-coordinates`, {
+        cwd: tmpDir,
+        stdio: "pipe",
+      });
+      execSync(
+        "git add src/app.ts documentation/symbols.yaml documentation/symbol-coordinates.yaml",
+        {
+          cwd: tmpDir,
+          stdio: "pipe",
+        },
+      );
+
+      const result = runKibi(kibiBin, ["check", "--staged"], tmpDir);
+      const output = stdoutToString(result.stdout || result.stderr);
+
+      expect(result.status).toBe(0);
+      expect(output).toContain("No violations found");
+      expect(output).not.toContain("REQ-UNRELATED-MISSING-001");
+    },
+    TEST_TIMEOUT_MS,
+  );
+
+  test(
     "--staged uses custom paths.symbols from config",
     async () => {
       const configDir = path.join(tmpDir, ".kb");
