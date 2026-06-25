@@ -3320,6 +3320,18 @@ coordinates:
     sourceEndLine: 540
     sourceFile: packages/cli/src/commands/sync.ts
     sourceLine: 94
+  SYM-syncPluginManifestVersions:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 148
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    sourceLine: 137
+  SYM-syncPluginManifestVersions-result:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 28
+    sourceFile: scripts/sync-plugin-manifest-versions.ts
+    sourceLine: 23
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
