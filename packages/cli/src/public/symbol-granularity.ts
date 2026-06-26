@@ -31,6 +31,8 @@ export type SymbolKind =
   | "function"
   | "class"
   | "method"
+  | "property"
+  | "accessor"
   | "interface"
   | "type"
   | "variable"
@@ -57,6 +59,8 @@ export function inferSymbolRole(kind: SymbolKind): SymbolRole {
     case "function":
     case "class":
     case "method":
+    case "property":
+    case "accessor":
       return "behavioral";
     case "interface":
     case "type":

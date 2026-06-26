@@ -34,6 +34,7 @@ interface NormalizedAuthoredManifestSymbol {
   priority: string | null;
   severity: string | null;
   textRef: string | null;
+  granularityReason: string | null;
 }
 
 interface RelativeManifestPaths {
@@ -237,10 +238,43 @@ function normalizeAuthoredManifestSymbolsForSourceFile(
       priority: typeof record.priority === "string" ? record.priority : null,
       severity: typeof record.severity === "string" ? record.severity : null,
       textRef: typeof record.text_ref === "string" ? record.text_ref : null,
+      granularityReason:
+        typeof record.granularity_reason === "string"
+          ? record.granularity_reason
+          : null,
     }))
     .sort((left, right) =>
       JSON.stringify(left).localeCompare(JSON.stringify(right)),
     );
+}
+
+function getAuthoredSymbolComparisonKey(
+  symbol: NormalizedAuthoredManifestSymbol,
+): string {
+  return symbol.id ?? `${symbol.sourceFile}:${symbol.title}`;
+}
+
+function getChangedAuthoredEntityIds(
+  headSymbols: NormalizedAuthoredManifestSymbol[],
+  stagedSymbols: NormalizedAuthoredManifestSymbol[],
+): string[] {
+  const headSignatures = new Map(
+    headSymbols.map((symbol) => [
+      getAuthoredSymbolComparisonKey(symbol),
+      JSON.stringify(symbol),
+    ]),
+  );
+
+  const changedIds = stagedSymbols.flatMap((symbol) => {
+    if (symbol.id === null) return [];
+    const stagedSignature = JSON.stringify(symbol);
+    return headSignatures.get(getAuthoredSymbolComparisonKey(symbol)) ===
+      stagedSignature
+      ? []
+      : [symbol.id];
+  });
+
+  return uniqueSorted(changedIds);
 }
 
 function normalizeExpectedSymbolsForStagedFile(
@@ -468,10 +502,7 @@ export function collectStagedAuthoredSymbolsManifestEvidence(options: {
 
     entries.push({
       sourcePath: sourceFile.path,
-      entityIds: getEntityIdsForSourceFile(
-        stagedManifestRecords,
-        sourceFile.path,
-      ),
+      entityIds: getChangedAuthoredEntityIds(headSymbols, stagedSymbols),
     });
   }
 

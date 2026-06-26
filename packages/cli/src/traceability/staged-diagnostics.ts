@@ -12,13 +12,13 @@ export type KibiImpactDiagnosticId =
   | "kibi_impact_evidence_missing"
   | "symbols_manifest_stale"
   | "symbol_granularity_violation"
+  | "symbol_semantic_review_needed"
   | "kibi_impact_override_missing_rationale";
 
 export interface KibiImpactDiagnostic {
   /** Stable staged-enforcement diagnostic identifier. */
   id: KibiImpactDiagnosticId;
-  /** Hard-gate severity for staged enforcement. */
-  severity: "error";
+  severity: "error" | "warning";
   /** Repo-relative files that explain why the diagnostic fired. */
   files: string[];
   /** User-facing docs that explain the policy. */

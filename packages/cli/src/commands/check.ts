@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
@@ -34,11 +34,10 @@ import {
   parseViolationRows,
 } from "../prolog/codec.js";
 import {
-  getBehavioralSymbolNames,
-  getNonBehavioralSymbolNames,
-  isAllowedGranularityReason,
-  isTraceabilityRelationshipType,
-} from "../public/symbol-granularity.js";
+  createSemanticReviewDiagnostics,
+  createSymbolGranularityDiagnostics,
+  hasBlockingImpactDiagnostics,
+} from "../public/impact-diagnostics.js";
 import {
   KIBI_NO_IMPACT_DECLARATION,
   KIBI_SYMBOLS_MANIFEST_PATH,
@@ -229,93 +228,6 @@ function buildManifestLookup(stagedFiles: ReturnType<typeof getStagedFiles>): {
   };
 }
 
-function hasTraceabilityRelationship(result: ExtractionResult): boolean {
-  return result.relationships.some((relationship) =>
-    isTraceabilityRelationshipType(relationship.type),
-  );
-}
-
-function hasValidGranularityReason(result: ExtractionResult): boolean {
-  return isAllowedGranularityReason(result.entity.granularity_reason);
-}
-
-function createSymbolGranularityDiagnostics(options: {
-  manifestResults: ExtractionResult[];
-  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>;
-  sourceContentByFile: Map<string, string>;
-}): KibiImpactDiagnostic[] {
-  const diagnostics: KibiImpactDiagnostic[] = [];
-
-  for (const result of options.manifestResults) {
-    if (!result.sourceFile) continue;
-    if (!hasTraceabilityRelationship(result)) continue;
-    if (hasValidGranularityReason(result)) continue;
-
-    const granularSymbols = getGranularSymbolsForSourceFile(
-      result.sourceFile,
-      options.symbolsByFile,
-      options.sourceContentByFile,
-    );
-    if (granularSymbols.length === 0) continue;
-    const granularNames = [
-      ...new Set(granularSymbols.map((s) => s.name)),
-    ].sort();
-    if (granularNames.includes(result.entity.title)) continue;
-
-    const behavioralNames = getBehavioralSymbolNames(granularSymbols);
-    if (behavioralNames.length === 0) continue;
-
-    const nonBehavioralNames = getNonBehavioralSymbolNames(granularSymbols);
-    const ignoredSymbolsSuggestion =
-      nonBehavioralNames.length > 0
-        ? ` Non-behavioral symbols ignored for this decision: ${nonBehavioralNames.join(
-            ", ",
-          )}.`
-        : "";
-
-    diagnostics.push({
-      id: "symbol_granularity_violation",
-      severity: "error",
-      files: [result.entity.source, result.sourceFile],
-      docs: ["docs/symbol-traceability-taxonomy.md"],
-      message: `Symbol ${result.entity.id} links ${result.sourceFile} coarsely while granular symbols are available (behavioral only): ${behavioralNames.join(", ")}`,
-      suggestion: `Move ownership/coverage/test relationships to the narrow behavioral symbol, add a manifest behavioral anchor, or add granularity_reason with config-artifact, module-level-behavior, extractor-miss, or legacy-link when the coarse symbol is intentional.${ignoredSymbolsSuggestion}`,
-    });
-  }
-
-  return diagnostics;
-}
-
-function getGranularSymbolsForSourceFile(
-  sourceFile: string,
-  symbolsByFile: Map<string, ReturnType<typeof extractSymbolsFromStagedFile>>,
-  sourceContentByFile: Map<string, string>,
-): ReturnType<typeof extractSymbolsFromStagedFile> {
-  const stagedContent = sourceContentByFile.get(sourceFile);
-  if (stagedContent !== undefined) {
-    return extractSymbolsFromStagedFile({
-      path: sourceFile,
-      status: "M",
-      hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-      content: stagedContent,
-    });
-  }
-
-  const absolutePath = path.isAbsolute(sourceFile)
-    ? sourceFile
-    : path.resolve(process.cwd(), sourceFile);
-  if (!existsSync(absolutePath)) {
-    return [];
-  }
-
-  return extractSymbolsFromStagedFile({
-    path: sourceFile,
-    status: "M",
-    hunkRanges: [{ start: 1, end: Number.MAX_SAFE_INTEGER }],
-    content: readFileSync(absolutePath, "utf8"),
-  });
-}
-
 const KIBI_ENTITY_TYPES = new Set<KibiEntityType>([
   "req",
   "scenario",
@@ -384,7 +296,9 @@ function formatStagedKibiDiagnostics(
 ): string {
   return diagnostics
     .map((diagnostic) => {
-      const lines = [`[${diagnostic.id}] ${diagnostic.message}`];
+      const lines = [
+        `[${diagnostic.severity.toUpperCase()} ${diagnostic.id}] ${diagnostic.message}`,
+      ];
       if (diagnostic.files.length > 0) {
         lines.push(`  Files: ${diagnostic.files.join(", ")}`);
       }
@@ -672,6 +586,13 @@ export async function checkCommand(
         });
         const stagedKibiDiagnostics =
           collectStagedKibiDiagnostics(stagedKibiEvidence);
+        const activeStagedSymbolEntityIds = new Set(
+          stagedKibiEvidence.mode.kind === "kb_changes"
+            ? stagedKibiEvidence.mode.kbArtifacts
+                .filter((artifact) => artifact.kind === "symbols_manifest")
+                .flatMap((artifact) => artifact.entityIds)
+            : [],
+        );
         const stagedAuthoredSymbolSet = new Set(stagedAuthoredSymbolResults);
         const stagedSourcePaths = new Set(sourceFiles.map((file) => file.path));
         const activeGranularityResults = authoredSymbolResults.filter(
@@ -683,9 +604,13 @@ export async function checkCommand(
         stagedKibiDiagnostics.push(
           ...createSymbolGranularityDiagnostics({
             manifestResults: activeGranularityResults,
+            ...(activeStagedSymbolEntityIds.size > 0
+              ? { activeEntityIds: activeStagedSymbolEntityIds }
+              : {}),
             symbolsByFile,
             sourceContentByFile,
           }),
+          ...createSemanticReviewDiagnostics({ symbolsByFile }),
         );
 
         if (allSymbols.length === 0 && stagedEntityResults.length === 0) {
@@ -694,7 +619,11 @@ export async function checkCommand(
             if (options.dryRun) {
               return { exitCode: 0 };
             }
-            return { exitCode: 1 };
+            return {
+              exitCode: hasBlockingImpactDiagnostics(stagedKibiDiagnostics)
+                ? 1
+                : 0,
+            };
           }
 
           console.log(
@@ -709,7 +638,11 @@ export async function checkCommand(
             if (options.dryRun) {
               return { exitCode: 0 };
             }
-            return { exitCode: 1 };
+            return {
+              exitCode: hasBlockingImpactDiagnostics(stagedKibiDiagnostics)
+                ? 1
+                : 0,
+            };
           }
           console.log("✓ No violations found in staged files.");
           return { exitCode: 0 };
@@ -756,7 +689,13 @@ export async function checkCommand(
           if (options.dryRun) {
             return { exitCode: 0 };
           }
-          return { exitCode: 1 };
+          if (!hasBlockingImpactDiagnostics(stagedKibiDiagnostics)) {
+            console.log("✓ No violations found in staged symbols.");
+            return { exitCode: 0 };
+          }
+          return {
+            exitCode: 1,
+          };
         }
 
         console.log("✓ No violations found in staged symbols.");

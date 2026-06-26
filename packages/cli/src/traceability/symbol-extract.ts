@@ -395,6 +395,69 @@ export function extractSymbolsFromStagedFile(
         void stagedFile.path;
       }
     }
+
+    for (const property of typeof cls.getProperties === "function"
+      ? cls.getProperties()
+      : []) {
+      try {
+        const name = formatMethodSymbolName(cls.getName(), property.getName());
+        const start = property.getNameNode()?.getStart() ?? property.getStart();
+        const end = property.getEnd();
+        const span = getSpan(start, end);
+        const reqLinks = parseReqDirectives(
+          `${property.getFullText()}\n${property
+            .getJsDocs()
+            .map((d) => d.getFullText())
+            .join("\n")}`,
+        );
+        results.push(
+          buildSymbolResult(
+            stagedFile,
+            name,
+            "property",
+            span,
+            reqLinks,
+            manifestLookup,
+          ),
+        );
+      } catch {
+        void stagedFile.path;
+      }
+    }
+
+    for (const accessor of [
+      ...(typeof cls.getGetAccessors === "function"
+        ? cls.getGetAccessors()
+        : []),
+      ...(typeof cls.getSetAccessors === "function"
+        ? cls.getSetAccessors()
+        : []),
+    ]) {
+      try {
+        const name = formatMethodSymbolName(cls.getName(), accessor.getName());
+        const start = accessor.getNameNode()?.getStart() ?? accessor.getStart();
+        const end = accessor.getEnd();
+        const span = getSpan(start, end);
+        const reqLinks = parseReqDirectives(
+          `${accessor.getFullText()}\n${accessor
+            .getJsDocs()
+            .map((d) => d.getFullText())
+            .join("\n")}`,
+        );
+        results.push(
+          buildSymbolResult(
+            stagedFile,
+            name,
+            "accessor",
+            span,
+            reqLinks,
+            manifestLookup,
+          ),
+        );
+      } catch {
+        void stagedFile.path;
+      }
+    }
   }
 
   // Enums
