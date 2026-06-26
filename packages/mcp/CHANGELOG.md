@@ -1,5 +1,39 @@
 # kibi-mcp
 
+## 0.18.1
+
+### Patch Changes
+
+- Symbol metadata writes now work consistently through MCP and the underlying Prolog schema. Agents can create source-linked symbol entities with `symbol_role` and `granularity_reason` metadata without hitting a transaction failure after JSON validation succeeds. This keeps behavioral-anchor traceability usable from the MCP-first workflow.
+
+  Technical summary:
+
+  - Add `symbol_role` and `granularity_reason` to the Prolog entity schema copies shipped by `kibi-core` and `kibi-cli`.
+  - Serialize `granularity_reason` as a Prolog atom in `kb_upsert` transactions.
+  - Add Prolog and MCP regression coverage for symbol metadata fields.
+
+- Updated dependencies
+  - kibi-core@0.6.5
+  - kibi-cli@0.13.1
+
+## 0.18.0
+
+### Minor Changes
+
+- Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
+
+  Technical summary:
+
+  - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
+  - Extend MCP `kb_check` with source-file impact options and structured impact output.
+  - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
+  - Document semantic-review diagnostics and class-member granularity expectations.
+
+### Patch Changes
+
+- Updated dependencies
+  - kibi-cli@0.13.0
+
 ## 0.17.5
 
 ### Patch Changes

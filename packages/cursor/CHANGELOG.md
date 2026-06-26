@@ -1,5 +1,18 @@
 # kibi-cursor
 
+## 0.3.0
+
+### Minor Changes
+
+- Kibi now gives agents source-impact feedback while they are still editing, instead of waiting for the commit hook to be the first signal. Meaningful source edits can be checked through MCP with changed-file impact diagnostics, so agents see coarse symbol ownership, stale symbol evidence, and semantic-review prompts while the source context is fresh. OpenCode, Cursor, and Codex adapters now steer agents toward that MCP-first workflow and keep CLI/hooks as the later safety net.
+
+  Technical summary:
+
+  - Add reusable CLI changed-file impact diagnostics and export them for MCP consumption.
+  - Extend MCP `kb_check` with source-file impact options and structured impact output.
+  - Update OpenCode, Cursor, and Codex guidance/hooks to request impact-enabled `kb_check` after source edits.
+  - Document semantic-review diagnostics and class-member granularity expectations.
+
 ## 0.2.2
 
 ### Patch Changes

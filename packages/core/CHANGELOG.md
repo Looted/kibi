@@ -1,5 +1,17 @@
 # kibi-core
 
+## 0.6.5
+
+### Patch Changes
+
+- Symbol metadata writes now work consistently through MCP and the underlying Prolog schema. Agents can create source-linked symbol entities with `symbol_role` and `granularity_reason` metadata without hitting a transaction failure after JSON validation succeeds. This keeps behavioral-anchor traceability usable from the MCP-first workflow.
+
+  Technical summary:
+
+  - Add `symbol_role` and `granularity_reason` to the Prolog entity schema copies shipped by `kibi-core` and `kibi-cli`.
+  - Serialize `granularity_reason` as a Prolog atom in `kb_upsert` transactions.
+  - Add Prolog and MCP regression coverage for symbol metadata fields.
+
 ## 0.6.4
 
 ### Patch Changes
