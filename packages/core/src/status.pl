@@ -117,6 +117,7 @@ documentation_markdown_untracked(WorkspaceRoot) :-
 documentation_markdown_file(Path, Path) :-
     exists_file(Path),
     file_name_extension(_, md, Path),
+    \+ ignored_documentation_file(Path),
     !.
 documentation_markdown_file(Path, FilePath) :-
     exists_directory(Path),
@@ -138,6 +139,8 @@ known_source_path(RelativePath) :-
     repo_relative_source(SourceAtom, RelativePath).
 
 directory_tree_newer(Path, SnapshotTime) :-
+    exists_file(Path),
+    \+ ignored_documentation_file(Path),
     time_file(Path, EntryTime),
     EntryTime > SnapshotTime,
     !.
@@ -211,6 +214,9 @@ source_value_atom(Val, Atom) :-
 source_value_atom(Val, Atom) :-
     term_string(Val, Str),
     atom_string(Atom, Str).
+
+ignored_documentation_file(Path) :-
+    file_base_name(Path, 'README.md').
 
 dict_json_string(Dict, JsonString) :-
     with_output_to(string(JsonString), json_write_dict(current_output, Dict, [])).
