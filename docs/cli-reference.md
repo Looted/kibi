@@ -178,6 +178,7 @@ Validates knowledge base integrity and runs inference rules.
 - Detects dangling references (entities that reference non-existent IDs)
 - Detects cycles in dependency graphs
 - Supports strict migration checks like `strict-fact-shape` and `strict-req-fact-pairing` (both default-off) for malformed typed facts and incomplete requirement/fact pairing
+- With `--staged`, runs commit-time changed-file impact enforcement for behavior-changing source edits, including missing Kibi impact evidence, stale symbol coordinates, and changed behavioral symbols that are only linked through coarse class/module ownership
 - Reports violations with actionable suggestions
 
 **Flags:**
@@ -204,6 +205,8 @@ kibi check --rules strict-fact-shape # Migration-oriented check
 # Audit strict requirement/fact pairing during migration
 kibi check --rules strict-req-fact-pairing
 ```
+
+Agents should prefer MCP `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` while editing. CLI `kibi check --staged` remains the git-hook and operator fallback once files are staged.
 
 **See also:** [Staged Symbol Traceability](#staged-symbol-traceability) for `--staged` usage details.
 
@@ -394,7 +397,7 @@ XB
 The `kibi check --staged` command enforces traceability on code before commit.
 
 **Purpose:**
-Every new or modified code symbol (function, class, module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged.
+Every new or modified code symbol (function, class, method, accessor, behavioral class property, or module) must be explicitly linked to at least one requirement before it can be committed. This prevents "orphan" code from being merged and catches edits hidden behind broad class/module links when a narrower changed anchor exists.
 
 **Workflow Options:**
 1. **Relationship-based (Preferred for Test/e2e):** Model the code as a symbol in your manifest (e.g., `documentation/symbols.yaml`), link it to a `TEST-*` entity with `executable_for` to establish its identity. The canonical traceability chain is `REQ-xxx` → `SCEN-xxx` → `TEST-xxx`. Use `covered_by` to link symbols to the tests that exercise them. This satisfies the staged check without modifying source code. Note that physical symbol coordinates are maintained separately in `documentation/symbol-coordinates.yaml` and must be refreshed via `kibi sync --refresh-symbol-coordinates` when code changes.
@@ -406,9 +409,11 @@ Every new or modified code symbol (function, class, module) must be explicitly l
 kibi check --staged
 ```
 
-This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). If violations are found and this is run as a pre-commit hook, the commit will be blocked.
+This command scans only files staged for commit and reports any new or modified symbols that do not have requirement links (either via inline comments or explicit KB relationships). It also reports stale symbol-coordinate evidence and `symbol_granularity_violation` when a changed behavioral member such as `UploadPageComponent.processingProgressLabel` is covered only by a coarse class/module relationship without an audited `granularity_reason`. If violations are found and this is run as a pre-commit hook, the commit will be blocked.
 
-**Scope Note**: Staged check handles explicitly modeled symbols. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
+The staged CLI gate does not prove that linked prose still matches the source edit. Use the MCP impact check while editing to get `symbol_semantic_review_needed` guidance and inspect linked requirements/scenarios/tests before deciding whether to update KB entities.
+
+**Scope Note**: Staged check handles explicitly modeled symbols and extracted TypeScript/JavaScript anchors, including exported class methods, accessors, and behavior-bearing class properties. Automatic extraction of framework-specific `test()` or `it()` callbacks is not currently supported.
 
 **Inline Directive Syntax (Optional):**
 

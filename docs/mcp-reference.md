@@ -373,13 +373,30 @@ Confirmation of deletion, or an error describing blocked dependents.
 
 ### `kb_check`
 
-Run KB validation rules after mutations.
+Run KB validation rules after mutations. Agents can also opt into read-only changed-file impact diagnostics for source edits while the edit context is still fresh; this is the first Kibi gate for LLM workflows, with CLI/git hooks remaining the commit-time fallback.
 
 **Parameters:**
 - `rules` (optional): Validation rule subset (`must-priority-coverage`, `symbol-coverage`, `symbol-traceability`, `no-dangling-refs`, `no-cycles`, `required-fields`, `deprecated-adr-no-successor`, `domain-contradictions`, `strict-fact-shape`, `strict-req-fact-pairing`). Note: `strict-fact-shape` and `strict-req-fact-pairing` are migration checks and are disabled by default. `domain-contradictions` applies only to strict-lane facts.
+- `sourceFiles` (optional): Repo-relative source paths to inspect for changed-file impact diagnostics.
+- `staged` (optional): Inspect staged source changes when building impact diagnostics.
+- `includeWorkingTreeDiff` (optional): Include unstaged working-tree content/diffs for the supplied `sourceFiles`.
+- `includeImpactDiagnostics` (optional): Include changed-file diagnostics such as `symbol_granularity_violation` and `symbol_semantic_review_needed` in structured output.
+- `maxDiagnostics` (optional): Cap returned impact diagnostics. Graph validation violations are not capped by this value.
+- `workspaceRoot` (optional): Workspace root for impact diagnostics and `.kb/config.json` lookup. Defaults to the MCP server workspace.
 
 **Returns:**
-Validation report with any violations found and suggested fixes.
+Validation report with any violations found and suggested fixes. When impact diagnostics are enabled, `structuredContent` also includes `impactDiagnostics`, `sourceFiles`, `extractedSymbols`, `linkedEntities`, and `nextActions`.
+
+Impact diagnostics are advisory unless their severity is `error`. `symbol_granularity_violation` means a changed behavioral symbol has only coarse ownership when a narrower anchor is available. `symbol_semantic_review_needed` can fire even when graph coverage already exists; it tells the agent to inspect whether linked requirements, scenarios, and tests actually cover the changed behavior or UI copy. Kibi reports the linked entities and suggested MCP calls, but it does not prove prose semantics.
+
+**Example:**
+```json
+{
+  "sourceFiles": ["src/app/pages/upload/upload-page.component.ts"],
+  "includeImpactDiagnostics": true,
+  "includeWorkingTreeDiff": true
+}
+```
 
 ## Discoverability
 
@@ -419,9 +436,9 @@ This behavior is important after external branch operations such as `kibi sync -
 
 1. **Interactive Bootstrap**: Start with the `/init-kibi` workflow to gather declared context and synthesize entities. Always preview candidates for user approval before applying.
 2. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
-3. **Gather Context**: Use `kb_search` for discovery (decomposing broad tasks into focused probes) and `kb_query` for exact follow-up.
-4. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
-5. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+3. **Inspect Freshness**: Use `kb_status` when branch or stale-state confidence matters.
+4. **Analyze**: Use `kb_find_gaps`, `kb_coverage`, and `kb_graph` for curated reporting.
+5. **Check Source Impact**: After meaningful source edits, run `kb_check` with `sourceFiles`, `includeImpactDiagnostics: true`, and `includeWorkingTreeDiff: true` before deciding whether requirements/tests/symbol links need updates.
 6. **Execute Changes**: Use `kb_upsert` to create/update entities and relationships.
 7. **Validate**: Run `kb_check` after structural changes.
 8. **Clean Up**: Use `kb_delete` only for intentional removals after validating dependencies.
