@@ -45,6 +45,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
    - Run targeted `kb_check` rules during iteration.
    - Run a final `kb_check` before completion.
    - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed. If freshness requires a Kibi operation that has no MCP equivalent, run the CLI workflow needed to refresh or sync the KB.
+   - Do not hand off work unless `kibi status` reports a clean, fresh KB state. If status is not clean/fresh, resolve the cause before completion rather than documenting it as a caveat.
 
 ## Knowledge Quality Metrics
 
