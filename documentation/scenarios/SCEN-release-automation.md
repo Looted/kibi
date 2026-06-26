@@ -10,8 +10,6 @@ tags:
   - automation
   - changesets
 links:
-  - type: specified_by
-    target: REQ-020
   - type: verified_by
     target: TEST-014
 ---
