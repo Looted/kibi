@@ -121,6 +121,8 @@ const ADVISORY_EDIT_KINDS: ReadonlySet<PathKind> = new Set([
   "kb",
 ]);
 
+const SOURCE_IMPACT_KINDS: ReadonlySet<PathKind> = new Set(["code"]);
+
 function normalizeCheckpointEvidence(
   evidence: CheckpointEvidence | undefined,
 ): boolean {
@@ -257,6 +259,14 @@ function advisoryText(event: NormalizedPolicyEvent): string {
   }
 
   if (event.lifecycle === "edited") {
+    if (SOURCE_IMPACT_KINDS.has(event.pathKind)) {
+      const impactCheckCall = `kb_check({sourceFiles:["${event.normalizedPath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`;
+      return [
+        `- Edited source file detected. Run \`${impactCheckCall}\` while the edit context is fresh.`,
+        "  Use the impact diagnostics to review symbol granularity, requirement ownership, and semantic review of linked requirements/tests before completing this task.",
+      ].join("\n");
+    }
+
     return `- Edited file detected. Review Kibi traceability for ${event.normalizedPath} before completing this task.`;
   }
 
