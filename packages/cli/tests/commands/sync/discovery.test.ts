@@ -2,7 +2,12 @@ import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import type { KbConfigPaths } from "../../../src/utils/config.js";
 
 const fgMock = mock(
-  async (..._args: [string | string[], { cwd: string; absolute: boolean }?]) =>
+  async (
+    ..._args: [
+      string | string[],
+      { cwd: string; absolute: boolean; ignore?: string[] }?,
+    ]
+  ) =>
     [] as string[],
 );
 
@@ -156,7 +161,26 @@ describe("discoverSourceFiles", () => {
 
     expect(fgMock.mock.calls[0]).toEqual([
       ["docs/requirements/**/*.md"],
-      { cwd: "/test/cwd", absolute: true },
+      { cwd: "/test/cwd", absolute: true, ignore: ["**/README.md"] },
+    ]);
+  });
+
+  test("ignores README markdown files under entity directories", async () => {
+    fgMock.mockResolvedValueOnce([
+      "/project/docs/tests/README.md",
+      "/project/docs/tests/TEST-001.md",
+    ]);
+
+    const paths: KbConfigPaths = {
+      tests: "docs/tests",
+    };
+
+    const result = await discoverSourceFiles("/project", paths);
+
+    expect(result.markdownFiles).toEqual(["/project/docs/tests/TEST-001.md"]);
+    expect(fgMock.mock.calls[0]).toEqual([
+      ["docs/tests/**/*.md"],
+      { cwd: "/project", absolute: true, ignore: ["**/README.md"] },
     ]);
   });
 

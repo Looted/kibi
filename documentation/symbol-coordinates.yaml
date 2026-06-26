@@ -2552,6 +2552,12 @@ coordinates:
     sourceEndLine: 1011
     sourceFile: packages/mcp/src/tools/autopilot-discovery.ts
     sourceLine: 956
+  SYM-discoverSourceFiles:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 71
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 34
   SYM-discoverSources:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3206,6 +3212,12 @@ coordinates:
     sourceEndLine: 300
     sourceFile: packages/cli/src/utils/strict-modeling.ts
     sourceLine: 280
+  SYM-normalizeMarkdownPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 32
+    sourceFile: packages/cli/src/commands/sync/discovery.ts
+    sourceLine: 26
   SYM-normalizePropertyKey:
     sourceColumn: 16
     sourceEndColumn: 1

@@ -21,6 +21,8 @@ import fg from "fast-glob";
 import { getRelationshipsDir } from "../../extractors/relationships.js";
 import type { KbConfigPaths } from "../../utils/config.js";
 
+const MARKDOWN_DISCOVERY_IGNORE = ["**/README.md"] as const;
+
 export function normalizeMarkdownPath(
   pattern: string | undefined,
 ): string | null {
@@ -50,7 +52,11 @@ export async function discoverSourceFiles(
   const markdownFiles = await fg(markdownPatterns, {
     cwd,
     absolute: true,
+    ignore: [...MARKDOWN_DISCOVERY_IGNORE],
   });
+  const entityMarkdownFiles = markdownFiles.filter(
+    (file) => !file.endsWith("/README.md"),
+  );
 
   const manifestFiles = paths.symbols
     ? await fg(paths.symbols, {
@@ -61,5 +67,5 @@ export async function discoverSourceFiles(
 
   const relationshipsDir = getRelationshipsDir(path.join(cwd, ".kb"));
 
-  return { markdownFiles, manifestFiles, relationshipsDir };
+  return { markdownFiles: entityMarkdownFiles, manifestFiles, relationshipsDir };
 }

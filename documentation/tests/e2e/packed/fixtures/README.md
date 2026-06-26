@@ -1,7 +1,7 @@
 ---
-id: FACT-packed-tarball-fixtures
-title: Packed tarball fixtures are retained for regression tests
-type: fact
+id: README
+title: Tarball fixture documentation
+type: test
 status: active
 created_at: 2026-06-26T11:40:00Z
 updated_at: 2026-06-26T11:40:00Z
@@ -10,7 +10,6 @@ tags:
   - e2e
   - fixtures
   - release
-fact_kind: observation
 ---
 
 # Tarball Fixtures
