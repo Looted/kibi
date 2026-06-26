@@ -2012,6 +2012,12 @@ coordinates:
     sourceEndLine: 18
     sourceFile: packages/codex/src/hook-state.ts
     sourceLine: 13
+  SYM-codex-KbMcpToolCall:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 70
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    sourceLine: 66
   SYM-codex-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 41
@@ -2048,6 +2054,12 @@ coordinates:
     sourceEndLine: 102
     sourceFile: packages/codex/src/path-policy.ts
     sourceLine: 98
+  SYM-codex-extractKbMcpToolCall:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 112
+    sourceFile: packages/codex/src/kb-mcp-tools.ts
+    sourceLine: 72
   SYM-codex-freshnessReminder:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2060,6 +2072,12 @@ coordinates:
     sourceEndLine: 159
     sourceFile: packages/codex/src/hook-runner.ts
     sourceLine: 159
+  SYM-codex-impactCheckReminder:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 34
+    sourceFile: packages/codex/src/messages.ts
+    sourceLine: 21
   SYM-codex-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2072,6 +2090,12 @@ coordinates:
     sourceEndLine: 140
     sourceFile: packages/codex/src/path-policy.ts
     sourceLine: 108
+  SYM-codex-isSourceImpactRelevantPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 163
+    sourceFile: packages/codex/src/path-policy.ts
+    sourceLine: 142
   SYM-codex-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2102,6 +2126,12 @@ coordinates:
     sourceEndLine: 68
     sourceFile: packages/codex/src/hook-input.ts
     sourceLine: 60
+  SYM-codex-recordKbMcpTool:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 283
+    sourceFile: packages/codex/src/hook-state.ts
+    sourceLine: 231
   SYM-codex-runHook:
     sourceColumn: 22
     sourceEndColumn: 1

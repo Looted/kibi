@@ -12,7 +12,19 @@ const staleLockAgeMs = 30_000;
 
 export type HookState = {
   dirtyPaths: string[];
+  kbCheckRun: boolean;
+  impactCheckRun: boolean;
+  impactCheckedPaths: string[];
 };
+
+function emptyHookState(): HookState {
+  return {
+    dirtyPaths: [],
+    kbCheckRun: false,
+    impactCheckRun: false,
+    impactCheckedPaths: [],
+  };
+}
 
 function statePath(pluginData: string): string {
   return path.join(pluginData, stateFileName);
@@ -51,7 +63,10 @@ function mergeDirtyPaths(
     .map(normalizeDirtyPath)
     .filter((dirtyPath) => dirtyPath.length > 0);
 
-  return { dirtyPaths: [...new Set(merged)].slice(-maxDirtyPaths) };
+  return {
+    ...emptyHookState(),
+    dirtyPaths: [...new Set(merged)].slice(-maxDirtyPaths),
+  };
 }
 
 function acquireLock(pluginData: string): number | undefined {
@@ -118,7 +133,7 @@ function releaseLock(pluginData: string, fileDescriptor: number): void {
 
 function coerceHookState(value: unknown): HookState {
   if (!isRecord(value) || !Array.isArray(value.dirtyPaths)) {
-    return { dirtyPaths: [] };
+    return emptyHookState();
   }
 
   const dirtyPaths = value.dirtyPaths
@@ -126,12 +141,24 @@ function coerceHookState(value: unknown): HookState {
     .map(normalizeDirtyPath)
     .filter((dirtyPath) => dirtyPath.length > 0);
 
-  return { dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths) };
+  const impactCheckedPaths = Array.isArray(value.impactCheckedPaths)
+    ? value.impactCheckedPaths
+        .filter((entry): entry is string => typeof entry === "string")
+        .map(normalizeDirtyPath)
+        .filter((entry) => entry.length > 0)
+    : [];
+
+  return {
+    dirtyPaths: [...new Set(dirtyPaths)].slice(-maxDirtyPaths),
+    kbCheckRun: value.kbCheckRun === true,
+    impactCheckRun: value.impactCheckRun === true,
+    impactCheckedPaths: [...new Set(impactCheckedPaths)].slice(-maxDirtyPaths),
+  };
 }
 
 export function loadHookState(pluginData: string | undefined): HookState {
   if (!pluginData) {
-    return { dirtyPaths: [] };
+    return emptyHookState();
   }
 
   try {
@@ -139,7 +166,7 @@ export function loadHookState(pluginData: string | undefined): HookState {
       JSON.parse(fs.readFileSync(statePath(pluginData), "utf8")),
     );
   } catch {
-    return { dirtyPaths: [] };
+    return emptyHookState();
   }
 }
 
@@ -163,7 +190,10 @@ export function addDirtyPaths(
   dirtyPaths: readonly string[],
 ): HookState {
   const initialState = loadHookState(pluginData);
-  const fallbackState = mergeDirtyPaths(initialState.dirtyPaths, dirtyPaths);
+  const fallbackState: HookState = {
+    ...initialState,
+    dirtyPaths: mergeDirtyPathValues(initialState.dirtyPaths, dirtyPaths),
+  };
 
   if (!pluginData) {
     return fallbackState;
@@ -178,7 +208,71 @@ export function addDirtyPaths(
 
   try {
     const lockedState = loadHookState(pluginData);
-    const nextState = mergeDirtyPaths(lockedState.dirtyPaths, dirtyPaths);
+    const nextState: HookState = {
+      ...lockedState,
+      dirtyPaths: mergeDirtyPathValues(lockedState.dirtyPaths, dirtyPaths),
+    };
+    saveHookState(pluginData, nextState);
+    return nextState;
+  } catch {
+    return fallbackState;
+  } finally {
+    releaseLock(pluginData, lockFileDescriptor);
+  }
+}
+
+function mergeDirtyPathValues(
+  existingPaths: readonly string[],
+  dirtyPaths: readonly string[],
+): string[] {
+  return mergeDirtyPaths(existingPaths, dirtyPaths).dirtyPaths;
+}
+
+export function recordKbMcpTool(
+  pluginData: string | undefined,
+  toolName: string,
+  options: { impactCheckRun?: boolean; sourceFiles?: readonly string[] } = {},
+): HookState {
+  const normalized = toolName.trim();
+  if (normalized.length === 0) {
+    return loadHookState(pluginData);
+  }
+
+  const initialState = loadHookState(pluginData);
+  const update = (state: HookState): HookState => {
+    if (normalized !== "kb_check") {
+      return state;
+    }
+
+    return {
+      ...state,
+      kbCheckRun: true,
+      impactCheckRun: state.impactCheckRun || options.impactCheckRun === true,
+      impactCheckedPaths:
+        options.impactCheckRun === true
+          ? mergeDirtyPathValues(
+              state.impactCheckedPaths,
+              options.sourceFiles ?? [],
+            )
+          : state.impactCheckedPaths,
+    };
+  };
+  const fallbackState = update(initialState);
+
+  if (!pluginData) {
+    return fallbackState;
+  }
+
+  fs.mkdirSync(pluginData, { recursive: true });
+  const lockFileDescriptor = acquireLock(pluginData);
+
+  if (lockFileDescriptor === undefined) {
+    return fallbackState;
+  }
+
+  try {
+    const lockedState = loadHookState(pluginData);
+    const nextState = update(lockedState);
     saveHookState(pluginData, nextState);
     return nextState;
   } catch {
@@ -189,7 +283,7 @@ export function addDirtyPaths(
 }
 
 export function clearDirtyPaths(pluginData: string | undefined): HookState {
-  const clearedState: HookState = { dirtyPaths: [] };
+  const clearedState = emptyHookState();
 
   if (!pluginData) {
     return clearedState;

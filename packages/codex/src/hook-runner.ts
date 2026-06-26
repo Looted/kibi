@@ -5,16 +5,24 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { parseHookInput, parseStdinJson, readStdin } from "./hook-input.js";
-import { addDirtyPaths, clearDirtyPaths, loadHookState } from "./hook-state.js";
+import {
+  addDirtyPaths,
+  clearDirtyPaths,
+  loadHookState,
+  recordKbMcpTool,
+} from "./hook-state.js";
+import { extractKbMcpToolCall } from "./kb-mcp-tools.js";
 import {
   BOOTSTRAP_REMINDER,
   DIRECT_KB_EDIT_WARNING,
   freshnessReminder,
+  impactCheckReminder,
 } from "./messages.js";
 import {
   extractExplicitPathFields,
   isDirectKbPath,
   isMeaningfulTrackedPath,
+  isSourceImpactRelevantPath,
 } from "./path-policy.js";
 
 export type HookResult = {
@@ -73,6 +81,14 @@ export async function runHook(
     }
 
     case "PostToolUse": {
+      const kbToolCall = extractKbMcpToolCall(input.toolName, input.toolInput);
+      if (kbToolCall) {
+        recordKbMcpTool(pluginData, kbToolCall.toolName, {
+          impactCheckRun: kbToolCall.impactCheckRun,
+          sourceFiles: kbToolCall.sourceFiles,
+        });
+      }
+
       const dirtyPaths = extractExplicitPathFields(input.toolInput).filter(
         isMeaningfulTrackedPath,
       );
@@ -86,12 +102,31 @@ export async function runHook(
 
     case "Stop": {
       const state = loadHookState(pluginData);
-      if (state.dirtyPaths.length > 0) {
+      const uncheckedSourcePaths = state.dirtyPaths
+        .filter(isSourceImpactRelevantPath)
+        .filter((sourcePath) => !state.impactCheckedPaths.includes(sourcePath));
+      if (uncheckedSourcePaths.length > 0) {
         clearDirtyPaths(pluginData);
         return {
           continue: true,
-          systemMessage: freshnessReminder(state.dirtyPaths),
+          systemMessage: impactCheckReminder(uncheckedSourcePaths),
         };
+      }
+
+      const freshnessPaths = state.dirtyPaths.filter(
+        (dirtyPath) => !isSourceImpactRelevantPath(dirtyPath),
+      );
+
+      if (freshnessPaths.length > 0) {
+        clearDirtyPaths(pluginData);
+        return {
+          continue: true,
+          systemMessage: freshnessReminder(freshnessPaths),
+        };
+      }
+
+      if (state.dirtyPaths.length > 0 || state.kbCheckRun) {
+        clearDirtyPaths(pluginData);
       }
 
       return defaultResult();

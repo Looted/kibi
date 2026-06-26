@@ -6,6 +6,13 @@ import { fileURLToPath } from "node:url";
 
 import { addDirtyPaths, loadHookState } from "../src/hook-state";
 
+const EMPTY_HOOK_STATE = {
+  dirtyPaths: [],
+  kbCheckRun: false,
+  impactCheckRun: false,
+  impactCheckedPaths: [],
+};
+
 function createPluginData(): string {
   return fs.mkdtempSync(path.join(os.tmpdir(), "kibi-codex-hook-state-"));
 }
@@ -23,10 +30,10 @@ describe("Codex hook state", () => {
     const pluginData = createPluginData();
     pluginDataRoots.push(pluginData);
 
-    expect(loadHookState(pluginData)).toEqual({ dirtyPaths: [] });
+    expect(loadHookState(pluginData)).toEqual(EMPTY_HOOK_STATE);
 
     fs.writeFileSync(path.join(pluginData, "hook-state.json"), "not json");
-    expect(loadHookState(pluginData)).toEqual({ dirtyPaths: [] });
+    expect(loadHookState(pluginData)).toEqual(EMPTY_HOOK_STATE);
   });
 
   test("stores dirty paths as a bounded unique list", () => {
