@@ -135,6 +135,66 @@ describe("Codex hook runner", () => {
     });
   });
 
+  test("Stop prompts impact-enabled kb_check after source edits without impact check", async () => {
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        event: "PostToolUse",
+        toolName: "Edit",
+        toolInput: { file_path: "packages/codex/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        event: "PostToolUse",
+        toolName: "CallMcpTool",
+        toolInput: { toolName: "kb_check" },
+      },
+      { pluginData },
+    );
+
+    const result = await runHook({ event: "Stop" }, { pluginData });
+
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toContain("includeImpactDiagnostics");
+    expect(result.systemMessage).toContain("includeWorkingTreeDiff");
+    expect(result.systemMessage).toContain("packages/codex/src/hook-runner.ts");
+  });
+
+  test("Stop stays quiet after impact-enabled kb_check covers source edits", async () => {
+    const pluginData = createTempRoot("kibi-codex-data-");
+    tempRoots.push(pluginData);
+    await runHook(
+      {
+        event: "PostToolUse",
+        toolName: "Edit",
+        toolInput: { file_path: "packages/codex/src/hook-runner.ts" },
+      },
+      { pluginData },
+    );
+    await runHook(
+      {
+        event: "PostToolUse",
+        toolName: "CallMcpTool",
+        toolInput: {
+          toolName: "kb_check",
+          arguments: {
+            sourceFiles: ["packages/codex/src/hook-runner.ts"],
+            includeImpactDiagnostics: true,
+            includeWorkingTreeDiff: true,
+          },
+        },
+      },
+      { pluginData },
+    );
+
+    expect(await runHook({ event: "Stop" }, { pluginData })).toEqual({
+      continue: true,
+    });
+  });
+
   test("unknown hook events continue without messages", async () => {
     const pluginData = createTempRoot("kibi-codex-data-");
     tempRoots.push(pluginData);

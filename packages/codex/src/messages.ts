@@ -17,3 +17,18 @@ export function freshnessReminder(dirtyPaths: readonly string[]): string {
     ...suffix,
   ].join("\n");
 }
+
+export function impactCheckReminder(sourcePaths: readonly string[]): string {
+  const preview = sourcePaths.slice(0, 10);
+  const sourceFiles = JSON.stringify(preview);
+  const remaining = sourcePaths.length - preview.length;
+  const suffix = remaining > 0 ? [`- …and ${remaining} more`] : [];
+
+  return [
+    "Kibi impact reminder: source paths changed during this Codex session.",
+    `Run kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) before finishing.`,
+    "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
+    ...preview.map((sourcePath) => `- ${sourcePath}`),
+    ...suffix,
+  ].join("\n");
+}

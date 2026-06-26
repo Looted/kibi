@@ -184,6 +184,8 @@ Never fire `kb_upsert` calls in parallel. Execute them sequentially to avoid loc
 
 Run `kb_check` with specific rules during iteration for fast feedback. For example, use `rules: ["required-fields", "no-dangling-refs"]` after small changes. Run a full `kb_check` without rule filters before declaring work complete.
 
+For meaningful source edits, run impact diagnostics while the edit context is fresh: `kb_check({sourceFiles:["src/changed-file.ts"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})`. Review `symbol_granularity_violation` as a hard ownership-shape problem and `symbol_semantic_review_needed` as an advisory prompt to inspect whether linked requirements, scenarios, and tests still match the changed behavior or UI copy.
+
 ## Domain Contradictions and Evolution
 
 The `domain-contradictions` rule detects conflicts between strict-lane facts linked to requirements. When a contradiction is found, the supported escape hatch is `supersedes`: create a new requirement that supersedes the old one, then link the new requirement to updated facts.
