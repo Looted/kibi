@@ -2948,18 +2948,48 @@ coordinates:
     sourceEndLine: 18
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 4
+  SYM-mcp-CheckArgs:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 21
+  SYM-mcp-CheckResult:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 39
+  SYM-mcp-Diagnostic:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 37
+    sourceFile: packages/mcp/src/tools/check-types.ts
+    sourceLine: 31
   SYM-mcp-KbRefreshError:
     sourceColumn: 13
     sourceEndColumn: 1
     sourceEndLine: 25
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 20
+  SYM-mcp-analyzeKbCheckImpact:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 57
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    sourceLine: 33
   SYM-mcp-attachTestKb:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 48
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 43
+  SYM-mcp-buildStructuredContent:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 68
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 49
   SYM-mcp-createIntegrationProlog:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2984,12 +3014,48 @@ coordinates:
     sourceEndLine: 54
     sourceFile: packages/mcp/tests/helpers/integration-prolog.ts
     sourceLine: 50
+  SYM-mcp-formatImpactText:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 47
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 32
+  SYM-mcp-formatViolationText:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 89
+    sourceFile: packages/mcp/src/tools/check-format.ts
+    sourceLine: 70
+  SYM-mcp-getEffectiveRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 88
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    sourceLine: 70
+  SYM-mcp-hasImpactOptions:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 31
+    sourceFile: packages/mcp/src/tools/check-impact.ts
+    sourceLine: 24
+  SYM-mcp-loadChecksConfig:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/mcp/src/tools/check-config.ts
+    sourceLine: 27
   SYM-mcp-readBranchKbStamp:
     sourceColumn: 22
     sourceEndColumn: 1
     sourceEndLine: 61
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     sourceLine: 27
+  SYM-mcp-runAggregatedChecks:
+    sourceColumn: 22
+    sourceEndColumn: 1
+    sourceEndLine: 67
+    sourceFile: packages/mcp/src/tools/check-prolog.ts
+    sourceLine: 23
   SYM-mcp-sameBranchKbStamp:
     sourceColumn: 16
     sourceEndColumn: 1
