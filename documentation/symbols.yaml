@@ -947,6 +947,11 @@ symbols:
   - id: SYM-normalizeMarkdownPath
     title: normalizeMarkdownPath
     sourceFile: packages/cli/src/commands/sync/discovery.ts
+    relationships:
+      - type: implements
+        target: REQ-core-extractors
+      - type: covered_by
+        target: TEST-cli-sync-discovery-readme-ignore
   - id: SYM-SyncError
     title: SyncError
     sourceFile: packages/cli/src/commands/sync.ts
