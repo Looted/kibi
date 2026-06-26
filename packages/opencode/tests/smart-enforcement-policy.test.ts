@@ -251,9 +251,10 @@ describe("smart enforcement policy", () => {
     });
 
     expect(result.kind).toBe("advisory_guidance");
-    expect(result.text).toContain(
-      "Review Kibi traceability for src/existing.ts",
-    );
+    expect(result.text).toContain("Edited source file detected");
+    expect(result.text).toContain("kb_check");
+    expect(result.text).toContain("includeImpactDiagnostics");
+    expect(result.text).toContain("src/existing.ts");
   });
 
   test("advisory text describes deleted files with and without linked ids", () => {
