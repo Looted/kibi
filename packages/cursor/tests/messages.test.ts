@@ -10,6 +10,8 @@ function state(overrides: Partial<HookState> = {}): HookState {
     guidedWritePaths: [],
     kbMutationTools: [],
     kbCheckRun: false,
+    impactCheckRun: false,
+    impactCheckedPaths: [],
     ...overrides,
   };
 }
@@ -19,10 +21,24 @@ describe("stopFollowupMessage", () => {
     expect(stopFollowupMessage(state())).toBeUndefined();
   });
 
-  test("returns a short freshness nudge for KB-relevant dirty paths without KB activity", () => {
+  test("returns a short freshness nudge for documentation paths without KB activity", () => {
+    expect(
+      stopFollowupMessage(
+        state({ dirtyPaths: ["documentation/symbols.yaml"] }),
+      ),
+    ).toBe("Kibi: sync or record no-impact after 1 edited file.");
+  });
+
+  test("returns impact guidance for source paths without impact checks", () => {
     expect(
       stopFollowupMessage(state({ dirtyPaths: ["packages/core/src/kb.pl"] })),
-    ).toBe("Kibi: sync or record no-impact after 1 edited file.");
+    ).toBe(
+      [
+        "Kibi: run impact-enabled kb_check after 1 edited source file.",
+        'Use kb_check({sourceFiles:["packages/core/src/kb.pl"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).',
+        "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
+      ].join("\n"),
+    );
   });
 
   test("ignores test-only dirty paths", () => {
@@ -38,12 +54,14 @@ describe("stopFollowupMessage", () => {
     ).toBeUndefined();
   });
 
-  test("returns undefined when kb_check already ran on dirty paths", () => {
+  test("returns undefined when impact-enabled kb_check already covered source paths", () => {
     expect(
       stopFollowupMessage(
         state({
           dirtyPaths: ["packages/core/src/kb.pl"],
           kbCheckRun: true,
+          impactCheckRun: true,
+          impactCheckedPaths: ["packages/core/src/kb.pl"],
         }),
       ),
     ).toBeUndefined();

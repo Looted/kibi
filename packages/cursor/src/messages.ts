@@ -1,6 +1,9 @@
 // implements REQ-cursor-kibi-plugin-v1
 import type { HookState } from "./hook-state.js";
-import { isKbFreshnessRelevantPath } from "./path-policy.js";
+import {
+  isKbFreshnessRelevantPath,
+  isSourceImpactRelevantPath,
+} from "./path-policy.js";
 
 export const BOOTSTRAP_REMINDER =
   "Kibi config was not found at the Cursor workspace root. Use the Kibi MCP /init-kibi workflow to bootstrap project memory before relying on KB lookups; do not edit .kb/ files directly.";
@@ -14,6 +17,18 @@ export function stopFollowupMessage(state: HookState): string | undefined {
     return `Kibi KB updated (${tools.join(", ")}).`;
   }
 
+  const sourceImpactPaths = state.dirtyPaths.filter(isSourceImpactRelevantPath);
+  const uncheckedSourcePaths = sourceImpactPaths.filter(
+    (sourcePath) => !state.impactCheckedPaths.includes(sourcePath),
+  );
+  if (uncheckedSourcePaths.length > 0 && !state.impactCheckRun) {
+    return impactCheckFollowup(uncheckedSourcePaths);
+  }
+
+  if (uncheckedSourcePaths.length > 0) {
+    return impactCheckFollowup(uncheckedSourcePaths);
+  }
+
   const freshnessPaths = state.dirtyPaths.filter(isKbFreshnessRelevantPath);
   if (freshnessPaths.length === 0 || state.kbCheckRun) {
     return undefined;
@@ -22,6 +37,17 @@ export function stopFollowupMessage(state: HookState): string | undefined {
   const fileCount = freshnessPaths.length;
   const noun = fileCount === 1 ? "file" : "files";
   return `Kibi: sync or record no-impact after ${fileCount} edited ${noun}.`;
+}
+
+function impactCheckFollowup(sourcePaths: readonly string[]): string {
+  const fileCount = sourcePaths.length;
+  const noun = fileCount === 1 ? "file" : "files";
+  const sourceFiles = JSON.stringify(sourcePaths.slice(0, 10));
+  return [
+    `Kibi: run impact-enabled kb_check after ${fileCount} edited source ${noun}.`,
+    `Use kb_check({sourceFiles:${sourceFiles}, includeImpactDiagnostics:true, includeWorkingTreeDiff:true}).`,
+    "Review symbol granularity and semantic review of linked requirements/tests before stopping.",
+  ].join("\n");
 }
 
 /** @deprecated Use stopFollowupMessage */

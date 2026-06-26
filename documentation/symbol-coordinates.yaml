@@ -2306,6 +2306,12 @@ coordinates:
     sourceEndLine: 23
     sourceFile: packages/cursor/src/hook-state.ts
     sourceLine: 15
+  SYM-cursor-KbMcpToolCall:
+    sourceColumn: 12
+    sourceEndColumn: 2
+    sourceEndLine: 70
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 66
   SYM-cursor-adapterKind:
     sourceColumn: 13
     sourceEndColumn: 42
@@ -2336,6 +2342,12 @@ coordinates:
     sourceEndLine: 102
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 98
+  SYM-cursor-extractKbMcpToolCall:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 137
+    sourceFile: packages/cursor/src/kb-mcp-tools.ts
+    sourceLine: 72
   SYM-cursor-extractKbMcpToolName:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2360,6 +2372,12 @@ coordinates:
     sourceEndLine: 248
     sourceFile: packages/cursor/src/hook-runner.ts
     sourceLine: 248
+  SYM-cursor-impactCheckFollowup:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 51
+    sourceFile: packages/cursor/src/messages.ts
+    sourceLine: 42
   SYM-cursor-isDirectKbPath:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2384,6 +2402,12 @@ coordinates:
     sourceEndLine: 140
     sourceFile: packages/cursor/src/path-policy.ts
     sourceLine: 108
+  SYM-cursor-isSourceImpactRelevantPath:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 178
+    sourceFile: packages/cursor/src/path-policy.ts
+    sourceLine: 157
   SYM-cursor-loadHookState:
     sourceColumn: 16
     sourceEndColumn: 1

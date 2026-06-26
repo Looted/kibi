@@ -96,22 +96,22 @@ Hooks are warning-only and never replace MCP/CLI behavior:
 - **sessionStart**: bootstrap reminder when `.kb/config.json` is missing.
 - **preToolUse**: warns on explicit direct `.kb/**` edits without blocking.
 - **beforeReadFile** and **postToolUse (Read)**: inject source-linked lookup guidance once per path per session.
-- **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session.
-- **stop**: emits a single freshness follow-up when meaningful paths changed during the session.
+- **postToolUse (Write/Edit)**: inject traceability and freshness guidance once per path per session, including `kb_check({sourceFiles:[...], includeImpactDiagnostics:true, includeWorkingTreeDiff:true})` for meaningful source edits.
+- **stop**: emits a single freshness or impact-check follow-up when meaningful paths changed during the session.
 
 ### What the plugin does not do
 
 Per the thin-adapter architecture, `kibi-cursor` does not:
 
 - Own KB storage, parsing, or validation
-- Run background `kibi sync` or `kibi check` (use git hooks and MCP tools)
+- Run background `kibi sync` or CLI `kibi check` (use git hooks and MCP tools; for source edits, use impact-enabled MCP `kb_check` first)
 - Block agent actions in advisory mode
 
 ## Architecture
 
 `kibi-cursor` is a thin bridge layer:
 
-- **Agent-visible guidance**: public MCP tools (`kb_search`, `kb_query`, `kb_upsert`, `kb_check`, etc.) and the `/init-kibi` command
+- **Agent-visible guidance**: public MCP tools (`kb_search`, `kb_query`, `kb_upsert`, impact-enabled `kb_check`, etc.) and the `/init-kibi` command
 - **Editor-specific value**: Cursor hooks for read/write reminders and session freshness follow-ups
 - **Foundation**: `kibi-core`, `kibi-cli`, and `kibi-mcp` remain required for project-local operations
 

@@ -50,6 +50,7 @@ export function writeGuidance(
 
   return [
     "Kibi write guidance: link production symbols to requirements.",
+    `After editing, run kb_check({sourceFiles:["${relativePath}"], includeImpactDiagnostics:true, includeWorkingTreeDiff:true}) for symbol granularity and semantic review of linked requirements/tests.`,
     `After editing, resolve freshness with kb_search/kb_query for sourceFile="${relativePath}".`,
     "Prefer symbol manifest + executable_for or // implements REQ-xxx for traceability.",
   ].join("\n");
