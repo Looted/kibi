@@ -14,9 +14,10 @@ links:
     target: SCEN-cli-status-pre-first-sync
 ---
 
-The test verifies that the `kibi status` command does not fail when executed in a newly initialized repository before any data has been synced.
+The test verifies that the `kibi status` command does not fail when executed in a newly initialized repository before any data has been synced, and that ignored documentation README files do not make a freshly synced workspace stale.
 
 **Coverage:**
 - Verified in `packages/cli/tests/commands/status.test.ts`
 - Tests pre-first-sync behavior in JSON output
+- Tests that documentation `README.md` files are ignored by status freshness checks after sync
 - Ensures exit code 0 in both workspace development mode and when executed as a packed binary.
