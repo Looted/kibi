@@ -12,7 +12,7 @@ tags:
 links:
   - type: validates
     target: REQ-cli-sync
-  - type: specifies
+  - type: validates
     target: SCEN-007
 ---
 

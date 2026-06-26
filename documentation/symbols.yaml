@@ -8,6 +8,7 @@ symbols:
   - id: SYM-001
     title: PrologProcess
     sourceFile: packages/cli/src/prolog.ts
+    granularity_reason: legacy-link
     links:
       - REQ-001
       - REQ-core-persistence
@@ -79,6 +80,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 180
     sourceColumn: 8
     sourceEndLine: 347
@@ -89,78 +92,104 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-waitForReady
     title: PrologProcess.waitForReady
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-invalidateCache
     title: PrologProcess.invalidateCache
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-isCacheableGoal
     title: PrologProcess.isCacheableGoal
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-isMutatingGoal
     title: PrologProcess.isMutatingGoal
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-isExplicitSaveGoal
     title: PrologProcess.isExplicitSaveGoal
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-queryOneShot
     title: PrologProcess.queryOneShot
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-execOneShot
     title: PrologProcess.execOneShot
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-normalizeGoal
     title: PrologProcess.normalizeGoal
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-clearQueryBuffers
     title: PrologProcess.clearQueryBuffers
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-isProcessUsable
     title: PrologProcess.isProcessUsable
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-extractBindings
     title: PrologProcess.extractBindings
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-translateError
     title: PrologProcess.translateError
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
     sourceLine: 560
     sourceColumn: 10
     sourceEndLine: 619
@@ -171,30 +200,40 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-getPid
     title: PrologProcess.getPid
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-PrologProcess-terminate
     title: PrologProcess.terminate
     sourceFile: packages/cli/src/prolog.ts
     relationships:
       - type: implements
         target: REQ-core-prolog-process-management
+      - type: covered_by
+        target: TEST-001
   - id: SYM-cli-persistEntities
     title: persistEntities
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: covered_by
+        target: TEST-007
   - id: SYM-cli-persistRelationships
     title: persistRelationships
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: covered_by
+        target: TEST-007
     sourceLine: 215
     sourceColumn: 22
     sourceEndLine: 394
@@ -205,6 +244,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-core-persistence
+      - type: covered_by
+        target: TEST-007
   - id: SYM-003
     title: handleKbQuery
     sourceFile: packages/mcp/src/tools/query.ts
@@ -477,6 +518,7 @@ symbols:
   - id: SYM-GuidanceCache
     title: GuidanceCache
     sourceFile: packages/opencode/src/guidance-cache.ts
+    granularity_reason: legacy-link
     links:
       - REQ-opencode-guidance-caching
     relationships:
@@ -1234,6 +1276,7 @@ symbols:
   - id: SYM-SkillValidationError
     title: SkillValidationError
     sourceFile: packages/cli/src/public/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -1242,6 +1285,7 @@ symbols:
   - id: SYM-SkillOversizeError
     title: SkillOversizeError
     sourceFile: packages/cli/src/public/skills.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-reusable-skill-subsystem
@@ -3119,6 +3163,8 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
     sourceLine: 63
     sourceColumn: 16
     sourceEndLine: 79
@@ -3129,24 +3175,32 @@ symbols:
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
   - id: SYM-mcp-KbRefreshError
     title: KbRefreshError
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
   - id: SYM-mcp-readBranchKbStamp
     title: readBranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
   - id: SYM-mcp-describeBranchKbStamp
     title: describeBranchKbStamp
     sourceFile: packages/mcp/src/server/kb-freshness.ts
     relationships:
       - type: implements
         target: REQ-mcp-kb-freshness
+      - type: covered_by
+        target: TEST-005
   - id: SYM-UpsertArgs
     title: UpsertArgs
     sourceFile: packages/mcp/src/tools/upsert.ts
@@ -3582,6 +3636,7 @@ symbols:
   - id: SYM-KibiCheckpointRunner
     title: KibiCheckpointRunner
     sourceFile: packages/opencode/src/kibi-checkpoint-runner.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-opencode-kibi-plugin-v1
@@ -4118,6 +4173,7 @@ symbols:
   - id: SYM-KibiCodeActionProvider
     title: KibiCodeActionProvider
     sourceFile: packages/vscode/src/codeActionProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -4126,6 +4182,7 @@ symbols:
   - id: SYM-KibiCodeLensProvider
     title: KibiCodeLensProvider
     sourceFile: packages/vscode/src/codeLensProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability
@@ -4238,6 +4295,7 @@ symbols:
   - id: SYM-KibiTreeDataProvider
     title: KibiTreeDataProvider
     sourceFile: packages/vscode/src/treeProvider.ts
+    granularity_reason: legacy-link
     relationships:
       - type: implements
         target: REQ-vscode-traceability

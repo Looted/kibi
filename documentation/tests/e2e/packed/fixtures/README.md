@@ -1,3 +1,18 @@
+---
+id: FACT-packed-tarball-fixtures
+title: Packed tarball fixtures are retained for regression tests
+type: fact
+status: active
+created_at: 2026-06-26T11:40:00Z
+updated_at: 2026-06-26T11:40:00Z
+source: documentation/tests/e2e/packed/fixtures/README.md
+tags:
+  - e2e
+  - fixtures
+  - release
+fact_kind: observation
+---
+
 # Tarball Fixtures
 
 This directory contains tarball artifacts preserved for regression testing.
