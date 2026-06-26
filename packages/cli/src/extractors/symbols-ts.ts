@@ -302,6 +302,41 @@ function collectSourceSymbols(sourceFile: SourceFile): SourceSymbolAnalysis[] {
         ),
       );
     }
+
+    for (const property of decl.getProperties()) {
+      symbols.push(
+        toSourceSymbolAnalysis(
+          sourceFile,
+          formatMethodSymbolName(decl.getName(), property.getName()),
+          "property",
+          property.getNameNode() ?? property,
+          property,
+          `${property.getFullText()}\n${property
+            .getJsDocs()
+            .map((doc) => doc.getFullText())
+            .join("\n")}`,
+        ),
+      );
+    }
+
+    for (const accessor of [
+      ...decl.getGetAccessors(),
+      ...decl.getSetAccessors(),
+    ]) {
+      symbols.push(
+        toSourceSymbolAnalysis(
+          sourceFile,
+          formatMethodSymbolName(decl.getName(), accessor.getName()),
+          "accessor",
+          accessor.getNameNode() ?? accessor,
+          accessor,
+          `${accessor.getFullText()}\n${accessor
+            .getJsDocs()
+            .map((doc) => doc.getFullText())
+            .join("\n")}`,
+        ),
+      );
+    }
   }
 
   for (const decl of sourceFile.getInterfaces()) {
@@ -439,6 +474,21 @@ function findNamedDeclaration(
         if (!nameNode) continue;
         return { node: method, getNameNode: () => nameNode };
       }
+      for (const property of cls.getProperties()) {
+        if (property.getName() !== qualifiedMethod.methodName) continue;
+        const nameNode = property.getNameNode();
+        if (!nameNode) continue;
+        return { node: property, getNameNode: () => nameNode };
+      }
+      for (const accessor of [
+        ...cls.getGetAccessors(),
+        ...cls.getSetAccessors(),
+      ]) {
+        if (accessor.getName() !== qualifiedMethod.methodName) continue;
+        const nameNode = accessor.getNameNode();
+        if (!nameNode) continue;
+        return { node: accessor, getNameNode: () => nameNode };
+      }
     }
 
     return null;
@@ -540,6 +590,36 @@ function findNamedDeclaration(
     // Fail closed: only return if exactly one unique match
     if (methodCandidates.length === 1) {
       const candidate = methodCandidates[0];
+      if (candidate) {
+        return candidate;
+      }
+    }
+
+    const memberCandidates: Array<{
+      node: NamedDeclarationCandidate;
+      getNameNode: () => Node;
+    }> = [];
+
+    for (const cls of sourceFile.getClasses()) {
+      for (const property of cls.getProperties()) {
+        if (property.getName() !== title) continue;
+        const nameNode = property.getNameNode();
+        if (!nameNode) continue;
+        memberCandidates.push({ node: property, getNameNode: () => nameNode });
+      }
+      for (const accessor of [
+        ...cls.getGetAccessors(),
+        ...cls.getSetAccessors(),
+      ]) {
+        if (accessor.getName() !== title) continue;
+        const nameNode = accessor.getNameNode();
+        if (!nameNode) continue;
+        memberCandidates.push({ node: accessor, getNameNode: () => nameNode });
+      }
+    }
+
+    if (memberCandidates.length === 1) {
+      const candidate = memberCandidates[0];
       if (candidate) {
         return candidate;
       }

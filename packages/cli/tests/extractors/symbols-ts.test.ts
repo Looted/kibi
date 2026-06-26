@@ -122,6 +122,19 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
       ),
     );
 
+    writeFixture(
+      workspaceRoot,
+      "fixtures/class-members.ts",
+      [
+        "export class UploadPageComponent {",
+        "  protected processingProgressLabel = computed(() => 'Processing started');",
+        "  get processingProgressAriaLabel() {",
+        "    return this.processingProgressLabel;",
+        "  }",
+        "}",
+      ].join("\n"),
+    );
+
     internalFile = writeFixture(
       workspaceRoot,
       "fixtures/internal.ts",
@@ -249,6 +262,33 @@ describe("enrichSymbolCoordinatesWithTsMorph", () => {
     );
 
     expectCoordinates(requireEntry(result), 2);
+  });
+
+  test("falls back to unique class property and accessor symbols", async () => {
+    const classMembersFile = path.join(
+      workspaceRoot,
+      "fixtures",
+      "class-members.ts",
+    );
+    const propertyEntry = createEntry(
+      "SYM-PROCESSING-LABEL",
+      "processingProgressLabel",
+      path.relative(workspaceRoot, classMembersFile),
+    );
+    const accessorEntry = createEntry(
+      "SYM-PROCESSING-ARIA",
+      "processingProgressAriaLabel",
+      path.relative(workspaceRoot, classMembersFile),
+    );
+
+    const [propertyResult, accessorResult] =
+      await enrichSymbolCoordinatesWithTsMorph(
+        [propertyEntry, accessorEntry],
+        workspaceRoot,
+      );
+
+    expectCoordinates(requireEntry(propertyResult), 2);
+    expectCoordinates(requireEntry(accessorResult), 3);
   });
 
   test("returns the original entry when the symbol name does not exist in the source file", async () => {

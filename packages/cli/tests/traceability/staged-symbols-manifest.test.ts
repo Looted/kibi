@@ -10,7 +10,10 @@ import {
 import { tmpdir } from "node:os";
 import path from "node:path";
 import type { StagedFile } from "../../src/traceability/git-staged.js";
-import { assessStagedSymbolsManifest } from "../../src/traceability/staged-symbols-manifest.js";
+import {
+  assessStagedSymbolsManifest,
+  collectStagedAuthoredSymbolsManifestEvidence,
+} from "../../src/traceability/staged-symbols-manifest.js";
 
 function writeFile(root: string, relativePath: string, content: string): void {
   const fullPath = path.join(root, relativePath);
@@ -45,7 +48,10 @@ describe("assessStagedSymbolsManifest", () => {
       cwd: tmpDir,
       stdio: "pipe",
     });
-    execSync("mkdir -p src custom", { cwd: tmpDir, stdio: "pipe" });
+    execSync("mkdir -p src custom documentation", {
+      cwd: tmpDir,
+      stdio: "pipe",
+    });
   });
 
   afterEach(() => {
@@ -124,6 +130,88 @@ describe("assessStagedSymbolsManifest", () => {
         state: "not_required",
         sourcePaths: [],
         path: "custom/symbol-coordinates.yaml",
+      });
+    } finally {
+      process.chdir(previousCwd);
+    }
+  });
+
+  it("reports only authored symbol IDs whose staged manifest metadata changed", () => {
+    writeFile(
+      tmpDir,
+      "src/app.ts",
+      `export class App {
+  run() {
+    return "ok";
+  }
+}
+`,
+    );
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-App
+    title: App
+    sourceFile: src/app.ts
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-App
+  - id: SYM-App-run
+    title: App.run
+    sourceFile: src/app.ts
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-App
+`,
+    );
+    commitAll(tmpDir, "initial");
+    writeFile(
+      tmpDir,
+      "documentation/symbols.yaml",
+      `symbols:
+  - id: SYM-App
+    title: App
+    sourceFile: src/app.ts
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-App
+  - id: SYM-App-run
+    title: App.run
+    sourceFile: src/app.ts
+    status: active
+    relationships:
+      - type: implements
+        target: REQ-App
+      - type: covered_by
+        target: TEST-App-run
+`,
+    );
+
+    const previousCwd = process.cwd();
+    process.chdir(tmpDir);
+    try {
+      const manifestFile: StagedFile = {
+        path: "documentation/symbols.yaml",
+        status: "M",
+        hunkRanges: [],
+        content: readFileSync(
+          path.join(tmpDir, "documentation", "symbols.yaml"),
+          "utf8",
+        ),
+      };
+
+      expect(
+        collectStagedAuthoredSymbolsManifestEvidence({
+          sourceFiles: [createSourceStagedFile(tmpDir)],
+          stagedFiles: [manifestFile],
+        }),
+      ).toEqual({
+        path: "documentation/symbols.yaml",
+        entries: [{ sourcePath: "src/app.ts", entityIds: ["SYM-App-run"] }],
       });
     } finally {
       process.chdir(previousCwd);

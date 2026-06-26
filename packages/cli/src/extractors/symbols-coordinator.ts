@@ -43,6 +43,8 @@ export type SourceSymbolKind =
   | "function"
   | "class"
   | "method"
+  | "property"
+  | "accessor"
   | "interface"
   | "type"
   | "enum"
