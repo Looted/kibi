@@ -12,9 +12,9 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 
 ## Non-Negotiables
 
-- Use Kibi via MCP tools only.
+- Use MCP tools for Kibi operations that have MCP equivalents.
 - Do **not** manually read or edit `.kb/` files.
-- Do **not** run `kibi` CLI from agent sessions unless explicitly required by the user/operator workflow.
+- CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
 - If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
 - **Pre-existing test failures must always be fixed.** Never ship past broken tests. If a test was failing before your changes, diagnose and fix it as part of your work. Skipping or bypassing pre-existing failures is not acceptable.
 
@@ -44,7 +44,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 4. **Validation discipline**
    - Run targeted `kb_check` rules during iteration.
    - Run a final `kb_check` before completion.
-   - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed.
+   - Resolve KB freshness before completing tasks: updated, no-impact with rationale, or deferred/failed. If freshness requires a Kibi operation that has no MCP equivalent, run the CLI workflow needed to refresh or sync the KB.
 
 ## Knowledge Quality Metrics
 
