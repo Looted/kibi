@@ -17,6 +17,7 @@
     check_strict_fact_shape/1,      % Returns list of malformed strict fact violations
     check_strict_req_fact_pairing/1,% Returns list of malformed strict req/fact pairing violations
     check_strict_readiness/1,       % Returns list of strict readiness audit violations
+    check_predicate_verifiability/1,% Returns list of unverifiable predicate-lane requirement links
     run_checks_json/0,              % Entry point for JSON output
     violation_id_text/2             % Extract text from entity ID term (exported for testing)
 ]).
@@ -52,6 +53,7 @@ check_all(ViolationsDict) :-
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
+    check_predicate_verifiability(PredicateVerifiability),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -63,7 +65,8 @@ check_all(ViolationsDict) :-
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
-        strict_readiness: StrictReadiness
+        strict_readiness: StrictReadiness,
+        predicate_verifiability: PredicateVerifiability
     }.
 
 %% check_must_priority_coverage(-Violations)
@@ -132,7 +135,6 @@ symbol_traceability_violation(RequireAdr, violation(
     Source
 )) :-
     kb_entity(SymbolId, symbol, _),
-    \+ executable_test_symbol(SymbolId),
     % Check if symbol has direct requirement ownership
     (   symbol_owns_requirement(SymbolId, ReqId),
         kb_entity(ReqId, req, _)
@@ -148,6 +150,7 @@ symbol_traceability_violation(RequireAdr, violation(
         )
     ;   HasAdr = true  % Not required, so pass this check
     ),
+    \+ executable_test_symbol(SymbolId),
     % Determine what is missing
     (   HasReq = false, HasAdr = false, RequireAdr = true ->
         Description = "Symbol has no direct requirement ownership and no ADR constraint.",
@@ -307,15 +310,14 @@ missing_required_field(Required, violation(
 )) :-
     kb_entity(EntityId, _Type, Props),
     member(Field, Required),
-    \+ memberchk(Field=_, Props),
-    
-    format(string(Description), "Missing required field: ~w", [Field]),
-    format(string(Suggestion), "Add ~w to entity definition", [Field]),
-    
     (   memberchk(source=Source, Props)
     ->  true
     ;   Source = ""
-    ).
+    ),
+    \+ memberchk(Field=_, Props),
+
+    format(string(Description), "Missing required field: ~w", [Field]),
+    format(string(Suggestion), "Add ~w to entity definition", [Field]).
 
 %% check_deprecated_adrs(-Violations)
 % Finds all deprecated ADRs without successors.
@@ -428,8 +430,7 @@ property_value_shape_error(Props, "Property value fact missing required field: v
     \+ memberchk(value_type=_, Props).
 property_value_shape_error(Props, "Property value fact missing value field (value_string, value_int, value_number, or value_bool)") :-
     memberchk(value_type=_, Props),
-    \+ (memberchk(value_string=_, Props); memberchk(value_int=_, Props); 
-        memberchk(value_number=_, Props); memberchk(value_bool=_, Props)).
+    \+ has_value_field(Props).
 property_value_shape_error(Props, "Property value fact has multiple value fields (should have exactly one)") :-
     findall(F, (member(F=_, Props), is_value_field(F)), Fields),
     length(Fields, Count),
@@ -444,6 +445,11 @@ is_value_field(value_string).
 is_value_field(value_int).
 is_value_field(value_number).
 is_value_field(value_bool).
+
+has_value_field(Props) :- memberchk(value_string=_, Props), !.
+has_value_field(Props) :- memberchk(value_int=_, Props), !.
+has_value_field(Props) :- memberchk(value_number=_, Props), !.
+has_value_field(Props) :- memberchk(value_bool=_, Props), !.
 
 % value_type_matches_field(+ValueType, +Props)
 value_type_matches_field(string, Props) :- memberchk(value_string=_, Props), !.
@@ -752,6 +758,48 @@ strict_readiness_level(ReqId, traceable) :-
     !.
 strict_readiness_level(_ReqId, prose_only).
 
+%% check_predicate_verifiability(-Violations)
+% Finds requirements whose requires_predicate links do not target ground
+% predicate facts. This keeps ontology-lane prose from looking modeled when the
+% target is still a legacy, observation, meta, schema, or strict-property fact.
+check_predicate_verifiability(Violations) :-
+    findall(
+        Violation,
+        predicate_verifiability_violation(Violation),
+        Violations0
+    ),
+    sort(Violations0, Violations).
+
+predicate_verifiability_violation(violation(
+    'predicate-verifiability',
+    ReqId,
+    Description,
+    "Apply kb_suggest_predicates and link requires_predicate to a fact_kind: predicate fact, or record a review:ontology-gap observation when no predicate fits",
+    Source
+)) :-
+    kb:current_req(ReqId),
+    kb_relationship(requires_predicate, ReqId, FactId),
+    kb_entity(FactId, fact, Props),
+    predicate_verifiability_fact_kind(Props, Kind),
+    Kind \= predicate,
+    predicate_verifiability_kind_label(Kind, KindLabel),
+    format(
+        string(Description),
+        "Requirement uses requires_predicate ~w but target is ~w, not fact_kind=predicate",
+        [FactId, KindLabel]
+    ),
+    violation_source(ReqId, req, Source).
+
+predicate_verifiability_fact_kind(Props, Kind) :-
+    (   memberchk(fact_kind=RawKind, Props)
+    ->  normalize_term_atom(RawKind, Kind)
+    ;   Kind = legacy
+    ).
+
+predicate_verifiability_kind_label(legacy, "a legacy fact without fact_kind").
+predicate_verifiability_kind_label(Kind, Label) :-
+    format(string(Label), "fact_kind=~w", [Kind]).
+
 strict_readiness_has_fact_link(ReqId) :-
     kb_relationship(constrains, ReqId, FactId),
     kb_entity(FactId, fact, _),
@@ -824,6 +872,7 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
     check_strict_fact_shape(StrictFactShape),
     check_strict_req_fact_pairing(StrictReqFactPairing),
     check_strict_readiness(StrictReadiness),
+    check_predicate_verifiability(PredicateVerifiability),
     ViolationsDict = _{
         must_priority_coverage: MustPriority,
         symbol_coverage: SymbolCoverage,
@@ -835,7 +884,8 @@ check_all_with_options(ViolationsDict, RequireAdr) :-
         domain_contradictions: Contradictions,
         strict_fact_shape: StrictFactShape,
         strict_req_fact_pairing: StrictReqFactPairing,
-        strict_readiness: StrictReadiness
+        strict_readiness: StrictReadiness,
+        predicate_verifiability: PredicateVerifiability
     }.
 
 %% violations_dict_to_json(+ViolationsDict, -JsonDict)
