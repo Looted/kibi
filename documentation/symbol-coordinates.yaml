@@ -167,9 +167,9 @@ coordinates:
   SYM-CheckOptions:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 99
+    sourceEndLine: 112
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 92
+    sourceLine: 105
   SYM-CheckRunner:
     sourceColumn: 12
     sourceEndColumn: 35
@@ -263,15 +263,15 @@ coordinates:
   SYM-DiagnosticErrorFields:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 97
+    sourceEndLine: 100
     sourceFile: packages/mcp/src/diagnostics.ts
     sourceLine: 91
   SYM-DiagnosticToolCall:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 110
+    sourceEndLine: 113
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 99
+    sourceLine: 102
   SYM-DiscoverySummary:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -809,7 +809,7 @@ coordinates:
   SYM-PROSE_COVERAGE_CORPUS:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 340
+    sourceEndLine: 359
     sourceFile: packages/mcp/tests/semantic-advisor/prose-coverage-fixture.ts
     sourceLine: 3
   SYM-PUBLISHABLE-DIRS:
@@ -881,7 +881,7 @@ coordinates:
   SYM-ProseCoverageCase:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 15
+    sourceEndLine: 16
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
     sourceLine: 11
   SYM-ProseCoverageExpectation:
@@ -893,15 +893,15 @@ coordinates:
   SYM-ProseCoverageFailure:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 21
+    sourceEndLine: 22
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 17
+    sourceLine: 18
   SYM-ProseCoverageResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 31
+    sourceEndLine: 32
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-ProviderEvidenceDiscoveryResult:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1433,9 +1433,9 @@ coordinates:
   SYM-TOOLS:
     sourceColumn: 13
     sourceEndColumn: 32
-    sourceEndLine: 952
+    sourceEndLine: 954
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 950
+    sourceLine: 952
   SYM-TRACEABILITY_RELATIONSHIP_TYPES:
     sourceColumn: 13
     sourceEndColumn: 10
@@ -1517,7 +1517,7 @@ coordinates:
   SYM-UpsertResult:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 76
+    sourceEndLine: 81
     sourceFile: packages/mcp/src/tools/upsert.ts
     sourceLine: 67
   SYM-ValidateUpsertResult:
@@ -1529,9 +1529,9 @@ coordinates:
   SYM-ValidatedUpsertArgs:
     sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 81
+    sourceEndLine: 86
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 78
+    sourceLine: 83
   SYM-WorkContext:
     sourceColumn: 17
     sourceEndColumn: 1
@@ -1553,9 +1553,9 @@ coordinates:
   SYM-analyzeSemanticAdvisorInput:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 2096
+    sourceEndLine: 2140
     sourceFile: packages/mcp/src/semantic-advisor/analyze-prose.ts
-    sourceLine: 2061
+    sourceLine: 2105
   SYM-analyzeSourceText:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1601,9 +1601,9 @@ coordinates:
   SYM-buildDiagnosticToolCall:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 221
+    sourceEndLine: 250
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 191
+    sourceLine: 220
   SYM-buildDirtyRelevantFingerprint:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1679,9 +1679,9 @@ coordinates:
   SYM-checkCommand:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 849
+    sourceEndLine: 866
     sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 460
+    sourceLine: 473
   SYM-checkWorkspaceHealth:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -1697,7 +1697,7 @@ coordinates:
   SYM-classifyDiagnosticError:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 162
+    sourceEndLine: 175
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
     sourceLine: 67
   SYM-classifyKnowledge:
@@ -1844,6 +1844,24 @@ coordinates:
     sourceEndLine: 177
     sourceFile: packages/cli/src/prolog.ts
     sourceLine: 137
+  SYM-cli-PrologQueryPlanSafetyViolation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 6
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    sourceLine: 1
+  SYM-cli-analyzePrologQueryPlanSafety:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 38
+    sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
+    sourceLine: 11
+  SYM-cli-collectQueryPlanSafetyViolations:
+    sourceColumn: 9
+    sourceEndColumn: 1
+    sourceEndLine: 103
+    sourceFile: packages/cli/src/commands/check.ts
+    sourceLine: 93
   SYM-cli-impact-ChangedFileImpactOptions:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -1973,15 +1991,15 @@ coordinates:
   SYM-cli-persistEntities:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 212
+    sourceEndLine: 214
     sourceFile: packages/cli/src/commands/sync/persistence.ts
     sourceLine: 138
   SYM-cli-persistRelationships:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 394
+    sourceEndLine: 422
     sourceFile: packages/cli/src/commands/sync/persistence.ts
-    sourceLine: 215
+    sourceLine: 243
   SYM-codex-HookEnvironment:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -2507,15 +2525,15 @@ coordinates:
   SYM-deriveDiagnosticFields:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 155
+    sourceEndLine: 284
     sourceFile: packages/mcp/src/diagnostics.ts
-    sourceLine: 112
+    sourceLine: 210
   SYM-deriveDiagnosticHints:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 189
+    sourceEndLine: 218
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 164
+    sourceLine: 191
   SYM-deriveDiagnosticRetryKey:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2609,9 +2627,9 @@ coordinates:
   SYM-evaluateProseCoverageCorpus:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 47
+    sourceEndLine: 48
     sourceFile: packages/mcp/src/semantic-advisor/prose-coverage-evaluator.ts
-    sourceLine: 33
+    sourceLine: 34
   SYM-extractFromManifest:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2645,9 +2663,9 @@ coordinates:
   SYM-extractToolCallPayload:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 232
+    sourceEndLine: 261
     sourceFile: packages/mcp/src/diagnostics-helpers.ts
-    sourceLine: 223
+    sourceLine: 252
   SYM-findKibiOpencodePluginEntry:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -2837,9 +2855,9 @@ coordinates:
   SYM-handleKbUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 455
+    sourceEndLine: 472
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 267
+    sourceLine: 272
   SYM-handleKbValidateUpsert:
     sourceColumn: 22
     sourceEndColumn: 1
@@ -3113,9 +3131,9 @@ coordinates:
   SYM-mcp-runAggregatedChecks:
     sourceColumn: 22
     sourceEndColumn: 1
-    sourceEndLine: 67
+    sourceEndLine: 71
     sourceFile: packages/mcp/src/tools/check-prolog.ts
-    sourceLine: 23
+    sourceLine: 24
   SYM-mcp-sameBranchKbStamp:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3593,9 +3611,9 @@ coordinates:
   SYM-test:
     sourceColumn: 13
     sourceEndColumn: 1
-    sourceEndLine: 672
+    sourceEndLine: 689
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 665
+    sourceLine: 682
   SYM-updateGitIgnore:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3617,9 +3635,9 @@ coordinates:
   SYM-validateKbUpsertArgs:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 504
+    sourceEndLine: 521
     sourceFile: packages/mcp/src/tools/upsert.ts
-    sourceLine: 457
+    sourceLine: 474
   SYM-validateSkillBundle:
     sourceColumn: 16
     sourceEndColumn: 1
@@ -3635,9 +3653,9 @@ coordinates:
   SYM-withDiagnosticTelemetrySchema:
     sourceColumn: 16
     sourceEndColumn: 1
-    sourceEndLine: 944
+    sourceEndLine: 946
     sourceFile: packages/mcp/src/tools-config.ts
-    sourceLine: 924
+    sourceLine: 926
   SYM-writeCoordinateArtifact:
     sourceColumn: 16
     sourceEndColumn: 1
