@@ -1300,6 +1300,95 @@ describe("MCP Check Tool Handler", () => {
     expect(violation).toBeDefined();
   }, 15000);
 
+  test("should flag requires_predicate edges pointing to observation facts", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PREDICATE-OBS-MCP-001",
+      properties: {
+        title: "Observation used as predicate",
+        status: "active",
+        source: "test://predicate-verifiability",
+        fact_kind: "observation",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PREDICATE-VERIFY-MCP-001",
+      properties: {
+        title: "Predicate verification requirement",
+        status: "open",
+        source: "test://predicate-verifiability",
+      },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-PREDICATE-VERIFY-MCP-001",
+          to: "FACT-PREDICATE-OBS-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["predicate-verifiability"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) =>
+        v.rule === "predicate-verifiability" &&
+        v.entityId === "REQ-PREDICATE-VERIFY-MCP-001",
+    );
+
+    expect(violation).toBeDefined();
+    expect(violation?.description).toContain("requires_predicate");
+    expect(violation?.description).toContain("fact_kind=observation");
+    expect(violation?.suggestion).toContain("fact_kind: predicate");
+  }, 15000);
+
+  test("should pass requires_predicate edges pointing to predicate facts", async () => {
+    await handleKbUpsert(prolog, {
+      type: "fact",
+      id: "FACT-PREDICATE-GROUND-MCP-001",
+      properties: {
+        title: "Ground predicate fact",
+        status: "active",
+        source: "test://predicate-verifiability",
+        fact_kind: "predicate",
+        predicate_name: "commit_action",
+        predicate_args: ["editor.annotation", "navigation", "draft"],
+        canonical_key: "commit_action(editor.annotation,navigation,draft)",
+        polarity: "assert",
+      },
+    });
+
+    await handleKbUpsert(prolog, {
+      type: "req",
+      id: "REQ-PREDICATE-VERIFY-MCP-002",
+      properties: {
+        title: "Predicate verification requirement",
+        status: "open",
+        source: "test://predicate-verifiability",
+      },
+      relationships: [
+        {
+          type: "requires_predicate",
+          from: "REQ-PREDICATE-VERIFY-MCP-002",
+          to: "FACT-PREDICATE-GROUND-MCP-001",
+        },
+      ],
+    });
+
+    const result = await handleKbCheck(prolog, {
+      rules: ["predicate-verifiability"],
+    });
+
+    const violation = result.structuredContent?.violations.find(
+      (v) => v.entityId === "REQ-PREDICATE-VERIFY-MCP-002",
+    );
+
+    expect(violation).toBeUndefined();
+  }, 15000);
+
   test("should report domain-contradictions when a closed requirement is still current", async () => {
     await handleKbUpsert(prolog, {
       type: "fact",

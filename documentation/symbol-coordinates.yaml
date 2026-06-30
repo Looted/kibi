@@ -1856,12 +1856,66 @@ coordinates:
     sourceEndLine: 38
     sourceFile: packages/cli/src/utils/prolog-query-plan-safety.ts
     sourceLine: 11
-  SYM-cli-collectQueryPlanSafetyViolations:
-    sourceColumn: 9
+  SYM-cli-rule-registry-ChecksConfig:
+    sourceColumn: 17
     sourceEndColumn: 1
-    sourceEndLine: 103
-    sourceFile: packages/cli/src/commands/check.ts
-    sourceLine: 93
+    sourceEndLine: 47
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 44
+  SYM-cli-rule-registry-DEFAULT_CHECKS_CONFIG:
+    sourceColumn: 13
+    sourceEndColumn: 1
+    sourceEndLine: 158
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 153
+  SYM-cli-rule-registry-RULES:
+    sourceColumn: 13
+    sourceEndColumn: 10
+    sourceEndLine: 143
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 53
+  SYM-cli-rule-registry-RULE_NAMES:
+    sourceColumn: 13
+    sourceEndColumn: 59
+    sourceEndLine: 148
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 148
+  SYM-cli-rule-registry-RuleDefinition:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 29
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 24
+  SYM-cli-rule-registry-SymbolTraceabilityOptions:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 33
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 31
+  SYM-cli-rule-registry-Violation:
+    sourceColumn: 17
+    sourceEndColumn: 1
+    sourceEndLine: 42
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 36
+  SYM-cli-rule-registry-getEffectiveRules:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 192
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 167
+  SYM-cli-rule-registry-mergeChecksConfig:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 221
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 208
+  SYM-cli-rule-registry-validateRuleName:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 203
+    sourceFile: packages/cli/src/utils/rule-registry.ts
+    sourceLine: 198
   SYM-cli-impact-ChangedFileImpactOptions:
     sourceColumn: 12
     sourceEndColumn: 2
@@ -3134,6 +3188,12 @@ coordinates:
     sourceEndLine: 71
     sourceFile: packages/mcp/src/tools/check-prolog.ts
     sourceLine: 24
+  SYM-mcp-collectQueryPlanSafetyViolations:
+    sourceColumn: 16
+    sourceEndColumn: 1
+    sourceEndLine: 19
+    sourceFile: packages/mcp/src/tools/query-plan-safety.ts
+    sourceLine: 8
   SYM-mcp-sameBranchKbStamp:
     sourceColumn: 16
     sourceEndColumn: 1

@@ -16,7 +16,7 @@
  along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import * as path from "node:path";
 import { getBranchOverride, isCliTraceOrDebugEnabled } from "../env.js";
 import {
@@ -27,7 +27,7 @@ import {
   type ExtractionResult,
   extractFromMarkdownString,
 } from "../extractors/markdown.js";
-import { PrologProcess } from "../prolog.js";
+import { PrologProcess, resolveKbPlPath } from "../prolog.js";
 import {
   escapeAtom,
   parseTriples,
@@ -78,6 +78,7 @@ import {
 } from "../traceability/validate.js";
 import { loadConfig } from "../utils/config.js";
 import { safeCleanupProlog } from "../utils/prolog-cleanup.js";
+import { analyzePrologQueryPlanSafety } from "../utils/prolog-query-plan-safety.js";
 import {
   type ChecksConfig,
   RULES,
@@ -88,6 +89,18 @@ import {
 export type { Violation };
 import { runAggregatedChecks } from "./aggregated-checks.js";
 import { getCurrentBranch } from "./init-helpers.js";
+
+function collectQueryPlanSafetyViolations(): Violation[] {
+  const checksPlPath = path.join(path.dirname(resolveKbPlPath()), "checks.pl");
+  const source = readFileSync(checksPlPath, "utf8");
+  return analyzePrologQueryPlanSafety(source).map((violation) => ({
+    rule: "query-plan-safety",
+    entityId: violation.predicate,
+    description: violation.description,
+    suggestion: violation.suggestion,
+    source: `${checksPlPath}:${violation.line}`,
+  }));
+}
 
 export interface CheckOptions {
   fix?: boolean;
@@ -773,6 +786,7 @@ export async function checkCommand(
       "strict-fact-shape",
       "strict-req-fact-pairing",
       "strict-readiness",
+      "query-plan-safety",
     ];
 
     const canUseAggregated = Array.from(effectiveRules).every((r) =>
@@ -813,6 +827,9 @@ export async function checkCommand(
       await runCheck("strict-fact-shape", checkStrictFactShape);
       await runCheck("strict-req-fact-pairing", checkStrictReqFactPairing);
       await runCheck("strict-readiness", checkStrictReadiness);
+    }
+    if (effectiveRules.has("query-plan-safety")) {
+      violations.push(...collectQueryPlanSafetyViolations());
     }
     if (violations.length === 0) {
       console.log("✓ No violations found. KB is valid.");

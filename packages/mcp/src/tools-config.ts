@@ -675,10 +675,12 @@ const BASE_TOOLS = [
               "domain-contradictions",
               "strict-fact-shape",
               "strict-req-fact-pairing",
+              "predicate-verifiability",
+              "query-plan-safety",
             ],
           },
           description:
-            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing. If omitted, server runs all.",
+            "Optional rule subset. Allowed: must-priority-coverage, symbol-coverage, symbol-traceability, no-dangling-refs, no-cycles, required-fields, deprecated-adr-no-successor, domain-contradictions, strict-fact-shape, strict-req-fact-pairing, predicate-verifiability, query-plan-safety. If omitted, server runs all.",
         },
         sourceFiles: {
           type: "array",

@@ -204,11 +204,39 @@ export async function persistEntities(
       kbModified = true;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to upsert entity ${entity.id}: ${message}`);
+      throw new Error(
+        `Failed to upsert entity ${entity.id}: ${message}${semanticEntityContext(entity, sourceFile ?? entity.source)}`,
+      );
     }
   }
 
   return { entityCount, kbModified };
+}
+
+function semanticEntityContext(
+  entity: ExtractedEntity,
+  sourceFile: string,
+): string {
+  const displaySource = path.isAbsolute(sourceFile)
+    ? path.relative(process.cwd(), sourceFile)
+    : sourceFile;
+  const details = [`source=${displaySource}`];
+  if (entity.type === "fact") {
+    const factKind = getEntityField(entity, "fact_kind");
+    if (factKind !== undefined && factKind !== null) {
+      details.push(`fact_kind=${String(factKind)}`);
+    }
+    if (
+      factKind === "property_value" &&
+      getEntityField(entity, "value_string") === undefined &&
+      getEntityField(entity, "value_int") === undefined &&
+      getEntityField(entity, "value_number") === undefined &&
+      getEntityField(entity, "value_bool") === undefined
+    ) {
+      details.push("missing value field");
+    }
+  }
+  return ` (${details.join("; ")})`;
 }
 
 // implements REQ-core-persistence
