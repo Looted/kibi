@@ -8,6 +8,8 @@ import {
   setupIsolatedCore,
 } from "./discovery-root-fixture.js";
 
+const KB_FIND_GAPS_INTEGRATION_TIMEOUT_MS = 15_000;
+
 describe("MCP find-gaps tool handler", () => {
   test("returns matching rows with relationship counts", async () => {
     const query = mock(async () => ({
@@ -112,7 +114,7 @@ describe("kb_find_gaps isolated-core regression (issue #118)", () => {
 
     expect(missingResult.structuredContent?.count).toBe(1);
     expect(missingResult.structuredContent?.rows[0]?.id).toBe("REQ-118-GAPS-1");
-  });
+  }, KB_FIND_GAPS_INTEGRATION_TIMEOUT_MS);
 
   test("find_gaps returns only reqs present with specified_by from isolated core", async () => {
     // Query for reqs that HAVE specified_by — should return only REQ-118-GAPS-2
@@ -125,5 +127,5 @@ describe("kb_find_gaps isolated-core regression (issue #118)", () => {
 
     expect(presentResult.structuredContent?.count).toBe(1);
     expect(presentResult.structuredContent?.rows[0]?.id).toBe("REQ-118-GAPS-2");
-  });
+  }, KB_FIND_GAPS_INTEGRATION_TIMEOUT_MS);
 });

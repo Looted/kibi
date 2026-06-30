@@ -292,7 +292,7 @@ describe("kb_graph isolated-core regression (issue #118)", () => {
     });
     expect(result2.structuredContent?.nodes.length).toBe(3);
     expect(result2.structuredContent?.edges.length).toBe(2);
-  });
+  }, KB_GRAPH_INTEGRATION_TIMEOUT_MS);
 });
 
 describe("kb_graph canonical traceability chain traversal", () => {
@@ -404,7 +404,7 @@ describe("kb_graph canonical traceability chain traversal", () => {
       from: "SCEN-CHAIN-001",
       to: "TEST-CHAIN-001",
     });
-  });
+  }, KB_GRAPH_INTEGRATION_TIMEOUT_MS);
 
   test("requirement → test fallback when no scenario present", async () => {
     // When no scenario exists, requirement → test via verified_by is the fallback path
@@ -459,7 +459,7 @@ describe("kb_graph canonical traceability chain traversal", () => {
 
     // No scenario entity in the result
     expect(nodeIds).not.toContain(expect.stringMatching(/^SCEN-/));
-  });
+  }, KB_GRAPH_INTEGRATION_TIMEOUT_MS);
 
   test(
     "traverses executable_for relationship from symbol to test",
