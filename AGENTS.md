@@ -16,7 +16,7 @@ If this file and MCP schema details diverge, follow MCP schema and update this f
 - Do **not** manually read or edit `.kb/` files.
 - CLI-only Kibi operations, including sync/refresh workflows that do not have MCP tool equivalents, may be run from agent sessions when needed to complete validation or freshness work.
 - If KB setup/repair is needed beyond `/init-kibi`, ask the user/operator to run those steps.
-- **Pre-existing test failures must always be fixed.** Never ship past broken tests. If a test was failing before your changes, diagnose and fix it as part of your work. Skipping or bypassing pre-existing failures is not acceptable.
+- **Pre-existing issues must always be fixed before handoff.** Never ship past broken tests, validation failures, stale KB state, diagnostics, or other known defects. If an issue existed before your changes, diagnose and fix it as part of your work unless the user explicitly narrows scope and accepts the risk. Skipping or bypassing pre-existing issues is not acceptable.
 
 ## Required Kibi Workflow (Current Standard)
 
